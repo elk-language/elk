@@ -1,0 +1,6 @@
+##[
+  Contains the definitions of all
+  Elk AST (Abstract Syntax Tree) node types.
+]##
+module ::Std::Elk::AST
+end

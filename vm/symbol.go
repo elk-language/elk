@@ -15,7 +15,7 @@ func initSymbol() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustSymbol()
 			other := args[1]
-			return self.Equal(other), value.Undefined
+			return self.EqualVal(other), value.Undefined
 		},
 		DefWithParameters(1),
 	)

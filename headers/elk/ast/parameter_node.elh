@@ -1,0 +1,51 @@
+module ::Std::Elk::AST
+	##[
+		All nodes that should be valid in parameter declaration lists
+		of methods or functions should implement this interface.
+	]##
+	abstract mixin ParameterNode
+		include Node
+
+		##[
+			The default parameter kind
+			eg. `foo: String`
+		]##
+		const NORMAL_KIND: UInt8 = 0u8
+
+		##[
+			Positional rest parameter kind
+			eg. `*foo: String`
+		]##
+		const POSITIONAL_REST_KIND: UInt8 = 1u8
+
+		##[
+			Named rest parameter kind
+			eg. `**foo: String`
+		]##
+		const NAMED_REST_KIND: UInt8 = 2u8
+
+		##[
+			Whether the parameter is optional (has a default value).
+			eg. `foo: String = "lol"`
+		]##
+		sig is_optional: bool
+
+		##[
+			Whether the parameter is normal
+			(not a positional rest parameter, not a named rest parameter).
+
+			eg. `foo: String`
+		]##
+		sig is_normal: bool
+
+		##[
+			Whether it's a positional rest parameter eg `*foo: String`
+		]##
+		sig is_positional_rest: bool
+
+		##[
+			Whether it's a named rest parameter eg `**foo: String`
+		]##
+		sig is_named_rest: bool
+	end
+end

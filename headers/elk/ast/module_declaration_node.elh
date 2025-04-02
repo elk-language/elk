@@ -1,0 +1,20 @@
+module Std::Elk::AST
+  ##[
+    Represents a module declaration eg. `module Foo; end`
+  ]##
+  sealed primitive class ModuleDeclarationNode
+    include ExpressionNode
+
+    init(
+      constant: ExpressionNode,
+      body: ArrayTuple[StatementNode] = loop; end,
+      doc_comment: String = "",
+      span: String::Span = loop; end,
+    ); end
+
+    def doc_comment: String; end
+    def constant: ExpressionNode?; end
+    def body: ArrayTuple[StatementNode]; end
+    def span: String::Span; end
+  end
+end

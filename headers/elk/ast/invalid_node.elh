@@ -1,0 +1,37 @@
+module Std::Elk::AST
+  ##[
+    Represents a syntax error.
+  ]##
+  sealed primitive class InvalidNode
+    include StatementNode,
+            ExpressionNode,
+            StructBodyStatementNode,
+            ParameterNode,
+            TypeNode,
+            PatternNode,
+            UsingEntryNode,
+            UsingSubentryNode,
+            NamedArgumentNode,
+            ComplexConstantNode,
+            ConstantNode,
+            WordCollectionContentNode,
+            SymbolCollectionContentNode,
+            IntCollectionContentNode,
+            IdentifierNode,
+            RegexLiteralContentNode,
+            RegexLiteralNode,
+            StringLiteralContentNode,
+            StringLiteralNode,
+            SimpleStringLiteralNode,
+            SymbolLiteralNode,
+            TypeParameterNode
+
+    init(token: Elk::Token, span: String::Span = loop; end); end
+    def token: Elk::Token; end
+    def span: String::Span; end
+    def is_optional: bool; end
+    def is_normal: bool; end
+    def is_positional_rest: bool; end
+    def is_named_rest: bool; end
+  end
+end

@@ -526,9 +526,9 @@ func (f *BigFloat) FloorBigFloat() *BigFloat {
 	return ToElkBigFloat(floorBigFloat(result, f.AsGoBigFloat()))
 }
 
-// Add another value and return an error
+// AddVal another value and return an error
 // if something went wrong.
-func (f *BigFloat) Add(other Value) (Value, Value) {
+func (f *BigFloat) AddVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -559,9 +559,9 @@ func (f *BigFloat) Add(other Value) (Value, Value) {
 	}
 }
 
-// Subtract another value and return an error
+// SubtractVal another value and return an error
 // if something went wrong.
-func (f *BigFloat) Subtract(other Value) (Value, Value) {
+func (f *BigFloat) SubtractVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -592,9 +592,9 @@ func (f *BigFloat) Subtract(other Value) (Value, Value) {
 	}
 }
 
-// Multiply by another value and return an error
+// MultiplyVal by another value and return an error
 // if something went wrong.
-func (f *BigFloat) Multiply(other Value) (Value, Value) {
+func (f *BigFloat) MultiplyVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -625,9 +625,9 @@ func (f *BigFloat) Multiply(other Value) (Value, Value) {
 	}
 }
 
-// Divide by another value and return an error
+// DivideVal by another value and return an error
 // if something went wrong.
-func (f *BigFloat) Divide(other Value) (Value, Value) {
+func (f *BigFloat) DivideVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -726,9 +726,9 @@ func (z *BigFloat) ExpBigFloat(x, y *BigFloat) *BigFloat {
 	return z
 }
 
-// Exponentiate by another value and return an error
+// ExponentiateVal by another value and return an error
 // if something went wrong.
-func (f *BigFloat) Exponentiate(other Value) (Value, Value) {
+func (f *BigFloat) ExponentiateVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -763,7 +763,7 @@ func (f *BigFloat) Exponentiate(other Value) (Value, Value) {
 
 // Perform modulo by another numeric value and return an error
 // if something went wrong.
-func (f *BigFloat) Modulo(other Value) (Value, Value) {
+func (f *BigFloat) ModuloVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -796,7 +796,7 @@ func (f *BigFloat) Modulo(other Value) (Value, Value) {
 // Returns 0 if both are equal.
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
-func (f *BigFloat) Compare(other Value) (Value, Value) {
+func (f *BigFloat) CompareVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -836,14 +836,14 @@ func (f *BigFloat) Compare(other Value) (Value, Value) {
 
 // Check whether f is greater than other and return an error
 // if something went wrong.
-func (f *BigFloat) GreaterThan(other Value) (Value, Value) {
-	result, err := f.GreaterThanBool(other)
+func (f *BigFloat) GreaterThanVal(other Value) (Value, Value) {
+	result, err := f.GreaterThan(other)
 	return ToElkBool(result), err
 }
 
 // Check whether f is greater than other and return an error
 // if something went wrong.
-func (f *BigFloat) GreaterThanBool(other Value) (bool, Value) {
+func (f *BigFloat) GreaterThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -886,14 +886,14 @@ func (f *BigFloat) GreaterThanBool(other Value) (bool, Value) {
 
 // Check whether f is greater than or equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) GreaterThanEqual(other Value) (Value, Value) {
-	result, err := f.GreaterThanEqualBool(other)
+func (f *BigFloat) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := f.GreaterThanEqual(other)
 	return ToElkBool(result), err
 }
 
 // Check whether f is greater than or equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) GreaterThanEqualBool(other Value) (bool, Value) {
+func (f *BigFloat) GreaterThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -936,14 +936,14 @@ func (f *BigFloat) GreaterThanEqualBool(other Value) (bool, Value) {
 
 // Check whether f is less than other and return an error
 // if something went wrong.
-func (f *BigFloat) LessThan(other Value) (Value, Value) {
-	result, err := f.LessThanBool(other)
+func (f *BigFloat) LessThanVal(other Value) (Value, Value) {
+	result, err := f.LessThan(other)
 	return ToElkBool(result), err
 }
 
 // Check whether f is less than other and return an error
 // if something went wrong.
-func (f *BigFloat) LessThanBool(other Value) (bool, Value) {
+func (f *BigFloat) LessThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -986,7 +986,7 @@ func (f *BigFloat) LessThanBool(other Value) (bool, Value) {
 
 // Check whether f is less than or equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) LessThanEqualBool(other Value) (bool, Value) {
+func (f *BigFloat) LessThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
@@ -1029,14 +1029,14 @@ func (f *BigFloat) LessThanEqualBool(other Value) (bool, Value) {
 
 // Check whether f is less than or equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) LessThanEqual(other Value) (Value, Value) {
-	result, err := f.LessThanEqualBool(other)
+func (f *BigFloat) LessThanEqualVal(other Value) (Value, Value) {
+	result, err := f.LessThanEqual(other)
 	return ToElkBool(result), err
 }
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) LaxEqual(other Value) Value {
+func (f *BigFloat) LaxEqualVal(other Value) Value {
 	return ToElkBool(f.LaxEqualBool(other))
 }
 
@@ -1179,13 +1179,13 @@ func (f *BigFloat) LaxEqualBool(other Value) bool {
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) Equal(other Value) Value {
-	return ToElkBool(f.EqualBool(other))
+func (f *BigFloat) EqualVal(other Value) Value {
+	return ToElkBool(f.Equal(other))
 }
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) EqualBool(other Value) bool {
+func (f *BigFloat) Equal(other Value) bool {
 	if other.IsFloat() {
 		o := other.AsFloat()
 		if f.IsNaN() || o.IsNaN() {
@@ -1201,8 +1201,8 @@ func (f *BigFloat) EqualBool(other Value) bool {
 
 // Check whether f is strictly equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) StrictEqual(other Value) Value {
-	return f.Equal(other)
+func (f *BigFloat) StrictEqualVal(other Value) Value {
+	return f.EqualVal(other)
 }
 
 func initBigFloat() {

@@ -112,6 +112,6 @@ func (NilType) Hash() UInt64 {
 }
 
 func initNil() {
-	NilClass = NewClass()
+	NilClass = NewClassWithOptions(ClassWithParent(ValueClass))
 	StdModule.AddConstantString("Nil", Ref(NilClass))
 }

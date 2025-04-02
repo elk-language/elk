@@ -1,0 +1,18 @@
+module Std::Elk::AST
+  ##[
+    Represents a `continue` expression eg. `continue`, `continue "foo"`
+  ]##
+  sealed primitive class ContinueExpressionNode
+    include ExpressionNode
+
+    init(
+      label: String,
+      value: ExpressionNode? = nil,
+      span: String::Span = loop; end,
+    ); end
+
+    def label: String; end
+    def value: ExpressionNode?; end
+    def span: String::Span; end
+  end
+end

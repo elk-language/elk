@@ -3,7 +3,7 @@ package vm_test
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
 )
 
@@ -41,9 +41,9 @@ func TestVMSource_DefineSingleton(t *testing.T) {
 					end
 				end
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(21, 3, 6), P(62, 5, 8)), "singleton definitions cannot appear in this context"),
-				error.NewFailure(L(P(37, 4, 7), P(53, 4, 23)), "method definitions cannot appear in this context"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(21, 3, 6), P(62, 5, 8)), "singleton definitions cannot appear in this context"),
+				diagnostic.NewFailure(L(P(37, 4, 7), P(53, 4, 23)), "method definitions cannot appear in this context"),
 			},
 		},
 		"define singleton methods on an interface": {
@@ -126,8 +126,8 @@ func TestVMSource_DefineMixin(t *testing.T) {
 				const Foo = 3
 				mixin Foo; end
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "cannot redeclare constant `Foo`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "cannot redeclare constant `Foo`"),
 			},
 		},
 		"redefined class as mixin": {
@@ -135,8 +135,8 @@ func TestVMSource_DefineMixin(t *testing.T) {
 				class Foo; end
 				mixin Foo; end
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(24, 3, 5), P(37, 3, 18)), "cannot redeclare constant `Foo`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(24, 3, 5), P(37, 3, 18)), "cannot redeclare constant `Foo`"),
 			},
 		},
 	}
@@ -207,8 +207,8 @@ func TestVMSource_DefineInterface(t *testing.T) {
 				const Foo = 3
 				interface Foo; end
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "cannot redeclare constant `Foo`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "cannot redeclare constant `Foo`"),
 			},
 		},
 		"redefined class as interface": {
@@ -216,8 +216,8 @@ func TestVMSource_DefineInterface(t *testing.T) {
 				class Foo; end
 				interface Foo; end
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(24, 3, 5), P(41, 3, 22)), "cannot redeclare constant `Foo`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(24, 3, 5), P(41, 3, 22)), "cannot redeclare constant `Foo`"),
 			},
 		},
 	}
@@ -376,8 +376,8 @@ func TestVMSource_DefineClass(t *testing.T) {
 					const SECOND_CONSTANT = "całe te"
 				end
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(104, 8, 17), P(115, 8, 28)), "superclass mismatch in `Bar`, got `Std::Error`, expected `Foo`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(104, 8, 17), P(115, 8, 28)), "superclass mismatch in `Bar`, got `Std::Error`, expected `Foo`"),
 			},
 		},
 		"incorrect superclass": {
@@ -385,8 +385,8 @@ func TestVMSource_DefineClass(t *testing.T) {
 				const A = 3
 				class Foo < ::A; end
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(35, 3, 19), P(35, 3, 19)), "undefined type `A`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(35, 3, 19), P(35, 3, 19)), "undefined type `A`"),
 			},
 		},
 		"redefined constant": {
@@ -394,8 +394,8 @@ func TestVMSource_DefineClass(t *testing.T) {
 				const Foo = 3
 				class Foo; end
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "cannot redeclare constant `Foo`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "cannot redeclare constant `Foo`"),
 			},
 		},
 	}
@@ -467,8 +467,8 @@ func TestVMSource_DefineModule(t *testing.T) {
 				const Foo = 3
 				module Foo; end
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "cannot redeclare constant `Foo`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "cannot redeclare constant `Foo`"),
 			},
 		},
 		"redefined class as module": {
@@ -476,8 +476,8 @@ func TestVMSource_DefineModule(t *testing.T) {
 				class Foo; end
 				module Foo; end
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(24, 3, 5), P(38, 3, 19)), "cannot redeclare constant `Foo`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(24, 3, 5), P(38, 3, 19)), "cannot redeclare constant `Foo`"),
 			},
 		},
 	}

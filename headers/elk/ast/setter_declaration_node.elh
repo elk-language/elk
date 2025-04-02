@@ -1,0 +1,18 @@
+module Std::Elk::AST
+  ##[
+    Represents a new setter declaration eg. `setter foo: String`
+  ]##
+  sealed primitive class SetterDeclarationNode
+    include ExpressionNode
+
+    init(
+      entries: ArrayTuple[ParameterNode],
+      doc_comment: String = "",
+      span: String::Span = loop; end,
+    ); end
+
+    def doc_comment: String; end
+    def entries: ArrayTuple[ParameterNode]; end
+    def span: String::Span; end
+  end
+end

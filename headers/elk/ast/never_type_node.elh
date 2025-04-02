@@ -1,0 +1,11 @@
+module Std::Elk::AST
+  ##[
+    `never` type.
+  ]##
+  sealed primitive class NeverTypeNode
+    include TypeNode
+
+    init(span: String::Span = loop; end); end
+    def span: String::Span; end
+  end
+end

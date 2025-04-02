@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+
+	"github.com/elk-language/elk/indent"
 )
 
 const HashSetMaxLoad = 0.75
@@ -48,38 +50,72 @@ func (h *HashSet) Error() string {
 	return h.Inspect()
 }
 
-const MAX_HASH_SET_ELEMENTS_IN_INSPECT = 50
+const MAX_HASH_SET_ELEMENTS_IN_INSPECT = 300
 
 func (h *HashSet) Inspect() string {
-	var buffer strings.Builder
-	buffer.WriteString("^[")
+	var hasMultilineElements bool
+	elementStrings := make(
+		[]string,
+		0,
+		min(MAX_HASH_SET_ELEMENTS_IN_INSPECT, h.Length()),
+	)
 
-	first := true
-	i := 0
-	for _, entry := range h.Table {
-		if entry.IsUndefined() {
+	var i int
+	for _, element := range h.Table {
+		if element.IsUndefined() {
 			continue
 		}
-		if first {
-			first = false
-		} else {
-			buffer.WriteString(", ")
-		}
-		buffer.WriteString(entry.Inspect())
 
-		if i >= MAX_HASH_SET_ELEMENTS_IN_INSPECT-1 {
-			buffer.WriteString(", ...")
+		elementString := element.Inspect()
+		elementStrings = append(elementStrings, elementString)
+		if strings.ContainsRune(elementString, '\n') {
+			hasMultilineElements = true
+		}
+
+		if i >= MAX_ARRAY_TUPLE_ELEMENTS_IN_INSPECT-1 {
 			break
 		}
 		i++
 	}
-	buffer.WriteRune(']')
+
+	var buff strings.Builder
+	buff.WriteString("^[")
+	if hasMultilineElements || h.Length() > 15 {
+		buff.WriteRune('\n')
+		for i, elementString := range elementStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+
+			indent.IndentString(&buff, elementString, 1)
+
+			if i >= MAX_ARRAY_TUPLE_ELEMENTS_IN_INSPECT-1 {
+				buff.WriteString(",\n  ...")
+				break
+			}
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, elementString := range elementStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+
+			buff.WriteString(elementString)
+
+			if i >= MAX_ARRAY_TUPLE_ELEMENTS_IN_INSPECT-1 {
+				buff.WriteString(", ...")
+				break
+			}
+		}
+	}
+	buff.WriteRune(']')
 
 	leftCapacity := h.LeftCapacity()
 	if leftCapacity > 0 {
-		fmt.Fprintf(&buffer, ":%d", leftCapacity)
+		fmt.Fprintf(&buff, ":%d", leftCapacity)
 	}
-	return buffer.String()
+	return buff.String()
 }
 
 func (*HashSet) InstanceVariables() SymbolMap {

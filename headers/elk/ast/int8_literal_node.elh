@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Int8 literal eg. `5i8`, `1_20i8`, `0xffi8`
+  ]##
+  sealed primitive class Int8LiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode
+
+    init(value: String, span: String::Span = loop; end); end
+    def value: String; end
+    def span: String::Span; end
+  end
+end

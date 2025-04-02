@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/parser/ast"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
 )
 
@@ -160,8 +160,8 @@ func TestPipeExpression(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 1, 6), P(13, 1, 14)), "invalid right hand side of a pipe expression, only method and function calls are allowed"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(5, 1, 6), P(13, 1, 14)), "invalid right hand side of a pipe expression, only method and function calls are allowed"),
 			},
 		},
 		"can be chained": {
@@ -259,7 +259,7 @@ func TestConstructorCall(t *testing.T) {
 							S(P(0, 1, 1), P(21, 1, 22)),
 							ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo"),
 							[]ast.TypeNode{
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(6, 1, 7), P(10, 1, 11)),
 									T(S(P(8, 1, 9), P(8, 1, 9)), token.OR),
 									ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "1"),
@@ -285,7 +285,7 @@ func TestConstructorCall(t *testing.T) {
 							S(P(0, 1, 1), P(22, 1, 23)),
 							ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo"),
 							[]ast.TypeNode{
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(6, 1, 7), P(10, 1, 11)),
 									T(S(P(8, 1, 9), P(8, 1, 9)), token.OR),
 									ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "1"),
@@ -313,7 +313,7 @@ func TestConstructorCall(t *testing.T) {
 							S(P(0, 1, 1), P(21, 1, 22)),
 							ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo"),
 							[]ast.TypeNode{
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(6, 1, 7), P(10, 1, 11)),
 									T(S(P(8, 1, 9), P(8, 1, 9)), token.OR),
 									ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "1"),
@@ -341,8 +341,8 @@ func TestConstructorCall(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(19, 1, 20)), "invalid generic constant"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(19, 1, 20)), "invalid generic constant"),
 			},
 		},
 		"can have multiline type arguments": {
@@ -364,7 +364,7 @@ func TestConstructorCall(t *testing.T) {
 							S(P(5, 2, 5), P(43, 5, 7)),
 							ast.NewPublicConstantNode(S(P(5, 2, 5), P(7, 2, 7)), "Foo"),
 							[]ast.TypeNode{
-								ast.NewBinaryTypeExpressionNode(
+								ast.NewBinaryTypeNode(
 									S(P(17, 3, 6), P(21, 3, 10)),
 									T(S(P(19, 3, 8), P(19, 3, 8)), token.OR),
 									ast.NewIntLiteralNode(S(P(17, 3, 6), P(17, 3, 6)), "1"),
@@ -598,8 +598,8 @@ func TestConstructorCall(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 2, 4), P(7, 2, 4)), "unexpected ,, expected )"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(7, 2, 4), P(7, 2, 4)), "unexpected ,, expected )"),
 			},
 		},
 		"can have positional arguments without parentheses": {
@@ -730,8 +730,8 @@ func TestConstructorCall(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 2, 3), P(6, 2, 3)), "unexpected ,, expected a statement separator `\\n`, `;`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 2, 3), P(6, 2, 3)), "unexpected ,, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -1775,8 +1775,8 @@ func TestMethodCall(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "unexpected PRIVATE_IDENTIFIER, expected a public method name (public identifier, keyword or overridable operator)"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "unexpected PRIVATE_IDENTIFIER, expected a public method name (public identifier, keyword or overridable operator)"),
 			},
 		},
 		"can have an overridable operator as the method name with an explicit receiver": {
@@ -1816,8 +1816,8 @@ func TestMethodCall(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(5, 1, 6)), "unexpected &&, expected a public method name (public identifier, keyword or overridable operator)"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(5, 1, 6)), "unexpected &&, expected a public method name (public identifier, keyword or overridable operator)"),
 			},
 		},
 		"can call a private method on self": {
@@ -2094,8 +2094,8 @@ func TestMethodCall(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 2, 4), P(7, 2, 4)), "unexpected ,, expected )"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(7, 2, 4), P(7, 2, 4)), "unexpected ,, expected )"),
 			},
 		},
 		"can have positional arguments without parentheses": {
@@ -2226,8 +2226,8 @@ func TestMethodCall(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 2, 3), P(6, 2, 3)), "unexpected ,, expected a statement separator `\\n`, `;`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 2, 3), P(6, 2, 3)), "unexpected ,, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}

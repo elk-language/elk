@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a type expression `type String?`
+  ]##
+  sealed primitive class TypeExpressionNode
+    include ExpressionNode
+
+    init(type_node: TypeNode, span: String::Span = loop; end); end
+    def type_node: TypeNode; end
+    def span: String::Span; end
+  end
+end

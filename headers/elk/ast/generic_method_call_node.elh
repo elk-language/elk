@@ -1,0 +1,26 @@
+module Std::Elk::AST
+  ##[
+    Represents a method call eg. `foo.bar::[String](a)`
+  ]##
+  sealed primitive class GenericMethodCallNode
+    include ExpressionNode
+
+    init(
+      receiver: ExpressionNode,
+      method_name: String,
+      type_arguments: ArrayTuple[TypeNode],
+      op: Elk::Token = loop; end,
+      positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
+      named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
+    def receiver: ExpressionNode; end
+    def op: Elk::Token; end
+    def method_name: String; end
+    def type_arguments: ArrayTuple[TypeNode]; end
+    def positional_arguments: ArrayTuple[ExpressionNode]; end
+    def named_arguments: ArrayTuple[NamedArgumentNode]; end
+    def span: String::Span; end
+  end
+end

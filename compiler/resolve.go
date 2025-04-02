@@ -480,7 +480,7 @@ func resolveNilSafeSubscript(node *ast.NilSafeSubscriptExpressionNode) value.Val
 		return value.Nil
 	}
 
-	result, err := value.Subscript(receiver, key)
+	result, err := value.SubscriptVal(receiver, key)
 	if !err.IsUndefined() {
 		return value.Undefined
 	}
@@ -492,7 +492,7 @@ func resolveSubscript(node *ast.SubscriptExpressionNode) value.Value {
 	receiver := resolve(node.Receiver)
 	key := resolve(node.Key)
 
-	result, err := value.Subscript(receiver, key)
+	result, err := value.SubscriptVal(receiver, key)
 	if !err.IsUndefined() {
 		return value.Undefined
 	}
@@ -508,19 +508,19 @@ func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
 
 	switch node.Op.Type {
 	case token.TILDE:
-		result := value.BitwiseNot(right)
+		result := value.BitwiseNotVal(right)
 		if result.IsUndefined() {
 			return value.Undefined
 		}
 		return result
 	case token.PLUS:
-		result := value.UnaryPlus(right)
+		result := value.UnaryPlusVal(right)
 		if result.IsUndefined() {
 			return value.Undefined
 		}
 		return result
 	case token.MINUS:
-		result := value.Negate(right)
+		result := value.NegateVal(right)
 		if result.IsUndefined() {
 			return value.Undefined
 		}
@@ -553,53 +553,53 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) value.Value {
 
 	switch node.Op.Type {
 	case token.PLUS:
-		result, err = value.Add(left, right)
+		result, err = value.AddVal(left, right)
 	case token.MINUS:
-		result, err = value.Subtract(left, right)
+		result, err = value.SubtractVal(left, right)
 	case token.STAR:
-		result, err = value.Multiply(left, right)
+		result, err = value.MultiplyVal(left, right)
 	case token.SLASH:
-		result, err = value.Divide(left, right)
+		result, err = value.DivideVal(left, right)
 	case token.STAR_STAR:
-		result, err = value.Exponentiate(left, right)
+		result, err = value.ExponentiateVal(left, right)
 	case token.PERCENT:
-		result, err = value.Modulo(left, right)
+		result, err = value.ModuloVal(left, right)
 	case token.RBITSHIFT:
-		result, err = value.RightBitshift(left, right)
+		result, err = value.RightBitshiftVal(left, right)
 	case token.RTRIPLE_BITSHIFT:
-		result, err = value.LogicalRightBitshift(left, right)
+		result, err = value.LogicalRightBitshiftVal(left, right)
 	case token.LBITSHIFT:
-		result, err = value.LeftBitshift(left, right)
+		result, err = value.LeftBitshiftVal(left, right)
 	case token.LTRIPLE_BITSHIFT:
-		result, err = value.LogicalLeftBitshift(left, right)
+		result, err = value.LogicalLeftBitshiftVal(left, right)
 	case token.AND:
-		result, err = value.BitwiseAnd(left, right)
+		result, err = value.BitwiseAndVal(left, right)
 	case token.AND_TILDE:
-		result, err = value.BitwiseAndNot(left, right)
+		result, err = value.BitwiseAndNotVal(left, right)
 	case token.OR:
-		result, err = value.BitwiseOr(left, right)
+		result, err = value.BitwiseOrVal(left, right)
 	case token.XOR:
-		result, err = value.BitwiseXor(left, right)
+		result, err = value.BitwiseXorVal(left, right)
 	case token.EQUAL_EQUAL:
-		result = value.Equal(left, right)
+		result = value.EqualVal(left, right)
 	case token.LAX_EQUAL:
-		result = value.LaxEqual(left, right)
+		result = value.LaxEqualVal(left, right)
 	case token.LAX_NOT_EQUAL:
-		result = value.LaxNotEqual(left, right)
+		result = value.LaxNotEqualVal(left, right)
 	case token.NOT_EQUAL:
-		result = value.NotEqual(left, right)
+		result = value.NotEqualVal(left, right)
 	case token.STRICT_EQUAL:
-		result = value.StrictEqual(left, right)
+		result = value.StrictEqualVal(left, right)
 	case token.STRICT_NOT_EQUAL:
-		result = value.StrictNotEqual(left, right)
+		result = value.StrictNotEqualVal(left, right)
 	case token.GREATER:
-		result, err = value.GreaterThan(left, right)
+		result, err = value.GreaterThanVal(left, right)
 	case token.GREATER_EQUAL:
-		result, err = value.GreaterThanEqual(left, right)
+		result, err = value.GreaterThanEqualVal(left, right)
 	case token.LESS:
-		result, err = value.LessThan(left, right)
+		result, err = value.LessThanVal(left, right)
 	case token.LESS_EQUAL:
-		result, err = value.LessThanEqual(left, right)
+		result, err = value.LessThanEqualVal(left, right)
 	default:
 		return value.Undefined
 	}

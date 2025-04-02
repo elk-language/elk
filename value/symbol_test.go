@@ -54,7 +54,7 @@ func TestSymbolInspect(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.sym.Inspect()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

@@ -2,7 +2,13 @@ header:
 	go run ./cmd/headers/main.go -tags headers
 	go fmt ./types/headers.go
 
-fmt: header
+generate:
+	go generate ./...
+
+elkify:
+	go run ./cmd/elkify/main.go
+
+fmt: generate header
 	go fmt ./...
 
 vet:
@@ -15,19 +21,19 @@ test: header
 	go test ./... -timeout 10s
 
 repl: fmt
-	go run . repl
+	go run ./cmd/elk repl
 
 typecheck: fmt
-	go run . repl --typecheck
+	go run ./cmd/elk repl --typecheck
 
 disassemble: fmt
-	go run . repl --disassemble
+	go run ./cmd/elk repl --disassemble
 
 lex: fmt
-	go run . repl --lex
+	go run ./cmd/elk repl --lex
 
 parse: fmt
-	go run . repl --parse
+	go run ./cmd/elk repl --parse
 
 inspect: fmt
-	go run . repl --inspect-stack
+	go run ./cmd/elk repl --inspect-stack

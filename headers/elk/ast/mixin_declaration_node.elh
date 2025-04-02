@@ -1,0 +1,22 @@
+module Std::Elk::AST
+  ##[
+    Represents a mixin declaration eg. `mixin Foo; end`
+  ]##
+  sealed primitive class MixinDeclarationNode
+    init(
+      constant: ExpressionNode,
+      is_abstract: bool = false,
+      type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
+      body: ArrayTuple[StatementNode] = loop; end,
+      doc_comment: String = "",
+      span: String::Span = loop; end,
+    ); end
+
+    def doc_comment: String; end
+    def is_abstract: bool; end
+    def constant: ExpressionNode?; end
+    def type_parameters: ArrayTuple[TypeParameterNode]; end
+    def body: ArrayTuple[StatementNode]; end
+    def span: String::Span; end
+  end
+end

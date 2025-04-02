@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents an import statement eg. `import "./foo/bar.elk"`
+  ]##
+  sealed primitive class ImportStatementNode
+    include StatementNode
+
+    init(path: StringLiteralNode, span: String::Span = loop; end); end
+    def path: StringLiteralNode; end
+    def span: String::Span; end
+  end
+end

@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    UInt16 literal eg. `5u16`, `1_20u16`, `0xffu16`
+  ]##
+  sealed primitive class UInt16LiteralNod
+    include ExpressionNode,
+            TypeNode,
+            PatternNode
+
+    init(value: String, span: String::Span = loop; end); end
+    def value: String; end
+    def span: String::Span; end
+  end
+end

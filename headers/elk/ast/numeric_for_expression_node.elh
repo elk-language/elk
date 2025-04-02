@@ -1,0 +1,22 @@
+module Std::Elk::AST
+  ##[
+    Represents a numeric `for` expression eg. `fornum i := 0; i < 10; i += 1 then println(i)`
+  ]##
+  sealed primitive class NumericForExpressionNode
+    include ExpressionNode
+
+    init(
+      initialiser: ExpressionNode? = nil,
+      condition: ExpressionNode? = nil,
+      increment: ExpressionNode? = nil,
+      then_body: ArrayTuple[StatementNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
+    def initialiser: ExpressionNode?; end
+    def condition: ExpressionNode?; end
+    def increment: ExpressionNode?; end
+    def then_body: ArrayTuple[StatementNode]; end
+    def span: String::Span; end
+  end
+end

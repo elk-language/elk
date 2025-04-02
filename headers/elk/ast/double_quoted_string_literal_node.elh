@@ -1,0 +1,16 @@
+module Std::Elk::AST
+  ##[
+    Represents a simple double quoted string literal eg. `"foo baz"`
+  ]##
+  sealed primitive class DoubleQuotedStringLiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode,
+            StringLiteralNode,
+            SimpleStringLiteralNode
+
+    init(value: String, span: String::Span = loop; end); end
+    def value: String; end
+    def span: String::Span; end
+  end
+end

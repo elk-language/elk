@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    UInt64 literal eg. `5u64`, `125_355u64`, `0xffu64`
+  ]##
+  sealed primitive class UInt64LiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode
+
+    init(value: String, span: String::Span = loop; end); end
+    def value: String; end
+    def span: String::Span; end
+  end
+end

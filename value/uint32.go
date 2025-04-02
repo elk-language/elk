@@ -161,7 +161,7 @@ func (i UInt32) BitwiseXor(other Value) (UInt32, Value) {
 	return i ^ o, Undefined
 }
 
-func (i UInt32) Exponentiate(other Value) (UInt32, Value) {
+func (i UInt32) ExponentiateVal(other Value) (UInt32, Value) {
 	if !other.IsUInt32() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -196,7 +196,7 @@ func (i UInt32) Multiply(other Value) (UInt32, Value) {
 	return i * o, Undefined
 }
 
-func (i UInt32) Modulo(other Value) (UInt32, Value) {
+func (i UInt32) ModuloVal(other Value) (UInt32, Value) {
 	if !other.IsUInt32() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -219,7 +219,7 @@ func (i UInt32) Divide(other Value) (UInt32, Value) {
 	return i / o, Undefined
 }
 
-func (i UInt32) Compare(other Value) (Value, Value) {
+func (i UInt32) CompareVal(other Value) (Value, Value) {
 	if !other.IsUInt32() {
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -234,12 +234,12 @@ func (i UInt32) Compare(other Value) (Value, Value) {
 	return SmallInt(0).ToValue(), Undefined
 }
 
-func (i UInt32) GreaterThan(other Value) (Value, Value) {
-	result, err := i.GreaterThanBool(other)
+func (i UInt32) GreaterThanVal(other Value) (Value, Value) {
+	result, err := i.GreaterThan(other)
 	return ToElkBool(result), err
 }
 
-func (i UInt32) GreaterThanBool(other Value) (bool, Value) {
+func (i UInt32) GreaterThan(other Value) (bool, Value) {
 	if !other.IsUInt32() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -248,12 +248,12 @@ func (i UInt32) GreaterThanBool(other Value) (bool, Value) {
 	return i > o, Undefined
 }
 
-func (i UInt32) GreaterThanEqual(other Value) (Value, Value) {
-	result, err := i.GreaterThanEqualBool(other)
+func (i UInt32) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := i.GreaterThanEqual(other)
 	return ToElkBool(result), err
 }
 
-func (i UInt32) GreaterThanEqualBool(other Value) (bool, Value) {
+func (i UInt32) GreaterThanEqual(other Value) (bool, Value) {
 	if !other.IsUInt32() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -262,12 +262,12 @@ func (i UInt32) GreaterThanEqualBool(other Value) (bool, Value) {
 	return i >= o, Undefined
 }
 
-func (i UInt32) LessThan(other Value) (Value, Value) {
-	result, err := i.LessThanBool(other)
+func (i UInt32) LessThanVal(other Value) (Value, Value) {
+	result, err := i.LessThan(other)
 	return ToElkBool(result), err
 }
 
-func (i UInt32) LessThanBool(other Value) (bool, Value) {
+func (i UInt32) LessThan(other Value) (bool, Value) {
 	if !other.IsUInt32() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -276,12 +276,12 @@ func (i UInt32) LessThanBool(other Value) (bool, Value) {
 	return i < o, Undefined
 }
 
-func (i UInt32) LessThanEqual(other Value) (Value, Value) {
-	result, err := i.LessThanEqualBool(other)
+func (i UInt32) LessThanEqualVal(other Value) (Value, Value) {
+	result, err := i.LessThanEqual(other)
 	return ToElkBool(result), err
 }
 
-func (i UInt32) LessThanEqualBool(other Value) (bool, Value) {
+func (i UInt32) LessThanEqual(other Value) (bool, Value) {
 	if !other.IsUInt32() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -290,11 +290,11 @@ func (i UInt32) LessThanEqualBool(other Value) (bool, Value) {
 	return i <= o, Undefined
 }
 
-func (i UInt32) Equal(other Value) Value {
-	return ToElkBool(i.EqualBool(other))
+func (i UInt32) EqualVal(other Value) Value {
+	return ToElkBool(i.Equal(other))
 }
 
-func (i UInt32) EqualBool(other Value) bool {
+func (i UInt32) Equal(other Value) bool {
 	if !other.IsUInt32() {
 		return false
 	}
@@ -303,11 +303,11 @@ func (i UInt32) EqualBool(other Value) bool {
 	return i == o
 }
 
-func (i UInt32) StrictEqual(other Value) Value {
-	return i.Equal(other)
+func (i UInt32) StrictEqualVal(other Value) Value {
+	return i.EqualVal(other)
 }
 
 func initUInt32() {
-	UInt32Class = NewClass()
+	UInt32Class = NewClassWithOptions(ClassWithParent(ValueClass))
 	StdModule.AddConstantString("UInt32", Ref(UInt32Class))
 }

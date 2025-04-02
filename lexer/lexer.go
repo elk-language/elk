@@ -17,6 +17,7 @@ import (
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/value"
 	"github.com/fatih/color"
 )
 
@@ -79,6 +80,13 @@ type Lexer struct {
 	modeStack []mode
 }
 
+// Implements the Colorizer interface
+type Colorizer struct{}
+
+func (c Colorizer) Colorize(source string) (string, error) {
+	return Colorize(source), nil
+}
+
 // Lex the given string and construct a new one colouring every token.
 func Colorize(source string) string {
 	l := New(source)
@@ -121,6 +129,21 @@ func Lex(source string) []*token.Token {
 	return tokens
 }
 
+// Lex the given string and return a slice containing all the tokens.
+func LexValue(source string) *value.ArrayList {
+	l := New(source)
+
+	tokens := value.NewArrayList(10)
+	for {
+		tok := l.Next()
+		if tok.Type == token.END_OF_FILE {
+			break
+		}
+		tokens.Append(value.Ref(tok))
+	}
+	return tokens
+}
+
 // Instantiates a new lexer for the given source code.
 func New(source string) *Lexer {
 	return NewWithName("(eval)", source)
@@ -137,6 +160,34 @@ func NewWithName(sourceName string, source string) *Lexer {
 		startColumn: 1,
 		modeStack:   []mode{normalMode},
 	}
+}
+
+func (*Lexer) Class() *value.Class {
+	return value.ElkLexerClass
+}
+
+func (*Lexer) DirectClass() *value.Class {
+	return value.ElkLexerClass
+}
+
+func (l *Lexer) Inspect() string {
+	return fmt.Sprintf("Std::Elk::Lexer{&: %p, source_name: %s}", l, value.String(l.sourceName).Inspect())
+}
+
+func (l *Lexer) Error() string {
+	return l.Inspect()
+}
+
+func (l *Lexer) SingletonClass() *value.Class {
+	return nil
+}
+
+func (l *Lexer) InstanceVariables() value.SymbolMap {
+	return nil
+}
+
+func (l *Lexer) Copy() value.Reference {
+	return l
 }
 
 // Returns true if there is any code left to analyse.

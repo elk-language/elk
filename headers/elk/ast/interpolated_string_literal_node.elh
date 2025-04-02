@@ -1,0 +1,15 @@
+module Std::Elk::AST
+  ##[
+    Represents an interpolated string literal eg. `"foo ${bar} baz"`
+  ]##
+  sealed primitive class InterpolatedStringLiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode,
+            StringLiteralNode
+
+    init(content: ArrayTuple[StringLiteralContentNode], span: String::Span = loop; end); end
+    def content: ArrayTuple[StringLiteralContentNode]; end
+    def span: String::Span; end
+  end
+end

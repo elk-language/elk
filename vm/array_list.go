@@ -168,7 +168,7 @@ func initArrayList() {
 		"append",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayList)
-			values := args[1].MustReference().(*value.ArrayList)
+			values := args[1].MustReference().(*value.ArrayTuple)
 			self.Append(*values...)
 			return value.Ref(self), value.Undefined
 		},

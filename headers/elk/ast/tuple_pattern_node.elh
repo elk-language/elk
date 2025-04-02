@@ -1,0 +1,16 @@
+module Std::Elk::AST
+  ##[
+    Represents a Tuple pattern eg. `%[1, a, >= 10]`
+  ]##
+  sealed primitive class TuplePatternNode
+    include PatternNode
+
+    init(
+      elements: ArrayTuple[PatternNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
+    def elements: ArrayTuple[PatternNode]; end
+    def span: String::Span; end
+  end
+end

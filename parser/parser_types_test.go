@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/parser/ast"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
 )
 
@@ -772,7 +772,7 @@ func TestBinaryType(t *testing.T) {
 						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewTypeExpressionNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(5, 1, 6), P(14, 1, 15)),
 								T(S(P(12, 1, 13), P(12, 1, 13)), token.OR),
 								ast.NewPublicConstantNode(
@@ -798,7 +798,7 @@ func TestBinaryType(t *testing.T) {
 						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewTypeExpressionNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(5, 1, 6), P(14, 1, 15)),
 								T(S(P(12, 1, 13), P(12, 1, 13)), token.AND),
 								ast.NewPublicConstantNode(
@@ -824,7 +824,7 @@ func TestBinaryType(t *testing.T) {
 						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewTypeExpressionNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
-							ast.NewBinaryTypeExpressionNode(
+							ast.NewBinaryTypeNode(
 								S(P(5, 1, 6), P(14, 1, 15)),
 								T(S(P(12, 1, 13), P(12, 1, 13)), token.SLASH),
 								ast.NewPublicConstantNode(
@@ -1069,8 +1069,8 @@ func TestLiteralTypes(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 1, 6), P(14, 1, 15)), "cannot interpolate strings in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(5, 1, 6), P(14, 1, 15)), "cannot interpolate strings in this context"),
 			},
 		},
 		"simple symbol": {
@@ -1156,8 +1156,8 @@ func TestLiteralTypes(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(6, 1, 7), P(15, 1, 16)), "cannot interpolate strings in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(6, 1, 7), P(15, 1, 16)), "cannot interpolate strings in this context"),
 			},
 		},
 		"int": {

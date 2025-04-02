@@ -21,6 +21,16 @@ var UnexpectedNilErrorClass *Class
 // has an incorrect type.
 var TypeErrorClass *Class
 
+// ::Std::FS::Path::Error
+//
+// Thrown when an error is encountered when working with paths.
+var PathErrorClass *Class
+
+// ::Std::GlobError
+//
+// Thrown when an invalid glob has been encountered.
+var GlobErrorClass *Class
+
 // ::Std::PatternNotMatchedError
 //
 // Thrown when a pattern was not matched
@@ -108,6 +118,9 @@ var NotBuiltinErrorClass *Class
 
 // ::Std::FileSystemError
 var FileSystemErrorClass *Class
+
+// ::Std::ColorizerError
+var ColorizerErrorClass *Class
 
 var NotBuiltinError *Object
 
@@ -483,6 +496,12 @@ func initError() {
 	TypeErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("TypeError", Ref(TypeErrorClass))
 
+	PathErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	PathClass.AddConstantString("Error", Ref(PathErrorClass))
+
+	GlobErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("GlobError", Ref(GlobErrorClass))
+
 	ModifierMismatchErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("ModifierMismatchError", Ref(ModifierMismatchErrorClass))
 
@@ -531,4 +550,7 @@ func initError() {
 	NotBuiltinErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("NotBuiltinError", Ref(NotBuiltinErrorClass))
 	NotBuiltinError = NewError(NotBuiltinErrorClass, "")
+
+	ColorizerErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("ColorizerError", Ref(ColorizerErrorClass))
 }

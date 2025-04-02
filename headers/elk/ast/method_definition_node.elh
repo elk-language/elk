@@ -1,0 +1,56 @@
+module Std::Elk::AST
+  ##[
+    Represents a method definition eg. `def foo: String then 'hello world'`
+  ]##
+  sealed primitive class MethodDefinitionNode
+    include ExpressionNode
+
+    const ABSTRACT_FLAG: UInt8
+    const SEALED_FLAG: UInt8
+    const GENERATOR_FLAG: UInt8
+    const ASYNC_FLAG: UInt8
+
+    init(
+      name: String,
+      type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
+      parameters: ArrayTuple[ParameterNode] = loop; end,
+      return_type: TypeNode? = nil,
+      throw_type: TypeNode? = nil,
+      body: ArrayTuple[StatementNode] = loop; end,
+      flags: UInt8 = 0u8,
+      doc_comment: String = "",
+      location: FS::Location = loop; end,
+    ); end
+
+    def doc_comment: String; end
+    def name: String; end
+    def type_parameters: ArrayTuple[TypeParameterNode]; end
+    def parameters: ArrayTuple[ParameterNode]; end
+    def return_type: TypeNode; end
+    def throw_type: TypeNode; end
+    def body: ArrayTuple[StatementNode]; end
+    def flags: UInt8; end
+    def span: String::Span; end
+    def location: FS::Location; end
+
+    ##[
+      Whether the method is abstract eg. `abstract def foo; end`
+    ]##
+    def is_abstract: bool; end
+
+    ##[
+      Whether the method is sealed eg. `sealed def foo; end`
+    ]##
+    def is_sealed: bool; end
+
+    ##[
+      Whether the method is a generator eg. `def* foo; end`
+    ]##
+    def is_generator: bool; end
+
+    ##[
+      Whether the method is asynchronous eg. `async def foo; end`
+    ]##
+    def is_async: bool; end
+  end
+end

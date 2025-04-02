@@ -1,0 +1,18 @@
+module Std::Elk::AST
+  ##[
+    Represents a `throw` expression eg. `throw ArgumentError("foo")`
+  ]##
+  sealed primitive class ThrowExpressionNode
+    include ExpressionNode
+
+    init(
+      value: ExpressionNode? = nil,
+      is_unchecked: bool = false,
+      span: String::Span = loop; end,
+    ); end
+
+    def is_unchecked: bool; end
+    def value: ExpressionNode?; end
+    def span: String::Span; end
+  end
+end

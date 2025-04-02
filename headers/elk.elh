@@ -1,0 +1,6 @@
+##[
+  Contains utilities for dealing with Elk
+  source code.
+]##
+module ::Std::Elk
+end

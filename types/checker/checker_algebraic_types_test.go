@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 )
 
 func TestNilableSubtype(t *testing.T) {
@@ -30,8 +30,8 @@ func TestNilableSubtype(t *testing.T) {
 				var a = 3
 				var b: String? = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 22), P(36, 3, 22)), "type `Std::Int` cannot be assigned to type `Std::String?`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(36, 3, 22), P(36, 3, 22)), "type `Std::Int` cannot be assigned to type `Std::String?`"),
 			},
 		},
 		"assign nilable String to union type with String and nil": {
@@ -45,8 +45,8 @@ func TestNilableSubtype(t *testing.T) {
 				var a: String? = "foo"
 				var b: String | Float = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(56, 3, 29), P(56, 3, 29)), "type `Std::String?` cannot be assigned to type `Std::String | Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(56, 3, 29), P(56, 3, 29)), "type `Std::String?` cannot be assigned to type `Std::String | Std::Float`"),
 			},
 		},
 	}
@@ -68,8 +68,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(69, 6, 5), P(73, 6, 9)), "method `foo` is not defined on type `Std::Nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(69, 6, 5), P(73, 6, 9)), "method `foo` is not defined on type `Std::Nil`"),
 			},
 		},
 		"missing method on nilable type": {
@@ -81,8 +81,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(125, 7, 5), P(129, 7, 9)), "method `foo` is not defined on type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(125, 7, 5), P(129, 7, 9)), "method `foo` is not defined on type `Foo`"),
 			},
 		},
 		"missing method on both types": {
@@ -91,9 +91,9 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(47, 4, 5), P(51, 4, 9)), "method `foo` is not defined on type `Std::Nil`"),
-				error.NewFailure(L("<main>", P(47, 4, 5), P(51, 4, 9)), "method `foo` is not defined on type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(47, 4, 5), P(51, 4, 9)), "method `foo` is not defined on type `Std::Nil`"),
+				diagnostic.NewFailure(L("<main>", P(47, 4, 5), P(51, 4, 9)), "method `foo` is not defined on type `Foo`"),
 			},
 		},
 		"method with different number of arguments": {
@@ -107,8 +107,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(171, 9, 5), P(175, 9, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(171, 9, 5), P(175, 9, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
 			},
 		},
 		"method with different return types": {
@@ -122,8 +122,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(176, 9, 5), P(180, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(176, 9, 5), P(180, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
 			},
 		},
 		"method with different param types": {
@@ -137,8 +137,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(176, 9, 5), P(180, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(176, 9, 5), P(180, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`"),
 			},
 		},
 		"method with additional optional params": {
@@ -164,8 +164,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo(5, 2.5)
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(189, 9, 5), P(201, 9, 17)), "expected 1 arguments in call to `foo`, got 2"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(189, 9, 5), P(201, 9, 17)), "expected 1 arguments in call to `foo`, got 2"),
 			},
 		},
 		"method with additional rest param": {
@@ -179,8 +179,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo(5, 2.5)
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(185, 9, 5), P(197, 9, 17)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(185, 9, 5), P(197, 9, 17)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 		"method with additional named rest param": {
@@ -194,8 +194,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo(5, a: 2.5)
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(186, 9, 5), P(201, 9, 20)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(186, 9, 5), P(201, 9, 20)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 	}
@@ -220,8 +220,8 @@ func TestUnionTypeSubtype(t *testing.T) {
 				var a = 3
 				var b: String | Float = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 3, 29), P(43, 3, 29)), "type `Std::Int` cannot be assigned to type `Std::String | Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 3, 29), P(43, 3, 29)), "type `Std::Int` cannot be assigned to type `Std::String | Std::Float`"),
 			},
 		},
 		"assign union type to more wide union type": {
@@ -235,8 +235,8 @@ func TestUnionTypeSubtype(t *testing.T) {
 				var a: Int | Float | String = 3
 				var b: Int | String = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(63, 3, 27), P(63, 3, 27)), "type `Std::Int | Std::Float | Std::String` cannot be assigned to type `Std::Int | Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(63, 3, 27), P(63, 3, 27)), "type `Std::Int | Std::Float | Std::String` cannot be assigned to type `Std::Int | Std::String`"),
 			},
 		},
 		"normalise union type": {
@@ -244,8 +244,8 @@ func TestUnionTypeSubtype(t *testing.T) {
 				var a: (String | (Int | Char | Float))? | Float = 3
 				var b: 9 = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(72, 3, 16), P(72, 3, 16)), "type `Std::Float | Std::String | Std::Int | Std::Char | nil` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(72, 3, 16), P(72, 3, 16)), "type `Std::Float | Std::String | Std::Int | Std::Char | nil` cannot be assigned to type `9`"),
 			},
 		},
 		"normalise Int | ~Int": {
@@ -253,8 +253,8 @@ func TestUnionTypeSubtype(t *testing.T) {
 				var a: Int | ~Int = 3
 				var b: 9 = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 3, 16), P(42, 3, 16)), "type `any` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(42, 3, 16), P(42, 3, 16)), "type `any` cannot be assigned to type `9`"),
 			},
 		},
 		"normalise ~Int | Int": {
@@ -262,24 +262,24 @@ func TestUnionTypeSubtype(t *testing.T) {
 				var a: ~Int | Int = 3
 				var b: 9 = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 3, 16), P(42, 3, 16)), "type `any` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(42, 3, 16), P(42, 3, 16)), "type `any` cannot be assigned to type `9`"),
 			},
 		},
 		"normalise Bool | False": {
 			input: `
 				var a: Bool | False = :foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 2, 27), P(30, 2, 30)), "type `:foo` cannot be assigned to type `Std::Bool`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(27, 2, 27), P(30, 2, 30)), "type `:foo` cannot be assigned to type `Std::Bool`"),
 			},
 		},
 		"normalise False | Bool": {
 			input: `
 				var a: False | Bool = :foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 2, 27), P(30, 2, 30)), "type `:foo` cannot be assigned to type `Std::Bool`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(27, 2, 27), P(30, 2, 30)), "type `:foo` cannot be assigned to type `Std::Bool`"),
 			},
 		},
 	}
@@ -320,8 +320,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Bar | Foo = Bar()
 				a.baz("lol", 1)
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(151, 11, 5), P(165, 11, 19)), "method `Foo.:baz` is incompatible with `Bar.:baz`\n  is:        `def baz[V](a: V, b: V): void`\n  should be: `def baz(a: Std::String, b: Std::Int): void`\n\n  - method `Foo.:baz` has an incompatible parameter with `Bar.:baz`, has `b: V`, should have `b: Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(151, 11, 5), P(165, 11, 19)), "method `Foo.:baz` is incompatible with `Bar.:baz`\n  is:        `def baz[V](a: V, b: V): void`\n  should be: `def baz(a: Std::String, b: Std::Int): void`\n\n  - method `Foo.:baz` has an incompatible parameter with `Bar.:baz`, has `b: V`, should have `b: Std::Int`"),
 			},
 		},
 		"generic and non generic method with compatible type param reversed": {
@@ -351,8 +351,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar = Bar()
 				a.baz("lol")
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(143, 11, 5), P(154, 11, 16)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V < Std::Int](a: V): void`\n  should be: `def baz(a: Std::String): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(143, 11, 5), P(154, 11, 16)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V < Std::Int](a: V): void`\n  should be: `def baz(a: Std::String): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: Std::String`"),
 			},
 		},
 		"generic and non generic method with compatible type param with upper bound": {
@@ -424,8 +424,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar = Bar()
 				a.baz("lol")
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(150, 11, 5), P(161, 11, 16)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V < Std::Int](a: V): void`\n  should be: `def baz[V < Std::String](a: V): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(150, 11, 5), P(161, 11, 16)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V < Std::Int](a: V): void`\n  should be: `def baz[V < Std::String](a: V): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: V`"),
 			},
 		},
 		"generic methods with intersecting upper bounds": {
@@ -455,8 +455,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar = Bar()
 				a.baz("lol")
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(150, 11, 5), P(161, 11, 16)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V > Std::Int](a: V): void`\n  should be: `def baz[V > Std::String](a: V): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(150, 11, 5), P(161, 11, 16)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V > Std::Int](a: V): void`\n  should be: `def baz[V > Std::String](a: V): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: V`"),
 			},
 		},
 
@@ -470,9 +470,9 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(102, 8, 5), P(106, 8, 9)), "method `foo` is not defined on type `Bar`"),
-				error.NewFailure(L("<main>", P(102, 8, 5), P(106, 8, 9)), "method `foo` is not defined on type `Std::Nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(102, 8, 5), P(106, 8, 9)), "method `foo` is not defined on type `Bar`"),
+				diagnostic.NewFailure(L("<main>", P(102, 8, 5), P(106, 8, 9)), "method `foo` is not defined on type `Std::Nil`"),
 			},
 		},
 		"method with different number of arguments": {
@@ -489,9 +489,9 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(252, 12, 5), P(256, 12, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
-				error.NewFailure(L("<main>", P(252, 12, 5), P(256, 12, 9)), "method `Bar.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String, c: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `c`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(252, 12, 5), P(256, 12, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+				diagnostic.NewFailure(L("<main>", P(252, 12, 5), P(256, 12, 9)), "method `Bar.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String, c: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `c`"),
 			},
 		},
 		"method with different return types": {
@@ -508,9 +508,9 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(246, 12, 5), P(250, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::String`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
-				error.NewFailure(L("<main>", P(246, 12, 5), P(250, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(246, 12, 5), P(250, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::String`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(246, 12, 5), P(250, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
 			},
 		},
 		"method with different param types": {
@@ -527,9 +527,9 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::String`, should have `a: Std::Int`"),
-				error.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::String`, should have `a: Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`"),
 			},
 		},
 		"method with wider param type": {
@@ -555,8 +555,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Bar | Foo = Foo()
 				a.foo("b")
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(150, 9, 5), P(159, 9, 14)), "method `Foo.:foo` is incompatible with `Bar.:foo`\n  is:        `def foo(a: Std::String): Std::Int`\n  should be: `def foo(a: Std::Object): Std::Int`\n\n  - method `Foo.:foo` has an incompatible parameter with `Bar.:foo`, has `a: Std::String`, should have `a: Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(150, 9, 5), P(159, 9, 14)), "method `Foo.:foo` is incompatible with `Bar.:foo`\n  is:        `def foo(a: Std::String): Std::Int`\n  should be: `def foo(a: Std::Object): Std::Int`\n\n  - method `Foo.:foo` has an incompatible parameter with `Bar.:foo`, has `a: Std::String`, should have `a: Std::Object`"),
 			},
 		},
 		"method with wider return type": {
@@ -570,8 +570,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar = Foo()
 				a.foo("b")
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(152, 9, 5), P(161, 9, 14)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Value`\n  should be: `def foo(a: Std::String): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::Value`, should have `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(152, 9, 5), P(161, 9, 14)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Value`\n  should be: `def foo(a: Std::String): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::Value`, should have `Std::Int`"),
 			},
 		},
 		"method with narrower return type": {
@@ -615,8 +615,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo(5, 2.5)
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(272, 12, 5), P(284, 12, 17)), "expected 1 arguments in call to `foo`, got 2"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(272, 12, 5), P(284, 12, 17)), "expected 1 arguments in call to `foo`, got 2"),
 			},
 		},
 		"method with additional rest param": {
@@ -633,8 +633,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo(5, 2.5)
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(251, 12, 5), P(263, 12, 17)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(251, 12, 5), P(263, 12, 17)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 		"method with additional named rest param": {
@@ -651,8 +651,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo(5, a: 2.5)
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(252, 12, 5), P(267, 12, 20)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(252, 12, 5), P(267, 12, 20)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 	}
@@ -692,8 +692,8 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: StringConvertible & IntConvertible = 3
 				var b: StringConvertible & IntConvertible & FloatConvertible = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(307, 12, 68), P(307, 12, 68)), "type `StringConvertible & IntConvertible` cannot be assigned to type `StringConvertible & IntConvertible & FloatConvertible`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(307, 12, 68), P(307, 12, 68)), "type `StringConvertible & IntConvertible` cannot be assigned to type `StringConvertible & IntConvertible & FloatConvertible`"),
 			},
 		},
 		"assign intersection type to more narrow intersection type": {
@@ -724,9 +724,9 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				end
 				var a: StringConvertible & IntConvertible & SigmaConvertible = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(257, 11, 68), P(257, 11, 68)), "type `Std::Int` does not implement interface `SigmaConvertible`:\n\n  - missing method `SigmaConvertible.:to_sigma` with signature: `def to_sigma(): Std::Float`"),
-				error.NewFailure(L("<main>", P(257, 11, 68), P(257, 11, 68)), "type `3` cannot be assigned to type `StringConvertible & IntConvertible & SigmaConvertible`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(257, 11, 68), P(257, 11, 68)), "type `Std::Int` does not implement interface `SigmaConvertible`:\n\n  - missing method `SigmaConvertible.:to_sigma` with signature: `def to_sigma(): Std::Float`"),
+				diagnostic.NewFailure(L("<main>", P(257, 11, 68), P(257, 11, 68)), "type `3` cannot be assigned to type `StringConvertible & IntConvertible & SigmaConvertible`"),
 			},
 		},
 		"assign a value that does not implement a few interfaces in the intersection": {
@@ -742,11 +742,11 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				end
 				var a: FooConvertible & BarConvertible & SigmaConvertible = Object()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` does not implement interface `FooConvertible`:\n\n  - missing method `FooConvertible.:to_foo` with signature: `def to_foo(): Std::Int`"),
-				error.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` does not implement interface `BarConvertible`:\n\n  - missing method `BarConvertible.:to_bar` with signature: `def to_bar(): Std::String`"),
-				error.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` does not implement interface `SigmaConvertible`:\n\n  - missing method `SigmaConvertible.:to_sigma` with signature: `def to_sigma(): Std::Float`"),
-				error.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` cannot be assigned to type `FooConvertible & BarConvertible & SigmaConvertible`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` does not implement interface `FooConvertible`:\n\n  - missing method `FooConvertible.:to_foo` with signature: `def to_foo(): Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` does not implement interface `BarConvertible`:\n\n  - missing method `BarConvertible.:to_bar` with signature: `def to_bar(): Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` does not implement interface `SigmaConvertible`:\n\n  - missing method `SigmaConvertible.:to_sigma` with signature: `def to_sigma(): Std::Float`"),
+				diagnostic.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` cannot be assigned to type `FooConvertible & BarConvertible & SigmaConvertible`"),
 			},
 		},
 		"normalise intersection type with multiple classes": {
@@ -754,8 +754,8 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: String & Int = 3
 				var b: 9 = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 2, 27), P(27, 2, 27)), "type `3` cannot be assigned to type `never`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(27, 2, 27), P(27, 2, 27)), "type `3` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise intersection type with multiple modules": {
@@ -764,97 +764,97 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				var a: Std & Foo = 3
 				var b: 9 = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(44, 3, 24), P(44, 3, 24)), "type `3` cannot be assigned to type `never`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(44, 3, 24), P(44, 3, 24)), "type `3` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise intersection type with the same module repeated": {
 			input: `
 				var a: Std & Std = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 2, 24), P(24, 2, 24)), "type `3` cannot be assigned to type `Std`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(24, 2, 24), P(24, 2, 24)), "type `3` cannot be assigned to type `Std`"),
 			},
 		},
 		"normalise intersection type with the same class repeated": {
 			input: `
 				var a: String & String = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 2, 30), P(30, 2, 30)), "type `3` cannot be assigned to type `Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 2, 30), P(30, 2, 30)), "type `3` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"normalise intersection type with the same literal repeated": {
 			input: `
 				var a: 9 & 9 = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 2, 20), P(20, 2, 20)), "type `3` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 2, 20), P(20, 2, 20)), "type `3` cannot be assigned to type `9`"),
 			},
 		},
 		"normalise intersection type with different literals": {
 			input: `
 				var a: 9 & 3 = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 2, 20), P(20, 2, 20)), "type `3` cannot be assigned to type `never`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 2, 20), P(20, 2, 20)), "type `3` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise Int & ~Int": {
 			input: `
 				var a: Int & ~Int = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(25, 2, 25), P(25, 2, 25)), "type `3` cannot be assigned to type `never`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(25, 2, 25), P(25, 2, 25)), "type `3` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise Float & Int & ~Int": {
 			input: `
 				var a: Float & Int & ~Int = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `3` cannot be assigned to type `never`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(33, 2, 33), P(33, 2, 33)), "type `3` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise (Float | Int) & ~Int": {
 			input: `
 				var a: (Float | Int) & ~Int = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(35, 2, 35), P(35, 2, 35)), "type `3` cannot be assigned to type `Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(35, 2, 35), P(35, 2, 35)), "type `3` cannot be assigned to type `Std::Float`"),
 			},
 		},
 		"normalise intersection of unions": {
 			input: `
 				var a: (1 | 2) & (2 | 3) = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 2, 32), P(32, 2, 32)), "type `3` cannot be assigned to type `2`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 2, 32), P(32, 2, 32)), "type `3` cannot be assigned to type `2`"),
 			},
 		},
 		"normalise intersection of union and negation": {
 			input: `
 				var a: (String | Float | Int) & ~Float = 2.5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(46, 2, 46), P(48, 2, 48)), "type `2.5` cannot be assigned to type `Std::String | Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(46, 2, 46), P(48, 2, 48)), "type `2.5` cannot be assigned to type `Std::String | Std::Int`"),
 			},
 		},
 		"normalise Float & 9.2": {
 			input: `
 				var a: Float & 9.2 = 2.5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(26, 2, 26), P(28, 2, 28)), "type `2.5` cannot be assigned to type `9.2`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(26, 2, 26), P(28, 2, 28)), "type `2.5` cannot be assigned to type `9.2`"),
 			},
 		},
 		"normalise two generic interfaces": {
 			input: `
 				var a: Incrementable[Int] & Comparable[Int] = "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 2, 51), P(55, 2, 55)), "type `Std::String` does not implement interface `Std::Incrementable[Std::Int]`:\n\n  - missing method `Std::Incrementable.:++` with signature: `def ++(): Std::Int`"),
-				error.NewFailure(L("<main>", P(51, 2, 51), P(55, 2, 55)), "type `\"foo\"` cannot be assigned to type `Std::Incrementable[Std::Int] & Std::Comparable[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 2, 51), P(55, 2, 55)), "type `Std::String` does not implement interface `Std::Incrementable[Std::Int]`:\n\n  - missing method `Std::Incrementable.:++` with signature: `def ++(): Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(51, 2, 51), P(55, 2, 55)), "type `\"foo\"` cannot be assigned to type `Std::Incrementable[Std::Int] & Std::Comparable[Std::Int]`"),
 			},
 		},
 	}
@@ -902,8 +902,8 @@ func TestNotType(t *testing.T) {
 				var a = 3
 				var b: ~Int = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 3, 19), P(33, 3, 19)), "type `Std::Int` cannot be assigned to type `~Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(33, 3, 19), P(33, 3, 19)), "type `Std::Int` cannot be assigned to type `~Std::Int`"),
 			},
 		},
 		"assign any non Int value to not Int": {
@@ -920,8 +920,8 @@ func TestNotType(t *testing.T) {
 				var a: ~Foo = Object()
 				var b: ~Bar = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(63, 4, 19), P(70, 4, 26)), "type `Std::Object` cannot be assigned to type `~Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(63, 4, 19), P(70, 4, 26)), "type `Std::Object` cannot be assigned to type `~Foo`"),
 			},
 		},
 		"assign ~String to ~Object": {
@@ -929,24 +929,24 @@ func TestNotType(t *testing.T) {
 				var a: ~String = 5
 				var b: ~Object = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 3, 22), P(45, 3, 22)), "type `~Std::String` cannot be assigned to type `~Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(45, 3, 22), P(45, 3, 22)), "type `~Std::String` cannot be assigned to type `~Std::Object`"),
 			},
 		},
 		"normalise nested not types": {
 			input: `
 				var a: ~(~Int) = "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "type `\"foo\"` cannot be assigned to type `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "type `\"foo\"` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"normalise not any to never": {
 			input: `
 				var a: ~(any) = "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(21, 2, 21), P(25, 2, 25)), "type `\"foo\"` cannot be assigned to type `never`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(21, 2, 21), P(25, 2, 25)), "type `\"foo\"` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise not never to any": {
@@ -954,24 +954,24 @@ func TestNotType(t *testing.T) {
 				var a: ~(never) = "foo"
 				a.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 3, 5), P(37, 3, 9)), "method `foo` is not defined on type `any`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(33, 3, 5), P(37, 3, 9)), "method `foo` is not defined on type `any`"),
 			},
 		},
 		"normalise ~Float & String": {
 			input: `
 				var a: ~Float & String = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `1.2` cannot be assigned to type `Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `1.2` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"normalise String & ~Float": {
 			input: `
 				var a: String & ~Float = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `1.2` cannot be assigned to type `Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 2, 30), P(32, 2, 32)), "type `1.2` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"normalise named type": {
@@ -982,41 +982,41 @@ func TestNotType(t *testing.T) {
 
 				var a: AnyInt & Foo = 1
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(72, 6, 27), P(72, 6, 27)), "type `Std::Int` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): void`"),
-				error.NewFailure(L("<main>", P(72, 6, 27), P(72, 6, 27)), "type `1` cannot be assigned to type `Std::AnyInt & Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(72, 6, 27), P(72, 6, 27)), "type `Std::Int` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): void`"),
+				diagnostic.NewFailure(L("<main>", P(72, 6, 27), P(72, 6, 27)), "type `1` cannot be assigned to type `Std::AnyInt & Foo`"),
 			},
 		},
 		"normalise Bool & ~False": {
 			input: `
 				var a: Bool & ~False = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "type `1.2` cannot be assigned to type `Std::Bool & ~Std::False`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "type `1.2` cannot be assigned to type `Std::Bool & ~Std::False`"),
 			},
 		},
 		"normalise ~Bool & False": {
 			input: `
 				var a: ~Bool & False = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "type `1.2` cannot be assigned to type `never`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "type `1.2` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise nil & ~false & ~nil": {
 			input: `
 				var a: nil & ~false & ~nil = false
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 2, 34), P(38, 2, 38)), "type `false` cannot be assigned to type `never`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(34, 2, 34), P(38, 2, 38)), "type `false` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise intersection of negated unions": {
 			input: `
 				var a: (Bool | Int | nil) & ~(false | nil) = 2.5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(50, 2, 50), P(52, 2, 52)), "type `2.5` cannot be assigned to type `(Std::Bool & ~false) | Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(50, 2, 50), P(52, 2, 52)), "type `2.5` cannot be assigned to type `(Std::Bool & ~false) | Std::Int`"),
 			},
 		},
 		"normalise intersection with a named union": {
@@ -1025,8 +1025,8 @@ func TestNotType(t *testing.T) {
 				typedef Bar = false | nil
 				var a: Foo & ~Bar = 2.5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(90, 4, 25), P(92, 4, 27)), "type `2.5` cannot be assigned to type `(Std::Bool & ~Bar) | Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(90, 4, 25), P(92, 4, 27)), "type `2.5` cannot be assigned to type `(Std::Bool & ~Bar) | Std::Int`"),
 			},
 		},
 		"normalise intersection with a named union containing bool": {
@@ -1035,8 +1035,8 @@ func TestNotType(t *testing.T) {
 				typedef Bar = false | nil
 				var a: Foo & ~Bar = 2.5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(90, 4, 25), P(92, 4, 27)), "type `2.5` cannot be assigned to type `true | Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(90, 4, 25), P(92, 4, 27)), "type `2.5` cannot be assigned to type `true | Std::Int`"),
 			},
 		},
 		"normalise intersection with a named intersection": {
@@ -1047,8 +1047,8 @@ func TestNotType(t *testing.T) {
 				typedef Bar = Int & Foo
 				var a: Bar & ~Foo = 2.5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(97, 6, 25), P(99, 6, 27)), "type `2.5` cannot be assigned to type `never`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(97, 6, 25), P(99, 6, 27)), "type `2.5` cannot be assigned to type `never`"),
 			},
 		},
 	}
@@ -1066,24 +1066,24 @@ func TestDifferenceType(t *testing.T) {
 			input: `
 				var a: Int / Int = "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 2, 24), P(28, 2, 28)), "type `\"foo\"` cannot be assigned to type `never`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(24, 2, 24), P(28, 2, 28)), "type `\"foo\"` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise Int? / nil to Int": {
 			input: `
 				var a: Int? / nil = "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(25, 2, 25), P(29, 2, 29)), "type `\"foo\"` cannot be assigned to type `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(25, 2, 25), P(29, 2, 29)), "type `\"foo\"` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"normalise with union": {
 			input: `
 				var a: (Int | String | Float) / String = "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(46, 2, 46), P(50, 2, 50)), "type `\"foo\"` cannot be assigned to type `Std::Int | Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(46, 2, 46), P(50, 2, 50)), "type `\"foo\"` cannot be assigned to type `Std::Int | Std::Float`"),
 			},
 		},
 		"normalise with intersection": {
@@ -1093,8 +1093,8 @@ func TestDifferenceType(t *testing.T) {
 				end
 				var a: (Int & Foo) / Foo = "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(71, 5, 32), P(75, 5, 36)), "type `\"foo\"` cannot be assigned to type `never`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(71, 5, 32), P(75, 5, 36)), "type `\"foo\"` cannot be assigned to type `never`"),
 			},
 		},
 		"normalise with named types": {
@@ -1103,8 +1103,8 @@ func TestDifferenceType(t *testing.T) {
 				typedef Bar = 0 | 2 | 4
 				var a: Foo / Bar = 2.5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(92, 4, 24), P(94, 4, 26)), "type `2.5` cannot be assigned to type `1 | 3 | 5`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(92, 4, 24), P(94, 4, 26)), "type `2.5` cannot be assigned to type `1 | 3 | 5`"),
 			},
 		},
 	}

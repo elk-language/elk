@@ -7,7 +7,7 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -2209,8 +2209,8 @@ func TestArrayLists(t *testing.T) {
 				var a: Int? = nil
 				[1, 5 if a, [:foo]]:45
 			`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(47, 3, 25), P(48, 3, 26)),
 					"capacity cannot be specified in collection literals with conditional elements or loops",
 				),
@@ -2887,8 +2887,8 @@ func TestHashSet(t *testing.T) {
 				var a: Int? = nil
 				^[1, 5 if a]:45
 			`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(40, 3, 18), P(41, 3, 19)),
 					"capacity cannot be specified in collection literals with conditional elements or loops",
 				),
@@ -3399,8 +3399,8 @@ func TestHashMap(t *testing.T) {
 				var a: Int? = nil
 				{ 1 => 5 if a, 6 => [:foo] }:45
 			`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(56, 3, 34), P(57, 3, 35)),
 					"capacity cannot be specified in collection literals with conditional elements or loops",
 				),
@@ -3960,8 +3960,8 @@ func TestRegex(t *testing.T) {
 		},
 		"with compile error": {
 			input: `%/foo\y/i`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(5, 1, 6), P(6, 1, 7)),
 					`invalid escape sequence: \y`,
 				),
@@ -3969,8 +3969,8 @@ func TestRegex(t *testing.T) {
 		},
 		"with compile error from Go": {
 			input: ` %/foo{1000000}/i`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(1, 1, 2), P(16, 1, 17)),
 					"error parsing regexp: invalid repeat count: `{1000000}`",
 				),

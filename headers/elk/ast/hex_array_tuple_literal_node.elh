@@ -1,0 +1,17 @@
+module Std::Elk::AST
+  ##[
+    Represents a hex ArrayTuple literal eg. `%x[ff ee]`
+  ]##
+  sealed primitive class HexArrayTupleLiteralNode
+    include ExpressionNode,
+            PatternNode
+
+    init(
+      elements: ArrayTuple[IntCollectionContentNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
+    def elements: ArrayTuple[IntCollectionContentNode]; end
+    def span: String::Span; end
+  end
+end

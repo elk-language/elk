@@ -1,0 +1,22 @@
+module Std::Elk::AST
+  ##[
+    Represents a new generic type definition eg. `typedef Nilable[T] = T | nil`
+  ]##
+  sealed primitive class GenericTypeDefinitionNode
+    include ExpressionNode
+
+    init(
+      constant: ComplexConstantNode,
+      type_parameters: ArrayTuple[TypeParameterNode],
+      type_node: TypeNode,
+      doc_comment: String = "",
+      span: String::Span = loop; end,
+    ); end
+
+    def doc_comment: String; end
+    def type_parameters: ArrayTuple[TypeParameterNode]; end
+    def constant: ComplexConstantNode; end
+    def type_node: TypeNode; end
+    def span: String::Span; end
+  end
+end

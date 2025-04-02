@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 )
 
 func TestIdentifierPattern(t *testing.T) {
@@ -14,9 +14,9 @@ func TestIdentifierPattern(t *testing.T) {
 				var [a] = z.()
 				var b: 9 = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(38, 3, 15), P(41, 3, 18)), "cannot use type `void` as a value in this context"),
-				error.NewFailure(L("<main>", P(58, 4, 16), P(58, 4, 16)), "type `any` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(38, 3, 15), P(41, 3, 18)), "cannot use type `void` as a value in this context"),
+				diagnostic.NewFailure(L("<main>", P(58, 4, 16), P(58, 4, 16)), "type `any` cannot be assigned to type `9`"),
 			},
 		},
 		"public identifier pattern": {
@@ -24,8 +24,8 @@ func TestIdentifierPattern(t *testing.T) {
 				var [a] = [1]
 				var b: 9 = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 16), P(34, 3, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(34, 3, 16), P(34, 3, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"redeclare public identifier pattern": {
@@ -34,8 +34,8 @@ func TestIdentifierPattern(t *testing.T) {
 				var [a] = [1]
 				var b: 9 = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(49, 4, 16), P(49, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(49, 4, 16), P(49, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"redeclare public identifier with a different type": {
@@ -43,8 +43,8 @@ func TestIdentifierPattern(t *testing.T) {
 				var a: String
 				var [a] = [1]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 3, 10), P(28, 3, 10)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(28, 3, 10), P(28, 3, 10)), "type `Std::Int` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"private identifier pattern": {
@@ -52,8 +52,8 @@ func TestIdentifierPattern(t *testing.T) {
 				var [_a] = ["", 8]
 				var b: 9 = _a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(39, 3, 16), P(40, 3, 17)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(39, 3, 16), P(40, 3, 17)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"declares a variable in a variable declaration": {
@@ -67,8 +67,8 @@ func TestIdentifierPattern(t *testing.T) {
 				val [a] = ["", 8]
 				a = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 3, 5), P(27, 3, 5)), "local value `a` cannot be reassigned"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(27, 3, 5), P(27, 3, 5)), "local value `a` cannot be reassigned"),
 			},
 		},
 	}
@@ -88,16 +88,16 @@ func TestSetPattern(t *testing.T) {
 				var ^[1, "foo"] as b = d
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(95, 4, 16), P(95, 4, 16)), "type `Std::HashSet[Std::String] | Std::Set[Std::Int]` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(95, 4, 16), P(95, 4, 16)), "type `Std::HashSet[Std::String] | Std::Set[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"set pattern with invalid value": {
 			input: `
 				var ^[1] as a = "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `\"foo\"` cannot ever match type `Std::Set[any]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `\"foo\"` cannot ever match type `Std::Set[any]`"),
 			},
 		},
 		"set pattern with a wider type declares a variable": {
@@ -106,8 +106,8 @@ func TestSetPattern(t *testing.T) {
 				var ^[1] as b = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(70, 4, 16), P(70, 4, 16)), "type `Std::Set[Std::Int]` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(70, 4, 16), P(70, 4, 16)), "type `Std::Set[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"set pattern with a wider type and incompatible values": {
@@ -115,9 +115,9 @@ func TestSetPattern(t *testing.T) {
 				var a: Set[Int] | nil = nil
 				var ^["foo", 2.5] as b = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 3, 11), P(47, 3, 15)), "type `Std::Int` cannot ever match type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(50, 3, 18), P(52, 3, 20)), "type `Std::Int` cannot ever match type `2.5`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 3, 11), P(47, 3, 15)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(50, 3, 18), P(52, 3, 20)), "type `Std::Int` cannot ever match type `2.5`"),
 			},
 		},
 		"set pattern with a wider type with HashSet declares a variable": {
@@ -126,8 +126,8 @@ func TestSetPattern(t *testing.T) {
 				var ^[9, 7] as b = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(77, 4, 16), P(77, 4, 16)), "type `Std::HashSet[Std::Int]` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(77, 4, 16), P(77, 4, 16)), "type `Std::HashSet[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"set pattern with a wider incompatible element type with HashSet": {
@@ -135,9 +135,9 @@ func TestSetPattern(t *testing.T) {
 				var a: HashSet[Int] | nil = nil
 				var ^["foo", 2.5] as b = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(47, 3, 11), P(51, 3, 15)), "type `Std::Int` cannot ever match type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(54, 3, 18), P(56, 3, 20)), "type `Std::Int` cannot ever match type `2.5`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(47, 3, 11), P(51, 3, 15)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(54, 3, 18), P(56, 3, 20)), "type `Std::Int` cannot ever match type `2.5`"),
 			},
 		},
 		"set pattern with a wider type HashSet | Set declares a variable with element type": {
@@ -146,8 +146,8 @@ func TestSetPattern(t *testing.T) {
 				var ^[1, 2, 9.8, .1] as b = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(99, 4, 16), P(99, 4, 16)), "type `Std::HashSet[Std::Int] | Std::Set[Std::Float]` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(99, 4, 16), P(99, 4, 16)), "type `Std::HashSet[Std::Int] | Std::Set[Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 		"set pattern with a wider incompatible type HashSet | Set": {
@@ -155,9 +155,9 @@ func TestSetPattern(t *testing.T) {
 				var a: HashSet[Int] | Set[Float] | nil = nil
 				var ^["foo", 9i8, 9] as b = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(60, 3, 11), P(64, 3, 15)), "type `Std::Int | Std::Float` cannot ever match type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(67, 3, 18), P(69, 3, 20)), "type `Std::Int | Std::Float` cannot ever match type `9i8`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(60, 3, 11), P(64, 3, 15)), "type `Std::Int | Std::Float` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(67, 3, 18), P(69, 3, 20)), "type `Std::Int | Std::Float` cannot ever match type `9i8`"),
 			},
 		},
 	}
@@ -176,8 +176,8 @@ func TestListPattern(t *testing.T) {
 				var [a, *b] = ["", 8, 1]
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 3, 16), P(45, 3, 16)), "type `Std::ArrayList[Std::String | Std::Int]` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(45, 3, 16), P(45, 3, 16)), "type `Std::ArrayList[Std::String | Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"list pattern with rest and wide type": {
@@ -186,16 +186,16 @@ func TestListPattern(t *testing.T) {
 				var [a, *b] = d
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(89, 4, 16), P(89, 4, 16)), "type `Std::ArrayList[Std::String | Std::Int]` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(89, 4, 16), P(89, 4, 16)), "type `Std::ArrayList[Std::String | Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"list pattern with invalid value": {
 			input: `
 				var [a] = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `8` cannot ever match type `Std::List[any]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `8` cannot ever match type `Std::List[any]`"),
 			},
 		},
 		"list pattern with a wider type declares a variable with element type": {
@@ -204,8 +204,8 @@ func TestListPattern(t *testing.T) {
 				var [b] = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(65, 4, 16), P(65, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(65, 4, 16), P(65, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"list pattern with a wider type and incompatible values": {
@@ -213,8 +213,8 @@ func TestListPattern(t *testing.T) {
 				var a: List[Int] | nil = nil
 				var ["foo", b] = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 3, 10), P(47, 3, 14)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 3, 10), P(47, 3, 14)), "type `Std::Int` cannot ever match type `\"foo\"`"),
 			},
 		},
 		"list pattern with a wider type with ArrayList declares a variable with element type": {
@@ -223,8 +223,8 @@ func TestListPattern(t *testing.T) {
 				var [b] = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(70, 4, 16), P(70, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(70, 4, 16), P(70, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"list pattern with a wider incompatible element type with ArrayList": {
@@ -232,9 +232,9 @@ func TestListPattern(t *testing.T) {
 				var a: ArrayList[Int] | nil = nil
 				var ["foo", 2.5, b] = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(48, 3, 10), P(52, 3, 14)), "type `Std::Int` cannot ever match type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(55, 3, 17), P(57, 3, 19)), "type `Std::Int` cannot ever match type `2.5`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 3, 10), P(52, 3, 14)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(55, 3, 17), P(57, 3, 19)), "type `Std::Int` cannot ever match type `2.5`"),
 			},
 		},
 		"list pattern with a wider type ArrayList | List declares a variable with element type": {
@@ -244,9 +244,9 @@ func TestListPattern(t *testing.T) {
 				var d: 9 = b
 				var e: nil = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(89, 4, 16), P(89, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(108, 5, 18), P(108, 5, 18)), "type `Std::ArrayList[Std::Int] | Std::List[Std::Float]` cannot be assigned to type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(89, 4, 16), P(89, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(108, 5, 18), P(108, 5, 18)), "type `Std::ArrayList[Std::Int] | Std::List[Std::Float]` cannot be assigned to type `nil`"),
 			},
 		},
 		"list pattern with a wider incompatible type ArrayList | List": {
@@ -254,9 +254,9 @@ func TestListPattern(t *testing.T) {
 				var a: ArrayList[Int] | List[Float] | nil = nil
 				var ["foo", 9i8, b] = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(62, 3, 10), P(66, 3, 14)), "type `Std::Int | Std::Float` cannot ever match type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(69, 3, 17), P(71, 3, 19)), "type `Std::Int | Std::Float` cannot ever match type `9i8`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(62, 3, 10), P(66, 3, 14)), "type `Std::Int | Std::Float` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(69, 3, 17), P(71, 3, 19)), "type `Std::Int | Std::Float` cannot ever match type `9i8`"),
 			},
 		},
 	}
@@ -276,8 +276,8 @@ func TestTuplePattern(t *testing.T) {
 				var %[b] = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(67, 4, 16), P(67, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(67, 4, 16), P(67, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"tuple pattern with a wider type and incompatible values": {
@@ -285,8 +285,8 @@ func TestTuplePattern(t *testing.T) {
 				var a: Tuple[Int] | nil = nil
 				var %["foo", b] = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 3, 11), P(49, 3, 15)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(45, 3, 11), P(49, 3, 15)), "type `Std::Int` cannot ever match type `\"foo\"`"),
 			},
 		},
 		"tuple pattern with a wider type with ArrayTuple declares a variable with element type": {
@@ -295,8 +295,8 @@ func TestTuplePattern(t *testing.T) {
 				var %[b] = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(72, 4, 16), P(72, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(72, 4, 16), P(72, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"tuple pattern with a wider type with ArrayList declares a variable with element type": {
@@ -305,8 +305,8 @@ func TestTuplePattern(t *testing.T) {
 				var %[b] = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(71, 4, 16), P(71, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(71, 4, 16), P(71, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"tuple pattern with a wider incompatible element type with ArrayTuple": {
@@ -314,9 +314,9 @@ func TestTuplePattern(t *testing.T) {
 				var a: ArrayTuple[Int] | nil = nil
 				var %["foo", 2.5, b] = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(50, 3, 11), P(54, 3, 15)), "type `Std::Int` cannot ever match type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(57, 3, 18), P(59, 3, 20)), "type `Std::Int` cannot ever match type `2.5`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(50, 3, 11), P(54, 3, 15)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(57, 3, 18), P(59, 3, 20)), "type `Std::Int` cannot ever match type `2.5`"),
 			},
 		},
 		"tuple pattern with a wider type ArrayTuple | List declares a variable with element type": {
@@ -326,9 +326,9 @@ func TestTuplePattern(t *testing.T) {
 				var d: 9 = b
 				var e: nil = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(91, 4, 16), P(91, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(110, 5, 18), P(110, 5, 18)), "type `Std::ArrayTuple[Std::Int] | Std::List[Std::Float]` cannot be assigned to type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(91, 4, 16), P(91, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(110, 5, 18), P(110, 5, 18)), "type `Std::ArrayTuple[Std::Int] | Std::List[Std::Float]` cannot be assigned to type `nil`"),
 			},
 		},
 		"tuple pattern with a wider incompatible type ArrayList | Tuple": {
@@ -336,9 +336,9 @@ func TestTuplePattern(t *testing.T) {
 				var a: ArrayList[Int] | Tuple[Float] | nil = nil
 				var %["foo", 9i8, b] = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(64, 3, 11), P(68, 3, 15)), "type `Std::Int | Std::Float` cannot ever match type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(71, 3, 18), P(73, 3, 20)), "type `Std::Int | Std::Float` cannot ever match type `9i8`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(64, 3, 11), P(68, 3, 15)), "type `Std::Int | Std::Float` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(71, 3, 18), P(73, 3, 20)), "type `Std::Int | Std::Float` cannot ever match type `9i8`"),
 			},
 		},
 		"tuple pattern with rest": {
@@ -346,16 +346,16 @@ func TestTuplePattern(t *testing.T) {
 				var %[a, *b] = ["", 8, 1]
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(46, 3, 16), P(46, 3, 16)), "type `Std::ArrayList[Std::String | Std::Int]` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(46, 3, 16), P(46, 3, 16)), "type `Std::ArrayList[Std::String | Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"tuple pattern with invalid value": {
 			input: `
 				var %[a] = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `8` cannot ever match type `Std::Tuple[any]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `8` cannot ever match type `Std::Tuple[any]`"),
 			},
 		},
 	}
@@ -386,8 +386,8 @@ func TestAsPattern(t *testing.T) {
 				val 1 as a = 1
 				a = 5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 3, 5), P(24, 3, 5)), "local value `a` cannot be reassigned"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(24, 3, 5), P(24, 3, 5)), "local value `a` cannot be reassigned"),
 			},
 		},
 		"pattern with as and existing variable": {
@@ -395,8 +395,8 @@ func TestAsPattern(t *testing.T) {
 				var b: String
 				var %[a as b] = [8]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 16), P(34, 3, 16)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(34, 3, 16), P(34, 3, 16)), "type `Std::Int` cannot be assigned to type `Std::String`"),
 			},
 		},
 
@@ -406,8 +406,8 @@ func TestAsPattern(t *testing.T) {
 				var 1 as a = b
 				var c: nil = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(70, 4, 18), P(70, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(70, 4, 18), P(70, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
 			},
 		},
 	}
@@ -431,16 +431,16 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1 as a = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(9, 2, 9)), "type `3` cannot ever match type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(9, 2, 9)), "type `3` cannot ever match type `1`"),
 			},
 		},
 		"pattern with negative int literal and wrong literal type": {
 			input: `
 				var -1 as a = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(10, 2, 10)), "type `3` cannot ever match type `-1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(10, 2, 10)), "type `3` cannot ever match type `-1`"),
 			},
 		},
 		"pattern with int literal and wider type": {
@@ -453,8 +453,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1 as a = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(9, 2, 9)), "type `1.2` cannot ever match type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(9, 2, 9)), "type `1.2` cannot ever match type `1`"),
 			},
 		},
 
@@ -468,8 +468,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1i64 as a = 3i64
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3i64` cannot ever match type `1i64`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3i64` cannot ever match type `1i64`"),
 			},
 		},
 		"pattern with int64 literal and wider type": {
@@ -482,8 +482,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1i64 as a = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1i64`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1i64`"),
 			},
 		},
 		"pattern with int32 literal and Int32 type": {
@@ -496,8 +496,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1i32 as a = 3i32
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3i32` cannot ever match type `1i32`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3i32` cannot ever match type `1i32`"),
 			},
 		},
 		"pattern with int32 literal and wider type": {
@@ -510,8 +510,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1i32 as a = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1i32`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1i32`"),
 			},
 		},
 		"pattern with int16 literal and Int16 type": {
@@ -524,8 +524,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1i16 as a = 3i16
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3i16` cannot ever match type `1i16`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3i16` cannot ever match type `1i16`"),
 			},
 		},
 		"pattern with int16 literal and wider type": {
@@ -538,8 +538,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1i16 as a = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1i16`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1i16`"),
 			},
 		},
 		"pattern with int8 literal and Int8 type": {
@@ -552,8 +552,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1i8 as a = 3i8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `3i8` cannot ever match type `1i8`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `3i8` cannot ever match type `1i8`"),
 			},
 		},
 		"pattern with int8 literal and wider type": {
@@ -566,8 +566,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1i8 as a = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `1.2` cannot ever match type `1i8`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `1.2` cannot ever match type `1i8`"),
 			},
 		},
 		"pattern with uint64 literal and UInt64 type": {
@@ -580,8 +580,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1u64 as a = 3u64
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3u64` cannot ever match type `1u64`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3u64` cannot ever match type `1u64`"),
 			},
 		},
 		"pattern with uint64 literal and wider type": {
@@ -594,8 +594,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1u64 as a = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1u64`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1u64`"),
 			},
 		},
 		"pattern with uint32 literal and UInt32 type": {
@@ -608,8 +608,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1u32 as a = 3u32
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3u32` cannot ever match type `1u32`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3u32` cannot ever match type `1u32`"),
 			},
 		},
 		"pattern with uint32 literal and wider type": {
@@ -622,8 +622,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1u32 as a = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1u32`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1u32`"),
 			},
 		},
 		"pattern with uint16 literal and UInt16 type": {
@@ -636,8 +636,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1u16 as a = 3u16
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3u16` cannot ever match type `1u16`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `3u16` cannot ever match type `1u16`"),
 			},
 		},
 		"pattern with uint16 literal and wider type": {
@@ -650,8 +650,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1u16 as a = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1u16`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `1.2` cannot ever match type `1u16`"),
 			},
 		},
 		"pattern with uint8 literal and UInt8 type": {
@@ -664,8 +664,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1u8 as a = 3u8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `3u8` cannot ever match type `1u8`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `3u8` cannot ever match type `1u8`"),
 			},
 		},
 		"pattern with uint8 literal and wider type": {
@@ -678,8 +678,8 @@ func TestIntPattern(t *testing.T) {
 			input: `
 				var 1u8 as a = 1.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `1.2` cannot ever match type `1u8`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `1.2` cannot ever match type `1u8`"),
 			},
 		},
 	}
@@ -703,8 +703,8 @@ func TestFloatPattern(t *testing.T) {
 			input: `
 				var 1.0 as a = 3.14
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `3.14` cannot ever match type `1.0`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `3.14` cannot ever match type `1.0`"),
 			},
 		},
 		"pattern with float literal and wider type": {
@@ -717,8 +717,8 @@ func TestFloatPattern(t *testing.T) {
 			input: `
 				var 1.0 as a = "1.2"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `\"1.2\"` cannot ever match type `1.0`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `\"1.2\"` cannot ever match type `1.0`"),
 			},
 		},
 		"pattern with float64 literal and Float64 type": {
@@ -731,8 +731,8 @@ func TestFloatPattern(t *testing.T) {
 			input: `
 				var 1.0f64 as a = 3.14f64
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `3.14f64` cannot ever match type `1.0f64`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `3.14f64` cannot ever match type `1.0f64`"),
 			},
 		},
 		"pattern with float64 literal and wider type": {
@@ -745,8 +745,8 @@ func TestFloatPattern(t *testing.T) {
 			input: `
 				var 1.0f64 as a = "1.2"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `\"1.2\"` cannot ever match type `1.0f64`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `\"1.2\"` cannot ever match type `1.0f64`"),
 			},
 		},
 		"pattern with float32 literal and Float32 type": {
@@ -759,8 +759,8 @@ func TestFloatPattern(t *testing.T) {
 			input: `
 				var 1.0f32 as a = 3.14f32
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `3.14f32` cannot ever match type `1.0f32`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `3.14f32` cannot ever match type `1.0f32`"),
 			},
 		},
 		"pattern with float32 literal and wider type": {
@@ -773,8 +773,8 @@ func TestFloatPattern(t *testing.T) {
 			input: `
 				var 1.0f32 as a = "1.2"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `\"1.2\"` cannot ever match type `1.0f32`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `\"1.2\"` cannot ever match type `1.0f32`"),
 			},
 		},
 		"pattern with bigfloat literal and BigFloat type": {
@@ -787,8 +787,8 @@ func TestFloatPattern(t *testing.T) {
 			input: `
 				var 1.0bf as a = 3.14bf
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `3.14bf` cannot ever match type `1.0bf`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `3.14bf` cannot ever match type `1.0bf`"),
 			},
 		},
 		"pattern with bigfloat literal and wider type": {
@@ -801,8 +801,8 @@ func TestFloatPattern(t *testing.T) {
 			input: `
 				var 1.0bf as a = "1.2"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `\"1.2\"` cannot ever match type `1.0bf`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `\"1.2\"` cannot ever match type `1.0bf`"),
 			},
 		},
 	}
@@ -821,8 +821,8 @@ func TestCharPattern(t *testing.T) {
 		},
 		"pattern with char literal and wrong literal type": {
 			input: "var `a` as a = `b`",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "type ``b`` cannot ever match type ``a``"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "type ``b`` cannot ever match type ``a``"),
 			},
 		},
 		"pattern with char literal and wider type": {
@@ -830,8 +830,8 @@ func TestCharPattern(t *testing.T) {
 		},
 		"pattern with char literal and wrong type": {
 			input: "var `a` as a = \"a\"",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "type `\"a\"` cannot ever match type ``a``"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(6, 1, 7)), "type `\"a\"` cannot ever match type ``a``"),
 			},
 		},
 		"pattern with raw char literal and Char type": {
@@ -839,8 +839,8 @@ func TestCharPattern(t *testing.T) {
 		},
 		"pattern with raw char literal and wrong literal type": {
 			input: "var r`f` as a = r`g`",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "type ``g`` cannot ever match type ``f``"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "type ``g`` cannot ever match type ``f``"),
 			},
 		},
 		"pattern with raw char literal and wider type": {
@@ -848,8 +848,8 @@ func TestCharPattern(t *testing.T) {
 		},
 		"pattern with raw char literal and wrong type": {
 			input: "var r`f` as a = \"f\"",
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "type `\"f\"` cannot ever match type ``f``"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(4, 1, 5), P(7, 1, 8)), "type `\"f\"` cannot ever match type ``f``"),
 			},
 		},
 	}
@@ -873,8 +873,8 @@ func TestSimpleLiteralPattern(t *testing.T) {
 			input: `
 				var true as a = false
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `false` cannot ever match type `true`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `false` cannot ever match type `true`"),
 			},
 		},
 		"pattern with true literal and wider type": {
@@ -887,8 +887,8 @@ func TestSimpleLiteralPattern(t *testing.T) {
 			input: `
 				var true as a = "true"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `\"true\"` cannot ever match type `true`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "type `\"true\"` cannot ever match type `true`"),
 			},
 		},
 		"pattern with false literal and Bool type": {
@@ -901,8 +901,8 @@ func TestSimpleLiteralPattern(t *testing.T) {
 			input: `
 				var false as a = true
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `true` cannot ever match type `false`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `true` cannot ever match type `false`"),
 			},
 		},
 		"pattern with false literal and wider type": {
@@ -915,8 +915,8 @@ func TestSimpleLiteralPattern(t *testing.T) {
 			input: `
 				var false as a = "false"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `\"false\"` cannot ever match type `false`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `\"false\"` cannot ever match type `false`"),
 			},
 		},
 		"pattern with nil literal and Nil type": {
@@ -929,8 +929,8 @@ func TestSimpleLiteralPattern(t *testing.T) {
 			input: `
 				var nil as a = 42
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `42` cannot ever match type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `42` cannot ever match type `nil`"),
 			},
 		},
 		"pattern with nil literal and wider type": {
@@ -943,8 +943,8 @@ func TestSimpleLiteralPattern(t *testing.T) {
 			input: `
 				var nil as a = "nil"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `\"nil\"` cannot ever match type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "type `\"nil\"` cannot ever match type `nil`"),
 			},
 		},
 	}
@@ -964,8 +964,8 @@ func TestStringLiteralPattern(t *testing.T) {
 				b := "hello"
 				var "hello${1 + 2i8}" as a = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(38, 3, 21), P(40, 3, 23)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `2i8`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(38, 3, 21), P(40, 3, 23)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `2i8`"),
 			},
 		},
 		"pattern with raw string literal": {
@@ -984,8 +984,8 @@ func TestStringLiteralPattern(t *testing.T) {
 			input: `
 				var "hello" as a = "world"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `\"world\"` cannot ever match type `\"hello\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `\"world\"` cannot ever match type `\"hello\"`"),
 			},
 		},
 		"pattern with string literal and wider type": {
@@ -998,8 +998,8 @@ func TestStringLiteralPattern(t *testing.T) {
 			input: `
 				var "hello" as a = 42
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `42` cannot ever match type `\"hello\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `42` cannot ever match type `\"hello\"`"),
 			},
 		},
 	}
@@ -1018,8 +1018,8 @@ func TestSymbolLiteralPattern(t *testing.T) {
 				b := :hello
 				var :"hello${1 + 2i8}" as a = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(38, 3, 22), P(40, 3, 24)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `2i8`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(38, 3, 22), P(40, 3, 24)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `2i8`"),
 			},
 		},
 		"pattern with simple symbol literal": {
@@ -1038,8 +1038,8 @@ func TestSymbolLiteralPattern(t *testing.T) {
 			input: `
 				var :hello as a = :world
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `:world` cannot ever match type `:hello`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `:world` cannot ever match type `:hello`"),
 			},
 		},
 		"pattern with symbol literal and wider type": {
@@ -1052,8 +1052,8 @@ func TestSymbolLiteralPattern(t *testing.T) {
 			input: `
 				var :hello as a = 42
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `42` cannot ever match type `:hello`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `42` cannot ever match type `:hello`"),
 			},
 		},
 	}
@@ -1077,8 +1077,8 @@ func TestSpecialListPattern(t *testing.T) {
 			input: `
 				var \w[foo bar] as a = [1]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayList[Std::Int]` cannot ever match type `Std::List[Std::String]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayList[Std::Int]` cannot ever match type `Std::List[Std::String]`"),
 			},
 		},
 		"pattern with word list literal and wider type": {
@@ -1091,8 +1091,8 @@ func TestSpecialListPattern(t *testing.T) {
 			input: `
 				var \w[foo bar] as a = 1
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `1` cannot ever match type `Std::List[Std::String]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `1` cannot ever match type `Std::List[Std::String]`"),
 			},
 		},
 		"pattern with symbol list literal and array list type": {
@@ -1105,8 +1105,8 @@ func TestSpecialListPattern(t *testing.T) {
 			input: `
 				var \s[foo bar] as a = ["foo"]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayList[Std::String]` cannot ever match type `Std::List[Std::Symbol]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayList[Std::String]` cannot ever match type `Std::List[Std::Symbol]`"),
 			},
 		},
 		"pattern with symbol list literal and wider type": {
@@ -1119,8 +1119,8 @@ func TestSpecialListPattern(t *testing.T) {
 			input: `
 				var \s[foo bar] as a = "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `\"foo\"` cannot ever match type `Std::List[Std::Symbol]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `\"foo\"` cannot ever match type `Std::List[Std::Symbol]`"),
 			},
 		},
 		"pattern with binary list literal and array list type": {
@@ -1133,8 +1133,8 @@ func TestSpecialListPattern(t *testing.T) {
 			input: `
 				var \b[1010 1100] as a = ["foo"]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::ArrayList[Std::String]` cannot ever match type `Std::List[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::ArrayList[Std::String]` cannot ever match type `Std::List[Std::Int]`"),
 			},
 		},
 		"pattern with binary list literal and wider type": {
@@ -1147,8 +1147,8 @@ func TestSpecialListPattern(t *testing.T) {
 			input: `
 				var \b[1010 1100] as a = "1010"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `\"1010\"` cannot ever match type `Std::List[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `\"1010\"` cannot ever match type `Std::List[Std::Int]`"),
 			},
 		},
 		"pattern with hex list literal and array list type": {
@@ -1161,8 +1161,8 @@ func TestSpecialListPattern(t *testing.T) {
 			input: `
 				var \x[A B] as a = ["foo"]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::ArrayList[Std::String]` cannot ever match type `Std::List[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::ArrayList[Std::String]` cannot ever match type `Std::List[Std::Int]`"),
 			},
 		},
 		"pattern with hex list literal and wider type": {
@@ -1175,8 +1175,8 @@ func TestSpecialListPattern(t *testing.T) {
 			input: `
 				var \x[A B] as a = "A"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `\"A\"` cannot ever match type `Std::List[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `\"A\"` cannot ever match type `Std::List[Std::Int]`"),
 			},
 		},
 	}
@@ -1200,8 +1200,8 @@ func TestSpecialTuplePattern(t *testing.T) {
 			input: `
 				var %w[foo bar] as a = %[1, 2]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[Std::Int]` cannot ever match type `Std::Tuple[Std::String]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[Std::Int]` cannot ever match type `Std::Tuple[Std::String]`"),
 			},
 		},
 		"pattern with binary tuple literal and tuple type": {
@@ -1214,8 +1214,8 @@ func TestSpecialTuplePattern(t *testing.T) {
 			input: `
 				var %b[1010 1100] as a = %["foo", "bar"]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::ArrayTuple[Std::String]` cannot ever match type `Std::Tuple[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::ArrayTuple[Std::String]` cannot ever match type `Std::Tuple[Std::Int]`"),
 			},
 		},
 		"pattern with hex tuple literal and tuple type": {
@@ -1228,8 +1228,8 @@ func TestSpecialTuplePattern(t *testing.T) {
 			input: `
 				var %x[A B] as a = %["foo", "bar"]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::ArrayTuple[Std::String]` cannot ever match type `Std::Tuple[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::ArrayTuple[Std::String]` cannot ever match type `Std::Tuple[Std::Int]`"),
 			},
 		},
 		"pattern with symbol tuple literal and tuple type": {
@@ -1242,8 +1242,8 @@ func TestSpecialTuplePattern(t *testing.T) {
 			input: `
 				var %s[foo bar] as a = %["foo", "bar"]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[Std::String]` cannot ever match type `Std::Tuple[Std::Symbol]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[Std::String]` cannot ever match type `Std::Tuple[Std::Symbol]`"),
 			},
 		},
 	}
@@ -1267,8 +1267,8 @@ func TestSpecialSetPattern(t *testing.T) {
 			input: `
 				var ^w[foo bar] as a = ^[1, 2]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::HashSet[Std::Int]` cannot ever match type `Std::Set[Std::String]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::HashSet[Std::Int]` cannot ever match type `Std::Set[Std::String]`"),
 			},
 		},
 		"pattern with binary set literal and set type": {
@@ -1281,8 +1281,8 @@ func TestSpecialSetPattern(t *testing.T) {
 			input: `
 				var ^b[1010 1100] as a = ^["foo", "bar"]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Int]`"),
 			},
 		},
 		"pattern with hex set literal and set type": {
@@ -1295,8 +1295,8 @@ func TestSpecialSetPattern(t *testing.T) {
 			input: `
 				var ^x[A B] as a = ^["foo", "bar"]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Int]`"),
 			},
 		},
 		"pattern with symbol set literal and set type": {
@@ -1309,8 +1309,8 @@ func TestSpecialSetPattern(t *testing.T) {
 			input: `
 				var ^s[foo bar] as a = ^["foo", "bar"]
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Symbol]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Symbol]`"),
 			},
 		},
 	}
@@ -1330,16 +1330,16 @@ func TestRangePattern(t *testing.T) {
 				var 1...9 as b = a
 				var c: nil = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(85, 4, 18), P(85, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(85, 4, 18), P(85, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
 			},
 		},
 		"range pattern with two different literal types": {
 			input: `
 				var 1...5.9 as a = 9
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "range pattern start and end must be of the same type, got `Std::Int` and `Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "range pattern start and end must be of the same type, got `Std::Int` and `Std::Float`"),
 			},
 		},
 		"range pattern with wider start type": {
@@ -1347,9 +1347,9 @@ func TestRangePattern(t *testing.T) {
 				const A: Int | Float = 25.9
 				var 2.5...A as b = 9.2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(47, 3, 15), P(47, 3, 15)), "type `Std::Int | Std::Float` cannot be used in a range pattern, only class instance types are permitted"),
-				error.NewFailure(L("<main>", P(41, 3, 9), P(47, 3, 15)), "range pattern start and end must be of the same type, got `Std::Float` and `Std::Int | Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(47, 3, 15), P(47, 3, 15)), "type `Std::Int | Std::Float` cannot be used in a range pattern, only class instance types are permitted"),
+				diagnostic.NewFailure(L("<main>", P(41, 3, 9), P(47, 3, 15)), "range pattern start and end must be of the same type, got `Std::Float` and `Std::Int | Std::Float`"),
 			},
 		},
 		"range pattern and correct type": {
@@ -1357,8 +1357,8 @@ func TestRangePattern(t *testing.T) {
 				var 1...15 as a = 9
 				var b: nil = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 3, 18), P(42, 3, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(42, 3, 18), P(42, 3, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
 			},
 		},
 		"range pattern and wrong literal type": {
@@ -1366,9 +1366,9 @@ func TestRangePattern(t *testing.T) {
 				var 1...9 as a = 5i8
 				a = nil
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `5i8` cannot ever match type `Std::Int`"),
-				error.NewFailure(L("<main>", P(34, 3, 9), P(36, 3, 11)), "type `nil` cannot be assigned to type `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `5i8` cannot ever match type `Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(34, 3, 9), P(36, 3, 11)), "type `nil` cannot be assigned to type `Std::Int`"),
 			},
 		},
 	}
@@ -1393,16 +1393,16 @@ func TestMapPattern(t *testing.T) {
 				val { a } = { a: 3 }
 				a = 5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 5), P(30, 3, 5)), "local value `a` cannot be reassigned"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 5), P(30, 3, 5)), "local value `a` cannot be reassigned"),
 			},
 		},
 		"map pattern with invalid value": {
 			input: `
 				var { a } = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `8` cannot ever match type `Std::Map[any, any]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(13, 2, 13)), "type `8` cannot ever match type `Std::Map[any, any]`"),
 			},
 		},
 		"map pattern with a wider type declares a variable with value type": {
@@ -1411,8 +1411,8 @@ func TestMapPattern(t *testing.T) {
 				var { b } = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(74, 4, 16), P(74, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(74, 4, 16), P(74, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"map pattern with a wider type declares a variable with map type": {
@@ -1421,8 +1421,8 @@ func TestMapPattern(t *testing.T) {
 				var { g: 8 } as b = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(82, 4, 16), P(82, 4, 16)), "type `Std::Map[Std::Symbol, Std::Int]` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(82, 4, 16), P(82, 4, 16)), "type `Std::Map[Std::Symbol, Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"map pattern with a wider type and incompatible values": {
@@ -1431,10 +1431,10 @@ func TestMapPattern(t *testing.T) {
 				var { foo: "bar", baz: 2.5 } as b = a
 				var c: nil = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(56, 3, 16), P(60, 3, 20)), "type `Std::Int` cannot ever match type `\"bar\"`"),
-				error.NewFailure(L("<main>", P(68, 3, 28), P(70, 3, 30)), "type `Std::Int` cannot ever match type `2.5`"),
-				error.NewFailure(L("<main>", P(100, 4, 18), P(100, 4, 18)), "type `Std::Map[Std::Symbol, Std::Int]` cannot be assigned to type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(56, 3, 16), P(60, 3, 20)), "type `Std::Int` cannot ever match type `\"bar\"`"),
+				diagnostic.NewFailure(L("<main>", P(68, 3, 28), P(70, 3, 30)), "type `Std::Int` cannot ever match type `2.5`"),
+				diagnostic.NewFailure(L("<main>", P(100, 4, 18), P(100, 4, 18)), "type `Std::Map[Std::Symbol, Std::Int]` cannot be assigned to type `nil`"),
 			},
 		},
 		"map pattern with a wider type and incompatible keys": {
@@ -1443,10 +1443,10 @@ func TestMapPattern(t *testing.T) {
 				var { "foo" => 29, 3.5 => 2 } as b = a
 				var c: nil = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 3, 11), P(61, 3, 21)), "type `Std::Symbol` cannot ever match type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(64, 3, 24), P(71, 3, 31)), "type `Std::Symbol` cannot ever match type `3.5`"),
-				error.NewFailure(L("<main>", P(101, 4, 18), P(101, 4, 18)), "type `Std::Map[Std::Symbol, Std::Int]` cannot be assigned to type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 3, 11), P(61, 3, 21)), "type `Std::Symbol` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(64, 3, 24), P(71, 3, 31)), "type `Std::Symbol` cannot ever match type `3.5`"),
+				diagnostic.NewFailure(L("<main>", P(101, 4, 18), P(101, 4, 18)), "type `Std::Map[Std::Symbol, Std::Int]` cannot be assigned to type `nil`"),
 			},
 		},
 		"map pattern with a wider type with HashMap declares a variable with value type": {
@@ -1455,8 +1455,8 @@ func TestMapPattern(t *testing.T) {
 				var { "bar" => 2 as b } = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(92, 4, 16), P(92, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(92, 4, 16), P(92, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"map pattern with a wider incompatible value type with HashMap": {
@@ -1464,9 +1464,9 @@ func TestMapPattern(t *testing.T) {
 				var a: HashMap[Symbol, Int] | nil = nil
 				var { bar: "foo", zed: 2.5, gamma: b } = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(60, 3, 16), P(64, 3, 20)), "type `Std::Int` cannot ever match type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(72, 3, 28), P(74, 3, 30)), "type `Std::Int` cannot ever match type `2.5`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(60, 3, 16), P(64, 3, 20)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(72, 3, 28), P(74, 3, 30)), "type `Std::Int` cannot ever match type `2.5`"),
 			},
 		},
 		"map pattern with a wider incompatible key type with HashMap": {
@@ -1474,9 +1474,9 @@ func TestMapPattern(t *testing.T) {
 				var a: HashMap[Symbol, String | Int] | nil = nil
 				var { bar: "foo", "zed" => 2, 1 => b } = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(76, 3, 23), P(85, 3, 32)), "type `Std::Symbol` cannot ever match type `\"zed\"`"),
-				error.NewFailure(L("<main>", P(88, 3, 35), P(93, 3, 40)), "type `Std::Symbol` cannot ever match type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(76, 3, 23), P(85, 3, 32)), "type `Std::Symbol` cannot ever match type `\"zed\"`"),
+				diagnostic.NewFailure(L("<main>", P(88, 3, 35), P(93, 3, 40)), "type `Std::Symbol` cannot ever match type `1`"),
 			},
 		},
 		"map pattern with a wider type HashMap | Map declares a variable with value type": {
@@ -1486,9 +1486,9 @@ func TestMapPattern(t *testing.T) {
 				var d: 9 = b
 				var e: nil = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(109, 4, 16), P(109, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(128, 5, 18), P(128, 5, 18)), "type `Std::HashMap[Std::Symbol, Std::Int] | Std::Map[Std::Symbol, Std::Float]` cannot be assigned to type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(109, 4, 16), P(109, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(128, 5, 18), P(128, 5, 18)), "type `Std::HashMap[Std::Symbol, Std::Int] | Std::Map[Std::Symbol, Std::Float]` cannot be assigned to type `nil`"),
 			},
 		},
 	}
@@ -1513,16 +1513,16 @@ func TestRecordPattern(t *testing.T) {
 				val %{ a } = %{ a: 3 }
 				a = 5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 5), P(32, 3, 5)), "local value `a` cannot be reassigned"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 3, 5), P(32, 3, 5)), "local value `a` cannot be reassigned"),
 			},
 		},
 		"record pattern with invalid value": {
 			input: `
 				var %{ a } = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `8` cannot ever match type `Std::Record[any, any]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(14, 2, 14)), "type `8` cannot ever match type `Std::Record[any, any]`"),
 			},
 		},
 		"record pattern with a wider type declares a variable with value type": {
@@ -1531,8 +1531,8 @@ func TestRecordPattern(t *testing.T) {
 				var %{ b } = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(78, 4, 16), P(78, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(78, 4, 16), P(78, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"record pattern with a wider type declares a variable with map type": {
@@ -1541,8 +1541,8 @@ func TestRecordPattern(t *testing.T) {
 				var %{ g: 8 } as b = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(86, 4, 16), P(86, 4, 16)), "cannot use type `void` as a value in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(86, 4, 16), P(86, 4, 16)), "cannot use type `void` as a value in this context"),
 			},
 		},
 		"record pattern with a wider type and incompatible values": {
@@ -1551,10 +1551,10 @@ func TestRecordPattern(t *testing.T) {
 				var %{ foo: "bar", baz: 2.5 } as b = a
 				var c: nil = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(60, 3, 17), P(64, 3, 21)), "type `Std::Int` cannot ever match type `\"bar\"`"),
-				error.NewFailure(L("<main>", P(72, 3, 29), P(74, 3, 31)), "type `Std::Int` cannot ever match type `2.5`"),
-				error.NewFailure(L("<main>", P(104, 4, 18), P(104, 4, 18)), "cannot use type `void` as a value in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(60, 3, 17), P(64, 3, 21)), "type `Std::Int` cannot ever match type `\"bar\"`"),
+				diagnostic.NewFailure(L("<main>", P(72, 3, 29), P(74, 3, 31)), "type `Std::Int` cannot ever match type `2.5`"),
+				diagnostic.NewFailure(L("<main>", P(104, 4, 18), P(104, 4, 18)), "cannot use type `void` as a value in this context"),
 			},
 		},
 		"record pattern with a wider type and incompatible keys": {
@@ -1563,10 +1563,10 @@ func TestRecordPattern(t *testing.T) {
 				var %{ "foo" => 29, 3.5 => 2 } as b = a
 				var c: nil = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(55, 3, 12), P(65, 3, 22)), "type `Std::Symbol` cannot ever match type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(68, 3, 25), P(75, 3, 32)), "type `Std::Symbol` cannot ever match type `3.5`"),
-				error.NewFailure(L("<main>", P(105, 4, 18), P(105, 4, 18)), "cannot use type `void` as a value in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(55, 3, 12), P(65, 3, 22)), "type `Std::Symbol` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(68, 3, 25), P(75, 3, 32)), "type `Std::Symbol` cannot ever match type `3.5`"),
+				diagnostic.NewFailure(L("<main>", P(105, 4, 18), P(105, 4, 18)), "cannot use type `void` as a value in this context"),
 			},
 		},
 		"record pattern with a wider type with HashRecord declares a variable with value type": {
@@ -1575,8 +1575,8 @@ func TestRecordPattern(t *testing.T) {
 				var %{ "bar" => 2 as b } = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(96, 4, 16), P(96, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(96, 4, 16), P(96, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"record pattern with a wider type with HashMap declares a variable with value type": {
@@ -1585,8 +1585,8 @@ func TestRecordPattern(t *testing.T) {
 				var %{ "bar" => 2 as b } = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(93, 4, 16), P(93, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(93, 4, 16), P(93, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"record pattern with a wider incompatible value type with HashRecord": {
@@ -1594,9 +1594,9 @@ func TestRecordPattern(t *testing.T) {
 				var a: HashRecord[Symbol, Int] | nil = nil
 				var %{ bar: "foo", zed: 2.5, gamma: b } = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(64, 3, 17), P(68, 3, 21)), "type `Std::Int` cannot ever match type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(76, 3, 29), P(78, 3, 31)), "type `Std::Int` cannot ever match type `2.5`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(64, 3, 17), P(68, 3, 21)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(76, 3, 29), P(78, 3, 31)), "type `Std::Int` cannot ever match type `2.5`"),
 			},
 		},
 		"record pattern with a wider incompatible key type with HashRecord": {
@@ -1604,9 +1604,9 @@ func TestRecordPattern(t *testing.T) {
 				var a: HashRecord[Symbol, String | Int] | nil = nil
 				var %{ bar: "foo", "zed" => 2, 1 => b } = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(80, 3, 24), P(89, 3, 33)), "type `Std::Symbol` cannot ever match type `\"zed\"`"),
-				error.NewFailure(L("<main>", P(92, 3, 36), P(97, 3, 41)), "type `Std::Symbol` cannot ever match type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(80, 3, 24), P(89, 3, 33)), "type `Std::Symbol` cannot ever match type `\"zed\"`"),
+				diagnostic.NewFailure(L("<main>", P(92, 3, 36), P(97, 3, 41)), "type `Std::Symbol` cannot ever match type `1`"),
 			},
 		},
 		"record pattern with a wider type HashMap | Record declares a variable with value type": {
@@ -1616,9 +1616,9 @@ func TestRecordPattern(t *testing.T) {
 				var d: 9 = b
 				var e: nil = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(113, 4, 16), P(113, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(132, 5, 18), P(132, 5, 18)), "cannot use type `void` as a value in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(113, 4, 16), P(113, 4, 16)), "type `Std::Int | Std::Float` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(132, 5, 18), P(132, 5, 18)), "cannot use type `void` as a value in this context"),
 			},
 		},
 	}
@@ -1643,24 +1643,24 @@ func TestObjectPattern(t *testing.T) {
 				val String(length) = "foo"
 				length = 5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 5), P(41, 3, 10)), "local value `length` cannot be reassigned"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(36, 3, 5), P(41, 3, 10)), "local value `length` cannot be reassigned"),
 			},
 		},
 		"identifier - invalid value": {
 			input: `
 				var String(length) = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(22, 2, 22)), "type `3` cannot ever match type `Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(22, 2, 22)), "type `3` cannot ever match type `Std::String`"),
 			},
 		},
 		"identifier - nonexistent method": {
 			input: `
 				var String(lol) = "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(16, 2, 16), P(18, 2, 18)), "method `lol` is not defined on type `Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(18, 2, 18)), "method `lol` is not defined on type `Std::String`"),
 			},
 		},
 		"identifier - valid getter": {
@@ -1669,9 +1669,9 @@ func TestObjectPattern(t *testing.T) {
 				var a: 9 = length
 				var b: 7 = s
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(52, 3, 16), P(57, 3, 21)), "type `Std::Int` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(74, 4, 16), P(74, 4, 16)), "type `Std::String` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(52, 3, 16), P(57, 3, 21)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(74, 4, 16), P(74, 4, 16)), "type `Std::String` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - valid getter and wider type": {
@@ -1681,9 +1681,9 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = length
 				var c: 7 = s
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(84, 4, 16), P(89, 4, 21)), "type `Std::Int` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(106, 5, 16), P(106, 5, 16)), "type `Std::String` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(84, 4, 16), P(89, 4, 21)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(106, 5, 16), P(106, 5, 16)), "type `Std::String` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - method with required arguments": {
@@ -1696,10 +1696,10 @@ func TestObjectPattern(t *testing.T) {
 				var a: 9 = bar
 				var b: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(69, 6, 13), P(71, 6, 15)), "argument `a` is missing in call to `bar`"),
-				error.NewFailure(L("<main>", P(102, 7, 16), P(104, 7, 18)), "type `Std::Int` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(121, 8, 16), P(121, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(69, 6, 13), P(71, 6, 15)), "argument `a` is missing in call to `bar`"),
+				diagnostic.NewFailure(L("<main>", P(102, 7, 16), P(104, 7, 18)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(121, 8, 16), P(121, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - void method": {
@@ -1712,9 +1712,9 @@ func TestObjectPattern(t *testing.T) {
 				var a: 9 = bar
 				var b: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(54, 6, 13), P(56, 6, 15)), "cannot use type `void` as a value in this context"),
-				error.NewFailure(L("<main>", P(106, 8, 16), P(106, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(54, 6, 13), P(56, 6, 15)), "cannot use type `void` as a value in this context"),
+				diagnostic.NewFailure(L("<main>", P(106, 8, 16), P(106, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - generic getter with bounds": {
@@ -1727,9 +1727,9 @@ func TestObjectPattern(t *testing.T) {
 				var a: 9 = bar
 				var b: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(122, 7, 16), P(124, 7, 18)), "type `Std::CoercibleNumeric` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(141, 8, 16), P(141, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(122, 7, 16), P(124, 7, 18)), "type `Std::CoercibleNumeric` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(141, 8, 16), P(141, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - generic getter without bounds": {
@@ -1742,9 +1742,9 @@ func TestObjectPattern(t *testing.T) {
 				var a: 9 = bar
 				var b: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(103, 7, 16), P(105, 7, 18)), "type `any` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(122, 8, 16), P(122, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(103, 7, 16), P(105, 7, 18)), "type `any` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(122, 8, 16), P(122, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class and simple type": {
@@ -1757,9 +1757,9 @@ func TestObjectPattern(t *testing.T) {
 				var a: 9 = bar
 				var b: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(113, 7, 16), P(115, 7, 18)), "type `Std::String` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(132, 8, 16), P(132, 8, 16)), "type `Foo[Std::String]` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(113, 7, 16), P(115, 7, 18)), "type `Std::String` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(132, 8, 16), P(132, 8, 16)), "type `Foo[Std::String]` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class and wide type": {
@@ -1776,9 +1776,9 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = bar
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(182, 11, 16), P(184, 11, 18)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(201, 12, 16), P(201, 12, 16)), "type `Foo[Std::String] | Bar` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(182, 11, 16), P(184, 11, 18)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(201, 12, 16), P(201, 12, 16)), "type `Foo[Std::String] | Bar` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class and wide type without the class": {
@@ -1792,9 +1792,9 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = bar
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(128, 8, 16), P(130, 8, 18)), "type `Std::Value` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(147, 9, 16), P(147, 9, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(128, 8, 16), P(130, 8, 18)), "type `Std::Value` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(147, 9, 16), P(147, 9, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class and wide interface type that intersects with it": {
@@ -1812,9 +1812,9 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = bar
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(194, 12, 16), P(196, 12, 18)), "type `Std::String` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(213, 13, 16), P(213, 13, 16)), "type `Foo[Std::String]` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(194, 12, 16), P(196, 12, 18)), "type `Std::String` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(213, 13, 16), P(213, 13, 16)), "type `Foo[Std::String]` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class and interface type that intersects with it": {
@@ -1832,9 +1832,9 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = bar
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(188, 12, 16), P(190, 12, 18)), "type `Std::String` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(207, 13, 16), P(207, 13, 16)), "type `Foo[Std::String]` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(188, 12, 16), P(190, 12, 18)), "type `Std::String` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(207, 13, 16), P(207, 13, 16)), "type `Foo[Std::String]` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class and interface type with union types": {
@@ -1854,9 +1854,9 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = bar
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(279, 14, 16), P(281, 14, 18)), "type `nil | Std::String | Std::Float` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(298, 15, 16), P(298, 15, 16)), "type `Foo[Std::String | Std::Float]` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(279, 14, 16), P(281, 14, 18)), "type `nil | Std::String | Std::Float` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(298, 15, 16), P(298, 15, 16)), "type `Foo[Std::String | Std::Float]` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class and interface type with exclusive return types": {
@@ -1876,10 +1876,10 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = bar
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(201, 13, 9), P(208, 13, 16)), "type `Bar` cannot ever match type `Foo`"),
-				error.NewFailure(L("<main>", P(236, 14, 16), P(238, 14, 18)), "type `Std::Value` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(255, 15, 16), P(255, 15, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(201, 13, 9), P(208, 13, 16)), "type `Bar` cannot ever match type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(236, 14, 16), P(238, 14, 18)), "type `Std::Value` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(255, 15, 16), P(255, 15, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class with invalid method and interface type": {
@@ -1902,10 +1902,10 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = bar
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(225, 16, 9), P(232, 16, 16)), "type `Bar` cannot ever match type `Foo`"),
-				error.NewFailure(L("<main>", P(258, 17, 16), P(260, 17, 18)), "type `Std::Int` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(277, 18, 16), P(277, 18, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(225, 16, 9), P(232, 16, 16)), "type `Bar` cannot ever match type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(258, 17, 16), P(260, 17, 18)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(277, 18, 16), P(277, 18, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class with missing methods and interface type": {
@@ -1927,10 +1927,10 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = bar
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(200, 15, 9), P(207, 15, 16)), "type `Bar` cannot ever match type `Foo`"),
-				error.NewFailure(L("<main>", P(204, 15, 13), P(206, 15, 15)), "method `bar` is not defined on type `Foo[Std::Value]`"),
-				error.NewFailure(L("<main>", P(252, 17, 16), P(252, 17, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(200, 15, 9), P(207, 15, 16)), "type `Bar` cannot ever match type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(204, 15, 13), P(206, 15, 15)), "method `bar` is not defined on type `Foo[Std::Value]`"),
+				diagnostic.NewFailure(L("<main>", P(252, 17, 16), P(252, 17, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
 			},
 		},
 
@@ -1949,9 +1949,9 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = bar
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(194, 12, 16), P(196, 12, 18)), "type `Std::String` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(213, 13, 16), P(213, 13, 16)), "type `Foo[Std::String]` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(194, 12, 16), P(196, 12, 18)), "type `Std::String` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(213, 13, 16), P(213, 13, 16)), "type `Foo[Std::String]` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class with invalid method and generic interface type": {
@@ -1974,10 +1974,10 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = bar
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(231, 16, 9), P(238, 16, 16)), "type `Bar[Std::String]` cannot ever match type `Foo`"),
-				error.NewFailure(L("<main>", P(264, 17, 16), P(266, 17, 18)), "type `Std::Int` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(283, 18, 16), P(283, 18, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(231, 16, 9), P(238, 16, 16)), "type `Bar[Std::String]` cannot ever match type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(264, 17, 16), P(266, 17, 18)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(283, 18, 16), P(283, 18, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
 			},
 		},
 		"identifier - getter on a generic class with missing methods and generic interface type": {
@@ -1999,10 +1999,10 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = bar
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(206, 15, 9), P(213, 15, 16)), "type `Bar[Std::String]` cannot ever match type `Foo`"),
-				error.NewFailure(L("<main>", P(210, 15, 13), P(212, 15, 15)), "method `bar` is not defined on type `Foo[Std::Value]`"),
-				error.NewFailure(L("<main>", P(258, 17, 16), P(258, 17, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(206, 15, 9), P(213, 15, 16)), "type `Bar[Std::String]` cannot ever match type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(210, 15, 13), P(212, 15, 15)), "method `bar` is not defined on type `Foo[Std::Value]`"),
+				diagnostic.NewFailure(L("<main>", P(258, 17, 16), P(258, 17, 16)), "type `Foo[Std::Value]` cannot be assigned to type `7`"),
 			},
 		},
 
@@ -2010,16 +2010,16 @@ func TestObjectPattern(t *testing.T) {
 			input: `
 				var String(length: l) = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(25, 2, 25)), "type `3` cannot ever match type `Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(25, 2, 25)), "type `3` cannot ever match type `Std::String`"),
 			},
 		},
 		"key value - nonexistent method": {
 			input: `
 				var String(lol: l) = "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(16, 2, 16), P(21, 2, 21)), "method `lol` is not defined on type `Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(21, 2, 21)), "method `lol` is not defined on type `Std::String`"),
 			},
 		},
 		"key value - valid getter": {
@@ -2028,17 +2028,17 @@ func TestObjectPattern(t *testing.T) {
 				var a: 9 = l
 				var b: 7 = s
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(55, 3, 16), P(55, 3, 16)), "type `Std::Int` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(72, 4, 16), P(72, 4, 16)), "type `Std::String` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(55, 3, 16), P(55, 3, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(72, 4, 16), P(72, 4, 16)), "type `Std::String` cannot be assigned to type `7`"),
 			},
 		},
 		"key value - invalid value pattern": {
 			input: `
 				var String(length: "lol") as s = "foo"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 2, 24), P(28, 2, 28)), "type `Std::Int` cannot ever match type `\"lol\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(24, 2, 24), P(28, 2, 28)), "type `Std::Int` cannot ever match type `\"lol\"`"),
 			},
 		},
 		"key value - valid getter and wider type": {
@@ -2048,9 +2048,9 @@ func TestObjectPattern(t *testing.T) {
 				var b: 9 = l
 				var c: 7 = s
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(87, 4, 16), P(87, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(104, 5, 16), P(104, 5, 16)), "type `Std::String` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(87, 4, 16), P(87, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(104, 5, 16), P(104, 5, 16)), "type `Std::String` cannot be assigned to type `7`"),
 			},
 		},
 		"key value - method with required arguments": {
@@ -2063,10 +2063,10 @@ func TestObjectPattern(t *testing.T) {
 				var a: 9 = b
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(69, 6, 13), P(74, 6, 18)), "argument `a` is missing in call to `bar`"),
-				error.NewFailure(L("<main>", P(105, 7, 16), P(105, 7, 16)), "type `Std::Int` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(122, 8, 16), P(122, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(69, 6, 13), P(74, 6, 18)), "argument `a` is missing in call to `bar`"),
+				diagnostic.NewFailure(L("<main>", P(105, 7, 16), P(105, 7, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(122, 8, 16), P(122, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
 			},
 		},
 		"key value - void method": {
@@ -2079,9 +2079,9 @@ func TestObjectPattern(t *testing.T) {
 				var a: 9 = b
 				var c: 7 = f
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(54, 6, 13), P(59, 6, 18)), "cannot use type `void` as a value in this context"),
-				error.NewFailure(L("<main>", P(107, 8, 16), P(107, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(54, 6, 13), P(59, 6, 18)), "cannot use type `void` as a value in this context"),
+				diagnostic.NewFailure(L("<main>", P(107, 8, 16), P(107, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
 			},
 		},
 	}
@@ -2100,16 +2100,16 @@ func TestConstantPattern(t *testing.T) {
 				typedef Foo = 2
 				var Foo as a = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(29, 3, 9), P(31, 3, 11)), "`Foo` cannot be used as a value in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(29, 3, 9), P(31, 3, 11)), "`Foo` cannot be used as a value in expressions"),
 			},
 		},
 		"public constant - nonexistent constant": {
 			input: `
 				var Foo as a = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "undefined constant `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "undefined constant `Foo`"),
 			},
 		},
 		"public constant - invalid literal value": {
@@ -2117,8 +2117,8 @@ func TestConstantPattern(t *testing.T) {
 				const Foo = 3
 				var Foo as a = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 3, 9), P(29, 3, 11)), "type `8` cannot ever match type `3`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(27, 3, 9), P(29, 3, 11)), "type `8` cannot ever match type `3`"),
 			},
 		},
 		"public constant - valid literal value": {
@@ -2127,8 +2127,8 @@ func TestConstantPattern(t *testing.T) {
 				var Foo as a = 3
 				var b: nil = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 4, 18), P(57, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(57, 4, 18), P(57, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
 			},
 		},
 
@@ -2137,16 +2137,16 @@ func TestConstantPattern(t *testing.T) {
 				typedef _Foo = 2
 				var _Foo as a = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 9), P(33, 3, 12)), "`_Foo` cannot be used as a value in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 9), P(33, 3, 12)), "`_Foo` cannot be used as a value in expressions"),
 			},
 		},
 		"private constant - nonexistent constant": {
 			input: `
 				var _Foo as a = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "undefined constant `_Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(12, 2, 12)), "undefined constant `_Foo`"),
 			},
 		},
 		"private constant - invalid literal value": {
@@ -2154,8 +2154,8 @@ func TestConstantPattern(t *testing.T) {
 				const _Foo = 3
 				var _Foo as a = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 3, 9), P(31, 3, 12)), "type `8` cannot ever match type `3`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(28, 3, 9), P(31, 3, 12)), "type `8` cannot ever match type `3`"),
 			},
 		},
 		"private constant - valid literal value": {
@@ -2164,8 +2164,8 @@ func TestConstantPattern(t *testing.T) {
 				var _Foo as a = 3
 				var b: nil = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(59, 4, 18), P(59, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(59, 4, 18), P(59, 4, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
 			},
 		},
 
@@ -2176,16 +2176,16 @@ func TestConstantPattern(t *testing.T) {
 				end
 				var Foo::Bar as a = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(58, 5, 14), P(60, 5, 16)), "`Foo::Bar` cannot be used as a value in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(58, 5, 14), P(60, 5, 16)), "`Foo::Bar` cannot be used as a value in expressions"),
 			},
 		},
 		"constant lookup - nonexistent module": {
 			input: `
 				var Foo::Bar as a = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "undefined constant `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(11, 2, 11)), "undefined constant `Foo`"),
 			},
 		},
 		"constant lookup - nonexistent constant": {
@@ -2193,8 +2193,8 @@ func TestConstantPattern(t *testing.T) {
 				module Foo; end
 				var Foo::Bar as a = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 14), P(36, 3, 16)), "undefined constant `Foo::Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(34, 3, 14), P(36, 3, 16)), "undefined constant `Foo::Bar`"),
 			},
 		},
 		"constant lookup - invalid literal value": {
@@ -2204,8 +2204,8 @@ func TestConstantPattern(t *testing.T) {
 				end
 				var Foo::Bar as a = 8
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 5, 9), P(58, 5, 16)), "type `8` cannot ever match type `3`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 5, 9), P(58, 5, 16)), "type `8` cannot ever match type `3`"),
 			},
 		},
 		"constant lookup - valid literal value": {
@@ -2216,8 +2216,8 @@ func TestConstantPattern(t *testing.T) {
 				var Foo::Bar as a = 3
 				var b: nil = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(86, 6, 18), P(86, 6, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(86, 6, 18), P(86, 6, 18)), "type `Std::Int` cannot be assigned to type `nil`"),
 			},
 		},
 	}
@@ -2235,8 +2235,8 @@ func TestUnaryPattern(t *testing.T) {
 			input: `
 				var == 10 as a = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `10`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `10`"),
 			},
 		},
 		"== - valid type": {
@@ -2246,16 +2246,16 @@ func TestUnaryPattern(t *testing.T) {
 				var == b as c = a
 				var d: 1 = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(99, 5, 16), P(99, 5, 16)), "type `Std::String?` cannot be assigned to type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(99, 5, 16), P(99, 5, 16)), "type `Std::String?` cannot be assigned to type `1`"),
 			},
 		},
 		"!= - invalid type": {
 			input: `
 				var != 10 as a = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `10`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `10`"),
 			},
 		},
 		"!= - valid type": {
@@ -2265,8 +2265,8 @@ func TestUnaryPattern(t *testing.T) {
 				var != b as c = a
 				var d: 1 = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(99, 5, 16), P(99, 5, 16)), "type `Std::String | Std::Int | nil` cannot be assigned to type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(99, 5, 16), P(99, 5, 16)), "type `Std::String | Std::Int | nil` cannot be assigned to type `1`"),
 			},
 		},
 
@@ -2274,8 +2274,8 @@ func TestUnaryPattern(t *testing.T) {
 			input: `
 				var === 10 as a = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(13, 2, 13), P(14, 2, 14)), "type `3` cannot ever match type `10`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(13, 2, 13), P(14, 2, 14)), "type `3` cannot ever match type `10`"),
 			},
 		},
 		"=== - valid type": {
@@ -2285,16 +2285,16 @@ func TestUnaryPattern(t *testing.T) {
 				var === b as c = a
 				var d: 1 = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(100, 5, 16), P(100, 5, 16)), "type `Std::String?` cannot be assigned to type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(100, 5, 16), P(100, 5, 16)), "type `Std::String?` cannot be assigned to type `1`"),
 			},
 		},
 		"!== - invalid type": {
 			input: `
 				var !== 10 as a = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(13, 2, 13), P(14, 2, 14)), "type `3` cannot ever match type `10`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(13, 2, 13), P(14, 2, 14)), "type `3` cannot ever match type `10`"),
 			},
 		},
 		"!== - valid type": {
@@ -2304,8 +2304,8 @@ func TestUnaryPattern(t *testing.T) {
 				var !== b as c = a
 				var d: 1 = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(100, 5, 16), P(100, 5, 16)), "type `Std::String | Std::Int | nil` cannot be assigned to type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(100, 5, 16), P(100, 5, 16)), "type `Std::String | Std::Int | nil` cannot be assigned to type `1`"),
 			},
 		},
 
@@ -2321,8 +2321,8 @@ func TestUnaryPattern(t *testing.T) {
 				var =~ b as c = a
 				var d: 1 = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(99, 5, 16), P(99, 5, 16)), "type `Std::String | Std::Int | nil` cannot be assigned to type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(99, 5, 16), P(99, 5, 16)), "type `Std::String | Std::Int | nil` cannot be assigned to type `1`"),
 			},
 		},
 		"!~ - different type": {
@@ -2337,8 +2337,8 @@ func TestUnaryPattern(t *testing.T) {
 				var !~ b as c = a
 				var d: 1 = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(99, 5, 16), P(99, 5, 16)), "type `Std::String | Std::Int | nil` cannot be assigned to type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(99, 5, 16), P(99, 5, 16)), "type `Std::String | Std::Int | nil` cannot be assigned to type `1`"),
 			},
 		},
 
@@ -2346,8 +2346,8 @@ func TestUnaryPattern(t *testing.T) {
 			input: `
 				var < .1 as a = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 2, 11), P(12, 2, 12)), "type `3` cannot ever match type `Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(12, 2, 12)), "type `3` cannot ever match type `Std::Float`"),
 			},
 		},
 		"< - valid type": {
@@ -2357,8 +2357,8 @@ func TestUnaryPattern(t *testing.T) {
 				var < b as c = a
 				var d: 1 = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(106, 5, 16), P(106, 5, 16)), "type `Std::Float` cannot be assigned to type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(106, 5, 16), P(106, 5, 16)), "type `Std::Float` cannot be assigned to type `1`"),
 			},
 		},
 		"< - type without method": {
@@ -2366,16 +2366,16 @@ func TestUnaryPattern(t *testing.T) {
 				var a: String? = nil
 				var < nil as c = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 9), P(34, 3, 9)), "method `<` is not defined on type `Std::Nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(34, 3, 9), P(34, 3, 9)), "method `<` is not defined on type `Std::Nil`"),
 			},
 		},
 		"<= - invalid type": {
 			input: `
 				var <= .1 as a = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `Std::Float`"),
 			},
 		},
 		"<= - valid type": {
@@ -2385,8 +2385,8 @@ func TestUnaryPattern(t *testing.T) {
 				var <= b as c = a
 				var d: 1 = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(107, 5, 16), P(107, 5, 16)), "type `Std::Float` cannot be assigned to type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(107, 5, 16), P(107, 5, 16)), "type `Std::Float` cannot be assigned to type `1`"),
 			},
 		},
 		"<= - type without method": {
@@ -2394,16 +2394,16 @@ func TestUnaryPattern(t *testing.T) {
 				var a: String? = nil
 				var <= nil as c = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 9), P(35, 3, 10)), "method `<=` is not defined on type `Std::Nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(34, 3, 9), P(35, 3, 10)), "method `<=` is not defined on type `Std::Nil`"),
 			},
 		},
 		"> - invalid type": {
 			input: `
 				var > 1.2 as a = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 2, 11), P(13, 2, 13)), "type `3` cannot ever match type `Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(13, 2, 13)), "type `3` cannot ever match type `Std::Float`"),
 			},
 		},
 		"> - valid type": {
@@ -2413,8 +2413,8 @@ func TestUnaryPattern(t *testing.T) {
 				var > b as c = a
 				var d: 1 = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(106, 5, 16), P(106, 5, 16)), "type `Std::Float` cannot be assigned to type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(106, 5, 16), P(106, 5, 16)), "type `Std::Float` cannot be assigned to type `1`"),
 			},
 		},
 		"> - type without method": {
@@ -2422,16 +2422,16 @@ func TestUnaryPattern(t *testing.T) {
 				var a: String? = nil
 				var > nil as c = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 9), P(34, 3, 9)), "method `>` is not defined on type `Std::Nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(34, 3, 9), P(34, 3, 9)), "method `>` is not defined on type `Std::Nil`"),
 			},
 		},
 		">= - invalid type": {
 			input: `
 				var >= .1 as a = 3
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `Std::Float`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "type `3` cannot ever match type `Std::Float`"),
 			},
 		},
 		">= - valid type": {
@@ -2441,8 +2441,8 @@ func TestUnaryPattern(t *testing.T) {
 				var >= b as c = a
 				var d: 1 = c
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(107, 5, 16), P(107, 5, 16)), "type `Std::Float` cannot be assigned to type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(107, 5, 16), P(107, 5, 16)), "type `Std::Float` cannot be assigned to type `1`"),
 			},
 		},
 		">= - type without method": {
@@ -2450,8 +2450,8 @@ func TestUnaryPattern(t *testing.T) {
 				var a: String? = nil
 				var >= nil as c = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 9), P(35, 3, 10)), "method `>=` is not defined on type `Std::Nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(34, 3, 9), P(35, 3, 10)), "method `>=` is not defined on type `Std::Nil`"),
 			},
 		},
 	}
@@ -2471,8 +2471,8 @@ func TestBinaryPattern(t *testing.T) {
 				var 1 || "foo" as b = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(80, 4, 16), P(80, 4, 16)), "type `Std::Int | Std::String` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(80, 4, 16), P(80, 4, 16)), "type `Std::Int | Std::String` cannot be assigned to type `9`"),
 			},
 		},
 		"|| - invalid patterns": {
@@ -2481,10 +2481,10 @@ func TestBinaryPattern(t *testing.T) {
 				var 1 || "foo" as b = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 3, 9), P(45, 3, 9)), "type `Std::Char | Std::Float | nil` cannot ever match type `1`"),
-				error.NewFailure(L("<main>", P(50, 3, 14), P(54, 3, 18)), "type `Std::Char | Std::Float | nil` cannot ever match type `\"foo\"`"),
-				error.NewFailure(L("<main>", P(80, 4, 16), P(80, 4, 16)), "type `Std::Int | Std::String` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(45, 3, 9), P(45, 3, 9)), "type `Std::Char | Std::Float | nil` cannot ever match type `1`"),
+				diagnostic.NewFailure(L("<main>", P(50, 3, 14), P(54, 3, 18)), "type `Std::Char | Std::Float | nil` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(80, 4, 16), P(80, 4, 16)), "type `Std::Int | Std::String` cannot be assigned to type `9`"),
 			},
 		},
 		"|| - conditional variables": {
@@ -2494,8 +2494,8 @@ func TestBinaryPattern(t *testing.T) {
 				var c: 9 = b
 				b = "lol"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(82, 4, 16), P(82, 4, 16)), "type `Std::String?` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(82, 4, 16), P(82, 4, 16)), "type `Std::String?` cannot be assigned to type `9`"),
 			},
 		},
 		"|| - conditional values": {
@@ -2505,9 +2505,9 @@ func TestBinaryPattern(t *testing.T) {
 				val c: 9 = b
 				b = "lol"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(82, 4, 16), P(82, 4, 16)), "type `Std::String?` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(88, 5, 5), P(88, 5, 5)), "local value `b` cannot be reassigned"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(82, 4, 16), P(82, 4, 16)), "type `Std::String?` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(88, 5, 5), P(88, 5, 5)), "local value `b` cannot be reassigned"),
 			},
 		},
 
@@ -2517,8 +2517,8 @@ func TestBinaryPattern(t *testing.T) {
 				var < 5 && > 10 as b = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(81, 4, 16), P(81, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(81, 4, 16), P(81, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"&& - non matching type": {
@@ -2526,9 +2526,9 @@ func TestBinaryPattern(t *testing.T) {
 				var < 5 && > 10 as b = 2.2
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 2, 11), P(11, 2, 11)), "type `2.2` cannot ever match type `Std::Int`"),
-				error.NewFailure(L("<main>", P(18, 2, 18), P(19, 2, 19)), "type `2.2` cannot ever match type `Std::Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(11, 2, 11)), "type `2.2` cannot ever match type `Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(18, 2, 18), P(19, 2, 19)), "type `2.2` cannot ever match type `Std::Int`"),
 			},
 		},
 		"&& - incompatible patterns": {
@@ -2537,8 +2537,8 @@ func TestBinaryPattern(t *testing.T) {
 				var < 5 && > 2.5 as b = a
 				var c: 9 = b
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(45, 3, 9), P(56, 3, 20)), "this pattern is impossible to satisfy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(45, 3, 9), P(56, 3, 20)), "this pattern is impossible to satisfy"),
 			},
 		},
 	}

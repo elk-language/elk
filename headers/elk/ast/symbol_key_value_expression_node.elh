@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents a symbol value expression eg. `foo: bar`
+  ]##
+  sealed primitive class SymbolKeyValueExpressionNode
+    include ExpressionNode
+
+    init(key: String, value: ExpressionNode, span: String::Span = loop; end); end
+    def key: String; end
+    def value: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

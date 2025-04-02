@@ -1,0 +1,22 @@
+module Std::Elk::AST
+  ##[
+    Represents a closure eg. `|i| -> println(i)`
+  ]##
+  sealed primitive class ClosureLiteralNode
+    include ExpressionNode
+
+    init(
+      parameters: ArrayTuple[ParameterNode] = loop; end,
+      return_type: TypeNode? = nil,
+      throw_type: TypeNode? = nil,
+      body: ArrayTuple[StatementNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
+    def parameters: ArrayTuple[ParameterNode]; end
+    def return_type: TypeNode?; end
+    def throw_type: TypeNode?; end
+    def body: ArrayTuple[StatementNode]; end
+    def span: String::Span; end
+  end
+end

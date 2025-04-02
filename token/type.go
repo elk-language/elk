@@ -1,15 +1,37 @@
 package token
 
+import "iter"
+
+//go:generate stringer -type=Type
+
 // Represents the type of token
 type Type uint16
 
 // Name of the token.
-func (t Type) String() string {
+func (t Type) Name() string {
 	if int(t) > len(tokenNames) {
 		return "UNKNOWN"
 	}
 
 	return tokenNames[t]
+}
+
+func (t Type) TypeName() string {
+	return t.String()
+}
+
+func Length() int {
+	return len(tokenNames)
+}
+
+func Types() iter.Seq2[uint16, string] {
+	return func(yield func(uint16, string) bool) {
+		for i := range uint16(Length()) {
+			if !yield(i, Type(i).String()) {
+				return
+			}
+		}
+	}
 }
 
 // Returns `true` if the token can be a beginning of

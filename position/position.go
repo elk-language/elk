@@ -32,6 +32,15 @@ func New(byteOffset, line, column int) *Position {
 	}
 }
 
+func (p *Position) Equal(other *Position) bool {
+	if p == other {
+		return true
+	}
+	return p.ByteOffset == other.ByteOffset &&
+		p.Line == other.Line &&
+		p.Column == other.Column
+}
+
 // Retrieve the position, used in interfaces.
 func (p *Position) Pos() *Position {
 	return p

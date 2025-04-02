@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    BigFloat literal eg. `5.2bf`, `.5bf`, `45e20bf`
+  ]##
+  sealed primitive class BigFloatLiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode
+
+    init(value: String, span: String::Span = loop; end); end
+    def value: String; end
+    def span: String::Span; end
+  end
+end

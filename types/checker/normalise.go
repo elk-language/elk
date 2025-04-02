@@ -1047,7 +1047,7 @@ elementLoop:
 	return types.NewUnion(normalisedElements...)
 }
 
-func (c *Checker) constructUnionType(node *ast.BinaryTypeExpressionNode) *ast.UnionTypeNode {
+func (c *Checker) constructUnionType(node *ast.BinaryTypeNode) *ast.UnionTypeNode {
 	union := types.NewUnion()
 	elements := new([]ast.TypeNode)
 	c._constructUnionType(node, elements, union)
@@ -1061,8 +1061,8 @@ func (c *Checker) constructUnionType(node *ast.BinaryTypeExpressionNode) *ast.Un
 	return newNode
 }
 
-func (c *Checker) _constructUnionType(node *ast.BinaryTypeExpressionNode, elements *[]ast.TypeNode, union *types.Union) {
-	leftBinaryType, leftIsBinaryType := node.Left.(*ast.BinaryTypeExpressionNode)
+func (c *Checker) _constructUnionType(node *ast.BinaryTypeNode, elements *[]ast.TypeNode, union *types.Union) {
+	leftBinaryType, leftIsBinaryType := node.Left.(*ast.BinaryTypeNode)
 	if leftIsBinaryType && leftBinaryType.Op.Type == token.OR {
 		c._constructUnionType(leftBinaryType, elements, union)
 	} else {
@@ -1074,7 +1074,7 @@ func (c *Checker) _constructUnionType(node *ast.BinaryTypeExpressionNode, elemen
 		union.Elements = append(union.Elements, leftType)
 	}
 
-	rightBinaryType, rightIsBinaryType := node.Right.(*ast.BinaryTypeExpressionNode)
+	rightBinaryType, rightIsBinaryType := node.Right.(*ast.BinaryTypeNode)
 	if rightIsBinaryType && rightBinaryType.Op.Type == token.OR {
 		c._constructUnionType(rightBinaryType, elements, union)
 	} else {
@@ -1087,7 +1087,7 @@ func (c *Checker) _constructUnionType(node *ast.BinaryTypeExpressionNode, elemen
 	}
 }
 
-func (c *Checker) constructIntersectionType(node *ast.BinaryTypeExpressionNode) *ast.IntersectionTypeNode {
+func (c *Checker) constructIntersectionType(node *ast.BinaryTypeNode) *ast.IntersectionTypeNode {
 	intersection := types.NewIntersection()
 	elements := new([]ast.TypeNode)
 	c._constructIntersectionType(node, elements, intersection)
@@ -1101,8 +1101,8 @@ func (c *Checker) constructIntersectionType(node *ast.BinaryTypeExpressionNode) 
 	return newNode
 }
 
-func (c *Checker) _constructIntersectionType(node *ast.BinaryTypeExpressionNode, elements *[]ast.TypeNode, intersection *types.Intersection) {
-	leftBinaryType, leftIsBinaryType := node.Left.(*ast.BinaryTypeExpressionNode)
+func (c *Checker) _constructIntersectionType(node *ast.BinaryTypeNode, elements *[]ast.TypeNode, intersection *types.Intersection) {
+	leftBinaryType, leftIsBinaryType := node.Left.(*ast.BinaryTypeNode)
 	if leftIsBinaryType && leftBinaryType.Op.Type == token.AND {
 		c._constructIntersectionType(leftBinaryType, elements, intersection)
 	} else {
@@ -1114,7 +1114,7 @@ func (c *Checker) _constructIntersectionType(node *ast.BinaryTypeExpressionNode,
 		intersection.Elements = append(intersection.Elements, leftType)
 	}
 
-	rightBinaryType, rightIsBinaryType := node.Right.(*ast.BinaryTypeExpressionNode)
+	rightBinaryType, rightIsBinaryType := node.Right.(*ast.BinaryTypeNode)
 	if rightIsBinaryType && rightBinaryType.Op.Type == token.AND {
 		c._constructIntersectionType(rightBinaryType, elements, intersection)
 	} else {

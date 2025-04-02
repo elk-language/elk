@@ -492,7 +492,7 @@ func TestStrictFloat_LaxEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -832,7 +832,7 @@ func TestStrictSignedInt_LaxEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1112,7 +1112,7 @@ func TestStrictUnsignedInt_LaxEqual(t *testing.T) {
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1288,11 +1288,11 @@ func TestStrictNumeric_ParseUint(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictParseUint(tc.str, tc.base, tc.bitSize)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1372,10 +1372,10 @@ func TestStrictInt_RightBitshift(t *testing.T) {
 			got, err := value.StrictIntRightBitshift(tc.a, tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1455,10 +1455,10 @@ func TestStrictInt_LogicalRightBitshift(t *testing.T) {
 			got, err := value.StrictIntLogicalRightBitshift(tc.a, tc.b, value.LogicalRightShift64)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -1533,10 +1533,10 @@ func TestStrictInt_LeftBitshift(t *testing.T) {
 			got, err := value.StrictIntLeftBitshift(tc.a, tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

@@ -1,0 +1,55 @@
+module Std::Elk::AST
+  ##[
+    Represents a signature parameter in method and function signatures eg. `foo?: String`
+  ]##
+  sealed primitive class SignatureParameterNode
+    include ParameterNode
+
+    init(
+      name: String,
+      type_node: TypeNode? = nil,
+      is_optional: bool = false,
+      kind: UInt8 = 0u8,
+      span: String::Span = loop; end,
+    ); end
+
+    def name: String; end
+    def type_node: TypeNode; end
+    def span: String::Span; end
+
+    ##[
+      Returns an integer that determines whether
+      the parameter is a normal, positional rest or named rest parameter.
+
+      Valid values are available as constants under `Std::Elk::AST::ParameterNode`:
+      - `NORMAL_KIND`
+      - `POSITIONAL_REST_KIND`
+      - `NAMED_REST_KIND`
+    ]##
+    def kind: UInt8; end
+
+		##[
+			Whether the parameter is optional.
+			eg. `foo?: String`
+		]##
+		def is_optional: bool; end
+
+		##[
+			Whether the parameter is normal
+			(not a positional rest parameter, not a named rest parameter).
+
+			eg. `foo: String`
+		]##
+		def is_normal: bool; end
+
+		##[
+			Whether it's a positional rest parameter eg `*foo: String`
+		]##
+		def is_positional_rest: bool; end
+
+		##[
+			Whether it's a named rest parameter eg `**foo: String`
+		]##
+		def is_named_rest: bool; end
+  end
+end

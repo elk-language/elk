@@ -1,0 +1,15 @@
+module Std::Elk::AST
+  ##[
+    Int literal eg. `5`, `125_355`, `0xff`
+  ]##
+  sealed primitive class IntLiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode,
+            IntCollectionContentNode
+
+    init(value: String, span: String::Span = loop; end); end
+    def value: String; end
+    def span: String::Span; end
+  end
+end

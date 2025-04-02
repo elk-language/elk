@@ -99,8 +99,8 @@ func (f Float64) Add(other Value) (Float64, Value) {
 	return f + o, Undefined
 }
 
-// Exponentiate by the right value.
-func (f Float64) Exponentiate(other Value) (Float64, Value) {
+// ExponentiateVal by the right value.
+func (f Float64) ExponentiateVal(other Value) (Float64, Value) {
 	if !other.IsFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -127,7 +127,7 @@ func (f Float64) Multiply(other Value) (Float64, Value) {
 	return f * o, Undefined
 }
 
-func (f Float64) Modulo(other Value) (Float64, Value) {
+func (f Float64) ModuloVal(other Value) (Float64, Value) {
 	if !other.IsFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -145,7 +145,7 @@ func (f Float64) Divide(other Value) (Float64, Value) {
 	return f / o, Undefined
 }
 
-func (f Float64) Compare(other Value) (Value, Value) {
+func (f Float64) CompareVal(other Value) (Value, Value) {
 	if !other.IsFloat64() {
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -164,12 +164,12 @@ func (f Float64) Compare(other Value) (Value, Value) {
 	return SmallInt(0).ToValue(), Undefined
 }
 
-func (f Float64) GreaterThan(other Value) (Value, Value) {
-	result, err := f.GreaterThanBool(other)
+func (f Float64) GreaterThanVal(other Value) (Value, Value) {
+	result, err := f.GreaterThan(other)
 	return ToElkBool(result), err
 }
 
-func (f Float64) GreaterThanBool(other Value) (bool, Value) {
+func (f Float64) GreaterThan(other Value) (bool, Value) {
 	if !other.IsFloat64() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -178,12 +178,12 @@ func (f Float64) GreaterThanBool(other Value) (bool, Value) {
 	return f > o, Undefined
 }
 
-func (f Float64) GreaterThanEqual(other Value) (Value, Value) {
-	result, err := f.GreaterThanEqualBool(other)
+func (f Float64) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := f.GreaterThanEqual(other)
 	return ToElkBool(result), err
 }
 
-func (f Float64) GreaterThanEqualBool(other Value) (bool, Value) {
+func (f Float64) GreaterThanEqual(other Value) (bool, Value) {
 	if !other.IsFloat64() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -192,12 +192,12 @@ func (f Float64) GreaterThanEqualBool(other Value) (bool, Value) {
 	return f >= o, Undefined
 }
 
-func (f Float64) LessThan(other Value) (Value, Value) {
-	result, err := f.LessThanBool(other)
+func (f Float64) LessThanVal(other Value) (Value, Value) {
+	result, err := f.LessThan(other)
 	return ToElkBool(result), err
 }
 
-func (f Float64) LessThanBool(other Value) (bool, Value) {
+func (f Float64) LessThan(other Value) (bool, Value) {
 	if !other.IsFloat64() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -206,12 +206,12 @@ func (f Float64) LessThanBool(other Value) (bool, Value) {
 	return f < o, Undefined
 }
 
-func (f Float64) LessThanEqual(other Value) (Value, Value) {
-	result, err := f.LessThanEqualBool(other)
+func (f Float64) LessThanEqualVal(other Value) (Value, Value) {
+	result, err := f.LessThanEqual(other)
 	return ToElkBool(result), err
 }
 
-func (f Float64) LessThanEqualBool(other Value) (bool, Value) {
+func (f Float64) LessThanEqual(other Value) (bool, Value) {
 	if !other.IsFloat64() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -220,11 +220,11 @@ func (f Float64) LessThanEqualBool(other Value) (bool, Value) {
 	return f <= o, Undefined
 }
 
-func (f Float64) Equal(other Value) Value {
-	return ToElkBool(f.EqualBool(other))
+func (f Float64) EqualVal(other Value) Value {
+	return ToElkBool(f.Equal(other))
 }
 
-func (f Float64) EqualBool(other Value) bool {
+func (f Float64) Equal(other Value) bool {
 	if !other.IsFloat64() {
 		return false
 	}
@@ -233,12 +233,12 @@ func (f Float64) EqualBool(other Value) bool {
 	return f == o
 }
 
-func (f Float64) StrictEqual(other Value) Value {
-	return f.Equal(other)
+func (f Float64) StrictEqualVal(other Value) Value {
+	return f.EqualVal(other)
 }
 
 func initFloat64() {
-	Float64Class = NewClass()
+	Float64Class = NewClassWithOptions(ClassWithParent(ValueClass))
 	StdModule.AddConstantString("Float64", Ref(Float64Class))
 	Float64Class.AddConstantString("NAN", Float64NaN().ToValue())
 	Float64Class.AddConstantString("INF", Float64Inf().ToValue())

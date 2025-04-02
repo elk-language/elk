@@ -1,0 +1,18 @@
+module Std::Elk::AST
+  ##[
+    Represents a HashSet literal eg. `^[1, 5, -6]`
+  ]##
+  sealed primitive class HashSetLiteralNode
+    include ExpressionNode
+
+    init(
+      elements: ArrayTuple[ExpressionNode] = loop; end,
+      capacity: ExpressionNode? = nil,
+      span: String::Span = loop; end,
+    ); end
+
+    def elements: ArrayTuple[ExpressionNode]; end
+    def capacity: ExpressionNode?; end
+    def span: String::Span; end
+  end
+end

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value/symbol"
@@ -23,7 +24,7 @@ func main() {
 	pathToMainFile := filepath.Join(workingDir, "headers", "main.elh")
 	_, errList := checker.CheckFile(pathToMainFile, env, true)
 	if len(errList) > 0 {
-		fmt.Println(errList.HumanString(true))
+		fmt.Println(errList.HumanString(true, lexer.Colorizer{}))
 		os.Exit(1)
 	}
 	buffer := new(bytes.Buffer)

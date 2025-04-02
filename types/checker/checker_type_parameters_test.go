@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 )
 
 func TestTypeParameters(t *testing.T) {
@@ -37,8 +37,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(50, 4, 15), P(50, 4, 15)), "undefined type `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(50, 4, 15), P(50, 4, 15)), "undefined type `V`"),
 			},
 		},
 
@@ -48,8 +48,8 @@ func TestTypeParameters(t *testing.T) {
 					var a: V
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 13), P(30, 3, 13)), "type parameter `V` cannot be used in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 13), P(30, 3, 13)), "type parameter `V` cannot be used in this context"),
 			},
 		},
 		"use type parameter of enclosing namespace in a method parameter": {
@@ -60,8 +60,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(53, 4, 18), P(53, 4, 18)), "undefined type `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(53, 4, 18), P(53, 4, 18)), "undefined type `V`"),
 			},
 		},
 		"use type parameter of enclosing namespace in a method return type": {
@@ -72,8 +72,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 4, 16), P(51, 4, 16)), "undefined type `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 4, 16), P(51, 4, 16)), "undefined type `V`"),
 			},
 		},
 		"use type parameter of enclosing namespace in a method throw type": {
@@ -84,8 +84,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 4, 16), P(51, 4, 16)), "undefined type `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 4, 16), P(51, 4, 16)), "undefined type `V`"),
 			},
 		},
 		"use type parameter of enclosing namespace in a method body": {
@@ -98,8 +98,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(64, 5, 15), P(64, 5, 15)), "undefined type `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(64, 5, 15), P(64, 5, 15)), "undefined type `V`"),
 			},
 		},
 		"use type parameter of namespace in a method body": {
@@ -150,8 +150,8 @@ func TestTypeParameters(t *testing.T) {
 					def foo(a: V); end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(35, 3, 17), P(35, 3, 17)), "covariant type parameter `V` cannot appear in input positions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(35, 3, 17), P(35, 3, 17)), "covariant type parameter `V` cannot appear in input positions"),
 			},
 		},
 		"covariant type parameter in method return type": {
@@ -181,8 +181,8 @@ func TestTypeParameters(t *testing.T) {
 					def foo(a: ||: V); end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(39, 3, 21), P(39, 3, 21)), "covariant type parameter `V` cannot appear in input positions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(39, 3, 21), P(39, 3, 21)), "covariant type parameter `V` cannot appear in input positions"),
 			},
 		},
 		"covariant type parameter in closure return type's param type": {
@@ -191,8 +191,8 @@ func TestTypeParameters(t *testing.T) {
 					def foo(): |a: V| then loop; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(39, 3, 21), P(39, 3, 21)), "covariant type parameter `V` cannot appear in input positions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(39, 3, 21), P(39, 3, 21)), "covariant type parameter `V` cannot appear in input positions"),
 			},
 		},
 		"covariant type parameter in closure return type's return type": {
@@ -216,8 +216,8 @@ func TestTypeParameters(t *testing.T) {
 					def foo: V; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 3, 15), P(33, 3, 15)), "contravariant type parameter `V` cannot appear in output positions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(33, 3, 15), P(33, 3, 15)), "contravariant type parameter `V` cannot appear in output positions"),
 			},
 		},
 		"contravariant type parameter in method throw type": {
@@ -226,8 +226,8 @@ func TestTypeParameters(t *testing.T) {
 					def foo! V; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 3, 15), P(33, 3, 15)), "contravariant type parameter `V` cannot appear in output positions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(33, 3, 15), P(33, 3, 15)), "contravariant type parameter `V` cannot appear in output positions"),
 			},
 		},
 		"contravariant type parameter in closure param's param type": {
@@ -236,8 +236,8 @@ func TestTypeParameters(t *testing.T) {
 					def foo(a: |a: V|); end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(39, 3, 21), P(39, 3, 21)), "contravariant type parameter `V` cannot appear in output positions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(39, 3, 21), P(39, 3, 21)), "contravariant type parameter `V` cannot appear in output positions"),
 			},
 		},
 		"contravariant type parameter in closure param's return type": {
@@ -260,8 +260,8 @@ func TestTypeParameters(t *testing.T) {
 					def foo(): ||: V then loop; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(39, 3, 21), P(39, 3, 21)), "contravariant type parameter `V` cannot appear in output positions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(39, 3, 21), P(39, 3, 21)), "contravariant type parameter `V` cannot appear in output positions"),
 			},
 		},
 
@@ -299,8 +299,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(107, 7, 20), P(107, 7, 20)), "type `V` cannot be assigned to type `Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(107, 7, 20), P(107, 7, 20)), "type `V` cannot be assigned to type `Bar`"),
 			},
 		},
 
@@ -314,8 +314,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(74, 6, 18), P(78, 6, 22)), "type `Foo` cannot be assigned to type `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(74, 6, 18), P(78, 6, 22)), "type `Foo` cannot be assigned to type `V`"),
 			},
 		},
 		"assign parent of upper bound to type variable": {
@@ -329,8 +329,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(99, 7, 18), P(103, 7, 22)), "type `Foo` cannot be assigned to type `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(99, 7, 18), P(103, 7, 22)), "type `Foo` cannot be assigned to type `V`"),
 			},
 		},
 		"assign child of upper bound to type variable": {
@@ -344,8 +344,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(99, 7, 18), P(103, 7, 22)), "type `Bar` cannot be assigned to type `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(99, 7, 18), P(103, 7, 22)), "type `Bar` cannot be assigned to type `V`"),
 			},
 		},
 
@@ -359,8 +359,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(82, 6, 20), P(82, 6, 20)), "type `V` cannot be assigned to type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(82, 6, 20), P(82, 6, 20)), "type `V` cannot be assigned to type `Foo`"),
 			},
 		},
 		"assign type variable to the parent of its lower bound": {
@@ -374,8 +374,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(107, 7, 20), P(107, 7, 20)), "type `V` cannot be assigned to type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(107, 7, 20), P(107, 7, 20)), "type `V` cannot be assigned to type `Foo`"),
 			},
 		},
 		"assign type variable to the child of its lower bound": {
@@ -389,8 +389,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(107, 7, 20), P(107, 7, 20)), "type `V` cannot be assigned to type `Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(107, 7, 20), P(107, 7, 20)), "type `V` cannot be assigned to type `Bar`"),
 			},
 		},
 
@@ -416,8 +416,8 @@ func TestTypeParameters(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(99, 7, 18), P(103, 7, 22)), "type `Foo` cannot be assigned to type `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(99, 7, 18), P(103, 7, 22)), "type `Foo` cannot be assigned to type `V`"),
 			},
 		},
 		"assign child of lower bound to type variable": {
@@ -442,8 +442,8 @@ func TestTypeParameters(t *testing.T) {
 
 				var a: 9 = Lol::[String]().foo("bar")
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(96, 8, 16), P(121, 8, 41)), "type `&Std::String` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(96, 8, 16), P(121, 8, 41)), "type `&Std::String` cannot be assigned to type `9`"),
 			},
 		},
 	}

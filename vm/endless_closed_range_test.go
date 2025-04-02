@@ -61,13 +61,13 @@ func TestEndlessClosedRangeContains(t *testing.T) {
 			v := vm.New()
 			contains, err := vm.EndlessClosedRangeContains(v, tc.r, tc.val)
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.contains, contains, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -114,13 +114,13 @@ func TestEndlessClosedRangeEqual(t *testing.T) {
 			v := vm.New()
 			equal, err := vm.EndlessClosedRangeEqual(v, tc.r, tc.other)
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.equal, equal, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -170,16 +170,16 @@ func TestEndlessClosedRangeIteratorNext(t *testing.T) {
 			opts := comparer.Options()
 			got, err := vm.EndlessClosedRangeIteratorNext(v, tc.i)
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.after, tc.i, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

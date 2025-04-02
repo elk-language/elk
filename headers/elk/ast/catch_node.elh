@@ -1,0 +1,24 @@
+module Std::Elk::AST
+  ##[
+    Represents a `catch` eg.
+
+    ```
+    catch SomeError(message)
+      print("awesome!")
+    end
+    ```
+  ]##
+  sealed primitive class CatchNode
+    init(
+      pattern: PatternNode,
+      body: ArrayTuple[StatementNode],
+      stack_trace_var: IdentifierNode? = nil,
+      span: String::Span = loop; end
+    ); end
+
+    def pattern: PatternNode; end
+    def stack_trace_var: IdentifierNode?; end
+    def body: ArrayTuple[StatementNode]; end
+    def span: String::Span; end
+  end
+end

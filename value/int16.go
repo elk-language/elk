@@ -161,7 +161,7 @@ func (i Int16) BitwiseXor(other Value) (Int16, Value) {
 	return i ^ o, Undefined
 }
 
-func (i Int16) Exponentiate(other Value) (Int16, Value) {
+func (i Int16) ExponentiateVal(other Value) (Int16, Value) {
 	if !other.IsInt16() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -196,7 +196,7 @@ func (i Int16) Multiply(other Value) (Int16, Value) {
 	return i * o, Undefined
 }
 
-func (i Int16) Modulo(other Value) (Int16, Value) {
+func (i Int16) ModuloVal(other Value) (Int16, Value) {
 	if !other.IsInt16() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -219,7 +219,7 @@ func (i Int16) Divide(other Value) (Int16, Value) {
 	return i / o, Undefined
 }
 
-func (i Int16) Compare(other Value) (Value, Value) {
+func (i Int16) CompareVal(other Value) (Value, Value) {
 	if !other.IsInt16() {
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -234,12 +234,12 @@ func (i Int16) Compare(other Value) (Value, Value) {
 	return SmallInt(0).ToValue(), Undefined
 }
 
-func (i Int16) GreaterThan(other Value) (Value, Value) {
-	result, err := i.GreaterThanBool(other)
+func (i Int16) GreaterThanVal(other Value) (Value, Value) {
+	result, err := i.GreaterThan(other)
 	return ToElkBool(result), err
 }
 
-func (i Int16) GreaterThanBool(other Value) (bool, Value) {
+func (i Int16) GreaterThan(other Value) (bool, Value) {
 	if !other.IsInt16() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -248,12 +248,12 @@ func (i Int16) GreaterThanBool(other Value) (bool, Value) {
 	return i > o, Undefined
 }
 
-func (i Int16) GreaterThanEqual(other Value) (Value, Value) {
-	result, err := i.GreaterThanEqualBool(other)
+func (i Int16) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := i.GreaterThanEqual(other)
 	return ToElkBool(result), err
 }
 
-func (i Int16) GreaterThanEqualBool(other Value) (bool, Value) {
+func (i Int16) GreaterThanEqual(other Value) (bool, Value) {
 	if !other.IsInt16() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -262,12 +262,12 @@ func (i Int16) GreaterThanEqualBool(other Value) (bool, Value) {
 	return i >= o, Undefined
 }
 
-func (i Int16) LessThan(other Value) (Value, Value) {
-	result, err := i.LessThanBool(other)
+func (i Int16) LessThanVal(other Value) (Value, Value) {
+	result, err := i.LessThan(other)
 	return ToElkBool(result), err
 }
 
-func (i Int16) LessThanBool(other Value) (bool, Value) {
+func (i Int16) LessThan(other Value) (bool, Value) {
 	if !other.IsInt16() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -276,12 +276,12 @@ func (i Int16) LessThanBool(other Value) (bool, Value) {
 	return i < o, Undefined
 }
 
-func (i Int16) LessThanEqual(other Value) (Value, Value) {
-	result, err := i.LessThanEqualBool(other)
+func (i Int16) LessThanEqualVal(other Value) (Value, Value) {
+	result, err := i.LessThanEqual(other)
 	return ToElkBool(result), err
 }
 
-func (i Int16) LessThanEqualBool(other Value) (bool, Value) {
+func (i Int16) LessThanEqual(other Value) (bool, Value) {
 	if !other.IsInt16() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -290,11 +290,11 @@ func (i Int16) LessThanEqualBool(other Value) (bool, Value) {
 	return i <= o, Undefined
 }
 
-func (i Int16) Equal(other Value) Value {
-	return ToElkBool(i.EqualBool(other))
+func (i Int16) EqualVal(other Value) Value {
+	return ToElkBool(i.Equal(other))
 }
 
-func (i Int16) EqualBool(other Value) bool {
+func (i Int16) Equal(other Value) bool {
 	if !other.IsInt16() {
 		return false
 	}
@@ -303,11 +303,11 @@ func (i Int16) EqualBool(other Value) bool {
 	return i == o
 }
 
-func (i Int16) StrictEqual(other Value) Value {
-	return i.Equal(other)
+func (i Int16) StrictEqualVal(other Value) Value {
+	return i.EqualVal(other)
 }
 
 func initInt16() {
-	Int16Class = NewClass()
+	Int16Class = NewClassWithOptions(ClassWithParent(ValueClass))
 	StdModule.AddConstantString("Int16", Ref(Int16Class))
 }

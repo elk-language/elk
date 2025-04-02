@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents a single section of characters of a string literal eg. `foo` in `"foo${bar}"`.
+  ]##
+  sealed primitive class StringLiteralContentSectionNode
+    include Node,
+            StringLiteralContentNode
+
+    init(value: String, span: String::Span = loop; end); end
+    def value: String; end
+    def span: String::Span; end
+  end
+end

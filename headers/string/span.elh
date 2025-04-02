@@ -1,0 +1,21 @@
+##[
+	Represents the position of a piece of text in a string.
+
+	It is made up of two positions, start position
+	(position of the first character) and end position (position of the last character).
+]##
+sealed primitive class ::Std::String::Span
+	init(start_pos: String::Position, end_pos: String::Position); end
+
+	##[
+		Returns the position of the first character
+		of a piece of text in a string.
+	]##
+	def start_pos: String::Position; end
+
+	##[
+		Returns the position of the last character
+		of a piece of text in a string.
+	]##
+	def end_pos: String::Position; end
+end

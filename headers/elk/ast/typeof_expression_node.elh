@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a `typeof` expression eg. `typeof foo()`
+  ]##
+  sealed primitive class TypeofExpressionNode
+    include ExpressionNode
+
+    init(value: ExpressionNode, span: String::Span = loop; end); end
+    def value: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

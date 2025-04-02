@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a `try` expression eg. `try foo()`
+  ]##
+  sealed primitive class TryExpressionNode
+    include ExpressionNode
+
+    init(value: ExpressionNode, span: String::Span = loop; end); end
+    def value: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

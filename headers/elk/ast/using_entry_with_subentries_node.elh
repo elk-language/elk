@@ -1,0 +1,19 @@
+module Std::Elk::AST
+  ##[
+    Represents a using entry node with subentries eg. `Foo::{Bar, baz}`, `A::B::C::{lol, foo as epic, Gro as Moe}`
+  ]##
+  sealed primitive class UsingEntryWithSubentriesNode
+    include ExpressionNode,
+            UsingEntryNode
+
+    init(
+      namespace: UsingEntryNode,
+      subentries: ArrayTuple[UsingSubentryNode],
+      span: String::Span = loop; end,
+    ); end
+
+    def namespace: UsingEntryNode; end
+    def subentries: ArrayTuple[UsingSubentryNode]; end
+    def span: String::Span; end
+  end
+end

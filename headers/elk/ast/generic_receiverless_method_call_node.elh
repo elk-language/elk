@@ -1,0 +1,22 @@
+module Std::Elk::AST
+  ##[
+    Represents a generic function-like call eg. `foo::[Int](123)`
+  ]##
+  sealed primitive class GenericReceiverlessMethodCallNode
+    include ExpressionNode
+
+    init(
+      method_name: String,
+      type_arguments: ArrayTuple[TypeNode],
+      positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
+      named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
+    def method_name: String; end
+    def type_arguments: ArrayTuple[TypeNode]; end
+    def positional_arguments: ArrayTuple[ExpressionNode]; end
+    def named_arguments: ArrayTuple[NamedArgumentNode]; end
+    def span: String::Span; end
+  end
+end

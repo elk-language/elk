@@ -1,0 +1,19 @@
+module Std::Elk::AST
+  ##[
+    Represents an `extend where` block expression eg.
+
+    ```
+    extend where T < Foo
+      def hello then println("awesome!")
+    end
+    ```
+  ]##
+  sealed primitive class ExtendWhereBlockExpressionNode
+    include ExpressionNode
+
+    init(body: ArrayTuple[StatementNode], where_params: ArrayTuple[TypeParameterNode], span: String::Span = loop; end); end
+    def body: ArrayTuple[StatementNode]; end
+    def where_params: ArrayTuple[TypeParameterNode]; end
+    def span: String::Span; end
+  end
+end

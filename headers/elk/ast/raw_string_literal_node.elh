@@ -1,0 +1,17 @@
+module Std::Elk::AST
+  ##[
+    Raw string literal enclosed with single quotes eg. `'foo'`.
+  ]##
+  sealed primitive class RawStringLiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode,
+            WordCollectionContentNode,
+            StringLiteralNode,
+            SimpleStringLiteralNode
+
+    init(value: String, span: String::Span = loop; end); end
+    def value: String; end
+    def span: String::Span; end
+  end
+end

@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 )
 
 func TestUsing(t *testing.T) {
@@ -13,16 +13,16 @@ func TestUsing(t *testing.T) {
 				typedef Lol = 3
 				using Lol::*
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 11), P(36, 3, 16)), "type `Lol` is not a namespace"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 11), P(36, 3, 16)), "type `Lol` is not a namespace"),
 			},
 		},
 		"undefined type with star": {
 			input: `
 				using Lol::*
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 2, 11), P(16, 2, 16)), "undefined namespace `Lol`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(16, 2, 16)), "undefined namespace `Lol`"),
 			},
 		},
 		"star in top level": {
@@ -35,8 +35,8 @@ func TestUsing(t *testing.T) {
 				 	class Bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 4, 18), P(36, 4, 18)), "type `3` cannot be assigned to type `Foo::Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(36, 4, 18), P(36, 4, 18)), "type `3` cannot be assigned to type `Foo::Bar`"),
 			},
 		},
 		"using with star in module, resolve in methods": {
@@ -53,8 +53,8 @@ func TestUsing(t *testing.T) {
 
 				var a: 9 = Baz.baz
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(132, 12, 16), P(138, 12, 22)), "type `Foo::Bar` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(132, 12, 16), P(138, 12, 22)), "type `Foo::Bar` cannot be assigned to type `9`"),
 			},
 		},
 		"using with multiple namespaces with star": {
@@ -73,9 +73,9 @@ func TestUsing(t *testing.T) {
 					var b: 12 = Grub()
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(145, 12, 17), P(149, 12, 21)), "type `Foo::Bar` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(168, 13, 18), P(173, 13, 23)), "type `Lol::Grub` cannot be assigned to type `12`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(145, 12, 17), P(149, 12, 21)), "type `Foo::Bar` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(168, 13, 18), P(173, 13, 23)), "type `Lol::Grub` cannot be assigned to type `12`"),
 			},
 		},
 		"using goes out of scope": {
@@ -90,8 +90,8 @@ func TestUsing(t *testing.T) {
 
 				Bar
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(91, 10, 5), P(93, 10, 7)), "undefined constant `Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(91, 10, 5), P(93, 10, 7)), "undefined constant `Bar`"),
 			},
 		},
 		"using only accepts absolute constants": {
@@ -101,8 +101,8 @@ func TestUsing(t *testing.T) {
 					using Foo::*
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(47, 4, 12), P(52, 4, 17)), "undefined namespace `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(47, 4, 12), P(52, 4, 17)), "undefined namespace `Foo`"),
 			},
 		},
 
@@ -123,9 +123,9 @@ func TestUsing(t *testing.T) {
 				var e: Baz = 9
 				var f: &Baz = Baz
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(131, 10, 18), P(131, 10, 18)), "type `9` cannot be assigned to type `Foo::Bar`"),
-				error.NewFailure(L("<main>", P(196, 14, 18), P(196, 14, 18)), "type `9` cannot be assigned to type `Foo::Baz`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(131, 10, 18), P(131, 10, 18)), "type `9` cannot be assigned to type `Foo::Bar`"),
+				diagnostic.NewFailure(L("<main>", P(196, 14, 18), P(196, 14, 18)), "type `9` cannot be assigned to type `Foo::Baz`"),
 			},
 		},
 		"using with a few namespaces and as": {
@@ -145,9 +145,9 @@ func TestUsing(t *testing.T) {
 				var e: Z = 9
 				var f: &Z = Z
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(135, 10, 16), P(135, 10, 16)), "type `9` cannot be assigned to type `Foo::Bar`"),
-				error.NewFailure(L("<main>", P(190, 14, 16), P(190, 14, 16)), "type `9` cannot be assigned to type `Foo::Baz`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(135, 10, 16), P(135, 10, 16)), "type `9` cannot be assigned to type `Foo::Bar`"),
+				diagnostic.NewFailure(L("<main>", P(190, 14, 16), P(190, 14, 16)), "type `9` cannot be assigned to type `Foo::Baz`"),
 			},
 		},
 
@@ -163,8 +163,8 @@ func TestUsing(t *testing.T) {
 				var b: Bar = 9
 				var c: &Bar = Bar
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(104, 9, 18), P(104, 9, 18)), "type `9` cannot be assigned to type `Foo::Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(104, 9, 18), P(104, 9, 18)), "type `9` cannot be assigned to type `Foo::Bar`"),
 			},
 		},
 		"using with a single namespace after its declaration": {
@@ -179,8 +179,8 @@ func TestUsing(t *testing.T) {
 				var b: Bar = 9
 				var c: &Bar = Bar
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(104, 9, 18), P(104, 9, 18)), "type `9` cannot be assigned to type `Foo::Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(104, 9, 18), P(104, 9, 18)), "type `9` cannot be assigned to type `Foo::Bar`"),
 			},
 		},
 		"using with a single namespace and as": {
@@ -195,8 +195,8 @@ func TestUsing(t *testing.T) {
 				var b: B = 9
 				var c: &B = B
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(103, 9, 16), P(103, 9, 16)), "type `9` cannot be assigned to type `Foo::Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(103, 9, 16), P(103, 9, 16)), "type `9` cannot be assigned to type `Foo::Bar`"),
 			},
 		},
 		"using with a single constant": {
@@ -210,8 +210,8 @@ func TestUsing(t *testing.T) {
 				var a: Bar = 9
 				var c: 3 = Bar
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(74, 8, 12), P(76, 8, 14)), "undefined type `Foo::Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(74, 8, 12), P(76, 8, 14)), "undefined type `Foo::Bar`"),
 			},
 		},
 		"using with a single constant and as": {
@@ -225,8 +225,8 @@ func TestUsing(t *testing.T) {
 				var a: B = 9
 				var c: 3 = B
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(79, 8, 12), P(79, 8, 12)), "undefined type `Foo::Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(79, 8, 12), P(79, 8, 12)), "undefined type `Foo::Bar`"),
 			},
 		},
 		"using with a single constant and as after declaration": {
@@ -239,8 +239,8 @@ func TestUsing(t *testing.T) {
 				var a: B = 9
 				var c: 3 = B
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(78, 7, 12), P(78, 7, 12)), "undefined type `Foo::Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(78, 7, 12), P(78, 7, 12)), "undefined type `Foo::Bar`"),
 			},
 		},
 		"using with a single type": {
@@ -254,9 +254,9 @@ func TestUsing(t *testing.T) {
 				var a: Bar = 9
 				var c: 3 = Bar
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(82, 8, 18), P(82, 8, 18)), "type `9` cannot be assigned to type `Foo::Bar`"),
-				error.NewFailure(L("<main>", P(99, 9, 16), P(101, 9, 18)), "`Foo::Bar` cannot be used as a value in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(82, 8, 18), P(82, 8, 18)), "type `9` cannot be assigned to type `Foo::Bar`"),
+				diagnostic.NewFailure(L("<main>", P(99, 9, 16), P(101, 9, 18)), "`Foo::Bar` cannot be used as a value in expressions"),
 			},
 		},
 		"using with a single type and as": {
@@ -270,9 +270,9 @@ func TestUsing(t *testing.T) {
 				var a: B = 9
 				var c: 3 = B
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(85, 8, 16), P(85, 8, 16)), "type `9` cannot be assigned to type `Foo::Bar`"),
-				error.NewFailure(L("<main>", P(102, 9, 16), P(102, 9, 16)), "`Foo::Bar` cannot be used as a value in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(85, 8, 16), P(85, 8, 16)), "type `9` cannot be assigned to type `Foo::Bar`"),
+				diagnostic.NewFailure(L("<main>", P(102, 9, 16), P(102, 9, 16)), "`Foo::Bar` cannot be used as a value in expressions"),
 			},
 		},
 		"using with a single nonexistent constant": {
@@ -284,10 +284,10 @@ func TestUsing(t *testing.T) {
 				var a: Bar = 9
 				var c: 3 = Bar
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 2, 11), P(18, 2, 18)), "undefined type or constant `Foo::Bar`"),
-				error.NewFailure(L("<main>", P(53, 6, 12), P(55, 6, 14)), "undefined type `Foo::Bar`"),
-				error.NewFailure(L("<main>", P(76, 7, 16), P(78, 7, 18)), "`Foo::Bar` cannot be used as a value in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(18, 2, 18)), "undefined type or constant `Foo::Bar`"),
+				diagnostic.NewFailure(L("<main>", P(53, 6, 12), P(55, 6, 14)), "undefined type `Foo::Bar`"),
+				diagnostic.NewFailure(L("<main>", P(76, 7, 16), P(78, 7, 18)), "`Foo::Bar` cannot be used as a value in expressions"),
 			},
 		},
 		"using with a single nonexistent constant and as": {
@@ -299,10 +299,10 @@ func TestUsing(t *testing.T) {
 				var a: B = 9
 				var c: 3 = B
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 2, 11), P(18, 2, 18)), "undefined type or constant `Foo::Bar`"),
-				error.NewFailure(L("<main>", P(58, 6, 12), P(58, 6, 12)), "undefined type `Foo::Bar`"),
-				error.NewFailure(L("<main>", P(79, 7, 16), P(79, 7, 16)), "`Foo::Bar` cannot be used as a value in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(18, 2, 18)), "undefined type or constant `Foo::Bar`"),
+				diagnostic.NewFailure(L("<main>", P(58, 6, 12), P(58, 6, 12)), "undefined type `Foo::Bar`"),
+				diagnostic.NewFailure(L("<main>", P(79, 7, 16), P(79, 7, 16)), "`Foo::Bar` cannot be used as a value in expressions"),
 			},
 		},
 		"using with a single class goes out of scope": {
@@ -320,9 +320,9 @@ func TestUsing(t *testing.T) {
 
 				Bar
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(79, 6, 19), P(79, 6, 19)), "type `9` cannot be assigned to type `Foo::Bar`"),
-				error.NewFailure(L("<main>", P(138, 13, 5), P(140, 13, 7)), "undefined constant `Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(79, 6, 19), P(79, 6, 19)), "type `9` cannot be assigned to type `Foo::Bar`"),
+				diagnostic.NewFailure(L("<main>", P(138, 13, 5), P(140, 13, 7)), "undefined constant `Bar`"),
 			},
 		},
 
@@ -337,8 +337,8 @@ func TestUsing(t *testing.T) {
 				var a: Int = bar()
 				var b: 9 = bar()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(108, 9, 16), P(112, 9, 20)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(108, 9, 16), P(112, 9, 20)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"using with a single class method": {
@@ -354,8 +354,8 @@ func TestUsing(t *testing.T) {
 				var a: Int = bar()
 				var b: 9 = bar()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(132, 11, 16), P(136, 11, 20)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(132, 11, 16), P(136, 11, 20)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"using with a single class method after its declaration": {
@@ -371,8 +371,8 @@ func TestUsing(t *testing.T) {
 				var a: Int = bar()
 				var b: 9 = bar()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(132, 11, 16), P(136, 11, 20)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(132, 11, 16), P(136, 11, 20)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"using with a single method and as": {
@@ -386,8 +386,8 @@ func TestUsing(t *testing.T) {
 				var a: Int = b()
 				var b: 9 = b()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(111, 9, 16), P(113, 9, 18)), "type `Std::Int` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(111, 9, 16), P(113, 9, 18)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 		"using with a single method under a nonexistent namespace": {
@@ -396,9 +396,9 @@ func TestUsing(t *testing.T) {
 
 				var a: Int = bar()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 2, 11), P(13, 2, 13)), "undefined namespace `Foo`"),
-				error.NewFailure(L("<main>", P(38, 4, 18), P(42, 4, 22)), "method `bar` is not defined on type `Std::Object`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(13, 2, 13)), "undefined namespace `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(38, 4, 18), P(42, 4, 22)), "method `bar` is not defined on type `Std::Object`"),
 			},
 		},
 		"using with a single nonexistent method": {
@@ -408,8 +408,8 @@ func TestUsing(t *testing.T) {
 
 				var a: Int = bar()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(11, 2, 11), P(18, 2, 18)), "undefined method `Foo::bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(18, 2, 18)), "undefined method `Foo::bar`"),
 			},
 		},
 		"using with a few methods": {
@@ -427,9 +427,9 @@ func TestUsing(t *testing.T) {
 				var c: Float = baz()
 				var d: 9.2 = baz()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(143, 10, 16), P(147, 10, 20)), "type `Std::Int` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(192, 13, 18), P(196, 13, 22)), "type `Std::Float` cannot be assigned to type `9.2`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(143, 10, 16), P(147, 10, 20)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(192, 13, 18), P(196, 13, 22)), "type `Std::Float` cannot be assigned to type `9.2`"),
 			},
 		},
 		"using with a few methods and as": {
@@ -447,9 +447,9 @@ func TestUsing(t *testing.T) {
 				var c: Float = z()
 				var d: 9.2 = z()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(151, 10, 16), P(153, 10, 18)), "type `Std::Int` cannot be assigned to type `9`"),
-				error.NewFailure(L("<main>", P(196, 13, 18), P(198, 13, 20)), "type `Std::Float` cannot be assigned to type `9.2`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(151, 10, 16), P(153, 10, 18)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(196, 13, 18), P(198, 13, 20)), "type `Std::Float` cannot be assigned to type `9.2`"),
 			},
 		},
 	}

@@ -5,7 +5,7 @@ import (
 
 	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -26,7 +26,7 @@ var functionSymbol value.Symbol = value.ToSymbol("<closure>")
 type testCase struct {
 	input string
 	want  *vm.BytecodeFunction
-	err   error.ErrorList
+	err   diagnostic.DiagnosticList
 }
 
 // Type of the compiler test table.

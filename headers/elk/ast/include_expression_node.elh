@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents an include expression eg. `include Enumerable[V]`
+  ]##
+  sealed primitive class IncludeExpressionNode
+    include ExpressionNode
+
+    init(constants: ArrayTuple[ComplexConstantNode], span: String::Span = loop; end); end
+    def constants: ArrayTuple[ComplexConstantNode]; end
+    def span: String::Span; end
+  end
+end

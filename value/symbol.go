@@ -114,12 +114,16 @@ func InspectSymbolContent(name string) string {
 	return result.String()
 }
 
+func InspectSymbol(name string) string {
+	return fmt.Sprintf(`:%s`, InspectSymbolContent(name))
+}
+
 func (s Symbol) InspectContent() string {
 	return InspectSymbolContent(s.String())
 }
 
 func (s Symbol) Inspect() string {
-	return fmt.Sprintf(`:%s`, s.InspectContent())
+	return InspectSymbol(s.String())
 }
 
 func (s Symbol) Error() string {
@@ -131,7 +135,7 @@ func (s Symbol) InstanceVariables() SymbolMap {
 }
 
 // Check whether s is equal to other
-func (s Symbol) Equal(other Value) Value {
+func (s Symbol) EqualVal(other Value) Value {
 	if other.IsSymbol() {
 		return ToElkBool(s == other.AsSymbol())
 	}
@@ -140,7 +144,7 @@ func (s Symbol) Equal(other Value) Value {
 }
 
 // Check whether s is equal to other
-func (s Symbol) EqualBool(other Value) bool {
+func (s Symbol) Equal(other Value) bool {
 	if other.IsSymbol() {
 		return s == other.AsSymbol()
 	}
@@ -149,13 +153,13 @@ func (s Symbol) EqualBool(other Value) bool {
 }
 
 // Check whether s is equal to other
-func (s Symbol) StrictEqual(other Value) Value {
-	return s.Equal(other)
+func (s Symbol) StrictEqualVal(other Value) Value {
+	return s.EqualVal(other)
 }
 
 // Check whether s is equal to other
-func (s Symbol) LaxEqual(other Value) Value {
-	return s.Equal(other)
+func (s Symbol) LaxEqualVal(other Value) Value {
+	return s.EqualVal(other)
 }
 
 func (s Symbol) Hash() UInt64 {

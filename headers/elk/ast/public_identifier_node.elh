@@ -1,0 +1,15 @@
+module Std::Elk::AST
+  ##[
+    Represents a public identifier eg. `foo`.
+  ]##
+  sealed primitive class PublicIdentifierNode
+    include ExpressionNode,
+            PatternNode,
+            UsingSubentryNode,
+            IdentifierNode
+
+    init(value: String, span: String::Span = loop; end); end
+    def value: String; end
+    def span: String::Span; end
+  end
+end

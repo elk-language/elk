@@ -274,7 +274,7 @@ func (s String) RemoveSuffix(other Value) (String, Value) {
 // Returns 0 if both are equal.
 // Returns -1 if i is less than other.
 // Returns nil if the comparison was impossible (NaN)
-func (s String) Compare(other Value) (Value, Value) {
+func (s String) CompareVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
@@ -294,14 +294,14 @@ func (s String) Compare(other Value) (Value, Value) {
 
 // Check whether s is greater than other and return an error
 // if something went wrong.
-func (s String) GreaterThan(other Value) (Value, Value) {
-	result, err := s.GreaterThanBool(other)
+func (s String) GreaterThanVal(other Value) (Value, Value) {
+	result, err := s.GreaterThan(other)
 	return ToElkBool(result), err
 }
 
 // Check whether s is greater than other and return an error
 // if something went wrong.
-func (s String) GreaterThanBool(other Value) (bool, Value) {
+func (s String) GreaterThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
@@ -321,14 +321,14 @@ func (s String) GreaterThanBool(other Value) (bool, Value) {
 
 // Check whether s is greater than or equal to other and return an error
 // if something went wrong.
-func (s String) GreaterThanEqual(other Value) (Value, Value) {
-	result, err := s.GreaterThanEqualBool(other)
+func (s String) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := s.GreaterThanEqual(other)
 	return ToElkBool(result), err
 }
 
 // Check whether s is greater than or equal to other and return an error
 // if something went wrong.
-func (s String) GreaterThanEqualBool(other Value) (bool, Value) {
+func (s String) GreaterThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
@@ -348,14 +348,14 @@ func (s String) GreaterThanEqualBool(other Value) (bool, Value) {
 
 // Check whether s is less than other and return an error
 // if something went wrong.
-func (s String) LessThan(other Value) (Value, Value) {
-	result, err := s.LessThanBool(other)
+func (s String) LessThanVal(other Value) (Value, Value) {
+	result, err := s.LessThan(other)
 	return ToElkBool(result), err
 }
 
 // Check whether s is less than other and return an error
 // if something went wrong.
-func (s String) LessThanBool(other Value) (bool, Value) {
+func (s String) LessThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
@@ -375,14 +375,14 @@ func (s String) LessThanBool(other Value) (bool, Value) {
 
 // Check whether s is less than or equal to other and return an error
 // if something went wrong.
-func (s String) LessThanEqual(other Value) (Value, Value) {
-	result, err := s.LessThanEqualBool(other)
+func (s String) LessThanEqualVal(other Value) (Value, Value) {
+	result, err := s.LessThanEqual(other)
 	return ToElkBool(result), err
 }
 
 // Check whether s is less than or equal to other and return an error
 // if something went wrong.
-func (s String) LessThanEqualBool(other Value) (bool, Value) {
+func (s String) LessThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
@@ -401,7 +401,7 @@ func (s String) LessThanEqualBool(other Value) (bool, Value) {
 }
 
 // Check whether s is equal to other
-func (s String) LaxEqual(other Value) Value {
+func (s String) LaxEqualVal(other Value) Value {
 	return ToElkBool(s.LaxEqualBool(other))
 }
 
@@ -430,12 +430,12 @@ func (s String) LaxEqualBool(other Value) bool {
 }
 
 // Check whether s is equal to other
-func (s String) Equal(other Value) Value {
-	return ToElkBool(s.EqualBool(other))
+func (s String) EqualVal(other Value) Value {
+	return ToElkBool(s.Equal(other))
 }
 
 // Check whether s is equal to other
-func (s String) EqualBool(other Value) bool {
+func (s String) Equal(other Value) bool {
 	if !other.IsReference() {
 		return false
 	}
@@ -448,8 +448,8 @@ func (s String) EqualBool(other Value) bool {
 }
 
 // Check whether s is strictly equal to other
-func (s String) StrictEqual(other Value) Value {
-	return s.Equal(other)
+func (s String) StrictEqualVal(other Value) Value {
+	return s.EqualVal(other)
 }
 
 // Get an element under the given index.

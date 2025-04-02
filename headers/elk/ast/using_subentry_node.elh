@@ -1,0 +1,9 @@
+module Std::Elk::AST
+  ##[
+    Represents all nodes that are valid in using subentries
+    in `UsingEntryWithSubentriesNode`
+  ]##
+  mixin UsingSubentryNode
+    include ExpressionNode
+  end
+end

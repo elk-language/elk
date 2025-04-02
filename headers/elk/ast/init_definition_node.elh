@@ -1,0 +1,21 @@
+module Std::Elk::AST
+  ##[
+    Represents a constructor definition eg. `init then 'hello world'`
+  ]##
+  sealed primitive class InitDefinitionNode
+    include ExpressionNode
+
+    init(
+      parameters: ArrayTuple[ParameterNode] = loop; end,
+      body: ArrayTuple[StatementNode] = loop; end,
+      throw_type: TypeNode? = nil,
+      location: FS::Location = loop; end,
+    ); end
+
+    def parameters: ArrayTuple[ParameterNode]; end
+    def throw_type: TypeNode?; end
+    def body: ArrayTuple[StatementNode]; end
+    def location: FS::Location; end
+    def span: String::Span; end
+  end
+end

@@ -1,0 +1,22 @@
+module Std::Elk::AST
+  ##[
+    Represents a constant lookup expressions eg. `Foo::Bar`
+  ]##
+  sealed primitive class ConstantLookupNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode,
+            UsingEntryNode,
+            ComplexConstantNode
+
+    init(
+      left: ExpressionNode?,
+      right: ComplexConstantNode,
+      span: String::Span = loop; end
+    ); end
+
+    def left: ExpressionNode?; end
+    def right: ComplexConstantNode; end
+    def span: String::Span; end
+  end
+end

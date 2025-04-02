@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
 	"github.com/elk-language/go-prompt"
 	pstrings "github.com/elk-language/go-prompt/strings"
 	"github.com/fatih/color"
@@ -15,6 +16,54 @@ type Token struct {
 	Type
 	Value string // Literal value of the token, will be empty for tokens with non-dynamic lexemes
 	span  *position.Span
+}
+
+func (*Token) Class() *value.Class {
+	return value.ElkTokenClass
+}
+
+func (*Token) DirectClass() *value.Class {
+	return value.ElkTokenClass
+}
+
+func (*Token) SingletonClass() *value.Class {
+	return nil
+}
+
+func (t *Token) Copy() value.Reference {
+	return t
+}
+
+func (t *Token) InstanceVariables() value.SymbolMap {
+	return nil
+}
+
+func (t *Token) Inspect() string {
+	var buff strings.Builder
+
+	buff.WriteString("Std::Token{")
+	if t.Value != "" {
+		fmt.Fprintf(&buff, "value: %s, ", value.String(t.Value).Inspect())
+	}
+
+	fmt.Fprintf(
+		&buff,
+		"typ: %s, span: %s}",
+		t.Type.TypeName(),
+		(*value.Span)(t.Span()).Inspect(),
+	)
+
+	return buff.String()
+}
+
+func (t *Token) Error() string {
+	return t.Inspect()
+}
+
+func (t *Token) Equal(other *Token) bool {
+	return t.Type == other.Type &&
+		t.Value == other.Value &&
+		t.span.Equal(other.span)
 }
 
 // Index of the first byte of the lexeme.
@@ -145,9 +194,9 @@ func (t *Token) SetSpan(span *position.Span) {
 
 // When the Value field of the token is empty,
 // the string will be fetched from a global map.
-func (t *Token) StringValue() string {
+func (t *Token) FetchValue() string {
 	if t.Value == "" {
-		return t.Type.String()
+		return t.Type.Name()
 	}
 
 	return t.Value
@@ -156,9 +205,9 @@ func (t *Token) StringValue() string {
 // Implements the fmt.Stringer interface.
 func (t *Token) String() string {
 	if len(t.Value) == 0 {
-		return t.Type.String()
+		return t.Type.Name()
 	}
-	return fmt.Sprintf("`%s` (%s)", t.InspectValue(), t.Type.String())
+	return fmt.Sprintf("`%s` (%s)", t.InspectValue(), t.Type.Name())
 }
 
 const maxInspectLen = 20

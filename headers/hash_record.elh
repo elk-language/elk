@@ -4,7 +4,7 @@
 	It is an unordered immutable collection of key-value pairs.
 	A record is an immutable map.
 ]##
-sealed primitive class ::Std::HashRecord[Key, Value] < ::Std::Value
+sealed primitive class ::Std::HashRecord[Key, Value]
 	include Record[Key, Value]
 
 	##[

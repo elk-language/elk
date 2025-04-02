@@ -1,0 +1,15 @@
+module Std::Elk::AST
+  ##[
+    Represents an interpolated symbol eg. `:"foo ${bar + 2}"`
+  ]##
+  sealed primitive class InterpolatedSymbolLiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode,
+            SymbolLiteralNode
+
+    init(content: InterpolatedStringLiteralNode, span: String::Span = loop; end); end
+    def content: InterpolatedStringLiteralNode; end
+    def span: String::Span; end
+  end
+end

@@ -3,7 +3,7 @@ package vm_test
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
 )
 
@@ -67,16 +67,16 @@ func TestVMSource_Variables(t *testing.T) {
 				var a: String
 				a
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(23, 3, 5), P(23, 3, 5)), "cannot access uninitialised local `a`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(23, 3, 5), P(23, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"try to read a nonexistent variable": {
 			source: `
 				a
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(5, 2, 5), P(5, 2, 5)), "undefined local `a`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(5, 2, 5)), "undefined local `a`"),
 			},
 		},
 		"increment": {
@@ -204,9 +204,9 @@ func TestVMSource_Variables(t *testing.T) {
 				a ||= 5
 			`,
 			wantStackTop: value.SmallInt(1).ToValue(),
-			wantCompileErr: error.ErrorList{
-				error.NewWarning(L(P(16, 3, 5), P(16, 3, 5)), "this condition will always have the same result since type `Std::Int` is truthy"),
-				error.NewWarning(L(P(22, 3, 11), P(22, 3, 11)), "unreachable code"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(16, 3, 5), P(16, 3, 5)), "this condition will always have the same result since type `Std::Int` is truthy"),
+				diagnostic.NewWarning(L(P(22, 3, 11), P(22, 3, 11)), "unreachable code"),
 			},
 		},
 		"set logic and nil": {
@@ -229,8 +229,8 @@ func TestVMSource_Variables(t *testing.T) {
 				a &&= 5
 			`,
 			wantStackTop: value.SmallInt(5).ToValue(),
-			wantCompileErr: error.ErrorList{
-				error.NewWarning(L(P(16, 3, 5), P(16, 3, 5)), "this condition will always have the same result since type `Std::Int` is truthy"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(16, 3, 5), P(16, 3, 5)), "this condition will always have the same result since type `Std::Int` is truthy"),
 			},
 		},
 		"set nil coalesce nil": {
@@ -246,9 +246,9 @@ func TestVMSource_Variables(t *testing.T) {
 				a ??= 5
 			`,
 			wantStackTop: value.False,
-			wantCompileErr: error.ErrorList{
-				error.NewWarning(L(P(35, 3, 5), P(35, 3, 5)), "this condition will always have the same result since type `Std::Int | bool` can never be nil"),
-				error.NewWarning(L(P(41, 3, 11), P(41, 3, 11)), "unreachable code"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(35, 3, 5), P(35, 3, 5)), "this condition will always have the same result since type `Std::Int | bool` can never be nil"),
+				diagnostic.NewWarning(L(P(41, 3, 11), P(41, 3, 11)), "unreachable code"),
 			},
 		},
 		"set nil coalesce truthy": {
@@ -257,9 +257,9 @@ func TestVMSource_Variables(t *testing.T) {
 				a ??= 5
 			`,
 			wantStackTop: value.SmallInt(1).ToValue(),
-			wantCompileErr: error.ErrorList{
-				error.NewWarning(L(P(16, 3, 5), P(16, 3, 5)), "this condition will always have the same result since type `Std::Int` can never be nil"),
-				error.NewWarning(L(P(22, 3, 11), P(22, 3, 11)), "unreachable code"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(16, 3, 5), P(16, 3, 5)), "this condition will always have the same result since type `Std::Int` can never be nil"),
+				diagnostic.NewWarning(L(P(22, 3, 11), P(22, 3, 11)), "unreachable code"),
 			},
 		},
 	}
@@ -294,9 +294,9 @@ func TestVMSource_Values(t *testing.T) {
 				a = a + ' bar'
 				a
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(23, 3, 5), P(23, 3, 5)), "local value `a` cannot be reassigned"),
-				error.NewFailure(L(P(27, 3, 9), P(36, 3, 18)), "type `Std::String` cannot be assigned to type `\"foo\"`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(23, 3, 5), P(23, 3, 5)), "local value `a` cannot be reassigned"),
+				diagnostic.NewFailure(L(P(27, 3, 9), P(36, 3, 18)), "type `Std::String` cannot be assigned to type `\"foo\"`"),
 			},
 		},
 		"define variables with a pattern": {
@@ -313,9 +313,9 @@ func TestVMSource_Values(t *testing.T) {
 				val [b, a] = [a, b]
 				[a, b]
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(39, 4, 10), P(39, 4, 10)), "local value `b` cannot be reassigned"),
-				error.NewFailure(L(P(42, 4, 13), P(42, 4, 13)), "local value `a` cannot be reassigned"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(39, 4, 10), P(39, 4, 10)), "local value `b` cannot be reassigned"),
+				diagnostic.NewFailure(L(P(42, 4, 13), P(42, 4, 13)), "local value `a` cannot be reassigned"),
 			},
 		},
 		"define with a pattern that does not match": {
@@ -334,8 +334,8 @@ func TestVMSource_Values(t *testing.T) {
 				val a: Int
 				a
 			`,
-			wantCompileErr: error.ErrorList{
-				error.NewFailure(L(P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 	}

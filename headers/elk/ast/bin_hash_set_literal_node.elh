@@ -1,0 +1,19 @@
+module Std::Elk::AST
+  ##[
+    Represents a bin HashSet literal eg. `^b[11 10]`
+  ]##
+  sealed primitive class BinHashSetLiteralNode
+    include ExpressionNode,
+            PatternNode
+
+    init(
+      elements: ArrayTuple[IntCollectionContentNode],
+      capacity: ExpressionNode? = nil,
+      span: String::Span = loop; end,
+    ); end
+
+    def elements: ArrayTuple[IntCollectionContentNode]; end
+    def capacity: ExpressionNode?; end
+    def span: String::Span; end
+  end
+end

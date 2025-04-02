@@ -1,0 +1,16 @@
+module Std::Elk::AST
+  ##[
+    Represents a `return` expression eg. `return`, `return true`
+  ]##
+  sealed primitive class ReturnExpressionNode
+    include ExpressionNode
+
+    init(
+      value: ExpressionNode? = nil,
+      span: String::Span = loop; end,
+    ); end
+
+    def value: ExpressionNode?; end
+    def span: String::Span; end
+  end
+end

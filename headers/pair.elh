@@ -2,7 +2,7 @@
 	A `Pair` represents a 2-element tuple,
 	or a key-value pair.
 ]##
-sealed primitive class ::Std::Pair[+Key, +Value] < ::Std::Value
+sealed primitive class ::Std::Pair[+Key, +Value]
 	include Tuple[Key | Value]
 
 	##[

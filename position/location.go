@@ -12,8 +12,10 @@ import (
 // Lines and columns must be > 0.
 type Location struct {
 	Span
-	Filename string
+	FilePath string
 }
+
+var DefaultLocation = NewLocationWithSpan("<main>", DefaultSpan)
 
 // Create a new location struct.
 func NewLocation(filename string, startPos *Position, endPos *Position) *Location {
@@ -22,7 +24,7 @@ func NewLocation(filename string, startPos *Position, endPos *Position) *Locatio
 			StartPos: startPos,
 			EndPos:   endPos,
 		},
-		Filename: filename,
+		FilePath: filename,
 	}
 }
 
@@ -30,7 +32,7 @@ func NewLocation(filename string, startPos *Position, endPos *Position) *Locatio
 func NewLocationWithSpan(filename string, span *Span) *Location {
 	return &Location{
 		Span:     *span,
-		Filename: filename,
+		FilePath: filename,
 	}
 }
 
@@ -40,18 +42,26 @@ func NewLocationWithSpan(filename string, span *Span) *Location {
 func (l *Location) RelFilename() string {
 	workingDir, err := os.Getwd()
 	if err != nil {
-		return l.Filename
+		return l.FilePath
 	}
 
-	relPath, err := filepath.Rel(workingDir, l.Filename)
+	relPath, err := filepath.Rel(workingDir, l.FilePath)
 	if err != nil {
-		return l.Filename
+		return l.FilePath
 	}
 	if strings.HasPrefix(relPath, "..") {
-		return l.Filename
+		return l.FilePath
 	}
 
 	return relPath
+}
+
+func (l *Location) Equal(other *Location) bool {
+	if l == other {
+		return true
+	}
+	return l.Span.Equal(&other.Span) &&
+		l.FilePath == other.FilePath
 }
 
 // String representation of the location.

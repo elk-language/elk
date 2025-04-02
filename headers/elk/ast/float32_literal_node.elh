@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Float32 literal eg. `5.2f32`, `.5f32`, `45e20f32`
+  ]##
+  sealed primitive class Float32LiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode
+
+    init(value: String, span: String::Span = loop; end); end
+    def value: String; end
+    def span: String::Span; end
+  end
+end

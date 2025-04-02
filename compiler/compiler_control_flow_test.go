@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -1168,8 +1168,8 @@ func TestReturnExpression(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(7, 1, 8), P(7, 1, 8)), "values returned in void context will be ignored"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(7, 1, 8), P(7, 1, 8)), "values returned in void context will be ignored"),
 			},
 		},
 	}
@@ -1454,8 +1454,8 @@ func TestIfExpression(t *testing.T) {
 				},
 				[]value.Value{value.Undefined},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(3, 1, 4), P(7, 1, 8)), "this condition will always have the same result since type `false` is falsy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(3, 1, 4), P(7, 1, 8)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 		"empty then and else": {
@@ -1502,8 +1502,8 @@ func TestIfExpression(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(8, 2, 8), P(11, 2, 11)), "this condition will always have the same result since type `true` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(8, 2, 8), P(11, 2, 11)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 		"resolve static condition with then branch to nil": {
@@ -1528,9 +1528,9 @@ func TestIfExpression(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(8, 2, 8), P(12, 2, 12)), "this condition will always have the same result since type `false` is falsy"),
-				error.NewWarning(L(P(19, 3, 6), P(21, 3, 8)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(8, 2, 8), P(12, 2, 12)), "this condition will always have the same result since type `false` is falsy"),
+				diagnostic.NewWarning(L(P(19, 3, 6), P(21, 3, 8)), "unreachable code"),
 			},
 		},
 		"resolve static condition with then and else branches": {
@@ -1557,9 +1557,9 @@ func TestIfExpression(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(8, 2, 8), P(12, 2, 12)), "this condition will always have the same result since type `false` is falsy"),
-				error.NewWarning(L(P(19, 3, 6), P(21, 3, 8)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(8, 2, 8), P(12, 2, 12)), "this condition will always have the same result since type `false` is falsy"),
+				diagnostic.NewWarning(L(P(19, 3, 6), P(21, 3, 8)), "unreachable code"),
 			},
 		},
 		"with then branch": {
@@ -1710,8 +1710,8 @@ func TestUnlessExpression(t *testing.T) {
 				},
 				[]value.Value{value.Undefined},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(7, 1, 8), P(10, 1, 11)), "this condition will always have the same result since type `true` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(7, 1, 8), P(10, 1, 11)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 		"empty then and else": {
@@ -1758,8 +1758,8 @@ func TestUnlessExpression(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(12, 2, 12), P(16, 2, 16)), "this condition will always have the same result since type `false` is falsy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(12, 2, 12), P(16, 2, 16)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 		"resolve static condition with then branch to nil": {
@@ -1782,9 +1782,9 @@ func TestUnlessExpression(t *testing.T) {
 				},
 				[]value.Value{value.Undefined},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(12, 2, 12), P(15, 2, 15)), "this condition will always have the same result since type `true` is truthy"),
-				error.NewWarning(L(P(22, 3, 6), P(24, 3, 8)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(12, 2, 12), P(15, 2, 15)), "this condition will always have the same result since type `true` is truthy"),
+				diagnostic.NewWarning(L(P(22, 3, 6), P(24, 3, 8)), "unreachable code"),
 			},
 		},
 		"resolve static condition with then and else branches": {
@@ -1811,9 +1811,9 @@ func TestUnlessExpression(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(12, 2, 12), P(15, 2, 15)), "this condition will always have the same result since type `true` is truthy"),
-				error.NewWarning(L(P(22, 3, 6), P(24, 3, 8)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(12, 2, 12), P(15, 2, 15)), "this condition will always have the same result since type `true` is truthy"),
+				diagnostic.NewWarning(L(P(22, 3, 6), P(24, 3, 8)), "unreachable code"),
 			},
 		},
 		"with then branch": {
@@ -1950,14 +1950,14 @@ func TestBreak(t *testing.T) {
 	tests := testTable{
 		"in top level": {
 			input: "break",
-			err: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(4, 1, 5)), "cannot jump with `break` or `continue` outside of a loop"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(4, 1, 5)), "cannot jump with `break` or `continue` outside of a loop"),
 			},
 		},
 		"in top level with a label": {
 			input: "break$foo",
-			err: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "cannot jump with `break` or `continue` outside of a loop"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "cannot jump with `break` or `continue` outside of a loop"),
 			},
 		},
 		"nonexistent label": {
@@ -1966,8 +1966,8 @@ func TestBreak(t *testing.T) {
 					break$foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(15, 3, 6), P(23, 3, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(15, 3, 6), P(23, 3, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
 			},
 		},
 		"label attached to an expression": {
@@ -1977,8 +1977,8 @@ func TestBreak(t *testing.T) {
 					break$foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(32, 4, 6), P(40, 4, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(32, 4, 6), P(40, 4, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
 			},
 		},
 		"label attached to a different loop": {
@@ -1991,9 +1991,9 @@ func TestBreak(t *testing.T) {
 					break$foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(59, 7, 6), P(67, 7, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
-				error.NewWarning(L(P(49, 6, 5), P(75, 8, 7)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(59, 7, 6), P(67, 7, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
+				diagnostic.NewWarning(L(P(49, 6, 5), P(75, 8, 7)), "unreachable code"),
 			},
 		},
 	}
@@ -2009,14 +2009,14 @@ func TestContinue(t *testing.T) {
 	tests := testTable{
 		"in top level": {
 			input: "continue",
-			err: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "cannot jump with `break` or `continue` outside of a loop"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "cannot jump with `break` or `continue` outside of a loop"),
 			},
 		},
 		"in top level with a label": {
 			input: "continue$foo",
-			err: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(11, 1, 12)), "cannot jump with `break` or `continue` outside of a loop"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(11, 1, 12)), "cannot jump with `break` or `continue` outside of a loop"),
 			},
 		},
 		"nonexistent label": {
@@ -2025,8 +2025,8 @@ func TestContinue(t *testing.T) {
 					continue$foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(15, 3, 6), P(26, 3, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(15, 3, 6), P(26, 3, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
 			},
 		},
 		"label attached to an expression": {
@@ -2036,8 +2036,8 @@ func TestContinue(t *testing.T) {
 					continue$foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(32, 4, 6), P(43, 4, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(32, 4, 6), P(43, 4, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
 			},
 		},
 		"label attached to a different loop": {
@@ -2050,9 +2050,9 @@ func TestContinue(t *testing.T) {
 					continue$foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(59, 7, 6), P(70, 7, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
-				error.NewWarning(L(P(49, 6, 5), P(78, 8, 7)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(59, 7, 6), P(70, 7, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
+				diagnostic.NewWarning(L(P(49, 6, 5), P(78, 8, 7)), "unreachable code"),
 			},
 		},
 	}
@@ -2163,8 +2163,8 @@ func TestLoopExpression(t *testing.T) {
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(55, 6, 6), P(68, 6, 19)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(55, 6, 6), P(68, 6, 19)), "unreachable code"),
 			},
 		},
 		"with labeled continue": {
@@ -2211,8 +2211,8 @@ func TestLoopExpression(t *testing.T) {
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(65, 6, 6), P(78, 6, 19)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(65, 6, 6), P(78, 6, 19)), "unreachable code"),
 			},
 		},
 		"continue in a nested loop": {
@@ -2281,8 +2281,8 @@ func TestLoopExpression(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(108, 10, 6), P(125, 10, 23)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(108, 10, 6), P(125, 10, 23)), "unreachable code"),
 			},
 		},
 
@@ -2353,8 +2353,8 @@ func TestLoopExpression(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(118, 10, 6), P(135, 10, 23)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(118, 10, 6), P(135, 10, 23)), "unreachable code"),
 			},
 		},
 		"with break": {
@@ -2579,8 +2579,8 @@ func TestLoopExpression(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(119, 10, 6), P(133, 10, 20)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(119, 10, 6), P(133, 10, 20)), "unreachable code"),
 			},
 		},
 		"break with value": {
@@ -2661,9 +2661,9 @@ func TestLogicalOrOperator(t *testing.T) {
 					value.Ref(value.String("foo")),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` is truthy"),
-				error.NewWarning(L(P(14, 2, 14), P(17, 2, 17)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` is truthy"),
+				diagnostic.NewWarning(L(P(14, 2, 14), P(17, 2, 17)), "unreachable code"),
 			},
 		},
 		"nested": {
@@ -2696,11 +2696,11 @@ func TestLogicalOrOperator(t *testing.T) {
 					value.Ref(value.String("foo")),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` is truthy"),
-				error.NewWarning(L(P(14, 2, 14), P(17, 2, 17)), "unreachable code"),
-				error.NewWarning(L(P(5, 2, 5), P(17, 2, 17)), "this condition will always have the same result since type `\"foo\"` is truthy"),
-				error.NewWarning(L(P(22, 2, 22), P(22, 2, 22)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` is truthy"),
+				diagnostic.NewWarning(L(P(14, 2, 14), P(17, 2, 17)), "unreachable code"),
+				diagnostic.NewWarning(L(P(5, 2, 5), P(17, 2, 17)), "this condition will always have the same result since type `\"foo\"` is truthy"),
+				diagnostic.NewWarning(L(P(22, 2, 22), P(22, 2, 22)), "unreachable code"),
 			},
 		},
 	}
@@ -2739,8 +2739,8 @@ func TestLogicalAndOperator(t *testing.T) {
 					value.Ref(value.String("foo")),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` is truthy"),
 			},
 		},
 		"nested": {
@@ -2773,9 +2773,9 @@ func TestLogicalAndOperator(t *testing.T) {
 					value.Ref(value.String("foo")),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` is truthy"),
-				error.NewWarning(L(P(5, 2, 5), P(17, 2, 17)), "this condition will always have the same result since type `true` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` is truthy"),
+				diagnostic.NewWarning(L(P(5, 2, 5), P(17, 2, 17)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 	}
@@ -2812,9 +2812,9 @@ func TestNilCoalescingOperator(t *testing.T) {
 					value.Ref(value.String("foo")),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` can never be nil"),
-				error.NewWarning(L(P(14, 2, 14), P(17, 2, 17)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` can never be nil"),
+				diagnostic.NewWarning(L(P(14, 2, 14), P(17, 2, 17)), "unreachable code"),
 			},
 		},
 		"nested": {
@@ -2843,11 +2843,11 @@ func TestNilCoalescingOperator(t *testing.T) {
 					value.Ref(value.String("foo")),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` can never be nil"),
-				error.NewWarning(L(P(14, 2, 14), P(17, 2, 17)), "unreachable code"),
-				error.NewWarning(L(P(5, 2, 5), P(17, 2, 17)), "this condition will always have the same result since type `\"foo\"` can never be nil"),
-				error.NewWarning(L(P(22, 2, 22), P(22, 2, 22)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` can never be nil"),
+				diagnostic.NewWarning(L(P(14, 2, 14), P(17, 2, 17)), "unreachable code"),
+				diagnostic.NewWarning(L(P(5, 2, 5), P(17, 2, 17)), "this condition will always have the same result since type `\"foo\"` can never be nil"),
+				diagnostic.NewWarning(L(P(22, 2, 22), P(22, 2, 22)), "unreachable code"),
 			},
 		},
 	}
@@ -3497,8 +3497,8 @@ func TestModifierWhile(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(66, 6, 15), P(69, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(66, 6, 15), P(69, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 		"with labeled break": {
@@ -3542,8 +3542,8 @@ func TestModifierWhile(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(75, 6, 15), P(78, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(75, 6, 15), P(78, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 
@@ -3588,8 +3588,8 @@ func TestModifierWhile(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(70, 6, 15), P(73, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(70, 6, 15), P(73, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 		"continue in a nested loop": {
@@ -3906,8 +3906,8 @@ func TestModifierWhile(t *testing.T) {
 					)),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(42, 4, 15), P(45, 4, 18)), "this condition will always have the same result since type `true` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(42, 4, 15), P(45, 4, 18)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 		"static one iteration": {
@@ -3940,8 +3940,8 @@ func TestModifierWhile(t *testing.T) {
 					)),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(42, 4, 15), P(46, 4, 19)), "this condition will always have the same result since type `false` is falsy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(42, 4, 15), P(46, 4, 19)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 	}
@@ -4035,8 +4035,8 @@ func TestWhile(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(23, 3, 11), P(26, 3, 14)), "this condition will always have the same result since type `true` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(23, 3, 11), P(26, 3, 14)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 		"with labeled break": {
@@ -4080,8 +4080,8 @@ func TestWhile(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(29, 3, 17), P(32, 3, 20)), "this condition will always have the same result since type `true` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(29, 3, 17), P(32, 3, 20)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 		"with break with value": {
@@ -4125,8 +4125,8 @@ func TestWhile(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(23, 3, 11), P(26, 3, 14)), "this condition will always have the same result since type `true` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(23, 3, 11), P(26, 3, 14)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 
@@ -4475,8 +4475,8 @@ func TestWhile(t *testing.T) {
 					)),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(11, 2, 11), P(14, 2, 14)), "this condition will always have the same result since type `true` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(11, 2, 11), P(14, 2, 14)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 		"static impossible": {
@@ -4499,9 +4499,9 @@ func TestWhile(t *testing.T) {
 				},
 				[]value.Value{value.Undefined},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(11, 2, 11), P(15, 2, 15)), "this loop will never execute since type `false` is falsy"),
-				error.NewWarning(L(P(22, 3, 6), P(36, 3, 20)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(11, 2, 11), P(15, 2, 15)), "this loop will never execute since type `false` is falsy"),
+				diagnostic.NewWarning(L(P(22, 3, 6), P(36, 3, 20)), "unreachable code"),
 			},
 		},
 	}
@@ -4629,8 +4629,8 @@ func TestModifierUntil(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(66, 6, 15), P(70, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(66, 6, 15), P(70, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 		"with labeled break": {
@@ -4674,8 +4674,8 @@ func TestModifierUntil(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(76, 6, 15), P(80, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(76, 6, 15), P(80, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 		"with break with value": {
@@ -4719,8 +4719,8 @@ func TestModifierUntil(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(71, 6, 15), P(75, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(71, 6, 15), P(75, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 		"continue in a nested loop": {
@@ -5037,8 +5037,8 @@ func TestModifierUntil(t *testing.T) {
 					)),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(42, 4, 15), P(46, 4, 19)), "this condition will always have the same result since type `false` is falsy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(42, 4, 15), P(46, 4, 19)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 		"static one iteration": {
@@ -5071,8 +5071,8 @@ func TestModifierUntil(t *testing.T) {
 					)),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(42, 4, 15), P(45, 4, 18)), "this condition will always have the same result since type `true` is truthy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(42, 4, 15), P(45, 4, 18)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 	}
@@ -5166,8 +5166,8 @@ func TestUntil(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(23, 3, 11), P(27, 3, 15)), "this condition will always have the same result since type `false` is falsy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(23, 3, 11), P(27, 3, 15)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 		"with labeled break": {
@@ -5211,8 +5211,8 @@ func TestUntil(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(29, 3, 17), P(33, 3, 21)), "this condition will always have the same result since type `false` is falsy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(29, 3, 17), P(33, 3, 21)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 		"with break with value": {
@@ -5256,8 +5256,8 @@ func TestUntil(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(23, 3, 11), P(27, 3, 15)), "this condition will always have the same result since type `false` is falsy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(23, 3, 11), P(27, 3, 15)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 		"continue in a nested loop": {
@@ -5605,8 +5605,8 @@ func TestUntil(t *testing.T) {
 					)),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(11, 2, 11), P(15, 2, 15)), "this condition will always have the same result since type `false` is falsy"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(11, 2, 11), P(15, 2, 15)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 		"static impossible": {
@@ -5631,9 +5631,9 @@ func TestUntil(t *testing.T) {
 					value.Undefined,
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(11, 2, 11), P(14, 2, 14)), "this loop will never execute since type `true` is truthy"),
-				error.NewWarning(L(P(21, 3, 6), P(35, 3, 20)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(11, 2, 11), P(14, 2, 14)), "this loop will never execute since type `true` is truthy"),
+				diagnostic.NewWarning(L(P(21, 3, 6), P(35, 3, 20)), "unreachable code"),
 			},
 		},
 	}
@@ -5743,8 +5743,8 @@ func TestThrow(t *testing.T) {
 		},
 		"without a value": {
 			input: `throw`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(4, 1, 5)), "thrown value of type `Std::Error` must be caught"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(4, 1, 5)), "thrown value of type `Std::Error` must be caught"),
 			},
 		},
 	}

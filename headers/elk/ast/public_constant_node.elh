@@ -1,0 +1,18 @@
+module Std::Elk::AST
+  ##[
+    Represents a public constant eg. `Foo`.
+  ]##
+  sealed primitive class PublicConstantNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode,
+            UsingEntryNode,
+            UsingSubentryNode,
+            ComplexConstantNode,
+            ConstantNode
+
+    init(value: String, span: String::Span = loop; end); end
+    def value: String; end
+    def span: String::Span; end
+  end
+end

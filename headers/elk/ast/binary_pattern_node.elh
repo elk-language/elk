@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Pattern with two operands eg. `> 10 && < 50`
+  ]##
+  sealed primitive class BinaryPatternNode
+    include PatternNode
+
+    init(op: Elk::Token, left: PatternNode, right: PatternNode, span: String::Span = loop; end); end
+    def op: Elk::Token; end
+    def left: PatternNode; end
+    def right: PatternNode; end
+    def span: String::Span; end
+  end
+end

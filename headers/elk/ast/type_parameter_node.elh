@@ -1,0 +1,26 @@
+module ::Std::Elk::AST
+	##[
+		Represents a type variable in generics like `class Foo[+V]; end`
+	]##
+	mixin TypeParameterNode
+		include Node
+
+		##[
+			Signifies that the type parameter is invariant
+			eg. `class Foo[V]; end`
+		]##
+		const INVARIANT: UInt8
+
+		##[
+			Signifies that the type parameter is covariant
+			eg. `class Foo[+V]; end`
+		]##
+		const COVARIANT: UInt8
+
+		##[
+			Signifies that the type parameter is contravariant
+			eg. `class Foo[-V]; end`
+		]##
+		const CONTRAVARIANT: UInt8
+	end
+end

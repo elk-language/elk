@@ -1,0 +1,16 @@
+module Std::Elk::AST
+  ##[
+    Represents a new getter declaration eg. `getter foo: String`
+  ]##
+  sealed primitive class GetterDeclarationNode
+    init(
+      entries: ArrayTuple[ParameterNode],
+      doc_comment: String = "",
+      span: String::Span = loop; end,
+    ); end
+
+    def doc_comment: String; end
+    def entries: ArrayTuple[ParameterNode]; end
+    def span: String::Span; end
+  end
+end

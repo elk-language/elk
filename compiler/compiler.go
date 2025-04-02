@@ -15,7 +15,7 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -26,14 +26,14 @@ import (
 
 const MainName = "<main>"
 
-func CreateMainCompiler(checker types.Checker, loc *position.Location, errors *error.SyncErrorList) *Compiler {
-	compiler := New(loc.Filename, topLevelMode, loc, checker)
+func CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *Compiler {
+	compiler := New(loc.FilePath, topLevelMode, loc, checker)
 	compiler.Errors = errors
 	return compiler
 }
 
-func (c *Compiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *error.SyncErrorList) *Compiler {
-	compiler := New(loc.Filename, topLevelMode, loc, checker)
+func (c *Compiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *Compiler {
+	compiler := New(loc.FilePath, topLevelMode, loc, checker)
 	compiler.predefinedLocals = c.maxLocalIndex + 1
 	compiler.scopes = c.scopes
 	compiler.lastLocalIndex = c.lastLocalIndex
@@ -145,7 +145,7 @@ type upvalue struct {
 type Compiler struct {
 	Name               string
 	Bytecode           *vm.BytecodeFunction
-	Errors             *error.SyncErrorList
+	Errors             *diagnostic.SyncDiagnosticList
 	scopes             scopes
 	loopJumpSets       []*loopJumpSet
 	offsetValueIds     []int // ids of integers in the value pool that represent bytecode offsets
@@ -177,7 +177,7 @@ func New(name string, mode mode, loc *position.Location, checker types.Checker) 
 		Name:           name,
 		mode:           mode,
 		checker:        checker,
-		Errors:         error.NewSyncErrorList(),
+		Errors:         diagnostic.NewSyncDiagnosticList(),
 	}
 	// reserve the first slot on the stack for `self`
 	c.defineLocal("$self", &position.Span{})
@@ -631,7 +631,7 @@ func (c *Compiler) compileNamespace(node ast.Node) bool {
 
 // Create a new location struct with the given position.
 func (c *Compiler) newLocation(span *position.Span) *position.Location {
-	return position.NewLocationWithSpan(c.Bytecode.Location.Filename, span)
+	return position.NewLocationWithSpan(c.Bytecode.Location.FilePath, span)
 }
 
 func (c *Compiler) prepLocals() {
@@ -2758,7 +2758,7 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 		return c.emitSetLocal(span.StartPos.Line, local.index, valueIsIgnored)
 	default:
 		c.Errors.AddFailure(
-			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.String()),
+			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.Name()),
 			c.newLocation(span),
 		)
 	}
@@ -2840,7 +2840,7 @@ func (c *Compiler) compileModifierExpressionNode(label string, node *ast.Modifie
 		c.modifierUntilExpression(label, node)
 	default:
 		c.Errors.AddFailure(
-			fmt.Sprintf("illegal modifier: %s", node.Modifier.StringValue()),
+			fmt.Sprintf("illegal modifier: %s", node.Modifier.FetchValue()),
 			c.newLocation(node.Span()),
 		)
 	}
@@ -3490,7 +3490,7 @@ func (c *Compiler) binaryPattern(pat *ast.BinaryPatternNode) {
 	case token.AND_AND:
 		op = bytecode.JUMP_UNLESS_NP
 	default:
-		panic(fmt.Sprintf("invalid binary pattern operator: %s", pat.Op.Type.String()))
+		panic(fmt.Sprintf("invalid binary pattern operator: %s", pat.Op.Type.Name()))
 	}
 
 	c.pattern(pat.Left)
@@ -4024,7 +4024,7 @@ func (c *Compiler) compileAttributeAccessNode(node *ast.AttributeAccessNode) {
 func (c *Compiler) compileConstructorCallNode(node *ast.ConstructorCallNode) {
 	c.compileConstructorCall(
 		func() {
-			c.compileNodeWithResult(node.Class)
+			c.compileNodeWithResult(node.ClassNode)
 		},
 		node.PositionalArguments,
 		node.Span(),
@@ -4044,7 +4044,7 @@ func (c *Compiler) compileNewExpressionNode(node *ast.NewExpressionNode) {
 func (c *Compiler) compileGenericConstructorCallNode(node *ast.GenericConstructorCallNode) {
 	c.compileConstructorCall(
 		func() {
-			c.compileNodeWithResult(node.Class)
+			c.compileNodeWithResult(node.ClassNode)
 		},
 		node.PositionalArguments,
 		node.Span(),
@@ -5691,7 +5691,7 @@ func (c *Compiler) compileUninterpolatedRegexLiteralNode(node *ast.Uninterpolate
 	}
 
 	re, err := value.CompileRegex(node.Content, node.Flags)
-	if errList, ok := err.(error.ErrorList); ok {
+	if errList, ok := err.(diagnostic.DiagnosticList); ok {
 		regexStartPos := node.Span().StartPos
 		for _, err := range errList {
 			errStartPos := err.Span.StartPos
@@ -5714,7 +5714,7 @@ func (c *Compiler) compileUninterpolatedRegexLiteralNode(node *ast.Uninterpolate
 				errEndPos.Line += lineDifference
 				errEndPos.ByteOffset += byteDifference
 			}
-			err.Location.Filename = c.Bytecode.Location.Filename
+			err.Location.FilePath = c.Bytecode.Location.FilePath
 
 			c.Errors.Append(err)
 		}

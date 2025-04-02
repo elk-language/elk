@@ -4,7 +4,7 @@
 	It is an ordered, immutable collection of integer indexed values.
 	A tuple is an immutable list.
 ]##
-sealed primitive class ::Std::ArrayTuple[+Val] < Value
+sealed primitive class ::Std::ArrayTuple[+Val]
 	include Tuple[Val]
 
 	##[

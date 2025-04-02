@@ -1,0 +1,10 @@
+module ::Std::Elk::AST
+	##[
+		All nodes that should be able to appear as
+		elements of Int collection literals should
+		implement this interface.
+	]##
+	mixin IntCollectionContentNode
+		include ExpressionNode
+	end
+end

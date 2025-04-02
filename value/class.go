@@ -18,6 +18,10 @@ const (
 // Function that creates a new instance.
 type ConstructorFunc func(class *Class) Value
 
+func UndefinedConstructor(class *Class) Value {
+	return Undefined
+}
+
 // Represents an Elk Class.
 type Class struct {
 	metaClass *Class // Class that this class value is an instance of

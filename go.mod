@@ -1,6 +1,6 @@
 module github.com/elk-language/elk
 
-go 1.23
+go 1.24
 
 require (
 	github.com/ALTree/bigfloat v0.2.0
@@ -9,6 +9,7 @@ require (
 	github.com/elk-language/go-prompt v1.1.4
 	github.com/fatih/color v1.15.0
 	github.com/google/go-cmp v0.5.9
+	github.com/iancoleman/strcase v0.3.0
 	github.com/k0kubun/pp/v3 v3.3.0
 	github.com/rivo/uniseg v0.4.4
 )

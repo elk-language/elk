@@ -1,0 +1,11 @@
+module Std::Elk::AST
+  ##[
+    `bool` literal.
+  ]##
+  sealed primitive class BoolLiteralNode
+    include TypeNode
+
+    init(span: String::Span = loop; end); end
+    def span: String::Span; end
+  end
+end

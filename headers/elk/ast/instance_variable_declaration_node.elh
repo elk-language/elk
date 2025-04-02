@@ -1,0 +1,20 @@
+module Std::Elk::AST
+  ##[
+    Represents an instance variable declaration eg. `var @foo: String`
+  ]##
+  sealed primitive class InstanceVariableDeclarationNode
+    include ExpressionNode
+
+    init(
+      name: String,
+      type_node: TypeNode,
+      doc_comment: String = "",
+      span: String::Span = loop; end,
+    ); end
+
+    def doc_comment: String; end
+    def name: String; end
+    def type_node: TypeNode?; end
+    def span: String::Span; end
+  end
+end

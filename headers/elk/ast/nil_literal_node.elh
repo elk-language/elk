@@ -1,0 +1,15 @@
+module Std::Elk::AST
+  ##[
+    `nil` literal.
+  ]##
+  sealed primitive class NilLiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode,
+            UsingEntryNode,
+            ComplexConstantNode
+
+    init(span: String::Span = loop; end); end
+    def span: String::Span; end
+  end
+end

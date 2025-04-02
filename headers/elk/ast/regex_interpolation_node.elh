@@ -1,0 +1,17 @@
+module Std::Elk::AST
+  ##[
+    Represents a single interpolated section of a regex literal eg. `bar + 2` in `%/foo${bar + 2}/`
+  ]##
+  sealed primitive class RegexInterpolationNode
+    include Node,
+            RegexLiteralContentNode
+
+    init(
+      expression: ExpressionNode,
+      span: String::Span = loop; end,
+    ); end
+
+    def expression: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

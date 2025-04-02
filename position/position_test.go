@@ -11,7 +11,7 @@ func TestPositionString(t *testing.T) {
 	want := "2:31"
 	got := pos.String()
 	if diff := cmp.Diff(want, got); diff != "" {
-		t.Fatalf(diff)
+		t.Fatal(diff)
 	}
 }
 

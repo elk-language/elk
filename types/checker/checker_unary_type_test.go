@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 )
 
 func TestSingletonType(t *testing.T) {
@@ -17,8 +17,8 @@ func TestSingletonType(t *testing.T) {
 			input: `
 				var a: Mixin = String
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 2, 20), P(25, 2, 25)), "type `&Std::String` cannot be assigned to type `Std::Mixin`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 2, 20), P(25, 2, 25)), "type `&Std::String` cannot be assigned to type `Std::Mixin`"),
 			},
 		},
 		"assign a singleton type of a mixin to Mixin": {
@@ -69,16 +69,16 @@ func TestSingletonType(t *testing.T) {
 				module Foo; end
 				var a: &Foo = Foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 12), P(35, 3, 15)), "cannot get singleton class of `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 3, 12), P(35, 3, 15)), "cannot get singleton class of `Foo`"),
 			},
 		},
 		"singleton type of a literal": {
 			input: `
 				var a: &1
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "cannot get singleton class of `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "cannot get singleton class of `1`"),
 			},
 		},
 
@@ -108,8 +108,8 @@ func TestSingletonType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 4, 14), P(46, 4, 18)), "type `Foo` must be a class or mixin to be used with the singleton type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(42, 4, 14), P(46, 4, 18)), "type `Foo` must be a class or mixin to be used with the singleton type"),
 			},
 		},
 
@@ -121,8 +121,8 @@ func TestSingletonType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(44, 4, 14), P(45, 4, 15)), "type parameter `V` must have an upper bound that is a class, mixin or interface to be used with the singleton type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(44, 4, 14), P(45, 4, 15)), "type parameter `V` must have an upper bound that is a class, mixin or interface to be used with the singleton type"),
 			},
 		},
 		"singleton of type parameter with literal upper bound": {
@@ -133,8 +133,8 @@ func TestSingletonType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(48, 4, 14), P(49, 4, 15)), "type parameter `V` must have an upper bound that is a class, mixin or interface to be used with the singleton type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 4, 14), P(49, 4, 15)), "type parameter `V` must have an upper bound that is a class, mixin or interface to be used with the singleton type"),
 			},
 		},
 		"singleton of type parameter with union upper bound": {
@@ -145,8 +145,8 @@ func TestSingletonType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(59, 4, 14), P(60, 4, 15)), "type parameter `V` must have an upper bound that is a class, mixin or interface to be used with the singleton type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(59, 4, 14), P(60, 4, 15)), "type parameter `V` must have an upper bound that is a class, mixin or interface to be used with the singleton type"),
 			},
 		},
 		"singleton of type parameter with intersection upper bound": {
@@ -161,8 +161,8 @@ func TestSingletonType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(104, 8, 14), P(105, 8, 15)), "type parameter `V` must have an upper bound that is a class, mixin or interface to be used with the singleton type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(104, 8, 14), P(105, 8, 15)), "type parameter `V` must have an upper bound that is a class, mixin or interface to be used with the singleton type"),
 			},
 		},
 		"singleton of type parameter with class upper bound": {
@@ -217,16 +217,16 @@ func TestInstanceOfType(t *testing.T) {
 				class Foo; end
 				var a: ^Foo = Foo()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 12), P(34, 3, 15)), "cannot get instance of `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 12), P(34, 3, 15)), "cannot get instance of `Foo`"),
 			},
 		},
 		"instance of literal": {
 			input: `
 				var a: ^1
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "cannot get instance of `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "cannot get instance of `1`"),
 			},
 		},
 
@@ -238,8 +238,8 @@ func TestInstanceOfType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(41, 4, 14), P(45, 4, 18)), "type `Foo` must be a singleton class to be used with the instance of type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(41, 4, 14), P(45, 4, 18)), "type `Foo` must be a singleton class to be used with the instance of type"),
 			},
 		},
 		"instance of singleton self": {
@@ -262,8 +262,8 @@ func TestInstanceOfType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(44, 4, 14), P(45, 4, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(44, 4, 14), P(45, 4, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
 			},
 		},
 		"instance of type parameter with literal upper bound": {
@@ -274,8 +274,8 @@ func TestInstanceOfType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(48, 4, 14), P(49, 4, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 4, 14), P(49, 4, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
 			},
 		},
 		"instance of type parameter with union upper bound": {
@@ -286,8 +286,8 @@ func TestInstanceOfType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(59, 4, 14), P(60, 4, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(59, 4, 14), P(60, 4, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
 			},
 		},
 		"instance of type parameter with intersection upper bound": {
@@ -302,8 +302,8 @@ func TestInstanceOfType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(105, 8, 14), P(106, 8, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(105, 8, 14), P(106, 8, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
 			},
 		},
 		"singleton of type parameter with class upper bound": {
@@ -314,8 +314,8 @@ func TestInstanceOfType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(53, 4, 14), P(54, 4, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(53, 4, 14), P(54, 4, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
 			},
 		},
 		"singleton of type parameter with singleton upper bound": {
@@ -362,8 +362,8 @@ func TestInstanceOfType(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(53, 4, 14), P(54, 4, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(53, 4, 14), P(54, 4, 15)), "type parameter `V` must have an upper bound that is a singleton class to be used with the instance of type"),
 			},
 		},
 		"return the instance of self in singleton context": {
@@ -394,16 +394,16 @@ func TestUnaryMinusType(t *testing.T) {
 			input: `
 				var a: -1 = 1
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(17, 2, 17), P(17, 2, 17)), "type `1` cannot be assigned to type `-1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(17, 2, 17), P(17, 2, 17)), "type `1` cannot be assigned to type `-1`"),
 			},
 		},
 		"assign negative int to a positive int type": {
 			input: `
 				var a: 1 = -1
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(16, 2, 16), P(17, 2, 17)), "type `-1` cannot be assigned to type `1`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(17, 2, 17)), "type `-1` cannot be assigned to type `1`"),
 			},
 		},
 		"assign negative int to a negative int type": {
@@ -415,8 +415,8 @@ func TestUnaryMinusType(t *testing.T) {
 			input: `
 				var a: -"c"
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 2, 12), P(15, 2, 15)), "unary operator `-` cannot be used on type `\"c\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(15, 2, 15)), "unary operator `-` cannot be used on type `\"c\"`"),
 			},
 		},
 	}

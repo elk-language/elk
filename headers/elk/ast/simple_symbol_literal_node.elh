@@ -1,0 +1,16 @@
+module Std::Elk::AST
+  ##[
+    Represents a symbol literal with simple content eg. `:foo`, `:'foo bar`, `:"lol"`
+  ]##
+  sealed primitive class SimpleSymbolLiteralNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode,
+            SymbolCollectionContentNode,
+            SymbolLiteralNode
+
+    init(content: String, span: String::Span = loop; end); end
+    def content: String; end
+    def span: String::Span; end
+  end
+end

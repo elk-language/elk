@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a `go` expression eg. `go foo()`, `go; foo(); end`
+  ]##
+  sealed primitive class GoExpressionNode
+    include ExpressionNode
+
+    init(body: ArrayTuple[StatementNode], span: String::Span = loop; end); end
+    def body: ArrayTuple[StatementNode]; end
+    def span: String::Span; end
+  end
+end

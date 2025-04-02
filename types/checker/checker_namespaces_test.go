@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 )
 
 func TestSingleton(t *testing.T) {
@@ -17,8 +17,8 @@ func TestSingleton(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(48, 5, 7), P(48, 5, 7)), "undefined local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 5, 7), P(48, 5, 7)), "undefined local `a`"),
 			},
 		},
 	}
@@ -39,8 +39,8 @@ func TestModule(t *testing.T) {
 					a
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 4, 6), P(32, 4, 6)), "undefined local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 4, 6), P(32, 4, 6)), "undefined local `a`"),
 			},
 		},
 		"module with public constant": {
@@ -57,8 +57,8 @@ func TestModule(t *testing.T) {
 		},
 		"module with non obvious constant lookup": {
 			input: `module Int::Foo; end`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 1, 8), P(9, 1, 10)), "undefined namespace `Int`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(7, 1, 8), P(9, 1, 10)), "undefined namespace `Int`"),
 			},
 		},
 		"resolve module with non obvious constant lookup": {
@@ -71,14 +71,14 @@ func TestModule(t *testing.T) {
 		},
 		"module with undefined root constant": {
 			input: `module Foo::Bar; end`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(7, 1, 8), P(9, 1, 10)), "undefined namespace `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(7, 1, 8), P(9, 1, 10)), "undefined namespace `Foo`"),
 			},
 		},
 		"module with undefined constant in the middle": {
 			input: `module Std::Foo::Bar; end`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined namespace `Std::Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined namespace `Std::Foo`"),
 			},
 		},
 		"module with constant in the middle defined later": {
@@ -111,8 +111,8 @@ func TestModule(t *testing.T) {
 				end
 				Bar
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(49, 5, 5), P(51, 5, 7)), "undefined constant `Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(49, 5, 5), P(51, 5, 7)), "undefined constant `Bar`"),
 			},
 		},
 		"define singleton class": {
@@ -122,8 +122,8 @@ func TestModule(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(21, 3, 6), P(38, 4, 8)), "singleton definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(21, 3, 6), P(38, 4, 8)), "singleton definitions cannot appear in this context"),
 			},
 		},
 		"within method": {
@@ -132,8 +132,8 @@ func TestModule(t *testing.T) {
 					module Foo; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(18, 3, 6), P(32, 3, 20)), "module definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 3, 6), P(32, 3, 20)), "module definitions cannot appear in this context"),
 			},
 		},
 		"within singleton": {
@@ -144,8 +144,8 @@ func TestModule(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 4, 7), P(50, 4, 21)), "module definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(36, 4, 7), P(50, 4, 21)), "module definitions cannot appear in this context"),
 			},
 		},
 	}
@@ -191,10 +191,10 @@ func TestStruct(t *testing.T) {
 
 				var f = Foo(5.2, 'b', :bar)
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(72, 7, 17), P(74, 7, 19)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `5.2`"),
-				error.NewFailure(L("<main>", P(77, 7, 22), P(79, 7, 24)), "expected type `Std::Int` for parameter `b` in call to `#init`, got type `\"b\"`"),
-				error.NewFailure(L("<main>", P(68, 7, 13), P(86, 7, 31)), "expected 1...2 arguments in call to `#init`, got 3"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(72, 7, 17), P(74, 7, 19)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `5.2`"),
+				diagnostic.NewFailure(L("<main>", P(77, 7, 22), P(79, 7, 24)), "expected type `Std::Int` for parameter `b` in call to `#init`, got type `\"b\"`"),
+				diagnostic.NewFailure(L("<main>", P(68, 7, 13), P(86, 7, 31)), "expected 1...2 arguments in call to `#init`, got 3"),
 			},
 		},
 		"call a getter on a struct": {
@@ -218,8 +218,8 @@ func TestStruct(t *testing.T) {
 				var f = Foo("a")
 				var a: String = f.b
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(97, 8, 21), P(99, 8, 23)), "type `Std::Int` cannot be assigned to type `Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(97, 8, 21), P(99, 8, 23)), "type `Std::Int` cannot be assigned to type `Std::String`"),
 			},
 		},
 		"assign struct type to a singleton type": {
@@ -230,8 +230,8 @@ func TestStruct(t *testing.T) {
 				var a = Foo()
 				var b: &Foo = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(61, 6, 19), P(61, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(61, 6, 19), P(61, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
 			},
 		},
 		"assign struct to a singleton type": {
@@ -247,8 +247,8 @@ func TestStruct(t *testing.T) {
 					struct Foo; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(25, 3, 13), P(27, 3, 15)), "struct definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(25, 3, 13), P(27, 3, 15)), "struct definitions cannot appear in this context"),
 			},
 		},
 		"within singleton": {
@@ -259,8 +259,8 @@ func TestStruct(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 4, 14), P(45, 4, 16)), "struct definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 4, 14), P(45, 4, 16)), "struct definitions cannot appear in this context"),
 			},
 		},
 	}
@@ -281,8 +281,8 @@ func TestClass(t *testing.T) {
 					a
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 4, 6), P(31, 4, 6)), "undefined local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 4, 6), P(31, 4, 6)), "undefined local `a`"),
 			},
 		},
 		"class with public constant": {
@@ -296,14 +296,14 @@ func TestClass(t *testing.T) {
 				class Foo < nil; end
 				Foo() == 2
 			`,
-			err: error.ErrorList{
-				error.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `Foo` cannot ever be equal to `2`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `Foo` cannot ever be equal to `2`"),
 			},
 		},
 		"class with nonexistent superclass": {
 			input: `class Foo < Bar; end`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined type `Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined type `Bar`"),
 			},
 		},
 		"class with superclass": {
@@ -317,8 +317,8 @@ func TestClass(t *testing.T) {
 				sealed class Bar; end
 				class Foo < Bar; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 3, 17), P(45, 3, 19)), "cannot inherit from sealed class `Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 3, 17), P(45, 3, 19)), "cannot inherit from sealed class `Bar`"),
 			},
 		},
 		"primitive class with primitive superclass": {
@@ -338,8 +338,8 @@ func TestClass(t *testing.T) {
 				module Bar; end
 				class Foo < Bar; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(37, 3, 17), P(39, 3, 19)), "`Bar` is not a class"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(37, 3, 17), P(39, 3, 19)), "`Bar` is not a class"),
 			},
 		},
 		"include mixin with instance variables": {
@@ -369,9 +369,9 @@ func TestClass(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(83, 6, 14), P(85, 6, 16)), "cannot include mixin with instance variables `Foo` in primitive `Bar`"),
-				error.NewFailure(L("<main>", P(124, 9, 24), P(127, 9, 27)), "cannot use instance variables in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(83, 6, 14), P(85, 6, 16)), "cannot include mixin with instance variables `Foo` in primitive `Bar`"),
+				diagnostic.NewFailure(L("<main>", P(124, 9, 24), P(127, 9, 27)), "cannot use instance variables in this context"),
 			},
 		},
 		"report errors for missing abstract methods from parent": {
@@ -382,8 +382,8 @@ func TestClass(t *testing.T) {
 				end
 				class Bar < Foo; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
 			},
 		},
 		"report errors for missing abstract methods from generic parent": {
@@ -394,8 +394,8 @@ func TestClass(t *testing.T) {
 				end
 				class Bar < Foo[String]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(95, 6, 11), P(97, 6, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): Std::String`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(95, 6, 11), P(97, 6, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): Std::String`\n"),
 			},
 		},
 		"report errors for missing abstract methods from parents": {
@@ -410,8 +410,8 @@ func TestClass(t *testing.T) {
 				end
 				class Baz < Bar; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces in parents": {
@@ -427,8 +427,8 @@ func TestClass(t *testing.T) {
 				end
 				class Baz < Bar; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
 			},
 		},
 		"report errors for missing abstract methods from generic interfaces in parents": {
@@ -444,8 +444,8 @@ func TestClass(t *testing.T) {
 				end
 				class Baz < Bar; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(162, 11, 11), P(164, 11, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): Std::Int`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(162, 11, 11), P(164, 11, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): Std::Int`\n"),
 			},
 		},
 		"report errors for missing abstract methods from mixin": {
@@ -458,8 +458,8 @@ func TestClass(t *testing.T) {
 					include Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(92, 6, 11), P(94, 6, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(92, 6, 11), P(94, 6, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
 			},
 		},
 		"report errors for missing abstract methods from generic mixin": {
@@ -472,8 +472,8 @@ func TestClass(t *testing.T) {
 					include Foo[Float]
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(98, 6, 11), P(100, 6, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): Std::Float`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(98, 6, 11), P(100, 6, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): Std::Float`\n"),
 			},
 		},
 		"report errors for missing abstract methods from mixins": {
@@ -492,8 +492,8 @@ func TestClass(t *testing.T) {
 					include Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces in mixins": {
@@ -511,8 +511,8 @@ func TestClass(t *testing.T) {
 					include Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
 			},
 		},
 		"report errors for missing abstract methods from interface": {
@@ -524,8 +524,8 @@ func TestClass(t *testing.T) {
 					implement Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces": {
@@ -542,8 +542,8 @@ func TestClass(t *testing.T) {
 					implement Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
 			},
 		},
 		"define and call a singleton method": {
@@ -579,8 +579,8 @@ func TestClass(t *testing.T) {
 				var a = Foo()
 				var b: &Foo = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(60, 6, 19), P(60, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(60, 6, 19), P(60, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
 			},
 		},
 		"assign class to a class singleton type": {
@@ -596,8 +596,8 @@ func TestClass(t *testing.T) {
 					class Foo; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(18, 3, 6), P(31, 3, 19)), "class definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 3, 6), P(31, 3, 19)), "class definitions cannot appear in this context"),
 			},
 		},
 		"declare within singleton": {
@@ -608,16 +608,16 @@ func TestClass(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 4, 7), P(49, 4, 20)), "class definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(36, 4, 7), P(49, 4, 20)), "class definitions cannot appear in this context"),
 			},
 		},
 		"declare a class inheriting from itself": {
 			input: `
 				class Foo < Foo; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(17, 2, 17), P(19, 2, 19)), "type `Foo` circularly references itself"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(17, 2, 17), P(19, 2, 19)), "type `Foo` circularly references itself"),
 			},
 		},
 		"declare a class inheriting from its child": {
@@ -625,8 +625,8 @@ func TestClass(t *testing.T) {
 				class Foo < Bar; end
 				class Bar < Foo; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 3, 17), P(44, 3, 19)), "type `Foo` circularly references itself"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(42, 3, 17), P(44, 3, 19)), "type `Foo` circularly references itself"),
 			},
 		},
 	}
@@ -645,8 +645,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo; end
 				class Foo[V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 3, 5), P(40, 3, 21)), "type parameter count mismatch in `Foo`, got: 1, expected: 0"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(24, 3, 5), P(40, 3, 21)), "type parameter count mismatch in `Foo`, got: 1, expected: 0"),
 			},
 		},
 		"redeclare generic class as non generic": {
@@ -654,8 +654,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V]; end
 				class Foo; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 3, 5), P(40, 3, 18)), "type parameter count mismatch in `Foo`, got: 0, expected: 1"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(27, 3, 5), P(40, 3, 18)), "type parameter count mismatch in `Foo`, got: 0, expected: 1"),
 			},
 		},
 		"redeclare generic class with missing type parameter": {
@@ -663,8 +663,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V, T]; end
 				class Foo[V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 5), P(46, 3, 21)), "type parameter count mismatch in `Foo`, got: 1, expected: 2"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 5), P(46, 3, 21)), "type parameter count mismatch in `Foo`, got: 1, expected: 2"),
 			},
 		},
 		"redeclare generic class with additional type parameter": {
@@ -672,8 +672,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V]; end
 				class Foo[V, T]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 3, 5), P(46, 3, 24)), "type parameter count mismatch in `Foo`, got: 2, expected: 1"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(27, 3, 5), P(46, 3, 24)), "type parameter count mismatch in `Foo`, got: 2, expected: 1"),
 			},
 		},
 		"redeclare generic class with matching type parameters": {
@@ -687,8 +687,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V]; end
 				class Foo[T]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 3, 5), P(43, 3, 21)), "type parameter mismatch in `Foo`, is `T`, should be `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(27, 3, 5), P(43, 3, 21)), "type parameter mismatch in `Foo`, is `T`, should be `V`"),
 			},
 		},
 		"redeclare generic class with wrong type param variance": {
@@ -696,8 +696,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[-V]; end
 				class Foo[+V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 3, 5), P(45, 3, 22)), "type parameter mismatch in `Foo`, is `+V`, should be `-V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(28, 3, 5), P(45, 3, 22)), "type parameter mismatch in `Foo`, is `+V`, should be `-V`"),
 			},
 		},
 		"redeclare generic class with wrong type param upper bound": {
@@ -705,8 +705,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V < String]; end
 				class Foo[V < Int]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V < Std::Int`, should be `V < Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V < Std::Int`, should be `V < Std::String`"),
 			},
 		},
 		"redeclare generic class with wrong type param lower bound": {
@@ -714,8 +714,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V > String]; end
 				class Foo[V > Int]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V > Std::Int`, should be `V > Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V > Std::Int`, should be `V > Std::String`"),
 			},
 		},
 
@@ -740,8 +740,8 @@ func TestGenericClass(t *testing.T) {
 
 				var a: Bar[String, Float] = Foo::[Int]()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(113, 8, 33), P(124, 8, 44)), "type `Foo[Std::Int]` cannot be assigned to type `Bar[Std::String, Std::Float]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(113, 8, 33), P(124, 8, 44)), "type `Foo[Std::Int]` cannot be assigned to type `Bar[Std::String, Std::Float]`"),
 			},
 		},
 		"assign to distantly related generic mixin with correct type args": {
@@ -777,8 +777,8 @@ func TestGenericClass(t *testing.T) {
 
 				var a: Bar[String, Float] = Foo::[Int]()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(98, 5, 33), P(109, 5, 44)), "type `Foo[Std::Int]` cannot be assigned to type `Bar[Std::String, Std::Float]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(98, 5, 33), P(109, 5, 44)), "type `Foo[Std::Int]` cannot be assigned to type `Bar[Std::String, Std::Float]`"),
 			},
 		},
 		"assign to distantly related generic class with correct type args": {
@@ -833,8 +833,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V]; end
 				class Bar[+V] < Foo[V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(47, 3, 25), P(47, 3, 25)), "covariant type `V` cannot appear in invariant position"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(47, 3, 25), P(47, 3, 25)), "covariant type `V` cannot appear in invariant position"),
 			},
 		},
 		"inherit from generic class forwarding contravariant type argument as invariant": {
@@ -842,8 +842,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V]; end
 				class Bar[-V] < Foo[V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(47, 3, 25), P(47, 3, 25)), "contravariant type `V` cannot appear in invariant position"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(47, 3, 25), P(47, 3, 25)), "contravariant type `V` cannot appear in invariant position"),
 			},
 		},
 		"inherit from generic class forwarding covariant type argument as contravariant": {
@@ -851,8 +851,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[-V]; end
 				class Bar[+V] < Foo[V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(48, 3, 25), P(48, 3, 25)), "covariant type `V` cannot appear in contravariant position"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 3, 25), P(48, 3, 25)), "covariant type `V` cannot appear in contravariant position"),
 			},
 		},
 		"inherit from generic class forwarding contravariant type argument as covariant": {
@@ -860,8 +860,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[+V]; end
 				class Bar[-V] < Foo[V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(48, 3, 25), P(48, 3, 25)), "contravariant type `V` cannot appear in covariant position"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 3, 25), P(48, 3, 25)), "contravariant type `V` cannot appear in covariant position"),
 			},
 		},
 		"inherit from generic class without type arguments": {
@@ -869,8 +869,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V]; end
 				class Bar < Foo; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(39, 3, 17), P(41, 3, 19)), "`Foo` requires 1 type argument(s), got: 0"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(39, 3, 17), P(41, 3, 19)), "`Foo` requires 1 type argument(s), got: 0"),
 			},
 		},
 		"inherit from generic class specifying too many type arguments": {
@@ -878,8 +878,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V]; end
 				class Bar < Foo[String, Float]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(39, 3, 17), P(41, 3, 19)), "`Foo` requires 1 type argument(s), got: 2"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(39, 3, 17), P(41, 3, 19)), "`Foo` requires 1 type argument(s), got: 2"),
 			},
 		},
 		"call a method on a class that inherits from a generic class with specified type arguments": {
@@ -901,8 +901,8 @@ func TestGenericClass(t *testing.T) {
 
 				var a: 9 = Foo().foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(68, 6, 16), P(76, 6, 24)), "type `Foo` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(68, 6, 16), P(76, 6, 24)), "type `Foo` cannot be assigned to type `9`"),
 			},
 		},
 		"return self type from instance method of child": {
@@ -914,8 +914,8 @@ func TestGenericClass(t *testing.T) {
 
 				var a: 9 = Bar().foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(93, 7, 16), P(101, 7, 24)), "type `Bar` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(93, 7, 16), P(101, 7, 24)), "type `Bar` cannot be assigned to type `9`"),
 			},
 		},
 		"return self type from singleton method": {
@@ -928,8 +928,8 @@ func TestGenericClass(t *testing.T) {
 
 				var a: 9 = Foo.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(93, 8, 16), P(99, 8, 22)), "type `&Foo` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(93, 8, 16), P(99, 8, 22)), "type `&Foo` cannot be assigned to type `9`"),
 			},
 		},
 		"return self type from singleton method of child": {
@@ -943,8 +943,8 @@ func TestGenericClass(t *testing.T) {
 
 				var a: 9 = Bar.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(118, 9, 16), P(124, 9, 22)), "type `&Bar` cannot be assigned to type `9`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(118, 9, 16), P(124, 9, 22)), "type `&Bar` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -959,8 +959,8 @@ func TestGenericClass(t *testing.T) {
 					V
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(23, 3, 6), P(23, 3, 6)), "`Foo::V` cannot be used as a value in expressions"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(23, 3, 6), P(23, 3, 6)), "`Foo::V` cannot be used as a value in expressions"),
 			},
 		},
 		"use a type parameter from the outside": {
@@ -968,8 +968,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V]; end
 				var a: Foo::V
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(39, 3, 17), P(39, 3, 17)), "type parameter `V` cannot be used in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(39, 3, 17), P(39, 3, 17)), "type parameter `V` cannot be used in this context"),
 			},
 		},
 		"use a type parameter from the outside within a method": {
@@ -979,8 +979,8 @@ func TestGenericClass(t *testing.T) {
 					var a: Foo::V
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(52, 4, 18), P(52, 4, 18)), "undefined type `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(52, 4, 18), P(52, 4, 18)), "undefined type `V`"),
 			},
 		},
 		"declare a generic class with an upper bound referencing itself": {
@@ -1007,25 +1007,25 @@ func TestGenericClass(t *testing.T) {
 			input: `
 				class Foo[V > Baz < Bar]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(19, 2, 19), P(21, 2, 21)), "undefined type `Baz`"),
-				error.NewFailure(L("<main>", P(25, 2, 25), P(27, 2, 27)), "undefined type `Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(19, 2, 19), P(21, 2, 21)), "undefined type `Baz`"),
+				diagnostic.NewFailure(L("<main>", P(25, 2, 25), P(27, 2, 27)), "undefined type `Bar`"),
 			},
 		},
 		"declare a generic class with invalid default": {
 			input: `
 				class Foo[V < String = Int]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "type parameter `V` has an invalid default `Std::Int`, should be a subtype of `Std::String` and supertype of `never`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(28, 2, 28), P(30, 2, 30)), "type parameter `V` has an invalid default `Std::Int`, should be a subtype of `Std::String` and supertype of `never`"),
 			},
 		},
 		"declare a generic class with required type args after optionals": {
 			input: `
 				class Foo[V = Int, Y]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 2, 24), P(24, 2, 24)), "required type parameter `Y` cannot appear after optional type parameters"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(24, 2, 24), P(24, 2, 24)), "required type parameter `Y` cannot appear after optional type parameters"),
 			},
 		},
 		"declare a generic class with type params as defaults": {
@@ -1038,8 +1038,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V, Y = V]; end
 				var a: Foo[String] = 5
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(55, 3, 26), P(55, 3, 26)), "type `5` cannot be assigned to type `Foo[Std::String, Std::String]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(55, 3, 26), P(55, 3, 26)), "type `5` cannot be assigned to type `Foo[Std::String, Std::String]`"),
 			},
 		},
 		"use a class without optional type parameters": {
@@ -1047,8 +1047,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V, Y = Int]; end
 				var a: Foo[String] = nil
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 3, 26), P(59, 3, 28)), "type `nil` cannot be assigned to type `Foo[Std::String, Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(57, 3, 26), P(59, 3, 28)), "type `nil` cannot be assigned to type `Foo[Std::String, Std::Int]`"),
 			},
 		},
 		"use a class overriding optional type parameters": {
@@ -1056,8 +1056,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V, Y = Int]; end
 				var a: Foo[String, Char] = nil
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(63, 3, 32), P(65, 3, 34)), "type `nil` cannot be assigned to type `Foo[Std::String, Std::Char]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(63, 3, 32), P(65, 3, 34)), "type `nil` cannot be assigned to type `Foo[Std::String, Std::Char]`"),
 			},
 		},
 		"use a class without required type parameters": {
@@ -1065,8 +1065,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V, Y = Int]; end
 				var a: Foo = nil
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 3, 12), P(45, 3, 14)), "`Foo` requires 1...2 type argument(s), got: 0"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 3, 12), P(45, 3, 14)), "`Foo` requires 1...2 type argument(s), got: 0"),
 			},
 		},
 		"use a class with too many": {
@@ -1074,8 +1074,8 @@ func TestGenericClass(t *testing.T) {
 				class Foo[V, Y = Int]; end
 				var a: Foo[Int, Char, String] = nil
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 3, 12), P(45, 3, 14)), "`Foo` requires 1...2 type argument(s), got: 3"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 3, 12), P(45, 3, 14)), "`Foo` requires 1...2 type argument(s), got: 3"),
 			},
 		},
 		"assign related generic class to its parent with the same type argument": {
@@ -1095,8 +1095,8 @@ func TestGenericClass(t *testing.T) {
 				var a = Bar::[Int]()
 				a = Foo::[Int]()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(88, 6, 9), P(99, 6, 20)), "type `Foo[Std::Int]` cannot be assigned to type `Bar[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(88, 6, 9), P(99, 6, 20)), "type `Foo[Std::Int]` cannot be assigned to type `Bar[Std::Int]`"),
 			},
 		},
 
@@ -1115,8 +1115,8 @@ func TestGenericClass(t *testing.T) {
 				var a = Foo::[Value]()
 				a = Foo::[Int]()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(59, 5, 9), P(70, 5, 20)), "type `Foo[Std::Int]` cannot be assigned to type `Foo[Std::Value]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(59, 5, 9), P(70, 5, 20)), "type `Foo[Std::Int]` cannot be assigned to type `Foo[Std::Value]`"),
 			},
 		},
 		"invariant type param - assign to child": {
@@ -1126,8 +1126,8 @@ func TestGenericClass(t *testing.T) {
 				var a = Foo::[Int]()
 				a = Foo::[Value]()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 5, 9), P(70, 5, 22)), "type `Foo[Std::Value]` cannot be assigned to type `Foo[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(57, 5, 9), P(70, 5, 22)), "type `Foo[Std::Value]` cannot be assigned to type `Foo[Std::Int]`"),
 			},
 		},
 
@@ -1154,8 +1154,8 @@ func TestGenericClass(t *testing.T) {
 				var a = Foo::[Int]()
 				a = Foo::[Value]()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(58, 5, 9), P(71, 5, 22)), "type `Foo[Std::Value]` cannot be assigned to type `Foo[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(58, 5, 9), P(71, 5, 22)), "type `Foo[Std::Value]` cannot be assigned to type `Foo[Std::Int]`"),
 			},
 		},
 
@@ -1174,8 +1174,8 @@ func TestGenericClass(t *testing.T) {
 				var a = Foo::[Value]()
 				a = Foo::[Int]()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(60, 5, 9), P(71, 5, 20)), "type `Foo[Std::Int]` cannot be assigned to type `Foo[Std::Value]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(60, 5, 9), P(71, 5, 20)), "type `Foo[Std::Int]` cannot be assigned to type `Foo[Std::Value]`"),
 			},
 		},
 		"contravariant type param - assign to child": {
@@ -1205,8 +1205,8 @@ func TestInstanceVariables(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(53, 4, 7), P(68, 4, 22)), "cannot declare instance variable `@foo` in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(53, 4, 7), P(68, 4, 22)), "cannot declare instance variable `@foo` in this context"),
 			},
 		},
 		"declare an instance variable in a primitive class": {
@@ -1215,8 +1215,8 @@ func TestInstanceVariables(t *testing.T) {
 					var @foo: String?
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 6), P(46, 3, 22)), "cannot declare instance variable `foo` in a primitive `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 6), P(46, 3, 22)), "cannot declare instance variable `foo` in a primitive `Foo`"),
 			},
 		},
 		"include non-nilable instance variables in a class": {
@@ -1229,8 +1229,8 @@ func TestInstanceVariables(t *testing.T) {
 					include Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(50, 6, 5), P(83, 8, 7)), "instance variable `var @foo: Std::String` must be initialised in the constructor, since it is not nilable"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(50, 6, 5), P(83, 8, 7)), "instance variable `var @foo: Std::String` must be initialised in the constructor, since it is not nilable"),
 			},
 		},
 		"include non-nilable instance variables in a class and initialise them in init": {
@@ -1252,8 +1252,8 @@ func TestInstanceVariables(t *testing.T) {
 					var @foo: String
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(5, 2, 5), P(43, 4, 7)), "instance variable `var @foo: Std::String` must be initialised in the constructor, since it is not nilable"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(5, 2, 5), P(43, 4, 7)), "instance variable `var @foo: Std::String` must be initialised in the constructor, since it is not nilable"),
 			},
 		},
 		"declare a non-nilable instance variable in a class and assign it in init": {
@@ -1289,8 +1289,8 @@ func TestInstanceVariables(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(54, 6, 7), P(58, 6, 11)), "instance variable `var @foo: Std::String` must be initialised before `self` can be used, since it is non-nilable"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(54, 6, 7), P(58, 6, 11)), "instance variable `var @foo: Std::String` must be initialised before `self` can be used, since it is non-nilable"),
 			},
 		},
 		"declare a non-nilable instance variable in a class and assign it in init after reading self": {
@@ -1306,8 +1306,8 @@ func TestInstanceVariables(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(54, 6, 7), P(57, 6, 10)), "instance variable `var @foo: Std::String` must be initialised before `self` can be used, since it is non-nilable"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(54, 6, 7), P(57, 6, 10)), "instance variable `var @foo: Std::String` must be initialised before `self` can be used, since it is non-nilable"),
 			},
 		},
 		"declare a non-nilable instance variable in a class and assign it in init after reading instance variables": {
@@ -1323,8 +1323,8 @@ func TestInstanceVariables(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(54, 6, 7), P(57, 6, 10)), "instance variable `var @foo: Std::String` must be initialised before `self` can be used, since it is non-nilable"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(54, 6, 7), P(57, 6, 10)), "instance variable `var @foo: Std::String` must be initialised before `self` can be used, since it is non-nilable"),
 			},
 		},
 		"declare an instance variable in a class": {
@@ -1341,8 +1341,8 @@ func TestInstanceVariables(t *testing.T) {
 					var @foo: Int?
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 4, 6), P(56, 4, 19)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int?`, should be `Std::String?`, previous definition found in `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 4, 6), P(56, 4, 19)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int?`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable in a class with a supertype": {
@@ -1352,8 +1352,8 @@ func TestInstanceVariables(t *testing.T) {
 					var @foo: String | Float | nil
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 4, 6), P(72, 4, 35)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String | Std::Float | nil`, should be `Std::String?`, previous definition found in `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 4, 6), P(72, 4, 35)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String | Std::Float | nil`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable in a class with a subtype": {
@@ -1363,8 +1363,8 @@ func TestInstanceVariables(t *testing.T) {
 					var @foo: String
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 4, 6), P(58, 4, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::String?`, previous definition found in `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 4, 6), P(58, 4, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::String?`, previous definition found in `Foo`"),
 			},
 		},
 		"redeclare an instance variable in a class with the same type": {
@@ -1404,8 +1404,8 @@ func TestInstanceVariables(t *testing.T) {
 					var @foo: String
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(21, 3, 6), P(36, 3, 21)), "instance variable `@foo` must be declared as nilable"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(21, 3, 6), P(36, 3, 21)), "instance variable `@foo` must be declared as nilable"),
 			},
 		},
 		"declare an instance variable in a module": {
@@ -1421,8 +1421,8 @@ func TestInstanceVariables(t *testing.T) {
 					var @foo: String
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 3, 6), P(39, 3, 21)), "cannot declare instance variable `@foo` in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(24, 3, 6), P(39, 3, 21)), "cannot declare instance variable `@foo` in this context"),
 			},
 		},
 		"use instance variable in a class": {
@@ -1432,8 +1432,8 @@ func TestInstanceVariables(t *testing.T) {
 					@foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(43, 4, 6), P(46, 4, 9)), "undefined instance variable `@foo` in type `&Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 4, 6), P(46, 4, 9)), "undefined instance variable `@foo` in type `&Foo`"),
 			},
 		},
 		"use instance variable in an instance method of a class": {
@@ -1452,8 +1452,8 @@ func TestInstanceVariables(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(37, 4, 7), P(52, 4, 22)), "instance variable `@foo` must be declared as nilable"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(37, 4, 7), P(52, 4, 22)), "instance variable `@foo` must be declared as nilable"),
 			},
 		},
 		"use singleton instance variable in a class": {
@@ -1482,8 +1482,8 @@ func TestInstanceVariables(t *testing.T) {
 					@foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 4, 6), P(45, 4, 9)), "undefined instance variable `@foo` in type `&Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(42, 4, 6), P(45, 4, 9)), "undefined instance variable `@foo` in type `&Foo`"),
 			},
 		},
 		"use instance variable in an instance method of a mixin": {
@@ -1530,8 +1530,8 @@ func TestInstanceVariables(t *testing.T) {
 					@foo = 2
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 4, 13), P(51, 4, 13)), "type `2` cannot be assigned to type `Std::String?`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 4, 13), P(51, 4, 13)), "type `2` cannot be assigned to type `Std::String?`"),
 			},
 		},
 		"assign an inexistent instance variable": {
@@ -1540,8 +1540,8 @@ func TestInstanceVariables(t *testing.T) {
 					@foo = 2
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(21, 3, 6), P(24, 3, 9)), "undefined instance variable `@foo` in type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(21, 3, 6), P(24, 3, 9)), "undefined instance variable `@foo` in type `Foo`"),
 			},
 		},
 		"declare within a method": {
@@ -1550,8 +1550,8 @@ func TestInstanceVariables(t *testing.T) {
 					var @a: String
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(18, 3, 6), P(31, 3, 19)), "instance variable definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 3, 6), P(31, 3, 19)), "instance variable definitions cannot appear in this context"),
 			},
 		},
 		"resolve an instance variable inherited from a generic parent": {
@@ -1596,8 +1596,8 @@ func TestClassOverride(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(63, 6, 17), P(65, 6, 19)), "superclass mismatch in `Bar`, got `Foo`, expected `nil`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(63, 6, 17), P(65, 6, 19)), "superclass mismatch in `Bar`, got `Foo`, expected `nil`"),
 			},
 		},
 		"superclass matches": {
@@ -1632,8 +1632,8 @@ func TestClassOverride(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(74, 6, 17), P(81, 6, 24)), "superclass mismatch in `Bar`, got `Foo[Std::Int]`, expected `Foo[Std::String]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(74, 6, 17), P(81, 6, 24)), "superclass mismatch in `Bar`, got `Foo[Std::Int]`, expected `Foo[Std::String]`"),
 			},
 		},
 		"sealed modifier matches": {
@@ -1668,8 +1668,8 @@ func TestClassOverride(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 6, 5), P(100, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `abstract`, should be `default`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 6, 5), P(100, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `abstract`, should be `default`"),
 			},
 		},
 		"modifier was default, is primitive": {
@@ -1682,8 +1682,8 @@ func TestClassOverride(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 6, 5), P(101, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `primitive`, should be `default`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 6, 5), P(101, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `primitive`, should be `default`"),
 			},
 		},
 		"modifier was default, is sealed": {
@@ -1696,8 +1696,8 @@ func TestClassOverride(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 6, 5), P(98, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `sealed`, should be `default`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 6, 5), P(98, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `sealed`, should be `default`"),
 			},
 		},
 		"modifier was abstract, is sealed": {
@@ -1710,8 +1710,8 @@ func TestClassOverride(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(60, 6, 5), P(107, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `sealed`, should be `abstract`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(60, 6, 5), P(107, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `sealed`, should be `abstract`"),
 			},
 		},
 		"modifier was abstract, is default": {
@@ -1724,8 +1724,8 @@ func TestClassOverride(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(60, 6, 5), P(100, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `abstract`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(60, 6, 5), P(100, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `abstract`"),
 			},
 		},
 		"modifier was primitive, is default": {
@@ -1738,8 +1738,8 @@ func TestClassOverride(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(71, 6, 5), P(111, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `primitive`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(71, 6, 5), P(111, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `primitive`"),
 			},
 		},
 		"superclass does not match": {
@@ -1752,8 +1752,8 @@ func TestClassOverride(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 6, 5), P(85, 8, 7)), "superclass mismatch in `Bar`, got `Std::Object`, expected `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 6, 5), P(85, 8, 7)), "superclass mismatch in `Bar`, got `Std::Object`, expected `Foo`"),
 			},
 		},
 	}
@@ -1769,8 +1769,8 @@ func TestInclude(t *testing.T) {
 	tests := testTable{
 		"include inexistent mixin": {
 			input: `include Foo`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(10, 1, 11)), "cannot include mixins in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(10, 1, 11)), "cannot include mixins in this context"),
 			},
 		},
 		"include in top level": {
@@ -1778,8 +1778,8 @@ func TestInclude(t *testing.T) {
 				mixin Foo; end
 				include Foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 3, 5), P(34, 3, 15)), "cannot include mixins in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(24, 3, 5), P(34, 3, 15)), "cannot include mixins in this context"),
 			},
 		},
 		"include in module": {
@@ -1789,8 +1789,8 @@ func TestInclude(t *testing.T) {
 					include Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(41, 4, 6), P(51, 4, 16)), "cannot include mixins in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(41, 4, 6), P(51, 4, 16)), "cannot include mixins in this context"),
 			},
 		},
 		"include in interface": {
@@ -1800,8 +1800,8 @@ func TestInclude(t *testing.T) {
 					include Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(44, 4, 6), P(54, 4, 16)), "cannot include mixins in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(44, 4, 6), P(54, 4, 16)), "cannot include mixins in this context"),
 			},
 		},
 		"include in class": {
@@ -1828,8 +1828,8 @@ func TestInclude(t *testing.T) {
 					include Foo[String], Foo[Int]
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(64, 4, 27), P(71, 4, 34)), "cannot include mixin `Foo[Std::Int]` since `Foo[Std::String]` has already been included"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(64, 4, 27), P(71, 4, 34)), "cannot include mixin `Foo[Std::Int]` since `Foo[Std::String]` has already been included"),
 			},
 		},
 		"include generic mixin multiple times with the same type args": {
@@ -1856,8 +1856,8 @@ func TestInclude(t *testing.T) {
 					include Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 0"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 0"),
 			},
 		},
 		"include generic mixin with too many type arguments in class": {
@@ -1867,8 +1867,8 @@ func TestInclude(t *testing.T) {
 					include Foo[String, Int]
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 2"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 2"),
 			},
 		},
 		"include generic mixin forwarding type arguments in class": {
@@ -1912,8 +1912,8 @@ func TestInclude(t *testing.T) {
 					include Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 0"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 0"),
 			},
 		},
 		"include generic mixin with too many type arguments in mixin": {
@@ -1923,8 +1923,8 @@ func TestInclude(t *testing.T) {
 					include Foo[String, Int]
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 2"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 4, 14), P(53, 4, 16)), "`Foo` requires 1 type argument(s), got: 2"),
 			},
 		},
 		"include generic mixin forwarding type arguments in mixin": {
@@ -1942,8 +1942,8 @@ func TestInclude(t *testing.T) {
 					include Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(49, 4, 14), P(51, 4, 16)), "only mixins can be included"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(49, 4, 14), P(51, 4, 16)), "only mixins can be included"),
 			},
 		},
 		"include class": {
@@ -1953,8 +1953,8 @@ func TestInclude(t *testing.T) {
 					include Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(48, 4, 14), P(50, 4, 16)), "only mixins can be included"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 4, 14), P(50, 4, 16)), "only mixins can be included"),
 			},
 		},
 		"include interface": {
@@ -1964,8 +1964,8 @@ func TestInclude(t *testing.T) {
 					include Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(52, 4, 14), P(54, 4, 16)), "only mixins can be included"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(52, 4, 14), P(54, 4, 16)), "only mixins can be included"),
 			},
 		},
 		"include mixin with compatible methods": {
@@ -1993,8 +1993,8 @@ func TestInclude(t *testing.T) {
 					include Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(160, 9, 14), P(162, 9, 16)), "cannot include `Bar` in `Baz`:\n\n  - incompatible definitions of method `foo`\n      `Bar` has: `def foo(f: Std::String?): Std::String?`\n      `Foo` has: `def foo(f: Std::Object): Std::String`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(160, 9, 14), P(162, 9, 16)), "cannot include `Bar` in `Baz`:\n\n  - incompatible definitions of method `foo`\n      `Bar` has: `def foo(f: Std::String?): Std::String?`\n      `Foo` has: `def foo(f: Std::Object): Std::String`\n"),
 			},
 		},
 		"include mixin with incompatible methods in parent": {
@@ -2013,8 +2013,8 @@ func TestInclude(t *testing.T) {
 					include Barr
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(227, 13, 14), P(230, 13, 17)), "cannot include `Barr` in `Baz`:\n\n  - incompatible definitions of method `foo`\n      `Bar` has: `def foo(f: Std::String?): Std::String?`\n      `Foo` has: `def foo(f: Std::Object): Std::String`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(227, 13, 14), P(230, 13, 17)), "cannot include `Barr` in `Baz`:\n\n  - incompatible definitions of method `foo`\n      `Bar` has: `def foo(f: Std::String?): Std::String?`\n      `Foo` has: `def foo(f: Std::Object): Std::String`\n"),
 			},
 		},
 		"include mixin with incompatible instance variables": {
@@ -2029,8 +2029,8 @@ func TestInclude(t *testing.T) {
 					include Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(124, 9, 14), P(126, 9, 16)), "cannot include `Bar` in `Baz`:\n\n  - incompatible definitions of instance variable `@foo`\n      `Bar` has: `var @foo: Std::String?`\n      `Foo` has: `var @foo: Std::Object?`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(124, 9, 14), P(126, 9, 16)), "cannot include `Bar` in `Baz`:\n\n  - incompatible definitions of instance variable `@foo`\n      `Bar` has: `var @foo: Std::String?`\n      `Foo` has: `var @foo: Std::Object?`\n"),
 			},
 		},
 		"include mixin with incompatible instance variables in parent": {
@@ -2049,8 +2049,8 @@ func TestInclude(t *testing.T) {
 					include Barr
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(191, 13, 14), P(194, 13, 17)), "cannot include `Barr` in `Baz`:\n\n  - incompatible definitions of instance variable `@foo`\n      `Bar` has: `var @foo: Std::String?`\n      `Foo` has: `var @foo: Std::Object?`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(191, 13, 14), P(194, 13, 17)), "cannot include `Barr` in `Baz`:\n\n  - incompatible definitions of instance variable `@foo`\n      `Bar` has: `var @foo: Std::String?`\n      `Foo` has: `var @foo: Std::Object?`\n"),
 			},
 		},
 		"include within a method": {
@@ -2059,8 +2059,8 @@ func TestInclude(t *testing.T) {
 					include Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(18, 3, 6), P(28, 3, 16)), "cannot include mixins in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 3, 6), P(28, 3, 16)), "cannot include mixins in this context"),
 			},
 		},
 	}
@@ -2080,8 +2080,8 @@ func TestImplement(t *testing.T) {
 					implement Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 16), P(32, 3, 18)), "undefined type `Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 16), P(32, 3, 18)), "undefined type `Bar`"),
 			},
 		},
 		"implement in top level": {
@@ -2089,8 +2089,8 @@ func TestImplement(t *testing.T) {
 				interface Foo; end
 				implement Foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 3, 05), P(40, 3, 17)), "cannot implement interfaces in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(28, 3, 05), P(40, 3, 17)), "cannot implement interfaces in this context"),
 			},
 		},
 		"implement in module": {
@@ -2100,8 +2100,8 @@ func TestImplement(t *testing.T) {
 					implement Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 4, 6), P(57, 4, 18)), "cannot implement interfaces in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(45, 4, 6), P(57, 4, 18)), "cannot implement interfaces in this context"),
 			},
 		},
 		"implement in interface": {
@@ -2135,8 +2135,8 @@ func TestImplement(t *testing.T) {
 					implement Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 4, 16), P(59, 4, 18)), "`Foo` requires 1 type argument(s), got: 0"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(57, 4, 16), P(59, 4, 18)), "`Foo` requires 1 type argument(s), got: 0"),
 			},
 		},
 		"implement generic interface with type arguments in class": {
@@ -2154,8 +2154,8 @@ func TestImplement(t *testing.T) {
 					implement Foo[String, Int]
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 4, 16), P(59, 4, 18)), "`Foo` requires 1 type argument(s), got: 2"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(57, 4, 16), P(59, 4, 18)), "`Foo` requires 1 type argument(s), got: 2"),
 			},
 		},
 		"implement generic interface forwarding type arguments in class": {
@@ -2181,8 +2181,8 @@ func TestImplement(t *testing.T) {
 					implement Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 4, 16), P(59, 4, 18)), "`Foo` requires 1 type argument(s), got: 0"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(57, 4, 16), P(59, 4, 18)), "`Foo` requires 1 type argument(s), got: 0"),
 			},
 		},
 		"implement generic interface with too many type arguments in mixin": {
@@ -2192,8 +2192,8 @@ func TestImplement(t *testing.T) {
 					implement Foo[String, Int]
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 4, 16), P(59, 4, 18)), "`Foo` requires 1 type argument(s), got: 2"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(57, 4, 16), P(59, 4, 18)), "`Foo` requires 1 type argument(s), got: 2"),
 			},
 		},
 		"implement generic interface with type arguments in mixin": {
@@ -2219,8 +2219,8 @@ func TestImplement(t *testing.T) {
 					implement Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(51, 4, 16), P(53, 4, 18)), "only interfaces can be implemented"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 4, 16), P(53, 4, 18)), "only interfaces can be implemented"),
 			},
 		},
 		"implement class": {
@@ -2230,8 +2230,8 @@ func TestImplement(t *testing.T) {
 					implement Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(50, 4, 16), P(52, 4, 18)), "only interfaces can be implemented"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(50, 4, 16), P(52, 4, 18)), "only interfaces can be implemented"),
 			},
 		},
 		"implement mixin": {
@@ -2241,8 +2241,8 @@ func TestImplement(t *testing.T) {
 					implement Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(50, 4, 16), P(52, 4, 18)), "only interfaces can be implemented"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(50, 4, 16), P(52, 4, 18)), "only interfaces can be implemented"),
 			},
 		},
 		"implement within a method": {
@@ -2251,8 +2251,8 @@ func TestImplement(t *testing.T) {
 					implement Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(18, 3, 6), P(30, 3, 18)), "cannot implement interfaces in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 3, 6), P(30, 3, 18)), "cannot implement interfaces in this context"),
 			},
 		},
 	}
@@ -2297,8 +2297,8 @@ func TestMixinType(t *testing.T) {
 				var a: Bar[Int] = Foo()
 				var b: Baz[String, Float] = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(186, 13, 33), P(186, 13, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(186, 13, 33), P(186, 13, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
 			},
 		},
 		"assign to distantly related generic mixin with correct type args": {
@@ -2340,8 +2340,8 @@ func TestMixinType(t *testing.T) {
 
 				var a: Bar[Int] = Foo()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(93, 7, 23), P(97, 7, 27)), "type `Foo` cannot be assigned to type `Bar[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(93, 7, 23), P(97, 7, 27)), "type `Foo` cannot be assigned to type `Bar[Std::Int]`"),
 			},
 		},
 		"assign instance of related class to mixin": {
@@ -2361,8 +2361,8 @@ func TestMixinType(t *testing.T) {
 
 				var a: Bar = Foo()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 5, 18), P(61, 5, 22)), "type `Foo` cannot be assigned to type `Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(57, 5, 18), P(61, 5, 22)), "type `Foo` cannot be assigned to type `Bar`"),
 			},
 		},
 		"assign mixin type to the same mixin type": {
@@ -2403,8 +2403,8 @@ func TestMixinType(t *testing.T) {
 				var a: Foo = Bar()
 				var b: &Foo = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(102, 9, 19), P(102, 9, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(102, 9, 19), P(102, 9, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
 			},
 		},
 		"assign mixin to a mixin singleton type": {
@@ -2430,8 +2430,8 @@ func TestMixinOverride(t *testing.T) {
 				mixin Foo; end
 				mixin Foo[V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 3, 5), P(40, 3, 21)), "type parameter count mismatch in `Foo`, got: 1, expected: 0"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(24, 3, 5), P(40, 3, 21)), "type parameter count mismatch in `Foo`, got: 1, expected: 0"),
 			},
 		},
 		"redeclare generic mixin as non generic": {
@@ -2439,8 +2439,8 @@ func TestMixinOverride(t *testing.T) {
 				mixin Foo[V]; end
 				mixin Foo; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 3, 5), P(40, 3, 18)), "type parameter count mismatch in `Foo`, got: 0, expected: 1"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(27, 3, 5), P(40, 3, 18)), "type parameter count mismatch in `Foo`, got: 0, expected: 1"),
 			},
 		},
 		"redeclare generic mixin with missing type parameter": {
@@ -2448,8 +2448,8 @@ func TestMixinOverride(t *testing.T) {
 				mixin Foo[V, T]; end
 				mixin Foo[V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(30, 3, 5), P(46, 3, 21)), "type parameter count mismatch in `Foo`, got: 1, expected: 2"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 5), P(46, 3, 21)), "type parameter count mismatch in `Foo`, got: 1, expected: 2"),
 			},
 		},
 		"redeclare generic mixin with additional type parameter": {
@@ -2457,8 +2457,8 @@ func TestMixinOverride(t *testing.T) {
 				mixin Foo[V]; end
 				mixin Foo[V, T]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 3, 5), P(46, 3, 24)), "type parameter count mismatch in `Foo`, got: 2, expected: 1"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(27, 3, 5), P(46, 3, 24)), "type parameter count mismatch in `Foo`, got: 2, expected: 1"),
 			},
 		},
 		"redeclare generic mixin with matching type parameters": {
@@ -2472,8 +2472,8 @@ func TestMixinOverride(t *testing.T) {
 				mixin Foo[V]; end
 				mixin Foo[T]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(27, 3, 5), P(43, 3, 21)), "type parameter mismatch in `Foo`, is `T`, should be `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(27, 3, 5), P(43, 3, 21)), "type parameter mismatch in `Foo`, is `T`, should be `V`"),
 			},
 		},
 		"redeclare generic mixin with wrong type param variance": {
@@ -2481,8 +2481,8 @@ func TestMixinOverride(t *testing.T) {
 				mixin Foo[-V]; end
 				mixin Foo[+V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 3, 5), P(45, 3, 22)), "type parameter mismatch in `Foo`, is `+V`, should be `-V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(28, 3, 5), P(45, 3, 22)), "type parameter mismatch in `Foo`, is `+V`, should be `-V`"),
 			},
 		},
 		"redeclare generic mixin with wrong type param upper bound": {
@@ -2490,8 +2490,8 @@ func TestMixinOverride(t *testing.T) {
 				mixin Foo[V < String]; end
 				mixin Foo[V < Int]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V < Std::Int`, should be `V < Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V < Std::Int`, should be `V < Std::String`"),
 			},
 		},
 		"redeclare generic mixin with wrong type param lower bound": {
@@ -2499,8 +2499,8 @@ func TestMixinOverride(t *testing.T) {
 				mixin Foo[V > String]; end
 				mixin Foo[V > Int]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V > Std::Int`, should be `V > Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(36, 3, 5), P(58, 3, 27)), "type parameter mismatch in `Foo`, is `V > Std::Int`, should be `V > Std::String`"),
 			},
 		},
 
@@ -2521,8 +2521,8 @@ func TestMixinOverride(t *testing.T) {
 				mixin Bar; end
 				abstract mixin Bar; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 3, 5), P(46, 3, 27)), "cannot redeclare mixin `Bar` with a different modifier, is `abstract`, should be `default`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(24, 3, 5), P(46, 3, 27)), "cannot redeclare mixin `Bar` with a different modifier, is `abstract`, should be `default`"),
 			},
 		},
 		"modifier was abstract, is default": {
@@ -2530,8 +2530,8 @@ func TestMixinOverride(t *testing.T) {
 				abstract mixin Bar; end
 				mixin Bar; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(33, 3, 5), P(46, 3, 18)), "cannot redeclare mixin `Bar` with a different modifier, is `default`, should be `abstract`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(33, 3, 5), P(46, 3, 18)), "cannot redeclare mixin `Bar` with a different modifier, is `default`, should be `abstract`"),
 			},
 		},
 	}
@@ -2552,8 +2552,8 @@ func TestMixin(t *testing.T) {
 					a
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 4, 6), P(31, 4, 6)), "undefined local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 4, 6), P(31, 4, 6)), "undefined local `a`"),
 			},
 		},
 		"report errors for missing abstract methods from mixin parent": {
@@ -2566,8 +2566,8 @@ func TestMixin(t *testing.T) {
 					include Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
 			},
 		},
 		"report errors for missing abstract methods from interface": {
@@ -2579,8 +2579,8 @@ func TestMixin(t *testing.T) {
 					implement Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementations in `Bar`:\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces": {
@@ -2597,8 +2597,8 @@ func TestMixin(t *testing.T) {
 					implement Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
 			},
 		},
 		"report errors for missing abstract methods from interfaces in mixins": {
@@ -2615,8 +2615,8 @@ func TestMixin(t *testing.T) {
 					include Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementations in `Baz`:\n\n  - method `Bar.:bar`:\n      `def bar(): void`\n\n  - method `Foo.:foo`:\n      `def foo(): void`\n"),
 			},
 		},
 		"define and call a singleton method": {
@@ -2644,8 +2644,8 @@ func TestMixin(t *testing.T) {
 
 				Bar.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(111, 11, 5), P(117, 11, 11)), "method `foo` is not defined on type `&Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(111, 11, 5), P(117, 11, 11)), "method `foo` is not defined on type `&Bar`"),
 			},
 		},
 		"within a method": {
@@ -2654,8 +2654,8 @@ func TestMixin(t *testing.T) {
 					mixin Bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(18, 3, 6), P(31, 3, 19)), "mixin definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 3, 6), P(31, 3, 19)), "mixin definitions cannot appear in this context"),
 			},
 		},
 		"include itself": {
@@ -2664,8 +2664,8 @@ func TestMixin(t *testing.T) {
 					include Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 3, 14), P(30, 3, 16)), "type `Foo` circularly references itself"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(28, 3, 14), P(30, 3, 16)), "type `Foo` circularly references itself"),
 			},
 		},
 		"circular include": {
@@ -2678,8 +2678,8 @@ func TestMixin(t *testing.T) {
 					include Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(68, 7, 14), P(70, 7, 16)), "type `Foo` circularly references itself"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(68, 7, 14), P(70, 7, 16)), "type `Foo` circularly references itself"),
 			},
 		},
 	}
@@ -2698,8 +2698,8 @@ func TestInterface(t *testing.T) {
 				interface Foo; end
 				interface Foo[V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(28, 3, 5), P(48, 3, 25)), "type parameter count mismatch in `Foo`, got: 1, expected: 0"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(28, 3, 5), P(48, 3, 25)), "type parameter count mismatch in `Foo`, got: 1, expected: 0"),
 			},
 		},
 		"redeclare generic interface as non generic": {
@@ -2707,8 +2707,8 @@ func TestInterface(t *testing.T) {
 				interface Foo[V]; end
 				interface Foo; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 5), P(48, 3, 22)), "type parameter count mismatch in `Foo`, got: 0, expected: 1"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 5), P(48, 3, 22)), "type parameter count mismatch in `Foo`, got: 0, expected: 1"),
 			},
 		},
 		"redeclare generic interface with missing type parameter": {
@@ -2716,8 +2716,8 @@ func TestInterface(t *testing.T) {
 				interface Foo[V, T]; end
 				interface Foo[V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 5), P(54, 3, 25)), "type parameter count mismatch in `Foo`, got: 1, expected: 2"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(34, 3, 5), P(54, 3, 25)), "type parameter count mismatch in `Foo`, got: 1, expected: 2"),
 			},
 		},
 		"redeclare generic interface with additional type parameter": {
@@ -2725,8 +2725,8 @@ func TestInterface(t *testing.T) {
 				interface Foo[V]; end
 				interface Foo[V, T]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 5), P(54, 3, 28)), "type parameter count mismatch in `Foo`, got: 2, expected: 1"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 5), P(54, 3, 28)), "type parameter count mismatch in `Foo`, got: 2, expected: 1"),
 			},
 		},
 		"redeclare generic interface with matching type parameters": {
@@ -2740,8 +2740,8 @@ func TestInterface(t *testing.T) {
 				interface Foo[V]; end
 				interface Foo[T]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(31, 3, 5), P(51, 3, 25)), "type parameter mismatch in `Foo`, is `T`, should be `V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 5), P(51, 3, 25)), "type parameter mismatch in `Foo`, is `T`, should be `V`"),
 			},
 		},
 		"redeclare generic interface with wrong type param variance": {
@@ -2749,8 +2749,8 @@ func TestInterface(t *testing.T) {
 				interface Foo[-V]; end
 				interface Foo[+V]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(32, 3, 5), P(53, 3, 26)), "type parameter mismatch in `Foo`, is `+V`, should be `-V`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 3, 5), P(53, 3, 26)), "type parameter mismatch in `Foo`, is `+V`, should be `-V`"),
 			},
 		},
 		"redeclare generic interface with wrong type param upper bound": {
@@ -2758,8 +2758,8 @@ func TestInterface(t *testing.T) {
 				interface Foo[V < String]; end
 				interface Foo[V < Int]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(40, 3, 5), P(66, 3, 31)), "type parameter mismatch in `Foo`, is `V < Std::Int`, should be `V < Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(40, 3, 5), P(66, 3, 31)), "type parameter mismatch in `Foo`, is `V < Std::Int`, should be `V < Std::String`"),
 			},
 		},
 		"redeclare generic interface with wrong type param lower bound": {
@@ -2767,8 +2767,8 @@ func TestInterface(t *testing.T) {
 				interface Foo[V > String]; end
 				interface Foo[V > Int]; end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(40, 3, 5), P(66, 3, 31)), "type parameter mismatch in `Foo`, is `V > Std::Int`, should be `V > Std::String`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(40, 3, 5), P(66, 3, 31)), "type parameter mismatch in `Foo`, is `V > Std::Int`, should be `V > Std::String`"),
 			},
 		},
 
@@ -2779,8 +2779,8 @@ func TestInterface(t *testing.T) {
 					a
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(35, 4, 6), P(35, 4, 6)), "undefined local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(35, 4, 6), P(35, 4, 6)), "undefined local `a`"),
 			},
 		},
 		"define and call a singleton method": {
@@ -2808,8 +2808,8 @@ func TestInterface(t *testing.T) {
 
 				Bar.foo
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(121, 11, 5), P(127, 11, 11)), "method `foo` is not defined on type `&Bar`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(121, 11, 5), P(127, 11, 11)), "method `foo` is not defined on type `&Bar`"),
 			},
 		},
 		"within a method": {
@@ -2818,8 +2818,8 @@ func TestInterface(t *testing.T) {
 					interface Bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(18, 3, 6), P(35, 3, 23)), "interface definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 3, 6), P(35, 3, 23)), "interface definitions cannot appear in this context"),
 			},
 		},
 		"implement itself": {
@@ -2828,8 +2828,8 @@ func TestInterface(t *testing.T) {
 					implement Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Foo` circularly references itself"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(34, 3, 16), P(36, 3, 18)), "type `Foo` circularly references itself"),
 			},
 		},
 		"circular implement": {
@@ -2842,8 +2842,8 @@ func TestInterface(t *testing.T) {
 					implement Foo
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(80, 7, 16), P(82, 7, 18)), "type `Foo` circularly references itself"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(80, 7, 16), P(82, 7, 18)), "type `Foo` circularly references itself"),
 			},
 		},
 	}
@@ -2962,8 +2962,8 @@ func TestInterfaceType(t *testing.T) {
 				var a: Bar[Int] = Foo()
 				var b: Baz[String, Float] = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(248, 17, 33), P(248, 17, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(248, 17, 33), P(248, 17, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
 			},
 		},
 		"assign to implicit generic interface with incorrect type args": {
@@ -2983,8 +2983,8 @@ func TestInterfaceType(t *testing.T) {
 				var a: Bar[Int] = Foo()
 				var b: Baz[String, Float] = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(223, 15, 33), P(223, 15, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(223, 15, 33), P(223, 15, 33)), "type `Bar[Std::Int]` cannot be assigned to type `Baz[Std::String, Std::Float]`"),
 			},
 		},
 		"assign to distantly related generic interface with correct type args": {
@@ -3061,9 +3061,9 @@ func TestInterfaceType(t *testing.T) {
 
 				var a: Foo = Bar()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): void`"),
-				error.NewFailure(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` cannot be assigned to type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): void`"),
+				diagnostic.NewFailure(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` cannot be assigned to type `Foo`"),
 			},
 		},
 		"assign interface type to the same interface type": {
@@ -3150,9 +3150,9 @@ func TestInterfaceType(t *testing.T) {
 				var a: Bar = Baz()
 				var b: Foo = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): void`"),
-				error.NewFailure(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` cannot be assigned to type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): void`"),
+				diagnostic.NewFailure(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` cannot be assigned to type `Foo`"),
 			},
 		},
 		"assign interface type to an interface singleton type": {
@@ -3163,8 +3163,8 @@ func TestInterfaceType(t *testing.T) {
 				var a: Foo = Bar()
 				var b: &Foo = a
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(85, 6, 19), P(85, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(85, 6, 19), P(85, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
 			},
 		},
 		"assign interface to an interface singleton type": {
@@ -3187,8 +3187,8 @@ func TestExtendWhere(t *testing.T) {
 	tests := testTable{
 		"declare extend in the top level": {
 			input: `extend where T < String; end`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(0, 1, 1), P(27, 1, 28)), "cannot declare extend blocks in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(27, 1, 28)), "cannot declare extend blocks in this context"),
 			},
 		},
 		"declare extend in a module": {
@@ -3197,8 +3197,8 @@ func TestExtendWhere(t *testing.T) {
 					extend where T < String; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(21, 3, 6), P(48, 3, 33)), "cannot declare extend blocks in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(21, 3, 6), P(48, 3, 33)), "cannot declare extend blocks in this context"),
 			},
 		},
 		"declare extend in an interface": {
@@ -3207,8 +3207,8 @@ func TestExtendWhere(t *testing.T) {
 					extend where T < String; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(24, 3, 6), P(51, 3, 33)), "cannot declare extend blocks in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(24, 3, 6), P(51, 3, 33)), "cannot declare extend blocks in this context"),
 			},
 		},
 		"declare extend in a non-generic class": {
@@ -3217,8 +3217,8 @@ func TestExtendWhere(t *testing.T) {
 					extend where T < String; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 3, 6), P(47, 3, 33)), "cannot use `extend where` since namespace `Foo` is not generic"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 6), P(47, 3, 33)), "cannot use `extend where` since namespace `Foo` is not generic"),
 			},
 		},
 
@@ -3228,8 +3228,8 @@ func TestExtendWhere(t *testing.T) {
 					extend where W < String; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(36, 3, 19), P(45, 3, 28)), "cannot add where constraints to nonexistent type parameter `W`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(36, 3, 19), P(45, 3, 28)), "cannot add where constraints to nonexistent type parameter `W`"),
 			},
 		},
 		"declare extend with an invalid type parameter upper bound": {
@@ -3238,8 +3238,8 @@ func TestExtendWhere(t *testing.T) {
 					extend where T < Int; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(45, 3, 19), P(51, 3, 25)), "type parameter `T` in where clause should have a narrower upper bound, has `Std::Int`, should have `Std::String` or its subtype"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(45, 3, 19), P(51, 3, 25)), "type parameter `T` in where clause should have a narrower upper bound, has `Std::Int`, should have `Std::String` or its subtype"),
 			},
 		},
 		"declare extend with a narrower type parameter upper bound": {
@@ -3255,8 +3255,8 @@ func TestExtendWhere(t *testing.T) {
 					extend where T < Value; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(42, 3, 19), P(50, 3, 27)), "type parameter `T` in where clause should have a narrower upper bound, has `Std::Value`, should have `Std::Int` or its subtype"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(42, 3, 19), P(50, 3, 27)), "type parameter `T` in where clause should have a narrower upper bound, has `Std::Value`, should have `Std::Int` or its subtype"),
 			},
 		},
 		"declare extend with a narrower type parameter lower bound": {
@@ -3265,8 +3265,8 @@ func TestExtendWhere(t *testing.T) {
 					extend where T > Int; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(44, 3, 19), P(50, 3, 25)), "type parameter `T` in where clause should have a wider lower bound, has `Std::Int`, should have `Std::Value` or its supertype"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(44, 3, 19), P(50, 3, 25)), "type parameter `T` in where clause should have a wider lower bound, has `Std::Int`, should have `Std::Value` or its supertype"),
 			},
 		},
 		"declare extend with a wider type parameter lower bound": {
@@ -3320,9 +3320,9 @@ func TestExtendWhere(t *testing.T) {
 
 				var a: Foo = Bar::[String]()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(150, 12, 18), P(164, 12, 32)), "type `Bar[Std::String]` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): Std::Int`"),
-				error.NewFailure(L("<main>", P(150, 12, 18), P(164, 12, 32)), "type `Bar[Std::String]` cannot be assigned to type `Foo`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(150, 12, 18), P(164, 12, 32)), "type `Bar[Std::String]` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(150, 12, 18), P(164, 12, 32)), "type `Bar[Std::String]` cannot be assigned to type `Foo`"),
 			},
 		},
 		"assign class with extend where to a generic interface when the conditions are not satisfied": {
@@ -3339,9 +3339,9 @@ func TestExtendWhere(t *testing.T) {
 
 				var a: Foo[Int] = Bar::[String]()
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(156, 12, 23), P(170, 12, 37)), "type `Bar[Std::String]` does not implement interface `Foo[Std::Int]`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): Std::Int`"),
-				error.NewFailure(L("<main>", P(156, 12, 23), P(170, 12, 37)), "type `Bar[Std::String]` cannot be assigned to type `Foo[Std::Int]`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(156, 12, 23), P(170, 12, 37)), "type `Bar[Std::String]` does not implement interface `Foo[Std::Int]`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(156, 12, 23), P(170, 12, 37)), "type `Bar[Std::String]` cannot be assigned to type `Foo[Std::Int]`"),
 			},
 		},
 
@@ -3351,8 +3351,8 @@ func TestExtendWhere(t *testing.T) {
 					extend where T < String; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L("<main>", P(20, 3, 6), P(47, 3, 33)), "cannot use `extend where` since namespace `Foo` is not generic"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 6), P(47, 3, 33)), "cannot use `extend where` since namespace `Foo` is not generic"),
 			},
 		},
 	}

@@ -1,0 +1,24 @@
+module Std::Elk::AST
+  ##[
+    Represents a method call eg. `'123'.to_int()`
+  ]##
+  sealed primitive class MethodCallNode
+    include ExpressionNode
+
+    init(
+      receiver: ExpressionNode,
+      op: Elk::Token,
+      method_name: String,
+      positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
+      named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
+      span: String::Span = loop; end,
+    ); end
+
+    def receiver: ExpressionNode; end
+    def op: Elk::Token; end
+    def method_name: String; end
+    def positional_arguments: ArrayTuple[ExpressionNode]; end
+    def named_arguments: ArrayTuple[NamedArgumentNode]; end
+    def span: String::Span; end
+  end
+end

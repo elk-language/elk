@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a `loop` expression.
+  ]##
+  sealed primitive class LoopExpressionNode
+    include ExpressionNode
+
+    init(then_body: ArrayTuple[StatementNode], span: String::Span = loop; end); end
+    def then_body: ArrayTuple[StatementNode]; end
+    def span: String::Span; end
+  end
+end

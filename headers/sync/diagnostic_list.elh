@@ -1,0 +1,181 @@
+##[
+	A thread safe `DiagnosticList`, synchronized with a Mutex.
+]##
+sealed primitive class ::Std::Sync::DiagnosticList
+	include List[Diagnostic]
+
+	##[
+		Returns the internal `DiagnosticList`.
+	]##
+	sealed def diagnostic_list: ::Std::DiagnosticList; end
+
+	##[
+		Removes the element from the list.
+
+		Returns `true` if the element has been removed,
+		otherwise returns `false.
+	]##
+	def remove(value: Diagnostic): bool; end
+
+	##[
+		Adds the given value to the list.
+	]##
+	def push(value: Diagnostic); end
+
+	##[
+		Removes all elements from the list.
+	]##
+	def clear; end
+
+	##[
+		Mutates the list.
+
+		Reallocates the underlying array to hold
+		the given number of new elements.
+
+		Expands the `capacity` of the list by `new_slots`
+	]##
+	def grow(new_slots: Int): self; end
+
+	##[
+		Returns the number of elements that can be
+		held by the underlying array.
+
+		This value will change when the list gets resized,
+		and the underlying array gets reallocated
+	]##
+	def capacity: Int; end
+
+	##[
+		Returns the number of elements present in the list.
+	]##
+	def length: Int; end
+
+	##[
+		Returns the number of left slots for new elements
+		in the underlying array.
+		It tells you how many more elements can be
+		added to the list before the underlying array gets
+		reallocated.
+
+		It is always equal to `capacity - length`.
+	]##
+	def left_capacity: Int; end
+
+	##[
+		Get the element under the given index.
+
+		Throws an unchecked error if the index is a negative number
+		or is greater or equal to `length`.
+	]##
+	def [](index: AnyInt): Diagnostic; end
+
+	##[
+		Set the element under the given index to the given value.
+
+		Throws an unchecked error if the index is a negative number
+		or is greater or equal to `length`.
+	]##
+	def []=(index: AnyInt, value: Diagnostic); end
+
+	##[
+		Create a new `ArrayList` containing the elements of `self`
+		and another given `Tuple`.
+	]##
+	sealed def +[V](other: Tuple[V]): ArrayList[Diagnostic | V]; end
+
+	##[
+		Create a new `ArrayList` containing the elements of `self`
+		repeated `n` times.
+	]##
+	sealed def *(n: Int): self; end
+
+	##[
+		Check whether the given `value` is present in this list.
+	]##
+	def contains[V := Diagnostic](value: V): bool; end
+
+	##[
+		Check whether the given value is an `ArrayList`
+		with the same elements.
+	]##
+	sealed def ==(other: any): Bool; end
+
+	##[
+		Check whether the given value is an `ArrayList` or `ArrayTuple`
+		with the same elements.
+	]##
+	sealed def =~(other: any): Bool; end
+
+	##[
+		Adds the given values to the list.
+
+		Reallocates the underlying array if it is
+		too small to hold them.
+	]##
+	def append(*values: Diagnostic): self; end
+
+	##[
+		Adds the given value to the list.
+
+		Reallocates the underlying array if it is
+		too small to hold it.
+	]##
+	def <<(value: Diagnostic): self; end
+
+	##[
+		Iterates over the elements of this list,
+		yielding them to the given closure.
+
+		Mutates the list in place replacing the elements with the ones
+		returned by the given closure.
+	]##
+	def map_mut[E](fn: |element: Diagnostic|: Diagnostic ! E): self ! E; end
+
+	##[
+		Iterates over the elements of this list,
+		yielding them to the given closure.
+
+		Returns a new List that consists of the elements returned
+		by the given closure.
+	]##
+	def map[V, E](fn: |element: Diagnostic|: V ! E): ArrayList[V] ! E; end
+
+	##[
+		Check if this diagnostic list contains a fail.
+	]##
+	def is_failure: bool; end
+
+	##[
+		Get the human readable
+		string representation of this diagnostic list
+		with a snippet of source code.
+
+		It will attempt to read the source fragment from the file
+		if no source string is given.
+	]##
+	def to_human_string(style: bool = true, colorizer: Colorizer? = loop; end, source: String? = nil); end
+
+	##[
+		Returns an iterator that iterates
+		over each element of the list.
+	]##
+	def iter: Iterator; end
+
+	sealed primitive class Iterator
+		include ::Std::ResettableIterator::Base[Diagnostic]
+
+		init(list: DiagnosticList); end
+
+		##[
+			Get the next element of the list.
+			Throws `:stop_iteration` when there are no more elements.
+		]##
+		def next: Diagnostic ! :stop_iteration; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
+	end
+end

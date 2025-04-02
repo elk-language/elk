@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents a variable declaration with patterns eg. `var [foo, { bar }] = baz()`
+  ]##
+  sealed primitive class VariablePatternDeclarationNode
+    include ExpressionNode
+
+    init(pattern: PatternNode, initialiser: ExpressionNode, span: String::Span = loop; end); end
+    def pattern: PatternNode; end
+    def initialiser: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

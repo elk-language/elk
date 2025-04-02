@@ -1,0 +1,20 @@
+module Std::Elk::AST
+  ##[
+    Represents an `for .. in` modifier expression eg. `println(i) for i in 10..30`
+  ]##
+  sealed primitive class ModifierForInNode
+    include ExpressionNode
+
+    init(
+      then_expression: ExpressionNode,
+      pattern: PatternNode,
+      in_expression: ExpressionNode,
+      span: String::Span = loop; end,
+    ); end
+
+    def then_expression: ExpressionNode; end
+    def pattern: PatternNode; end
+    def in_expression: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

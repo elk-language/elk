@@ -31,7 +31,7 @@ func TestInt16Inspect(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := tc.i.Inspect()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -83,13 +83,13 @@ func TestInt16_Exponentiate(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.Exponentiate(tc.b)
+			got, err := tc.a.ExponentiateVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -129,10 +129,10 @@ func TestInt16_Add(t *testing.T) {
 			got, err := tc.a.Add(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -172,10 +172,10 @@ func TestInt16_Subtract(t *testing.T) {
 			got, err := tc.a.Subtract(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -215,10 +215,10 @@ func TestInt16_Multiply(t *testing.T) {
 			got, err := tc.a.Multiply(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -262,13 +262,13 @@ func TestInt16_GreaterThan(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.GreaterThan(tc.b)
+			got, err := tc.a.GreaterThanVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -312,13 +312,13 @@ func TestInt16_GreaterThanEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.GreaterThanEqual(tc.b)
+			got, err := tc.a.GreaterThanEqualVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -362,13 +362,13 @@ func TestInt16_LessThan(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.LessThan(tc.b)
+			got, err := tc.a.LessThanVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -412,13 +412,13 @@ func TestInt16_LessThanEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.LessThanEqual(tc.b)
+			got, err := tc.a.LessThanEqualVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -679,11 +679,11 @@ func TestInt16_Equal(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := tc.a.Equal(tc.b)
+			got := tc.a.EqualVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -733,10 +733,10 @@ func TestInt16_BitwiseAnd(t *testing.T) {
 			got, err := tc.a.BitwiseAnd(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -786,10 +786,10 @@ func TestInt16_BitwiseOr(t *testing.T) {
 			got, err := tc.a.BitwiseOr(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -839,10 +839,10 @@ func TestInt16_BitwiseXor(t *testing.T) {
 			got, err := tc.a.BitwiseXor(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -889,13 +889,13 @@ func TestInt16_Modulo(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.Modulo(tc.b)
+			got, err := tc.a.ModuloVal(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

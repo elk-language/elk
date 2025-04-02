@@ -1,0 +1,17 @@
+module Std::Elk::AST
+  ##[
+    Represents a generic constant in type annotations eg. `ArrayList[String]`
+  ]##
+  sealed primitive class GenericConstantNode
+    include ExpressionNode,
+            TypeNode,
+            PatternNode,
+            UsingEntryNode,
+            ComplexConstantNode
+
+    init(constant: ComplexConstantNode, type_arguments: ArrayTuple[TypeNode], span: String::Span = loop; end); end
+    def constant: ComplexConstantNode; end
+    def type_arguments: ArrayTuple[TypeNode]; end
+    def span: String::Span; end
+  end
+end

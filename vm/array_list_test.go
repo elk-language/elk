@@ -38,13 +38,13 @@ func TestArrayListContains(t *testing.T) {
 			v := vm.New()
 			contains, err := vm.ArrayListContains(v, tc.list, tc.val)
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.contains, contains, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}
@@ -79,13 +79,13 @@ func TestArrayListEqual(t *testing.T) {
 			v := vm.New()
 			equal, err := vm.ArrayListEqual(v, tc.list, tc.other)
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 			if !err.IsUndefined() {
 				return
 			}
 			if diff := cmp.Diff(tc.equal, equal, comparer.Options()); diff != "" {
-				t.Fatalf(diff)
+				t.Fatal(diff)
 			}
 		})
 	}

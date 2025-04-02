@@ -1,0 +1,8 @@
+module Std::Elk::AST
+  ##[
+    Represents all nodes that are valid in using declarations
+  ]##
+  mixin UsingEntryNode
+    include ExpressionNode
+  end
+end

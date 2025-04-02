@@ -3,6 +3,8 @@ package value
 import (
 	"fmt"
 	"strings"
+
+	"github.com/elk-language/elk/indent"
 )
 
 // ::Std::ArrayList
@@ -65,33 +67,68 @@ func (l *ArrayList) Error() string {
 	return l.Inspect()
 }
 
-const MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT = 50
+const MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT = 300
 
 func (l *ArrayList) Inspect() string {
-	var builder strings.Builder
-
-	builder.WriteString("[")
+	var hasMultilineElements bool
+	elementStrings := make(
+		[]string,
+		0,
+		min(MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT, l.Length()),
+	)
 
 	for i, element := range *l {
-		if i != 0 {
-			builder.WriteString(", ")
+		elementString := element.Inspect()
+		elementStrings = append(elementStrings, elementString)
+		if strings.ContainsRune(elementString, '\n') {
+			hasMultilineElements = true
 		}
 
-		builder.WriteString(element.Inspect())
-
 		if i >= MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT-1 {
-			builder.WriteString(", ...")
 			break
 		}
 	}
 
-	builder.WriteString("]")
+	var buff strings.Builder
+
+	buff.WriteRune('[')
+	if hasMultilineElements || l.Length() > 15 {
+		buff.WriteRune('\n')
+		for i, elementString := range elementStrings {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+
+			indent.IndentString(&buff, elementString, 1)
+
+			if i >= MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT-1 {
+				buff.WriteString(",\n  ...")
+				break
+			}
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i, elementString := range elementStrings {
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+
+			buff.WriteString(elementString)
+
+			if i >= MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT-1 {
+				buff.WriteString(", ...")
+				break
+			}
+		}
+	}
+
+	buff.WriteRune(']')
 	leftCap := l.LeftCapacity()
 	if leftCap > 0 {
-		builder.WriteByte(':')
-		fmt.Fprintf(&builder, "%d", leftCap)
+		buff.WriteByte(':')
+		fmt.Fprintf(&buff, "%d", leftCap)
 	}
-	return builder.String()
+	return buff.String()
 }
 
 func (*ArrayList) InstanceVariables() SymbolMap {
@@ -124,10 +161,10 @@ func (l *ArrayList) Grow(newSlots int) {
 }
 
 // Get an element under the given index.
-func GetFromSlice(collection *[]Value, index int) (Value, Value) {
+func GetFromSlice[V any](collection *[]V, index int) (ret V, err Value) {
 	l := len(*collection)
 	if index >= l || index < -l {
-		return Undefined, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection)))
+		return ret, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection)))
 	}
 
 	if index < 0 {
@@ -138,7 +175,7 @@ func GetFromSlice(collection *[]Value, index int) (Value, Value) {
 }
 
 // Set an element under the given index.
-func SetInSlice(collection *[]Value, index int, val Value) Value {
+func SetInSlice[V any](collection *[]V, index int, val V) (err Value) {
 	l := len(*collection)
 	if index >= l || index < -l {
 		return Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection)))
@@ -257,7 +294,7 @@ func (l *ArrayList) Repeat(other Value) (*ArrayList, Value) {
 			))
 		}
 		newList := make(ArrayList, 0, newLen)
-		for i := 0; i < int(o); i++ {
+		for range int(o) {
 			newList = append(newList, *l...)
 		}
 		return &newList, Undefined

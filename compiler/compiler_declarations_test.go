@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -17,9 +17,9 @@ func TestSingletonBlock(t *testing.T) {
 					def foo then :bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(5, 2, 5), P(44, 4, 7)), "singleton definitions cannot appear in this context"),
-				error.NewFailure(L(P(20, 3, 6), P(36, 3, 22)), "method definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(44, 4, 7)), "singleton definitions cannot appear in this context"),
+				diagnostic.NewFailure(L(P(20, 3, 6), P(36, 3, 22)), "method definitions cannot appear in this context"),
 			},
 		},
 		"define in a method": {
@@ -30,9 +30,9 @@ func TestSingletonBlock(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(18, 3, 6), P(59, 5, 8)), "singleton definitions cannot appear in this context"),
-				error.NewFailure(L(P(34, 4, 7), P(50, 4, 23)), "method definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(18, 3, 6), P(59, 5, 8)), "singleton definitions cannot appear in this context"),
+				diagnostic.NewFailure(L(P(34, 4, 7), P(50, 4, 23)), "method definitions cannot appear in this context"),
 			},
 		},
 		"define in a setter": {
@@ -43,10 +43,10 @@ func TestSingletonBlock(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(14, 2, 14), P(16, 2, 16)), "cannot declare parameter `arg` without a type"),
-				error.NewFailure(L(P(24, 3, 6), P(65, 5, 8)), "singleton definitions cannot appear in this context"),
-				error.NewFailure(L(P(40, 4, 7), P(56, 4, 23)), "method definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(14, 2, 14), P(16, 2, 16)), "cannot declare parameter `arg` without a type"),
+				diagnostic.NewFailure(L(P(24, 3, 6), P(65, 5, 8)), "singleton definitions cannot appear in this context"),
+				diagnostic.NewFailure(L(P(40, 4, 7), P(56, 4, 23)), "method definitions cannot appear in this context"),
 			},
 		},
 		"define in a class": {
@@ -313,9 +313,9 @@ func TestSingletonBlock(t *testing.T) {
 					end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(21, 3, 6), P(62, 5, 8)), "singleton definitions cannot appear in this context"),
-				error.NewFailure(L(P(37, 4, 7), P(53, 4, 23)), "method definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(21, 3, 6), P(62, 5, 8)), "singleton definitions cannot appear in this context"),
+				diagnostic.NewFailure(L(P(37, 4, 7), P(53, 4, 23)), "method definitions cannot appear in this context"),
 			},
 		},
 	}
@@ -1077,8 +1077,8 @@ func TestDefClass(t *testing.T) {
 				  class ::Bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(19, 3, 7), P(34, 3, 22)), "class definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(19, 3, 7), P(34, 3, 22)), "class definitions cannot appear in this context"),
 			},
 		},
 		"class with an absolute parent": {
@@ -1513,8 +1513,8 @@ func TestDefModule(t *testing.T) {
 					module Bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(18, 3, 6), P(32, 3, 20)), "module definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(18, 3, 6), P(32, 3, 20)), "module definitions cannot appear in this context"),
 			},
 		},
 		"class with an absolute name without a body": {
@@ -1974,8 +1974,8 @@ func TestDefMethod(t *testing.T) {
 					)),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(54, 4, 13), P(60, 4, 19)), "values returned in void context will be ignored"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(54, 4, 13), P(60, 4, 19)), "values returned in void context will be ignored"),
 			},
 		},
 		"define generator": {
@@ -2067,8 +2067,8 @@ func TestDefMethod(t *testing.T) {
 					)),
 				},
 			),
-			err: error.ErrorList{
-				error.NewWarning(L(P(87, 5, 6), P(95, 5, 14)), "unreachable code"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(87, 5, 6), P(95, 5, 14)), "unreachable code"),
 			},
 		},
 		"define an async method": {
@@ -2774,8 +2774,8 @@ func TestDefInit(t *testing.T) {
 			input: `
 				init then :bar
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(5, 2, 5), P(18, 2, 18)), "init definitions cannot appear outside of classes"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(18, 2, 18)), "init definitions cannot appear outside of classes"),
 			},
 		},
 		"define init in a module": {
@@ -2784,8 +2784,8 @@ func TestDefInit(t *testing.T) {
 					init then :bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(21, 3, 6), P(34, 3, 19)), "init definitions cannot appear outside of classes"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(21, 3, 6), P(34, 3, 19)), "init definitions cannot appear outside of classes"),
 			},
 		},
 		"define init in a mixin": {
@@ -2794,8 +2794,8 @@ func TestDefInit(t *testing.T) {
 					init then :bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(20, 3, 6), P(33, 3, 19)), "init definitions cannot appear outside of classes"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(20, 3, 6), P(33, 3, 19)), "init definitions cannot appear outside of classes"),
 			},
 		},
 		"define init in an interface": {
@@ -2804,9 +2804,9 @@ func TestDefInit(t *testing.T) {
 					init then :bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "init definitions cannot appear outside of classes"),
-				error.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "method `#init` cannot have a body because it is abstract"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "init definitions cannot appear outside of classes"),
+				diagnostic.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "method `#init` cannot have a body because it is abstract"),
 			},
 		},
 		"define init in a method": {
@@ -2815,8 +2815,8 @@ func TestDefInit(t *testing.T) {
 					init then :bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "method definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "method definitions cannot appear in this context"),
 			},
 		},
 		"define init in init": {
@@ -2827,8 +2827,8 @@ func TestDefInit(t *testing.T) {
 				  end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(33, 4, 8), P(46, 4, 21)), "method definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(33, 4, 8), P(46, 4, 21)), "method definitions cannot appear in this context"),
 			},
 		},
 		"define with required parameters in a class": {
@@ -3022,8 +3022,8 @@ func TestDefMixin(t *testing.T) {
 					mixin Bar; end
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "mixin definitions cannot appear in this context"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "mixin definitions cannot appear in this context"),
 			},
 		},
 		"mixin with an absolute nested name without a body": {
@@ -3417,8 +3417,8 @@ func TestInclude(t *testing.T) {
 				mixin Bar; end
 				include ::Bar
 			`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(24, 3, 5), P(36, 3, 17)),
 					"cannot include mixins in this context",
 				),
@@ -3431,8 +3431,8 @@ func TestInclude(t *testing.T) {
 					include ::Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(40, 4, 6), P(52, 4, 18)),
 					"cannot include mixins in this context",
 				),
@@ -3445,8 +3445,8 @@ func TestInclude(t *testing.T) {
 					include ::Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(43, 4, 6), P(55, 4, 18)),
 					"cannot include mixins in this context",
 				),
@@ -3459,8 +3459,8 @@ func TestInclude(t *testing.T) {
 					include ::Bar
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(37, 4, 6), P(49, 4, 18)),
 					"cannot include mixins in this context",
 				),

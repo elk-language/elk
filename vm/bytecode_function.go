@@ -94,7 +94,7 @@ func (b *BytecodeFunction) FileName() string {
 	if b.Location == nil {
 		return ""
 	}
-	return b.Location.Filename
+	return b.Location.FilePath
 }
 
 func (b *BytecodeFunction) GetLineNumber(ip int) int {

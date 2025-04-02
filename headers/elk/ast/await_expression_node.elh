@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents an `await` expression eg. `await foo()`
+  ]##
+  sealed primitive class AwaitExpressionNode
+    include ExpressionNode
+
+    init(value: ExpressionNode, span: String::Span = loop; end); end
+    def value: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

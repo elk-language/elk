@@ -23,7 +23,7 @@ func initRegex() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Regex)
 			other := args[1]
-			return self.Concat(other)
+			return self.ConcatVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -33,7 +33,7 @@ func initRegex() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Regex)
 			other := args[1]
-			return self.Repeat(other)
+			return self.RepeatVal(other)
 		},
 		DefWithParameters(1),
 	)

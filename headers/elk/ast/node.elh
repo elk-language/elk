@@ -1,0 +1,15 @@
+##[
+	A base for all Elk AST (Abstract Syntax Tree) nodes.
+]##
+mixin ::Std::Elk::AST::Node
+	##[
+		Returns the span that represents
+		the position of this node in a source file/string.
+	]##
+	def span: String::Span; end
+
+	##[
+		Convert the AST back to a `String` of source code.
+	]##
+	def to_string: String; end
+end

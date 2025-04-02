@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -17,8 +17,8 @@ func TestInstanceVariables(t *testing.T) {
 					var @a: Int = 3
 				end
 			`,
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(34, 3, 20), P(34, 3, 20)),
 					"instance variables cannot be initialised when declared",
 				),
@@ -26,8 +26,8 @@ func TestInstanceVariables(t *testing.T) {
 		},
 		"declare in the top level": {
 			input: "var @a: Float",
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(0, 1, 1), P(12, 1, 13)),
 					"cannot declare instance variable `@a` in this context",
 				),
@@ -35,8 +35,8 @@ func TestInstanceVariables(t *testing.T) {
 		},
 		"declare in a method": {
 			input: "def foo; var @a: Float; end",
-			err: error.ErrorList{
-				error.NewFailure(
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
 					L(P(9, 1, 10), P(21, 1, 22)),
 					"instance variable definitions cannot appear in this context",
 				),
@@ -1105,8 +1105,8 @@ func TestLocalVariables(t *testing.T) {
 				},
 				nil,
 			),
-			err: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(0, 1, 1)), "undefined local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(0, 1, 1)), "undefined local `a`"),
 			},
 		},
 		"assign undeclared": {
@@ -1125,8 +1125,8 @@ func TestLocalVariables(t *testing.T) {
 					value.SmallInt(3).ToValue(),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L(P(0, 1, 1), P(0, 1, 1)), "undefined local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(0, 1, 1)), "undefined local `a`"),
 			},
 		},
 		"assign uninitialised": {
@@ -1210,8 +1210,8 @@ func TestLocalVariables(t *testing.T) {
 					value.SmallInt(2).ToValue(),
 				},
 			),
-			err: error.ErrorList{
-				error.NewFailure(L(P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"read initialised": {
@@ -1556,9 +1556,9 @@ func TestLocalValues(t *testing.T) {
 				val a = 'foo'
 				a = 'bar'
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(23, 3, 5), P(23, 3, 5)), "local value `a` cannot be reassigned"),
-				error.NewFailure(L(P(27, 3, 9), P(31, 3, 13)), "type `\"bar\"` cannot be assigned to type `\"foo\"`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(23, 3, 5), P(23, 3, 5)), "local value `a` cannot be reassigned"),
+				diagnostic.NewFailure(L(P(27, 3, 9), P(31, 3, 13)), "type `\"bar\"` cannot be assigned to type `\"foo\"`"),
 			},
 		},
 		"read uninitialised": {
@@ -1566,8 +1566,8 @@ func TestLocalValues(t *testing.T) {
 				val a: Int
 				a + 2
 			`,
-			err: error.ErrorList{
-				error.NewFailure(L(P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
 		"read initialised": {

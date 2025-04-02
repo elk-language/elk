@@ -1,0 +1,13 @@
+module ::Std::Elk::AST
+	##[
+		All nodes that should be valid constants
+		should implement this interface.
+	]##
+	mixin ConstantNode
+		include TypeNode,
+						ExpressionNode,
+						UsingEntryNode,
+						ComplexConstantNode
+
+	end
+end

@@ -1,0 +1,32 @@
+module Std::Elk::AST
+  ##[
+    Represents a class declaration eg. `class Foo; end`
+  ]##
+  sealed primitive class ClassDeclarationNode
+    include ExpressionNode
+
+    init(
+      constant: ExpressionNode,
+      body: ArrayTuple[StatementNode] = loop; end,
+      type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
+      is_abstract: bool = false,
+      is_sealed: bool = false,
+      is_primitive: bool = false,
+      is_no_init: bool = false,
+      superclass: ExpressionNode? = nil,
+      doc_comment: String = "",
+      span: String::Span = loop; end
+    ); end
+
+    def doc_comment: Bool; end
+    def is_abstract: Bool; end
+    def is_sealed: Bool; end
+    def is_primitive: Bool; end
+    def is_no_init: Bool; end
+    def constant: ExpressionNode?; end
+    def type_parameters: ArrayTuple[TypeParameterNode]; end
+    def superclass: ExpressionNode; end
+    def body: ArrayTuple[StatementNode]; end
+    def span: String::Span; end
+  end
+end

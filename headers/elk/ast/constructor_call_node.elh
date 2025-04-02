@@ -1,0 +1,20 @@
+module Std::Elk::AST
+  ##[
+    Represents a constructor call eg. `String(123)`
+  ]##
+  sealed primitive class ConstructorCallNode
+    include ExpressionNode
+
+    init(
+      class_node: ComplexConstantNode,
+      positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
+      named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
+      span: String::Span = loop; end
+    ); end
+
+    def class_node: ComplexConstantNode; end
+    def positional_arguments: ArrayTuple[ExpressionNode]; end
+    def named_arguments: ArrayTuple[NamedArgumentNode]; end
+    def span: String::Span; end
+  end
+end

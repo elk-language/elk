@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -114,11 +115,11 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	stdModule.DefineClass("", false, true, true, true, symbol.False, boolClass, env)
 
 	stdModule.DefineClass("", false, true, true, true, symbol.Nil, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.String, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.String, objectClass, env)
 	stdModule.DefineClass("", false, true, true, true, symbol.Symbol, valueClass, env)
 	stdModule.DefineClass("", false, true, true, true, symbol.Char, valueClass, env)
 	stdModule.DefineClass("", false, true, true, true, symbol.Float, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.BigFloat, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.BigFloat, objectClass, env)
 	stdModule.DefineClass("", false, true, true, true, symbol.Float64, valueClass, env)
 	stdModule.DefineClass("", false, true, true, true, symbol.Float32, valueClass, env)
 	stdModule.DefineClass("", false, true, true, true, symbol.Int, valueClass, env)
@@ -130,14 +131,14 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	stdModule.DefineClass("", false, true, true, true, symbol.UInt32, valueClass, env)
 	stdModule.DefineClass("", false, true, true, true, symbol.UInt16, valueClass, env)
 	stdModule.DefineClass("", false, true, true, true, symbol.UInt8, valueClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.ArrayList, valueClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.ArrayTuple, valueClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.HashMap, valueClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.HashRecord, valueClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.HashSet, valueClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.Regex, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.Method, valueClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.Pair, valueClass, env)
+	stdModule.DefineClass("", false, true, true, false, symbol.ArrayList, objectClass, env)
+	stdModule.DefineClass("", false, true, true, false, symbol.ArrayTuple, objectClass, env)
+	stdModule.DefineClass("", false, true, true, false, symbol.HashMap, objectClass, env)
+	stdModule.DefineClass("", false, true, true, false, symbol.HashRecord, objectClass, env)
+	stdModule.DefineClass("", false, true, true, false, symbol.HashSet, objectClass, env)
+	stdModule.DefineClass("", false, true, true, false, symbol.Regex, objectClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.Method, objectClass, env)
+	stdModule.DefineClass("", false, true, true, false, symbol.Pair, objectClass, env)
 
 	env.Init = false
 	return env
@@ -385,6 +386,11 @@ func setupHelperTypes(env *GlobalEnvironment) {
 	)
 	stdModule.DefineSubtype(symbol.S_BuiltinSubscriptable, BuiltinSubscriptable)
 
+	ElkTokenConstant, _ := env.StdSubtypeModule(symbol.Elk).Subtype(symbol.Token)
+	ElkTokenClass := ElkTokenConstant.Type.(*Class)
+	for _, tokenName := range token.Types() {
+		ElkTokenClass.DefineConstant(value.ToSymbol(tokenName), UInt16)
+	}
 }
 
 func (g *GlobalEnvironment) DeepCopyEnv() *GlobalEnvironment {

@@ -1,0 +1,20 @@
+module Std::Elk::AST
+  ##[
+    Represents a value declaration eg. `val foo: String`
+  ]##
+  sealed primitive class ValueDeclarationNode
+    include ExpressionNode
+
+    init(
+      name: String,
+      type_node: TypeNode? = nil,
+      initialiser: ExpressionNode? = nil,
+      span: String::Span = loop; end,
+    ); end
+
+    def name: String; end
+    def type_node: TypeNode?; end
+    def initialiser: ExpressionNode?; end
+    def span: String::Span; end
+  end
+end

@@ -1,0 +1,27 @@
+##[
+	Implements a lexer/tokenizer of the Elk programming language.
+]##
+sealed primitive class ::Std::Elk::Lexer
+	singleton
+		##[
+			Colorize the given string of Elk source code
+			with ANSI escape codes.
+		]##
+		def colorize(source: String): String; end
+
+		##[
+			Tokenize the given string of Elk source code
+			and return an array of tokens.
+		]##
+		def lex(source: String, source_name: String = "<main>"): ArrayList[Elk::Token]; end
+	end
+
+	init(source: String, source_name: String = "<main>"); end
+
+	##[
+		Get the next token.
+		Token will be of type `END_OF_FILE` when
+		the end of source is reached.
+	]##
+	def next: Elk::Token; end
+end

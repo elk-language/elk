@@ -1,0 +1,10 @@
+module ::Std::Elk::AST
+	##[
+		All nodes that represent strings should
+		implement this interface.
+	]##
+	mixin StringLiteralNode
+		include PatternNode,
+						ExpressionNode
+	end
+end

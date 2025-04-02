@@ -102,8 +102,8 @@ func (f Float32) Add(other Value) (Float32, Value) {
 	return f + o, Undefined
 }
 
-// Exponentiate by the right value.
-func (f Float32) Exponentiate(other Value) (Float32, Value) {
+// ExponentiateVal by the right value.
+func (f Float32) ExponentiateVal(other Value) (Float32, Value) {
 	if !other.IsFloat32() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -130,7 +130,7 @@ func (f Float32) Multiply(other Value) (Float32, Value) {
 	return f * o, Undefined
 }
 
-func (f Float32) Modulo(other Value) (Float32, Value) {
+func (f Float32) ModuloVal(other Value) (Float32, Value) {
 	if !other.IsFloat32() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -148,7 +148,7 @@ func (f Float32) Divide(other Value) (Float32, Value) {
 	return f / o, Undefined
 }
 
-func (f Float32) Compare(other Value) (Value, Value) {
+func (f Float32) CompareVal(other Value) (Value, Value) {
 	if !other.IsFloat32() {
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -167,12 +167,12 @@ func (f Float32) Compare(other Value) (Value, Value) {
 	return SmallInt(0).ToValue(), Undefined
 }
 
-func (f Float32) GreaterThan(other Value) (Value, Value) {
-	result, err := f.GreaterThanBool(other)
+func (f Float32) GreaterThanVal(other Value) (Value, Value) {
+	result, err := f.GreaterThan(other)
 	return ToElkBool(result), err
 }
 
-func (f Float32) GreaterThanBool(other Value) (bool, Value) {
+func (f Float32) GreaterThan(other Value) (bool, Value) {
 	if !other.IsFloat32() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -181,12 +181,12 @@ func (f Float32) GreaterThanBool(other Value) (bool, Value) {
 	return f > o, Undefined
 }
 
-func (f Float32) GreaterThanEqual(other Value) (Value, Value) {
-	result, err := f.GreaterThanEqualBool(other)
+func (f Float32) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := f.GreaterThanEqual(other)
 	return ToElkBool(result), err
 }
 
-func (f Float32) GreaterThanEqualBool(other Value) (bool, Value) {
+func (f Float32) GreaterThanEqual(other Value) (bool, Value) {
 	if !other.IsFloat32() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -195,12 +195,12 @@ func (f Float32) GreaterThanEqualBool(other Value) (bool, Value) {
 	return f >= o, Undefined
 }
 
-func (f Float32) LessThan(other Value) (Value, Value) {
-	result, err := f.LessThanBool(other)
+func (f Float32) LessThanVal(other Value) (Value, Value) {
+	result, err := f.LessThan(other)
 	return ToElkBool(result), err
 }
 
-func (f Float32) LessThanBool(other Value) (bool, Value) {
+func (f Float32) LessThan(other Value) (bool, Value) {
 	if !other.IsFloat32() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -209,12 +209,12 @@ func (f Float32) LessThanBool(other Value) (bool, Value) {
 	return f < o, Undefined
 }
 
-func (f Float32) LessThanEqual(other Value) (Value, Value) {
-	result, err := f.LessThanEqualBool(other)
+func (f Float32) LessThanEqualVal(other Value) (Value, Value) {
+	result, err := f.LessThanEqual(other)
 	return ToElkBool(result), err
 }
 
-func (f Float32) LessThanEqualBool(other Value) (bool, Value) {
+func (f Float32) LessThanEqual(other Value) (bool, Value) {
 	if !other.IsFloat32() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -223,11 +223,11 @@ func (f Float32) LessThanEqualBool(other Value) (bool, Value) {
 	return f <= o, Undefined
 }
 
-func (f Float32) Equal(other Value) Value {
-	return ToElkBool(f.EqualBool(other))
+func (f Float32) EqualVal(other Value) Value {
+	return ToElkBool(f.Equal(other))
 }
 
-func (f Float32) EqualBool(other Value) bool {
+func (f Float32) Equal(other Value) bool {
 	if !other.IsFloat32() {
 		return false
 	}
@@ -236,12 +236,12 @@ func (f Float32) EqualBool(other Value) bool {
 	return f == o
 }
 
-func (f Float32) StrictEqual(other Value) Value {
-	return f.Equal(other)
+func (f Float32) StrictEqualVal(other Value) Value {
+	return f.EqualVal(other)
 }
 
 func initFloat32() {
-	Float32Class = NewClass()
+	Float32Class = NewClassWithOptions(ClassWithParent(ValueClass))
 	StdModule.AddConstantString("Float32", Ref(Float32Class))
 	Float32Class.AddConstantString("NAN", Float32NaN().ToValue())
 	Float32Class.AddConstantString("INF", Float32Inf().ToValue())

@@ -15,9 +15,10 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/error"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/value"
 )
 
 // Parsing mode.
@@ -40,7 +41,7 @@ type Parser struct {
 	lookahead        *token.Token // next token used for predicting productions
 	secondLookahead  *token.Token // second next token used for predicting productions
 	thirdLookahead   *token.Token // third next token used for predicting productions
-	errors           error.ErrorList
+	diagnostics      diagnostic.DiagnosticList
 	mode             mode
 	indentedSection  bool
 	incompleteIndent bool
@@ -57,8 +58,36 @@ func New(sourceName string, source string) *Parser {
 
 // Parse the given source code and return an Abstract Syntax Tree.
 // Main entry point to the parser.
-func Parse(sourceName string, source string) (*ast.ProgramNode, error.ErrorList) {
+func Parse(sourceName string, source string) (*ast.ProgramNode, diagnostic.DiagnosticList) {
 	return New(sourceName, source).Parse()
+}
+
+func (*Parser) Class() *value.Class {
+	return value.ElkParserClass
+}
+
+func (*Parser) DirectClass() *value.Class {
+	return value.ElkParserClass
+}
+
+func (p *Parser) Inspect() string {
+	return fmt.Sprintf("Std::Elk::Parser{&: %p}", p)
+}
+
+func (p *Parser) Error() string {
+	return p.Inspect()
+}
+
+func (p *Parser) SingletonClass() *value.Class {
+	return nil
+}
+
+func (p *Parser) InstanceVariables() value.SymbolMap {
+	return nil
+}
+
+func (p *Parser) Copy() value.Reference {
+	return p
 }
 
 // Returns true when the parser had finished early
@@ -75,36 +104,36 @@ func (p *Parser) ShouldIndent() bool {
 }
 
 // Start the parsing process from the top.
-func (p *Parser) Parse() (*ast.ProgramNode, error.ErrorList) {
+func (p *Parser) Parse() (*ast.ProgramNode, diagnostic.DiagnosticList) {
 	p.reset()
 
 	p.advance() // populate thirdLookahead
 	p.advance() // populate secondLookahead
 	p.advance() // populate lookahead
-	return p.program(), p.errors
+	return p.program(), p.diagnostics
 }
 
 func (p *Parser) reset() {
 	p.lexer = lexer.NewWithName(p.sourceName, p.source)
 	p.mode = normalMode
-	p.errors = nil
+	p.diagnostics = nil
 }
 
 // Adds an error which tells the user that the received
 // token is unexpected.
 func (p *Parser) errorUnexpected(message string) {
-	p.errorMessage(fmt.Sprintf("unexpected %s, %s", p.lookahead.Type.String(), message))
+	p.errorMessage(fmt.Sprintf("unexpected %s, %s", p.lookahead.Type.Name(), message))
 }
 
 // Adds an error which tells the user that another type of token
 // was expected.
 func (p *Parser) errorExpected(expected string) {
-	p.errorMessage(fmt.Sprintf("unexpected %s, expected %s", p.lookahead.Type.String(), expected))
+	p.errorMessage(fmt.Sprintf("unexpected %s, expected %s", p.lookahead.Type.Name(), expected))
 }
 
 // Same as [errorExpected] but lets you pass a token type.
 func (p *Parser) errorExpectedToken(expected token.Type) {
-	p.errorExpected(expected.String())
+	p.errorExpected(expected.Name())
 }
 
 // Adds an error with a custom message.
@@ -118,7 +147,7 @@ func (p *Parser) errorMessageSpan(message string, span *position.Span) {
 		return
 	}
 
-	p.errors.AddFailure(
+	p.diagnostics.AddFailure(
 		message,
 		p.newLocation(span),
 	)
@@ -137,7 +166,7 @@ func (p *Parser) errorToken(err *token.Token) {
 // If the next token doesn't match an error is added and the parser
 // enters panic mode.
 func (p *Parser) consume(tokenType token.Type) (*token.Token, bool) {
-	return p.consumeExpected(tokenType, tokenType.String())
+	return p.consumeExpected(tokenType, tokenType.Name())
 }
 
 // Same as [consume] but lets you specify a custom expected error message.
@@ -452,7 +481,7 @@ func (p *Parser) binaryExpression(subProduction func() ast.ExpressionNode, opera
 
 // binaryTypeExpression = subProduction | binaryTypeExpression operators subProduction
 func (p *Parser) binaryTypeExpression(subProduction func() ast.TypeNode, operators ...token.Type) ast.TypeNode {
-	return binaryProduction(p, ast.NewBinaryTypeExpressionNodeI, subProduction, operators...)
+	return binaryProduction(p, ast.NewBinaryTypeNodeI, subProduction, operators...)
 }
 
 // binaryPattern = subProduction | binaryPattern operators subProduction
@@ -810,7 +839,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	if p.lookahead.Type == token.COLON_EQUAL {
 		if !ast.IsValidDeclarationTarget(left) {
 			p.errorMessageSpan(
-				fmt.Sprintf("invalid `%s` declaration target", p.lookahead.Type.String()),
+				fmt.Sprintf("invalid `%s` declaration target", p.lookahead.Type.Name()),
 				left.Span(),
 			)
 		}
@@ -821,7 +850,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 		)
 	} else if !ast.IsValidAssignmentTarget(left) {
 		p.errorMessageSpan(
-			fmt.Sprintf("invalid `%s` assignment target", p.lookahead.Type.String()),
+			fmt.Sprintf("invalid `%s` assignment target", p.lookahead.Type.Name()),
 			left.Span(),
 		)
 	}
@@ -1126,9 +1155,9 @@ func (p *Parser) logicalOrExpression() ast.ExpressionNode {
 	return p.logicalExpression(p.logicalAndExpression, token.OR_OR, token.QUESTION_QUESTION, token.OR_BANG)
 }
 
-// logicalAndExpression = bitwiseOrExpression |
-// logicalAndExpression "&&" bitwiseOrExpression |
-// logicalAndExpression "&!" bitwiseOrExpression
+// logicalAndExpression = pipeExpression |
+// logicalAndExpression "&&" pipeExpression |
+// logicalAndExpression "&!" pipeExpression
 func (p *Parser) logicalAndExpression() ast.ExpressionNode {
 	return p.logicalExpression(p.pipeExpression, token.AND_AND, token.AND_BANG)
 }
@@ -1351,7 +1380,7 @@ func (p *Parser) postfixExpression() ast.ExpressionNode {
 
 	if !ast.IsValidAssignmentTarget(expr) {
 		p.errorMessageSpan(
-			fmt.Sprintf("invalid `%s` assignment target", op.Type.String()),
+			fmt.Sprintf("invalid `%s` assignment target", op.Type.Name()),
 			expr.Span(),
 		)
 	}
@@ -1629,7 +1658,7 @@ methodCallLoop:
 		}
 
 		methodNameTok := p.advance()
-		methodName := methodNameTok.StringValue()
+		methodName := methodNameTok.FetchValue()
 		span := receiver.Span().Join(methodNameTok.Span())
 
 		if methodNameTok.Type == token.AWAIT {
@@ -3000,7 +3029,7 @@ func (p *Parser) methodName() (string, *position.Span) {
 
 	if p.lookahead.IsValidRegularMethodName() {
 		methodNameTok := p.advance()
-		methodName = methodNameTok.StringValue()
+		methodName = methodNameTok.FetchValue()
 		span = methodNameTok.Span()
 		if tok, ok := p.matchOk(token.EQUAL_OP); ok {
 			methodName += "="
@@ -3025,7 +3054,7 @@ func (p *Parser) methodName() (string, *position.Span) {
 			p.errorExpected("a method name (identifier, overridable operator)")
 		}
 		tok := p.advance()
-		methodName = tok.StringValue()
+		methodName = tok.FetchValue()
 		span = tok.Span()
 	}
 
@@ -4598,7 +4627,7 @@ func (p *Parser) mustExpression() *ast.MustExpressionNode {
 	)
 }
 
-// tryExpression = "try" [expressionWithoutModifier]
+// tryExpression = "try" expressionWithoutModifier
 func (p *Parser) tryExpression() *ast.TryExpressionNode {
 	tryTok := p.advance()
 	expr := p.expressionWithoutModifier()
@@ -4609,7 +4638,7 @@ func (p *Parser) tryExpression() *ast.TryExpressionNode {
 	)
 }
 
-// typeofExpression = "typeof" [expressionWithoutModifier]
+// typeofExpression = "typeof" expressionWithoutModifier
 func (p *Parser) typeofExpression() *ast.TypeofExpressionNode {
 	mustTok := p.advance()
 	expr := p.expressionWithoutModifier()
@@ -6230,7 +6259,7 @@ func (p *Parser) symbolLiteral(withInterpolation bool) ast.StringOrSymbolTypeNod
 		contTok := p.advance()
 		return ast.NewSimpleSymbolLiteralNode(
 			symbolBegTok.Span().Join(contTok.Span()),
-			contTok.StringValue(),
+			contTok.FetchValue(),
 		)
 	}
 

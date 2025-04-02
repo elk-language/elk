@@ -1,0 +1,52 @@
+module Std::Elk::AST
+  ##[
+    Represents a type parameter eg. `+V`
+  ]##
+  sealed primitive class VariantTypeParameterNode
+    include TypeParameterNode
+
+    init(
+      name: String,
+      lower_bound: TypeNode? = nil,
+      upper_bound: TypeNode? = nil,
+      default_node: TypeNode? = nil,
+      variance: UInt8 = 0u8,
+      span: String::Span = loop; end,
+    ); end
+
+    def name: String; end
+    def lower_bound: TypeNode?; end
+    def upper_bound: TypeNode?; end
+    def default_node: TypeNode?; end
+    def span: String::Span; end
+
+    ##[
+      Returns an integer that determines whether
+      the variance of the type parameter.
+
+      Valid values are available as constants under `Std::Elk::AST::TypeParameterNode`:
+      - `INVARIANT`
+      - `COVARIANT`
+      - `CONTRAVARIANT`
+    ]##
+    def variance: UInt8; end
+
+    ##[
+      Whether the type parameter is invariant
+      eg. `V` in `class Foo[V]; end`
+    ]##
+    def is_invariant: bool; end
+
+    ##[
+      Whether the type parameter is covariant
+      eg. `+V` in `class Foo[+V]; end`
+    ]##
+    def is_covariant: bool; end
+
+    ##[
+      Whether the type parameter is contravariant
+      eg. `-V` in `class Foo[-V]; end`
+    ]##
+    def is_contravariant: bool; end
+  end
+end

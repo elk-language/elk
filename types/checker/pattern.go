@@ -229,7 +229,7 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 		node.SetType(intersection)
 		return node, c.NewNormalisedIntersection(leftCatchType, rightCatchType)
 	default:
-		panic(fmt.Sprintf("invalid binary pattern operator: %s", node.Op.Type.String()))
+		panic(fmt.Sprintf("invalid binary pattern operator: %s", node.Op.Type.Name()))
 	}
 }
 
@@ -273,7 +273,7 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 	case token.PLUS:
 		return c.checkSimpleLiteralPattern(node, matchedType)
 	default:
-		panic(fmt.Sprintf("invalid unary pattern operator: %s", node.Op.Type.String()))
+		panic(fmt.Sprintf("invalid unary pattern operator: %s", node.Op.Type.Name()))
 	}
 }
 
