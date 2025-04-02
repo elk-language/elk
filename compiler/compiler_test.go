@@ -13,10 +13,6 @@ import (
 	"github.com/k0kubun/pp/v3"
 )
 
-var classSymbol value.Symbol = value.ToSymbol("<class>")
-var singletonClassSymbol value.Symbol = value.ToSymbol("<singleton_class>")
-var moduleSymbol value.Symbol = value.ToSymbol("<module>")
-var mixinSymbol value.Symbol = value.ToSymbol("<mixin>")
 var namespaceDefinitionsSymbol value.Symbol = value.ToSymbol("<namespaceDefinitions>")
 var methodDefinitionsSymbol value.Symbol = value.ToSymbol("<methodDefinitions>")
 var mainSymbol value.Symbol = value.ToSymbol("<main>")

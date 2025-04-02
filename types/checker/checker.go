@@ -3171,7 +3171,7 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 }
 
 func (c *Checker) checkMacroBoundaryNode(node *ast.MacroBoundaryNode) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	c.pushIsolatedLocalEnv()
 	resultType, _ := c.checkStatements(node.Body, false)
 	c.popLocalEnv()
 

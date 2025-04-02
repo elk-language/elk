@@ -81,9 +81,10 @@ type localTable map[string]*local
 type scopeType uint8
 
 const (
-	defaultScopeType   scopeType = iota
-	loopScopeType                // this scope is a loop
-	doFinallyScopeType           // this scope is inside do with a finally block
+	defaultScopeType       scopeType = iota
+	loopScopeType                    // this scope is a loop
+	doFinallyScopeType               // this scope is inside do with a finally block
+	macroBoundaryScopeType           // this scope is a macro boundary, locals from the outer scopes should be ignored
 )
 
 // set of local variables
@@ -2687,7 +2688,7 @@ func (c *Compiler) nextInstructionOffset() int {
 }
 
 func (c *Compiler) setLocalWithoutValue(name string, span *position.Span, valueIsIgnored bool) expressionResult {
-	if local, ok := c.resolveLocal(name, span); ok {
+	if local, ok := c.resolveLocal(name); ok {
 		return c.emitSetLocal(span.StartPos.Line, local.index, valueIsIgnored)
 	} else if upvalue, ok := c.resolveUpvalue(name, span); ok {
 		return c.emitSetUpvalue(span.StartPos.Line, upvalue.index, valueIsIgnored)
@@ -2781,7 +2782,7 @@ func (c *Compiler) compileInstanceVariableAccess(name string, span *position.Spa
 }
 
 func (c *Compiler) compileLocalVariableAccess(name string, span *position.Span) (*local, *upvalue, bool) {
-	if local, ok := c.resolveLocal(name, span); ok {
+	if local, ok := c.resolveLocal(name); ok {
 		c.emitGetLocal(span.StartPos.Line, local.index)
 		return local, nil, true
 	} else if upvalue, ok := c.resolveUpvalue(name, span); ok {
@@ -2799,7 +2800,7 @@ func (c *Compiler) resolveUpvalue(name string, span *position.Span) (*upvalue, b
 	if parent == nil {
 		return nil, false
 	}
-	local, ok := parent.resolveLocal(name, span)
+	local, ok := parent.resolveLocal(name)
 	if ok {
 		return c.addUpvalue(local, local.index, true, span), true
 	}
@@ -7134,18 +7135,20 @@ func (c *Compiler) defineVariableInScope(scope *scope, name string, span *positi
 }
 
 // Resolve a local variable and get its index.
-func (c *Compiler) resolveLocal(name string, span *position.Span) (*local, bool) {
+func (c *Compiler) resolveLocal(name string) (*local, bool) {
 	var localVal *local
 	var found bool
 	for i := len(c.scopes) - 1; i >= 0; i-- {
 		varScope := c.scopes[i]
 		local, ok := varScope.localTable[name]
-		if !ok {
-			continue
+		if ok {
+			localVal = local
+			found = true
+			break
 		}
-		localVal = local
-		found = true
-		break
+		if varScope.typ == macroBoundaryScopeType {
+			break
+		}
 	}
 
 	if !found {
