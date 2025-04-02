@@ -4631,7 +4631,7 @@ func (p *Parser) mustExpression() *ast.MustExpressionNode {
 
 // macroExpression = macroBoundary
 func (p *Parser) macroExpression() ast.ExpressionNode {
-	if p.acceptSecond(token.DO) {
+	if p.acceptSecond(token.RAW_STRING, token.DO) {
 		return p.macroBoundary()
 	}
 	p.errorUnexpected("macro")
@@ -4640,10 +4640,19 @@ func (p *Parser) macroExpression() ast.ExpressionNode {
 	return ast.NewInvalidNode(macroTok.Span(), macroTok)
 }
 
-// macroBoundary = "macro" "do" ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))
+// macroBoundary = "macro" [RAW_STRING] "do" ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))
 func (p *Parser) macroBoundary() ast.ExpressionNode {
 	macroTok := p.advance()
-	p.advance()
+	var name string
+	if p.accept(token.RAW_STRING) {
+		nameTok := p.advance()
+		name = nameTok.Value
+	}
+	doTok, ok := p.consume(token.DO)
+	if !ok {
+		return ast.NewInvalidNode(doTok.Span(), doTok)
+	}
+
 	lastSpan, body, multiline := p.statementBlock(token.END)
 
 	var span *position.Span
@@ -4656,6 +4665,7 @@ func (p *Parser) macroBoundary() ast.ExpressionNode {
 	macroBoundary := ast.NewMacroBoundaryNode(
 		span,
 		body,
+		name,
 	)
 
 	if multiline {

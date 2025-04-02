@@ -1,9 +1,11 @@
 module Std::Elk::AST
   ##[
-    Create a new macro boundary node eg.
+    Create a new macro boundary node.
+    It's a block of code with an isolated scope
+    eg.
 
     ```
-    macro do
+    macro "Dupa" do
       print("awesome!")
     end
     ```
@@ -13,10 +15,12 @@ module Std::Elk::AST
 
     init(
       body: ArrayTuple[StatementNode] = loop; end,
+      name: String = "",
       span: String::Span = loop; end,
     ); end
 
     def body: ArrayTuple[StatementNode]; end
+    def name: String; end
     def span: String::Span; end
   end
 end

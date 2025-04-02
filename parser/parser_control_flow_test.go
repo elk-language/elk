@@ -2455,6 +2455,7 @@ end
 									ast.NewNilLiteralNode(S(P(21, 4, 2), P(23, 4, 4))),
 								),
 							},
+							"",
 						),
 					),
 				},
@@ -2474,6 +2475,27 @@ end
 						ast.NewMacroBoundaryNode(
 							S(P(5, 2, 5), P(20, 3, 7)),
 							nil,
+							"",
+						),
+					),
+				},
+			),
+		},
+		"can have a name": {
+			input: `
+				macro 'foo' do
+				end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 3, 8)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(27, 3, 8)),
+						ast.NewMacroBoundaryNode(
+							S(P(5, 2, 5), P(26, 3, 7)),
+							nil,
+							"foo",
 						),
 					),
 				},
@@ -2497,6 +2519,7 @@ end
 									),
 								),
 							},
+							"",
 						),
 					),
 				},
@@ -2533,6 +2556,7 @@ end
 										),
 									),
 								},
+								"",
 							),
 						),
 					),

@@ -12,6 +12,7 @@ import (
 // Represents a boundary for expanded macros
 type MacroBoundaryNode struct {
 	TypedNodeBase
+	Name string
 	Body []StatementNode
 }
 
@@ -39,7 +40,11 @@ func (n *MacroBoundaryNode) Equal(other value.Value) bool {
 func (n *MacroBoundaryNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString("macro do\n")
+	buff.WriteString("macro ")
+	if n.Name != "" {
+		fmt.Fprintf(&buff, "'%s' ", n.Name)
+	}
+	buff.WriteString("do\n")
 
 	for _, stmt := range n.Body {
 		indent.IndentString(&buff, stmt.String(), 1)
@@ -68,6 +73,9 @@ func (n *MacroBoundaryNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::MacroBoundaryNode{\n  span: %s", (*value.Span)(n.span).Inspect())
 
+	if n.Name != "" {
+		fmt.Fprintf(&buff, ",\n  name: %s", value.String(n.Name).Inspect())
+	}
 	buff.WriteString(",\n  body: %[\n")
 	for i, stmt := range n.Body {
 		if i != 0 {
@@ -91,9 +99,10 @@ func (n *MacroBoundaryNode) Error() string {
 //	macro do
 //		print("awesome!")
 //	end
-func NewMacroBoundaryNode(span *position.Span, body []StatementNode) *MacroBoundaryNode {
+func NewMacroBoundaryNode(span *position.Span, body []StatementNode, name string) *MacroBoundaryNode {
 	return &MacroBoundaryNode{
 		TypedNodeBase: TypedNodeBase{span: span},
+		Name:          name,
 		Body:          body,
 	}
 }
