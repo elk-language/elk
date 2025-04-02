@@ -35,6 +35,7 @@ func InitGlobalEnvironment() {
 	initConstructorCallNode()
 	initContinueExpressionNode()
 	initDoExpressionNode()
+	initMacroBoundaryNode()
 	initDoubleQuotedStringLiteralNode()
 	initDoubleSplatExpressionNode()
 	initEmptyStatementNode()

@@ -2039,6 +2039,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.throwExpression()
 	case token.MUST:
 		return p.mustExpression()
+	case token.MACRO:
+		return p.macroExpression()
 	case token.TRY:
 		return p.tryExpression()
 	case token.TYPEOF:
@@ -4625,6 +4627,51 @@ func (p *Parser) mustExpression() *ast.MustExpressionNode {
 		mustTok.Span().Join(expr.Span()),
 		expr,
 	)
+}
+
+// macroExpression = macroBoundary
+func (p *Parser) macroExpression() ast.ExpressionNode {
+	if p.acceptSecond(token.DO) {
+		return p.macroBoundary()
+	}
+	p.errorUnexpected("macro")
+	macroTok := p.advance()
+
+	return ast.NewInvalidNode(macroTok.Span(), macroTok)
+}
+
+// macroBoundary = "macro" "do" ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))
+func (p *Parser) macroBoundary() ast.ExpressionNode {
+	macroTok := p.advance()
+	p.advance()
+	lastSpan, body, multiline := p.statementBlock(token.END)
+
+	var span *position.Span
+	if lastSpan != nil {
+		span = macroTok.Span().Join(lastSpan)
+	} else {
+		span = macroTok.Span()
+	}
+
+	macroBoundary := ast.NewMacroBoundaryNode(
+		span,
+		body,
+	)
+
+	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
+		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
+		if ok {
+			macroBoundary.SetSpan(macroBoundary.Span().Join(endTok.Span()))
+		}
+	}
+
+	return macroBoundary
 }
 
 // tryExpression = "try" expressionWithoutModifier

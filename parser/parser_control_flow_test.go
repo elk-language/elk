@@ -2423,6 +2423,135 @@ nil
 	}
 }
 
+func TestMacroBoundary(t *testing.T) {
+	tests := testTable{
+		"can have a multiline body": {
+			input: `
+macro do
+	foo += 2
+	nil
+end
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(28, 5, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(28, 5, 4)),
+						ast.NewMacroBoundaryNode(
+							S(P(1, 2, 1), P(27, 5, 3)),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(11, 3, 2), P(19, 3, 10)),
+									ast.NewAssignmentExpressionNode(
+										S(P(11, 3, 2), P(18, 3, 9)),
+										T(S(P(15, 3, 6), P(16, 3, 7)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(11, 3, 2), P(13, 3, 4)), "foo"),
+										ast.NewIntLiteralNode(S(P(18, 3, 9), P(18, 3, 9)), "2"),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									S(P(21, 4, 2), P(24, 4, 5)),
+									ast.NewNilLiteralNode(S(P(21, 4, 2), P(23, 4, 4))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have an empty body": {
+			input: `
+				macro do
+				end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 3, 8)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(21, 3, 8)),
+						ast.NewMacroBoundaryNode(
+							S(P(5, 2, 5), P(20, 3, 7)),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a one-liner": {
+			input: "macro do 5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewMacroBoundaryNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(9, 1, 10), P(9, 1, 10)),
+									ast.NewIntLiteralNode(
+										S(P(9, 1, 10), P(9, 1, 10)),
+										"5",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `
+				bar =
+					macro do
+						foo += 2
+					end
+				nil
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(56, 6, 8)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(48, 5, 9)),
+						ast.NewAssignmentExpressionNode(
+							S(P(5, 2, 5), P(47, 5, 8)),
+							T(S(P(9, 2, 9), P(9, 2, 9)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(5, 2, 5), P(7, 2, 7)), "bar"),
+							ast.NewMacroBoundaryNode(
+								S(P(16, 3, 6), P(47, 5, 8)),
+								[]ast.StatementNode{
+									ast.NewExpressionStatementNode(
+										S(P(31, 4, 7), P(39, 4, 15)),
+										ast.NewAssignmentExpressionNode(
+											S(P(31, 4, 7), P(38, 4, 14)),
+											T(S(P(35, 4, 11), P(36, 4, 12)), token.PLUS_EQUAL),
+											ast.NewPublicIdentifierNode(S(P(31, 4, 7), P(33, 4, 9)), "foo"),
+											ast.NewIntLiteralNode(S(P(38, 4, 14), P(38, 4, 14)), "2"),
+										),
+									),
+								},
+							),
+						),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(53, 6, 5), P(56, 6, 8)),
+						ast.NewNilLiteralNode(S(P(53, 6, 5), P(55, 6, 7))),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestBreak(t *testing.T) {
 	tests := testTable{
 		"can stand alone": {

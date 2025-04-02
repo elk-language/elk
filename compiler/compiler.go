@@ -957,6 +957,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		return c.compileTypeofExpressionNode(node, valueIsIgnored)
 	case *ast.DoExpressionNode:
 		c.compileDoExpressionNode(node)
+	case *ast.MacroBoundaryNode:
+		c.compileMacroBoundaryNode(node)
 	case *ast.IfExpressionNode:
 		return c.compileIfExpression(false, node.Condition, node.ThenBody, node.ElseBody, node.Span(), valueIsIgnored)
 	case *ast.UnlessExpressionNode:
@@ -1289,6 +1291,14 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 	c.leaveScope(span.EndPos.Line)
 
 	c.patchJump(jumpOverCatchOffset, span)
+}
+
+func (c *Compiler) compileMacroBoundaryNode(node *ast.MacroBoundaryNode) {
+	span := node.Span()
+
+	c.enterScope("", defaultScopeType)
+	c.compileStatementsWithResult(node.Body, span)
+	c.leaveScope(span.EndPos.Line)
 }
 
 // Count `finally` blocks we are currently nested in under

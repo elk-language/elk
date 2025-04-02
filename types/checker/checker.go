@@ -987,6 +987,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkPostfixExpressionNode(n)
 	case *ast.DoExpressionNode:
 		return c.checkDoExpressionNode(n)
+	case *ast.MacroBoundaryNode:
+		return c.checkMacroBoundaryNode(n)
 	case *ast.TypeofExpressionNode:
 		return c.checkTypeofExpressionNode(n)
 	case *ast.IfExpressionNode:
@@ -3164,6 +3166,15 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 	} else {
 		resultType = c.NewNormalisedUnion(resultType, bodyResultType)
 	}
+	node.SetType(resultType)
+	return node
+}
+
+func (c *Checker) checkMacroBoundaryNode(node *ast.MacroBoundaryNode) ast.ExpressionNode {
+	c.pushNestedLocalEnv()
+	resultType, _ := c.checkStatements(node.Body, false)
+	c.popLocalEnv()
+
 	node.SetType(resultType)
 	return node
 }
@@ -7074,6 +7085,8 @@ func (c *Checker) hoistNamespaceDefinitions(statements []ast.StatementNode) {
 			switch expr := expression.(type) {
 			case *ast.StructDeclarationNode:
 				stmt.Expression = c.hoistStructDeclaration(expr)
+			case *ast.MacroBoundaryNode:
+				c.hoistNamespaceDefinitions(expr.Body)
 			case *ast.ModuleDeclarationNode:
 				c.hoistModuleDeclaration(expr)
 			case *ast.ClassDeclarationNode:
@@ -7606,6 +7619,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 		expression := stmt.Expression
 
 		switch expr := expression.(type) {
+		case *ast.MacroBoundaryNode:
+			c.hoistMethodDefinitions(expr.Body)
 		case *ast.ConstantDeclarationNode:
 			c.hoistConstantDeclaration(expr)
 		case *ast.AliasDeclarationNode:

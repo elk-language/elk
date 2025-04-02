@@ -59,6 +59,7 @@ func (*PrivateConstantNode) expressionNode()               {}
 func (*AsExpressionNode) expressionNode()                  {}
 func (*SelfLiteralNode) expressionNode()                   {}
 func (*DoExpressionNode) expressionNode()                  {}
+func (*MacroBoundaryNode) expressionNode()                 {}
 func (*SingletonBlockExpressionNode) expressionNode()      {}
 func (*SwitchExpressionNode) expressionNode()              {}
 func (*IfExpressionNode) expressionNode()                  {}
