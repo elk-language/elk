@@ -40,11 +40,11 @@ func (n *MacroBoundaryNode) Equal(other value.Value) bool {
 func (n *MacroBoundaryNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString("macro ")
+	buff.WriteString("do macro ")
 	if n.Name != "" {
 		fmt.Fprintf(&buff, "'%s' ", n.Name)
 	}
-	buff.WriteString("do\n")
+	buff.WriteString("\n")
 
 	for _, stmt := range n.Body {
 		indent.IndentString(&buff, stmt.String(), 1)
@@ -96,7 +96,7 @@ func (n *MacroBoundaryNode) Error() string {
 
 // Create a new macro boundary node eg.
 //
-//	macro do
+//	do macro
 //		print("awesome!")
 //	end
 func NewMacroBoundaryNode(span *position.Span, body []StatementNode, name string) *MacroBoundaryNode {

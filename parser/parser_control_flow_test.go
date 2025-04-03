@@ -2427,7 +2427,7 @@ func TestMacroBoundary(t *testing.T) {
 	tests := testTable{
 		"can have a multiline body": {
 			input: `
-macro do
+do macro
 	foo += 2
 	nil
 end
@@ -2463,7 +2463,7 @@ end
 		},
 		"can have an empty body": {
 			input: `
-				macro do
+				do macro
 				end
 			`,
 			want: ast.NewProgramNode(
@@ -2483,7 +2483,7 @@ end
 		},
 		"can have a name": {
 			input: `
-				macro 'foo' do
+				do macro 'foo'
 				end
 			`,
 			want: ast.NewProgramNode(
@@ -2502,7 +2502,7 @@ end
 			),
 		},
 		"can be a one-liner": {
-			input: "macro do 5",
+			input: "do macro 5",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(9, 1, 10)),
 				[]ast.StatementNode{
@@ -2528,7 +2528,7 @@ end
 		"is an expression": {
 			input: `
 				bar =
-					macro do
+					do macro
 						foo += 2
 					end
 				nil

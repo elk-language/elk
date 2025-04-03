@@ -2039,8 +2039,6 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.throwExpression()
 	case token.MUST:
 		return p.mustExpression()
-	case token.MACRO:
-		return p.macroExpression()
 	case token.TRY:
 		return p.tryExpression()
 	case token.TYPEOF:
@@ -2130,7 +2128,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.IF:
 		return p.ifExpression()
 	case token.DO:
-		return p.doExpression()
+		return p.doExpressionOrMacroBoundary()
 	case token.UNLESS:
 		return p.unlessExpression()
 	case token.WHILE:
@@ -4640,26 +4638,24 @@ func (p *Parser) macroExpression() ast.ExpressionNode {
 	return ast.NewInvalidNode(macroTok.Span(), macroTok)
 }
 
-// macroBoundary = "macro" [RAW_STRING] "do" ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))
+// macroBoundary = "do" "macro" [RAW_STRING] ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))
 func (p *Parser) macroBoundary() ast.ExpressionNode {
-	macroTok := p.advance()
+	doTok := p.advance()
+	p.advance() // macro
+
 	var name string
 	if p.accept(token.RAW_STRING) {
 		nameTok := p.advance()
 		name = nameTok.Value
-	}
-	doTok, ok := p.consume(token.DO)
-	if !ok {
-		return ast.NewInvalidNode(doTok.Span(), doTok)
 	}
 
 	lastSpan, body, multiline := p.statementBlock(token.END)
 
 	var span *position.Span
 	if lastSpan != nil {
-		span = macroTok.Span().Join(lastSpan)
+		span = doTok.Span().Join(lastSpan)
 	} else {
-		span = macroTok.Span()
+		span = doTok.Span()
 	}
 
 	macroBoundary := ast.NewMacroBoundaryNode(
@@ -5225,6 +5221,15 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	unlessExpr.SetSpan(unlessExpr.Span().Join(currentExpr.Span()))
 
 	return unlessExpr
+}
+
+// doExpressionOrMacroBoundary = doExpression | macroBoundary
+func (p *Parser) doExpressionOrMacroBoundary() ast.ExpressionNode {
+	if p.acceptSecond(token.MACRO) {
+		return p.macroBoundary()
+	}
+
+	return p.doExpression()
 }
 
 // doExpression = "do" ((SEPARATOR [statements]) | (expressionWithoutModifier))

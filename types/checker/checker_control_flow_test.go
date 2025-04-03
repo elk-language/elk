@@ -141,7 +141,7 @@ func TestMacroBoundary(t *testing.T) {
 	tests := testTable{
 		"has it's own scope": {
 			input: `
-				macro do
+				do macro
 					a := 5
 				end
 				a
@@ -153,7 +153,7 @@ func TestMacroBoundary(t *testing.T) {
 		"cannot access variables from outer scopes": {
 			input: `
 				a := 5
-				macro do
+				do macro
 					a
 				end
 			`,
