@@ -251,7 +251,7 @@ func TestConstantType(t *testing.T) {
 func TestInstanceOfType(t *testing.T) {
 	tests := testTable{
 		"with a constant": {
-			input: "type ^String",
+			input: "type %String",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(11, 1, 12)),
 				[]ast.StatementNode{
@@ -272,7 +272,7 @@ func TestInstanceOfType(t *testing.T) {
 			),
 		},
 		"with a private constant": {
-			input: "type ^_FooBa",
+			input: "type %_FooBa",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(11, 1, 12)),
 				[]ast.StatementNode{
@@ -293,7 +293,7 @@ func TestInstanceOfType(t *testing.T) {
 			),
 		},
 		"with constant lookup": {
-			input: "type ^::Foo::Bar",
+			input: "type %::Foo::Bar",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
@@ -325,7 +325,7 @@ func TestInstanceOfType(t *testing.T) {
 			),
 		},
 		"with literal": {
-			input: "type ^1",
+			input: "type %1",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
@@ -346,7 +346,7 @@ func TestInstanceOfType(t *testing.T) {
 			),
 		},
 		"with an expression expression": {
-			input: "type ^(1)",
+			input: "type %(1)",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
 				[]ast.StatementNode{
@@ -367,7 +367,7 @@ func TestInstanceOfType(t *testing.T) {
 			),
 		},
 		"can be nested": {
-			input: "type ^^1",
+			input: "type %%1",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(7, 1, 8)),
 				[]ast.StatementNode{

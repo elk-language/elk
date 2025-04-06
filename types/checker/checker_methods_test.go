@@ -3767,7 +3767,7 @@ func TestConstructorCallInference(t *testing.T) {
 		"param is an instance, argument is a class instance": {
 			input: `
 				class Foo[V < Class]
-					init(a: ^V); end
+					init(a: %V); end
 				end
 				var b: 9 = Foo("")
 			`,
@@ -3778,12 +3778,12 @@ func TestConstructorCallInference(t *testing.T) {
 		"param is an instance, argument is not": {
 			input: `
 				class Foo[V < Class]
-					init(a: ^V); end
+					init(a: %V); end
 				end
 				var b: 9 = Foo(String)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(75, 5, 20), P(80, 5, 25)), "expected type `^V` for parameter `a` in call to `#init`, got type `&Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(75, 5, 20), P(80, 5, 25)), "expected type `%V` for parameter `a` in call to `#init`, got type `&Std::String`"),
 				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(81, 5, 26)), "type `Foo[Std::Class]` cannot be assigned to type `9`"),
 			},
 		},

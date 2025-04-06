@@ -142,7 +142,7 @@ func TestSelfType(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(73, 5, 21), P(82, 5, 30)), "type `&self` cannot be assigned to type `&Bar`"),
 			},
 		},
-		"assign ^self to the class instance": {
+		"assign %self to the class instance": {
 			input: `
 				class Foo
 					singleton
@@ -153,7 +153,7 @@ func TestSelfType(t *testing.T) {
 				end
 			`,
 		},
-		"assign ^self to parent instance": {
+		"assign %self to parent instance": {
 			input: `
 				class Foo
 					singleton
@@ -164,7 +164,7 @@ func TestSelfType(t *testing.T) {
 				end
 			`,
 		},
-		"assign ^self to child instance": {
+		"assign %self to child instance": {
 			input: `
 				class Bar < Foo; end
 				class Foo
@@ -176,7 +176,7 @@ func TestSelfType(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(89, 6, 21), P(91, 6, 23)), "type `^self` cannot be assigned to type `Bar`"),
+				diagnostic.NewFailure(L("<main>", P(89, 6, 21), P(91, 6, 23)), "type `%self` cannot be assigned to type `Bar`"),
 			},
 		},
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Represents an instance type eg. `^self`
+// Represents an instance type eg. `%self`
 type InstanceOfTypeNode struct {
 	TypedNodeBase
 	TypeNode TypeNode // right hand side
@@ -30,7 +30,7 @@ func (n *InstanceOfTypeNode) Equal(other value.Value) bool {
 func (n *InstanceOfTypeNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteRune('^')
+	buff.WriteRune('%')
 
 	parens := TypePrecedence(n) > TypePrecedence(n.TypeNode)
 	if parens {
@@ -48,7 +48,7 @@ func (*InstanceOfTypeNode) IsStatic() bool {
 	return false
 }
 
-// Create a new instance of type node eg. `^self`
+// Create a new instance of type node eg. `%self`
 func NewInstanceOfTypeNode(span *position.Span, typ TypeNode) *InstanceOfTypeNode {
 	return &InstanceOfTypeNode{
 		TypedNodeBase: TypedNodeBase{span: span},

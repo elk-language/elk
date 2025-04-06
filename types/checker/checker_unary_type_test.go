@@ -209,13 +209,13 @@ func TestInstanceOfType(t *testing.T) {
 	tests := testTable{
 		"instance of singleton class": {
 			input: `
-				var a: ^(&String) = "foo"
+				var a: %(&String) = "foo"
 			`,
 		},
 		"singleton of class": {
 			input: `
 				class Foo; end
-				var a: ^Foo = Foo()
+				var a: %Foo = Foo()
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(31, 3, 12), P(34, 3, 15)), "cannot get instance of `Foo`"),
@@ -223,7 +223,7 @@ func TestInstanceOfType(t *testing.T) {
 		},
 		"instance of literal": {
 			input: `
-				var a: ^1
+				var a: %1
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(13, 2, 13)), "cannot get instance of `1`"),
@@ -234,7 +234,7 @@ func TestInstanceOfType(t *testing.T) {
 			input: `
 				class Foo
 					def foo
-						var a: ^self
+						var a: %self
 					end
 				end
 			`,
@@ -247,7 +247,7 @@ func TestInstanceOfType(t *testing.T) {
 				class Foo
 					singleton
 						def foo
-							var a: ^self
+							var a: %self
 						end
 					end
 				end
@@ -258,7 +258,7 @@ func TestInstanceOfType(t *testing.T) {
 			input: `
 				class Foo[V]
 					def foo
-						var a: ^V
+						var a: %V
 					end
 				end
 			`,
@@ -270,7 +270,7 @@ func TestInstanceOfType(t *testing.T) {
 			input: `
 				class Foo[V < 1]
 					def foo
-						var a: ^V
+						var a: %V
 					end
 				end
 			`,
@@ -282,7 +282,7 @@ func TestInstanceOfType(t *testing.T) {
 			input: `
 				class Foo[V < String | Int]
 					def foo
-						var a: ^V
+						var a: %V
 					end
 				end
 			`,
@@ -298,7 +298,7 @@ func TestInstanceOfType(t *testing.T) {
 
 				class Foo[V < &String & Bar]
 					def foo
-						var a: ^V
+						var a: %V
 					end
 				end
 			`,
@@ -310,7 +310,7 @@ func TestInstanceOfType(t *testing.T) {
 			input: `
 				class Foo[V < String]
 					def foo
-						var a: ^V
+						var a: %V
 					end
 				end
 			`,
@@ -322,7 +322,7 @@ func TestInstanceOfType(t *testing.T) {
 			input: `
 				class Foo[V < &String]
 					def foo
-						var a: ^V
+						var a: %V
 					end
 				end
 			`,
@@ -331,7 +331,7 @@ func TestInstanceOfType(t *testing.T) {
 			input: `
 				class Foo[V < Class]
 					def foo
-						var a: ^V
+						var a: %V
 					end
 				end
 			`,
@@ -340,7 +340,7 @@ func TestInstanceOfType(t *testing.T) {
 			input: `
 				class Foo[V < Mixin]
 					def foo
-						var a: ^V
+						var a: %V
 					end
 				end
 			`,
@@ -349,7 +349,7 @@ func TestInstanceOfType(t *testing.T) {
 			input: `
 				class Foo[V < Interface]
 					def foo
-						var a: ^V
+						var a: %V
 					end
 				end
 			`,
@@ -358,7 +358,7 @@ func TestInstanceOfType(t *testing.T) {
 			input: `
 				class Foo[V < Module]
 					def foo
-						var a: ^V
+						var a: %V
 					end
 				end
 			`,
@@ -370,7 +370,7 @@ func TestInstanceOfType(t *testing.T) {
 			input: `
 				class Foo
 					singleton
-						def create: ^self
+						def create: %self
 							new
 						end
 					end

@@ -4293,7 +4293,7 @@ func (p *Parser) differenceType() ast.TypeNode {
 	return p.binaryTypeExpression(p.unaryType, token.SLASH)
 }
 
-// unaryType = ("~" | "&" | "^") unaryType | nilableType
+// unaryType = ("~" | "&" | "%") unaryType | nilableType
 func (p *Parser) unaryType() ast.TypeNode {
 	switch p.lookahead.Type {
 	case token.TILDE:
@@ -4310,7 +4310,7 @@ func (p *Parser) unaryType() ast.TypeNode {
 			opTok.Span().Join(typ.Span()),
 			typ,
 		)
-	case token.XOR:
+	case token.PERCENT:
 		opTok := p.advance()
 		typ := p.unaryType()
 		return ast.NewInstanceOfTypeNode(

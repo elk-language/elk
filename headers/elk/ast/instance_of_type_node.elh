@@ -1,6 +1,6 @@
 module Std::Elk::AST
   ##[
-    Represents an instance type eg. `^self`
+    Represents an instance type eg. `%self`
   ]##
   sealed primitive class InstanceOfTypeNode
     include TypeNode

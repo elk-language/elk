@@ -31,7 +31,7 @@ func (s *InstanceOf) inspect() string {
 		addParens = true
 	}
 
-	buf.WriteRune('^')
+	buf.WriteRune('%')
 	if addParens {
 		buf.WriteRune('(')
 	}
