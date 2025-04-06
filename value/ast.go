@@ -96,6 +96,8 @@ var PrivateConstantNodeClass *Class               // Std::Elk::AST::PrivateConst
 var AsExpressionNodeClass *Class                  // Std::Elk::AST::AsExpressionNode
 var DoExpressionNodeClass *Class                  // Std::Elk::AST::DoExpressionNode
 var MacroBoundaryNodeClass *Class                 // Std::Elk::AST::MacroBoundaryNode
+var QuoteExpressionNodeClass *Class               // Std::Elk::AST::QuoteExpressionNode
+var UnquoteExpressionNodeClass *Class             // Std::Elk::AST::UnquoteExpressionNode
 var SingletonBlockExpressionNodeClass *Class      // Std::Elk::AST::SingletonBlockExpressionNode
 var SwitchExpressionNodeClass *Class              // Std::Elk::AST::SwitchExpressionNode
 var IfExpressionNodeClass *Class                  // Std::Elk::AST::IfExpressionNode
@@ -214,6 +216,8 @@ func initElkAST() {
 
 	NodeMixin = NewMixin()
 	ElkASTModule.AddConstantString("Node", Ref(NodeMixin))
+
+	NodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
 
 	StatementNodeMixin = NewMixin()
 	StatementNodeMixin.IncludeMixin(NodeMixin)
@@ -697,6 +701,14 @@ func initElkAST() {
 	MacroBoundaryNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	MacroBoundaryNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("MacroBoundaryNode", Ref(MacroBoundaryNodeClass))
+
+	QuoteExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	QuoteExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("QuoteExpressionNode", Ref(QuoteExpressionNodeClass))
+
+	UnquoteExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	UnquoteExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("UnquoteExpressionNode", Ref(UnquoteExpressionNodeClass))
 
 	SingletonBlockExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	SingletonBlockExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)

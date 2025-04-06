@@ -33,7 +33,7 @@ func (n *MacroBoundaryNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.span.Equal(o.span) && n.Name == o.Name
 }
 
 // Return a string representation of the node.

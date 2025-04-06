@@ -13,26 +13,26 @@ func initForInExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := args[0].MustReference().(ast.PatternNode)
-			arg1 := args[1].MustReference().(ast.ExpressionNode)
+			argPattern := args[1].MustReference().(ast.PatternNode)
+			argInExpression := args[2].MustReference().(ast.ExpressionNode)
 
-			arg2Tuple := args[2].MustReference().(*value.ArrayTuple)
-			arg2 := make([]ast.StatementNode, arg2Tuple.Length())
-			for i, el := range *arg2Tuple {
-				arg2[i] = el.MustReference().(ast.StatementNode)
+			argThenTuple := args[3].MustReference().(*value.ArrayTuple)
+			argThen := make([]ast.StatementNode, argThenTuple.Length())
+			for i, el := range *argThenTuple {
+				argThen[i] = el.MustReference().(ast.StatementNode)
 			}
 
 			var argSpan *position.Span
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argSpan = (*position.Span)(args[4].Pointer())
 			}
 			self := ast.NewForInExpressionNode(
 				argSpan,
-				arg0,
-				arg1,
-				arg2,
+				argPattern,
+				argInExpression,
+				argThen,
 			)
 			return value.Ref(self), value.Undefined
 

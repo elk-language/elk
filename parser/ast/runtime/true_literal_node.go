@@ -15,10 +15,10 @@ func initTrueLiteralNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 
 			var argSpan *position.Span
-			if args[0].IsUndefined() {
+			if args[1].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[0].Pointer())
+				argSpan = (*position.Span)(args[1].Pointer())
 			}
 			self := ast.NewTrueLiteralNode(
 				argSpan,

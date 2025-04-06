@@ -72,7 +72,7 @@ func ExpressionAssociativity(expr ExpressionNode) Associativity {
 		*DoExpressionNode, *IfExpressionNode, *UnlessExpressionNode,
 		*WhileExpressionNode, *UntilExpressionNode, *ForInExpressionNode,
 		*NumericForExpressionNode, *TypeExpressionNode, *ClosureLiteralNode,
-		*LabeledExpressionNode:
+		*LabeledExpressionNode, *QuoteExpressionNode:
 		return RIGHT_ASSOCIATIVE
 	case *BinaryExpressionNode:
 		switch e.Op.Type {
@@ -110,7 +110,7 @@ func ExpressionPrecedence(expr ExpressionNode) uint8 {
 		*IfExpressionNode, *UnlessExpressionNode, *WhileExpressionNode,
 		*UntilExpressionNode, *ForInExpressionNode, *NumericForExpressionNode,
 		*TypeExpressionNode, *ClosureLiteralNode, *ConstantDeclarationNode,
-		*DoubleSplatExpressionNode, *SplatExpressionNode:
+		*DoubleSplatExpressionNode, *SplatExpressionNode, *QuoteExpressionNode:
 		return 20
 	case *AssignmentExpressionNode:
 		return 30
@@ -262,6 +262,7 @@ type Node interface {
 	SkipTypechecking() bool
 	Equal(value.Value) bool
 	String() string
+	// Splice(args []Node) Node // Create a copy of AST replacing consecutive unquote nodes with the given arguments
 }
 
 type DocCommentableNode interface {

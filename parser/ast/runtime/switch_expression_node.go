@@ -13,17 +13,17 @@ func initSwitchExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argValue := args[0].MustReference().(ast.ExpressionNode)
+			argValue := args[1].MustReference().(ast.ExpressionNode)
 
-			argCasesTuple := args[1].MustReference().(*value.ArrayTuple)
+			argCasesTuple := args[2].MustReference().(*value.ArrayTuple)
 			argCases := make([]*ast.CaseNode, argCasesTuple.Length())
 			for i, el := range *argCasesTuple {
 				argCases[i] = el.MustReference().(*ast.CaseNode)
 			}
 
 			var argElseBody []ast.StatementNode
-			if !args[2].IsUndefined() {
-				argElseBodyTuple := args[2].MustReference().(*value.ArrayTuple)
+			if !args[3].IsUndefined() {
+				argElseBodyTuple := args[3].MustReference().(*value.ArrayTuple)
 				argElseBody = make([]ast.StatementNode, argElseBodyTuple.Length())
 				for i, el := range *argElseBodyTuple {
 					argElseBody[i] = el.MustReference().(ast.StatementNode)
@@ -31,10 +31,10 @@ func initSwitchExpressionNode() {
 			}
 
 			var argSpan *position.Span
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argSpan = (*position.Span)(args[4].Pointer())
 			}
 			self := ast.NewSwitchExpressionNode(
 				argSpan,

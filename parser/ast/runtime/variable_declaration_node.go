@@ -13,28 +13,28 @@ func initVariableDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[0].MustReference().(value.String))
+			argName := (string)(args[1].MustReference().(value.String))
 
 			var argTypeNode ast.TypeNode
-			if !args[1].IsUndefined() {
-				argTypeNode = args[1].MustReference().(ast.TypeNode)
+			if !args[2].IsUndefined() {
+				argTypeNode = args[2].MustReference().(ast.TypeNode)
 			}
 
 			var argInitialiser ast.ExpressionNode
-			if !args[2].IsUndefined() {
-				argInitialiser = args[2].MustReference().(ast.ExpressionNode)
+			if !args[3].IsUndefined() {
+				argInitialiser = args[3].MustReference().(ast.ExpressionNode)
 			}
 
 			var argDocComment string
-			if !args[3].IsUndefined() {
-				argDocComment = string(args[3].MustReference().(value.String))
+			if !args[4].IsUndefined() {
+				argDocComment = string(args[4].MustReference().(value.String))
 			}
 
 			var argSpan *position.Span
-			if args[4].IsUndefined() {
+			if args[5].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[4].Pointer())
+				argSpan = (*position.Span)(args[5].Pointer())
 			}
 			self := ast.NewVariableDeclarationNode(
 				argSpan,

@@ -14,23 +14,23 @@ func initNumericForExpressionNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			var argInitialiser ast.ExpressionNode
-			if !args[0].IsUndefined() {
-				argInitialiser = args[0].MustReference().(ast.ExpressionNode)
+			if !args[1].IsUndefined() {
+				argInitialiser = args[1].MustReference().(ast.ExpressionNode)
 			}
 
 			var argCondition ast.ExpressionNode
-			if !args[1].IsUndefined() {
-				argCondition = args[1].MustReference().(ast.ExpressionNode)
+			if !args[2].IsUndefined() {
+				argCondition = args[2].MustReference().(ast.ExpressionNode)
 			}
 
 			var argIncrement ast.ExpressionNode
-			if !args[2].IsUndefined() {
-				argIncrement = args[2].MustReference().(ast.ExpressionNode)
+			if !args[3].IsUndefined() {
+				argIncrement = args[3].MustReference().(ast.ExpressionNode)
 			}
 
 			var argThenBody []ast.StatementNode
-			if !args[3].IsUndefined() {
-				argThenBodyTuple := args[3].MustReference().(*value.ArrayTuple)
+			if !args[4].IsUndefined() {
+				argThenBodyTuple := args[4].MustReference().(*value.ArrayTuple)
 				argThenBody = make([]ast.StatementNode, argThenBodyTuple.Length())
 				for i, el := range *argThenBodyTuple {
 					argThenBody[i] = el.MustReference().(ast.StatementNode)
@@ -38,10 +38,10 @@ func initNumericForExpressionNode() {
 			}
 
 			var argSpan *position.Span
-			if args[4].IsUndefined() {
+			if args[5].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[4].Pointer())
+				argSpan = (*position.Span)(args[5].Pointer())
 			}
 			self := ast.NewNumericForExpressionNode(
 				argSpan,

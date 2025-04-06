@@ -1,0 +1,20 @@
+module Std::Elk::AST
+  ##[
+    Represents an unquoted block of AST in a quote eg.
+
+    ```
+    unquote(x)
+    ```
+  ]##
+  sealed primitive class UnquoteExpressionNode
+    include ExpressionNode
+
+    init(
+      expression: ExpressionNode,
+      span: String::Span = loop; end,
+    ); end
+
+    def expression: ExpressionNode; end
+    def span: String::Span; end
+  end
+end

@@ -13,14 +13,14 @@ func initNilSafeSubscriptExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argReceiver := args[0].MustReference().(ast.ExpressionNode)
-			argKey := args[1].MustReference().(ast.ExpressionNode)
+			argReceiver := args[1].MustReference().(ast.ExpressionNode)
+			argKey := args[2].MustReference().(ast.ExpressionNode)
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewNilSafeSubscriptExpressionNode(
 				argSpan,

@@ -242,4 +242,14 @@ sealed noinit primitive class ::Std::Int16 < Value
 	]##
 	def to_uint8: UInt8; end
 
+	##[
+		Values that conform to this interface
+		can be converted to a int16.
+	]##
+	interface Convertible
+		##[
+			Convert the value to a int16.
+		]##
+		def to_int16: Int16; end
+	end
 end

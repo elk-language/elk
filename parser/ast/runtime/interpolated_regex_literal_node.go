@@ -15,21 +15,21 @@ func initInterpolatedRegexLiteralNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 
-			argContentTuple := args[0].MustReference().(*value.ArrayTuple)
+			argContentTuple := args[1].MustReference().(*value.ArrayTuple)
 			argContent := make([]ast.RegexLiteralContentNode, argContentTuple.Length())
 			for i, el := range *argContentTuple {
 				argContent[i] = el.MustReference().(ast.RegexLiteralContentNode)
 			}
 			var argFlags value.UInt8
-			if !args[1].IsUndefined() {
-				argFlags = args[1].AsUInt8()
+			if !args[2].IsUndefined() {
+				argFlags = args[2].AsUInt8()
 			}
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewInterpolatedRegexLiteralNode(
 				argSpan,

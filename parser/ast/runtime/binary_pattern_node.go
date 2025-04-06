@@ -14,21 +14,21 @@ func initBinaryPatternNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := args[0].MustReference().(*token.Token)
-			arg1 := args[1].MustReference().(ast.PatternNode)
-			arg2 := args[2].MustReference().(ast.PatternNode)
+			argOp := args[1].MustReference().(*token.Token)
+			argLeft := args[2].MustReference().(ast.PatternNode)
+			argRight := args[3].MustReference().(ast.PatternNode)
 
 			var argSpan *position.Span
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argSpan = (*position.Span)(args[4].Pointer())
 			}
 			self := ast.NewBinaryPatternNode(
 				argSpan,
-				arg0,
-				arg1,
-				arg2,
+				argOp,
+				argLeft,
+				argRight,
 			)
 			return value.Ref(self), value.Undefined
 

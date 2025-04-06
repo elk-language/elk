@@ -13,19 +13,19 @@ func initUsingEntryWithSubentriesNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argNamespace := args[0].MustReference().(ast.UsingEntryNode)
+			argNamespace := args[1].MustReference().(ast.UsingEntryNode)
 
-			argSubentriesTuple := args[1].MustReference().(*value.ArrayTuple)
+			argSubentriesTuple := args[2].MustReference().(*value.ArrayTuple)
 			argSubentries := make([]ast.UsingSubentryNode, argSubentriesTuple.Length())
 			for i, el := range *argSubentriesTuple {
 				argSubentries[i] = el.MustReference().(ast.UsingSubentryNode)
 			}
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewUsingEntryWithSubentriesNode(
 				argSpan,

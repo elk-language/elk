@@ -208,4 +208,15 @@ sealed noinit primitive class ::Std::String
 		]##
 		def reset; end
 	end
+
+	##[
+		Values that conform to this interface
+		can be converted to a string.
+	]##
+	interface Convertible
+		##[
+			Convert the value to a string.
+		]##
+		def to_string: String; end
+	end
 end

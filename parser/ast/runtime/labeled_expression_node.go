@@ -13,14 +13,14 @@ func initLabeledExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argLabel := (string)(args[0].MustReference().(value.String))
-			argExpression := args[1].MustReference().(ast.ExpressionNode)
+			argLabel := (string)(args[1].MustReference().(value.String))
+			argExpression := args[2].MustReference().(ast.ExpressionNode)
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewLabeledExpressionNode(
 				argSpan,

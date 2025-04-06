@@ -1,6 +1,7 @@
 package runtime
 
 func InitGlobalEnvironment() {
+	initNode()
 	initAliasDeclarationEntry()
 	initAliasDeclarationNode()
 	initAnyTypeNode()
@@ -36,11 +37,14 @@ func InitGlobalEnvironment() {
 	initContinueExpressionNode()
 	initDoExpressionNode()
 	initMacroBoundaryNode()
+	initQuoteExpressionNode()
+	initUnquoteExpressionNode()
 	initDoubleQuotedStringLiteralNode()
 	initDoubleSplatExpressionNode()
 	initEmptyStatementNode()
 	initExpressionStatementNode()
 	initExtendWhereBlockExpressionNode()
+	initTrueLiteralNode()
 	initFalseLiteralNode()
 	initFloat32LiteralNode()
 	initFloat64LiteralNode()

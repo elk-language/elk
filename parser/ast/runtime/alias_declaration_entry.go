@@ -13,14 +13,14 @@ func initAliasDeclarationEntry() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := (string)(args[0].MustReference().(value.String))
-			arg1 := (string)(args[1].MustReference().(value.String))
+			arg0 := (string)(args[1].MustReference().(value.String))
+			arg1 := (string)(args[2].MustReference().(value.String))
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewAliasDeclarationEntry(
 				argSpan,

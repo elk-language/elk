@@ -13,19 +13,19 @@ func initAttributeAccessNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := args[0].MustReference().(ast.ExpressionNode)
-			arg1 := (string)(args[1].MustReference().(value.String))
+			argReceiver := args[1].MustReference().(ast.ExpressionNode)
+			argAttrName := (string)(args[2].MustReference().(value.String))
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewAttributeAccessNode(
 				argSpan,
-				arg0,
-				arg1,
+				argReceiver,
+				argAttrName,
 			)
 			return value.Ref(self), value.Undefined
 

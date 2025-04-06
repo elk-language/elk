@@ -13,19 +13,19 @@ func initAsPatternNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := args[0].MustReference().(ast.PatternNode)
-			arg1 := args[1].MustReference().(ast.IdentifierNode)
+			argPattern := args[1].MustReference().(ast.PatternNode)
+			argName := args[2].MustReference().(ast.IdentifierNode)
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewAsPatternNode(
 				argSpan,
-				arg0,
-				arg1,
+				argPattern,
+				argName,
 			)
 			return value.Ref(self), value.Undefined
 

@@ -24,7 +24,7 @@ type Checker interface {
 	StdBigFloat() *Class
 	StdClass() *Class
 	Std(name value.Symbol) Type
-	StdString() Type
+	StdString() *Class
 	StdBool() *Class
 	StdNil() *Class
 	StdTrue() *Class

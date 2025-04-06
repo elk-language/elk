@@ -14,15 +14,15 @@ func initLogicalExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argOp := args[0].MustReference().(*token.Token)
-			argLeft := args[1].MustReference().(ast.ExpressionNode)
-			argRight := args[2].MustReference().(ast.ExpressionNode)
+			argOp := args[1].MustReference().(*token.Token)
+			argLeft := args[2].MustReference().(ast.ExpressionNode)
+			argRight := args[3].MustReference().(ast.ExpressionNode)
 
 			var argSpan *position.Span
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argSpan = (*position.Span)(args[4].Pointer())
 			}
 			self := ast.NewLogicalExpressionNode(
 				argSpan,

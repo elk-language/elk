@@ -13,11 +13,11 @@ func initReceiverlessMethodCallNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argMethodName := (string)(args[0].MustReference().(value.String))
+			argMethodName := (string)(args[1].MustReference().(value.String))
 
 			var argPositionalArguments []ast.ExpressionNode
-			if !args[1].IsUndefined() {
-				argPositionalArgumentsTuple := args[1].MustReference().(*value.ArrayTuple)
+			if !args[2].IsUndefined() {
+				argPositionalArgumentsTuple := args[2].MustReference().(*value.ArrayTuple)
 				argPositionalArguments = make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
 				for i, el := range *argPositionalArgumentsTuple {
 					argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
@@ -25,8 +25,8 @@ func initReceiverlessMethodCallNode() {
 			}
 
 			var argNamedArguments []ast.NamedArgumentNode
-			if !args[2].IsUndefined() {
-				argNamedArgumentsTuple := args[2].MustReference().(*value.ArrayTuple)
+			if !args[3].IsUndefined() {
+				argNamedArgumentsTuple := args[3].MustReference().(*value.ArrayTuple)
 				argNamedArguments = make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
 				for i, el := range *argNamedArgumentsTuple {
 					argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -34,10 +34,10 @@ func initReceiverlessMethodCallNode() {
 			}
 
 			var argSpan *position.Span
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argSpan = (*position.Span)(args[4].Pointer())
 			}
 			self := ast.NewReceiverlessMethodCallNode(
 				argSpan,
@@ -48,7 +48,7 @@ func initReceiverlessMethodCallNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(5),
+		vm.DefWithParameters(4),
 	)
 
 	vm.Def(

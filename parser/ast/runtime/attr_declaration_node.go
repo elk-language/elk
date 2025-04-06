@@ -13,21 +13,21 @@ func initAttrDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			entriesTuple := args[0].MustReference().(*value.ArrayTuple)
+			entriesTuple := args[1].MustReference().(*value.ArrayTuple)
 			entries := make([]ast.ParameterNode, entriesTuple.Length())
 			for _, el := range *entriesTuple {
 				entries = append(entries, el.MustReference().(ast.ParameterNode))
 			}
 
 			var docComment string
-			if !args[1].IsUndefined() {
-				docComment = (string)(args[1].MustReference().(value.String))
+			if !args[2].IsUndefined() {
+				docComment = (string)(args[2].MustReference().(value.String))
 			}
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewAttrDeclarationNode(
 				argSpan,

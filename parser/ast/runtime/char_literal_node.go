@@ -13,17 +13,17 @@ func initCharLiteralNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := (rune)(args[0].AsChar())
+			argValue := (rune)(args[1].AsChar())
 
 			var argSpan *position.Span
-			if args[1].IsUndefined() {
+			if args[2].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[1].Pointer())
+				argSpan = (*position.Span)(args[2].Pointer())
 			}
 			self := ast.NewCharLiteralNode(
 				argSpan,
-				arg0,
+				argValue,
 			)
 			return value.Ref(self), value.Undefined
 

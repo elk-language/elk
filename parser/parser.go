@@ -2127,6 +2127,10 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.switchExpression()
 	case token.IF:
 		return p.ifExpression()
+	case token.QUOTE:
+		return p.quoteExpression()
+	case token.UNQUOTE:
+		return p.unquoteExpression()
 	case token.DO:
 		return p.doExpressionOrMacroBoundary()
 	case token.UNLESS:
@@ -4627,15 +4631,62 @@ func (p *Parser) mustExpression() *ast.MustExpressionNode {
 	)
 }
 
-// macroExpression = macroBoundary
-func (p *Parser) macroExpression() ast.ExpressionNode {
-	if p.acceptSecond(token.RAW_STRING, token.DO) {
-		return p.macroBoundary()
-	}
-	p.errorUnexpected("macro")
-	macroTok := p.advance()
+// unquoteExpression = "unquote" "(" expressionWithoutModifier ")"
+func (p *Parser) unquoteExpression() ast.ExpressionNode {
+	unquoteTok := p.advance()
 
-	return ast.NewInvalidNode(macroTok.Span(), macroTok)
+	lparen, ok := p.consume(token.LPAREN)
+	if !ok {
+		return ast.NewInvalidExpressionNode(lparen.Span(), lparen)
+	}
+
+	expr := p.expressionWithoutModifier()
+
+	rparen, ok := p.consume(token.RPAREN)
+	if !ok {
+		return ast.NewInvalidExpressionNode(rparen.Span(), rparen)
+	}
+
+	span := unquoteTok.Span().Join(rparen.Span())
+
+	return ast.NewUnquoteExpressionNode(
+		span,
+		expr,
+	)
+}
+
+// quoteExpression = "quote" ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))
+func (p *Parser) quoteExpression() ast.ExpressionNode {
+	quoteTok := p.advance()
+
+	lastSpan, body, multiline := p.statementBlock(token.END)
+
+	var span *position.Span
+	if lastSpan != nil {
+		span = quoteTok.Span().Join(lastSpan)
+	} else {
+		span = quoteTok.Span()
+	}
+
+	quoteExpression := ast.NewQuoteExpressionNode(
+		span,
+		body,
+	)
+
+	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
+		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
+		if ok {
+			quoteExpression.SetSpan(quoteExpression.Span().Join(endTok.Span()))
+		}
+	}
+
+	return quoteExpression
 }
 
 // macroBoundary = "do" "macro" [RAW_STRING] ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))

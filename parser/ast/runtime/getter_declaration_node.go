@@ -13,22 +13,22 @@ func initGetterDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argEntriesTuple := args[0].MustReference().(*value.ArrayTuple)
+			argEntriesTuple := args[1].MustReference().(*value.ArrayTuple)
 			argEntries := make([]ast.ParameterNode, argEntriesTuple.Length())
 			for i, el := range *argEntriesTuple {
 				argEntries[i] = el.MustReference().(ast.ParameterNode)
 			}
 
 			var argDocComment string
-			if !args[1].IsUndefined() {
-				argDocComment = string(args[1].MustReference().(value.String))
+			if !args[2].IsUndefined() {
+				argDocComment = string(args[2].MustReference().(value.String))
 			}
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewGetterDeclarationNode(
 				argSpan,

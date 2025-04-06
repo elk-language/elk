@@ -14,21 +14,21 @@ func initRangeLiteralNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argStart := args[0].MustReference().(ast.ExpressionNode)
-			argEnd := args[1].MustReference().(ast.ExpressionNode)
+			argStart := args[1].MustReference().(ast.ExpressionNode)
+			argEnd := args[2].MustReference().(ast.ExpressionNode)
 
 			var argOp *token.Token
-			if !args[2].IsUndefined() {
-				argOp = args[2].MustReference().(*token.Token)
+			if !args[3].IsUndefined() {
+				argOp = args[3].MustReference().(*token.Token)
 			} else {
 				argOp = token.New(position.DefaultSpan, token.CLOSED_RANGE_OP)
 			}
 
 			var argSpan *position.Span
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argSpan = (*position.Span)(args[4].Pointer())
 			}
 			self := ast.NewRangeLiteralNode(
 				argSpan,

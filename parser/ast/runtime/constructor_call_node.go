@@ -13,11 +13,11 @@ func initConstructorCallNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argClassNode := args[0].MustReference().(ast.ComplexConstantNode)
+			argClassNode := args[1].MustReference().(ast.ComplexConstantNode)
 
 			var argPosArgs []ast.ExpressionNode
-			if !args[1].IsUndefined() {
-				argPosArgsTuple := args[1].MustReference().(*value.ArrayTuple)
+			if !args[2].IsUndefined() {
+				argPosArgsTuple := args[2].MustReference().(*value.ArrayTuple)
 				argPosArgs = make([]ast.ExpressionNode, argPosArgsTuple.Length())
 				for i, el := range *argPosArgsTuple {
 					argPosArgs[i] = el.MustReference().(ast.ExpressionNode)
@@ -25,8 +25,8 @@ func initConstructorCallNode() {
 			}
 
 			var argNamedArgs []ast.NamedArgumentNode
-			if !args[2].IsUndefined() {
-				argNamedArgsTuple := args[2].MustReference().(*value.ArrayTuple)
+			if !args[3].IsUndefined() {
+				argNamedArgsTuple := args[3].MustReference().(*value.ArrayTuple)
 				argNamedArgs = make([]ast.NamedArgumentNode, argNamedArgsTuple.Length())
 				for i, el := range *argNamedArgsTuple {
 					argNamedArgs[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -34,10 +34,10 @@ func initConstructorCallNode() {
 			}
 
 			var argSpan *position.Span
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argSpan = (*position.Span)(args[4].Pointer())
 			}
 			self := ast.NewConstructorCallNode(
 				argSpan,

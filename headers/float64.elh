@@ -149,4 +149,14 @@ sealed noinit primitive class ::Std::Float64 < Value
 	]##
 	def hash: UInt64; end
 
+	##[
+		Values that conform to this interface
+		can be converted to a float64.
+	]##
+	interface Convertible
+		##[
+			Convert the value to a float64.
+		]##
+		def to_float64: Float64; end
+	end
 end

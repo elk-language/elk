@@ -13,11 +13,11 @@ func initMethodSignatureDefinitionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[0].MustReference().(value.String))
+			argName := (string)(args[1].MustReference().(value.String))
 
 			var argTypeParameters []ast.TypeParameterNode
-			if !args[1].IsUndefined() {
-				argTypeParametersTuple := args[1].MustReference().(*value.ArrayTuple)
+			if !args[2].IsUndefined() {
+				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
 				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 				for i, el := range *argTypeParametersTuple {
 					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
@@ -25,8 +25,8 @@ func initMethodSignatureDefinitionNode() {
 			}
 
 			var argParameters []ast.ParameterNode
-			if !args[2].IsUndefined() {
-				argParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+			if !args[3].IsUndefined() {
+				argParametersTuple := args[3].MustReference().(*value.ArrayTuple)
 				argParameters = make([]ast.ParameterNode, argParametersTuple.Length())
 				for i, el := range *argParametersTuple {
 					argParameters[i] = el.MustReference().(ast.ParameterNode)
@@ -34,25 +34,25 @@ func initMethodSignatureDefinitionNode() {
 			}
 
 			var argReturnType ast.TypeNode
-			if !args[3].IsUndefined() {
-				argReturnType = args[3].MustReference().(ast.TypeNode)
+			if !args[4].IsUndefined() {
+				argReturnType = args[4].MustReference().(ast.TypeNode)
 			}
 
 			var argThrowType ast.TypeNode
-			if !args[4].IsUndefined() {
-				argThrowType = args[4].MustReference().(ast.TypeNode)
+			if !args[5].IsUndefined() {
+				argThrowType = args[5].MustReference().(ast.TypeNode)
 			}
 
 			var argDocComment string
-			if !args[5].IsUndefined() {
-				argDocComment = string(args[5].MustReference().(value.String))
+			if !args[6].IsUndefined() {
+				argDocComment = string(args[6].MustReference().(value.String))
 			}
 
 			var argSpan *position.Span
-			if args[6].IsUndefined() {
+			if args[7].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[6].Pointer())
+				argSpan = (*position.Span)(args[7].Pointer())
 			}
 			self := ast.NewMethodSignatureDefinitionNode(
 				argSpan,

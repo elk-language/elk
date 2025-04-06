@@ -3816,13 +3816,13 @@ func TestConstructorCallInference(t *testing.T) {
 		"param is an intersection, argument is also": {
 			input: `
 				class Foo[V]
-					init(a: V & StringConvertible); end
+					init(a: V & String::Convertible); end
 				end
-				var a: Int & StringConvertible = 2
+				var a: Int & String::Convertible = 2
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(121, 6, 16), P(126, 6, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(125, 6, 16), P(130, 6, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 

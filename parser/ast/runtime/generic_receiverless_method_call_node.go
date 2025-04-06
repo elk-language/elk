@@ -13,17 +13,17 @@ func initGenericReceiverlessMethodCallNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[0].MustReference().(value.String))
+			argName := (string)(args[1].MustReference().(value.String))
 
-			argTypeArgsTuple := args[1].MustReference().(*value.ArrayTuple)
+			argTypeArgsTuple := args[2].MustReference().(*value.ArrayTuple)
 			argTypeArgs := make([]ast.TypeNode, argTypeArgsTuple.Length())
 			for i, el := range *argTypeArgsTuple {
 				argTypeArgs[i] = el.MustReference().(ast.TypeNode)
 			}
 
 			var argPosArgs []ast.ExpressionNode
-			if !args[2].IsUndefined() {
-				argPosArgsTuple := args[2].MustReference().(*value.ArrayTuple)
+			if !args[3].IsUndefined() {
+				argPosArgsTuple := args[3].MustReference().(*value.ArrayTuple)
 				argPosArgs = make([]ast.ExpressionNode, argPosArgsTuple.Length())
 				for i, el := range *argPosArgsTuple {
 					argPosArgs[i] = el.MustReference().(ast.ExpressionNode)
@@ -31,8 +31,8 @@ func initGenericReceiverlessMethodCallNode() {
 			}
 
 			var argNamedArgs []ast.NamedArgumentNode
-			if !args[3].IsUndefined() {
-				argNamedArgsTuple := args[3].MustReference().(*value.ArrayTuple)
+			if !args[4].IsUndefined() {
+				argNamedArgsTuple := args[4].MustReference().(*value.ArrayTuple)
 				argNamedArgs = make([]ast.NamedArgumentNode, argNamedArgsTuple.Length())
 				for i, el := range *argNamedArgsTuple {
 					argNamedArgs[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -40,10 +40,10 @@ func initGenericReceiverlessMethodCallNode() {
 			}
 
 			var argSpan *position.Span
-			if args[4].IsUndefined() {
+			if args[5].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[4].Pointer())
+				argSpan = (*position.Span)(args[5].Pointer())
 			}
 			self := ast.NewGenericReceiverlessMethodCallNode(
 				argSpan,
@@ -55,7 +55,7 @@ func initGenericReceiverlessMethodCallNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(6),
+		vm.DefWithParameters(5),
 	)
 
 	vm.Def(

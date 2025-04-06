@@ -13,33 +13,33 @@ func initCallNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := args[0].MustReference().(ast.ExpressionNode)
-			arg1 := value.Truthy(args[1])
+			argReceiver := args[1].MustReference().(ast.ExpressionNode)
+			argNilSafe := value.Truthy(args[2])
 
-			arg2Tuple := args[2].MustReference().(*value.ArrayTuple)
-			arg2 := make([]ast.ExpressionNode, arg2Tuple.Length())
-			for i, el := range *arg2Tuple {
-				arg2[i] = el.MustReference().(ast.ExpressionNode)
+			argPosArgsTuple := args[3].MustReference().(*value.ArrayTuple)
+			argPosArgs := make([]ast.ExpressionNode, argPosArgsTuple.Length())
+			for i, el := range *argPosArgsTuple {
+				argPosArgs[i] = el.MustReference().(ast.ExpressionNode)
 			}
 
-			arg3Tuple := args[3].MustReference().(*value.ArrayTuple)
-			arg3 := make([]ast.NamedArgumentNode, arg3Tuple.Length())
-			for i, el := range *arg3Tuple {
-				arg3[i] = el.MustReference().(ast.NamedArgumentNode)
+			argNamedArgsTuple := args[4].MustReference().(*value.ArrayTuple)
+			argNamedArgs := make([]ast.NamedArgumentNode, argNamedArgsTuple.Length())
+			for i, el := range *argNamedArgsTuple {
+				argNamedArgs[i] = el.MustReference().(ast.NamedArgumentNode)
 			}
 
 			var argSpan *position.Span
-			if args[4].IsUndefined() {
+			if args[5].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[4].Pointer())
+				argSpan = (*position.Span)(args[5].Pointer())
 			}
 			self := ast.NewCallNode(
 				argSpan,
-				arg0,
-				arg1,
-				arg2,
-				arg3,
+				argReceiver,
+				argNilSafe,
+				argPosArgs,
+				argNamedArgs,
 			)
 			return value.Ref(self), value.Undefined
 

@@ -14,28 +14,28 @@ func initExtendWhereBlockExpressionNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 
-			arg0Tuple := args[0].MustReference().(*value.ArrayTuple)
-			arg0 := make([]ast.StatementNode, arg0Tuple.Length())
-			for i, el := range *arg0Tuple {
-				arg0[i] = el.MustReference().(ast.StatementNode)
+			argBodyTuple := args[1].MustReference().(*value.ArrayTuple)
+			argBody := make([]ast.StatementNode, argBodyTuple.Length())
+			for i, el := range *argBodyTuple {
+				argBody[i] = el.MustReference().(ast.StatementNode)
 			}
 
-			arg1Tuple := args[1].MustReference().(*value.ArrayTuple)
-			arg1 := make([]ast.TypeParameterNode, arg1Tuple.Length())
-			for i, el := range *arg1Tuple {
-				arg1[i] = el.MustReference().(ast.TypeParameterNode)
+			argWhereTuple := args[2].MustReference().(*value.ArrayTuple)
+			argWhere := make([]ast.TypeParameterNode, argWhereTuple.Length())
+			for i, el := range *argWhereTuple {
+				argWhere[i] = el.MustReference().(ast.TypeParameterNode)
 			}
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewExtendWhereBlockExpressionNode(
 				argSpan,
-				arg0,
-				arg1,
+				argBody,
+				argWhere,
 			)
 			return value.Ref(self), value.Undefined
 

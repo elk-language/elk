@@ -212,4 +212,14 @@ sealed noinit primitive class ::Std::Float < Value
 	def years: Duration; end
 	alias year years
 
+	##[
+		Values that conform to this interface
+		can be converted to a float.
+	]##
+	interface Convertible
+		##[
+			Convert the value to a float.
+		]##
+		def to_float: Float; end
+	end
 end

@@ -15,31 +15,31 @@ func initGenericMethodCallNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			var argSpan *position.Span
-			if args[6].IsUndefined() {
+			if args[7].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[6].Pointer())
+				argSpan = (*position.Span)(args[7].Pointer())
 			}
 
-			argReceiver := args[0].MustReference().(ast.ExpressionNode)
-			argName := (string)(args[1].MustReference().(value.String))
+			argReceiver := args[1].MustReference().(ast.ExpressionNode)
+			argName := (string)(args[2].MustReference().(value.String))
 
-			argTypeArgsTuple := args[2].MustReference().(*value.ArrayTuple)
+			argTypeArgsTuple := args[3].MustReference().(*value.ArrayTuple)
 			argTypeArgs := make([]ast.TypeNode, argTypeArgsTuple.Length())
 			for i, el := range *argTypeArgsTuple {
 				argTypeArgs[i] = el.MustReference().(ast.TypeNode)
 			}
 
 			var argOp *token.Token
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argOp = token.New(argSpan, token.DOT)
 			} else {
-				argOp = args[3].MustReference().(*token.Token)
+				argOp = args[4].MustReference().(*token.Token)
 			}
 
 			var argPosArgs []ast.ExpressionNode
-			if !args[4].IsUndefined() {
-				argPosArgsTuple := args[4].MustReference().(*value.ArrayTuple)
+			if !args[5].IsUndefined() {
+				argPosArgsTuple := args[5].MustReference().(*value.ArrayTuple)
 				argPosArgs = make([]ast.ExpressionNode, argPosArgsTuple.Length())
 				for i, el := range *argPosArgsTuple {
 					argPosArgs[i] = el.MustReference().(ast.ExpressionNode)
@@ -47,8 +47,8 @@ func initGenericMethodCallNode() {
 			}
 
 			var argNamedArgs []ast.NamedArgumentNode
-			if !args[5].IsUndefined() {
-				argNamedArgsTuple := args[5].MustReference().(*value.ArrayTuple)
+			if !args[6].IsUndefined() {
+				argNamedArgsTuple := args[6].MustReference().(*value.ArrayTuple)
 				argNamedArgs = make([]ast.NamedArgumentNode, argNamedArgsTuple.Length())
 				for i, el := range *argNamedArgsTuple {
 					argNamedArgs[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -67,7 +67,7 @@ func initGenericMethodCallNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(8),
+		vm.DefWithParameters(7),
 	)
 
 	vm.Def(

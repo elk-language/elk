@@ -13,11 +13,11 @@ func initClassDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			constant := args[0].MustReference().(ast.ExpressionNode)
+			constant := args[1].MustReference().(ast.ExpressionNode)
 
 			var body []ast.StatementNode
-			if !args[1].IsUndefined() {
-				bodyTuple := args[1].MustReference().(*value.ArrayTuple)
+			if !args[2].IsUndefined() {
+				bodyTuple := args[2].MustReference().(*value.ArrayTuple)
 				body = make([]ast.StatementNode, bodyTuple.Length())
 				for _, el := range *bodyTuple {
 					body = append(body, el.MustReference().(ast.StatementNode))
@@ -25,8 +25,8 @@ func initClassDeclarationNode() {
 			}
 
 			var typeParams []ast.TypeParameterNode
-			if !args[2].IsUndefined() {
-				typeParamTuple := args[2].MustReference().(*value.ArrayTuple)
+			if !args[3].IsUndefined() {
+				typeParamTuple := args[3].MustReference().(*value.ArrayTuple)
 				typeParams = make([]ast.TypeParameterNode, typeParamTuple.Length())
 				for _, el := range *typeParamTuple {
 					typeParams = append(typeParams, el.MustReference().(ast.TypeParameterNode))
@@ -34,36 +34,36 @@ func initClassDeclarationNode() {
 			}
 
 			var abstract bool
-			if !args[3].IsUndefined() {
+			if !args[4].IsUndefined() {
 				abstract = value.Truthy(args[3])
 			}
 			var sealed bool
-			if !args[4].IsUndefined() {
+			if !args[5].IsUndefined() {
 				sealed = value.Truthy(args[4])
 			}
 			var primitive bool
-			if !args[5].IsUndefined() {
+			if !args[6].IsUndefined() {
 				primitive = value.Truthy(args[5])
 			}
 			var noInit bool
-			if !args[6].IsUndefined() {
+			if !args[7].IsUndefined() {
 				noInit = value.Truthy(args[6])
 			}
 
 			var superclass ast.ExpressionNode
-			if !args[7].IsUndefined() {
-				superclass = args[7].MustReference().(ast.ExpressionNode)
+			if !args[8].IsUndefined() {
+				superclass = args[8].MustReference().(ast.ExpressionNode)
 			}
 			var docComment string
-			if !args[8].IsUndefined() {
-				docComment = (string)(args[8].MustReference().(value.String))
+			if !args[9].IsUndefined() {
+				docComment = (string)(args[9].MustReference().(value.String))
 			}
 
 			var argSpan *position.Span
-			if args[9].IsUndefined() {
+			if args[10].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[9].Pointer())
+				argSpan = (*position.Span)(args[10].Pointer())
 			}
 			self := ast.NewClassDeclarationNode(
 				argSpan,

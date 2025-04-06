@@ -13,13 +13,13 @@ func initInstanceOfTypeNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argTypeNode := args[0].MustReference().(ast.TypeNode)
+			argTypeNode := args[1].MustReference().(ast.TypeNode)
 
 			var argSpan *position.Span
-			if args[1].IsUndefined() {
+			if args[2].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[1].Pointer())
+				argSpan = (*position.Span)(args[2].Pointer())
 			}
 			self := ast.NewInstanceOfTypeNode(
 				argSpan,
@@ -38,7 +38,6 @@ func initInstanceOfTypeNode() {
 			self := args[0].MustReference().(*ast.InstanceOfTypeNode)
 			result := value.Ref(self.TypeNode)
 			return result, value.Undefined
-
 		},
 	)
 

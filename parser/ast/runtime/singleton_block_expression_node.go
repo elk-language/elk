@@ -15,8 +15,8 @@ func initSingletonBlockExpressionNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 
 			var argBody []ast.StatementNode
-			if !args[0].IsUndefined() {
-				argBodyTuple := args[0].MustReference().(*value.ArrayTuple)
+			if !args[1].IsUndefined() {
+				argBodyTuple := args[1].MustReference().(*value.ArrayTuple)
 				argBody = make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -24,10 +24,10 @@ func initSingletonBlockExpressionNode() {
 			}
 
 			var argSpan *position.Span
-			if args[1].IsUndefined() {
+			if args[2].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[1].Pointer())
+				argSpan = (*position.Span)(args[2].Pointer())
 			}
 			self := ast.NewSingletonBlockExpressionNode(
 				argSpan,

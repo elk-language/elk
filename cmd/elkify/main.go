@@ -362,14 +362,14 @@ func generateConstructorForStruct(buffer *bytes.Buffer, structDef *structDefinit
 				fld.name,
 				valueTypeName(fld.fieldType),
 				elkTypeToGoTypeAssertion("el", fld.fieldType),
-				i,
+				i+1,
 			)
 		} else {
 			fmt.Fprintf(
 				buffer,
 				"arg%s := %s\n",
 				fld.name,
-				elkTypeToGoTypeAssertion(fmt.Sprintf("args[%d]", i), fld.fieldType),
+				elkTypeToGoTypeAssertion(fmt.Sprintf("args[%d]", i+1), fld.fieldType),
 			)
 		}
 	}
@@ -384,7 +384,7 @@ func generateConstructorForStruct(buffer *bytes.Buffer, structDef *structDefinit
 				argSpan = (*position.Span)(args[%[1]d].Pointer())
 			}
 		`,
-		len(structDef.fields)-1,
+		len(structDef.fields),
 	)
 
 	fmt.Fprintf(buffer, "self := ast.New%s(\nargSpan,\n", structDef.name)

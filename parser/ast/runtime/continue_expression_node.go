@@ -13,18 +13,18 @@ func initContinueExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argLabel := (string)(args[0].MustReference().(value.String))
+			argLabel := (string)(args[1].MustReference().(value.String))
 
 			var argValue ast.ExpressionNode
-			if !args[1].IsUndefined() {
-				argValue = args[1].MustReference().(ast.ExpressionNode)
+			if !args[2].IsUndefined() {
+				argValue = args[2].MustReference().(ast.ExpressionNode)
 			}
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewContinueExpressionNode(
 				argSpan,

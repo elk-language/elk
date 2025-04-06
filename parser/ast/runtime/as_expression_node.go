@@ -13,19 +13,19 @@ func initAsExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := args[0].MustReference().(ast.ExpressionNode)
-			arg1 := args[1].MustReference().(ast.ComplexConstantNode)
+			argVal := args[1].MustReference().(ast.ExpressionNode)
+			argType := args[2].MustReference().(ast.ComplexConstantNode)
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewAsExpressionNode(
 				argSpan,
-				arg0,
-				arg1,
+				argVal,
+				argType,
 			)
 			return value.Ref(self), value.Undefined
 

@@ -661,4 +661,6 @@ func initFloat() {
 	FloatClass.AddConstantString("NAN", FloatNaN().ToValue())
 	FloatClass.AddConstantString("INF", FloatInf().ToValue())
 	FloatClass.AddConstantString("NEG_INF", FloatNegInf().ToValue())
+
+	FloatClass.AddConstantString("Convertible", Ref(NewInterface()))
 }

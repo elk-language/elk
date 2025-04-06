@@ -5,7 +5,7 @@ module Std::Elk::AST
     eg.
 
     ```
-    macro "Dupa" do
+    do macro 'Dupa'
       print("awesome!")
     end
     ```

@@ -13,24 +13,24 @@ func initCatchNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argPattern := args[0].MustReference().(ast.PatternNode)
+			argPattern := args[1].MustReference().(ast.PatternNode)
 
-			arg2Tuple := args[1].MustReference().(*value.ArrayTuple)
-			argBody := make([]ast.StatementNode, arg2Tuple.Length())
-			for i, el := range *arg2Tuple {
+			argBodyTuple := args[2].MustReference().(*value.ArrayTuple)
+			argBody := make([]ast.StatementNode, argBodyTuple.Length())
+			for i, el := range *argBodyTuple {
 				argBody[i] = el.MustReference().(ast.StatementNode)
 			}
 
 			var argStackTraceVar ast.IdentifierNode
-			if !args[2].IsUndefined() {
-				argStackTraceVar = args[2].MustReference().(ast.IdentifierNode)
+			if !args[3].IsUndefined() {
+				argStackTraceVar = args[3].MustReference().(ast.IdentifierNode)
 			}
 
 			var argSpan *position.Span
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argSpan = (*position.Span)(args[4].Pointer())
 			}
 			self := ast.NewCatchNode(
 				argSpan,

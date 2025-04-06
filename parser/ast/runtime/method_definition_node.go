@@ -14,11 +14,11 @@ func initMethodDefinitionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[0].MustReference().(value.String))
+			argName := (string)(args[1].MustReference().(value.String))
 
 			var argTypeParameters []ast.TypeParameterNode
-			if !args[1].IsUndefined() {
-				argTypeParametersTuple := args[1].MustReference().(*value.ArrayTuple)
+			if !args[2].IsUndefined() {
+				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
 				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 				for i, el := range *argTypeParametersTuple {
 					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
@@ -26,8 +26,8 @@ func initMethodDefinitionNode() {
 			}
 
 			var argParameters []ast.ParameterNode
-			if !args[2].IsUndefined() {
-				argParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+			if !args[3].IsUndefined() {
+				argParametersTuple := args[3].MustReference().(*value.ArrayTuple)
 				argParameters = make([]ast.ParameterNode, argParametersTuple.Length())
 				for i, el := range *argParametersTuple {
 					argParameters[i] = el.MustReference().(ast.ParameterNode)
@@ -35,18 +35,18 @@ func initMethodDefinitionNode() {
 			}
 
 			var argReturnType ast.TypeNode
-			if !args[3].IsUndefined() {
-				argReturnType = args[3].MustReference().(ast.TypeNode)
+			if !args[4].IsUndefined() {
+				argReturnType = args[4].MustReference().(ast.TypeNode)
 			}
 
 			var argThrowType ast.TypeNode
-			if !args[4].IsUndefined() {
-				argThrowType = args[4].MustReference().(ast.TypeNode)
+			if !args[5].IsUndefined() {
+				argThrowType = args[5].MustReference().(ast.TypeNode)
 			}
 
 			var argBody []ast.StatementNode
-			if !args[5].IsUndefined() {
-				argBodyTuple := args[5].MustReference().(*value.ArrayTuple)
+			if !args[6].IsUndefined() {
+				argBodyTuple := args[6].MustReference().(*value.ArrayTuple)
 				argBody = make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -54,20 +54,20 @@ func initMethodDefinitionNode() {
 			}
 
 			var argFlags bitfield.BitFlag8
-			if !args[6].IsUndefined() {
-				argFlags = bitfield.BitFlag8(args[6].AsUInt8())
+			if !args[7].IsUndefined() {
+				argFlags = bitfield.BitFlag8(args[7].AsUInt8())
 			}
 
 			var argDocComment string
-			if !args[7].IsUndefined() {
-				argDocComment = string(args[7].MustReference().(value.String))
+			if !args[8].IsUndefined() {
+				argDocComment = string(args[8].MustReference().(value.String))
 			}
 
 			var argLocation *position.Location
-			if args[8].IsUndefined() {
+			if args[9].IsUndefined() {
 				argLocation = position.DefaultLocation
 			} else {
-				argLocation = (*position.Location)(args[8].Pointer())
+				argLocation = (*position.Location)(args[9].Pointer())
 			}
 			self := ast.NewMethodDefinitionNode(
 				argLocation,

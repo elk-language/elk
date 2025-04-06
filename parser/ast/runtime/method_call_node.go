@@ -14,13 +14,13 @@ func initMethodCallNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argReceiver := args[0].MustReference().(ast.ExpressionNode)
-			argOp := args[1].MustReference().(*token.Token)
-			argMethodName := (string)(args[2].MustReference().(value.String))
+			argReceiver := args[1].MustReference().(ast.ExpressionNode)
+			argOp := args[2].MustReference().(*token.Token)
+			argMethodName := (string)(args[3].MustReference().(value.String))
 
 			var argPositionalArguments []ast.ExpressionNode
-			if !args[3].IsUndefined() {
-				argPositionalArgumentsTuple := args[3].MustReference().(*value.ArrayTuple)
+			if !args[4].IsUndefined() {
+				argPositionalArgumentsTuple := args[4].MustReference().(*value.ArrayTuple)
 				argPositionalArguments = make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
 				for i, el := range *argPositionalArgumentsTuple {
 					argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
@@ -28,8 +28,8 @@ func initMethodCallNode() {
 			}
 
 			var argNamedArguments []ast.NamedArgumentNode
-			if !args[4].IsUndefined() {
-				argNamedArgumentsTuple := args[4].MustReference().(*value.ArrayTuple)
+			if !args[5].IsUndefined() {
+				argNamedArgumentsTuple := args[5].MustReference().(*value.ArrayTuple)
 				argNamedArguments = make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
 				for i, el := range *argNamedArgumentsTuple {
 					argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -37,10 +37,10 @@ func initMethodCallNode() {
 			}
 
 			var argSpan *position.Span
-			if args[5].IsUndefined() {
+			if args[6].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[5].Pointer())
+				argSpan = (*position.Span)(args[6].Pointer())
 			}
 			self := ast.NewMethodCallNode(
 				argSpan,

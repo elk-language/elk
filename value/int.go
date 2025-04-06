@@ -22,4 +22,6 @@ func initInt() {
 
 	IntIteratorClass = NewClass()
 	IntClass.AddConstantString("Iterator", Ref(IntIteratorClass))
+
+	IntClass.AddConstantString("Convertible", Ref(NewInterface()))
 }

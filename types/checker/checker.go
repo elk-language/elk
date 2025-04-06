@@ -1111,12 +1111,13 @@ func (c *Checker) StdPrimitiveIterable() *types.Interface {
 	return c.env.StdSubtype(symbol.PrimitiveIterable).(*types.Interface)
 }
 
-func (c *Checker) StdString() types.Type {
-	return c.env.StdSubtype(symbol.String)
+func (c *Checker) StdString() *types.Class {
+	return c.env.StdSubtypeClass(symbol.String)
 }
 
 func (c *Checker) StdStringConvertible() types.Type {
-	return c.env.StdSubtype(symbol.StringConvertible)
+	constant, _ := c.StdString().Subtype(symbol.Convertible)
+	return constant.Type
 }
 
 func (c *Checker) StdInspectable() types.Type {

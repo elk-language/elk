@@ -13,16 +13,16 @@ func initMixinDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argConstant := args[0].MustReference().(ast.ExpressionNode)
+			argConstant := args[1].MustReference().(ast.ExpressionNode)
 
 			var argAbstract bool
-			if !args[1].IsUndefined() {
-				argAbstract = value.Truthy(args[1])
+			if !args[2].IsUndefined() {
+				argAbstract = value.Truthy(args[2])
 			}
 
 			var argTypeParameters []ast.TypeParameterNode
-			if !args[2].IsUndefined() {
-				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+			if !args[3].IsUndefined() {
+				argTypeParametersTuple := args[3].MustReference().(*value.ArrayTuple)
 				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 				for i, el := range *argTypeParametersTuple {
 					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
@@ -30,8 +30,8 @@ func initMixinDeclarationNode() {
 			}
 
 			var argBody []ast.StatementNode
-			if !args[3].IsUndefined() {
-				argBodyTuple := args[3].MustReference().(*value.ArrayTuple)
+			if !args[4].IsUndefined() {
+				argBodyTuple := args[4].MustReference().(*value.ArrayTuple)
 				argBody = make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -39,15 +39,15 @@ func initMixinDeclarationNode() {
 			}
 
 			var argDocComment string
-			if !args[4].IsUndefined() {
-				argDocComment = string(args[4].MustReference().(value.String))
+			if !args[5].IsUndefined() {
+				argDocComment = string(args[5].MustReference().(value.String))
 			}
 
 			var argSpan *position.Span
-			if args[5].IsUndefined() {
+			if args[6].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[5].Pointer())
+				argSpan = (*position.Span)(args[6].Pointer())
 			}
 			self := ast.NewMixinDeclarationNode(
 				argSpan,

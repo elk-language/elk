@@ -15,20 +15,20 @@ func initUninterpolatedRegexLiteralNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			var argContent string
-			if !args[0].IsUndefined() {
-				argContent = (string)(args[0].MustReference().(value.String))
+			if !args[1].IsUndefined() {
+				argContent = (string)(args[1].MustReference().(value.String))
 			}
 
 			var argFlags bitfield.BitField8
-			if !args[1].IsUndefined() {
-				argFlags = bitfield.BitField8FromInt(args[1].AsUInt8())
+			if !args[2].IsUndefined() {
+				argFlags = bitfield.BitField8FromInt(args[2].AsUInt8())
 			}
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewUninterpolatedRegexLiteralNode(
 				argSpan,

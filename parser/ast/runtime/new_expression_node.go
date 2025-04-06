@@ -14,16 +14,16 @@ func initNewExpressionNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			var argPositionalArguments []ast.ExpressionNode
-			if !args[0].IsUndefined() {
-				argPositionalArgumentsTuple := args[0].MustReference().(*value.ArrayTuple)
+			if !args[1].IsUndefined() {
+				argPositionalArgumentsTuple := args[1].MustReference().(*value.ArrayTuple)
 				argPositionalArguments = make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
 				for i, el := range *argPositionalArgumentsTuple {
 					argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
 				}
 			}
 			var argNamedArguments []ast.NamedArgumentNode
-			if !args[1].IsUndefined() {
-				argNamedArgumentsTuple := args[1].MustReference().(*value.ArrayTuple)
+			if !args[2].IsUndefined() {
+				argNamedArgumentsTuple := args[2].MustReference().(*value.ArrayTuple)
 				argNamedArguments = make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
 				for i, el := range *argNamedArgumentsTuple {
 					argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -31,10 +31,10 @@ func initNewExpressionNode() {
 			}
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewNewExpressionNode(
 				argSpan,

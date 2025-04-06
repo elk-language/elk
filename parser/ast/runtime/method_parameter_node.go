@@ -13,29 +13,29 @@ func initMethodParameterNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[0].MustReference().(value.String))
-			argTypeNode := args[1].MustReference().(ast.TypeNode)
+			argName := (string)(args[1].MustReference().(value.String))
+			argTypeNode := args[2].MustReference().(ast.TypeNode)
 
 			var argInitialiser ast.ExpressionNode
-			if !args[2].IsUndefined() {
-				argInitialiser = args[2].MustReference().(ast.ExpressionNode)
+			if !args[3].IsUndefined() {
+				argInitialiser = args[3].MustReference().(ast.ExpressionNode)
 			}
 
 			var argSetInstanceVariable bool
-			if !args[3].IsUndefined() {
-				argSetInstanceVariable = value.Truthy(args[3])
+			if !args[4].IsUndefined() {
+				argSetInstanceVariable = value.Truthy(args[4])
 			}
 
 			var argKind ast.ParameterKind
-			if !args[4].IsUndefined() {
-				argKind = ast.ParameterKind(args[4].AsUInt8())
+			if !args[5].IsUndefined() {
+				argKind = ast.ParameterKind(args[5].AsUInt8())
 			}
 
 			var argSpan *position.Span
-			if args[5].IsUndefined() {
+			if args[6].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[5].Pointer())
+				argSpan = (*position.Span)(args[6].Pointer())
 			}
 			self := ast.NewMethodParameterNode(
 				argSpan,

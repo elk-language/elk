@@ -669,13 +669,13 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 		"assign Int to intersection type with Int": {
 			input: `
 				var a = 3
-				var b: Int & StringConvertible = a
+				var b: Int & String::Convertible = a
 			`,
 		},
 		"assign Int to intersection type with two compatible types": {
 			input: `
 				var a = 3
-				var b: Value & StringConvertible = a
+				var b: Value & String::Convertible = a
 			`,
 		},
 		"assign intersection type to more wide intersection type": {

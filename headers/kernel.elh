@@ -6,13 +6,13 @@ module Std::Kernel
     Converts the values to `String`
     and prints them to stdout.
   ]##
-  def print(*values: StringConvertible); end
+  def print(*values: String::Convertible); end
 
   ##[
     Converts the values to `String`
     and prints them to stdout with a newline.
   ]##
-  def println(*values: StringConvertible); end
+  def println(*values: String::Convertible); end
   alias puts println
 
   ##[

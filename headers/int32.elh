@@ -242,4 +242,14 @@ sealed noinit primitive class ::Std::Int32 < Value
 	]##
 	def to_uint8: UInt8; end
 
+	##[
+		Values that conform to this interface
+		can be converted to a int32.
+	]##
+	interface Convertible
+		##[
+			Convert the value to a int32.
+		]##
+		def to_int32: Int32; end
+	end
 end

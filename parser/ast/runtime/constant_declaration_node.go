@@ -13,28 +13,28 @@ func initConstantDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			constant := args[0].MustReference().(ast.ExpressionNode)
+			constant := args[1].MustReference().(ast.ExpressionNode)
 
 			var typeNode ast.TypeNode
-			if !args[1].IsUndefined() {
-				typeNode = args[1].MustReference().(ast.TypeNode)
+			if !args[2].IsUndefined() {
+				typeNode = args[2].MustReference().(ast.TypeNode)
 			}
 
 			var init ast.ExpressionNode
-			if !args[2].IsUndefined() {
-				init = args[2].MustReference().(ast.ExpressionNode)
+			if !args[3].IsUndefined() {
+				init = args[3].MustReference().(ast.ExpressionNode)
 			}
 
 			var docComment string
-			if !args[3].IsUndefined() {
-				docComment = string(args[3].MustReference().(value.String))
+			if !args[4].IsUndefined() {
+				docComment = string(args[4].MustReference().(value.String))
 			}
 
 			var argSpan *position.Span
-			if args[4].IsUndefined() {
+			if args[5].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[4].Pointer())
+				argSpan = (*position.Span)(args[5].Pointer())
 			}
 			self := ast.NewConstantDeclarationNode(
 				argSpan,

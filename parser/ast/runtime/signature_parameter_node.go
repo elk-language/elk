@@ -13,28 +13,28 @@ func initSignatureParameterNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[0].MustReference().(value.String))
+			argName := (string)(args[1].MustReference().(value.String))
 
 			var argTypeNode ast.TypeNode
-			if !args[1].IsUndefined() {
-				argTypeNode = args[1].MustReference().(ast.TypeNode)
+			if !args[2].IsUndefined() {
+				argTypeNode = args[2].MustReference().(ast.TypeNode)
 			}
 
 			var argOptional bool
-			if !args[2].IsUndefined() {
-				argOptional = value.Truthy(args[2])
+			if !args[3].IsUndefined() {
+				argOptional = value.Truthy(args[3])
 			}
 
 			var argKind ast.ParameterKind
-			if !args[3].IsUndefined() {
-				argKind = ast.ParameterKind(args[3].AsUInt8())
+			if !args[4].IsUndefined() {
+				argKind = ast.ParameterKind(args[4].AsUInt8())
 			}
 
 			var argSpan *position.Span
-			if args[4].IsUndefined() {
+			if args[5].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[4].Pointer())
+				argSpan = (*position.Span)(args[5].Pointer())
 			}
 			self := ast.NewSignatureParameterNode(
 				argSpan,

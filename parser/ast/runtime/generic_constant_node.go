@@ -13,24 +13,24 @@ func initGenericConstantNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := args[0].MustReference().(ast.ComplexConstantNode)
+			argConst := args[1].MustReference().(ast.ComplexConstantNode)
 
-			arg1Tuple := args[1].MustReference().(*value.ArrayTuple)
-			arg1 := make([]ast.TypeNode, arg1Tuple.Length())
-			for i, el := range *arg1Tuple {
-				arg1[i] = el.MustReference().(ast.TypeNode)
+			argArgsTuple := args[2].MustReference().(*value.ArrayTuple)
+			argArgs := make([]ast.TypeNode, argArgsTuple.Length())
+			for i, el := range *argArgsTuple {
+				argArgs[i] = el.MustReference().(ast.TypeNode)
 			}
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewGenericConstantNode(
 				argSpan,
-				arg0,
-				arg1,
+				argConst,
+				argArgs,
 			)
 			return value.Ref(self), value.Undefined
 

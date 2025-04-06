@@ -13,33 +13,33 @@ func initVariantTypeParameterNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[0].MustReference().(value.String))
+			argName := (string)(args[1].MustReference().(value.String))
 
 			var argLowerBound ast.TypeNode
-			if !args[1].IsUndefined() {
-				argLowerBound = args[1].MustReference().(ast.TypeNode)
+			if !args[2].IsUndefined() {
+				argLowerBound = args[2].MustReference().(ast.TypeNode)
 			}
 
 			var argUpperBound ast.TypeNode
-			if !args[2].IsUndefined() {
-				argUpperBound = args[2].MustReference().(ast.TypeNode)
+			if !args[3].IsUndefined() {
+				argUpperBound = args[3].MustReference().(ast.TypeNode)
 			}
 
 			var argDefault ast.TypeNode
-			if !args[3].IsUndefined() {
-				argDefault = args[3].MustReference().(ast.TypeNode)
+			if !args[4].IsUndefined() {
+				argDefault = args[4].MustReference().(ast.TypeNode)
 			}
 
 			var argVariance ast.Variance
-			if !args[4].IsUndefined() {
-				argVariance = ast.Variance(args[4].AsUInt8())
+			if !args[5].IsUndefined() {
+				argVariance = ast.Variance(args[5].AsUInt8())
 			}
 
 			var argSpan *position.Span
-			if args[5].IsUndefined() {
+			if args[6].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[5].Pointer())
+				argSpan = (*position.Span)(args[6].Pointer())
 			}
 			self := ast.NewVariantTypeParameterNode(
 				argSpan,

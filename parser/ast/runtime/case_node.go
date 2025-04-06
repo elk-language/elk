@@ -13,24 +13,24 @@ func initCaseNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := args[0].MustReference().(ast.PatternNode)
+			argPattern := args[1].MustReference().(ast.PatternNode)
 
-			arg1Tuple := args[1].MustReference().(*value.ArrayTuple)
-			arg1 := make([]ast.StatementNode, arg1Tuple.Length())
-			for i, el := range *arg1Tuple {
-				arg1[i] = el.MustReference().(ast.StatementNode)
+			argBodyTuple := args[2].MustReference().(*value.ArrayTuple)
+			argBody := make([]ast.StatementNode, argBodyTuple.Length())
+			for i, el := range *argBodyTuple {
+				argBody[i] = el.MustReference().(ast.StatementNode)
 			}
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewCaseNode(
 				argSpan,
-				arg0,
-				arg1,
+				argPattern,
+				argBody,
 			)
 			return value.Ref(self), value.Undefined
 

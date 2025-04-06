@@ -13,11 +13,11 @@ func initStructDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argConstant := args[0].MustReference().(ast.ExpressionNode)
+			argConstant := args[1].MustReference().(ast.ExpressionNode)
 
 			var argTypeParameters []ast.TypeParameterNode
-			if !args[1].IsUndefined() {
-				argTypeParametersTuple := args[1].MustReference().(*value.ArrayTuple)
+			if !args[2].IsUndefined() {
+				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
 				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 				for i, el := range *argTypeParametersTuple {
 					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
@@ -25,8 +25,8 @@ func initStructDeclarationNode() {
 			}
 
 			var argBody []ast.StructBodyStatementNode
-			if !args[2].IsUndefined() {
-				argBodyTuple := args[2].MustReference().(*value.ArrayTuple)
+			if !args[3].IsUndefined() {
+				argBodyTuple := args[3].MustReference().(*value.ArrayTuple)
 				argBody = make([]ast.StructBodyStatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StructBodyStatementNode)
@@ -34,15 +34,15 @@ func initStructDeclarationNode() {
 			}
 
 			var argDocComment string
-			if !args[3].IsUndefined() {
-				argDocComment = string(args[3].MustReference().(value.String))
+			if !args[4].IsUndefined() {
+				argDocComment = string(args[4].MustReference().(value.String))
 			}
 
 			var argSpan *position.Span
-			if args[4].IsUndefined() {
+			if args[5].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[4].Pointer())
+				argSpan = (*position.Span)(args[5].Pointer())
 			}
 			self := ast.NewStructDeclarationNode(
 				argSpan,

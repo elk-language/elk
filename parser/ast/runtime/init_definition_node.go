@@ -15,8 +15,8 @@ func initInitDefinitionNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 
 			var argParameters []ast.ParameterNode
-			if !args[0].IsUndefined() {
-				argParametersTuple := args[0].MustReference().(*value.ArrayTuple)
+			if !args[1].IsUndefined() {
+				argParametersTuple := args[1].MustReference().(*value.ArrayTuple)
 				argParameters = make([]ast.ParameterNode, argParametersTuple.Length())
 				for i, el := range *argParametersTuple {
 					argParameters[i] = el.MustReference().(ast.ParameterNode)
@@ -24,8 +24,8 @@ func initInitDefinitionNode() {
 			}
 
 			var argBody []ast.StatementNode
-			if !args[1].IsUndefined() {
-				argBodyTuple := args[1].MustReference().(*value.ArrayTuple)
+			if !args[2].IsUndefined() {
+				argBodyTuple := args[2].MustReference().(*value.ArrayTuple)
 				argBody = make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -33,15 +33,15 @@ func initInitDefinitionNode() {
 			}
 
 			var argThrowType ast.TypeNode
-			if !args[2].IsUndefined() {
-				argThrowType = args[2].MustReference().(ast.TypeNode)
+			if !args[3].IsUndefined() {
+				argThrowType = args[3].MustReference().(ast.TypeNode)
 			}
 
 			var argLocation *position.Location
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argLocation = position.DefaultLocation
 			} else {
-				argLocation = (*position.Location)(args[3].Pointer())
+				argLocation = (*position.Location)(args[4].Pointer())
 			}
 			self := ast.NewInitDefinitionNode(
 				argLocation,

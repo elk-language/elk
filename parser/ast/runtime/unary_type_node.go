@@ -14,14 +14,14 @@ func initUnaryTypeNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argOp := args[0].MustReference().(*token.Token)
-			argTypeNode := args[1].MustReference().(ast.TypeNode)
+			argOp := args[1].MustReference().(*token.Token)
+			argTypeNode := args[2].MustReference().(ast.TypeNode)
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewUnaryTypeNode(
 				argSpan,

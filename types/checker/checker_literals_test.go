@@ -1366,7 +1366,7 @@ func TestRegexLiteral(t *testing.T) {
 				var b: Regex = foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(38, 3, 19), P(42, 3, 23)), "type `Foo` does not implement interface `Std::StringConvertible`:\n\n  - missing method `Std::StringConvertible.:to_string` with signature: `def to_string(): Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(38, 3, 19), P(42, 3, 23)), "type `Foo` does not implement interface `Std::String::Convertible`:\n\n  - missing method `Std::String::Convertible.:to_string` with signature: `def to_string(): Std::String`"),
 			},
 		},
 	}
@@ -1417,7 +1417,7 @@ func TestStringLiteral(t *testing.T) {
 				var b: String = foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(37, 3, 18), P(41, 3, 22)), "type `Foo` does not implement interface `Std::StringConvertible`:\n\n  - missing method `Std::StringConvertible.:to_string` with signature: `def to_string(): Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(37, 3, 18), P(41, 3, 22)), "type `Foo` does not implement interface `Std::String::Convertible`:\n\n  - missing method `Std::String::Convertible.:to_string` with signature: `def to_string(): Std::String`"),
 			},
 		},
 		"interpolate uninspectable value": {

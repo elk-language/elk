@@ -15,8 +15,8 @@ func initSymbolArrayTupleLiteralNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 
 			var argElements []ast.SymbolCollectionContentNode
-			if !args[0].IsUndefined() {
-				argElementsTuple := args[0].MustReference().(*value.ArrayTuple)
+			if !args[1].IsUndefined() {
+				argElementsTuple := args[1].MustReference().(*value.ArrayTuple)
 				argElements = make([]ast.SymbolCollectionContentNode, argElementsTuple.Length())
 				for i, el := range *argElementsTuple {
 					argElements[i] = el.MustReference().(ast.SymbolCollectionContentNode)
@@ -24,10 +24,10 @@ func initSymbolArrayTupleLiteralNode() {
 			}
 
 			var argSpan *position.Span
-			if args[1].IsUndefined() {
+			if args[2].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[1].Pointer())
+				argSpan = (*position.Span)(args[2].Pointer())
 			}
 			self := ast.NewSymbolArrayTupleLiteralNode(
 				argSpan,

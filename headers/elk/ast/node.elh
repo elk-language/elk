@@ -12,4 +12,19 @@ mixin ::Std::Elk::AST::Node
 		Convert the AST back to a `String` of source code.
 	]##
 	def to_string: String; end
+
+	##[
+		Returns self.
+	]##
+	def to_ast: self; end
+
+	##[
+		Represents an object that can be converted to an Elk AST Node.
+	]##
+	interface Convertible
+		##[
+			Converts the object to an Elk AST Node.
+		]##
+		def to_ast: Elk::AST::Node; end
+	end
 end

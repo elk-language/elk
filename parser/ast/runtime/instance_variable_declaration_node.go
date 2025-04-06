@@ -14,19 +14,19 @@ func initInstanceVariableDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[0].MustReference().(value.String))
-			argTypeNode := args[1].MustReference().(ast.TypeNode)
+			argName := (string)(args[1].MustReference().(value.String))
+			argTypeNode := args[2].MustReference().(ast.TypeNode)
 
 			var argDocComment string
-			if !args[2].IsUndefined() {
-				argDocComment = (string)(args[2].MustReference().(value.String))
+			if !args[3].IsUndefined() {
+				argDocComment = (string)(args[3].MustReference().(value.String))
 			}
 
 			var argSpan *position.Span
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argSpan = (*position.Span)(args[4].Pointer())
 			}
 			self := ast.NewInstanceVariableDeclarationNode(
 				argSpan,
@@ -37,7 +37,7 @@ func initInstanceVariableDeclarationNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(3),
+		vm.DefWithParameters(4),
 	)
 
 	vm.Def(

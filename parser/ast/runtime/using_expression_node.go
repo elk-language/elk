@@ -13,18 +13,17 @@ func initUsingExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			argEntriesTuple := args[0].MustReference().(*value.ArrayTuple)
+			argEntriesTuple := args[1].MustReference().(*value.ArrayTuple)
 			argEntries := make([]ast.UsingEntryNode, argEntriesTuple.Length())
 			for i, el := range *argEntriesTuple {
 				argEntries[i] = el.MustReference().(ast.UsingEntryNode)
 			}
 
 			var argSpan *position.Span
-			if args[1].IsUndefined() {
+			if args[2].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[1].Pointer())
+				argSpan = (*position.Span)(args[2].Pointer())
 			}
 			self := ast.NewUsingExpressionNode(
 				argSpan,

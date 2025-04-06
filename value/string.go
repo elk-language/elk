@@ -781,6 +781,8 @@ func initString() {
 	StringClass = NewClass()
 	StdModule.AddConstantString("String", Ref(StringClass))
 
+	StringClass.AddConstantString("Convertible", Ref(NewInterface()))
+
 	StringCharIteratorClass = NewClass()
 	StringClass.AddConstantString("CharIterator", Ref(StringCharIteratorClass))
 

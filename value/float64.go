@@ -8,7 +8,8 @@ import (
 	"github.com/cespare/xxhash/v2"
 )
 
-var Float64Class *Class // ::Std::Float64
+var Float64Class *Class                    // ::Std::Float64
+var Float64ConvertibleInterface *Interface // ::Std::Float64::Convertible
 
 // Elk's Float64 value
 type Float64 float64
@@ -243,4 +244,7 @@ func initFloat64() {
 	Float64Class.AddConstantString("NAN", Float64NaN().ToValue())
 	Float64Class.AddConstantString("INF", Float64Inf().ToValue())
 	Float64Class.AddConstantString("NEG_INF", Float64NegInf().ToValue())
+
+	Float64ConvertibleInterface = NewInterface()
+	Float64Class.AddConstantString("Convertible", Ref(Float64ConvertibleInterface))
 }

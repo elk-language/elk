@@ -14,8 +14,8 @@ func initClosureTypeNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			var argParams []ast.ParameterNode
-			if !args[0].IsUndefined() {
-				argParamsTuple := args[0].MustReference().(*value.ArrayTuple)
+			if !args[1].IsUndefined() {
+				argParamsTuple := args[1].MustReference().(*value.ArrayTuple)
 				argParams := make([]ast.ParameterNode, argParamsTuple.Length())
 				for i, el := range *argParamsTuple {
 					argParams[i] = el.MustReference().(ast.ParameterNode)
@@ -23,20 +23,20 @@ func initClosureTypeNode() {
 			}
 
 			var argReturnType ast.TypeNode
-			if !args[1].IsUndefined() {
-				argReturnType = args[1].MustReference().(ast.TypeNode)
+			if !args[2].IsUndefined() {
+				argReturnType = args[2].MustReference().(ast.TypeNode)
 			}
 
 			var argThrowType ast.TypeNode
-			if !args[2].IsUndefined() {
-				argThrowType = args[2].MustReference().(ast.TypeNode)
+			if !args[3].IsUndefined() {
+				argThrowType = args[3].MustReference().(ast.TypeNode)
 			}
 
 			var argSpan *position.Span
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argSpan = (*position.Span)(args[4].Pointer())
 			}
 			self := ast.NewClosureTypeNode(
 				argSpan,

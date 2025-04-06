@@ -14,22 +14,22 @@ func initBinArrayListLiteralNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 
-			arg0Tuple := args[0].MustReference().(*value.ArrayTuple)
-			argElements := make([]ast.IntCollectionContentNode, arg0Tuple.Length())
-			for i, el := range *arg0Tuple {
+			argElementsTuple := args[1].MustReference().(*value.ArrayTuple)
+			argElements := make([]ast.IntCollectionContentNode, argElementsTuple.Length())
+			for i, el := range *argElementsTuple {
 				argElements[i] = el.MustReference().(ast.IntCollectionContentNode)
 			}
 
 			var argCapacity ast.ExpressionNode
-			if !args[1].IsUndefined() {
-				argCapacity = args[1].MustReference().(ast.ExpressionNode)
+			if !args[2].IsUndefined() {
+				argCapacity = args[2].MustReference().(ast.ExpressionNode)
 			}
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewBinArrayListLiteralNode(
 				argSpan,

@@ -200,4 +200,14 @@ sealed noinit primitive class ::Std::UInt64 < Value
 	]##
 	def to_uint8: UInt8; end
 
+	##[
+		Values that conform to this interface
+		can be converted to a int8.
+	]##
+	interface Convertible
+		##[
+			Convert the value to a uint64.
+		]##
+		def to_uint64: UInt64; end
+	end
 end

@@ -13,13 +13,13 @@ func initImportStatementNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argPath := args[0].MustReference().(ast.StringLiteralNode)
+			argPath := args[1].MustReference().(ast.StringLiteralNode)
 
 			var argSpan *position.Span
-			if args[1].IsUndefined() {
+			if args[2].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[1].Pointer())
+				argSpan = (*position.Span)(args[2].Pointer())
 			}
 			self := ast.NewImportStatementNode(
 				argSpan,
@@ -28,7 +28,7 @@ func initImportStatementNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(3),
+		vm.DefWithParameters(2),
 	)
 
 	vm.Def(

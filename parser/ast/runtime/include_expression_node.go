@@ -13,18 +13,17 @@ func initIncludeExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-
-			argConstantsTuple := args[0].MustReference().(*value.ArrayTuple)
+			argConstantsTuple := args[1].MustReference().(*value.ArrayTuple)
 			argConstants := make([]ast.ComplexConstantNode, argConstantsTuple.Length())
 			for i, el := range *argConstantsTuple {
 				argConstants[i] = el.MustReference().(ast.ComplexConstantNode)
 			}
 
 			var argSpan *position.Span
-			if args[1].IsUndefined() {
+			if args[2].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[1].Pointer())
+				argSpan = (*position.Span)(args[2].Pointer())
 			}
 			self := ast.NewIncludeExpressionNode(
 				argSpan,

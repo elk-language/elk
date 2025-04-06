@@ -14,20 +14,20 @@ func initYieldExpressionNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			var argValue ast.ExpressionNode
-			if !args[0].IsUndefined() {
-				argValue = args[0].MustReference().(ast.ExpressionNode)
+			if !args[1].IsUndefined() {
+				argValue = args[1].MustReference().(ast.ExpressionNode)
 			}
 
 			var argForward bool
-			if !args[1].IsUndefined() {
-				argForward = value.Truthy(args[1])
+			if !args[2].IsUndefined() {
+				argForward = value.Truthy(args[2])
 			}
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewYieldExpressionNode(
 				argSpan,

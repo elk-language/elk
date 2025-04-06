@@ -310,4 +310,6 @@ func (i Int16) StrictEqualVal(other Value) Value {
 func initInt16() {
 	Int16Class = NewClassWithOptions(ClassWithParent(ValueClass))
 	StdModule.AddConstantString("Int16", Ref(Int16Class))
+
+	Int16Class.AddConstantString("Convertible", Ref(NewInterface()))
 }

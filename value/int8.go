@@ -307,4 +307,6 @@ func (i Int8) StrictEqualVal(other Value) Value {
 func initInt8() {
 	Int8Class = NewClassWithOptions(ClassWithParent(ValueClass))
 	StdModule.AddConstantString("Int8", Ref(Int8Class))
+
+	Int8Class.AddConstantString("Convertible", Ref(NewInterface()))
 }

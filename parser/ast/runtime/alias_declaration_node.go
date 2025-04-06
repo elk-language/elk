@@ -14,17 +14,17 @@ func initAliasDeclarationNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 
-			arg0Tuple := args[0].MustReference().(*value.ArrayTuple)
+			arg0Tuple := args[1].MustReference().(*value.ArrayTuple)
 			arg0 := make([]*ast.AliasDeclarationEntry, arg0Tuple.Length())
 			for i, el := range *arg0Tuple {
 				arg0[i] = el.MustReference().(*ast.AliasDeclarationEntry)
 			}
 
 			var argSpan *position.Span
-			if args[1].IsUndefined() {
+			if args[2].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[1].Pointer())
+				argSpan = (*position.Span)(args[2].Pointer())
 			}
 			self := ast.NewAliasDeclarationNode(
 				argSpan,

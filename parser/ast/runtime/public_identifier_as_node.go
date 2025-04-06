@@ -13,14 +13,14 @@ func initPublicIdentifierAsNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argTarget := args[0].MustReference().(*ast.PublicIdentifierNode)
-			argAsName := (string)(args[1].MustReference().(value.String))
+			argTarget := args[1].MustReference().(*ast.PublicIdentifierNode)
+			argAsName := (string)(args[2].MustReference().(value.String))
 
 			var argSpan *position.Span
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argSpan = (*position.Span)(args[3].Pointer())
 			}
 			self := ast.NewPublicIdentifierAsNode(
 				argSpan,

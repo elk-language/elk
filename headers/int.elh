@@ -272,4 +272,15 @@ sealed noinit primitive class ::Std::Int < Value
 
 		def next: Int ! :stop_iteration; end
 	end
+
+	##[
+		Values that conform to this interface
+		can be converted to an integer.
+	]##
+	interface Convertible
+		##[
+			Convert the value to an integer.
+		]##
+		def to_int: Int; end
+	end
 end

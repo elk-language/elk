@@ -13,17 +13,17 @@ func initAwaitExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := args[0].MustReference().(ast.ExpressionNode)
+			argVal := args[1].MustReference().(ast.ExpressionNode)
 
 			var argSpan *position.Span
-			if args[1].IsUndefined() {
+			if args[2].IsUndefined() {
 				argSpan = position.DefaultSpan
 			} else {
-				argSpan = (*position.Span)(args[1].Pointer())
+				argSpan = (*position.Span)(args[2].Pointer())
 			}
 			self := ast.NewAwaitExpressionNode(
 				argSpan,
-				arg0,
+				argVal,
 			)
 			return value.Ref(self), value.Undefined
 
