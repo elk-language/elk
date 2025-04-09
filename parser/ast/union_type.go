@@ -31,7 +31,7 @@ func (n *UnionTypeNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *UnionTypeNode) String() string {
@@ -52,9 +52,9 @@ func (*UnionTypeNode) IsStatic() bool {
 }
 
 // Create a new binary type expression node eg. `String | Int`
-func NewUnionTypeNode(span *position.Span, elements []TypeNode) *UnionTypeNode {
+func NewUnionTypeNode(loc *position.Location, elements []TypeNode) *UnionTypeNode {
 	return &UnionTypeNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 	}
 }
@@ -70,7 +70,7 @@ func (*UnionTypeNode) DirectClass() *value.Class {
 func (n *UnionTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::UnionTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::UnionTypeNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, stmt := range n.Elements {

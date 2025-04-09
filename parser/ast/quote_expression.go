@@ -32,7 +32,7 @@ func (n *QuoteExpressionNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -66,7 +66,7 @@ func (*QuoteExpressionNode) DirectClass() *value.Class {
 func (n *QuoteExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::QuoteExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::QuoteExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  body: %[\n")
 	for i, stmt := range n.Body {
@@ -91,9 +91,9 @@ func (n *QuoteExpressionNode) Error() string {
 //	quote
 //		print("awesome!")
 //	end
-func NewQuoteExpressionNode(span *position.Span, body []StatementNode) *QuoteExpressionNode {
+func NewQuoteExpressionNode(loc *position.Location, body []StatementNode) *QuoteExpressionNode {
 	return &QuoteExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Body:          body,
 	}
 }

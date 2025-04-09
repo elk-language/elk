@@ -22,7 +22,7 @@ func (n *VariablePatternDeclarationNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Pattern.Equal(value.Ref(o.Pattern)) &&
 		n.Initialiser.Equal(value.Ref(o.Initialiser))
 }
@@ -53,7 +53,7 @@ func (*VariablePatternDeclarationNode) DirectClass() *value.Class {
 func (n *VariablePatternDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::VariablePatternDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::VariablePatternDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  pattern: ")
 	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
@@ -71,9 +71,9 @@ func (v *VariablePatternDeclarationNode) Error() string {
 }
 
 // Create a new variable declaration node with patterns eg. `var [foo, { bar }] = baz()`
-func NewVariablePatternDeclarationNode(span *position.Span, pattern PatternNode, init ExpressionNode) *VariablePatternDeclarationNode {
+func NewVariablePatternDeclarationNode(loc *position.Location, pattern PatternNode, init ExpressionNode) *VariablePatternDeclarationNode {
 	return &VariablePatternDeclarationNode{
-		NodeBase:    NodeBase{span: span},
+		NodeBase:    NodeBase{loc: loc},
 		Pattern:     pattern,
 		Initialiser: init,
 	}

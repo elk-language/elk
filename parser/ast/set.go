@@ -41,7 +41,7 @@ func (n *HashSetLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -102,7 +102,7 @@ func (s *HashSetLiteralNode) IsStatic() bool {
 }
 
 // Create a HashSet literal node eg. `^[1, 5, -6]`
-func NewHashSetLiteralNode(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) *HashSetLiteralNode {
+func NewHashSetLiteralNode(loc *position.Location, elements []ExpressionNode, capacity ExpressionNode) *HashSetLiteralNode {
 	var static bool
 	if capacity != nil {
 		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
@@ -110,7 +110,7 @@ func NewHashSetLiteralNode(span *position.Span, elements []ExpressionNode, capac
 		static = isExpressionSliceStatic(elements)
 	}
 	return &HashSetLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -118,8 +118,8 @@ func NewHashSetLiteralNode(span *position.Span, elements []ExpressionNode, capac
 }
 
 // Same as [NewHashSetLiteralNode] but returns an interface
-func NewHashSetLiteralNodeI(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) ExpressionNode {
-	return NewHashSetLiteralNode(span, elements, capacity)
+func NewHashSetLiteralNodeI(loc *position.Location, elements []ExpressionNode, capacity ExpressionNode) ExpressionNode {
+	return NewHashSetLiteralNode(loc, elements, capacity)
 }
 
 func (*HashSetLiteralNode) Class() *value.Class {
@@ -133,7 +133,7 @@ func (*HashSetLiteralNode) DirectClass() *value.Class {
 func (n *HashSetLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::HashSetLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::HashSetLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -170,7 +170,7 @@ func (n *WordHashSetLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.span.Equal(o.span) ||
+	if !n.loc.Equal(o.loc) ||
 		len(n.Elements) != len(o.Elements) {
 		return false
 	}
@@ -232,7 +232,7 @@ func (w *WordHashSetLiteralNode) IsStatic() bool {
 }
 
 // Create a word HashSet literal node eg. `^w[foo bar]`
-func NewWordHashSetLiteralNode(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) *WordHashSetLiteralNode {
+func NewWordHashSetLiteralNode(loc *position.Location, elements []WordCollectionContentNode, capacity ExpressionNode) *WordHashSetLiteralNode {
 	var static bool
 	if capacity != nil {
 		static = capacity.IsStatic()
@@ -240,7 +240,7 @@ func NewWordHashSetLiteralNode(span *position.Span, elements []WordCollectionCon
 		static = true
 	}
 	return &WordHashSetLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -248,13 +248,13 @@ func NewWordHashSetLiteralNode(span *position.Span, elements []WordCollectionCon
 }
 
 // Same as [NewWordHashSetLiteralNode] but returns an interface.
-func NewWordHashSetLiteralNodeI(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) ExpressionNode {
-	return NewWordHashSetLiteralNode(span, elements, capacity)
+func NewWordHashSetLiteralNodeI(loc *position.Location, elements []WordCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewWordHashSetLiteralNode(loc, elements, capacity)
 }
 
 // Same as [NewWordHashSetLiteralNode] but returns an interface.
-func NewWordHashSetLiteralPatternExpressionNode(span *position.Span, elements []WordCollectionContentNode) PatternExpressionNode {
-	return NewWordHashSetLiteralNode(span, elements, nil)
+func NewWordHashSetLiteralPatternExpressionNode(loc *position.Location, elements []WordCollectionContentNode) PatternExpressionNode {
+	return NewWordHashSetLiteralNode(loc, elements, nil)
 }
 
 func (*WordHashSetLiteralNode) Class() *value.Class {
@@ -268,7 +268,7 @@ func (*WordHashSetLiteralNode) DirectClass() *value.Class {
 func (n *WordHashSetLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::WordHashSetLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::WordHashSetLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -306,7 +306,7 @@ func (n *SymbolHashSetLiteralNode) Equal(other value.Value) bool {
 	}
 
 	if len(n.Elements) != len(o.Elements) ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -367,7 +367,7 @@ func (s *SymbolHashSetLiteralNode) IsStatic() bool {
 }
 
 // Create a symbol HashSet literal node eg. `^s[foo bar]`
-func NewSymbolHashSetLiteralNode(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) *SymbolHashSetLiteralNode {
+func NewSymbolHashSetLiteralNode(loc *position.Location, elements []SymbolCollectionContentNode, capacity ExpressionNode) *SymbolHashSetLiteralNode {
 	var static bool
 	if capacity != nil {
 		static = capacity.IsStatic()
@@ -375,7 +375,7 @@ func NewSymbolHashSetLiteralNode(span *position.Span, elements []SymbolCollectio
 		static = true
 	}
 	return &SymbolHashSetLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -383,13 +383,13 @@ func NewSymbolHashSetLiteralNode(span *position.Span, elements []SymbolCollectio
 }
 
 // Same as [NewSymbolHashSetLiteralNode] but returns an interface.
-func NewSymbolHashSetLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) ExpressionNode {
-	return NewSymbolHashSetLiteralNode(span, elements, capacity)
+func NewSymbolHashSetLiteralNodeI(loc *position.Location, elements []SymbolCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewSymbolHashSetLiteralNode(loc, elements, capacity)
 }
 
 // Same as [NewSymbolHashSetLiteralNode] but returns an interface.
-func NewSymbolHashSetLiteralPatternExpressionNode(span *position.Span, elements []SymbolCollectionContentNode) PatternExpressionNode {
-	return NewSymbolHashSetLiteralNode(span, elements, nil)
+func NewSymbolHashSetLiteralPatternExpressionNode(loc *position.Location, elements []SymbolCollectionContentNode) PatternExpressionNode {
+	return NewSymbolHashSetLiteralNode(loc, elements, nil)
 }
 
 func (*SymbolHashSetLiteralNode) Class() *value.Class {
@@ -403,7 +403,7 @@ func (*SymbolHashSetLiteralNode) DirectClass() *value.Class {
 func (n *SymbolHashSetLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolHashSetLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolHashSetLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -462,7 +462,7 @@ func (n *HexHashSetLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -503,7 +503,7 @@ func (n *HexHashSetLiteralNode) String() string {
 }
 
 // Create a hex HashSet literal node eg. `^x[ff ee]`
-func NewHexHashSetLiteralNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) *HexHashSetLiteralNode {
+func NewHexHashSetLiteralNode(loc *position.Location, elements []IntCollectionContentNode, capacity ExpressionNode) *HexHashSetLiteralNode {
 	var static bool
 	if capacity != nil {
 		static = capacity.IsStatic()
@@ -511,7 +511,7 @@ func NewHexHashSetLiteralNode(span *position.Span, elements []IntCollectionConte
 		static = true
 	}
 	return &HexHashSetLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -519,13 +519,13 @@ func NewHexHashSetLiteralNode(span *position.Span, elements []IntCollectionConte
 }
 
 // Same as [NewHexHashSetLiteralNode] but returns an interface.
-func NewHexHashSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
-	return NewHexHashSetLiteralNode(span, elements, capacity)
+func NewHexHashSetLiteralNodeI(loc *position.Location, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewHexHashSetLiteralNode(loc, elements, capacity)
 }
 
 // Same as [NewHexHashSetLiteralNode] but returns an interface.
-func NewHexHashSetLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
-	return NewHexHashSetLiteralNode(span, elements, nil)
+func NewHexHashSetLiteralPatternExpressionNode(loc *position.Location, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewHexHashSetLiteralNode(loc, elements, nil)
 }
 
 func (*HexHashSetLiteralNode) Class() *value.Class {
@@ -539,7 +539,7 @@ func (*HexHashSetLiteralNode) DirectClass() *value.Class {
 func (n *HexHashSetLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::HexHashSetLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::HexHashSetLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -576,7 +576,7 @@ func (n *BinHashSetLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.Span().Equal(o.Span()) {
+	if !n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -643,7 +643,7 @@ func (b *BinHashSetLiteralNode) IsStatic() bool {
 }
 
 // Create a bin HashSet literal node eg. `^b[11 10]`
-func NewBinHashSetLiteralNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) *BinHashSetLiteralNode {
+func NewBinHashSetLiteralNode(loc *position.Location, elements []IntCollectionContentNode, capacity ExpressionNode) *BinHashSetLiteralNode {
 	var static bool
 	if capacity != nil {
 		static = capacity.IsStatic()
@@ -651,7 +651,7 @@ func NewBinHashSetLiteralNode(span *position.Span, elements []IntCollectionConte
 		static = true
 	}
 	return &BinHashSetLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -659,13 +659,13 @@ func NewBinHashSetLiteralNode(span *position.Span, elements []IntCollectionConte
 }
 
 // Same as [NewBinHashSetLiteralNode] but returns an interface.
-func NewBinHashSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
-	return NewBinHashSetLiteralNode(span, elements, capacity)
+func NewBinHashSetLiteralNodeI(loc *position.Location, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewBinHashSetLiteralNode(loc, elements, capacity)
 }
 
 // Same as [NewBinHashSetLiteralNode] but returns an interface.
-func NewBinHashSetLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
-	return NewBinHashSetLiteralNode(span, elements, nil)
+func NewBinHashSetLiteralPatternExpressionNode(loc *position.Location, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewBinHashSetLiteralNode(loc, elements, nil)
 }
 
 func (*BinHashSetLiteralNode) Class() *value.Class {
@@ -679,7 +679,7 @@ func (*BinHashSetLiteralNode) DirectClass() *value.Class {
 func (n *BinHashSetLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::BinHashSetLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::BinHashSetLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -724,7 +724,7 @@ func (n *SetPatternNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *SetPatternNode) String() string {
@@ -755,7 +755,7 @@ func (*SetPatternNode) DirectClass() *value.Class {
 func (n *SetPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SetPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SetPatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -776,14 +776,14 @@ func (n *SetPatternNode) Error() string {
 }
 
 // Create a Set pattern node eg. `^[1, "foo"]`
-func NewSetPatternNode(span *position.Span, elements []PatternNode) *SetPatternNode {
+func NewSetPatternNode(loc *position.Location, elements []PatternNode) *SetPatternNode {
 	return &SetPatternNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 	}
 }
 
 // Same as [NewSetPatternNode] but returns an interface
-func NewSetPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
-	return NewSetPatternNode(span, elements)
+func NewSetPatternNodeI(loc *position.Location, elements []PatternNode) PatternNode {
+	return NewSetPatternNode(loc, elements)
 }

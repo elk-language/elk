@@ -21,7 +21,7 @@ type Position struct {
 	Column     int // Source column number where the fragment starts
 }
 
-var Default = New(0, 1, 1)
+var Default = New(0, 0, 0)
 
 // Create a new source position struct.
 func New(byteOffset, line, column int) *Position {

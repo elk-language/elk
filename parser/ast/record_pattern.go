@@ -22,7 +22,7 @@ func (n *RecordPatternNode) Equal(other value.Value) bool {
 	}
 
 	if len(n.Elements) != len(o.Elements) ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -57,16 +57,16 @@ func (m *RecordPatternNode) IsStatic() bool {
 }
 
 // Create a Record pattern node eg. `%{ foo: 5, bar: a, 5 => >= 10 }`
-func NewRecordPatternNode(span *position.Span, elements []PatternNode) *RecordPatternNode {
+func NewRecordPatternNode(loc *position.Location, elements []PatternNode) *RecordPatternNode {
 	return &RecordPatternNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Elements: elements,
 	}
 }
 
 // Same as [NewRecordPatternNode] but returns an interface
-func NewRecordPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
-	return NewRecordPatternNode(span, elements)
+func NewRecordPatternNodeI(loc *position.Location, elements []PatternNode) PatternNode {
+	return NewRecordPatternNode(loc, elements)
 }
 
 func (*RecordPatternNode) Class() *value.Class {
@@ -80,7 +80,7 @@ func (*RecordPatternNode) DirectClass() *value.Class {
 func (n *RecordPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::RecordPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::RecordPatternNode{\n  loc: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, stmt := range n.Elements {

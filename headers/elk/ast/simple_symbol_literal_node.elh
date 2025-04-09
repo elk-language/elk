@@ -9,8 +9,8 @@ module Std::Elk::AST
             SymbolCollectionContentNode,
             SymbolLiteralNode
 
-    init(content: String, span: String::Span = loop; end); end
+    init(content: String, location: FS::Location = loop; end); end
     def content: String; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

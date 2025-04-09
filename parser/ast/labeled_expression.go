@@ -23,7 +23,7 @@ func (n *LabeledExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Label == o.Label &&
 		n.Expression.Equal(value.Ref(o.Expression))
 }
@@ -56,9 +56,9 @@ func (l *LabeledExpressionNode) IsStatic() bool {
 }
 
 // Create a new labeled expression node eg. `$foo: 1 + 2`
-func NewLabeledExpressionNode(span *position.Span, label string, expr ExpressionNode) *LabeledExpressionNode {
+func NewLabeledExpressionNode(loc *position.Location, label string, expr ExpressionNode) *LabeledExpressionNode {
 	return &LabeledExpressionNode{
-		NodeBase:   NodeBase{span: span},
+		NodeBase:   NodeBase{loc: loc},
 		Label:      label,
 		Expression: expr,
 	}
@@ -75,7 +75,7 @@ func (*LabeledExpressionNode) DirectClass() *value.Class {
 func (n *LabeledExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::LabeledExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::LabeledExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  label: ")
 	buff.WriteString(n.Label)

@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class NilableTypeNode
     include TypeNode
 
-    init(type_node: TypeNode, span: String::Span = loop; end); end
+    init(type_node: TypeNode, location: FS::Location = loop; end); end
     def type_node: TypeNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

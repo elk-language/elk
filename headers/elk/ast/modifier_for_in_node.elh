@@ -9,12 +9,12 @@ module Std::Elk::AST
       then_expression: ExpressionNode,
       pattern: PatternNode,
       in_expression: ExpressionNode,
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def then_expression: ExpressionNode; end
     def pattern: PatternNode; end
     def in_expression: ExpressionNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

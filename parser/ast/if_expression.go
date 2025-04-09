@@ -25,7 +25,7 @@ func (n *IfExpressionNode) Equal(other value.Value) bool {
 	}
 
 	if !n.Condition.Equal(value.Ref(o.Condition)) ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -88,9 +88,9 @@ func (*IfExpressionNode) IsStatic() bool {
 }
 
 // Create a new `if` expression node eg. `if foo then println("bar")`
-func NewIfExpressionNode(span *position.Span, cond ExpressionNode, then, els []StatementNode) *IfExpressionNode {
+func NewIfExpressionNode(loc *position.Location, cond ExpressionNode, then, els []StatementNode) *IfExpressionNode {
 	return &IfExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		ThenBody:      then,
 		Condition:     cond,
 		ElseBody:      els,
@@ -108,7 +108,7 @@ func (*IfExpressionNode) DirectClass() *value.Class {
 func (n *IfExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::IfExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::IfExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  condition: ")
 	indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)

@@ -5,10 +5,10 @@ module Std::Elk::AST
   sealed primitive class BinaryPatternNode
     include PatternNode
 
-    init(op: Elk::Token, left: PatternNode, right: PatternNode, span: String::Span = loop; end); end
+    init(op: Elk::Token, left: PatternNode, right: PatternNode, location: FS::Location = loop; end); end
     def op: Elk::Token; end
     def left: PatternNode; end
     def right: PatternNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

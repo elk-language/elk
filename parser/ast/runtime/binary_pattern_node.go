@@ -18,14 +18,14 @@ func initBinaryPatternNode() {
 			argLeft := args[2].MustReference().(ast.PatternNode)
 			argRight := args[3].MustReference().(ast.PatternNode)
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[4].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[4].Pointer())
+				argLoc = (*position.Location)(args[4].Pointer())
 			}
 			self := ast.NewBinaryPatternNode(
-				argSpan,
+				argLoc,
 				argOp,
 				argLeft,
 				argRight,

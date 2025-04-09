@@ -14,11 +14,11 @@ func initGenericMethodCallNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[7].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[7].Pointer())
+				argLoc = (*position.Location)(args[7].Pointer())
 			}
 
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
@@ -32,7 +32,7 @@ func initGenericMethodCallNode() {
 
 			var argOp *token.Token
 			if args[4].IsUndefined() {
-				argOp = token.New(argSpan, token.DOT)
+				argOp = token.New(argLoc, token.DOT)
 			} else {
 				argOp = args[4].MustReference().(*token.Token)
 			}
@@ -56,7 +56,7 @@ func initGenericMethodCallNode() {
 			}
 
 			self := ast.NewGenericMethodCallNode(
-				argSpan,
+				argLoc,
 				argReceiver,
 				argOp,
 				argName,

@@ -35,7 +35,7 @@ func (e *ExpressionStatementNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return o.span.Equal(o.span) &&
+	return o.loc.Equal(o.loc) &&
 		e.Expression.Equal(value.Ref(o.Expression))
 }
 
@@ -59,7 +59,7 @@ func (e *ExpressionStatementNode) DirectClass() *value.Class {
 func (n *ExpressionStatementNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ExpressionStatementNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ExpressionStatementNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
@@ -74,17 +74,17 @@ func (e *ExpressionStatementNode) Error() string {
 }
 
 // Create a new expression statement node eg. `5 * 2\n`
-func NewExpressionStatementNode(span *position.Span, expr ExpressionNode) *ExpressionStatementNode {
+func NewExpressionStatementNode(loc *position.Location, expr ExpressionNode) *ExpressionStatementNode {
 	return &ExpressionStatementNode{
-		NodeBase:   NodeBase{span: span},
+		NodeBase:   NodeBase{loc: loc},
 		Expression: expr,
 	}
 }
 
 // Same as [NewExpressionStatementNode] but returns an interface
-func NewExpressionStatementNodeI(span *position.Span, expr ExpressionNode) StatementNode {
+func NewExpressionStatementNodeI(loc *position.Location, expr ExpressionNode) StatementNode {
 	return &ExpressionStatementNode{
-		NodeBase:   NodeBase{span: span},
+		NodeBase:   NodeBase{loc: loc},
 		Expression: expr,
 	}
 }
@@ -101,7 +101,7 @@ func (n *EmptyStatementNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -122,7 +122,7 @@ func (e *EmptyStatementNode) DirectClass() *value.Class {
 }
 
 func (e *EmptyStatementNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::EmptyStatementNode{span: %s}", (*value.Span)(e.span).Inspect())
+	return fmt.Sprintf("Std::Elk::AST::EmptyStatementNode{location: %s}", (*value.Location)(e.loc).Inspect())
 }
 
 func (e *EmptyStatementNode) Error() string {
@@ -130,9 +130,9 @@ func (e *EmptyStatementNode) Error() string {
 }
 
 // Create a new empty statement node.
-func NewEmptyStatementNode(span *position.Span) *EmptyStatementNode {
+func NewEmptyStatementNode(loc *position.Location) *EmptyStatementNode {
 	return &EmptyStatementNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 	}
 }
 
@@ -150,7 +150,7 @@ func (n *ImportStatementNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.Path.Equal(value.Ref(o.Path)) && n.span.Equal(o.span)
+	return n.Path.Equal(value.Ref(o.Path)) && n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -176,7 +176,7 @@ func (e *ImportStatementNode) DirectClass() *value.Class {
 }
 
 func (e *ImportStatementNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::ImportStatementNode{span: %s, path: %s}", (*value.Span)(e.span).Inspect(), e.Path.Inspect())
+	return fmt.Sprintf("Std::Elk::AST::ImportStatementNode{location: %s, path: %s}", (*value.Location)(e.loc).Inspect(), e.Path.Inspect())
 }
 
 func (e *ImportStatementNode) Error() string {
@@ -184,9 +184,9 @@ func (e *ImportStatementNode) Error() string {
 }
 
 // Create a new import statement node eg. `import "foo"`
-func NewImportStatementNode(span *position.Span, path StringLiteralNode) *ImportStatementNode {
+func NewImportStatementNode(loc *position.Location, path StringLiteralNode) *ImportStatementNode {
 	return &ImportStatementNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Path:     path,
 	}
 }
@@ -204,7 +204,7 @@ func (n *ParameterStatementNode) Equal(other value.Value) bool {
 	}
 
 	return n.Parameter.Equal(value.Ref(o.Parameter)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -227,7 +227,7 @@ func (*ParameterStatementNode) DirectClass() *value.Class {
 func (n *ParameterStatementNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ParameterStatementNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ParameterStatementNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  parameter: ")
 	indent.IndentStringFromSecondLine(&buff, n.Parameter.Inspect(), 1)
@@ -242,17 +242,17 @@ func (e *ParameterStatementNode) Error() string {
 }
 
 // Create a new formal parameter statement node eg. `foo: Bar\n`
-func NewParameterStatementNode(span *position.Span, param ParameterNode) *ParameterStatementNode {
+func NewParameterStatementNode(loc *position.Location, param ParameterNode) *ParameterStatementNode {
 	return &ParameterStatementNode{
-		NodeBase:  NodeBase{span: span},
+		NodeBase:  NodeBase{loc: loc},
 		Parameter: param,
 	}
 }
 
 // Same as [NewParameterStatementNode] but returns an interface
-func NewParameterStatementNodeI(span *position.Span, param ParameterNode) StructBodyStatementNode {
+func NewParameterStatementNodeI(loc *position.Location, param ParameterNode) StructBodyStatementNode {
 	return &ParameterStatementNode{
-		NodeBase:  NodeBase{span: span},
+		NodeBase:  NodeBase{loc: loc},
 		Parameter: param,
 	}
 }

@@ -34,7 +34,7 @@ func (n *BreakExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.Span().Equal(o.Span())
+	return n.loc.Equal(o.loc)
 }
 
 func (n *BreakExpressionNode) String() string {
@@ -72,9 +72,9 @@ func (*BreakExpressionNode) Type(*types.GlobalEnvironment) types.Type {
 }
 
 // Create a new `break` expression node eg. `break`
-func NewBreakExpressionNode(span *position.Span, label string, val ExpressionNode) *BreakExpressionNode {
+func NewBreakExpressionNode(loc *position.Location, label string, val ExpressionNode) *BreakExpressionNode {
 	return &BreakExpressionNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Label:    label,
 		Value:    val,
 	}
@@ -91,7 +91,7 @@ func (*BreakExpressionNode) DirectClass() *value.Class {
 func (n *BreakExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::BreakExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::BreakExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  label: ")
 	buff.WriteString(n.Label)

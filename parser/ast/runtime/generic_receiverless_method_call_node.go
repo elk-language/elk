@@ -39,14 +39,14 @@ func initGenericReceiverlessMethodCallNode() {
 				}
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[5].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[5].Pointer())
+				argLoc = (*position.Location)(args[5].Pointer())
 			}
 			self := ast.NewGenericReceiverlessMethodCallNode(
-				argSpan,
+				argLoc,
 				argName,
 				argTypeArgs,
 				argPosArgs,

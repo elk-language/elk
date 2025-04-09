@@ -32,7 +32,7 @@ func (n *GoExpressionNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -68,9 +68,9 @@ func (*GoExpressionNode) IsStatic() bool {
 }
 
 // Create a new `go` expression node eg. `go foo()`, `go; foo(); end`
-func NewGoExpressionNode(span *position.Span, body []StatementNode) *GoExpressionNode {
+func NewGoExpressionNode(loc *position.Location, body []StatementNode) *GoExpressionNode {
 	return &GoExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Body:          body,
 	}
 }
@@ -86,7 +86,7 @@ func (*GoExpressionNode) DirectClass() *value.Class {
 func (n *GoExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::GoExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::GoExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  body: %[\n")
 	for i, stmt := range n.Body {

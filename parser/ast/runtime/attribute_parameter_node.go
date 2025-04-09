@@ -25,14 +25,14 @@ func initAttributeParameterNode() {
 				argInit = args[3].MustReference().(ast.ExpressionNode)
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[4].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[4].Pointer())
+				argLoc = (*position.Location)(args[4].Pointer())
 			}
 			self := ast.NewAttributeParameterNode(
-				argSpan,
+				argLoc,
 				argName,
 				argTypeNode,
 				argInit,

@@ -31,7 +31,7 @@ func (n *IntersectionTypeNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *IntersectionTypeNode) String() string {
@@ -52,9 +52,9 @@ func (*IntersectionTypeNode) IsStatic() bool {
 }
 
 // Create a new binary type expression node eg. `String & Int`
-func NewIntersectionTypeNode(span *position.Span, elements []TypeNode) *IntersectionTypeNode {
+func NewIntersectionTypeNode(loc *position.Location, elements []TypeNode) *IntersectionTypeNode {
 	return &IntersectionTypeNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 	}
 }
@@ -70,7 +70,7 @@ func (*IntersectionTypeNode) DirectClass() *value.Class {
 func (n *IntersectionTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::IntersectionTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::IntersectionTypeNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, stmt := range n.Elements {

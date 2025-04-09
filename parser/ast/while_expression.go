@@ -23,7 +23,7 @@ func (n *WhileExpressionNode) Equal(other value.Value) bool {
 	}
 
 	if !n.Condition.Equal(value.Ref(o.Condition)) ||
-		!n.span.Equal(o.span) ||
+		!n.loc.Equal(o.loc) ||
 		len(n.ThenBody) != len(o.ThenBody) {
 		return false
 	}
@@ -58,9 +58,9 @@ func (*WhileExpressionNode) IsStatic() bool {
 }
 
 // Create a new `while` expression node eg. `while i < 5 then i += 5`
-func NewWhileExpressionNode(span *position.Span, cond ExpressionNode, then []StatementNode) *WhileExpressionNode {
+func NewWhileExpressionNode(loc *position.Location, cond ExpressionNode, then []StatementNode) *WhileExpressionNode {
 	return &WhileExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Condition:     cond,
 		ThenBody:      then,
 	}
@@ -77,7 +77,7 @@ func (*WhileExpressionNode) DirectClass() *value.Class {
 func (n *WhileExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::WhileExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::WhileExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  condition: ")
 	indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)

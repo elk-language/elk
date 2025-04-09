@@ -15,12 +15,12 @@ module Std::Elk::AST
       body: ArrayTuple[StatementNode] = loop; end,
       catches: ArrayTuple[CatchNode] = loop; end,
       finally_body: ArrayTuple[StatementNode] = loop; end,
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def body: ArrayTuple[StatementNode]; end
     def catches: ArrayTuple[CatchNode]; end
     def finally_body: ArrayTuple[StatementNode]; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

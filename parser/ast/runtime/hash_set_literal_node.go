@@ -27,14 +27,14 @@ func initHashSetLiteralNode() {
 				argCapacity = args[2].MustReference().(ast.ExpressionNode)
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[3].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argLoc = (*position.Location)(args[3].Pointer())
 			}
 			self := ast.NewHashSetLiteralNode(
-				argSpan,
+				argLoc,
 				argElements,
 				argCapacity,
 			)

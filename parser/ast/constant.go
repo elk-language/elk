@@ -76,7 +76,7 @@ func (n *PublicConstantNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *PublicConstantNode) String() string {
@@ -96,7 +96,11 @@ func (*PublicConstantNode) DirectClass() *value.Class {
 }
 
 func (n *PublicConstantNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::PublicConstantNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::PublicConstantNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *PublicConstantNode) Error() string {
@@ -104,9 +108,9 @@ func (n *PublicConstantNode) Error() string {
 }
 
 // Create a new public constant node eg. `Foo`.
-func NewPublicConstantNode(span *position.Span, val string) *PublicConstantNode {
+func NewPublicConstantNode(loc *position.Location, val string) *PublicConstantNode {
 	return &PublicConstantNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -124,7 +128,7 @@ func (n *PrivateConstantNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *PrivateConstantNode) String() string {
@@ -144,7 +148,11 @@ func (*PrivateConstantNode) DirectClass() *value.Class {
 }
 
 func (n *PrivateConstantNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::PrivateConstantNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::PrivateConstantNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *PrivateConstantNode) Error() string {
@@ -152,9 +160,9 @@ func (n *PrivateConstantNode) Error() string {
 }
 
 // Create a new private constant node eg. `_Foo`.
-func NewPrivateConstantNode(span *position.Span, val string) *PrivateConstantNode {
+func NewPrivateConstantNode(loc *position.Location, val string) *PrivateConstantNode {
 	return &PrivateConstantNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -175,7 +183,7 @@ func (n *PublicConstantAsNode) Equal(other value.Value) bool {
 
 	return n.Target.Equal(value.Ref(o.Target)) &&
 		n.AsName == o.AsName &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *PublicConstantAsNode) String() string {
@@ -197,7 +205,7 @@ func (*PublicConstantAsNode) DirectClass() *value.Class {
 func (n *PublicConstantAsNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::PublicConstantAsNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::PublicConstantAsNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  target: ")
 	indent.IndentStringFromSecondLine(&buff, n.Target.Inspect(), 1)
@@ -215,9 +223,9 @@ func (n *PublicConstantAsNode) Error() string {
 }
 
 // Create a new identifier with as eg. `Foo as Bar`.
-func NewPublicConstantAsNode(span *position.Span, target *PublicConstantNode, as string) *PublicConstantAsNode {
+func NewPublicConstantAsNode(loc *position.Location, target *PublicConstantNode, as string) *PublicConstantAsNode {
 	return &PublicConstantAsNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Target:   target,
 		AsName:   as,
 	}
@@ -245,7 +253,7 @@ func (n *ConstantLookupNode) Equal(other value.Value) bool {
 	}
 
 	return n.Right.Equal(value.Ref(o.Right)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -276,7 +284,7 @@ func (*ConstantLookupNode) DirectClass() *value.Class {
 func (n *ConstantLookupNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ConstantLookupNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ConstantLookupNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  left: ")
 	indent.IndentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
@@ -294,9 +302,9 @@ func (n *ConstantLookupNode) Error() string {
 }
 
 // Create a new constant lookup expression node eg. `Foo::Bar`
-func NewConstantLookupNode(span *position.Span, left ExpressionNode, right ComplexConstantNode) *ConstantLookupNode {
+func NewConstantLookupNode(loc *position.Location, left ExpressionNode, right ComplexConstantNode) *ConstantLookupNode {
 	return &ConstantLookupNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Left:          left,
 		Right:         right,
 	}
@@ -330,7 +338,7 @@ func (n *GenericConstantNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // String returns a string representation of the GenericConstantNode.
@@ -367,7 +375,7 @@ func (*GenericConstantNode) DirectClass() *value.Class {
 func (n *GenericConstantNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::GenericConstantNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::GenericConstantNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  constant: ")
 	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
@@ -391,9 +399,9 @@ func (n *GenericConstantNode) Error() string {
 }
 
 // Create a generic constant node eg. `ArrayList[String]`
-func NewGenericConstantNode(span *position.Span, constant ComplexConstantNode, args []TypeNode) *GenericConstantNode {
+func NewGenericConstantNode(loc *position.Location, constant ComplexConstantNode, args []TypeNode) *GenericConstantNode {
 	return &GenericConstantNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Constant:      constant,
 		TypeArguments: args,
 	}

@@ -30,7 +30,7 @@ module Std::Elk::AST
     def throw_type: TypeNode; end
     def body: ArrayTuple[StatementNode]; end
     def flags: UInt8; end
-    def span: String::Span; end
+    def location: FS::Location; end
     def location: FS::Location; end
 
     ##[

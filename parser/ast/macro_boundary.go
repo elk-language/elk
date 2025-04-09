@@ -33,7 +33,7 @@ func (n *MacroBoundaryNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span) && n.Name == o.Name
+	return n.loc.Equal(o.loc) && n.Name == o.Name
 }
 
 // Return a string representation of the node.
@@ -71,7 +71,7 @@ func (*MacroBoundaryNode) DirectClass() *value.Class {
 func (n *MacroBoundaryNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::MacroBoundaryNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::MacroBoundaryNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	if n.Name != "" {
 		fmt.Fprintf(&buff, ",\n  name: %s", value.String(n.Name).Inspect())
@@ -99,9 +99,9 @@ func (n *MacroBoundaryNode) Error() string {
 //	do macro
 //		print("awesome!")
 //	end
-func NewMacroBoundaryNode(span *position.Span, body []StatementNode, name string) *MacroBoundaryNode {
+func NewMacroBoundaryNode(loc *position.Location, body []StatementNode, name string) *MacroBoundaryNode {
 	return &MacroBoundaryNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Name:          name,
 		Body:          body,
 	}

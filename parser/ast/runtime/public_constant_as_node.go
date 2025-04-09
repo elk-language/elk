@@ -16,14 +16,14 @@ func initPublicConstantAsNode() {
 			argTarget := args[1].MustReference().(*ast.PublicConstantNode)
 			argAsName := (string)(args[2].MustReference().(value.String))
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[3].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argLoc = (*position.Location)(args[3].Pointer())
 			}
 			self := ast.NewPublicConstantAsNode(
-				argSpan,
+				argLoc,
 				argTarget,
 				argAsName,
 			)

@@ -41,7 +41,7 @@ func (n *HashMapLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -102,7 +102,7 @@ func (m *HashMapLiteralNode) IsStatic() bool {
 }
 
 // Create a HashMap literal node eg. `{ foo: 1, 'bar' => 5, baz }`
-func NewHashMapLiteralNode(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) *HashMapLiteralNode {
+func NewHashMapLiteralNode(loc *position.Location, elements []ExpressionNode, capacity ExpressionNode) *HashMapLiteralNode {
 	var static bool
 	if capacity != nil {
 		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
@@ -110,7 +110,7 @@ func NewHashMapLiteralNode(span *position.Span, elements []ExpressionNode, capac
 		static = isExpressionSliceStatic(elements)
 	}
 	return &HashMapLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -118,8 +118,8 @@ func NewHashMapLiteralNode(span *position.Span, elements []ExpressionNode, capac
 }
 
 // Same as [NewHashMapLiteralNode] but returns an interface
-func NewHashMapLiteralNodeI(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) ExpressionNode {
-	return NewHashMapLiteralNode(span, elements, capacity)
+func NewHashMapLiteralNodeI(loc *position.Location, elements []ExpressionNode, capacity ExpressionNode) ExpressionNode {
+	return NewHashMapLiteralNode(loc, elements, capacity)
 }
 
 func (*HashMapLiteralNode) Class() *value.Class {
@@ -133,7 +133,7 @@ func (*HashMapLiteralNode) DirectClass() *value.Class {
 func (n *HashMapLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::HashMapLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::HashMapLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -180,7 +180,7 @@ func (n *HashRecordLiteralNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -228,17 +228,17 @@ func (r *HashRecordLiteralNode) IsStatic() bool {
 }
 
 // Create a Record literal node eg. `%{ foo: 1, 'bar' => 5, baz }`
-func NewHashRecordLiteralNode(span *position.Span, elements []ExpressionNode) *HashRecordLiteralNode {
+func NewHashRecordLiteralNode(loc *position.Location, elements []ExpressionNode) *HashRecordLiteralNode {
 	return &HashRecordLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		static:        isExpressionSliceStatic(elements),
 	}
 }
 
 // Same as [NewHashRecordLiteralNode] but returns an interface
-func NewHashRecordLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
-	return NewHashRecordLiteralNode(span, elements)
+func NewHashRecordLiteralNodeI(loc *position.Location, elements []ExpressionNode) ExpressionNode {
+	return NewHashRecordLiteralNode(loc, elements)
 }
 
 func (*HashRecordLiteralNode) Class() *value.Class {
@@ -252,7 +252,7 @@ func (*HashRecordLiteralNode) DirectClass() *value.Class {
 func (n *HashRecordLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::HashRecordLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::HashRecordLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {

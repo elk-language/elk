@@ -25,7 +25,7 @@ func (n *UnaryExpressionNode) Equal(other value.Value) bool {
 
 	return n.Op.Equal(o.Op) &&
 		n.Right.Equal(value.Ref(o.Right)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *UnaryExpressionNode) String() string {
@@ -50,9 +50,9 @@ func (u *UnaryExpressionNode) IsStatic() bool {
 }
 
 // Create a new unary expression node.
-func NewUnaryExpressionNode(span *position.Span, op *token.Token, right ExpressionNode) *UnaryExpressionNode {
+func NewUnaryExpressionNode(loc *position.Location, op *token.Token, right ExpressionNode) *UnaryExpressionNode {
 	return &UnaryExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Op:            op,
 		Right:         right,
 	}
@@ -69,7 +69,7 @@ func (*UnaryExpressionNode) DirectClass() *value.Class {
 func (n *UnaryExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::UnaryExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::UnaryExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

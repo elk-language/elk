@@ -22,7 +22,7 @@ func (n *InstanceOfTypeNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.TypeNode.Equal(value.Ref(o.TypeNode))
 }
 
@@ -49,9 +49,9 @@ func (*InstanceOfTypeNode) IsStatic() bool {
 }
 
 // Create a new instance of type node eg. `%self`
-func NewInstanceOfTypeNode(span *position.Span, typ TypeNode) *InstanceOfTypeNode {
+func NewInstanceOfTypeNode(loc *position.Location, typ TypeNode) *InstanceOfTypeNode {
 	return &InstanceOfTypeNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		TypeNode:      typ,
 	}
 }
@@ -67,7 +67,7 @@ func (*InstanceOfTypeNode) DirectClass() *value.Class {
 func (n *InstanceOfTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::InstanceOfTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::InstanceOfTypeNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  type_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)

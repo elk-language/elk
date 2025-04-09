@@ -5,9 +5,9 @@ module Std::Elk::AST
   sealed primitive class KeyValueExpressionNode
     include ExpressionNode
 
-    init(key: ExpressionNode, value: ExpressionNode, span: String::Span = loop; end); end
+    init(key: ExpressionNode, value: ExpressionNode, location: FS::Location = loop; end); end
     def key: ExpressionNode; end
     def value: ExpressionNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

@@ -55,7 +55,7 @@ func (n *UsingAllEntryNode) Equal(other value.Value) bool {
 	}
 
 	return n.Namespace.Equal(value.Ref(o.Namespace)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *UsingAllEntryNode) String() string {
@@ -82,7 +82,7 @@ func (*UsingAllEntryNode) DirectClass() *value.Class {
 func (n *UsingAllEntryNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::UsingAllEntryNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::UsingAllEntryNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  namespace: ")
 	indent.IndentStringFromSecondLine(&buff, n.Namespace.Inspect(), 1)
@@ -97,9 +97,9 @@ func (n *UsingAllEntryNode) Error() string {
 }
 
 // Create a new using all entry node eg. `Foo::*`, `A::B::C::*`
-func NewUsingAllEntryNode(span *position.Span, namespace UsingEntryNode) *UsingAllEntryNode {
+func NewUsingAllEntryNode(loc *position.Location, namespace UsingEntryNode) *UsingAllEntryNode {
 	return &UsingAllEntryNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Namespace:     namespace,
 	}
 }
@@ -119,7 +119,7 @@ func (n *UsingEntryWithSubentriesNode) Equal(other value.Value) bool {
 
 	if len(n.Subentries) != len(o.Subentries) ||
 		!n.Namespace.Equal(value.Ref(o.Namespace)) ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -155,9 +155,9 @@ func (*UsingEntryWithSubentriesNode) IsStatic() bool {
 }
 
 // Create a new using all entry node eg. `Foo::*`, `A::B::C::*`
-func NewUsingEntryWithSubentriesNode(span *position.Span, namespace UsingEntryNode, subentries []UsingSubentryNode) *UsingEntryWithSubentriesNode {
+func NewUsingEntryWithSubentriesNode(loc *position.Location, namespace UsingEntryNode, subentries []UsingSubentryNode) *UsingEntryWithSubentriesNode {
 	return &UsingEntryWithSubentriesNode{
-		NodeBase:   NodeBase{span: span},
+		NodeBase:   NodeBase{loc: loc},
 		Namespace:  namespace,
 		Subentries: subentries,
 	}
@@ -174,7 +174,7 @@ func (*UsingEntryWithSubentriesNode) DirectClass() *value.Class {
 func (n *UsingEntryWithSubentriesNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::UsingEntryWithSubentriesNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::UsingEntryWithSubentriesNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  namespace: ")
 	indent.IndentStringFromSecondLine(&buff, n.Namespace.Inspect(), 1)
@@ -210,7 +210,7 @@ func (n *UsingExpressionNode) Equal(other value.Value) bool {
 	}
 
 	if len(n.Entries) != len(o.Entries) ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -257,7 +257,7 @@ func (*UsingExpressionNode) DirectClass() *value.Class {
 func (n *UsingExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::UsingExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::UsingExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  entries: %[\n")
 	for i, element := range n.Entries {
@@ -278,9 +278,9 @@ func (n *UsingExpressionNode) Error() string {
 }
 
 // Create a using expression node eg. `using Foo`
-func NewUsingExpressionNode(span *position.Span, consts []UsingEntryNode) *UsingExpressionNode {
+func NewUsingExpressionNode(loc *position.Location, consts []UsingEntryNode) *UsingExpressionNode {
 	return &UsingExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Entries:       consts,
 	}
 }

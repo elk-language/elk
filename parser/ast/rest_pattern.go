@@ -22,7 +22,7 @@ func (n *RestPatternNode) Equal(other value.Value) bool {
 	}
 
 	return n.Identifier.Equal(value.Ref(o.Identifier)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *RestPatternNode) String() string {
@@ -39,9 +39,9 @@ func (r *RestPatternNode) IsStatic() bool {
 }
 
 // Create a rest pattern node eg. `*a`
-func NewRestPatternNode(span *position.Span, ident IdentifierNode) *RestPatternNode {
+func NewRestPatternNode(loc *position.Location, ident IdentifierNode) *RestPatternNode {
 	return &RestPatternNode{
-		NodeBase:   NodeBase{span: span},
+		NodeBase:   NodeBase{loc: loc},
 		Identifier: ident,
 	}
 }
@@ -57,7 +57,7 @@ func (*RestPatternNode) DirectClass() *value.Class {
 func (n *RestPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::RestPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::RestPatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  identifier: ")
 	indent.IndentStringFromSecondLine(&buff, n.Identifier.Inspect(), 1)

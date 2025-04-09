@@ -26,9 +26,9 @@ module Std::Elk::AST
             SymbolLiteralNode,
             TypeParameterNode
 
-    init(token: Elk::Token, span: String::Span = loop; end); end
+    init(token: Elk::Token, location: FS::Location = loop; end); end
     def token: Elk::Token; end
-    def span: String::Span; end
+    def location: FS::Location; end
     def is_optional: bool; end
     def is_normal: bool; end
     def is_positional_rest: bool; end

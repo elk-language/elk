@@ -22,7 +22,7 @@ func (n *ValuePatternDeclarationNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Pattern.Equal(value.Ref(o.Pattern)) &&
 		n.Initialiser.Equal(value.Ref(o.Initialiser))
 }
@@ -53,7 +53,7 @@ func (*ValuePatternDeclarationNode) DirectClass() *value.Class {
 func (n *ValuePatternDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ValuePatternDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ValuePatternDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  pattern: ")
 	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
@@ -71,9 +71,9 @@ func (v *ValuePatternDeclarationNode) Error() string {
 }
 
 // Create a new value declaration node eg. `val foo: String`
-func NewValuePatternDeclarationNode(span *position.Span, pattern PatternNode, init ExpressionNode) *ValuePatternDeclarationNode {
+func NewValuePatternDeclarationNode(loc *position.Location, pattern PatternNode, init ExpressionNode) *ValuePatternDeclarationNode {
 	return &ValuePatternDeclarationNode{
-		NodeBase:    NodeBase{span: span},
+		NodeBase:    NodeBase{loc: loc},
 		Pattern:     pattern,
 		Initialiser: init,
 	}

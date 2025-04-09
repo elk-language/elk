@@ -19,7 +19,7 @@ func (n *CharLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.Value == o.Value && n.Span().Equal(o.Span())
+	return n.Value == o.Value && n.loc.Equal(o.loc)
 }
 
 func (n *CharLiteralNode) String() string {
@@ -40,8 +40,8 @@ func (*CharLiteralNode) DirectClass() *value.Class {
 
 func (n *CharLiteralNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::CharLiteralNode{span: %s, value: %s}",
-		(*value.Span)(n.span).Inspect(),
+		"Std::Elk::AST::CharLiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
 		value.Char(n.Value).Inspect(),
 	)
 }
@@ -51,9 +51,9 @@ func (n *CharLiteralNode) Error() string {
 }
 
 // Create a new char literal node eg. `c"a"`
-func NewCharLiteralNode(span *position.Span, val rune) *CharLiteralNode {
+func NewCharLiteralNode(loc *position.Location, val rune) *CharLiteralNode {
 	return &CharLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -71,7 +71,7 @@ func (n *RawCharLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *RawCharLiteralNode) String() string {
@@ -92,8 +92,8 @@ func (*RawCharLiteralNode) DirectClass() *value.Class {
 
 func (n *RawCharLiteralNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::RawCharLiteralNode{span: %s, value: %s}",
-		(*value.Span)(n.span).Inspect(),
+		"Std::Elk::AST::RawCharLiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
 		value.Char(n.Value).Inspect(),
 	)
 }
@@ -103,9 +103,9 @@ func (n *RawCharLiteralNode) Error() string {
 }
 
 // Create a new raw char literal node eg. r`a`
-func NewRawCharLiteralNode(span *position.Span, val rune) *RawCharLiteralNode {
+func NewRawCharLiteralNode(loc *position.Location, val rune) *RawCharLiteralNode {
 	return &RawCharLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }

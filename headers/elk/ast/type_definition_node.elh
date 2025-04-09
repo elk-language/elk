@@ -9,12 +9,12 @@ module Std::Elk::AST
       constant: ComplexConstantNode,
       type_node: TypeNode,
       doc_comment: String = "",
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def doc_comment: String; end
     def constant: ComplexConstantNode; end
     def type_node: TypeNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

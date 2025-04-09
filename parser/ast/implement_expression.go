@@ -32,7 +32,7 @@ func (n *ImplementExpressionNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -60,9 +60,9 @@ func (*ImplementExpressionNode) IsStatic() bool {
 }
 
 // Create an enhance expression node eg. `implement Enumerable[V]`
-func NewImplementExpressionNode(span *position.Span, consts []ComplexConstantNode) *ImplementExpressionNode {
+func NewImplementExpressionNode(loc *position.Location, consts []ComplexConstantNode) *ImplementExpressionNode {
 	return &ImplementExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Constants:     consts,
 	}
 }
@@ -78,7 +78,7 @@ func (*ImplementExpressionNode) DirectClass() *value.Class {
 func (n *ImplementExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ImplementExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ImplementExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  constants: %[\n")
 	for i, element := range n.Constants {

@@ -13,12 +13,12 @@ module Std::Elk::AST
       pattern: PatternNode,
       body: ArrayTuple[StatementNode],
       stack_trace_var: IdentifierNode? = nil,
-      span: String::Span = loop; end
+      location: FS::Location = loop; end
     ); end
 
     def pattern: PatternNode; end
     def stack_trace_var: IdentifierNode?; end
     def body: ArrayTuple[StatementNode]; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

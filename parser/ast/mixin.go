@@ -28,7 +28,7 @@ func (n *MixinDeclarationNode) Equal(other value.Value) bool {
 	}
 
 	if n.Abstract != o.Abstract ||
-		!n.span.Equal(o.span) ||
+		!n.loc.Equal(o.loc) ||
 		n.comment != o.comment {
 		return false
 	}
@@ -113,7 +113,7 @@ func (*MixinDeclarationNode) IsStatic() bool {
 
 // Create a new mixin declaration node eg. `mixin Foo; end`
 func NewMixinDeclarationNode(
-	span *position.Span,
+	loc *position.Location,
 	docComment string,
 	abstract bool,
 	constant ExpressionNode,
@@ -122,7 +122,7 @@ func NewMixinDeclarationNode(
 ) *MixinDeclarationNode {
 
 	return &MixinDeclarationNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -144,7 +144,7 @@ func (*MixinDeclarationNode) DirectClass() *value.Class {
 func (n *MixinDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::MixinDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::MixinDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	fmt.Fprintf(&buff, ",\n  abstract: %t", n.Abstract)
 

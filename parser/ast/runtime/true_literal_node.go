@@ -14,14 +14,14 @@ func initTrueLiteralNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[1].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[1].Pointer())
+				argLoc = (*position.Location)(args[1].Pointer())
 			}
 			self := ast.NewTrueLiteralNode(
-				argSpan,
+				argLoc,
 			)
 			return value.Ref(self), value.Undefined
 

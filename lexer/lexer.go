@@ -146,7 +146,7 @@ func LexValue(source string) *value.ArrayList {
 
 // Instantiates a new lexer for the given source code.
 func New(source string) *Lexer {
-	return NewWithName("(eval)", source)
+	return NewWithName("<main>", source)
 }
 
 // Same as [New] but lets you specify the path to the source code file.
@@ -2011,9 +2011,12 @@ func (l *Lexer) tokenWithValue(typ token.Type, value string) *token.Token {
 		)
 	}
 	token := token.NewWithValue(
-		position.NewSpan(
-			startPos,
-			endPos,
+		position.NewLocation(
+			l.sourceName,
+			position.NewSpan(
+				startPos,
+				endPos,
+			),
 		),
 		typ,
 		value,

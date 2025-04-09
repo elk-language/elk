@@ -7,10 +7,10 @@ module Std::Elk::AST
 
     init(
       elements: ArrayTuple[PatternNode] = loop; end,
-      span: String::Span = loop; end
+      location: FS::Location = loop; end
     ); end
 
     def elements: ArrayTuple[PatternNode]; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

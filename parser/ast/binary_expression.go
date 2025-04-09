@@ -25,7 +25,7 @@ func (n *BinaryExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.Span().Equal(o.Span()) &&
+	return n.loc.Equal(o.loc) &&
 		n.Op.Equal(o.Op) &&
 		n.Left.Equal(value.Ref(o.Left)) &&
 		n.Right.Equal(value.Ref(o.Right))
@@ -74,9 +74,9 @@ func (b *BinaryExpressionNode) IsStatic() bool {
 }
 
 // Create a new binary expression node.
-func NewBinaryExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode) *BinaryExpressionNode {
+func NewBinaryExpressionNode(loc *position.Location, op *token.Token, left, right ExpressionNode) *BinaryExpressionNode {
 	return &BinaryExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Op:            op,
 		Left:          left,
 		Right:         right,
@@ -85,8 +85,8 @@ func NewBinaryExpressionNode(span *position.Span, op *token.Token, left, right E
 }
 
 // Same as [NewBinaryExpressionNode] but returns an interface
-func NewBinaryExpressionNodeI(span *position.Span, op *token.Token, left, right ExpressionNode) ExpressionNode {
-	return NewBinaryExpressionNode(span, op, left, right)
+func NewBinaryExpressionNodeI(loc *position.Location, op *token.Token, left, right ExpressionNode) ExpressionNode {
+	return NewBinaryExpressionNode(loc, op, left, right)
 }
 
 func (*BinaryExpressionNode) Class() *value.Class {
@@ -100,7 +100,7 @@ func (*BinaryExpressionNode) DirectClass() *value.Class {
 func (n *BinaryExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::BinaryExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::BinaryExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

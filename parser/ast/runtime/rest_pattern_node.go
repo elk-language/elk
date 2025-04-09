@@ -15,14 +15,14 @@ func initRestPatternNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argIdentifier := args[1].MustReference().(ast.IdentifierNode)
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[2].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argLoc = (*position.Location)(args[2].Pointer())
 			}
 			self := ast.NewRestPatternNode(
-				argSpan,
+				argLoc,
 				argIdentifier,
 			)
 			return value.Ref(self), value.Undefined

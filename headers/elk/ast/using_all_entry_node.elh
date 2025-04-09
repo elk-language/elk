@@ -6,8 +6,8 @@ module Std::Elk::AST
     include ExpressionNode,
             UsingEntryNode
 
-    init(namespace: UsingEntryNode, span: String::Span = loop; end); end
+    init(namespace: UsingEntryNode, location: FS::Location = loop; end); end
     def namespace: UsingEntryNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

@@ -52,7 +52,7 @@ func (n *DoExpressionNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -99,7 +99,7 @@ func (*DoExpressionNode) DirectClass() *value.Class {
 func (n *DoExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::DoExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::DoExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  body: %[\n")
 	for i, stmt := range n.Body {
@@ -142,9 +142,9 @@ func (n *DoExpressionNode) Error() string {
 //	do
 //		print("awesome!")
 //	end
-func NewDoExpressionNode(span *position.Span, body []StatementNode, catches []*CatchNode, finally []StatementNode) *DoExpressionNode {
+func NewDoExpressionNode(loc *position.Location, body []StatementNode, catches []*CatchNode, finally []StatementNode) *DoExpressionNode {
 	return &DoExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Body:          body,
 		Catches:       catches,
 		Finally:       finally,
@@ -190,7 +190,7 @@ func (n *CatchNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.Span().Equal(o.Span())
+	return n.loc.Equal(o.loc)
 }
 
 func (n *CatchNode) String() string {
@@ -228,7 +228,7 @@ func (*CatchNode) DirectClass() *value.Class {
 func (n *CatchNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::CatchNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::CatchNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  pattern: ")
 	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
@@ -259,9 +259,9 @@ func (n *CatchNode) Error() string {
 //	catch SomeError(message)
 //		print("awesome!")
 //	end
-func NewCatchNode(span *position.Span, pattern PatternNode, stackTraceVar IdentifierNode, body []StatementNode) *CatchNode {
+func NewCatchNode(loc *position.Location, pattern PatternNode, stackTraceVar IdentifierNode, body []StatementNode) *CatchNode {
 	return &CatchNode{
-		NodeBase:      NodeBase{span: span},
+		NodeBase:      NodeBase{loc: loc},
 		Pattern:       pattern,
 		StackTraceVar: stackTraceVar,
 		Body:          body,

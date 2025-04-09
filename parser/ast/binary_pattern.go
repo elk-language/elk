@@ -24,7 +24,7 @@ func (n *BinaryPatternNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.Span().Equal(o.Span()) &&
+	return n.loc.Equal(o.loc) &&
 		n.Op.Equal(o.Op) &&
 		n.Left.Equal(value.Ref(o.Left)) &&
 		n.Right.Equal(value.Ref(o.Right))
@@ -73,9 +73,9 @@ func (*BinaryPatternNode) IsStatic() bool {
 }
 
 // Create a new binary pattern node eg. `> 10 && < 50`
-func NewBinaryPatternNode(span *position.Span, op *token.Token, left, right PatternNode) *BinaryPatternNode {
+func NewBinaryPatternNode(loc *position.Location, op *token.Token, left, right PatternNode) *BinaryPatternNode {
 	return &BinaryPatternNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Op:            op,
 		Left:          left,
 		Right:         right,
@@ -83,8 +83,8 @@ func NewBinaryPatternNode(span *position.Span, op *token.Token, left, right Patt
 }
 
 // Same as [NewBinaryPatternNode] but returns an interface
-func NewBinaryPatternNodeI(span *position.Span, op *token.Token, left, right PatternNode) PatternNode {
-	return NewBinaryPatternNode(span, op, left, right)
+func NewBinaryPatternNodeI(loc *position.Location, op *token.Token, left, right PatternNode) PatternNode {
+	return NewBinaryPatternNode(loc, op, left, right)
 }
 
 func (*BinaryPatternNode) Class() *value.Class {
@@ -98,7 +98,7 @@ func (*BinaryPatternNode) DirectClass() *value.Class {
 func (n *BinaryPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::BinaryPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::BinaryPatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

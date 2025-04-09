@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class SplatExpressionNode
     include ExpressionNode
 
-    init(value: ExpressionNode, span: String::Span = loop; end); end
+    init(value: ExpressionNode, location: FS::Location = loop; end); end
     def value: ExpressionNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

@@ -51,7 +51,7 @@ func (n *InterfaceDeclarationNode) Equal(other value.Value) bool {
 	}
 
 	return n.comment == o.comment &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *InterfaceDeclarationNode) String() string {
@@ -98,7 +98,7 @@ func (*InterfaceDeclarationNode) IsStatic() bool {
 
 // Create a new interface declaration node eg. `interface Foo; end`
 func NewInterfaceDeclarationNode(
-	span *position.Span,
+	loc *position.Location,
 	docComment string,
 	constant ExpressionNode,
 	typeParams []TypeParameterNode,
@@ -106,7 +106,7 @@ func NewInterfaceDeclarationNode(
 ) *InterfaceDeclarationNode {
 
 	return &InterfaceDeclarationNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -127,7 +127,7 @@ func (*InterfaceDeclarationNode) DirectClass() *value.Class {
 func (n *InterfaceDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::InterfaceDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::InterfaceDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)

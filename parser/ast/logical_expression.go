@@ -28,7 +28,7 @@ func (n *LogicalExpressionNode) Equal(other value.Value) bool {
 	return n.Op.Equal(o.Op) &&
 		n.Left.Equal(value.Ref(o.Left)) &&
 		n.Right.Equal(value.Ref(o.Right)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *LogicalExpressionNode) String() string {
@@ -74,9 +74,9 @@ func (l *LogicalExpressionNode) IsStatic() bool {
 }
 
 // Create a new logical expression node.
-func NewLogicalExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode) *LogicalExpressionNode {
+func NewLogicalExpressionNode(loc *position.Location, op *token.Token, left, right ExpressionNode) *LogicalExpressionNode {
 	return &LogicalExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Op:            op,
 		Left:          left,
 		Right:         right,
@@ -85,9 +85,9 @@ func NewLogicalExpressionNode(span *position.Span, op *token.Token, left, right 
 }
 
 // Same as [NewLogicalExpressionNode] but returns an interface
-func NewLogicalExpressionNodeI(span *position.Span, op *token.Token, left, right ExpressionNode) ExpressionNode {
+func NewLogicalExpressionNodeI(loc *position.Location, op *token.Token, left, right ExpressionNode) ExpressionNode {
 	return &LogicalExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Op:            op,
 		Left:          left,
 		Right:         right,
@@ -105,7 +105,7 @@ func (*LogicalExpressionNode) DirectClass() *value.Class {
 func (n *LogicalExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::LogicalExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::LogicalExpressionNode{\n  loc: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

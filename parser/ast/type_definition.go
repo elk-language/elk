@@ -27,7 +27,7 @@ func (n *GenericTypeDefinitionNode) Equal(other value.Value) bool {
 
 	if !n.Constant.Equal(value.Ref(o.Constant)) ||
 		!n.TypeNode.Equal(value.Ref(o.TypeNode)) ||
-		!n.span.Equal(o.span) ||
+		!n.loc.Equal(o.loc) ||
 		n.DocComment() != o.DocComment() {
 		return false
 	}
@@ -78,9 +78,9 @@ func (*GenericTypeDefinitionNode) IsStatic() bool {
 }
 
 // Create a generic type definition node eg. `typedef Nilable[T] = T | nil`
-func NewGenericTypeDefinitionNode(span *position.Span, docComment string, constant ComplexConstantNode, typeVars []TypeParameterNode, typ TypeNode) *GenericTypeDefinitionNode {
+func NewGenericTypeDefinitionNode(loc *position.Location, docComment string, constant ComplexConstantNode, typeVars []TypeParameterNode, typ TypeNode) *GenericTypeDefinitionNode {
 	return &GenericTypeDefinitionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -101,7 +101,7 @@ func (*GenericTypeDefinitionNode) DirectClass() *value.Class {
 func (n *GenericTypeDefinitionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::GenericTypeDefinitionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::GenericTypeDefinitionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	buff.WriteString(n.DocComment())
@@ -147,7 +147,7 @@ func (n *TypeDefinitionNode) Equal(other value.Value) bool {
 	return n.Constant.Equal(value.Ref(o.Constant)) &&
 		n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
 		n.comment == o.comment &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *TypeDefinitionNode) String() string {
@@ -183,7 +183,7 @@ func (*TypeDefinitionNode) DirectClass() *value.Class {
 func (n *TypeDefinitionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::TypeDefinitionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::TypeDefinitionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	buff.WriteString(n.DocComment())
@@ -204,9 +204,9 @@ func (n *TypeDefinitionNode) Error() string {
 }
 
 // Create a type definition node eg. `typedef StringList = ArrayList[String]`
-func NewTypeDefinitionNode(span *position.Span, docComment string, constant ComplexConstantNode, typ TypeNode) *TypeDefinitionNode {
+func NewTypeDefinitionNode(loc *position.Location, docComment string, constant ComplexConstantNode, typ TypeNode) *TypeDefinitionNode {
 	return &TypeDefinitionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},

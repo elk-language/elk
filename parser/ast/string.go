@@ -64,7 +64,7 @@ func (n *RawStringLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *RawStringLiteralNode) String() string {
@@ -85,8 +85,8 @@ func (*RawStringLiteralNode) DirectClass() *value.Class {
 
 func (n *RawStringLiteralNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::RawStringLiteralNode{span: %s, value: %s}",
-		(*value.Span)(n.span).Inspect(),
+		"Std::Elk::AST::RawStringLiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
 		value.String(n.Value).Inspect(),
 	)
 }
@@ -96,9 +96,9 @@ func (n *RawStringLiteralNode) Error() string {
 }
 
 // Create a new raw string literal node eg. `'foo'`.
-func NewRawStringLiteralNode(span *position.Span, val string) *RawStringLiteralNode {
+func NewRawStringLiteralNode(loc *position.Location, val string) *RawStringLiteralNode {
 	return &RawStringLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -116,7 +116,7 @@ func (n *StringLiteralContentSectionNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *StringLiteralContentSectionNode) String() string {
@@ -137,8 +137,8 @@ func (*StringLiteralContentSectionNode) DirectClass() *value.Class {
 
 func (n *StringLiteralContentSectionNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::StringLiteralContentSectionNode{span: %s, value: %s}",
-		(*value.Span)(n.span).Inspect(),
+		"Std::Elk::AST::StringLiteralContentSectionNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
 		value.String(n.Value).Inspect(),
 	)
 }
@@ -148,9 +148,9 @@ func (n *StringLiteralContentSectionNode) Error() string {
 }
 
 // Create a new string literal content section node eg. `foo` in `"foo${bar}"`.
-func NewStringLiteralContentSectionNode(span *position.Span, val string) *StringLiteralContentSectionNode {
+func NewStringLiteralContentSectionNode(loc *position.Location, val string) *StringLiteralContentSectionNode {
 	return &StringLiteralContentSectionNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Value:    val,
 	}
 }
@@ -168,7 +168,7 @@ func (n *StringInspectInterpolationNode) Equal(other value.Value) bool {
 	}
 
 	return n.Expression.Equal(value.Ref(o.Expression)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *StringInspectInterpolationNode) String() string {
@@ -196,7 +196,7 @@ func (*StringInspectInterpolationNode) DirectClass() *value.Class {
 func (n *StringInspectInterpolationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::StringInspectInterpolationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::StringInspectInterpolationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
@@ -211,9 +211,9 @@ func (n *StringInspectInterpolationNode) Error() string {
 }
 
 // Create a new string inspect interpolation node eg. `bar + 2` in `"foo#{bar + 2}"`
-func NewStringInspectInterpolationNode(span *position.Span, expr ExpressionNode) *StringInspectInterpolationNode {
+func NewStringInspectInterpolationNode(loc *position.Location, expr ExpressionNode) *StringInspectInterpolationNode {
 	return &StringInspectInterpolationNode{
-		NodeBase:   NodeBase{span: span},
+		NodeBase:   NodeBase{loc: loc},
 		Expression: expr,
 	}
 }
@@ -231,7 +231,7 @@ func (n *StringInterpolationNode) Equal(other value.Value) bool {
 	}
 
 	return n.Expression.Equal(value.Ref(o.Expression)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *StringInterpolationNode) String() string {
@@ -259,7 +259,7 @@ func (*StringInterpolationNode) DirectClass() *value.Class {
 func (n *StringInterpolationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::StringInterpolationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::StringInterpolationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
@@ -274,9 +274,9 @@ func (n *StringInterpolationNode) Error() string {
 }
 
 // Create a new string interpolation node eg. `bar + 2` in `"foo${bar + 2}"`
-func NewStringInterpolationNode(span *position.Span, expr ExpressionNode) *StringInterpolationNode {
+func NewStringInterpolationNode(loc *position.Location, expr ExpressionNode) *StringInterpolationNode {
 	return &StringInterpolationNode{
-		NodeBase:   NodeBase{span: span},
+		NodeBase:   NodeBase{loc: loc},
 		Expression: expr,
 	}
 }
@@ -303,7 +303,7 @@ func (n *InterpolatedStringLiteralNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *InterpolatedStringLiteralNode) String() string {
@@ -337,7 +337,7 @@ func (*InterpolatedStringLiteralNode) DirectClass() *value.Class {
 func (n *InterpolatedStringLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::InterpolatedStringLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::InterpolatedStringLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  content: %[\n")
 	for i, stmt := range n.Content {
@@ -359,9 +359,9 @@ func (n *InterpolatedStringLiteralNode) Error() string {
 }
 
 // Create a new interpolated string literal node eg. `"foo ${bar} baz"`
-func NewInterpolatedStringLiteralNode(span *position.Span, cont []StringLiteralContentNode) *InterpolatedStringLiteralNode {
+func NewInterpolatedStringLiteralNode(loc *position.Location, cont []StringLiteralContentNode) *InterpolatedStringLiteralNode {
 	return &InterpolatedStringLiteralNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Content:  cont,
 	}
 }
@@ -379,7 +379,7 @@ func (n *DoubleQuotedStringLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.Value == o.Value && n.span.Equal(o.span)
+	return n.Value == o.Value && n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -401,8 +401,8 @@ func (*DoubleQuotedStringLiteralNode) DirectClass() *value.Class {
 
 func (n *DoubleQuotedStringLiteralNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::DoubleQuotedStringLiteralNode{span: %s, value: %s}",
-		(*value.Span)(n.span).Inspect(),
+		"Std::Elk::AST::DoubleQuotedStringLiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
 		value.String(n.Value).Inspect(),
 	)
 }
@@ -412,9 +412,9 @@ func (n *DoubleQuotedStringLiteralNode) Error() string {
 }
 
 // Create a new double quoted string literal node eg. `"foo baz"`
-func NewDoubleQuotedStringLiteralNode(span *position.Span, val string) *DoubleQuotedStringLiteralNode {
+func NewDoubleQuotedStringLiteralNode(loc *position.Location, val string) *DoubleQuotedStringLiteralNode {
 	return &DoubleQuotedStringLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }

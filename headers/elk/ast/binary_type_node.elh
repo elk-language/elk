@@ -5,10 +5,10 @@ module Std::Elk::AST
   sealed primitive class BinaryTypeNode
     include TypeNode
 
-    init(op: Elk::Token, left: TypeNode, right: TypeNode, span: String::Span = loop; end); end
+    init(op: Elk::Token, left: TypeNode, right: TypeNode, location: FS::Location = loop; end); end
     def op: Elk::Token; end
     def left: TypeNode; end
     def right: TypeNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

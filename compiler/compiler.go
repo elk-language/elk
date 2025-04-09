@@ -632,7 +632,7 @@ func (c *Compiler) compileNamespace(node ast.Node) bool {
 
 // Create a new location struct with the given position.
 func (c *Compiler) newLocation(span *position.Span) *position.Location {
-	return position.NewLocationWithSpan(c.Bytecode.Location.FilePath, span)
+	return position.NewLocation(c.Bytecode.Location.FilePath, span)
 }
 
 func (c *Compiler) prepLocals() {

@@ -34,19 +34,9 @@ func (n *AsExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.Span().Equal(o.Span()) {
-		return false
-	}
-
-	if !n.Value.Equal(value.Ref(o.Value)) {
-		return false
-	}
-
-	if !n.RuntimeType.Equal(value.Ref(o.RuntimeType)) {
-		return false
-	}
-
-	return true
+	return n.loc.Equal(o.loc) &&
+		n.Value.Equal(value.Ref(o.Value)) &&
+		n.RuntimeType.Equal(value.Ref(o.RuntimeType))
 }
 
 func (n *AsExpressionNode) String() string {
@@ -71,7 +61,7 @@ func (n *AsExpressionNode) String() string {
 func (n *AsExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::AsExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::AsExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
@@ -89,9 +79,9 @@ func (n *AsExpressionNode) Error() string {
 }
 
 // Create a new private constant node eg. `_Foo`.
-func NewAsExpressionNode(span *position.Span, val ExpressionNode, runtimeType ComplexConstantNode) *AsExpressionNode {
+func NewAsExpressionNode(loc *position.Location, val ExpressionNode, runtimeType ComplexConstantNode) *AsExpressionNode {
 	return &AsExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 		RuntimeType:   runtimeType,
 	}

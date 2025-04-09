@@ -16,11 +16,11 @@ module Std::Elk::AST
     init(
       body: ArrayTuple[StatementNode] = loop; end,
       name: String = "",
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def body: ArrayTuple[StatementNode]; end
     def name: String; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

@@ -21,14 +21,14 @@ func initCaseNode() {
 				argBody[i] = el.MustReference().(ast.StatementNode)
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[3].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argLoc = (*position.Location)(args[3].Pointer())
 			}
 			self := ast.NewCaseNode(
-				argSpan,
+				argLoc,
 				argPattern,
 				argBody,
 			)

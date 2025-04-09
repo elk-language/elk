@@ -16,7 +16,7 @@ func TestLocationString(t *testing.T) {
 			want: "",
 		},
 		"return correct string": {
-			in:   NewLocation("/foo/bar.elk", New(10, 3, 5), New(12, 3, 7)),
+			in:   NewLocation("/foo/bar.elk", NewSpan(New(10, 3, 5), New(12, 3, 7))),
 			want: "/foo/bar.elk:3:5",
 		},
 	}

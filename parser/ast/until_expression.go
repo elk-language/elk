@@ -24,7 +24,7 @@ func (n *UntilExpressionNode) Equal(other value.Value) bool {
 
 	if len(n.ThenBody) != len(o.ThenBody) ||
 		!n.Condition.Equal(value.Ref(o.Condition)) ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -59,9 +59,9 @@ func (*UntilExpressionNode) IsStatic() bool {
 }
 
 // Create a new `until` expression node eg. `until i >= 5 then i += 5`
-func NewUntilExpressionNode(span *position.Span, cond ExpressionNode, then []StatementNode) *UntilExpressionNode {
+func NewUntilExpressionNode(loc *position.Location, cond ExpressionNode, then []StatementNode) *UntilExpressionNode {
 	return &UntilExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Condition:     cond,
 		ThenBody:      then,
 	}
@@ -78,7 +78,7 @@ func (*UntilExpressionNode) DirectClass() *value.Class {
 func (n *UntilExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::UntilExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::UntilExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  condition: ")
 	indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)

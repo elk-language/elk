@@ -8,8 +8,8 @@ module Std::Elk::AST
             PatternNode,
             SymbolLiteralNode
 
-    init(content: InterpolatedStringLiteralNode, span: String::Span = loop; end); end
+    init(content: InterpolatedStringLiteralNode, location: FS::Location = loop; end); end
     def content: InterpolatedStringLiteralNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

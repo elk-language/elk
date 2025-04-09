@@ -24,7 +24,7 @@ func (n *BinaryTypeNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.Span().Equal(o.Span()) &&
+	return n.loc.Equal(o.loc) &&
 		n.Op.Equal(o.Op) &&
 		n.Left.Equal(value.Ref(o.Left)) &&
 		n.Right.Equal(value.Ref(o.Right))
@@ -73,9 +73,9 @@ func (*BinaryTypeNode) IsStatic() bool {
 }
 
 // Create a new binary type expression node eg. `String | Int`
-func NewBinaryTypeNode(span *position.Span, op *token.Token, left, right TypeNode) *BinaryTypeNode {
+func NewBinaryTypeNode(loc *position.Location, op *token.Token, left, right TypeNode) *BinaryTypeNode {
 	return &BinaryTypeNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Op:            op,
 		Left:          left,
 		Right:         right,
@@ -83,9 +83,9 @@ func NewBinaryTypeNode(span *position.Span, op *token.Token, left, right TypeNod
 }
 
 // Same as [NewBinaryTypeNode] but returns an interface
-func NewBinaryTypeNodeI(span *position.Span, op *token.Token, left, right TypeNode) TypeNode {
+func NewBinaryTypeNodeI(loc *position.Location, op *token.Token, left, right TypeNode) TypeNode {
 	return &BinaryTypeNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Op:            op,
 		Left:          left,
 		Right:         right,
@@ -103,7 +103,7 @@ func (*BinaryTypeNode) DirectClass() *value.Class {
 func (n *BinaryTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::BinaryTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::BinaryTypeNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

@@ -34,7 +34,7 @@ func (n *PublicIdentifierNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *PublicIdentifierNode) String() string {
@@ -54,7 +54,11 @@ func (*PublicIdentifierNode) DirectClass() *value.Class {
 }
 
 func (n *PublicIdentifierNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::PublicIdentifierNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::PublicIdentifierNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *PublicIdentifierNode) Error() string {
@@ -62,9 +66,9 @@ func (n *PublicIdentifierNode) Error() string {
 }
 
 // Create a new public identifier node eg. `foo`.
-func NewPublicIdentifierNode(span *position.Span, val string) *PublicIdentifierNode {
+func NewPublicIdentifierNode(loc *position.Location, val string) *PublicIdentifierNode {
 	return &PublicIdentifierNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -82,7 +86,7 @@ func (n *PrivateIdentifierNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *PrivateIdentifierNode) String() string {
@@ -102,7 +106,11 @@ func (*PrivateIdentifierNode) DirectClass() *value.Class {
 }
 
 func (n *PrivateIdentifierNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::PrivateIdentifierNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::PrivateIdentifierNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *PrivateIdentifierNode) Error() string {
@@ -110,9 +118,9 @@ func (n *PrivateIdentifierNode) Error() string {
 }
 
 // Create a new private identifier node eg. `_foo`.
-func NewPrivateIdentifierNode(span *position.Span, val string) *PrivateIdentifierNode {
+func NewPrivateIdentifierNode(loc *position.Location, val string) *PrivateIdentifierNode {
 	return &PrivateIdentifierNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -133,7 +141,7 @@ func (n *PublicIdentifierAsNode) Equal(other value.Value) bool {
 
 	return n.Target.Equal(value.Ref(o.Target)) &&
 		n.AsName == o.AsName &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *PublicIdentifierAsNode) String() string {
@@ -155,7 +163,7 @@ func (*PublicIdentifierAsNode) DirectClass() *value.Class {
 func (n *PublicIdentifierAsNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::PublicIdentifierAsNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::PublicIdentifierAsNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  target: ")
 	indent.IndentStringFromSecondLine(&buff, n.Target.Inspect(), 1)
@@ -173,9 +181,9 @@ func (n *PublicIdentifierAsNode) Error() string {
 }
 
 // Create a new identifier with as eg. `foo as bar`.
-func NewPublicIdentifierAsNode(span *position.Span, target *PublicIdentifierNode, as string) *PublicIdentifierAsNode {
+func NewPublicIdentifierAsNode(loc *position.Location, target *PublicIdentifierNode, as string) *PublicIdentifierAsNode {
 	return &PublicIdentifierAsNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Target:   target,
 		AsName:   as,
 	}

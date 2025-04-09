@@ -22,7 +22,7 @@ func (n *TryExpressionNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value.Equal(value.Ref(o.Value)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *TryExpressionNode) String() string {
@@ -50,9 +50,9 @@ func (*TryExpressionNode) IsStatic() bool {
 }
 
 // Create a new `try` expression node eg. `try foo()`
-func NewTryExpressionNode(span *position.Span, val ExpressionNode) *TryExpressionNode {
+func NewTryExpressionNode(loc *position.Location, val ExpressionNode) *TryExpressionNode {
 	return &TryExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -68,7 +68,7 @@ func (*TryExpressionNode) DirectClass() *value.Class {
 func (n *TryExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::TryExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::TryExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

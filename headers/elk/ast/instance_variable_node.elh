@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class InstanceVariableNode
     include ExpressionNode
 
-    init(value: String, span: String::Span = loop; end); end
+    init(value: String, location: FS::Location = loop; end); end
     def value: String; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

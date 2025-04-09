@@ -22,7 +22,7 @@ func (n *UnquoteExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Expression.Equal(value.Ref(o.Expression))
 }
 
@@ -61,7 +61,7 @@ func (*UnquoteExpressionNode) DirectClass() *value.Class {
 func (n *UnquoteExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::UnquoteExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::UnquoteExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
@@ -78,9 +78,9 @@ func (n *UnquoteExpressionNode) Error() string {
 // Create an unquote expression node eg.
 //
 //	unquote(x)
-func NewUnquoteExpressionNode(span *position.Span, expr ExpressionNode) *UnquoteExpressionNode {
+func NewUnquoteExpressionNode(loc *position.Location, expr ExpressionNode) *UnquoteExpressionNode {
 	return &UnquoteExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Expression:    expr,
 	}
 }

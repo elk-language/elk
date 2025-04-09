@@ -35,7 +35,7 @@ func (n *ContinueExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -74,9 +74,9 @@ func (*ContinueExpressionNode) IsStatic() bool {
 }
 
 // Create a new `continue` expression node eg. `continue`, `continue "foo"`
-func NewContinueExpressionNode(span *position.Span, label string, val ExpressionNode) *ContinueExpressionNode {
+func NewContinueExpressionNode(loc *position.Location, label string, val ExpressionNode) *ContinueExpressionNode {
 	return &ContinueExpressionNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Label:    label,
 		Value:    val,
 	}
@@ -93,7 +93,7 @@ func (*ContinueExpressionNode) DirectClass() *value.Class {
 func (n *ContinueExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ContinueExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ContinueExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

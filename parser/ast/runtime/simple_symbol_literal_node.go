@@ -15,14 +15,14 @@ func initSimpleSymbolLiteralNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argContent := (string)(args[1].MustReference().(value.String))
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[2].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argLoc = (*position.Location)(args[2].Pointer())
 			}
 			self := ast.NewSimpleSymbolLiteralNode(
-				argSpan,
+				argLoc,
 				argContent,
 			)
 			return value.Ref(self), value.Undefined

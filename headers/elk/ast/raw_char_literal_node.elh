@@ -7,8 +7,8 @@ module Std::Elk::AST
             TypeNode,
             PatternNode
 
-    init(value: Char, span: String::Span = loop; end); end
+    init(value: Char, location: FS::Location = loop; end); end
     def value: Char; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

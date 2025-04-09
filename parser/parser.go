@@ -138,28 +138,24 @@ func (p *Parser) errorExpectedToken(expected token.Type) {
 
 // Adds an error with a custom message.
 func (p *Parser) errorMessage(message string) {
-	p.errorMessageSpan(message, p.lookahead.Span())
+	p.errorMessageLocation(message, p.lookahead.Location())
 }
 
 // Same as [errorMessage] but let's you pass a Span.
-func (p *Parser) errorMessageSpan(message string, span *position.Span) {
+func (p *Parser) errorMessageLocation(message string, loc *position.Location) {
 	if p.mode == panicMode {
 		return
 	}
 
 	p.diagnostics.AddFailure(
 		message,
-		p.newLocation(span),
+		loc,
 	)
-}
-
-func (p *Parser) newLocation(span *position.Span) *position.Location {
-	return position.NewLocationWithSpan(p.sourceName, span)
 }
 
 // Add the content of an error token to the syntax error list.
 func (p *Parser) errorToken(err *token.Token) {
-	p.errorMessageSpan(err.Value, err.Span())
+	p.errorMessageLocation(err.Value, err.Location())
 }
 
 // Attempt to consume the specified token type.
@@ -309,39 +305,39 @@ func containsToken(slice []token.Type, v token.Type) bool {
 
 // Consume a block of statements, like in `else` expressions,
 // that terminates with `end`.
-func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Span, []ast.StatementNode, bool) {
+func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Location, []ast.StatementNode, bool) {
 	var thenBody []ast.StatementNode
-	var lastSpan *position.Span
+	var lastLocation *position.Location
 	var multiline bool
 
 	if p.lookahead.Type == token.END_OF_FILE {
 		p.errorExpected("a statement separator or an expression")
 		p.updateErrorMode(true)
-		return p.lookahead.Span(), nil, true
+		return p.lookahead.Location(), nil, true
 	}
 
 	if !p.lookahead.IsStatementSeparator() {
 		expr := p.expressionWithoutModifier()
 		thenBody = append(thenBody, ast.NewExpressionStatementNode(
-			expr.Span(),
+			expr.Location(),
 			expr,
 		))
-		lastSpan = expr.Span()
+		lastLocation = expr.Location()
 	} else {
 		multiline = true
 		p.advance()
 
 		if p.accept(token.END) {
-			lastSpan = p.lookahead.Span()
+			lastLocation = p.lookahead.Location()
 		} else if !containsToken(stopTokens, p.lookahead.Type) {
 			thenBody = p.statements(stopTokens...)
 			if len(thenBody) > 0 {
-				lastSpan = position.SpanOfLastElement(thenBody)
+				lastLocation = position.LocationOfLastElement(thenBody)
 			}
 		}
 	}
 
-	return lastSpan, thenBody, multiline
+	return lastLocation, thenBody, multiline
 }
 
 // statementProduction = subProduction [SEPARATOR]
@@ -351,14 +347,14 @@ func statementProduction[Expression, Statement ast.Node](p *Parser, constructor 
 	if p.lookahead.IsStatementSeparator() || p.lookahead.Type == token.END_OF_FILE {
 		sep = p.advance()
 		return constructor(
-			expr.Span().Join(sep.Span()),
+			expr.Location().Join(sep.Location()),
 			expr,
 		)
 	}
 	for _, sepType := range separators {
 		if p.lookahead.Type == sepType {
 			return constructor(
-				expr.Span(),
+				expr.Location(),
 				expr,
 			)
 		}
@@ -368,7 +364,7 @@ func statementProduction[Expression, Statement ast.Node](p *Parser, constructor 
 			p.advance()
 		}
 		return constructor(
-			expr.Span(),
+			expr.Location(),
 			expr,
 		)
 	}
@@ -380,7 +376,7 @@ func statementProduction[Expression, Statement ast.Node](p *Parser, constructor 
 	}
 
 	return constructor(
-		expr.Span(),
+		expr.Location(),
 		expr,
 	)
 }
@@ -388,7 +384,7 @@ func statementProduction[Expression, Statement ast.Node](p *Parser, constructor 
 type statementsProduction[Statement ast.Node] func(...token.Type) []Statement
 
 // Represents an AST Node constructor function for a new ast.StatementNode
-type statementConstructor[Expression, Statement ast.Node] func(*position.Span, Expression) Statement
+type statementConstructor[Expression, Statement ast.Node] func(*position.Location, Expression) Statement
 
 // Consume a block of statements, like in `if`, `elsif` or `while` expressions,
 // that terminates with `end` or can be single-line when it begins with `then`.
@@ -398,19 +394,19 @@ func genericStatementBlockWithThen[Expression, Statement ast.Node](
 	expressionProduction func() Expression,
 	statementConstructor statementConstructor[Expression, Statement],
 	stopTokens ...token.Type,
-) (*position.Span, []Statement, bool) {
+) (*position.Location, []Statement, bool) {
 	var thenBody []Statement
-	var lastSpan *position.Span
+	var lastLocation *position.Location
 	var multiline bool
 
 	if p.lookahead.Type == token.THEN {
 		p.advance()
 		expr := expressionProduction()
 		thenBody = append(thenBody, statementConstructor(
-			expr.Span(),
+			expr.Location(),
 			expr,
 		))
-		lastSpan = expr.Span()
+		lastLocation = expr.Location()
 	} else {
 		multiline = true
 		if p.lookahead.IsStatementSeparator() {
@@ -421,32 +417,32 @@ func genericStatementBlockWithThen[Expression, Statement ast.Node](
 		}
 
 		if p.accept(token.END) {
-			lastSpan = p.lookahead.Span()
+			lastLocation = p.lookahead.Location()
 		} else if !containsToken(stopTokens, p.lookahead.Type) {
 			thenBody = statementsProduction(stopTokens...)
 			if len(thenBody) > 0 {
-				lastSpan = thenBody[len(thenBody)-1].Span()
+				lastLocation = thenBody[len(thenBody)-1].Location()
 			}
 		}
 	}
 
-	return lastSpan, thenBody, multiline
+	return lastLocation, thenBody, multiline
 }
 
 // Consume a block of statements, like in `if`, `elsif` or `while` expressions,
 // that terminates with `end` or can be single-line when it begins with `then`.
-func (p *Parser) statementBlockWithThen(stopTokens ...token.Type) (*position.Span, []ast.StatementNode, bool) {
+func (p *Parser) statementBlockWithThen(stopTokens ...token.Type) (*position.Location, []ast.StatementNode, bool) {
 	return genericStatementBlockWithThen(p, p.statements, p.expressionWithoutModifier, ast.NewExpressionStatementNodeI, stopTokens...)
 }
 
 // Consume a block of statements, like in `if`, `elsif` or `while` expressions,
 // that terminates with `end` or can be single-line when it begins with `then`.
-func (p *Parser) structBodyStatementBlockWithThen(stopTokens ...token.Type) (*position.Span, []ast.StructBodyStatementNode, bool) {
+func (p *Parser) structBodyStatementBlockWithThen(stopTokens ...token.Type) (*position.Location, []ast.StructBodyStatementNode, bool) {
 	return genericStatementBlockWithThen(p, p.structBodyStatements, p.attributeParameter, ast.NewParameterStatementNodeI, stopTokens...)
 }
 
 // Represents an AST Node constructor function for binary operators
-type binaryConstructor[Element ast.Node] func(*position.Span, *token.Token, Element, Element) Element
+type binaryConstructor[Element ast.Node] func(*position.Location, *token.Token, Element, Element) Element
 
 // binaryProduction = subProduction | binaryProduction operators subProduction
 func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor[Element], subProduction func() Element, operators ...token.Type) Element {
@@ -464,7 +460,7 @@ func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor
 		p.indentedSection = false
 
 		left = constructor(
-			left.Span().Join(right.Span()),
+			left.Location().Join(right.Location()),
 			operator,
 			left,
 			right,
@@ -586,9 +582,9 @@ func repeatedProductionWithStop[Element ast.Node](p *Parser, subProduction repea
 // program = topLevelStatements
 func (p *Parser) program() *ast.ProgramNode {
 	statements := p.topLevelStatements()
-	lastSpan := position.SpanOfLastElement(statements)
+	lastLocation := position.LocationOfLastElement(statements)
 	return ast.NewProgramNode(
-		position.NewSpanFromPosition(position.New(0, 1, 1)).Join(lastSpan),
+		p.newLocation(position.NewSpanFromPosition(position.New(0, 1, 1))).Join(lastLocation),
 		statements,
 	)
 }
@@ -623,11 +619,11 @@ func (p *Parser) importStatement() ast.StatementNode {
 	default:
 		p.errorExpected("a string literal")
 		errTok := p.advance()
-		return ast.NewInvalidNode(errTok.Span(), errTok)
+		return ast.NewInvalidNode(errTok.Location(), errTok)
 	}
 
 	return ast.NewImportStatementNode(
-		importTok.Span().Join(stringLiteral.Span()),
+		importTok.Location().Join(stringLiteral.Location()),
 		stringLiteral,
 	)
 }
@@ -668,7 +664,7 @@ func (p *Parser) parameterStatement(separators ...token.Type) *ast.ParameterStat
 // emptyStatement = SEPARATOR
 func (p *Parser) emptyStatement() *ast.EmptyStatementNode {
 	sepTok := p.advance()
-	return ast.NewEmptyStatementNode(sepTok.Span())
+	return ast.NewEmptyStatementNode(sepTok.Location())
 }
 
 const statementSeparatorMessage = "a statement separator `\\n`, `;`"
@@ -777,7 +773,7 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 		p.swallowNewlines()
 		right := p.expressionWithoutModifier()
 		return ast.NewModifierNode(
-			left.Span().Join(right.Span()),
+			left.Location().Join(right.Location()),
 			mod,
 			left,
 			right,
@@ -791,14 +787,14 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 			p.swallowNewlines()
 			elseExpr := p.expressionWithoutModifier()
 			return ast.NewModifierIfElseNode(
-				left.Span().Join(elseExpr.Span()),
+				left.Location().Join(elseExpr.Location()),
 				left,
 				cond,
 				elseExpr,
 			)
 		}
 		return ast.NewModifierNode(
-			left.Span().Join(cond.Span()),
+			left.Location().Join(cond.Location()),
 			ifTok,
 			left,
 			cond,
@@ -808,17 +804,17 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 		p.swallowNewlines()
 		param := p.pattern()
 		if !ast.PatternDeclaresVariables(param) {
-			p.errorMessageSpan("patterns in for in loops should define at least one variable", param.Span())
+			p.errorMessageLocation("patterns in for in loops should define at least one variable", param.Location())
 		}
 		p.swallowNewlines()
 		inTok, ok := p.consume(token.IN)
 		if !ok {
-			return ast.NewInvalidNode(inTok.Span(), inTok)
+			return ast.NewInvalidNode(inTok.Location(), inTok)
 		}
 		p.swallowNewlines()
 		inExpr := p.expressionWithoutModifier()
 		return ast.NewModifierForInNode(
-			left.Span().Join(inExpr.Span()),
+			left.Location().Join(inExpr.Location()),
 			left,
 			param,
 			inExpr,
@@ -838,20 +834,20 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 
 	if p.lookahead.Type == token.COLON_EQUAL {
 		if !ast.IsValidDeclarationTarget(left) {
-			p.errorMessageSpan(
+			p.errorMessageLocation(
 				fmt.Sprintf("invalid `%s` declaration target", p.lookahead.Type.Name()),
-				left.Span(),
+				left.Location(),
 			)
 		}
 	} else if ast.IsConstant(left) {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"constants cannot be assigned, maybe you meant to declare it with `:=`",
-			left.Span(),
+			left.Location(),
 		)
 	} else if !ast.IsValidAssignmentTarget(left) {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			fmt.Sprintf("invalid `%s` assignment target", p.lookahead.Type.Name()),
-			left.Span(),
+			left.Location(),
 		)
 	}
 
@@ -863,7 +859,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	p.indentedSection = false
 
 	return ast.NewAssignmentExpressionNode(
-		left.Span().Join(right.Span()),
+		left.Location().Join(right.Location()),
 		operator,
 		left,
 		right,
@@ -877,16 +873,16 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 
 	var paramName *token.Token
 	var kind ast.ParameterKind
-	var span *position.Span
+	var location *position.Location
 
 	var restParam bool
 	if starTok, ok := p.matchOk(token.STAR); ok {
 		kind = ast.PositionalRestParameterKind
-		span = starTok.Span()
+		location = starTok.Location()
 		restParam = true
 	} else if starStarTok, ok := p.matchOk(token.STAR_STAR); ok {
 		kind = ast.NamedRestParameterKind
-		span = starStarTok.Span()
+		location = starStarTok.Location()
 		restParam = true
 	}
 
@@ -900,27 +896,27 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 		p.errorExpected("an identifier as the name of the declared formalParameter")
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Span(),
+			tok.Location(),
 			tok,
 		)
 	}
-	span = span.Join(paramName.Span())
+	location = location.Join(paramName.Location())
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotationWithoutUnionAndVoid()
-		span = span.Join(typ.Span())
+		location = location.Join(typ.Location())
 	}
 
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
 		if restParam {
-			p.errorMessageSpan("rest parameters cannot have default values", init.Span())
+			p.errorMessageLocation("rest parameters cannot have default values", init.Location())
 		}
-		span = span.Join(init.Span())
+		location = location.Join(init.Location())
 	}
 
 	return ast.NewFormalParameterNode(
-		span,
+		location,
 		paramName.Value,
 		typ,
 		init,
@@ -936,16 +932,16 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 	var paramName *token.Token
 	var setIvar bool
 	var kind ast.ParameterKind
-	var span *position.Span
+	var location *position.Location
 
 	var restParam bool
 	if starTok, ok := p.matchOk(token.STAR); ok {
 		kind = ast.PositionalRestParameterKind
-		span = starTok.Span()
+		location = starTok.Location()
 		restParam = true
 	} else if starStarTok, ok := p.matchOk(token.STAR_STAR); ok {
 		kind = ast.NamedRestParameterKind
-		span = starStarTok.Span()
+		location = starStarTok.Location()
 		restParam = true
 	}
 
@@ -962,27 +958,27 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 		p.errorExpected("an identifier as the name of the declared formalParameter")
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Span(),
+			tok.Location(),
 			tok,
 		)
 	}
-	span = span.Join(paramName.Span())
+	location = location.Join(paramName.Location())
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotationWithoutVoid()
-		span = span.Join(typ.Span())
+		location = location.Join(typ.Location())
 	}
 
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
-		span = span.Join(init.Span())
+		location = location.Join(init.Location())
 		if restParam {
-			p.errorMessageSpan("rest parameters cannot have default values", span)
+			p.errorMessageLocation("rest parameters cannot have default values", location)
 		}
 	}
 
 	return ast.NewMethodParameterNode(
-		span,
+		location,
 		paramName.Value,
 		setIvar,
 		typ,
@@ -1021,11 +1017,11 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 		posRest := ast.IsPositionalRestParam(element)
 		if posRest {
 			if posRestSeen {
-				p.errorMessageSpan("there should be only a single positional rest parameter", element.Span())
+				p.errorMessageLocation("there should be only a single positional rest parameter", element.Location())
 				continue
 			}
 			if namedRestSeen {
-				p.errorMessageSpan("named rest parameters should appear last", element.Span())
+				p.errorMessageLocation("named rest parameters should appear last", element.Location())
 			}
 			posRestSeen = true
 			continue
@@ -1034,11 +1030,11 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 		namedRest := ast.IsNamedRestParam(element)
 		if namedRest {
 			if postRestSeen {
-				p.errorMessageSpan("named rest parameters cannot appear after a post parameter", element.Span())
+				p.errorMessageLocation("named rest parameters cannot appear after a post parameter", element.Location())
 				continue
 			}
 			if namedRestSeen {
-				p.errorMessageSpan("there should be only a single named rest parameter", element.Span())
+				p.errorMessageLocation("there should be only a single named rest parameter", element.Location())
 				continue
 			}
 			namedRestSeen = true
@@ -1049,19 +1045,19 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 			postRestSeen = true
 		}
 		if namedRestSeen {
-			p.errorMessageSpan("named rest parameters should appear last", element.Span())
+			p.errorMessageLocation("named rest parameters should appear last", element.Location())
 			continue
 		}
 
 		opt := element.IsOptional()
 		if !opt && optionalSeen {
-			p.errorMessageSpan("required parameters cannot appear after optional parameters", element.Span())
+			p.errorMessageLocation("required parameters cannot appear after optional parameters", element.Location())
 		} else if opt {
 			if !optionalSeen {
 				optionalSeen = true
 			}
 			if posRestSeen {
-				p.errorMessageSpan("optional parameters cannot appear after rest parameters", element.Span())
+				p.errorMessageLocation("optional parameters cannot appear after rest parameters", element.Location())
 			}
 		}
 	}
@@ -1086,16 +1082,16 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 
 	var paramName *token.Token
 	var kind ast.ParameterKind
-	var span *position.Span
+	var location *position.Location
 
 	var restParam bool
 	if starTok, ok := p.matchOk(token.STAR); ok {
 		kind = ast.PositionalRestParameterKind
-		span = starTok.Span()
+		location = starTok.Location()
 		restParam = true
 	} else if starStarTok, ok := p.matchOk(token.STAR_STAR); ok {
 		kind = ast.NamedRestParameterKind
-		span = starStarTok.Span()
+		location = starStarTok.Location()
 		restParam = true
 	}
 
@@ -1109,27 +1105,27 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 		p.errorExpected("an identifier as the name of the declared signatureParameter")
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Span(),
+			tok.Location(),
 			tok,
 		)
 	}
-	span = span.Join(paramName.Span())
+	location = location.Join(paramName.Location())
 
 	if questionTok, ok := p.matchOk(token.QUESTION); ok {
 		opt = true
-		span = span.Join(questionTok.Span())
+		location = location.Join(questionTok.Location())
 		if restParam {
-			p.errorMessageSpan("rest parameters cannot have default values", span)
+			p.errorMessageLocation("rest parameters cannot have default values", location)
 		}
 	}
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotationWithoutVoid()
-		span = span.Join(typ.Span())
+		location = location.Join(typ.Location())
 	}
 
 	return ast.NewSignatureParameterNode(
-		span,
+		location,
 		paramName.Value,
 		typ,
 		opt,
@@ -1178,14 +1174,14 @@ func (p *Parser) pipeExpression() ast.ExpressionNode {
 		right := p.bitwiseOrExpression()
 		p.indentedSection = false
 		if !ast.IsValidPipeExpressionTarget(right) {
-			p.errorMessageSpan(
+			p.errorMessageLocation(
 				"invalid right hand side of a pipe expression, only method and function calls are allowed",
-				right.Span(),
+				right.Location(),
 			)
 		}
 
 		left = ast.NewBinaryExpressionNode(
-			left.Span().Join(right.Span()),
+			left.Location().Join(right.Location()),
 			op,
 			left,
 			right,
@@ -1232,7 +1228,7 @@ func (p *Parser) equalityExpression() ast.ExpressionNode {
 		p.indentedSection = false
 
 		left = ast.NewBinaryExpressionNode(
-			left.Span().Join(right.Span()),
+			left.Location().Join(right.Location()),
 			operator,
 			left,
 			right,
@@ -1256,7 +1252,7 @@ func (p *Parser) comparisonExpression() ast.ExpressionNode {
 		p.indentedSection = false
 
 		left = ast.NewBinaryExpressionNode(
-			left.Span().Join(right.Span()),
+			left.Location().Join(right.Location()),
 			operator,
 			left,
 			right,
@@ -1291,7 +1287,7 @@ func (p *Parser) rangeLiteral() ast.ExpressionNode {
 
 	if !p.lookahead.IsValidAsEndInRangeLiteral() {
 		return ast.NewRangeLiteralNode(
-			left.Span().Join(op.Span()),
+			left.Location().Join(op.Location()),
 			op,
 			left,
 			nil,
@@ -1301,7 +1297,7 @@ func (p *Parser) rangeLiteral() ast.ExpressionNode {
 	right := p.asExpression()
 
 	return ast.NewRangeLiteralNode(
-		left.Span().Join(right.Span()),
+		left.Location().Join(right.Location()),
 		op,
 		left,
 		right,
@@ -1315,7 +1311,7 @@ func (p *Parser) asExpression() ast.ExpressionNode {
 		p.advance()
 		runtimeType := p.strictConstantLookup()
 		return ast.NewAsExpressionNode(
-			expr.Span().Join(runtimeType.Span()),
+			expr.Location().Join(runtimeType.Location()),
 			expr,
 			runtimeType,
 		)
@@ -1334,7 +1330,7 @@ func (p *Parser) unaryExpression() ast.ExpressionNode {
 		p.indentedSection = false
 
 		return ast.NewUnaryExpressionNode(
-			operator.Span().Join(right.Span()),
+			operator.Location().Join(right.Location()),
 			operator,
 			right,
 		)
@@ -1359,7 +1355,7 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 	p.indentedSection = false
 
 	return ast.NewBinaryExpressionNode(
-		left.Span().Join(right.Span()),
+		left.Location().Join(right.Location()),
 		operator,
 		left,
 		right,
@@ -1379,14 +1375,14 @@ func (p *Parser) postfixExpression() ast.ExpressionNode {
 	}
 
 	if !ast.IsValidAssignmentTarget(expr) {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			fmt.Sprintf("invalid `%s` assignment target", op.Type.Name()),
-			expr.Span(),
+			expr.Location(),
 		)
 	}
 
 	return ast.NewPostfixExpressionNode(
-		expr.Span().Join(op.Span()),
+		expr.Location().Join(op.Location()),
 		op,
 		expr,
 	)
@@ -1432,7 +1428,7 @@ func (p *Parser) positionalArgument() ast.ExpressionNode {
 	if starTok, ok := p.matchOk(token.STAR); ok {
 		expr := p.expressionWithoutModifier()
 		return ast.NewSplatExpressionNode(
-			starTok.Span().Join(expr.Span()),
+			starTok.Location().Join(expr.Location()),
 			expr,
 		)
 	}
@@ -1445,7 +1441,7 @@ func (p *Parser) namedArgument() ast.NamedArgumentNode {
 	if starTok, ok := p.matchOk(token.STAR_STAR); ok {
 		expr := p.expressionWithoutModifier()
 		return ast.NewDoubleSplatExpressionNode(
-			starTok.Span().Join(expr.Span()),
+			starTok.Location().Join(expr.Location()),
 			expr,
 		)
 	}
@@ -1455,21 +1451,21 @@ func (p *Parser) namedArgument() ast.NamedArgumentNode {
 		p.errorExpected("an identifier")
 		errTok := p.advance()
 		return ast.NewInvalidNode(
-			errTok.Span(),
+			errTok.Location(),
 			errTok,
 		)
 	}
 	colon, ok := p.consume(token.COLON)
 	if !ok {
 		return ast.NewInvalidNode(
-			colon.Span(),
+			colon.Location(),
 			colon,
 		)
 	}
 	val := p.expressionWithoutModifier()
 
 	return ast.NewNamedCallArgumentNode(
-		ident.Span().Join(val.Span()),
+		ident.Location().Join(val.Location()),
 		ident.Value,
 		val,
 	)
@@ -1497,7 +1493,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) &&
 		(p.acceptSecond(token.LPAREN, token.COLON_COLON_LBRACKET) || p.secondLookahead.IsValidAsArgumentToNoParenFunctionCall()) {
 		methodName := p.advance()
-		span := methodName.Span()
+		location := methodName.Location()
 
 		var typeArgs []ast.TypeNode
 		if p.match(token.COLON_COLON_LBRACKET) {
@@ -1507,14 +1503,14 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			p.swallowNewlines()
 			rbracket, ok := p.consume(token.RBRACKET)
 			if !ok {
-				return ast.NewInvalidNode(rbracket.Span(), rbracket)
+				return ast.NewInvalidNode(rbracket.Location(), rbracket)
 			}
-			span = span.Join(rbracket.Span())
+			location = location.Join(rbracket.Location())
 		}
 		lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 		if errToken != nil {
 			return ast.NewInvalidNode(
-				errToken.Span(),
+				errToken.Location(),
 				errToken,
 			)
 		}
@@ -1522,28 +1518,28 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			p.errorExpected("method arguments")
 			errToken = p.advance()
 			return ast.NewInvalidNode(
-				errToken.Span(),
+				errToken.Location(),
 				errToken,
 			)
 		}
-		span = span.Join(lastArgSpan)
+		location = location.Join(lastArgSpan)
 
 		if p.hasTrailingClosure() {
 			function := p.closureExpression()
 			if len(namedArgs) > 0 {
 				namedArgs = append(
 					namedArgs,
-					ast.NewNamedCallArgumentNode(function.Span(), "func", function),
+					ast.NewNamedCallArgumentNode(function.Location(), "func", function),
 				)
 			} else {
 				posArgs = append(posArgs, function)
 			}
-			span = span.Join(function.Span())
+			location = location.Join(function.Location())
 		}
 
 		if len(typeArgs) > 0 {
 			receiver = ast.NewGenericReceiverlessMethodCallNode(
-				span,
+				location,
 				methodName.Value,
 				typeArgs,
 				posArgs,
@@ -1551,7 +1547,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			)
 		} else {
 			receiver = ast.NewReceiverlessMethodCallNode(
-				span,
+				location,
 				methodName.Value,
 				posArgs,
 				namedArgs,
@@ -1582,13 +1578,13 @@ methodCallLoop:
 
 			if nilSafe {
 				receiver = ast.NewNilSafeSubscriptExpressionNode(
-					receiver.Span().Join(tok.Span()),
+					receiver.Location().Join(tok.Location()),
 					receiver,
 					key,
 				)
 			} else {
 				receiver = ast.NewSubscriptExpressionNode(
-					receiver.Span().Join(tok.Span()),
+					receiver.Location().Join(tok.Location()),
 					receiver,
 					key,
 				)
@@ -1610,10 +1606,10 @@ methodCallLoop:
 		}
 
 		if p.accept(token.LPAREN) {
-			lastSpan, posArgs, namedArgs, errToken := p.callArgumentList()
+			lastLocation, posArgs, namedArgs, errToken := p.callArgumentList()
 			if errToken != nil {
 				return ast.NewInvalidNode(
-					errToken.Span(),
+					errToken.Location(),
 					errToken,
 				)
 			}
@@ -1622,16 +1618,16 @@ methodCallLoop:
 				if len(namedArgs) > 0 {
 					namedArgs = append(
 						namedArgs,
-						ast.NewNamedCallArgumentNode(function.Span(), "func", function),
+						ast.NewNamedCallArgumentNode(function.Location(), "func", function),
 					)
 				} else {
 					posArgs = append(posArgs, function)
 				}
-				lastSpan = function.Span()
+				lastLocation = function.Location()
 			}
 
 			receiver = ast.NewCallNode(
-				receiver.Span().Join(lastSpan),
+				receiver.Location().Join(lastLocation),
 				receiver,
 				opToken.Type == token.QUESTION_DOT,
 				posArgs,
@@ -1652,21 +1648,21 @@ methodCallLoop:
 			p.indentedSection = false
 			errTok := p.advance()
 			return ast.NewInvalidNode(
-				errTok.Span(),
+				errTok.Location(),
 				errTok,
 			)
 		}
 
 		methodNameTok := p.advance()
 		methodName := methodNameTok.FetchValue()
-		span := receiver.Span().Join(methodNameTok.Span())
+		location := receiver.Location().Join(methodNameTok.Location())
 
 		if methodNameTok.Type == token.AWAIT {
 			if opToken.Type != token.DOT {
-				p.errorMessageSpan("invalid await operator", opToken.Span())
+				p.errorMessageLocation("invalid await operator", opToken.Location())
 			}
 			receiver = ast.NewAwaitExpressionNode(
-				span,
+				location,
 				receiver,
 			)
 			continue
@@ -1680,21 +1676,21 @@ methodCallLoop:
 			p.swallowNewlines()
 			rbracket, ok := p.consume(token.RBRACKET)
 			if !ok {
-				return ast.NewInvalidNode(rbracket.Span(), rbracket)
+				return ast.NewInvalidNode(rbracket.Location(), rbracket)
 			}
-			span = span.Join(rbracket.Span())
+			location = location.Join(rbracket.Location())
 		}
 
 		hasParentheses := p.lookahead.Type == token.LPAREN
 		lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 		if errToken != nil {
 			return ast.NewInvalidNode(
-				errToken.Span(),
+				errToken.Location(),
 				errToken,
 			)
 		}
 		if lastArgSpan != nil {
-			span = span.Join(lastArgSpan)
+			location = location.Join(lastArgSpan)
 		}
 
 		hasTrailingClosure := p.hasTrailingClosure()
@@ -1703,7 +1699,7 @@ methodCallLoop:
 			len(posArgs) == 0 && len(namedArgs) == 0 && opToken.Type == token.DOT &&
 			len(typeArgs) == 0 {
 			receiver = ast.NewAttributeAccessNode(
-				span,
+				location,
 				receiver,
 				methodName,
 			)
@@ -1715,17 +1711,17 @@ methodCallLoop:
 			if len(namedArgs) > 0 {
 				namedArgs = append(
 					namedArgs,
-					ast.NewNamedCallArgumentNode(function.Span(), "func", function),
+					ast.NewNamedCallArgumentNode(function.Location(), "func", function),
 				)
 			} else {
 				posArgs = append(posArgs, function)
 			}
-			span = span.Join(function.Span())
+			location = location.Join(function.Location())
 		}
 
 		if len(typeArgs) > 0 {
 			receiver = ast.NewGenericMethodCallNode(
-				span,
+				location,
 				receiver,
 				opToken,
 				methodName,
@@ -1735,7 +1731,7 @@ methodCallLoop:
 			)
 		} else {
 			receiver = ast.NewMethodCallNode(
-				span,
+				location,
 				receiver,
 				opToken,
 				methodName,
@@ -1755,7 +1751,7 @@ func (p *Parser) beginlessRangeLiteral() ast.ExpressionNode {
 	op := p.advance()
 	right := p.constructorCall()
 	return ast.NewRangeLiteralNode(
-		op.Span().Join(right.Span()),
+		op.Location().Join(right.Location()),
 		op,
 		nil,
 		right,
@@ -1764,11 +1760,11 @@ func (p *Parser) beginlessRangeLiteral() ast.ExpressionNode {
 
 // callArgumentListInternal = (positionalArgumentList | namedArgumentList | positionalArgumentList "," namedArgumentList)
 // callArgumentList = "(" callArgumentListInternal ")" | callArgumentListInternal
-func (p *Parser) callArgumentList() (*position.Span, []ast.ExpressionNode, []ast.NamedArgumentNode, *token.Token) {
+func (p *Parser) callArgumentList() (*position.Location, []ast.ExpressionNode, []ast.NamedArgumentNode, *token.Token) {
 	if p.match(token.LPAREN) {
 		p.swallowNewlines()
 		if rparen, ok := p.matchOk(token.RPAREN); ok {
-			return rparen.Span(),
+			return rparen.Location(),
 				nil,
 				nil,
 				nil
@@ -1787,7 +1783,7 @@ func (p *Parser) callArgumentList() (*position.Span, []ast.ExpressionNode, []ast
 				rparen
 		}
 
-		return rparen.Span(),
+		return rparen.Location(),
 			posArgs,
 			namedArgs,
 			nil
@@ -1802,14 +1798,14 @@ func (p *Parser) callArgumentList() (*position.Span, []ast.ExpressionNode, []ast
 	}
 
 	posArgs, commaConsumed := p.positionalArgumentList()
-	span := position.SpanOfLastElement(posArgs)
+	location := position.LocationOfLastElement(posArgs)
 	var namedArgs []ast.NamedArgumentNode
 	if len(posArgs) == 0 || len(posArgs) > 0 && commaConsumed {
 		namedArgs = p.namedArgumentList()
-		span = position.SpanOfLastElement(namedArgs)
+		location = position.LocationOfLastElement(namedArgs)
 	}
 
-	return span,
+	return location,
 		posArgs,
 		namedArgs,
 		nil
@@ -1823,7 +1819,7 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 	}
 
 	constant := p.strictConstantLookup()
-	span := constant.Span()
+	location := constant.Location()
 
 	var typeArgs []ast.TypeNode
 	if p.match(token.COLON_COLON_LBRACKET) {
@@ -1833,29 +1829,29 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 		p.swallowNewlines()
 		rbracket, ok := p.consume(token.RBRACKET)
 		if !ok {
-			return ast.NewInvalidNode(rbracket.Span(), rbracket)
+			return ast.NewInvalidNode(rbracket.Location(), rbracket)
 		}
-		span = span.Join(rbracket.Span())
+		location = location.Join(rbracket.Location())
 	}
 
 	lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 	if errToken != nil {
 		return ast.NewInvalidNode(
-			errToken.Span(),
+			errToken.Location(),
 			errToken,
 		)
 	}
 	if lastArgSpan == nil {
 		if typeArgs != nil {
-			p.errorMessageSpan("invalid generic constant", span)
+			p.errorMessageLocation("invalid generic constant", location)
 		}
 		return constant
 	}
-	span = span.Join(lastArgSpan)
+	location = location.Join(lastArgSpan)
 
 	if len(typeArgs) > 0 {
 		return ast.NewGenericConstructorCallNode(
-			span,
+			location,
 			constant,
 			typeArgs,
 			posArgs,
@@ -1863,7 +1859,7 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 		)
 	}
 	return ast.NewConstructorCallNode(
-		span,
+		location,
 		constant,
 		posArgs,
 		namedArgs,
@@ -1881,7 +1877,7 @@ func (p *Parser) constantLookup() ast.ExpressionNode {
 		}
 		right := p.constant()
 		left = ast.NewConstantLookupNode(
-			tok.Span().Join(right.Span()),
+			tok.Location().Join(right.Location()),
 			nil,
 			right,
 		)
@@ -1899,7 +1895,7 @@ func (p *Parser) constantLookup() ast.ExpressionNode {
 		right := p.constant()
 
 		left = ast.NewConstantLookupNode(
-			left.Span().Join(right.Span()),
+			left.Location().Join(right.Location()),
 			left,
 			right,
 		)
@@ -1917,7 +1913,7 @@ func (p *Parser) strictConstantLookup() ast.ComplexConstantNode {
 		}
 		right := p.constant()
 		left = ast.NewConstantLookupNode(
-			tok.Span().Join(right.Span()),
+			tok.Location().Join(right.Location()),
 			nil,
 			right,
 		)
@@ -1935,7 +1931,7 @@ func (p *Parser) strictConstantLookup() ast.ComplexConstantNode {
 		right := p.constant()
 
 		left = ast.NewConstantLookupNode(
-			left.Span().Join(right.Span()),
+			left.Location().Join(right.Location()),
 			left,
 			right,
 		)
@@ -1950,7 +1946,7 @@ func (p *Parser) publicConstant() *ast.PublicConstantNode {
 		panic(fmt.Sprintf("invalid public constant token: %#v", tok))
 	}
 	return ast.NewPublicConstantNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -1961,7 +1957,7 @@ func (p *Parser) privateConstant() *ast.PrivateConstantNode {
 		panic(fmt.Sprintf("invalid private constant token: %#v", tok))
 	}
 	return ast.NewPrivateConstantNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -1980,7 +1976,7 @@ func (p *Parser) constant() ast.ConstantNode {
 	tok := p.advance()
 	p.mode = panicMode
 	return ast.NewInvalidNode(
-		tok.Span(),
+		tok.Location(),
 		tok,
 	)
 }
@@ -1988,19 +1984,19 @@ func (p *Parser) constant() ast.ConstantNode {
 // newExpression = "new" ( "(" argumentList ")" | argumentList )
 func (p *Parser) newExpression() ast.ExpressionNode {
 	newTok := p.advance()
-	span := newTok.Span()
+	location := newTok.Location()
 
 	lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 	if errToken != nil {
 		return ast.NewInvalidNode(
-			errToken.Span(),
+			errToken.Location(),
 			errToken,
 		)
 	}
-	span = span.Join(lastArgSpan)
+	location = location.Join(lastArgSpan)
 
 	return ast.NewNewExpressionNode(
-		span,
+		location,
 		posArgs,
 		namedArgs,
 	)
@@ -2012,13 +2008,13 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.newExpression()
 	case token.TRUE:
 		tok := p.advance()
-		return ast.NewTrueLiteralNode(tok.Span())
+		return ast.NewTrueLiteralNode(tok.Location())
 	case token.FALSE:
 		tok := p.advance()
-		return ast.NewFalseLiteralNode(tok.Span())
+		return ast.NewFalseLiteralNode(tok.Location())
 	case token.NIL:
 		tok := p.advance()
-		return ast.NewNilLiteralNode(tok.Span())
+		return ast.NewNilLiteralNode(tok.Location())
 	case token.THIN_ARROW:
 		return p.closureAfterArrow(nil, nil, nil, nil)
 	case token.SELF:
@@ -2052,7 +2048,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			expr := p.expressionWithModifier()
 
 			return ast.NewLabeledExpressionNode(
-				label.Span().Join(expr.Span()),
+				label.Location().Join(expr.Location()),
 				label.Value,
 				expr,
 			)
@@ -2164,85 +2160,85 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.INT:
 		tok := p.advance()
 		return ast.NewIntLiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.INT64:
 		tok := p.advance()
 		return ast.NewInt64LiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.UINT64:
 		tok := p.advance()
 		return ast.NewUInt64LiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.INT32:
 		tok := p.advance()
 		return ast.NewInt32LiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.UINT32:
 		tok := p.advance()
 		return ast.NewUInt32LiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.INT16:
 		tok := p.advance()
 		return ast.NewInt16LiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.UINT16:
 		tok := p.advance()
 		return ast.NewUInt16LiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.INT8:
 		tok := p.advance()
 		return ast.NewInt8LiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.UINT8:
 		tok := p.advance()
 		return ast.NewUInt8LiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.FLOAT:
 		tok := p.advance()
 		return ast.NewFloatLiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.BIG_FLOAT:
 		tok := p.advance()
 		return ast.NewBigFloatLiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.FLOAT64:
 		tok := p.advance()
 		return ast.NewFloat64LiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.FLOAT32:
 		tok := p.advance()
 		return ast.NewFloat32LiteralNode(
-			tok.Span(),
+			tok.Location(),
 			tok.Value,
 		)
 	case token.ERROR:
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Span(),
+			tok.Location(),
 			tok,
 		)
 	case token.GETTER:
@@ -2287,13 +2283,13 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	p.updateErrorMode(true)
 	tok := p.advance()
 	return ast.NewInvalidNode(
-		tok.Span(),
+		tok.Location(),
 		tok,
 	)
 }
 
-type specialCollectionLiteralWithoutCapacityConstructor[Return, Element ast.Node] func(*position.Span, []Element) Return
-type invalidNodeConstructor[Return ast.Node] func(*position.Span, *token.Token) Return
+type specialCollectionLiteralWithoutCapacityConstructor[Return, Element ast.Node] func(*position.Location, []Element) Return
+type invalidNodeConstructor[Return ast.Node] func(*position.Location, *token.Token) Return
 
 // specialCollectionLiteralWithoutCapacity = beginTokenType (elementProduction)* endTokenType
 func specialCollectionLiteralWithoutCapacity[Return, Element ast.Node](p *Parser, elementProduction func() Element, constructor specialCollectionLiteralWithoutCapacityConstructor[Return, Element], invalidConstructor invalidNodeConstructor[Return], endTokenType token.Type) Return {
@@ -2302,16 +2298,16 @@ func specialCollectionLiteralWithoutCapacity[Return, Element ast.Node](p *Parser
 	endTok, ok := p.consume(endTokenType)
 
 	if !ok {
-		return invalidConstructor(endTok.Span(), endTok)
+		return invalidConstructor(endTok.Location(), endTok)
 	}
 
 	return constructor(
-		begTok.Span().Join(endTok.Span()),
+		begTok.Location().Join(endTok.Location()),
 		content,
 	)
 }
 
-type specialCollectionLiteralWithCapacityConstructor[Element ast.ExpressionNode] func(*position.Span, []Element, ast.ExpressionNode) ast.ExpressionNode
+type specialCollectionLiteralWithCapacityConstructor[Element ast.ExpressionNode] func(*position.Location, []Element, ast.ExpressionNode) ast.ExpressionNode
 
 // specialCollectionLiteralWithCapacity = beginTokenType (elementProduction)* endTokenType [":" primaryExpression]
 func specialCollectionLiteralWithCapacity[Element ast.ExpressionNode](p *Parser, elementProduction func() Element, constructor specialCollectionLiteralWithCapacityConstructor[Element], endTokenType token.Type) ast.ExpressionNode {
@@ -2320,19 +2316,19 @@ func specialCollectionLiteralWithCapacity[Element ast.ExpressionNode](p *Parser,
 	endTok, ok := p.consume(endTokenType)
 
 	if !ok {
-		return ast.NewInvalidNode(endTok.Span(), endTok)
+		return ast.NewInvalidNode(endTok.Location(), endTok)
 	}
 
 	var capacity ast.ExpressionNode
-	span := begTok.Span().Join(endTok.Span())
+	location := begTok.Location().Join(endTok.Location())
 	if p.match(token.COLON) {
 		p.swallowNewlines()
 		capacity = p.primaryExpression()
-		span = span.Join(capacity.Span())
+		location = location.Join(capacity.Location())
 	}
 
 	return constructor(
-		span,
+		location,
 		content,
 		capacity,
 	)
@@ -2462,7 +2458,7 @@ func (p *Parser) binHashSetLiteral() ast.ExpressionNode {
 	)
 }
 
-type collectionWithoutCapacityConstructor[N ast.Node] func(*position.Span, []N) N
+type collectionWithoutCapacityConstructor[N ast.Node] func(*position.Location, []N) N
 type collectionElementsProduction[N ast.Node] func(...token.Type) []N
 
 // collectionLiteralWithoutCapacity = startTok [elementsProduction] endTok
@@ -2472,7 +2468,7 @@ func collectionLiteralWithoutCapacity[N ast.Node](p *Parser, endTokType token.Ty
 
 	if endTok, ok := p.matchOk(endTokType); ok {
 		return constructor(
-			startTok.Span().Join(endTok.Span()),
+			startTok.Location().Join(endTok.Location()),
 			nil,
 		)
 	}
@@ -2480,18 +2476,18 @@ func collectionLiteralWithoutCapacity[N ast.Node](p *Parser, endTokType token.Ty
 	elements := elementsProduction(endTokType)
 	p.swallowNewlines()
 	endTok, ok := p.consume(endTokType)
-	span := startTok.Span()
+	location := startTok.Location()
 	if ok {
-		span = span.Join(endTok.Span())
+		location = location.Join(endTok.Location())
 	}
 
 	return constructor(
-		span,
+		location,
 		elements,
 	)
 }
 
-type collectionWithCapacityConstructor func(*position.Span, []ast.ExpressionNode, ast.ExpressionNode) ast.ExpressionNode
+type collectionWithCapacityConstructor func(*position.Location, []ast.ExpressionNode, ast.ExpressionNode) ast.ExpressionNode
 
 // collectionLiteralWithCapacity = startTok [elementsProduction] endTok [":" primaryExpression]
 func (p *Parser) collectionLiteralWithCapacity(endTokType token.Type, elementsProduction collectionElementsProduction[ast.ExpressionNode], constructor collectionWithCapacityConstructor) ast.ExpressionNode {
@@ -2500,14 +2496,14 @@ func (p *Parser) collectionLiteralWithCapacity(endTokType token.Type, elementsPr
 	var capacity ast.ExpressionNode
 
 	if endTok, ok := p.matchOk(endTokType); ok {
-		span := startTok.Span().Join(endTok.Span())
+		location := startTok.Location().Join(endTok.Location())
 		if p.match(token.COLON) {
 			p.swallowNewlines()
 			capacity = p.primaryExpression()
-			span = span.Join(capacity.Span())
+			location = location.Join(capacity.Location())
 		}
 		return constructor(
-			span,
+			location,
 			nil,
 			capacity,
 		)
@@ -2518,20 +2514,20 @@ func (p *Parser) collectionLiteralWithCapacity(endTokType token.Type, elementsPr
 	endTok, ok := p.consume(endTokType)
 	if !ok {
 		return ast.NewInvalidNode(
-			endTok.Span(),
+			endTok.Location(),
 			endTok,
 		)
 	}
 
-	span := startTok.Span().Join(endTok.Span())
+	location := startTok.Location().Join(endTok.Location())
 	if p.match(token.COLON) {
 		p.swallowNewlines()
 		capacity = p.primaryExpression()
-		span = span.Join(capacity.Span())
+		location = location.Join(capacity.Location())
 	}
 
 	return constructor(
-		span,
+		location,
 		elements,
 		capacity,
 	)
@@ -2550,7 +2546,7 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 		p.swallowNewlines()
 		right := p.expressionWithoutModifier()
 		return ast.NewModifierNode(
-			left.Span().Join(right.Span()),
+			left.Location().Join(right.Location()),
 			mod,
 			left,
 			right,
@@ -2564,14 +2560,14 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 			p.swallowNewlines()
 			elseExpr := subProduction()
 			return ast.NewModifierIfElseNode(
-				left.Span().Join(elseExpr.Span()),
+				left.Location().Join(elseExpr.Location()),
 				left,
 				cond,
 				elseExpr,
 			)
 		}
 		return ast.NewModifierNode(
-			left.Span().Join(cond.Span()),
+			left.Location().Join(cond.Location()),
 			ifTok,
 			left,
 			cond,
@@ -2583,12 +2579,12 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 		p.swallowNewlines()
 		inTok, ok := p.consume(token.IN)
 		if !ok {
-			return ast.NewInvalidNode(inTok.Span(), inTok)
+			return ast.NewInvalidNode(inTok.Location(), inTok)
 		}
 		p.swallowNewlines()
 		inExpr := p.expressionWithoutModifier()
 		return ast.NewModifierForInNode(
-			left.Span().Join(inExpr.Span()),
+			left.Location().Join(inExpr.Location()),
 			left,
 			param,
 			inExpr,
@@ -2633,7 +2629,7 @@ func (p *Parser) listLikeLiteralElement() ast.ExpressionNode {
 		starTok := p.advance()
 		expr := p.expressionWithoutModifier()
 		return ast.NewSplatExpressionNode(
-			starTok.Span().Join(expr.Span()),
+			starTok.Location().Join(expr.Location()),
 			expr,
 		)
 	}
@@ -2642,7 +2638,7 @@ func (p *Parser) listLikeLiteralElement() ast.ExpressionNode {
 		starTok := p.advance()
 		expr := p.expressionWithoutModifier()
 		return ast.NewDoubleSplatExpressionNode(
-			starTok.Span().Join(expr.Span()),
+			starTok.Location().Join(expr.Location()),
 			expr,
 		)
 	}
@@ -2665,7 +2661,7 @@ func (p *Parser) recordLiteralElement() ast.ExpressionNode {
 		starTok := p.advance()
 		expr := p.expressionWithoutModifier()
 		return ast.NewDoubleSplatExpressionNode(
-			starTok.Span().Join(expr.Span()),
+			starTok.Location().Join(expr.Location()),
 			expr,
 		)
 	}
@@ -2675,7 +2671,7 @@ func (p *Parser) recordLiteralElement() ast.ExpressionNode {
 		expr := p.expressionWithoutModifier()
 
 		return ast.NewSplatExpressionNode(
-			starTok.Span().Join(expr.Span()),
+			starTok.Location().Join(expr.Location()),
 			expr,
 		)
 	}
@@ -2699,7 +2695,7 @@ func (p *Parser) keyValueMapExpression() ast.ExpressionNode {
 		p.swallowNewlines()
 		val := p.expressionWithoutModifier()
 		return ast.NewSymbolKeyValueExpressionNode(
-			key.Span().Join(val.Span()),
+			key.Location().Join(val.Location()),
 			key.Value,
 			val,
 		)
@@ -2711,7 +2707,7 @@ func (p *Parser) keyValueMapExpression() ast.ExpressionNode {
 			*ast.PublicConstantNode, *ast.PrivateConstantNode:
 			return key
 		default:
-			p.errorMessageSpan("expected a key-value pair, map literals should consist of key-value pairs", key.Span())
+			p.errorMessageLocation("expected a key-value pair, map literals should consist of key-value pairs", key.Location())
 			return key
 		}
 	}
@@ -2720,7 +2716,7 @@ func (p *Parser) keyValueMapExpression() ast.ExpressionNode {
 	val := p.expressionWithoutModifier()
 
 	return ast.NewKeyValueExpressionNode(
-		key.Span().Join(val.Span()),
+		key.Location().Join(val.Location()),
 		key,
 		val,
 	)
@@ -2734,7 +2730,7 @@ func (p *Parser) keyValueExpression() ast.ExpressionNode {
 		p.swallowNewlines()
 		value := p.expressionWithoutModifier()
 		return ast.NewKeyValueExpressionNode(
-			key.Span().Join(value.Span()),
+			key.Location().Join(value.Location()),
 			key,
 			value,
 		)
@@ -2762,7 +2758,7 @@ func (p *Parser) hashSetLiteralElement() ast.ExpressionNode {
 		starTok := p.advance()
 		expr := p.expressionWithoutModifier()
 		return ast.NewSplatExpressionNode(
-			starTok.Span().Join(expr.Span()),
+			starTok.Location().Join(expr.Location()),
 			expr,
 		)
 	}
@@ -2771,7 +2767,7 @@ func (p *Parser) hashSetLiteralElement() ast.ExpressionNode {
 		starTok := p.advance()
 		expr := p.expressionWithoutModifier()
 		return ast.NewDoubleSplatExpressionNode(
-			starTok.Span().Join(expr.Span()),
+			starTok.Location().Join(expr.Location()),
 			expr,
 		)
 	}
@@ -2782,7 +2778,7 @@ func (p *Parser) hashSetLiteralElement() ast.ExpressionNode {
 // selfLiteral = "self"
 func (p *Parser) selfLiteral() *ast.SelfLiteralNode {
 	tok := p.advance()
-	return ast.NewSelfLiteralNode(tok.Span())
+	return ast.NewSelfLiteralNode(tok.Location())
 }
 
 // genericConstantList = genericConstant ("," genericConstant)*
@@ -2814,16 +2810,16 @@ func (p *Parser) typeAnnotationList(stopTokens ...token.Type) []ast.TypeNode {
 func (p *Parser) includeExpression(allowed bool) *ast.IncludeExpressionNode {
 	keyword := p.advance()
 	consts := p.genericConstantList()
-	span := position.JoinSpanOfLastElement(keyword.Span(), consts)
+	location := position.JoinLocationOfLastElement(keyword.Location(), consts)
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"this definition cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 	return ast.NewIncludeExpressionNode(
-		span,
+		location,
 		consts,
 	)
 }
@@ -2832,16 +2828,16 @@ func (p *Parser) includeExpression(allowed bool) *ast.IncludeExpressionNode {
 func (p *Parser) implementExpression(allowed bool) *ast.ImplementExpressionNode {
 	keyword := p.advance()
 	consts := p.genericConstantList()
-	span := position.JoinSpanOfLastElement(keyword.Span(), consts)
+	location := position.JoinLocationOfLastElement(keyword.Location(), consts)
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"this definition cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 	return ast.NewImplementExpressionNode(
-		span,
+		location,
 		consts,
 	)
 }
@@ -2851,13 +2847,13 @@ func (p *Parser) methodSignatureDefinition(allowed bool) ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
-	var span *position.Span
+	var location *position.Location
 
 	sigTok := p.advance()
-	span = sigTok.Span()
+	location = sigTok.Location()
 
 	methodName, mSpan := p.methodName()
-	span = span.Join(mSpan)
+	location = location.Join(mSpan)
 
 	var typeParams []ast.TypeParameterNode
 	if p.match(token.LBRACKET) {
@@ -2869,25 +2865,25 @@ func (p *Parser) methodSignatureDefinition(allowed bool) ast.ExpressionNode {
 			rbracket, ok := p.consume(token.RBRACKET)
 			if !ok {
 				return ast.NewInvalidNode(
-					rbracket.Span(),
+					rbracket.Location(),
 					rbracket,
 				)
 			}
-			span = span.Join(rbracket.Span())
+			location = location.Join(rbracket.Location())
 		}
 	}
 
 	if p.match(token.LPAREN) {
 		if rparen, ok := p.matchOk(token.RPAREN); ok {
-			span = span.Join(rparen.Span())
+			location = location.Join(rparen.Location())
 		} else {
 			params = p.signatureParameterList(token.RPAREN)
 
 			rparen, ok := p.consume(token.RPAREN)
-			span = span.Join(rparen.Span())
+			location = location.Join(rparen.Location())
 			if !ok {
 				return ast.NewInvalidNode(
-					rparen.Span(),
+					rparen.Location(),
 					rparen,
 				)
 			}
@@ -2897,24 +2893,24 @@ func (p *Parser) methodSignatureDefinition(allowed bool) ast.ExpressionNode {
 	// return type
 	if p.match(token.COLON) {
 		returnType = p.typeAnnotation()
-		span = span.Join(returnType.Span())
+		location = location.Join(returnType.Location())
 	}
 
 	// throw type
 	if p.match(token.BANG) {
 		throwType = p.typeAnnotation()
-		span = span.Join(throwType.Span())
+		location = location.Join(throwType.Location())
 	}
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"signature definitions cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 
 	return ast.NewMethodSignatureDefinitionNode(
-		span,
+		location,
 		"",
 		methodName,
 		typeParams,
@@ -2949,15 +2945,15 @@ func (p *Parser) aliasDeclaration(allowed bool) ast.ExpressionNode {
 
 	entries := p.aliasEntryList()
 
-	span := position.JoinSpanOfLastElement(aliasTok.Span(), entries)
+	location := position.JoinLocationOfLastElement(aliasTok.Location(), entries)
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"alias definitions cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 	return ast.NewAliasDeclarationNode(
-		span,
+		location,
 		entries,
 	)
 }
@@ -2970,7 +2966,7 @@ func (p *Parser) typeExpression() ast.ExpressionNode {
 
 	typ := p.typeAnnotation()
 	return ast.NewTypeExpressionNode(
-		typeTok.Span().Join(typ.Span()),
+		typeTok.Location().Join(typ.Location()),
 		typ,
 	)
 }
@@ -2990,7 +2986,7 @@ func (p *Parser) typeDefinition(allowed bool) ast.ExpressionNode {
 			typeVars = p.typeParameterList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
-					errTok.Span(),
+					errTok.Location(),
 					errTok,
 				)
 			}
@@ -2998,21 +2994,21 @@ func (p *Parser) typeDefinition(allowed bool) ast.ExpressionNode {
 	}
 	equalTok, ok := p.consume(token.EQUAL_OP)
 	if !ok {
-		return ast.NewInvalidNode(equalTok.Span(), equalTok)
+		return ast.NewInvalidNode(equalTok.Location(), equalTok)
 	}
 	p.swallowNewlines()
 
 	typ := p.typeAnnotation()
-	span := typedefTok.Span().Join(typ.Span())
+	location := typedefTok.Location().Join(typ.Location())
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"type definitions cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 	if len(typeVars) > 0 {
 		return ast.NewGenericTypeDefinitionNode(
-			span,
+			location,
 			"",
 			name,
 			typeVars,
@@ -3020,38 +3016,38 @@ func (p *Parser) typeDefinition(allowed bool) ast.ExpressionNode {
 		)
 	}
 	return ast.NewTypeDefinitionNode(
-		span,
+		location,
 		"",
 		name,
 		typ,
 	)
 }
 
-func (p *Parser) methodName() (string, *position.Span) {
+func (p *Parser) methodName() (string, *position.Location) {
 	var methodName string
-	var span *position.Span
+	var location *position.Location
 
 	if p.lookahead.IsValidRegularMethodName() {
 		methodNameTok := p.advance()
 		methodName = methodNameTok.FetchValue()
-		span = methodNameTok.Span()
+		location = methodNameTok.Location()
 		if tok, ok := p.matchOk(token.EQUAL_OP); ok {
 			methodName += "="
-			span = span.Join(tok.Span())
+			location = location.Join(tok.Location())
 		}
 	} else if p.accept(token.LBRACKET) && p.acceptSecond(token.RBRACKET) {
 		// [
 		tok := p.advance()
-		span = tok.Span()
+		location = tok.Location()
 
 		// ]
 		tok = p.advance()
-		span = span.Join(tok.Span())
+		location = location.Join(tok.Location())
 		methodName = "[]"
 
 		if tok, ok := p.matchOk(token.EQUAL_OP); ok {
 			methodName += "="
-			span = span.Join(tok.Span())
+			location = location.Join(tok.Location())
 		}
 	} else {
 		if !p.lookahead.IsOverridableOperator() {
@@ -3059,10 +3055,10 @@ func (p *Parser) methodName() (string, *position.Span) {
 		}
 		tok := p.advance()
 		methodName = tok.FetchValue()
-		span = tok.Span()
+		location = tok.Location()
 	}
 
-	return methodName, span
+	return methodName, location
 }
 
 // methodDefinition = "def" ["*"] methodName ["(" methodParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
@@ -3071,10 +3067,10 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
 	var body []ast.StatementNode
-	var span *position.Span
+	var location *position.Location
 
 	defTok := p.advance()
-	span = defTok.Span()
+	location = defTok.Location()
 	var isGenerator bool
 	if p.accept(token.STAR) && p.secondLookahead.IsValidMethodName() {
 		p.advance() // swallow "*"
@@ -3105,11 +3101,11 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 			rbracket, ok := p.consume(token.RBRACKET)
 			if !ok {
 				return ast.NewInvalidNode(
-					rbracket.Span(),
+					rbracket.Location(),
 					rbracket,
 				)
 			}
-			span = span.Join(rbracket.Span())
+			location = location.Join(rbracket.Location())
 		}
 	}
 
@@ -3122,51 +3118,51 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 			rparen, ok := p.consume(token.RPAREN)
 			if !ok {
 				return ast.NewInvalidNode(
-					rparen.Span(),
+					rparen.Location(),
 					rparen,
 				)
 			}
-			span = span.Join(rparen.Span())
+			location = location.Join(rparen.Location())
 		}
 	}
 
 	if isSubscriptSetter {
-		var span *position.Span
+		var location *position.Location
 		if len(params) == 0 {
-			span = methodNameSpan
+			location = methodNameSpan
 		} else {
-			span = position.JoinSpanOfCollection(params)
+			location = position.JoinLocationOfCollection(params)
 		}
 
 		if len(params) != 2 {
-			p.errorMessageSpan(fmt.Sprintf("subscript setter methods must have two parameters, got: %d", len(params)), span)
+			p.errorMessageLocation(fmt.Sprintf("subscript setter methods must have two parameters, got: %d", len(params)), location)
 		}
 	} else if isSetter {
 		if len(params) == 0 {
-			p.errorMessageSpan("setter methods must have a single parameter, got: 0", methodNameSpan)
+			p.errorMessageLocation("setter methods must have a single parameter, got: 0", methodNameSpan)
 		} else if len(params) > 1 {
-			p.errorMessageSpan(fmt.Sprintf("setter methods must have a single parameter, got: %d", len(params)), position.JoinSpanOfCollection(params[1:]))
+			p.errorMessageLocation(fmt.Sprintf("setter methods must have a single parameter, got: %d", len(params)), position.JoinLocationOfCollection(params[1:]))
 		}
 	}
 
 	// return type
 	if p.match(token.COLON) {
 		returnType = p.typeAnnotation()
-		span = span.Join(returnType.Span())
+		location = location.Join(returnType.Location())
 		if isSetter || isSubscriptSetter {
-			p.errorMessageSpan("setter methods cannot be defined with custom return types", returnType.Span())
+			p.errorMessageLocation("setter methods cannot be defined with custom return types", returnType.Location())
 		}
 	}
 
 	// throw type
 	if p.match(token.BANG) {
 		throwType = p.typeAnnotation()
-		span = span.Join(throwType.Span())
+		location = location.Join(throwType.Location())
 	}
 
-	lastSpan, body, multiline := p.statementBlockWithThen(token.END)
-	if lastSpan != nil {
-		span = span.Join(lastSpan)
+	lastLocation, body, multiline := p.statementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = location.Join(lastLocation)
 	}
 
 	if multiline {
@@ -3178,14 +3174,14 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"method definitions cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 
@@ -3194,7 +3190,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		flags |= ast.METHOD_GENERATOR_FLAG
 	}
 	return ast.NewMethodDefinitionNode(
-		p.newLocation(span),
+		location,
 		"",
 		flags,
 		methodName,
@@ -3206,12 +3202,16 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 	)
 }
 
+func (p *Parser) newLocation(location *position.Span) *position.Location {
+	return position.NewLocation(p.sourceName, location)
+}
+
 // initDefinition = "init" ["(" methodParameterList ")"] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) initDefinition(allowed bool) ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var throwType ast.TypeNode
 	var body []ast.StatementNode
-	var span *position.Span
+	var location *position.Location
 
 	initTok := p.advance()
 
@@ -3224,7 +3224,7 @@ func (p *Parser) initDefinition(allowed bool) ast.ExpressionNode {
 			p.swallowNewlines()
 			if tok, ok := p.consume(token.RPAREN); !ok {
 				return ast.NewInvalidNode(
-					tok.Span(),
+					tok.Location(),
 					tok,
 				)
 			}
@@ -3236,11 +3236,11 @@ func (p *Parser) initDefinition(allowed bool) ast.ExpressionNode {
 		throwType = p.typeAnnotation()
 	}
 
-	lastSpan, body, multiline := p.statementBlockWithThen(token.END)
-	if lastSpan != nil {
-		span = initTok.Span().Join(lastSpan)
+	lastLocation, body, multiline := p.statementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = initTok.Location().Join(lastLocation)
 	} else {
-		span = initTok.Span()
+		location = initTok.Location()
 	}
 
 	if multiline {
@@ -3252,19 +3252,19 @@ func (p *Parser) initDefinition(allowed bool) ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"method definitions cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 
 	return ast.NewInitDefinitionNode(
-		p.newLocation(span),
+		location,
 		params,
 		throwType,
 		body,
@@ -3274,8 +3274,8 @@ func (p *Parser) initDefinition(allowed bool) ast.ExpressionNode {
 // typeParameter = ["+" | "-"] constant (":=" TypeNode | [">" TypeNode] ["<" TypeNode] ["=" TypeNode])
 func (p *Parser) typeParameter() ast.TypeParameterNode {
 	variance := ast.INVARIANT
-	var firstSpan *position.Span
-	var lastSpan *position.Span
+	var firstSpan *position.Location
+	var lastLocation *position.Location
 	var lowerBound ast.TypeNode
 	var upperBound ast.TypeNode
 	var def ast.TypeNode
@@ -3283,18 +3283,18 @@ func (p *Parser) typeParameter() ast.TypeParameterNode {
 	switch p.lookahead.Type {
 	case token.PLUS:
 		plusTok := p.advance()
-		firstSpan = plusTok.Span()
+		firstSpan = plusTok.Location()
 		variance = ast.COVARIANT
 	case token.MINUS:
 		minusTok := p.advance()
-		firstSpan = minusTok.Span()
+		firstSpan = minusTok.Location()
 		variance = ast.CONTRAVARIANT
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
 	default:
 		errTok := p.advance()
 		p.errorExpected("a type variable")
 		return ast.NewInvalidNode(
-			errTok.Span(),
+			errTok.Location(),
 			errTok,
 		)
 	}
@@ -3302,40 +3302,40 @@ func (p *Parser) typeParameter() ast.TypeParameterNode {
 	if !p.accept(token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT) {
 		errTok := p.advance()
 		return ast.NewInvalidNode(
-			errTok.Span(),
+			errTok.Location(),
 			errTok,
 		)
 	}
 	nameTok := p.advance()
 	if firstSpan == nil {
-		firstSpan = nameTok.Span()
+		firstSpan = nameTok.Location()
 	}
-	lastSpan = nameTok.Span()
+	lastLocation = nameTok.Location()
 
 	if p.match(token.COLON_EQUAL) {
 		lowerBound = p.typeAnnotation()
 		upperBound = lowerBound
 		def = lowerBound
-		lastSpan = lowerBound.Span()
+		lastLocation = lowerBound.Location()
 	} else {
 		if p.match(token.GREATER) {
 			lowerBound = p.typeAnnotation()
-			lastSpan = lowerBound.Span()
+			lastLocation = lowerBound.Location()
 		}
 
 		if p.match(token.LESS) {
 			upperBound = p.typeAnnotation()
-			lastSpan = upperBound.Span()
+			lastLocation = upperBound.Location()
 		}
 
 		if p.match(token.EQUAL_OP) {
 			def = p.typeAnnotation()
-			lastSpan = def.Span()
+			lastLocation = def.Location()
 		}
 	}
 
 	return ast.NewVariantTypeParameterNode(
-		firstSpan.Join(lastSpan),
+		firstSpan.Join(lastLocation),
 		variance,
 		nameTok.Value,
 		lowerBound,
@@ -3360,7 +3360,7 @@ func (p *Parser) attributeParameter() ast.ParameterNode {
 	var typ ast.TypeNode
 
 	var paramName *token.Token
-	var span *position.Span
+	var location *position.Location
 
 	switch p.lookahead.Type {
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
@@ -3372,24 +3372,24 @@ func (p *Parser) attributeParameter() ast.ParameterNode {
 		p.errorExpected("an identifier as the name of the declared attribute")
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Span(),
+			tok.Location(),
 			tok,
 		)
 	}
-	span = span.Join(paramName.Span())
+	location = location.Join(paramName.Location())
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotation()
-		span = span.Join(typ.Span())
+		location = location.Join(typ.Location())
 	}
 
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
-		span = span.Join(init.Span())
+		location = location.Join(init.Location())
 	}
 
 	return ast.NewAttributeParameterNode(
-		span,
+		location,
 		paramName.Value,
 		typ,
 		init,
@@ -3402,7 +3402,7 @@ func (p *Parser) setterParameter() ast.ParameterNode {
 	var typ ast.TypeNode
 
 	var paramName *token.Token
-	var span *position.Span
+	var location *position.Location
 
 	switch p.lookahead.Type {
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
@@ -3414,25 +3414,25 @@ func (p *Parser) setterParameter() ast.ParameterNode {
 		p.errorExpected("an identifier as the name of the declared attribute")
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Span(),
+			tok.Location(),
 			tok,
 		)
 	}
-	span = span.Join(paramName.Span())
+	location = location.Join(paramName.Location())
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotation()
-		span = span.Join(typ.Span())
+		location = location.Join(typ.Location())
 	}
 
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
-		p.errorMessageSpan("setter declarations cannot have initialisers", init.Span())
-		span = span.Join(init.Span())
+		p.errorMessageLocation("setter declarations cannot have initialisers", init.Location())
+		location = location.Join(init.Location())
 	}
 
 	return ast.NewAttributeParameterNode(
-		span,
+		location,
 		paramName.Value,
 		typ,
 		init,
@@ -3456,14 +3456,14 @@ func (p *Parser) getterDeclaration(allowed bool) ast.ExpressionNode {
 	attrList := p.attributeParameterList()
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"getter declarations cannot appear in expressions",
-			getterTok.Span(),
+			getterTok.Location(),
 		)
 	}
 
 	return ast.NewGetterDeclarationNode(
-		position.JoinSpanOfLastElement(getterTok.Span(), attrList),
+		position.JoinLocationOfLastElement(getterTok.Location(), attrList),
 		"",
 		attrList,
 	)
@@ -3476,14 +3476,14 @@ func (p *Parser) setterDeclaration(allowed bool) ast.ExpressionNode {
 	attrList := p.setterParameterList()
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"setter declarations cannot appear in expressions",
-			setterTok.Span(),
+			setterTok.Location(),
 		)
 	}
 
 	return ast.NewSetterDeclarationNode(
-		position.JoinSpanOfLastElement(setterTok.Span(), attrList),
+		position.JoinLocationOfLastElement(setterTok.Location(), attrList),
 		"",
 		attrList,
 	)
@@ -3496,14 +3496,14 @@ func (p *Parser) attrDeclaration(allowed bool) ast.ExpressionNode {
 	attrList := p.attributeParameterList()
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"attr declarations cannot appear in expressions",
-			attrTok.Span(),
+			attrTok.Location(),
 		)
 	}
 
 	return ast.NewAttrDeclarationNode(
-		position.JoinSpanOfLastElement(attrTok.Span(), attrList),
+		position.JoinLocationOfLastElement(attrTok.Location(), attrList),
 		"",
 		attrList,
 	)
@@ -3516,7 +3516,7 @@ func (p *Parser) usingSubentry() ast.UsingSubentryNode {
 		identTok := p.advance()
 		if !p.accept(token.AS) {
 			return ast.NewPublicIdentifierNode(
-				identTok.Span(),
+				identTok.Location(),
 				identTok.Value,
 			)
 		}
@@ -3524,18 +3524,18 @@ func (p *Parser) usingSubentry() ast.UsingSubentryNode {
 		p.advance() // as
 		asIdentTok, ok := p.consume(token.PUBLIC_IDENTIFIER)
 		if !ok {
-			return ast.NewInvalidNode(asIdentTok.Span(), asIdentTok)
+			return ast.NewInvalidNode(asIdentTok.Location(), asIdentTok)
 		}
 		return ast.NewPublicIdentifierAsNode(
-			identTok.Span().Join(asIdentTok.Span()),
-			ast.NewPublicIdentifierNode(identTok.Span(), identTok.Value),
+			identTok.Location().Join(asIdentTok.Location()),
+			ast.NewPublicIdentifierNode(identTok.Location(), identTok.Value),
 			asIdentTok.Value,
 		)
 	case token.PUBLIC_CONSTANT:
 		constTok := p.advance()
 		if !p.accept(token.AS) {
 			return ast.NewPublicConstantNode(
-				constTok.Span(),
+				constTok.Location(),
 				constTok.Value,
 			)
 		}
@@ -3543,17 +3543,17 @@ func (p *Parser) usingSubentry() ast.UsingSubentryNode {
 		p.advance() // as
 		asConstTok, ok := p.consume(token.PUBLIC_CONSTANT)
 		if !ok {
-			return ast.NewInvalidNode(asConstTok.Span(), asConstTok)
+			return ast.NewInvalidNode(asConstTok.Location(), asConstTok)
 		}
 		return ast.NewPublicConstantAsNode(
-			constTok.Span().Join(asConstTok.Span()),
-			ast.NewPublicConstantNode(constTok.Span(), constTok.Value),
+			constTok.Location().Join(asConstTok.Location()),
+			ast.NewPublicConstantNode(constTok.Location(), constTok.Value),
 			asConstTok.Value,
 		)
 	default:
 		p.errorExpected("a public identifier or public constant")
 		tok := p.advance()
-		return ast.NewInvalidNode(tok.Span(), tok)
+		return ast.NewInvalidNode(tok.Location(), tok)
 	}
 }
 
@@ -3566,7 +3566,7 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 		}
 		right := p.constant()
 		left = ast.NewConstantLookupNode(
-			tok.Span().Join(right.Span()),
+			tok.Location().Join(right.Location()),
 			nil,
 			right,
 		)
@@ -3581,7 +3581,7 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 		if p.accept(token.PUBLIC_IDENTIFIER) {
 			nameTok := p.advance()
 			methodLookup := ast.NewMethodLookupNode(
-				left.Span().Join(nameTok.Span()),
+				left.Location().Join(nameTok.Location()),
 				left,
 				nameTok.Value,
 			)
@@ -3589,12 +3589,12 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 				asNameTok, ok := p.consume(token.PUBLIC_IDENTIFIER)
 				if !ok {
 					return ast.NewInvalidNode(
-						asNameTok.Span(),
+						asNameTok.Location(),
 						asNameTok,
 					)
 				}
 				return ast.NewMethodLookupAsNode(
-					left.Span(),
+					left.Location(),
 					methodLookup,
 					asNameTok.Value,
 				)
@@ -3604,7 +3604,7 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 		if p.accept(token.STAR) {
 			starTok := p.advance()
 			return ast.NewUsingAllEntryNode(
-				left.Span().Join(starTok.Span()),
+				left.Location().Join(starTok.Location()),
 				left,
 			)
 		}
@@ -3613,11 +3613,11 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 			subentryList := p.usingSubentryList(token.RBRACE)
 			rbrace, ok := p.consume(token.RBRACE)
 			if !ok {
-				ast.NewInvalidNode(rbrace.Span(), rbrace)
+				ast.NewInvalidNode(rbrace.Location(), rbrace)
 			}
 
 			return ast.NewUsingEntryWithSubentriesNode(
-				left.Span().Join(rbrace.Span()),
+				left.Location().Join(rbrace.Location()),
 				left,
 				subentryList,
 			)
@@ -3629,7 +3629,7 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 		right := p.constant()
 
 		left = ast.NewConstantLookupNode(
-			left.Span().Join(right.Span()),
+			left.Location().Join(right.Location()),
 			left,
 			right,
 		)
@@ -3639,12 +3639,12 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 		asNameTok, ok := p.consume(token.PUBLIC_CONSTANT)
 		if !ok {
 			return ast.NewInvalidNode(
-				asNameTok.Span(),
+				asNameTok.Location(),
 				asNameTok,
 			)
 		}
 		return ast.NewConstantAsNode(
-			left.Span(),
+			left.Location(),
 			left,
 			asNameTok.Value,
 		)
@@ -3660,14 +3660,14 @@ func (p *Parser) usingDeclaration(allowed bool) ast.ExpressionNode {
 	constList := p.usingEntryList()
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"using declarations cannot appear in expressions",
-			usingTok.Span(),
+			usingTok.Location(),
 		)
 	}
 
 	return ast.NewUsingExpressionNode(
-		position.JoinSpanOfLastElement(usingTok.Span(), constList),
+		position.JoinLocationOfLastElement(usingTok.Location(), constList),
 		constList,
 	)
 }
@@ -3686,10 +3686,10 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
 		default:
-			p.errorMessageSpan("invalid class name, expected a constant", constant.Span())
+			p.errorMessageLocation("invalid class name, expected a constant", constant.Location())
 		}
 	}
-	var span *position.Span
+	var location *position.Location
 
 	if p.match(token.LBRACKET) {
 		if p.accept(token.RBRACKET) {
@@ -3699,7 +3699,7 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 			typeVars = p.typeParameterList(token.RBRACKET)
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
-					errTok.Span(),
+					errTok.Location(),
 					errTok,
 				)
 			}
@@ -3710,11 +3710,11 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 		superclass = p.genericConstantOrNil()
 	}
 
-	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastSpan != nil {
-		span = classTok.Span().Join(lastSpan)
+	lastLocation, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = classTok.Location().Join(lastLocation)
 	} else {
-		span = classTok.Span()
+		location = classTok.Location()
 	}
 
 	if multiline {
@@ -3726,26 +3726,26 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"class declarations cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 
 	if constant == nil {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"anonymous classes are not supported",
-			span,
+			location,
 		)
 	}
 
 	return ast.NewClassDeclarationNode(
-		span,
+		location,
 		"",
 		false,
 		false,
@@ -3770,35 +3770,35 @@ func (p *Parser) moduleDeclaration(allowed bool) ast.ExpressionNode {
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
 		default:
-			p.errorMessageSpan("invalid module name, expected a constant", constant.Span())
+			p.errorMessageLocation("invalid module name, expected a constant", constant.Location())
 		}
 	}
-	var span *position.Span
+	var location *position.Location
 
 	if lbracket, ok := p.matchOk(token.LBRACKET); ok {
-		errPos := lbracket.Span()
+		errPos := lbracket.Location()
 		if p.accept(token.RBRACKET) {
 			rbracket := p.advance()
-			errPos = errPos.Join(rbracket.Span())
+			errPos = errPos.Join(rbracket.Location())
 		} else {
 			p.typeParameterList()
 			rbracket, ok := p.consume(token.RBRACKET)
 			if !ok {
 				return ast.NewInvalidNode(
-					rbracket.Span(),
+					rbracket.Location(),
 					rbracket,
 				)
 			}
-			errPos = errPos.Join(rbracket.Span())
+			errPos = errPos.Join(rbracket.Location())
 		}
-		p.errorMessageSpan("modules cannot be generic", errPos)
+		p.errorMessageLocation("modules cannot be generic", errPos)
 	}
 
-	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastSpan != nil {
-		span = moduleTok.Span().Join(lastSpan)
+	lastLocation, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = moduleTok.Location().Join(lastLocation)
 	} else {
-		span = moduleTok.Span()
+		location = moduleTok.Location()
 	}
 
 	if multiline {
@@ -3810,26 +3810,26 @@ func (p *Parser) moduleDeclaration(allowed bool) ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"module declarations cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 
 	if constant == nil {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"anonymous modules are not supported",
-			span,
+			location,
 		)
 	}
 
 	return ast.NewModuleDeclarationNode(
-		span,
+		location,
 		"",
 		constant,
 		thenBody,
@@ -3849,10 +3849,10 @@ func (p *Parser) mixinDeclaration(allowed bool) ast.ExpressionNode {
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
 		default:
-			p.errorMessageSpan("invalid mixin name, expected a constant", constant.Span())
+			p.errorMessageLocation("invalid mixin name, expected a constant", constant.Location())
 		}
 	}
-	var span *position.Span
+	var location *position.Location
 
 	if p.match(token.LBRACKET) {
 		if p.accept(token.RBRACKET) {
@@ -3862,18 +3862,18 @@ func (p *Parser) mixinDeclaration(allowed bool) ast.ExpressionNode {
 			typeVars = p.typeParameterList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
-					errTok.Span(),
+					errTok.Location(),
 					errTok,
 				)
 			}
 		}
 	}
 
-	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastSpan != nil {
-		span = mixinTok.Span().Join(lastSpan)
+	lastLocation, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = mixinTok.Location().Join(lastLocation)
 	} else {
-		span = mixinTok.Span()
+		location = mixinTok.Location()
 	}
 
 	if multiline {
@@ -3885,26 +3885,26 @@ func (p *Parser) mixinDeclaration(allowed bool) ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"mixin declarations cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 
 	if constant == nil {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"anonymous mixins are not supported",
-			span,
+			location,
 		)
 	}
 
 	return ast.NewMixinDeclarationNode(
-		span,
+		location,
 		"",
 		false,
 		constant,
@@ -3926,10 +3926,10 @@ func (p *Parser) interfaceDeclaration(allowed bool) ast.ExpressionNode {
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
 		default:
-			p.errorMessageSpan("invalid interface name, expected a constant", constant.Span())
+			p.errorMessageLocation("invalid interface name, expected a constant", constant.Location())
 		}
 	}
-	var span *position.Span
+	var location *position.Location
 
 	if p.match(token.LBRACKET) {
 		if p.accept(token.RBRACKET) {
@@ -3939,18 +3939,18 @@ func (p *Parser) interfaceDeclaration(allowed bool) ast.ExpressionNode {
 			typeVars = p.typeParameterList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
-					errTok.Span(),
+					errTok.Location(),
 					errTok,
 				)
 			}
 		}
 	}
 
-	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastSpan != nil {
-		span = interfaceTok.Span().Join(lastSpan)
+	lastLocation, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = interfaceTok.Location().Join(lastLocation)
 	} else {
-		span = interfaceTok.Span()
+		location = interfaceTok.Location()
 	}
 
 	if multiline {
@@ -3962,26 +3962,26 @@ func (p *Parser) interfaceDeclaration(allowed bool) ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"interface declarations cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 
 	if constant == nil {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"anonymous interfaces are not supported",
-			span,
+			location,
 		)
 	}
 
 	return ast.NewInterfaceDeclarationNode(
-		span,
+		location,
 		"",
 		constant,
 		typeVars,
@@ -4002,10 +4002,10 @@ func (p *Parser) structDeclaration(allowed bool) ast.ExpressionNode {
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
 		default:
-			p.errorMessageSpan("invalid struct name, expected a constant", constant.Span())
+			p.errorMessageLocation("invalid struct name, expected a constant", constant.Location())
 		}
 	}
-	var span *position.Span
+	var location *position.Location
 
 	if p.match(token.LBRACKET) {
 		if p.accept(token.RBRACKET) {
@@ -4015,18 +4015,18 @@ func (p *Parser) structDeclaration(allowed bool) ast.ExpressionNode {
 			typeVars = p.typeParameterList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
-					errTok.Span(),
+					errTok.Location(),
 					errTok,
 				)
 			}
 		}
 	}
 
-	lastSpan, thenBody, multiline := p.structBodyStatementBlockWithThen(token.END)
-	if lastSpan != nil {
-		span = structTok.Span().Join(lastSpan)
+	lastLocation, thenBody, multiline := p.structBodyStatementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = structTok.Location().Join(lastLocation)
 	} else {
-		span = structTok.Span()
+		location = structTok.Location()
 	}
 
 	if multiline {
@@ -4038,26 +4038,26 @@ func (p *Parser) structDeclaration(allowed bool) ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"struct declarations cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 
 	if constant == nil {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"anonymous structs are not supported",
-			span,
+			location,
 		)
 	}
 
 	return ast.NewStructDeclarationNode(
-		span,
+		location,
 		"",
 		constant,
 		typeVars,
@@ -4074,38 +4074,38 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 	if varName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
 		token.INSTANCE_VARIABLE); ok {
 		var typ ast.TypeNode
-		lastSpan := varName.Span()
+		lastLocation := varName.Location()
 
 		if p.match(token.COLON) {
 			typ = p.typeAnnotationWithoutVoid()
-			lastSpan = typ.Span()
+			lastLocation = typ.Location()
 		}
 
 		if p.match(token.EQUAL_OP) {
 			p.swallowNewlines()
 			init = p.expressionWithoutModifier()
-			lastSpan = init.Span()
+			lastLocation = init.Location()
 			if varName.Type == token.INSTANCE_VARIABLE {
-				p.errorMessageSpan("instance variables cannot be initialised when declared", lastSpan)
+				p.errorMessageLocation("instance variables cannot be initialised when declared", lastLocation)
 			}
 		}
 
-		span := varTok.Span().Join(lastSpan)
+		location := varTok.Location().Join(lastLocation)
 		if varName.Type == token.INSTANCE_VARIABLE {
 			if !instanceVariableAllowed {
-				p.errorMessageSpan(
+				p.errorMessageLocation(
 					"instance variable declarations cannot appear in expressions",
-					span,
+					location,
 				)
 			}
 			if typ == nil {
-				p.errorMessageSpan(
+				p.errorMessageLocation(
 					"instance variable declarations must have an explicit type",
-					span,
+					location,
 				)
 			}
 			return ast.NewInstanceVariableDeclarationNode(
-				span,
+				location,
 				"",
 				varName.Value,
 				typ,
@@ -4113,7 +4113,7 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 		}
 
 		return ast.NewVariableDeclarationNode(
-			span,
+			location,
 			"",
 			varName.Value,
 			typ,
@@ -4124,7 +4124,7 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 	pattern := p.pattern()
 	if tok, ok := p.consume(token.EQUAL_OP); !ok {
 		return ast.NewInvalidNode(
-			tok.Span(),
+			tok.Location(),
 			tok,
 		)
 	}
@@ -4132,11 +4132,11 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 	init = p.expressionWithoutModifier()
 
 	if !ast.PatternDeclaresVariables(pattern) {
-		p.errorMessageSpan("patterns in variable declarations should define at least one variable", pattern.Span())
+		p.errorMessageLocation("patterns in variable declarations should define at least one variable", pattern.Location())
 	}
 
 	return ast.NewVariablePatternDeclarationNode(
-		varTok.Span().Join(init.Span()),
+		varTok.Location().Join(init.Location()),
 		pattern,
 		init,
 	)
@@ -4151,26 +4151,26 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	if valName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
 		token.INSTANCE_VARIABLE); ok {
 		var typ ast.TypeNode
-		lastSpan := valName.Span()
+		lastLocation := valName.Location()
 
 		switch valName.Type {
 		case token.INSTANCE_VARIABLE:
-			p.errorMessageSpan("instance variables cannot be declared using `val`", valName.Span())
+			p.errorMessageLocation("instance variables cannot be declared using `val`", valName.Location())
 		}
 
 		if p.match(token.COLON) {
 			typ = p.typeAnnotationWithoutVoid()
-			lastSpan = typ.Span()
+			lastLocation = typ.Location()
 		}
 
 		if p.match(token.EQUAL_OP) {
 			p.swallowNewlines()
 			init = p.expressionWithoutModifier()
-			lastSpan = init.Span()
+			lastLocation = init.Location()
 		}
 
 		return ast.NewValueDeclarationNode(
-			valTok.Span().Join(lastSpan),
+			valTok.Location().Join(lastLocation),
 			valName.Value,
 			typ,
 			init,
@@ -4180,7 +4180,7 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	pattern := p.pattern()
 	if tok, ok := p.consume(token.EQUAL_OP); !ok {
 		return ast.NewInvalidNode(
-			tok.Span(),
+			tok.Location(),
 			tok,
 		)
 	}
@@ -4188,11 +4188,11 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	init = p.expressionWithoutModifier()
 
 	if !ast.PatternDeclaresVariables(pattern) {
-		p.errorMessageSpan("patterns in value declarations should define at least one value", pattern.Span())
+		p.errorMessageLocation("patterns in value declarations should define at least one value", pattern.Location())
 	}
 
 	return ast.NewValuePatternDeclarationNode(
-		valTok.Span().Join(init.Span()),
+		valTok.Location().Join(init.Location()),
 		pattern,
 		init,
 	)
@@ -4210,32 +4210,32 @@ func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 		*ast.PrivateConstantNode,
 		*ast.ConstantLookupNode:
 	default:
-		p.errorMessageSpan("invalid constant name", constant.Span())
+		p.errorMessageLocation("invalid constant name", constant.Location())
 	}
-	lastSpan := constant.Span()
+	lastLocation := constant.Location()
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotationWithoutVoid()
-		lastSpan = typ.Span()
+		lastLocation = typ.Location()
 	}
 
 	if p.match(token.EQUAL_OP) {
 		p.swallowNewlines()
 		init = p.expressionWithoutModifier()
-		lastSpan = init.Span()
+		lastLocation = init.Location()
 	}
 
-	span := constTok.Span().Join(lastSpan)
+	location := constTok.Location().Join(lastLocation)
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"constant declarations cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 
 	return ast.NewConstantDeclarationNode(
-		span,
+		location,
 		"",
 		constant,
 		typ,
@@ -4248,7 +4248,7 @@ func (p *Parser) typeAnnotation() ast.TypeNode {
 	switch p.lookahead.Type {
 	case token.VOID:
 		tok := p.advance()
-		return ast.NewVoidTypeNode(tok.Span())
+		return ast.NewVoidTypeNode(tok.Location())
 	}
 	return p.unionType()
 }
@@ -4259,7 +4259,7 @@ func (p *Parser) typeAnnotationWithoutUnionAndVoid() ast.TypeNode {
 	case token.VOID:
 		p.errorMessage("type `void` cannot be used in this context")
 		tok := p.advance()
-		return ast.NewVoidTypeNode(tok.Span())
+		return ast.NewVoidTypeNode(tok.Location())
 	}
 	return p.intersectionType()
 }
@@ -4270,7 +4270,7 @@ func (p *Parser) typeAnnotationWithoutVoid() ast.TypeNode {
 	case token.VOID:
 		p.errorMessage("type `void` cannot be used in this context")
 		tok := p.advance()
-		return ast.NewVoidTypeNode(tok.Span())
+		return ast.NewVoidTypeNode(tok.Location())
 	}
 	return p.unionType()
 }
@@ -4300,21 +4300,21 @@ func (p *Parser) unaryType() ast.TypeNode {
 		opTok := p.advance()
 		typ := p.unaryType()
 		return ast.NewNotTypeNode(
-			opTok.Span().Join(typ.Span()),
+			opTok.Location().Join(typ.Location()),
 			typ,
 		)
 	case token.AND:
 		opTok := p.advance()
 		typ := p.unaryType()
 		return ast.NewSingletonTypeNode(
-			opTok.Span().Join(typ.Span()),
+			opTok.Location().Join(typ.Location()),
 			typ,
 		)
 	case token.PERCENT:
 		opTok := p.advance()
 		typ := p.unaryType()
 		return ast.NewInstanceOfTypeNode(
-			opTok.Span().Join(typ.Span()),
+			opTok.Location().Join(typ.Location()),
 			typ,
 		)
 	default:
@@ -4328,7 +4328,7 @@ func (p *Parser) nilableType() ast.TypeNode {
 
 	if questTok, ok := p.matchOk(token.QUESTION); ok {
 		return ast.NewNilableTypeNode(
-			typ.Span().Join(questTok.Span()),
+			typ.Location().Join(questTok.Location()),
 			typ,
 		)
 	}
@@ -4343,7 +4343,7 @@ func (p *Parser) unaryLiteralType() ast.TypeNode {
 		opTok := p.advance()
 		typ := p.unaryLiteralType()
 		return ast.NewUnaryTypeNode(
-			opTok.Span().Join(typ.Span()),
+			opTok.Location().Join(typ.Location()),
 			opTok,
 			typ,
 		)
@@ -4366,7 +4366,7 @@ func (p *Parser) primaryType() ast.TypeNode {
 	switch p.lookahead.Type {
 	case token.BOOL:
 		tok := p.advance()
-		return ast.NewBoolLiteralNode(tok.Span())
+		return ast.NewBoolLiteralNode(tok.Location())
 	case token.SELF:
 		return p.selfLiteral()
 	case token.TRUE:
@@ -4413,10 +4413,10 @@ func (p *Parser) primaryType() ast.TypeNode {
 		return p.float32()
 	case token.NEVER:
 		tok := p.advance()
-		return ast.NewNeverTypeNode(tok.Span())
+		return ast.NewNeverTypeNode(tok.Location())
 	case token.ANY:
 		tok := p.advance()
-		return ast.NewAnyTypeNode(tok.Span())
+		return ast.NewAnyTypeNode(tok.Location())
 	case token.OR, token.OR_OR:
 		return p.closureType()
 	default:
@@ -4427,30 +4427,30 @@ func (p *Parser) primaryType() ast.TypeNode {
 // closureType = (("|" signatureParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation]
 func (p *Parser) closureType() ast.TypeNode {
 	var params []ast.ParameterNode
-	var span *position.Span
+	var location *position.Location
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
 
 	if p.accept(token.OR) {
-		span = p.advance().Span()
+		location = p.advance().Location()
 		if !p.accept(token.OR) {
 			p.mode = withoutUnionTypeMode
 			params = p.signatureParameterList(token.OR)
 			p.mode = normalMode
-			span = position.JoinSpanOfLastElement(span, params)
+			location = position.JoinLocationOfLastElement(location, params)
 		}
 		if tok, ok := p.consume(token.OR); !ok {
 			return ast.NewInvalidNode(
-				tok.Span(),
+				tok.Location(),
 				tok,
 			)
 		}
 	} else {
 		orOr, ok := p.consume(token.OR_OR)
-		span = orOr.Span()
+		location = orOr.Location()
 		if !ok {
 			return ast.NewInvalidNode(
-				orOr.Span(),
+				orOr.Location(),
 				orOr,
 			)
 		}
@@ -4459,17 +4459,17 @@ func (p *Parser) closureType() ast.TypeNode {
 	// return type
 	if p.match(token.COLON) {
 		returnType = p.typeAnnotation()
-		span = span.Join(returnType.Span())
+		location = location.Join(returnType.Location())
 	}
 
 	// throw type
 	if p.match(token.BANG) {
 		throwType = p.typeAnnotation()
-		span = span.Join(throwType.Span())
+		location = location.Join(throwType.Location())
 	}
 
 	return ast.NewClosureTypeNode(
-		span,
+		location,
 		params,
 		returnType,
 		throwType,
@@ -4504,11 +4504,11 @@ func (p *Parser) genericConstant() ast.ComplexConstantNode {
 	typeList := p.typeAnnotationList(token.RBRACKET)
 	rbracket, ok := p.consume(token.RBRACKET)
 	if !ok {
-		return ast.NewInvalidNode(rbracket.Span(), rbracket)
+		return ast.NewInvalidNode(rbracket.Location(), rbracket)
 	}
 
 	return ast.NewGenericConstantNode(
-		constant.Span().Join(rbracket.Span()),
+		constant.Location().Join(rbracket.Location()),
 		constant,
 		typeList,
 	)
@@ -4523,7 +4523,7 @@ func (p *Parser) regexLiteral() ast.RegexLiteralNode {
 	for {
 		if tok, ok := p.matchOk(token.REGEX_CONTENT); ok {
 			reContent = append(reContent, ast.NewRegexLiteralContentSectionNode(
-				tok.Span(),
+				tok.Location(),
 				tok.Value,
 			))
 			continue
@@ -4533,7 +4533,7 @@ func (p *Parser) regexLiteral() ast.RegexLiteralNode {
 			expr := p.expressionWithoutModifier()
 			end, _ := p.consume(token.REGEX_INTERP_END)
 			reContent = append(reContent, ast.NewRegexInterpolationNode(
-				beg.Span().Join(end.Span()),
+				beg.Location().Join(end.Location()),
 				expr,
 			))
 			continue
@@ -4546,7 +4546,7 @@ func (p *Parser) regexLiteral() ast.RegexLiteralNode {
 		}
 		if !ok {
 			reContent = append(reContent, ast.NewInvalidNode(
-				tok.Span(),
+				tok.Location(),
 				tok,
 			))
 			continue
@@ -4577,19 +4577,19 @@ tokenLoop:
 	}
 
 	if len(reContent) == 0 {
-		return ast.NewUninterpolatedRegexLiteralNode(begTok.Span().Join(endTok.Span()), "", flags)
+		return ast.NewUninterpolatedRegexLiteralNode(begTok.Location().Join(endTok.Location()), "", flags)
 	}
 	reVal, ok := reContent[0].(*ast.RegexLiteralContentSectionNode)
 	if len(reContent) == 1 && ok {
 		return ast.NewUninterpolatedRegexLiteralNode(
-			begTok.Span().Join(endTok.Span()),
+			begTok.Location().Join(endTok.Location()),
 			reVal.Value,
 			flags,
 		)
 	}
 
 	return ast.NewInterpolatedRegexLiteralNode(
-		begTok.Span().Join(endTok.Span()),
+		begTok.Location().Join(endTok.Location()),
 		reContent,
 		flags,
 	)
@@ -4600,7 +4600,7 @@ func (p *Parser) throwExpression() *ast.ThrowExpressionNode {
 	throwTok := p.advance()
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
 		return ast.NewThrowExpressionNode(
-			throwTok.Span(),
+			throwTok.Location(),
 			false,
 			nil,
 		)
@@ -4614,7 +4614,7 @@ func (p *Parser) throwExpression() *ast.ThrowExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewThrowExpressionNode(
-		throwTok.Span().Join(expr.Span()),
+		throwTok.Location().Join(expr.Location()),
 		unchecked,
 		expr,
 	)
@@ -4626,7 +4626,7 @@ func (p *Parser) mustExpression() *ast.MustExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewMustExpressionNode(
-		mustTok.Span().Join(expr.Span()),
+		mustTok.Location().Join(expr.Location()),
 		expr,
 	)
 }
@@ -4637,20 +4637,20 @@ func (p *Parser) unquoteExpression() ast.ExpressionNode {
 
 	lparen, ok := p.consume(token.LPAREN)
 	if !ok {
-		return ast.NewInvalidExpressionNode(lparen.Span(), lparen)
+		return ast.NewInvalidExpressionNode(lparen.Location(), lparen)
 	}
 
 	expr := p.expressionWithoutModifier()
 
 	rparen, ok := p.consume(token.RPAREN)
 	if !ok {
-		return ast.NewInvalidExpressionNode(rparen.Span(), rparen)
+		return ast.NewInvalidExpressionNode(rparen.Location(), rparen)
 	}
 
-	span := unquoteTok.Span().Join(rparen.Span())
+	location := unquoteTok.Location().Join(rparen.Location())
 
 	return ast.NewUnquoteExpressionNode(
-		span,
+		location,
 		expr,
 	)
 }
@@ -4659,17 +4659,17 @@ func (p *Parser) unquoteExpression() ast.ExpressionNode {
 func (p *Parser) quoteExpression() ast.ExpressionNode {
 	quoteTok := p.advance()
 
-	lastSpan, body, multiline := p.statementBlock(token.END)
+	lastLocation, body, multiline := p.statementBlock(token.END)
 
-	var span *position.Span
-	if lastSpan != nil {
-		span = quoteTok.Span().Join(lastSpan)
+	var location *position.Location
+	if lastLocation != nil {
+		location = quoteTok.Location().Join(lastLocation)
 	} else {
-		span = quoteTok.Span()
+		location = quoteTok.Location()
 	}
 
 	quoteExpression := ast.NewQuoteExpressionNode(
-		span,
+		location,
 		body,
 	)
 
@@ -4682,7 +4682,7 @@ func (p *Parser) quoteExpression() ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			quoteExpression.SetSpan(quoteExpression.Span().Join(endTok.Span()))
+			quoteExpression.SetLocation(quoteExpression.Location().Join(endTok.Location()))
 		}
 	}
 
@@ -4700,17 +4700,17 @@ func (p *Parser) macroBoundary() ast.ExpressionNode {
 		name = nameTok.Value
 	}
 
-	lastSpan, body, multiline := p.statementBlock(token.END)
+	lastLocation, body, multiline := p.statementBlock(token.END)
 
-	var span *position.Span
-	if lastSpan != nil {
-		span = doTok.Span().Join(lastSpan)
+	var location *position.Location
+	if lastLocation != nil {
+		location = doTok.Location().Join(lastLocation)
 	} else {
-		span = doTok.Span()
+		location = doTok.Location()
 	}
 
 	macroBoundary := ast.NewMacroBoundaryNode(
-		span,
+		location,
 		body,
 		name,
 	)
@@ -4724,7 +4724,7 @@ func (p *Parser) macroBoundary() ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			macroBoundary.SetSpan(macroBoundary.Span().Join(endTok.Span()))
+			macroBoundary.SetLocation(macroBoundary.Location().Join(endTok.Location()))
 		}
 	}
 
@@ -4737,7 +4737,7 @@ func (p *Parser) tryExpression() *ast.TryExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewTryExpressionNode(
-		tryTok.Span().Join(expr.Span()),
+		tryTok.Location().Join(expr.Location()),
 		expr,
 	)
 }
@@ -4748,7 +4748,7 @@ func (p *Parser) typeofExpression() *ast.TypeofExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewTypeofExpressionNode(
-		mustTok.Span().Join(expr.Span()),
+		mustTok.Location().Join(expr.Location()),
 		expr,
 	)
 }
@@ -4756,16 +4756,16 @@ func (p *Parser) typeofExpression() *ast.TypeofExpressionNode {
 // breakExpression = "break" [SPECIAL_IDENTIFIER] [expressionWithoutModifier]
 func (p *Parser) breakExpression() *ast.BreakExpressionNode {
 	breakTok := p.advance()
-	span := breakTok.Span()
+	location := breakTok.Location()
 	var label string
 	if p.lookahead.Type == token.SPECIAL_IDENTIFIER {
 		labelTok := p.advance()
 		label = labelTok.Value
-		span = span.Join(labelTok.Span())
+		location = location.Join(labelTok.Location())
 	}
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewBreakExpressionNode(
-			span,
+			location,
 			label,
 			nil,
 		)
@@ -4774,7 +4774,7 @@ func (p *Parser) breakExpression() *ast.BreakExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewBreakExpressionNode(
-		span.Join(expr.Span()),
+		location.Join(expr.Location()),
 		label,
 		expr,
 	)
@@ -4783,16 +4783,16 @@ func (p *Parser) breakExpression() *ast.BreakExpressionNode {
 // continueExpression = "continue" [SPECIAL_IDENTIFIER] [expressionWithoutModifier]
 func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 	continueTok := p.advance()
-	span := continueTok.Span()
+	location := continueTok.Location()
 	var label string
 	if p.lookahead.Type == token.SPECIAL_IDENTIFIER {
 		labelTok := p.advance()
 		label = labelTok.Value
-		span = span.Join(labelTok.Span())
+		location = location.Join(labelTok.Location())
 	}
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewContinueExpressionNode(
-			span,
+			location,
 			label,
 			nil,
 		)
@@ -4801,7 +4801,7 @@ func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewContinueExpressionNode(
-		span.Join(expr.Span()),
+		location.Join(expr.Location()),
 		label,
 		expr,
 	)
@@ -4810,13 +4810,13 @@ func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 // goExpression = "go" expressionWithoutModifier
 func (p *Parser) goExpression() *ast.GoExpressionNode {
 	goTok := p.advance()
-	lastSpan, body, multiline := p.statementBlock(token.END)
+	lastLocation, body, multiline := p.statementBlock(token.END)
 
-	var span *position.Span
-	if lastSpan != nil {
-		span = goTok.Span().Join(lastSpan)
+	var location *position.Location
+	if lastLocation != nil {
+		location = goTok.Location().Join(lastLocation)
 	} else {
-		span = goTok.Span()
+		location = goTok.Location()
 	}
 
 	if multiline {
@@ -4828,12 +4828,12 @@ func (p *Parser) goExpression() *ast.GoExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span.Join(endTok.Span())
+			location.Join(endTok.Location())
 		}
 	}
 
 	return ast.NewGoExpressionNode(
-		span,
+		location,
 		body,
 	)
 }
@@ -4844,7 +4844,7 @@ func (p *Parser) awaitExpression() *ast.AwaitExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewAwaitExpressionNode(
-		awaitTok.Span().Join(expr.Span()),
+		awaitTok.Location().Join(expr.Location()),
 		expr,
 	)
 }
@@ -4854,7 +4854,7 @@ func (p *Parser) returnExpression() *ast.ReturnExpressionNode {
 	returnTok := p.advance()
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewReturnExpressionNode(
-			returnTok.Span(),
+			returnTok.Location(),
 			nil,
 		)
 	}
@@ -4862,7 +4862,7 @@ func (p *Parser) returnExpression() *ast.ReturnExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewReturnExpressionNode(
-		returnTok.Span().Join(expr.Span()),
+		returnTok.Location().Join(expr.Location()),
 		expr,
 	)
 }
@@ -4872,7 +4872,7 @@ func (p *Parser) yieldExpression() *ast.YieldExpressionNode {
 	yieldTok := p.advance()
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewYieldExpressionNode(
-			yieldTok.Span(),
+			yieldTok.Location(),
 			false,
 			nil,
 		)
@@ -4886,7 +4886,7 @@ func (p *Parser) yieldExpression() *ast.YieldExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewYieldExpressionNode(
-		yieldTok.Span().Join(expr.Span()),
+		yieldTok.Location().Join(expr.Location()),
 		forward,
 		expr,
 	)
@@ -4895,13 +4895,13 @@ func (p *Parser) yieldExpression() *ast.YieldExpressionNode {
 // loopExpression = "loop" ((SEPARATOR [statements] "end") | expressionWithoutModifier)
 func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 	loopTok := p.advance()
-	var span *position.Span
+	var location *position.Location
 
-	lastSpan, thenBody, multiline := p.statementBlock(token.END)
-	if lastSpan != nil {
-		span = loopTok.Span().Join(lastSpan)
+	lastLocation, thenBody, multiline := p.statementBlock(token.END)
+	if lastLocation != nil {
+		location = loopTok.Location().Join(lastLocation)
 	} else {
-		span = loopTok.Span()
+		location = loopTok.Location()
 	}
 
 	if multiline {
@@ -4913,12 +4913,12 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	return ast.NewLoopExpressionNode(
-		span,
+		location,
 		thenBody,
 	)
 }
@@ -4932,12 +4932,12 @@ func (p *Parser) asyncModifier(allowed bool) ast.ExpressionNode {
 	switch n := node.(type) {
 	case *ast.MethodDefinitionNode:
 		if n.IsAsync() {
-			p.errorMessageSpan("the async modifier can only be attached once", asyncTok.Span())
+			p.errorMessageLocation("the async modifier can only be attached once", asyncTok.Location())
 		}
 		n.SetAsync()
-		n.SetSpan(asyncTok.Span().Join(n.Span()))
+		n.SetLocation(asyncTok.Location().Join(n.Location()))
 	default:
-		p.errorMessageSpan("the async modifier can only be attached to methods", node.Span())
+		p.errorMessageLocation("the async modifier can only be attached to methods", node.Location())
 	}
 
 	return node
@@ -4952,24 +4952,24 @@ func (p *Parser) sealedModifier(allowed bool) ast.ExpressionNode {
 	switch n := node.(type) {
 	case *ast.ClassDeclarationNode:
 		if n.Sealed {
-			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
+			p.errorMessageLocation("the sealed modifier can only be attached once", sealedTok.Location())
 		}
 		if n.Abstract {
-			p.errorMessageSpan("the sealed modifier cannot be attached to abstract classes", sealedTok.Span())
+			p.errorMessageLocation("the sealed modifier cannot be attached to abstract classes", sealedTok.Location())
 		}
 		n.Sealed = true
-		n.SetSpan(sealedTok.Span().Join(n.Span()))
+		n.SetLocation(sealedTok.Location().Join(n.Location()))
 	case *ast.MethodDefinitionNode:
 		if n.IsSealed() {
-			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
+			p.errorMessageLocation("the sealed modifier can only be attached once", sealedTok.Location())
 		}
 		if n.IsAbstract() {
-			p.errorMessageSpan("the sealed modifier cannot be attached to abstract methods", sealedTok.Span())
+			p.errorMessageLocation("the sealed modifier cannot be attached to abstract methods", sealedTok.Location())
 		}
 		n.SetSealed()
-		n.SetSpan(sealedTok.Span().Join(n.Span()))
+		n.SetLocation(sealedTok.Location().Join(n.Location()))
 	default:
-		p.errorMessageSpan("the sealed modifier can only be attached to classes and methods", node.Span())
+		p.errorMessageLocation("the sealed modifier can only be attached to classes and methods", node.Location())
 	}
 
 	return node
@@ -4984,30 +4984,30 @@ func (p *Parser) abstractModifier(allowed bool) ast.ExpressionNode {
 	switch n := node.(type) {
 	case *ast.ClassDeclarationNode:
 		if n.Abstract {
-			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
+			p.errorMessageLocation("the abstract modifier can only be attached once", abstractTok.Location())
 		}
 		if n.Sealed {
-			p.errorMessageSpan("the abstract modifier cannot be attached to sealed classes", abstractTok.Span())
+			p.errorMessageLocation("the abstract modifier cannot be attached to sealed classes", abstractTok.Location())
 		}
 		n.Abstract = true
-		n.SetSpan(abstractTok.Span().Join(n.Span()))
+		n.SetLocation(abstractTok.Location().Join(n.Location()))
 	case *ast.MethodDefinitionNode:
 		if n.IsAbstract() {
-			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
+			p.errorMessageLocation("the abstract modifier can only be attached once", abstractTok.Location())
 		}
 		if n.IsSealed() {
-			p.errorMessageSpan("the abstract modifier cannot be attached to sealed methods", abstractTok.Span())
+			p.errorMessageLocation("the abstract modifier cannot be attached to sealed methods", abstractTok.Location())
 		}
 		n.SetAbstract()
-		n.SetSpan(abstractTok.Span().Join(n.Span()))
+		n.SetLocation(abstractTok.Location().Join(n.Location()))
 	case *ast.MixinDeclarationNode:
 		if n.Abstract {
-			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
+			p.errorMessageLocation("the abstract modifier can only be attached once", abstractTok.Location())
 		}
 		n.Abstract = true
-		n.SetSpan(abstractTok.Span().Join(n.Span()))
+		n.SetLocation(abstractTok.Location().Join(n.Location()))
 	default:
-		p.errorMessageSpan("the abstract modifier can only be attached to classes, mixins and methods", node.Span())
+		p.errorMessageLocation("the abstract modifier can only be attached to classes, mixins and methods", node.Location())
 	}
 
 	return node
@@ -5022,9 +5022,9 @@ func (p *Parser) noinitModifier(allowed bool) ast.ExpressionNode {
 	switch n := node.(type) {
 	case *ast.ClassDeclarationNode:
 		n.NoInit = true
-		n.SetSpan(abstractTok.Span().Join(n.Span()))
+		n.SetLocation(abstractTok.Location().Join(n.Location()))
 	default:
-		p.errorMessageSpan("the noinit modifier can only be attached to classes", node.Span())
+		p.errorMessageLocation("the noinit modifier can only be attached to classes", node.Location())
 	}
 
 	return node
@@ -5039,12 +5039,12 @@ func (p *Parser) primitiveModifier(allowed bool) ast.ExpressionNode {
 	switch n := node.(type) {
 	case *ast.ClassDeclarationNode:
 		if n.Primitive {
-			p.errorMessageSpan("the primitive modifier can only be attached once", primitiveTok.Span())
+			p.errorMessageLocation("the primitive modifier can only be attached once", primitiveTok.Location())
 		}
 		n.Primitive = true
-		n.SetSpan(primitiveTok.Span().Join(n.Span()))
+		n.SetLocation(primitiveTok.Location().Join(n.Location()))
 	default:
-		p.errorMessageSpan("the primitive modifier can only be attached to classes", node.Span())
+		p.errorMessageLocation("the primitive modifier can only be attached to classes", node.Location())
 	}
 
 	return node
@@ -5055,14 +5055,14 @@ func (p *Parser) primitiveModifier(allowed bool) ast.ExpressionNode {
 func (p *Parser) fornumExpression() ast.ExpressionNode {
 	forTok := p.advance()
 	p.swallowNewlines()
-	span := forTok.Span()
+	location := forTok.Location()
 	var init, cond, incr ast.ExpressionNode
 	if !p.accept(token.SEMICOLON) {
 		init = p.expressionWithoutModifier()
 	}
 	semiTok, ok := p.consume(token.SEMICOLON)
 	if !ok {
-		return ast.NewInvalidNode(semiTok.Span(), semiTok)
+		return ast.NewInvalidNode(semiTok.Location(), semiTok)
 	}
 
 	if !p.accept(token.SEMICOLON) {
@@ -5070,17 +5070,17 @@ func (p *Parser) fornumExpression() ast.ExpressionNode {
 	}
 	semiTok, ok = p.consume(token.SEMICOLON)
 	if !ok {
-		return ast.NewInvalidNode(semiTok.Span(), semiTok)
+		return ast.NewInvalidNode(semiTok.Location(), semiTok)
 	}
-	span = span.Join(semiTok.Span())
+	location = location.Join(semiTok.Location())
 
 	if !p.accept(token.NEWLINE, token.SEMICOLON, token.THEN) {
 		incr = p.expressionWithoutModifier()
 	}
 
-	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastSpan != nil {
-		span = span.Join(lastSpan)
+	lastLocation, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = location.Join(lastLocation)
 	}
 
 	if multiline {
@@ -5092,12 +5092,12 @@ func (p *Parser) fornumExpression() ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	return ast.NewNumericForExpressionNode(
-		span,
+		location,
 		init,
 		cond,
 		incr,
@@ -5112,23 +5112,23 @@ func (p *Parser) forExpression() ast.ExpressionNode {
 	p.swallowNewlines()
 	parameter := p.pattern()
 	if !ast.PatternDeclaresVariables(parameter) {
-		p.errorMessageSpan("patterns in for in loops should define at least one variable", parameter.Span())
+		p.errorMessageLocation("patterns in for in loops should define at least one variable", parameter.Location())
 	}
 
 	p.swallowNewlines()
 	inTok, ok := p.consume(token.IN)
 	if !ok {
-		return ast.NewInvalidNode(inTok.Span(), inTok)
+		return ast.NewInvalidNode(inTok.Location(), inTok)
 	}
 	p.swallowNewlines()
 	inExpr := p.expressionWithoutModifier()
-	var span *position.Span
+	var location *position.Location
 
-	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastSpan != nil {
-		span = forTok.Span().Join(lastSpan)
+	lastLocation, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = forTok.Location().Join(lastLocation)
 	} else {
-		span = forTok.Span()
+		location = forTok.Location()
 	}
 
 	if multiline {
@@ -5140,12 +5140,12 @@ func (p *Parser) forExpression() ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	return ast.NewForInExpressionNode(
-		span,
+		location,
 		parameter,
 		inExpr,
 		thenBody,
@@ -5156,13 +5156,13 @@ func (p *Parser) forExpression() ast.ExpressionNode {
 func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 	whileTok := p.advance()
 	cond := p.expressionWithoutModifier()
-	var span *position.Span
+	var location *position.Location
 
-	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastSpan != nil {
-		span = whileTok.Span().Join(lastSpan)
+	lastLocation, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = whileTok.Location().Join(lastLocation)
 	} else {
-		span = whileTok.Span()
+		location = whileTok.Location()
 	}
 
 	if multiline {
@@ -5174,12 +5174,12 @@ func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	return ast.NewWhileExpressionNode(
-		span,
+		location,
 		cond,
 		thenBody,
 	)
@@ -5189,13 +5189,13 @@ func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 	untilTok := p.advance()
 	cond := p.expressionWithoutModifier()
-	var span *position.Span
+	var location *position.Location
 
-	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastSpan != nil {
-		span = untilTok.Span().Join(lastSpan)
+	lastLocation, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = untilTok.Location().Join(lastLocation)
 	} else {
-		span = untilTok.Span()
+		location = untilTok.Location()
 	}
 
 	if multiline {
@@ -5207,12 +5207,12 @@ func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	return ast.NewUntilExpressionNode(
-		span,
+		location,
 		cond,
 		thenBody,
 	)
@@ -5224,17 +5224,17 @@ func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	unlessTok := p.advance()
 	cond := p.expressionWithoutModifier()
-	var span *position.Span
+	var location *position.Location
 
-	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END, token.ELSE)
-	if lastSpan != nil {
-		span = unlessTok.Span().Join(lastSpan)
+	lastLocation, thenBody, multiline := p.statementBlockWithThen(token.END, token.ELSE)
+	if lastLocation != nil {
+		location = unlessTok.Location().Join(lastLocation)
 	} else {
-		span = unlessTok.Span()
+		location = unlessTok.Location()
 	}
 
 	unlessExpr := ast.NewUnlessExpressionNode(
-		span,
+		location,
 		cond,
 		thenBody,
 		nil,
@@ -5244,16 +5244,16 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	if p.lookahead.IsStatementSeparator() && p.secondLookahead.Type == token.ELSE {
 		p.advance()
 		p.advance()
-		lastSpan, thenBody, multiline = p.statementBlock(token.END)
+		lastLocation, thenBody, multiline = p.statementBlock(token.END)
 		currentExpr.ElseBody = thenBody
-		if lastSpan != nil {
-			currentExpr.SetSpan(currentExpr.Span().Join(lastSpan))
+		if lastLocation != nil {
+			currentExpr.SetLocation(currentExpr.Location().Join(lastLocation))
 		}
 	} else if p.match(token.ELSE) {
-		lastSpan, thenBody, multiline = p.statementBlock(token.END)
+		lastLocation, thenBody, multiline = p.statementBlock(token.END)
 		currentExpr.ElseBody = thenBody
-		if lastSpan != nil {
-			currentExpr.SetSpan(currentExpr.Span().Join(lastSpan))
+		if lastLocation != nil {
+			currentExpr.SetLocation(currentExpr.Location().Join(lastLocation))
 		}
 	}
 
@@ -5266,10 +5266,10 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			currentExpr.SetSpan(currentExpr.Span().Join(endTok.Span()))
+			currentExpr.SetLocation(currentExpr.Location().Join(endTok.Location()))
 		}
 	}
-	unlessExpr.SetSpan(unlessExpr.Span().Join(currentExpr.Span()))
+	unlessExpr.SetLocation(unlessExpr.Location().Join(currentExpr.Location()))
 
 	return unlessExpr
 }
@@ -5289,17 +5289,17 @@ func (p *Parser) doExpressionOrMacroBoundary() ast.ExpressionNode {
 // "end"
 func (p *Parser) doExpression() *ast.DoExpressionNode {
 	doTok := p.advance()
-	lastSpan, body, multiline := p.statementBlock(token.END, token.CATCH, token.FINALLY)
+	lastLocation, body, multiline := p.statementBlock(token.END, token.CATCH, token.FINALLY)
 
-	var span *position.Span
-	if lastSpan != nil {
-		span = doTok.Span().Join(lastSpan)
+	var location *position.Location
+	if lastLocation != nil {
+		location = doTok.Location().Join(lastLocation)
 	} else {
-		span = doTok.Span()
+		location = doTok.Location()
 	}
 
 	doExpr := ast.NewDoExpressionNode(
-		span,
+		location,
 		body,
 		nil,
 		nil,
@@ -5322,15 +5322,15 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 			stackTraceVar = p.identifier()
 		}
 
-		lastSpan, body, multiline = p.statementBlockWithThen(token.END, token.CATCH, token.FINALLY)
-		if lastSpan != nil {
-			span = catchTok.Span().Join(lastSpan)
+		lastLocation, body, multiline = p.statementBlockWithThen(token.END, token.CATCH, token.FINALLY)
+		if lastLocation != nil {
+			location = catchTok.Location().Join(lastLocation)
 		} else {
-			span = catchTok.Span()
+			location = catchTok.Location()
 		}
 
 		catch := ast.NewCatchNode(
-			span,
+			location,
 			pattern,
 			stackTraceVar,
 			body,
@@ -5345,16 +5345,16 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 	if p.lookahead.IsStatementSeparator() && p.secondLookahead.Type == token.FINALLY {
 		p.advance()
 		p.advance()
-		lastSpan, body, multiline = p.statementBlock(token.END)
+		lastLocation, body, multiline = p.statementBlock(token.END)
 		doExpr.Finally = body
-		if lastSpan != nil {
-			doExpr.SetSpan(doExpr.Span().Join(lastSpan))
+		if lastLocation != nil {
+			doExpr.SetLocation(doExpr.Location().Join(lastLocation))
 		}
 	} else if p.match(token.FINALLY) {
-		lastSpan, body, multiline = p.statementBlock(token.END)
+		lastLocation, body, multiline = p.statementBlock(token.END)
 		doExpr.Finally = body
-		if lastSpan != nil {
-			doExpr.SetSpan(doExpr.Span().Join(lastSpan))
+		if lastLocation != nil {
+			doExpr.SetLocation(doExpr.Location().Join(lastLocation))
 		}
 	}
 
@@ -5367,7 +5367,7 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			doExpr.SetSpan(doExpr.Span().Join(endTok.Span()))
+			doExpr.SetLocation(doExpr.Location().Join(endTok.Location()))
 		}
 	}
 
@@ -5377,17 +5377,17 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 // singletonBlockExpression = "singleton" (expressionWithoutModifier | SEPARATOR statements "end")
 func (p *Parser) singletonBlockExpression(allowed bool) *ast.SingletonBlockExpressionNode {
 	singletonTok := p.advance()
-	lastSpan, body, multiline := p.statementBlock(token.END)
+	lastLocation, body, multiline := p.statementBlock(token.END)
 
-	var span *position.Span
-	if lastSpan != nil {
-		span = singletonTok.Span().Join(lastSpan)
+	var location *position.Location
+	if lastLocation != nil {
+		location = singletonTok.Location().Join(lastLocation)
 	} else {
-		span = singletonTok.Span()
+		location = singletonTok.Location()
 	}
 
 	singletonBlockExpr := ast.NewSingletonBlockExpressionNode(
-		span,
+		location,
 		body,
 	)
 
@@ -5400,14 +5400,14 @@ func (p *Parser) singletonBlockExpression(allowed bool) *ast.SingletonBlockExpre
 			p.indentedSection = false
 		}
 		if ok {
-			singletonBlockExpr.SetSpan(singletonBlockExpr.Span().Join(endTok.Span()))
+			singletonBlockExpr.SetLocation(singletonBlockExpr.Location().Join(endTok.Location()))
 		}
 	}
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"singleton definitions cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 
@@ -5420,19 +5420,19 @@ func (p *Parser) extendWhereBlockExpression(allowed bool) ast.ExpressionNode {
 
 	whereTok, ok := p.consume(token.WHERE)
 	if !ok {
-		return ast.NewInvalidNode(whereTok.Span(), whereTok)
+		return ast.NewInvalidNode(whereTok.Location(), whereTok)
 	}
 	typeParams := p.typeParameterListWithoutTerminator()
-	span := position.JoinSpanOfLastElement(extendTok.Span(), typeParams)
+	location := position.JoinLocationOfLastElement(extendTok.Location(), typeParams)
 
-	lastSpan, body, multiline := p.statementBlockWithThen(token.END)
+	lastLocation, body, multiline := p.statementBlockWithThen(token.END)
 
-	if lastSpan != nil {
-		span = span.Join(lastSpan)
+	if lastLocation != nil {
+		location = location.Join(lastLocation)
 	}
 
 	extendWhereBlock := ast.NewExtendWhereBlockExpressionNode(
-		span,
+		location,
 		body,
 		typeParams,
 	)
@@ -5446,14 +5446,14 @@ func (p *Parser) extendWhereBlockExpression(allowed bool) ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			extendWhereBlock.SetSpan(extendWhereBlock.Span().Join(endTok.Span()))
+			extendWhereBlock.SetLocation(extendWhereBlock.Location().Join(endTok.Location()))
 		}
 	}
 
 	if !allowed {
-		p.errorMessageSpan(
+		p.errorMessageLocation(
 			"extend where definitions cannot appear in expressions",
-			span,
+			location,
 		)
 	}
 
@@ -5466,13 +5466,13 @@ func (p *Parser) listElementPattern() ast.PatternNode {
 		if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) {
 			ident := p.identifier()
 			return ast.NewRestPatternNode(
-				star.Span().Join(ident.Span()),
+				star.Location().Join(ident.Location()),
 				ident,
 			)
 		}
 
 		return ast.NewRestPatternNode(
-			star.Span(),
+			star.Location(),
 			nil,
 		)
 	}
@@ -5494,7 +5494,7 @@ func (p *Parser) asPattern() ast.PatternNode {
 	ident := p.identifier()
 
 	return ast.NewAsPatternNode(
-		pattern.Span().Join(ident.Span()),
+		pattern.Location().Join(ident.Location()),
 		pattern,
 		ident,
 	)
@@ -5529,7 +5529,7 @@ func (p *Parser) objectAttributePattern() ast.PatternNode {
 		p.swallowNewlines()
 		val := p.pattern()
 		return ast.NewSymbolKeyValuePatternNode(
-			key.Span().Join(val.Span()),
+			key.Location().Join(val.Location()),
 			key.Value,
 			val,
 		)
@@ -5540,7 +5540,7 @@ func (p *Parser) objectAttributePattern() ast.PatternNode {
 	default:
 		p.errorExpected("an object pattern attribute")
 		tok := p.advance()
-		return ast.NewInvalidNode(tok.Span(), tok)
+		return ast.NewInvalidNode(tok.Location(), tok)
 	}
 }
 
@@ -5556,7 +5556,7 @@ func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
 
 	if rparen, ok := p.matchOk(token.RPAREN); ok {
 		return ast.NewObjectPatternNode(
-			constant.Span().Join(rparen.Span()),
+			constant.Location().Join(rparen.Location()),
 			constant,
 			nil,
 		)
@@ -5565,13 +5565,13 @@ func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
 	elements := p.objectAttributePatternList(token.RPAREN)
 	p.swallowNewlines()
 	rparen, ok := p.consume(token.RPAREN)
-	span := constant.Span()
+	location := constant.Location()
 	if ok {
-		span = span.Join(rparen.Span())
+		location = location.Join(rparen.Location())
 	}
 
 	return ast.NewObjectPatternNode(
-		span,
+		location,
 		constant,
 		elements,
 	)
@@ -5596,7 +5596,7 @@ func (p *Parser) unaryPattern() ast.PatternNode {
 		p.indentedSection = false
 
 		return ast.NewUnaryExpressionNode(
-			operator.Span().Join(right.Span()),
+			operator.Location().Join(right.Location()),
 			operator,
 			right,
 		)
@@ -5645,7 +5645,7 @@ func (p *Parser) collectionPattern() ast.PatternNode {
 	default:
 		p.errorExpected("a collection pattern")
 		tok := p.advance()
-		return ast.NewInvalidNode(tok.Span(), tok)
+		return ast.NewInvalidNode(tok.Location(), tok)
 	}
 }
 
@@ -5679,7 +5679,7 @@ func (p *Parser) mapElementPattern() ast.PatternNode {
 		p.swallowNewlines()
 		val := p.pattern()
 		return ast.NewSymbolKeyValuePatternNode(
-			key.Span().Join(val.Span()),
+			key.Location().Join(val.Location()),
 			key.Value,
 			val,
 		)
@@ -5690,7 +5690,7 @@ func (p *Parser) mapElementPattern() ast.PatternNode {
 		case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
 			return key
 		default:
-			p.errorMessageSpan("expected a key-value pair, map patterns should consist of key-value pairs", key.Span())
+			p.errorMessageLocation("expected a key-value pair, map patterns should consist of key-value pairs", key.Location())
 			return key
 		}
 	}
@@ -5699,7 +5699,7 @@ func (p *Parser) mapElementPattern() ast.PatternNode {
 	val := p.pattern()
 
 	return ast.NewKeyValuePatternNode(
-		key.Span().Join(val.Span()),
+		key.Location().Join(val.Location()),
 		key,
 		val,
 	)
@@ -5737,7 +5737,7 @@ func (p *Parser) rangePattern() ast.PatternNode {
 		to := p.unaryPatternArgument()
 
 		return ast.NewRangeLiteralNode(
-			operator.Span().Join(to.Span()),
+			operator.Location().Join(to.Location()),
 			operator,
 			nil,
 			to,
@@ -5758,12 +5758,12 @@ func (p *Parser) rangePattern() ast.PatternNode {
 
 	fromExpr, ok := from.(ast.PatternExpressionNode)
 	if !ok || !ast.IsValidRangePatternElement(from) {
-		p.errorMessageSpan("invalid range pattern element", from.Span())
+		p.errorMessageLocation("invalid range pattern element", from.Location())
 	}
 
 	if !p.lookahead.IsValidAsEndInRangePattern() {
 		return ast.NewRangeLiteralNode(
-			from.Span().Join(operator.Span()),
+			from.Location().Join(operator.Location()),
 			operator,
 			fromExpr,
 			nil,
@@ -5779,11 +5779,11 @@ func (p *Parser) rangePattern() ast.PatternNode {
 
 	toExpr, ok := to.(ast.PatternExpressionNode)
 	if !ok || !ast.IsValidRangePatternElement(to) {
-		p.errorMessageSpan("invalid range pattern element", to.Span())
+		p.errorMessageLocation("invalid range pattern element", to.Location())
 	}
 
 	return ast.NewRangeLiteralNode(
-		from.Span().Join(to.Span()),
+		from.Location().Join(to.Location()),
 		operator,
 		fromExpr,
 		toExpr,
@@ -5799,7 +5799,7 @@ func (p *Parser) unaryPatternArgument() ast.PatternExpressionNode {
 	}
 
 	return ast.NewUnaryExpressionNode(
-		operator.Span().Join(val.Span()),
+		operator.Location().Join(val.Location()),
 		operator,
 		val,
 	)
@@ -5816,23 +5816,23 @@ func (p *Parser) setPatternElement() ast.PatternNode {
 			ident = p.identifier()
 		}
 		return ast.NewRestPatternNode(
-			star.Span(),
+			star.Location(),
 			ident,
 		)
 	case token.PRIVATE_IDENTIFIER:
 		ident := p.advance()
 		if ident.Value != "_" {
-			p.errorMessageSpan("set patterns cannot contain identifiers other than _", ident.Span())
+			p.errorMessageLocation("set patterns cannot contain identifiers other than _", ident.Location())
 		}
 		return ast.NewPrivateIdentifierNode(
-			ident.Span(),
+			ident.Location(),
 			ident.Value,
 		)
 	case token.PUBLIC_IDENTIFIER:
 		ident := p.advance()
-		p.errorMessageSpan("set patterns cannot contain identifiers other than _", ident.Span())
+		p.errorMessageLocation("set patterns cannot contain identifiers other than _", ident.Location())
 		return ast.NewPublicIdentifierNode(
-			ident.Span(),
+			ident.Location(),
 			ident.Value,
 		)
 	default:
@@ -5849,7 +5849,7 @@ func (p *Parser) literalPattern() ast.PatternExpressionNode {
 	}
 
 	return ast.NewUnaryExpressionNode(
-		operator.Span().Join(val.Span()),
+		operator.Location().Join(val.Location()),
 		operator,
 		val,
 	)
@@ -5909,7 +5909,7 @@ func (p *Parser) innerLiteralPattern() ast.PatternExpressionNode {
 	p.updateErrorMode(true)
 	tok := p.advance()
 	return ast.NewInvalidNode(
-		tok.Span(),
+		tok.Location(),
 		tok,
 	)
 }
@@ -5917,7 +5917,7 @@ func (p *Parser) innerLiteralPattern() ast.PatternExpressionNode {
 func (p *Parser) int() *ast.IntLiteralNode {
 	tok := p.advance()
 	return ast.NewIntLiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -5925,7 +5925,7 @@ func (p *Parser) int() *ast.IntLiteralNode {
 func (p *Parser) int64() *ast.Int64LiteralNode {
 	tok := p.advance()
 	return ast.NewInt64LiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -5933,7 +5933,7 @@ func (p *Parser) int64() *ast.Int64LiteralNode {
 func (p *Parser) uint64() *ast.UInt64LiteralNode {
 	tok := p.advance()
 	return ast.NewUInt64LiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -5941,7 +5941,7 @@ func (p *Parser) uint64() *ast.UInt64LiteralNode {
 func (p *Parser) int32() *ast.Int32LiteralNode {
 	tok := p.advance()
 	return ast.NewInt32LiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -5949,7 +5949,7 @@ func (p *Parser) int32() *ast.Int32LiteralNode {
 func (p *Parser) uint32() *ast.UInt32LiteralNode {
 	tok := p.advance()
 	return ast.NewUInt32LiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -5957,7 +5957,7 @@ func (p *Parser) uint32() *ast.UInt32LiteralNode {
 func (p *Parser) int16() *ast.Int16LiteralNode {
 	tok := p.advance()
 	return ast.NewInt16LiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -5965,7 +5965,7 @@ func (p *Parser) int16() *ast.Int16LiteralNode {
 func (p *Parser) uint16() *ast.UInt16LiteralNode {
 	tok := p.advance()
 	return ast.NewUInt16LiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -5973,7 +5973,7 @@ func (p *Parser) uint16() *ast.UInt16LiteralNode {
 func (p *Parser) int8() *ast.Int8LiteralNode {
 	tok := p.advance()
 	return ast.NewInt8LiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -5981,7 +5981,7 @@ func (p *Parser) int8() *ast.Int8LiteralNode {
 func (p *Parser) uint8() *ast.UInt8LiteralNode {
 	tok := p.advance()
 	return ast.NewUInt8LiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -5989,7 +5989,7 @@ func (p *Parser) uint8() *ast.UInt8LiteralNode {
 func (p *Parser) float() *ast.FloatLiteralNode {
 	tok := p.advance()
 	return ast.NewFloatLiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -5997,7 +5997,7 @@ func (p *Parser) float() *ast.FloatLiteralNode {
 func (p *Parser) bigFloat() *ast.BigFloatLiteralNode {
 	tok := p.advance()
 	return ast.NewBigFloatLiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -6005,7 +6005,7 @@ func (p *Parser) bigFloat() *ast.BigFloatLiteralNode {
 func (p *Parser) float64() *ast.Float64LiteralNode {
 	tok := p.advance()
 	return ast.NewFloat64LiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -6013,7 +6013,7 @@ func (p *Parser) float64() *ast.Float64LiteralNode {
 func (p *Parser) float32() *ast.Float32LiteralNode {
 	tok := p.advance()
 	return ast.NewFloat32LiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -6021,24 +6021,24 @@ func (p *Parser) float32() *ast.Float32LiteralNode {
 func (p *Parser) invalidNode() *ast.InvalidNode {
 	tok := p.advance()
 	return ast.NewInvalidNode(
-		tok.Span(),
+		tok.Location(),
 		tok,
 	)
 }
 
 func (p *Parser) trueLiteral() *ast.TrueLiteralNode {
 	tok := p.advance()
-	return ast.NewTrueLiteralNode(tok.Span())
+	return ast.NewTrueLiteralNode(tok.Location())
 }
 
 func (p *Parser) falseLiteral() *ast.FalseLiteralNode {
 	tok := p.advance()
-	return ast.NewFalseLiteralNode(tok.Span())
+	return ast.NewFalseLiteralNode(tok.Location())
 }
 
 func (p *Parser) nilLiteral() *ast.NilLiteralNode {
 	tok := p.advance()
-	return ast.NewNilLiteralNode(tok.Span())
+	return ast.NewNilLiteralNode(tok.Location())
 }
 
 func (p *Parser) simplePattern() ast.PatternExpressionNode {
@@ -6190,7 +6190,7 @@ func (p *Parser) primaryPattern() ast.PatternNode {
 	if ok {
 		val := p.simplePattern()
 		return ast.NewUnaryExpressionNode(
-			operator.Span().Join(val.Span()),
+			operator.Location().Join(val.Location()),
 			operator,
 			val,
 		)
@@ -6219,7 +6219,7 @@ func (p *Parser) switchExpression() ast.ExpressionNode {
 	val := p.expressionWithoutModifier()
 	p.swallowNewlines()
 
-	var lastSpan *position.Span
+	var lastLocation *position.Location
 	var cases []*ast.CaseNode
 	var els []ast.StatementNode
 	var elsePresent bool
@@ -6227,17 +6227,17 @@ func (p *Parser) switchExpression() ast.ExpressionNode {
 
 	for {
 		if p.match(token.ELSE) {
-			lastSpan, els, _ = p.statementBlock(token.END)
+			lastLocation, els, _ = p.statementBlock(token.END)
 			withoutContent = false
 			elsePresent = true
 			break
 		} else if caseTok, ok := p.matchOk(token.CASE); ok {
 			pattern := p.pattern()
 			var caseBody []ast.StatementNode
-			lastSpan, caseBody, _ = p.statementBlockWithThen(token.END, token.CASE, token.ELSE)
+			lastLocation, caseBody, _ = p.statementBlockWithThen(token.END, token.CASE, token.ELSE)
 			withoutContent = false
 			cases = append(cases, ast.NewCaseNode(
-				caseTok.Span().Join(lastSpan),
+				caseTok.Location().Join(lastLocation),
 				pattern,
 				caseBody,
 			))
@@ -6256,16 +6256,16 @@ func (p *Parser) switchExpression() ast.ExpressionNode {
 		p.indentedSection = false
 	}
 	if ok {
-		lastSpan = endTok.Span()
+		lastLocation = endTok.Location()
 	}
-	span := switchTok.Span().Join(lastSpan)
+	location := switchTok.Location().Join(lastLocation)
 	if len(cases) == 0 && !elsePresent {
-		p.errorMessageSpan("switch cannot be empty", span)
+		p.errorMessageLocation("switch cannot be empty", location)
 	} else if len(cases) == 0 && elsePresent {
-		p.errorMessageSpan("switch cannot only consist of else", span)
+		p.errorMessageLocation("switch cannot only consist of else", location)
 	}
 	return ast.NewSwitchExpressionNode(
-		span,
+		location,
 		val,
 		cases,
 		els,
@@ -6279,17 +6279,17 @@ func (p *Parser) switchExpression() ast.ExpressionNode {
 func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	ifTok := p.advance()
 	cond := p.expressionWithoutModifier()
-	var span *position.Span
+	var location *position.Location
 
-	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END, token.ELSE, token.ELSIF)
-	if lastSpan != nil {
-		span = ifTok.Span().Join(lastSpan)
+	lastLocation, thenBody, multiline := p.statementBlockWithThen(token.END, token.ELSE, token.ELSIF)
+	if lastLocation != nil {
+		location = ifTok.Location().Join(lastLocation)
 	} else {
-		span = ifTok.Span()
+		location = ifTok.Location()
 	}
 
 	ifExpr := ast.NewIfExpressionNode(
-		span,
+		location,
 		cond,
 		thenBody,
 		nil,
@@ -6309,15 +6309,15 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 		}
 		cond = p.expressionWithoutModifier()
 
-		lastSpan, thenBody, multiline = p.statementBlockWithThen(token.END, token.ELSE, token.ELSIF)
-		if lastSpan != nil {
-			span = elsifTok.Span().Join(lastSpan)
+		lastLocation, thenBody, multiline = p.statementBlockWithThen(token.END, token.ELSE, token.ELSIF)
+		if lastLocation != nil {
+			location = elsifTok.Location().Join(lastLocation)
 		} else {
-			span = elsifTok.Span()
+			location = elsifTok.Location()
 		}
 
 		elsifExpr := ast.NewIfExpressionNode(
-			span,
+			location,
 			cond,
 			thenBody,
 			nil,
@@ -6325,7 +6325,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 
 		currentExpr.ElseBody = []ast.StatementNode{
 			ast.NewExpressionStatementNode(
-				elsifExpr.Span(),
+				elsifExpr.Location(),
 				elsifExpr,
 			),
 		}
@@ -6335,16 +6335,16 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	if p.lookahead.IsStatementSeparator() && p.secondLookahead.Type == token.ELSE {
 		p.advance()
 		p.advance()
-		lastSpan, thenBody, multiline = p.statementBlock(token.END)
+		lastLocation, thenBody, multiline = p.statementBlock(token.END)
 		currentExpr.ElseBody = thenBody
-		if lastSpan != nil {
-			currentExpr.SetSpan(currentExpr.Span().Join(lastSpan))
+		if lastLocation != nil {
+			currentExpr.SetLocation(currentExpr.Location().Join(lastLocation))
 		}
 	} else if p.match(token.ELSE) {
-		lastSpan, thenBody, multiline = p.statementBlock(token.END)
+		lastLocation, thenBody, multiline = p.statementBlock(token.END)
 		currentExpr.ElseBody = thenBody
-		if lastSpan != nil {
-			currentExpr.SetSpan(currentExpr.Span().Join(lastSpan))
+		if lastLocation != nil {
+			currentExpr.SetLocation(currentExpr.Location().Join(lastLocation))
 		}
 	}
 
@@ -6357,10 +6357,10 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			currentExpr.SetSpan(currentExpr.Span().Join(endTok.Span()))
+			currentExpr.SetLocation(currentExpr.Location().Join(endTok.Location()))
 		}
 	}
-	ifExpr.SetSpan(ifExpr.Span().Join(currentExpr.Span()))
+	ifExpr.SetLocation(ifExpr.Location().Join(currentExpr.Location()))
 
 	return ifExpr
 }
@@ -6371,7 +6371,7 @@ func (p *Parser) symbolLiteral(withInterpolation bool) ast.StringOrSymbolTypeNod
 	if p.lookahead.IsValidSimpleSymbolContent() {
 		contTok := p.advance()
 		return ast.NewSimpleSymbolLiteralNode(
-			symbolBegTok.Span().Join(contTok.Span()),
+			symbolBegTok.Location().Join(contTok.Location()),
 			contTok.FetchValue(),
 		)
 	}
@@ -6381,7 +6381,7 @@ func (p *Parser) symbolLiteral(withInterpolation bool) ast.StringOrSymbolTypeNod
 		p.mode = panicMode
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			symbolBegTok.Span().Join(tok.Span()),
+			symbolBegTok.Location().Join(tok.Location()),
 			tok,
 		)
 	}
@@ -6390,12 +6390,12 @@ func (p *Parser) symbolLiteral(withInterpolation bool) ast.StringOrSymbolTypeNod
 	switch s := str.(type) {
 	case *ast.DoubleQuotedStringLiteralNode:
 		return ast.NewSimpleSymbolLiteralNode(
-			symbolBegTok.Span().Join(s.Span()),
+			symbolBegTok.Location().Join(s.Location()),
 			s.Value,
 		)
 	case *ast.InterpolatedStringLiteralNode:
 		return ast.NewInterpolatedSymbolLiteralNode(
-			symbolBegTok.Span().Join(s.Span()),
+			symbolBegTok.Location().Join(s.Location()),
 			s,
 		)
 	default:
@@ -6408,7 +6408,7 @@ func (p *Parser) charLiteral() *ast.CharLiteralNode {
 	tok := p.advance()
 	char, _ := utf8.DecodeRuneInString(tok.Value)
 	return ast.NewCharLiteralNode(
-		tok.Span(),
+		tok.Location(),
 		char,
 	)
 }
@@ -6418,7 +6418,7 @@ func (p *Parser) rawCharLiteral() *ast.RawCharLiteralNode {
 	tok := p.advance()
 	char, _ := utf8.DecodeRuneInString(tok.Value)
 	return ast.NewRawCharLiteralNode(
-		tok.Span(),
+		tok.Location(),
 		char,
 	)
 }
@@ -6427,7 +6427,7 @@ func (p *Parser) rawCharLiteral() *ast.RawCharLiteralNode {
 func (p *Parser) rawStringLiteral() *ast.RawStringLiteralNode {
 	tok := p.advance()
 	return ast.NewRawStringLiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -6436,10 +6436,10 @@ func (p *Parser) rawStringLiteral() *ast.RawStringLiteralNode {
 func (p *Parser) wordCollectionElement() ast.WordCollectionContentNode {
 	tok, ok := p.consume(token.RAW_STRING)
 	if !ok {
-		return ast.NewInvalidNode(tok.Span(), tok)
+		return ast.NewInvalidNode(tok.Location(), tok)
 	}
 	return ast.NewRawStringLiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -6448,10 +6448,10 @@ func (p *Parser) wordCollectionElement() ast.WordCollectionContentNode {
 func (p *Parser) symbolCollectionElement() ast.SymbolCollectionContentNode {
 	tok, ok := p.consume(token.RAW_STRING)
 	if !ok {
-		return ast.NewInvalidNode(tok.Span(), tok)
+		return ast.NewInvalidNode(tok.Location(), tok)
 	}
 	return ast.NewSimpleSymbolLiteralNode(
-		tok.Span(),
+		tok.Location(),
 		tok.Value,
 	)
 }
@@ -6460,9 +6460,9 @@ func (p *Parser) symbolCollectionElement() ast.SymbolCollectionContentNode {
 func (p *Parser) intCollectionElement() ast.IntCollectionContentNode {
 	tok, ok := p.consume(token.INT)
 	if !ok {
-		return ast.NewInvalidNode(tok.Span(), tok)
+		return ast.NewInvalidNode(tok.Location(), tok)
 	}
-	return ast.NewIntLiteralNode(tok.Span(), tok.Value)
+	return ast.NewIntLiteralNode(tok.Location(), tok.Value)
 }
 
 // stringLiteral = "\"" (STRING_CONTENT | "${" expressionWithoutModifier "}" | "#{" expressionWithoutModifier "}")* "\""
@@ -6477,7 +6477,7 @@ strContentLoop:
 		case token.STRING_CONTENT:
 			tok := p.advance()
 			strContent = append(strContent, ast.NewStringLiteralContentSectionNode(
-				tok.Span(),
+				tok.Location(),
 				tok.Value,
 			))
 			continue strContentLoop
@@ -6486,22 +6486,22 @@ strContentLoop:
 			expr := p.expressionWithoutModifier()
 			end, _ := p.consume(token.STRING_INTERP_END)
 			strContent = append(strContent, ast.NewStringInterpolationNode(
-				beg.Span().Join(end.Span()),
+				beg.Location().Join(end.Location()),
 				expr,
 			))
 			continue strContentLoop
 		case token.STRING_INTERP_LOCAL:
 			tok := p.advance()
 			strContent = append(strContent, ast.NewStringInterpolationNode(
-				tok.Span(),
-				ast.NewPublicIdentifierNode(tok.Span(), tok.Value),
+				tok.Location(),
+				ast.NewPublicIdentifierNode(tok.Location(), tok.Value),
 			))
 			continue strContentLoop
 		case token.STRING_INTERP_CONSTANT:
 			tok := p.advance()
 			strContent = append(strContent, ast.NewStringInterpolationNode(
-				tok.Span(),
-				ast.NewPublicConstantNode(tok.Span(), tok.Value),
+				tok.Location(),
+				ast.NewPublicConstantNode(tok.Location(), tok.Value),
 			))
 			continue strContentLoop
 		case token.STRING_INSPECT_INTERP_BEG:
@@ -6509,22 +6509,22 @@ strContentLoop:
 			expr := p.expressionWithoutModifier()
 			end, _ := p.consume(token.STRING_INTERP_END)
 			strContent = append(strContent, ast.NewStringInspectInterpolationNode(
-				beg.Span().Join(end.Span()),
+				beg.Location().Join(end.Location()),
 				expr,
 			))
 			continue strContentLoop
 		case token.STRING_INSPECT_INTERP_LOCAL:
 			tok := p.advance()
 			strContent = append(strContent, ast.NewStringInspectInterpolationNode(
-				tok.Span(),
-				ast.NewPublicIdentifierNode(tok.Span(), tok.Value),
+				tok.Location(),
+				ast.NewPublicIdentifierNode(tok.Location(), tok.Value),
 			))
 			continue strContentLoop
 		case token.STRING_INSPECT_INTERP_CONSTANT:
 			tok := p.advance()
 			strContent = append(strContent, ast.NewStringInspectInterpolationNode(
-				tok.Span(),
-				ast.NewPublicConstantNode(tok.Span(), tok.Value),
+				tok.Location(),
+				ast.NewPublicConstantNode(tok.Location(), tok.Value),
 			))
 			continue strContentLoop
 		}
@@ -6536,7 +6536,7 @@ strContentLoop:
 		}
 		if !ok {
 			strContent = append(strContent, ast.NewInvalidNode(
-				tok.Span(),
+				tok.Location(),
 				tok,
 			))
 			continue strContentLoop
@@ -6545,41 +6545,41 @@ strContentLoop:
 	}
 	if len(strContent) == 0 {
 		return ast.NewDoubleQuotedStringLiteralNode(
-			quoteBeg.Span().Join(quoteEnd.Span()),
+			quoteBeg.Location().Join(quoteEnd.Location()),
 			"",
 		)
 	}
 	strVal, ok := strContent[0].(*ast.StringLiteralContentSectionNode)
 	if len(strContent) == 1 && ok {
 		return ast.NewDoubleQuotedStringLiteralNode(
-			quoteBeg.Span().Join(quoteEnd.Span()),
+			quoteBeg.Location().Join(quoteEnd.Location()),
 			strVal.Value,
 		)
 	}
 
-	span := quoteBeg.Span().Join(quoteEnd.Span())
+	location := quoteBeg.Location().Join(quoteEnd.Location())
 	if !withInterpolation {
-		p.errorMessageSpan("cannot interpolate strings in this context", span)
+		p.errorMessageLocation("cannot interpolate strings in this context", location)
 	}
 
 	return ast.NewInterpolatedStringLiteralNode(
-		span,
+		location,
 		strContent,
 	)
 }
 
 // closureAfterArrow = "->" (expressionWithoutModifier | SEPARATOR [statements] "end" | "{" [statements] "}")
-func (p *Parser) closureAfterArrow(firstSpan *position.Span, params []ast.ParameterNode, returnType ast.TypeNode, throwType ast.TypeNode) ast.ExpressionNode {
-	var span *position.Span
+func (p *Parser) closureAfterArrow(firstSpan *position.Location, params []ast.ParameterNode, returnType ast.TypeNode, throwType ast.TypeNode) ast.ExpressionNode {
+	var location *position.Location
 	arrowTok, ok := p.consume(token.THIN_ARROW)
 	if !ok {
 		return ast.NewInvalidNode(
-			arrowTok.Span(),
+			arrowTok.Location(),
 			arrowTok,
 		)
 	}
 	if firstSpan == nil {
-		firstSpan = arrowTok.Span()
+		firstSpan = arrowTok.Location()
 	}
 
 	// Body with curly braces
@@ -6587,12 +6587,12 @@ func (p *Parser) closureAfterArrow(firstSpan *position.Span, params []ast.Parame
 		p.swallowNewlines()
 		body := p.statements(token.RBRACE)
 		if tok, ok := p.consume(token.RBRACE); ok {
-			span = firstSpan.Join(tok.Span())
+			location = firstSpan.Join(tok.Location())
 		} else {
-			span = firstSpan
+			location = firstSpan
 		}
 		return ast.NewClosureLiteralNode(
-			span,
+			location,
 			params,
 			returnType,
 			throwType,
@@ -6600,11 +6600,11 @@ func (p *Parser) closureAfterArrow(firstSpan *position.Span, params []ast.Parame
 		)
 	}
 
-	lastSpan, body, multiline := p.statementBlock(token.END)
-	if lastSpan != nil {
-		span = firstSpan.Join(lastSpan)
+	lastLocation, body, multiline := p.statementBlock(token.END)
+	if lastLocation != nil {
+		location = firstSpan.Join(lastLocation)
 	} else {
-		span = firstSpan
+		location = firstSpan
 	}
 
 	if multiline {
@@ -6616,12 +6616,12 @@ func (p *Parser) closureAfterArrow(firstSpan *position.Span, params []ast.Parame
 			p.indentedSection = false
 		}
 		if ok {
-			span = span.Join(endTok.Span())
+			location = location.Join(endTok.Location())
 		}
 	}
 
 	return ast.NewClosureLiteralNode(
-		span,
+		location,
 		params,
 		returnType,
 		throwType,
@@ -6632,13 +6632,13 @@ func (p *Parser) closureAfterArrow(firstSpan *position.Span, params []ast.Parame
 // closureExpression = (("|" formalParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation] closureAfterArrow
 func (p *Parser) closureExpression() ast.ExpressionNode {
 	var params []ast.ParameterNode
-	var firstSpan *position.Span
+	var firstSpan *position.Location
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
 
 	if p.accept(token.OR) || p.accept(token.OR_OR) {
 		if p.accept(token.OR) {
-			firstSpan = p.advance().Span()
+			firstSpan = p.advance().Location()
 			if !p.accept(token.OR) {
 				p.mode = withoutBitwiseOrMode
 				params = p.formalParameterList(token.OR)
@@ -6646,16 +6646,16 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 			}
 			if tok, ok := p.consume(token.OR); !ok {
 				return ast.NewInvalidNode(
-					tok.Span(),
+					tok.Location(),
 					tok,
 				)
 			}
 		} else {
 			orOr, ok := p.consume(token.OR_OR)
-			firstSpan = orOr.Span()
+			firstSpan = orOr.Location()
 			if !ok {
 				return ast.NewInvalidNode(
-					orOr.Span(),
+					orOr.Location(),
 					orOr,
 				)
 			}
@@ -6680,10 +6680,10 @@ func (p *Parser) identifierOrFunction() ast.ExpressionNode {
 	if p.secondLookahead.Type == token.THIN_ARROW {
 		ident := p.advance()
 		return p.closureAfterArrow(
-			ident.Span(),
+			ident.Location(),
 			[]ast.ParameterNode{
 				ast.NewFormalParameterNode(
-					ident.Span(),
+					ident.Location(),
 					ident.Value,
 					nil,
 					nil,
@@ -6702,11 +6702,11 @@ func (p *Parser) identifierOrFunction() ast.ExpressionNode {
 func (p *Parser) instanceVariable() ast.ExpressionNode {
 	token, ok := p.consume(token.INSTANCE_VARIABLE)
 	if !ok {
-		return ast.NewInvalidNode(token.Span(), token)
+		return ast.NewInvalidNode(token.Location(), token)
 	}
 
 	return ast.NewInstanceVariableNode(
-		token.Span(),
+		token.Location(),
 		token.Value,
 	)
 }
@@ -6724,7 +6724,7 @@ func (p *Parser) docComment(allowed bool) ast.ExpressionNode {
 
 	docCommentableExpr, ok := expr.(ast.DocCommentableNode)
 	if !ok && !nested {
-		p.errorMessageSpan("doc comments cannot be attached to this expression", expr.Span())
+		p.errorMessageLocation("doc comments cannot be attached to this expression", expr.Location())
 	}
 	if ok {
 		docCommentableExpr.SetDocComment(docComment.Value)
@@ -6738,7 +6738,7 @@ func (p *Parser) publicIdentifier() *ast.PublicIdentifierNode {
 		panic(fmt.Sprintf("invalid public identifier token: %#v", ident))
 	}
 	return ast.NewPublicIdentifierNode(
-		ident.Span(),
+		ident.Location(),
 		ident.Value,
 	)
 }
@@ -6749,7 +6749,7 @@ func (p *Parser) privateIdentifier() *ast.PrivateIdentifierNode {
 		panic(fmt.Sprintf("invalid private identifier token: %#v", ident))
 	}
 	return ast.NewPrivateIdentifierNode(
-		ident.Span(),
+		ident.Location(),
 		ident.Value,
 	)
 }
@@ -6765,5 +6765,5 @@ func (p *Parser) identifier() ast.IdentifierNode {
 
 	p.errorExpected("an identifier")
 	errTok := p.advance()
-	return ast.NewInvalidNode(errTok.Span(), errTok)
+	return ast.NewInvalidNode(errTok.Location(), errTok)
 }

@@ -26,7 +26,7 @@ func (n *ConstantAsNode) Equal(other value.Value) bool {
 
 	return n.AsName == o.AsName &&
 		n.Constant.Equal(value.Ref(o.Constant)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -55,7 +55,7 @@ func (*ConstantAsNode) DirectClass() *value.Class {
 func (n *ConstantAsNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ConstantAsNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ConstantAsNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  constant: ")
 	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
@@ -73,9 +73,9 @@ func (n *ConstantAsNode) Error() string {
 }
 
 // Create a new identifier with as eg. `Foo::Bar as Bar`.
-func NewConstantAsNode(span *position.Span, constant ComplexConstantNode, as string) *ConstantAsNode {
+func NewConstantAsNode(loc *position.Location, constant ComplexConstantNode, as string) *ConstantAsNode {
 	return &ConstantAsNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Constant: constant,
 		AsName:   as,
 	}

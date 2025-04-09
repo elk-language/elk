@@ -5,9 +5,9 @@ module Std::Elk::AST
   sealed primitive class UnaryTypeNode
     include TypeNode
 
-    init(op: Elk::Token, type_node: TypeNode, span: String::Span = loop; end); end
+    init(op: Elk::Token, type_node: TypeNode, location: FS::Location = loop; end); end
     def op: Elk::Token; end
     def type_node: TypeNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

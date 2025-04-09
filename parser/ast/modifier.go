@@ -24,7 +24,7 @@ func (n *ModifierNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Modifier.Equal(o.Modifier) &&
 		n.Left.Equal(value.Ref(o.Left)) &&
 		n.Right.Equal(value.Ref(o.Right))
@@ -74,7 +74,7 @@ func (*ModifierNode) DirectClass() *value.Class {
 func (n *ModifierNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  modifier: ")
 	indent.IndentStringFromSecondLine(&buff, n.Modifier.Inspect(), 1)
@@ -95,9 +95,9 @@ func (m *ModifierNode) Error() string {
 }
 
 // Create a new modifier node eg. `return true if foo`.
-func NewModifierNode(span *position.Span, mod *token.Token, left, right ExpressionNode) *ModifierNode {
+func NewModifierNode(loc *position.Location, mod *token.Token, left, right ExpressionNode) *ModifierNode {
 	return &ModifierNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Modifier:      mod,
 		Left:          left,
 		Right:         right,
@@ -118,7 +118,7 @@ func (n *ModifierIfElseNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.ThenExpression.Equal(value.Ref(o.ThenExpression)) &&
 		n.Condition.Equal(value.Ref(o.Condition)) &&
 		n.ElseExpression.Equal(value.Ref(o.ElseExpression))
@@ -167,7 +167,7 @@ func (*ModifierIfElseNode) DirectClass() *value.Class {
 func (n *ModifierIfElseNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierIfElseNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierIfElseNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  then_expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.ThenExpression.Inspect(), 1)
@@ -188,9 +188,9 @@ func (m *ModifierIfElseNode) Error() string {
 }
 
 // Create a new modifier `if` .. `else` node eg. `foo = 1 if bar else foo = 2“.
-func NewModifierIfElseNode(span *position.Span, then, cond, els ExpressionNode) *ModifierIfElseNode {
+func NewModifierIfElseNode(loc *position.Location, then, cond, els ExpressionNode) *ModifierIfElseNode {
 	return &ModifierIfElseNode{
-		TypedNodeBase:  TypedNodeBase{span: span},
+		TypedNodeBase:  TypedNodeBase{loc: loc},
 		ThenExpression: then,
 		Condition:      cond,
 		ElseExpression: els,
@@ -214,7 +214,7 @@ func (n *ModifierForInNode) Equal(other value.Value) bool {
 	return n.ThenExpression.Equal(value.Ref(o.ThenExpression)) &&
 		n.Pattern.Equal(value.Ref(o.Pattern)) &&
 		n.InExpression.Equal(value.Ref(o.InExpression)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *ModifierForInNode) String() string {
@@ -251,7 +251,7 @@ func (*ModifierForInNode) DirectClass() *value.Class {
 func (n *ModifierForInNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierForInNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierForInNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  then_expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.ThenExpression.Inspect(), 1)
@@ -272,9 +272,9 @@ func (m *ModifierForInNode) Error() string {
 }
 
 // Create a new modifier `for` .. `in` node eg. `println(i) for i in 10..30`
-func NewModifierForInNode(span *position.Span, then ExpressionNode, pattern PatternNode, in ExpressionNode) *ModifierForInNode {
+func NewModifierForInNode(loc *position.Location, then ExpressionNode, pattern PatternNode, in ExpressionNode) *ModifierForInNode {
 	return &ModifierForInNode{
-		TypedNodeBase:  TypedNodeBase{span: span},
+		TypedNodeBase:  TypedNodeBase{loc: loc},
 		ThenExpression: then,
 		Pattern:        pattern,
 		InExpression:   in,

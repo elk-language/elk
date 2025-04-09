@@ -6,7 +6,7 @@ module Std::Elk::AST
     include ExpressionNode,
             TypeNode
 
-    init(span: String::Span = loop; end); end
-    def span: String::Span; end
+    init(location: FS::Location = loop; end); end
+    def location: FS::Location; end
   end
 end

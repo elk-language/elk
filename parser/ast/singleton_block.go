@@ -36,7 +36,7 @@ func (n *SingletonBlockExpressionNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *SingletonBlockExpressionNode) String() string {
@@ -73,7 +73,7 @@ func (*SingletonBlockExpressionNode) DirectClass() *value.Class {
 func (n *SingletonBlockExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SingletonBlockExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SingletonBlockExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  body: %[\n")
 	for i, stmt := range n.Body {
@@ -98,9 +98,9 @@ func (n *SingletonBlockExpressionNode) Error() string {
 //	singleton
 //		def hello then println("awesome!")
 //	end
-func NewSingletonBlockExpressionNode(span *position.Span, body []StatementNode) *SingletonBlockExpressionNode {
+func NewSingletonBlockExpressionNode(loc *position.Location, body []StatementNode) *SingletonBlockExpressionNode {
 	return &SingletonBlockExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Body:          body,
 	}
 }

@@ -511,7 +511,7 @@ func (c *Checker) ClearErrors() {
 
 // Create a new location struct with the given position.
 func (c *Checker) newLocation(span *position.Span) *position.Location {
-	return position.NewLocationWithSpan(c.Filename, span)
+	return position.NewLocation(c.Filename, span)
 }
 
 func (c *Checker) checkStatements(stmts []ast.StatementNode, tailPosition bool) (types.Type, *position.Span) {

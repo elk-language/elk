@@ -22,7 +22,7 @@ func (n *TypeExpressionNode) Equal(other value.Value) bool {
 	}
 
 	return n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *TypeExpressionNode) String() string {
@@ -49,7 +49,7 @@ func (*TypeExpressionNode) DirectClass() *value.Class {
 func (n *TypeExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::TypeExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::TypeExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  type_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
@@ -64,9 +64,9 @@ func (n *TypeExpressionNode) Error() string {
 }
 
 // Create a new type expression `type String?`
-func NewTypeExpressionNode(span *position.Span, typeNode TypeNode) *TypeExpressionNode {
+func NewTypeExpressionNode(loc *position.Location, typeNode TypeNode) *TypeExpressionNode {
 	return &TypeExpressionNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		TypeNode: typeNode,
 	}
 }

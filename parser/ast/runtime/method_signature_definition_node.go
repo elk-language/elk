@@ -48,14 +48,14 @@ func initMethodSignatureDefinitionNode() {
 				argDocComment = string(args[6].MustReference().(value.String))
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[7].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[7].Pointer())
+				argLoc = (*position.Location)(args[7].Pointer())
 			}
 			self := ast.NewMethodSignatureDefinitionNode(
-				argSpan,
+				argLoc,
 				argDocComment,
 				argName,
 				argTypeParameters,

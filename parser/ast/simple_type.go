@@ -19,7 +19,7 @@ func (n *BoolLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.Span().Equal(o.Span())
+	return n.loc.Equal(o.loc)
 }
 
 func (n *BoolLiteralNode) String() string {
@@ -43,7 +43,7 @@ func (*BoolLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *BoolLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::BoolLiteralNode{span: %s}", (*value.Span)(n.span).Inspect())
+	return fmt.Sprintf("Std::Elk::AST::BoolLiteralNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
 func (n *BoolLiteralNode) Error() string {
@@ -51,9 +51,9 @@ func (n *BoolLiteralNode) Error() string {
 }
 
 // Create a new `bool` literal node.
-func NewBoolLiteralNode(span *position.Span) *BoolLiteralNode {
+func NewBoolLiteralNode(loc *position.Location) *BoolLiteralNode {
 	return &BoolLiteralNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 	}
 }
 
@@ -67,7 +67,7 @@ func (n *VoidTypeNode) Equal(other value.Value) bool {
 	if !ok {
 		return false
 	}
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *VoidTypeNode) String() string {
@@ -87,7 +87,7 @@ func (*VoidTypeNode) DirectClass() *value.Class {
 }
 
 func (n *VoidTypeNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::VoidTypeNode{span: %s}", (*value.Span)(n.span).Inspect())
+	return fmt.Sprintf("Std::Elk::AST::VoidTypeNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
 func (n *VoidTypeNode) Error() string {
@@ -95,9 +95,9 @@ func (n *VoidTypeNode) Error() string {
 }
 
 // Create a new `void` type node.
-func NewVoidTypeNode(span *position.Span) *VoidTypeNode {
+func NewVoidTypeNode(loc *position.Location) *VoidTypeNode {
 	return &VoidTypeNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 	}
 }
 
@@ -111,7 +111,7 @@ func (n *NeverTypeNode) Equal(other value.Value) bool {
 	if !ok {
 		return false
 	}
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *NeverTypeNode) String() string {
@@ -135,7 +135,7 @@ func (*NeverTypeNode) DirectClass() *value.Class {
 }
 
 func (n *NeverTypeNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::NeverTypeNode{span: %s}", (*value.Span)(n.span).Inspect())
+	return fmt.Sprintf("Std::Elk::AST::NeverTypeNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
 func (n *NeverTypeNode) Error() string {
@@ -143,9 +143,9 @@ func (n *NeverTypeNode) Error() string {
 }
 
 // Create a new `never` type node.
-func NewNeverTypeNode(span *position.Span) *NeverTypeNode {
+func NewNeverTypeNode(loc *position.Location) *NeverTypeNode {
 	return &NeverTypeNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 	}
 }
 
@@ -159,7 +159,7 @@ func (n *AnyTypeNode) Equal(other value.Value) bool {
 	if !ok {
 		return false
 	}
-	return n.Span().Equal(o.Span())
+	return n.loc.Equal(o.loc)
 }
 
 func (n *AnyTypeNode) String() string {
@@ -183,7 +183,7 @@ func (*AnyTypeNode) DirectClass() *value.Class {
 }
 
 func (n *AnyTypeNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::AnyTypeNode{span: %s}", (*value.Span)(n.span).Inspect())
+	return fmt.Sprintf("Std::Elk::AST::AnyTypeNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
 func (n *AnyTypeNode) Error() string {
@@ -191,8 +191,8 @@ func (n *AnyTypeNode) Error() string {
 }
 
 // Create a new `any` type node.
-func NewAnyTypeNode(span *position.Span) *AnyTypeNode {
+func NewAnyTypeNode(loc *position.Location) *AnyTypeNode {
 	return &AnyTypeNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 	}
 }

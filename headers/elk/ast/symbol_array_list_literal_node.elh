@@ -9,11 +9,11 @@ module Std::Elk::AST
     init(
       elements: ArrayTuple[SymbolCollectionContentNode] = loop; end,
       capacity: ExpressionNode? = nil,
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def elements: ArrayTuple[SymbolCollectionContentNode]; end
     def capacity: ExpressionNode?; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

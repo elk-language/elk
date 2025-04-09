@@ -25,7 +25,7 @@ func IsValidPipeExpressionTarget(node Node) bool {
 
 // Represents a method definition eg. `def foo: String then 'hello world'`
 type MethodDefinitionNode struct {
-	TypedNodeBaseWithLoc
+	TypedNodeBase
 	DocCommentableNodeBase
 	Name           string
 	TypeParameters []TypeParameterNode
@@ -281,7 +281,7 @@ func NewMethodDefinitionNode(
 	body []StatementNode,
 ) *MethodDefinitionNode {
 	return &MethodDefinitionNode{
-		TypedNodeBaseWithLoc: TypedNodeBaseWithLoc{loc: loc},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -297,7 +297,7 @@ func NewMethodDefinitionNode(
 
 // Represents a constructor definition eg. `init then 'hello world'`
 type InitDefinitionNode struct {
-	TypedNodeBaseWithLoc
+	TypedNodeBase
 	DocCommentableNodeBase
 	Parameters []ParameterNode // formal parameters
 	ThrowType  TypeNode
@@ -435,10 +435,10 @@ func (n *InitDefinitionNode) Error() string {
 // Create a constructor definition node eg. `init then 'hello world'`
 func NewInitDefinitionNode(loc *position.Location, params []ParameterNode, throwType TypeNode, body []StatementNode) *InitDefinitionNode {
 	return &InitDefinitionNode{
-		TypedNodeBaseWithLoc: TypedNodeBaseWithLoc{loc: loc},
-		Parameters:           params,
-		ThrowType:            throwType,
-		Body:                 body,
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		Parameters:    params,
+		ThrowType:     throwType,
+		Body:          body,
 	}
 }
 
@@ -460,7 +460,7 @@ func (n *MethodSignatureDefinitionNode) Equal(other value.Value) bool {
 	}
 
 	if n.Name != o.Name ||
-		!n.span.Equal(o.span) ||
+		!n.loc.Equal(o.loc) ||
 		n.comment != o.comment {
 		return false
 	}
@@ -562,7 +562,7 @@ func (*MethodSignatureDefinitionNode) DirectClass() *value.Class {
 func (n *MethodSignatureDefinitionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::MethodSignatureDefinitionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::MethodSignatureDefinitionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
@@ -601,9 +601,9 @@ func (n *MethodSignatureDefinitionNode) Error() string {
 }
 
 // Create a method signature node eg. `sig to_string(val: Int): String`
-func NewMethodSignatureDefinitionNode(span *position.Span, docComment, name string, typeParams []TypeParameterNode, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
+func NewMethodSignatureDefinitionNode(loc *position.Location, docComment, name string, typeParams []TypeParameterNode, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
 	return &MethodSignatureDefinitionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -639,7 +639,7 @@ func (n *AliasDeclarationEntry) Inspect() string {
 
 	buff.WriteString("Std::Elk::AST::AliasDeclarationEntry{\n")
 
-	fmt.Fprintf(&buff, "  span: %s,\n", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "  location: %s,\n", (*value.Location)(n.loc).Inspect())
 	fmt.Fprintf(&buff, "  new_name: %s,\n", n.NewName)
 	fmt.Fprintf(&buff, "  old_name: %s,\n", n.OldName)
 	buff.WriteRune('}')
@@ -657,7 +657,7 @@ func (n *AliasDeclarationEntry) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.Span().Equal(o.Span()) &&
+	return n.loc.Equal(o.loc) &&
 		n.NewName == o.NewName &&
 		n.OldName == o.OldName
 }
@@ -677,9 +677,9 @@ func (n *AliasDeclarationEntry) Error() string {
 }
 
 // Create an alias alias entry eg. `new_name old_name`
-func NewAliasDeclarationEntry(span *position.Span, newName, oldName string) *AliasDeclarationEntry {
+func NewAliasDeclarationEntry(loc *position.Location, newName, oldName string) *AliasDeclarationEntry {
 	return &AliasDeclarationEntry{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		NewName:  newName,
 		OldName:  oldName,
 	}
@@ -715,7 +715,7 @@ func (n *AliasDeclarationNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.Span().Equal(o.Span()) {
+	if !n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -745,7 +745,7 @@ func (n *AliasDeclarationNode) Inspect() string {
 
 	buff.WriteString("Std::Elk::AST::AliasDeclarationNode{\n")
 
-	fmt.Fprintf(&buff, "  span: %s,\n", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "  location: %s,\n", (*value.Location)(n.loc).Inspect())
 	buff.WriteString("  entries: %[\n")
 	for i, element := range n.Entries {
 		if i != 0 {
@@ -765,9 +765,9 @@ func (n *AliasDeclarationNode) Error() string {
 }
 
 // Create an alias declaration node eg. `alias push append, add plus`
-func NewAliasDeclarationNode(span *position.Span, entries []*AliasDeclarationEntry) *AliasDeclarationNode {
+func NewAliasDeclarationNode(loc *position.Location, entries []*AliasDeclarationEntry) *AliasDeclarationNode {
 	return &AliasDeclarationNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Entries:       entries,
 	}
 }
@@ -786,7 +786,7 @@ func (n *GetterDeclarationNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.span.Equal(o.span) ||
+	if !n.loc.Equal(o.loc) ||
 		n.comment != o.comment {
 		return false
 	}
@@ -842,7 +842,7 @@ func (*GetterDeclarationNode) DirectClass() *value.Class {
 func (n *GetterDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::GetterDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::GetterDeclarationNode{\n  loc: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
@@ -866,9 +866,9 @@ func (n *GetterDeclarationNode) Error() string {
 }
 
 // Create a getter declaration node eg. `getter foo: String`
-func NewGetterDeclarationNode(span *position.Span, docComment string, entries []ParameterNode) *GetterDeclarationNode {
+func NewGetterDeclarationNode(loc *position.Location, docComment string, entries []ParameterNode) *GetterDeclarationNode {
 	return &GetterDeclarationNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -899,7 +899,7 @@ func (n *SetterDeclarationNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.comment == o.comment
 }
 
@@ -939,7 +939,7 @@ func (*SetterDeclarationNode) DirectClass() *value.Class {
 func (n *SetterDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SetterDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SetterDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
@@ -963,9 +963,9 @@ func (n *SetterDeclarationNode) Error() string {
 }
 
 // Create a setter declaration node eg. `setter foo: String`
-func NewSetterDeclarationNode(span *position.Span, docComment string, entries []ParameterNode) *SetterDeclarationNode {
+func NewSetterDeclarationNode(loc *position.Location, docComment string, entries []ParameterNode) *SetterDeclarationNode {
 	return &SetterDeclarationNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -995,7 +995,7 @@ func (*AttrDeclarationNode) DirectClass() *value.Class {
 func (n *AttrDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::AttrDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::AttrDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
@@ -1020,7 +1020,7 @@ func (n *AttrDeclarationNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.Span().Equal(o.Span()) {
+	if !n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -1067,9 +1067,9 @@ func (n *AttrDeclarationNode) Error() string {
 }
 
 // Create an attribute declaration node eg. `attr foo: String`
-func NewAttrDeclarationNode(span *position.Span, docComment string, entries []ParameterNode) *AttrDeclarationNode {
+func NewAttrDeclarationNode(loc *position.Location, docComment string, entries []ParameterNode) *AttrDeclarationNode {
 	return &AttrDeclarationNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},

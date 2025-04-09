@@ -22,7 +22,7 @@ func (l *ArrayListLiteralNode) IsStatic() bool {
 }
 
 // Create a ArrayList literal node eg. `[1, 5, -6]`
-func NewArrayListLiteralNode(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) *ArrayListLiteralNode {
+func NewArrayListLiteralNode(loc *position.Location, elements []ExpressionNode, capacity ExpressionNode) *ArrayListLiteralNode {
 	var static bool
 	if capacity != nil {
 		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
@@ -30,7 +30,7 @@ func NewArrayListLiteralNode(span *position.Span, elements []ExpressionNode, cap
 		static = isExpressionSliceStatic(elements)
 	}
 	return &ArrayListLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -38,8 +38,8 @@ func NewArrayListLiteralNode(span *position.Span, elements []ExpressionNode, cap
 }
 
 // Same as [NewArrayListLiteralNode] but returns an interface
-func NewArrayListLiteralNodeI(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) ExpressionNode {
-	return NewArrayListLiteralNode(span, elements, capacity)
+func NewArrayListLiteralNodeI(loc *position.Location, elements []ExpressionNode, capacity ExpressionNode) ExpressionNode {
+	return NewArrayListLiteralNode(loc, elements, capacity)
 }
 
 func (*ArrayListLiteralNode) Class() *value.Class {
@@ -137,7 +137,7 @@ func (n *ArrayListLiteralNode) Inspect() string {
 
 	buff.WriteString("Std::Elk::AST::ArrayListLiteralNode{\n")
 
-	fmt.Fprintf(&buff, "span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "span: %s", (*value.Location)(n.loc).Inspect())
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
 		if i != 0 {
@@ -173,7 +173,7 @@ func (n *WordArrayListLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.span.Equal(o.span) ||
+	if !n.loc.Equal(o.loc) ||
 		len(n.Elements) != len(o.Elements) {
 		return false
 	}
@@ -235,7 +235,7 @@ func (w *WordArrayListLiteralNode) IsStatic() bool {
 }
 
 // Create a word ArrayList literal node eg. `\w[foo bar]`
-func NewWordArrayListLiteralNode(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) *WordArrayListLiteralNode {
+func NewWordArrayListLiteralNode(loc *position.Location, elements []WordCollectionContentNode, capacity ExpressionNode) *WordArrayListLiteralNode {
 	var static bool
 	if capacity != nil {
 		static = capacity.IsStatic()
@@ -243,7 +243,7 @@ func NewWordArrayListLiteralNode(span *position.Span, elements []WordCollectionC
 		static = true
 	}
 	return &WordArrayListLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -251,13 +251,13 @@ func NewWordArrayListLiteralNode(span *position.Span, elements []WordCollectionC
 }
 
 // Same as [NewWordArrayListLiteralNode] but returns an interface.
-func NewWordArrayListLiteralExpressionNode(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) ExpressionNode {
-	return NewWordArrayListLiteralNode(span, elements, capacity)
+func NewWordArrayListLiteralExpressionNode(loc *position.Location, elements []WordCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewWordArrayListLiteralNode(loc, elements, capacity)
 }
 
 // Same as [NewWordArrayListLiteralNode] but returns an interface.
-func NewWordArrayListLiteralPatternExpressionNode(span *position.Span, elements []WordCollectionContentNode) PatternExpressionNode {
-	return NewWordArrayListLiteralNode(span, elements, nil)
+func NewWordArrayListLiteralPatternExpressionNode(loc *position.Location, elements []WordCollectionContentNode) PatternExpressionNode {
+	return NewWordArrayListLiteralNode(loc, elements, nil)
 }
 
 func (*WordArrayListLiteralNode) Class() *value.Class {
@@ -271,7 +271,7 @@ func (*WordArrayListLiteralNode) DirectClass() *value.Class {
 func (n *WordArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayListLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayListLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -309,7 +309,7 @@ func (n *SymbolArrayListLiteralNode) Equal(other value.Value) bool {
 	}
 
 	if len(n.Elements) != len(o.Elements) ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -370,7 +370,7 @@ func (s *SymbolArrayListLiteralNode) IsStatic() bool {
 }
 
 // Create a symbol ArrayList literal node eg. `\s[foo bar]`
-func NewSymbolArrayListLiteralNode(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) *SymbolArrayListLiteralNode {
+func NewSymbolArrayListLiteralNode(loc *position.Location, elements []SymbolCollectionContentNode, capacity ExpressionNode) *SymbolArrayListLiteralNode {
 	var static bool
 	if capacity != nil {
 		static = capacity.IsStatic()
@@ -378,7 +378,7 @@ func NewSymbolArrayListLiteralNode(span *position.Span, elements []SymbolCollect
 		static = true
 	}
 	return &SymbolArrayListLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -386,13 +386,13 @@ func NewSymbolArrayListLiteralNode(span *position.Span, elements []SymbolCollect
 }
 
 // Same as [NewSymbolArrayListLiteralNode] but returns an interface.
-func NewSymbolArrayListLiteralExpressionNode(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) ExpressionNode {
-	return NewSymbolArrayListLiteralNode(span, elements, capacity)
+func NewSymbolArrayListLiteralExpressionNode(loc *position.Location, elements []SymbolCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewSymbolArrayListLiteralNode(loc, elements, capacity)
 }
 
 // Same as [NewSymbolArrayListLiteralNode] but returns an interface.
-func NewSymbolArrayListLiteralPatternExpressionNode(span *position.Span, elements []SymbolCollectionContentNode) PatternExpressionNode {
-	return NewSymbolArrayListLiteralNode(span, elements, nil)
+func NewSymbolArrayListLiteralPatternExpressionNode(loc *position.Location, elements []SymbolCollectionContentNode) PatternExpressionNode {
+	return NewSymbolArrayListLiteralNode(loc, elements, nil)
 }
 
 func (*SymbolArrayListLiteralNode) Class() *value.Class {
@@ -406,7 +406,7 @@ func (*SymbolArrayListLiteralNode) DirectClass() *value.Class {
 func (n *SymbolArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayListLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayListLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -461,7 +461,7 @@ func (n *HexArrayListLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -506,7 +506,7 @@ func (h *HexArrayListLiteralNode) IsStatic() bool {
 }
 
 // Create a hex ArrayList literal node eg. `\x[ff ee]`
-func NewHexArrayListLiteralNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) *HexArrayListLiteralNode {
+func NewHexArrayListLiteralNode(loc *position.Location, elements []IntCollectionContentNode, capacity ExpressionNode) *HexArrayListLiteralNode {
 	var static bool
 	if capacity != nil {
 		static = capacity.IsStatic()
@@ -514,7 +514,7 @@ func NewHexArrayListLiteralNode(span *position.Span, elements []IntCollectionCon
 		static = true
 	}
 	return &HexArrayListLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -522,13 +522,13 @@ func NewHexArrayListLiteralNode(span *position.Span, elements []IntCollectionCon
 }
 
 // Same as [NewHexArrayListLiteralNode] but returns an interface.
-func NewHexArrayListLiteralExpressionNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
-	return NewHexArrayListLiteralNode(span, elements, capacity)
+func NewHexArrayListLiteralExpressionNode(loc *position.Location, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewHexArrayListLiteralNode(loc, elements, capacity)
 }
 
 // Same as [NewHexArrayListLiteralNode] but returns an interface.
-func NewHexArrayListLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
-	return NewHexArrayListLiteralNode(span, elements, nil)
+func NewHexArrayListLiteralPatternExpressionNode(loc *position.Location, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewHexArrayListLiteralNode(loc, elements, nil)
 }
 
 func (*HexArrayListLiteralNode) Class() *value.Class {
@@ -542,7 +542,7 @@ func (*HexArrayListLiteralNode) DirectClass() *value.Class {
 func (n *HexArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayListLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayListLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -645,7 +645,7 @@ func (n *BinArrayListLiteralNode) String() string {
 }
 
 // Create a bin ArrayList literal node eg. `\b[11 10]`
-func NewBinArrayListLiteralNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) *BinArrayListLiteralNode {
+func NewBinArrayListLiteralNode(loc *position.Location, elements []IntCollectionContentNode, capacity ExpressionNode) *BinArrayListLiteralNode {
 	var static bool
 	if capacity != nil {
 		static = capacity.IsStatic()
@@ -653,7 +653,7 @@ func NewBinArrayListLiteralNode(span *position.Span, elements []IntCollectionCon
 		static = true
 	}
 	return &BinArrayListLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -661,13 +661,13 @@ func NewBinArrayListLiteralNode(span *position.Span, elements []IntCollectionCon
 }
 
 // Same as [NewBinArrayListLiteralNode] but returns an interface.
-func NewBinArrayListLiteralExpressionNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
-	return NewBinArrayListLiteralNode(span, elements, capacity)
+func NewBinArrayListLiteralExpressionNode(loc *position.Location, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewBinArrayListLiteralNode(loc, elements, capacity)
 }
 
 // Same as [NewBinArrayListLiteralNode] but returns an interface.
-func NewBinArrayListLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
-	return NewBinArrayListLiteralNode(span, elements, nil)
+func NewBinArrayListLiteralPatternExpressionNode(loc *position.Location, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewBinArrayListLiteralNode(loc, elements, nil)
 }
 
 func (*BinArrayListLiteralNode) Class() *value.Class {
@@ -681,7 +681,7 @@ func (*BinArrayListLiteralNode) DirectClass() *value.Class {
 func (n *BinArrayListLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayListLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayListLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -726,7 +726,7 @@ func (n *ListPatternNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *ListPatternNode) String() string {
@@ -759,7 +759,7 @@ func (*ListPatternNode) DirectClass() *value.Class {
 func (n *ListPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ListPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ListPatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -780,14 +780,14 @@ func (n *ListPatternNode) Error() string {
 }
 
 // Create a List pattern node eg. `[1, a, >= 10]`
-func NewListPatternNode(span *position.Span, elements []PatternNode) *ListPatternNode {
+func NewListPatternNode(loc *position.Location, elements []PatternNode) *ListPatternNode {
 	return &ListPatternNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 	}
 }
 
 // Same as [NewListPatternNode] but returns an interface
-func NewListPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
-	return NewListPatternNode(span, elements)
+func NewListPatternNodeI(loc *position.Location, elements []PatternNode) PatternNode {
+	return NewListPatternNode(loc, elements)
 }

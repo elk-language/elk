@@ -31,7 +31,7 @@ func (n *ThrowExpressionNode) Equal(other value.Value) bool {
 	}
 
 	return n.Unchecked == o.Unchecked &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *ThrowExpressionNode) String() string {
@@ -67,9 +67,9 @@ func (*ThrowExpressionNode) IsStatic() bool {
 }
 
 // Create a new `throw` expression node eg. `throw ArgumentError("foo")`
-func NewThrowExpressionNode(span *position.Span, unchecked bool, val ExpressionNode) *ThrowExpressionNode {
+func NewThrowExpressionNode(loc *position.Location, unchecked bool, val ExpressionNode) *ThrowExpressionNode {
 	return &ThrowExpressionNode{
-		NodeBase:  NodeBase{span: span},
+		NodeBase:  NodeBase{loc: loc},
 		Unchecked: unchecked,
 		Value:     val,
 	}
@@ -86,7 +86,7 @@ func (*ThrowExpressionNode) DirectClass() *value.Class {
 func (n *ThrowExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ThrowExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ThrowExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	fmt.Fprintf(&buff, ",\n  unchecked: %t", n.Unchecked)
 

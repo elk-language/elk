@@ -33,7 +33,7 @@ func (n *NamedCallArgumentNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Name == o.Name &&
 		n.Value.Equal(value.Ref(o.Value))
 }
@@ -63,7 +63,7 @@ func (*NamedCallArgumentNode) DirectClass() *value.Class {
 func (n *NamedCallArgumentNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::NamedCallArgumentNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::NamedCallArgumentNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.Name).Inspect(), 1)
@@ -81,9 +81,9 @@ func (n *NamedCallArgumentNode) Error() string {
 }
 
 // Create a named argument node eg. `foo: 123`
-func NewNamedCallArgumentNode(span *position.Span, name string, val ExpressionNode) *NamedCallArgumentNode {
+func NewNamedCallArgumentNode(loc *position.Location, name string, val ExpressionNode) *NamedCallArgumentNode {
 	return &NamedCallArgumentNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Name:     name,
 		Value:    val,
 	}

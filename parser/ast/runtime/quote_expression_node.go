@@ -22,14 +22,14 @@ func initQuoteExpressionNode() {
 				}
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[2].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argLoc = (*position.Location)(args[2].Pointer())
 			}
 			self := ast.NewQuoteExpressionNode(
-				argSpan,
+				argLoc,
 				argBody,
 			)
 			return value.Ref(self), value.Undefined

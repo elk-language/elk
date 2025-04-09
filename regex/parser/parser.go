@@ -94,7 +94,7 @@ func (p *Parser) errorToken(err *token.Token) {
 func (p *Parser) errorMessageSpan(message string, span *position.Span) {
 	p.errors.AddFailure(
 		message,
-		position.NewLocationWithSpan("regex", span),
+		position.NewLocation("regex", span),
 	)
 }
 

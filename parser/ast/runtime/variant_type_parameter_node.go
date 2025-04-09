@@ -35,14 +35,14 @@ func initVariantTypeParameterNode() {
 				argVariance = ast.Variance(args[5].AsUInt8())
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[6].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.DefaultLocation
 			} else {
-				argSpan = (*position.Span)(args[6].Pointer())
+				argLoc = (*position.Location)(args[6].Pointer())
 			}
 			self := ast.NewVariantTypeParameterNode(
-				argSpan,
+				argLoc,
 				argVariance,
 				argName,
 				argLowerBound,
