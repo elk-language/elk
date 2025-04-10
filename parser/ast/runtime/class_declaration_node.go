@@ -59,14 +59,14 @@ func initClassDeclarationNode() {
 				docComment = (string)(args[9].MustReference().(value.String))
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[10].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.ZeroLocation
 			} else {
-				argSpan = (*position.Span)(args[10].Pointer())
+				argLoc = (*position.Location)(args[10].Pointer())
 			}
 			self := ast.NewClassDeclarationNode(
-				argSpan,
+				argLoc,
 				docComment,
 				abstract,
 				sealed,

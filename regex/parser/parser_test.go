@@ -36,7 +36,9 @@ var P = position.New
 var S = position.NewSpan
 
 // Create a new source location in tests.
-var L = position.NewLocation
+func L(filename string, startPos, endPos *position.Position) *position.Location {
+	return position.NewLocation(filename, position.NewSpan(startPos, endPos))
+}
 
 // Function which powers all parser tests.
 // Inspects if the produced AST matches the expected one.

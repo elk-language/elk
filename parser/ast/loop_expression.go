@@ -31,7 +31,7 @@ func (n *LoopExpressionNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *LoopExpressionNode) String() string {
@@ -54,9 +54,9 @@ func (*LoopExpressionNode) IsStatic() bool {
 }
 
 // Create a new `loop` expression node eg. `loop println('elk is awesome')`
-func NewLoopExpressionNode(span *position.Span, then []StatementNode) *LoopExpressionNode {
+func NewLoopExpressionNode(loc *position.Location, then []StatementNode) *LoopExpressionNode {
 	return &LoopExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		ThenBody:      then,
 	}
 }
@@ -72,7 +72,7 @@ func (*LoopExpressionNode) DirectClass() *value.Class {
 func (n *LoopExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::LoopExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::LoopExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  then_body: %[\n")
 	for i, stmt := range n.ThenBody {

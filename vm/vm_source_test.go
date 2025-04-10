@@ -42,7 +42,7 @@ var S = position.NewSpan
 
 // Create a new location in tests
 func L(startPos, endPos *position.Position) *position.Location {
-	return position.NewLocation(testFileName, startPos, endPos)
+	return position.NewLocation(testFileName, position.NewSpan(startPos, endPos))
 }
 
 type concurrentStringBuilder struct {

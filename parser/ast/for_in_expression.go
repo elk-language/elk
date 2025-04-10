@@ -23,7 +23,7 @@ func (n *ForInExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.span.Equal(o.span) ||
+	if !n.loc.Equal(o.loc) ||
 		!n.Pattern.Equal(value.Ref(o.Pattern)) ||
 		!n.InExpression.Equal(value.Ref(o.InExpression)) ||
 		len(n.ThenBody) != len(o.ThenBody) {
@@ -62,9 +62,9 @@ func (*ForInExpressionNode) IsStatic() bool {
 }
 
 // Create a new `for in` expression node eg. `for i in 5..15 then println(i)`
-func NewForInExpressionNode(span *position.Span, pattern PatternNode, inExpr ExpressionNode, then []StatementNode) *ForInExpressionNode {
+func NewForInExpressionNode(loc *position.Location, pattern PatternNode, inExpr ExpressionNode, then []StatementNode) *ForInExpressionNode {
 	return &ForInExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Pattern:       pattern,
 		InExpression:  inExpr,
 		ThenBody:      then,
@@ -82,7 +82,7 @@ func (*ForInExpressionNode) DirectClass() *value.Class {
 func (n *ForInExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ForInExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ForInExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  pattern: ")
 	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)

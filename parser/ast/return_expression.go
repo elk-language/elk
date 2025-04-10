@@ -28,7 +28,7 @@ func (n *ReturnExpressionNode) Equal(other value.Value) bool {
 	} else if !n.Value.Equal(value.Ref(o.Value)) {
 		return false
 	}
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *ReturnExpressionNode) String() string {
@@ -60,9 +60,9 @@ func (*ReturnExpressionNode) Type(*types.GlobalEnvironment) types.Type {
 }
 
 // Create a new `return` expression node eg. `return`, `return true`
-func NewReturnExpressionNode(span *position.Span, val ExpressionNode) *ReturnExpressionNode {
+func NewReturnExpressionNode(loc *position.Location, val ExpressionNode) *ReturnExpressionNode {
 	return &ReturnExpressionNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Value:    val,
 	}
 }
@@ -78,7 +78,7 @@ func (*ReturnExpressionNode) DirectClass() *value.Class {
 func (n *ReturnExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ReturnExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ReturnExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

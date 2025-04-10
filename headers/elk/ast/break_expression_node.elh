@@ -8,11 +8,11 @@ module Std::Elk::AST
     init(
       label: String = "",
       value: ExpressionNode? = nil,
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def label: String; end
     def value: ExpressionNode?; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

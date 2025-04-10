@@ -12,11 +12,11 @@ module Std::Elk::AST
     init(
       left: ExpressionNode?,
       right: ComplexConstantNode,
-      span: String::Span = loop; end
+      location: FS::Location = loop; end
     ); end
 
     def left: ExpressionNode?; end
     def right: ComplexConstantNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

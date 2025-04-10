@@ -11,14 +11,14 @@ module Std::Elk::AST
       upper_bound: TypeNode? = nil,
       default_node: TypeNode? = nil,
       variance: UInt8 = 0u8,
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def name: String; end
     def lower_bound: TypeNode?; end
     def upper_bound: TypeNode?; end
     def default_node: TypeNode?; end
-    def span: String::Span; end
+    def location: FS::Location; end
 
     ##[
       Returns an integer that determines whether

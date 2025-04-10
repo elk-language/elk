@@ -9,12 +9,12 @@ module Std::Elk::AST
       constant: ExpressionNode,
       body: ArrayTuple[StatementNode] = loop; end,
       doc_comment: String = "",
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def doc_comment: String; end
     def constant: ExpressionNode?; end
     def body: ArrayTuple[StatementNode]; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

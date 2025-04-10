@@ -5,9 +5,9 @@ module Std::Elk::AST
   sealed primitive class AliasDeclarationEntry
     include Node
 
-    init(new_name: String, old_name: String, span: String::Span = loop; end); end
+    init(new_name: String, old_name: String, location: FS::Location = loop; end); end
     def new_name: String; end
     def old_name: String; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

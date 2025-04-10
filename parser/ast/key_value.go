@@ -23,7 +23,7 @@ func (n *KeyValueExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Key.Equal(value.Ref(o.Key)) &&
 		n.Value.Equal(value.Ref(o.Value))
 }
@@ -43,9 +43,9 @@ func (k *KeyValueExpressionNode) IsStatic() bool {
 }
 
 // Create a key value expression node eg. `foo => bar`
-func NewKeyValueExpressionNode(span *position.Span, key, val ExpressionNode) *KeyValueExpressionNode {
+func NewKeyValueExpressionNode(loc *position.Location, key, val ExpressionNode) *KeyValueExpressionNode {
 	return &KeyValueExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Key:           key,
 		Value:         val,
 		static:        areExpressionsStatic(key, val),
@@ -63,7 +63,7 @@ func (*KeyValueExpressionNode) DirectClass() *value.Class {
 func (n *KeyValueExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::KeyValueExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::KeyValueExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  key: ")
 	indent.IndentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
@@ -95,7 +95,7 @@ func (n *SymbolKeyValueExpressionNode) Equal(other value.Value) bool {
 
 	return n.Key != o.Key &&
 		n.Value.Equal(value.Ref(o.Value)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *SymbolKeyValueExpressionNode) String() string {
@@ -113,9 +113,9 @@ func (s *SymbolKeyValueExpressionNode) IsStatic() bool {
 }
 
 // Create a symbol key value node eg. `foo: bar`
-func NewSymbolKeyValueExpressionNode(span *position.Span, key string, val ExpressionNode) *SymbolKeyValueExpressionNode {
+func NewSymbolKeyValueExpressionNode(loc *position.Location, key string, val ExpressionNode) *SymbolKeyValueExpressionNode {
 	return &SymbolKeyValueExpressionNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Key:      key,
 		Value:    val,
 	}
@@ -132,7 +132,7 @@ func (*SymbolKeyValueExpressionNode) DirectClass() *value.Class {
 func (n *SymbolKeyValueExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValueExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValueExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  key: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.Key).Inspect(), 1)
@@ -164,7 +164,7 @@ func (n *SymbolKeyValuePatternNode) Equal(other value.Value) bool {
 
 	return n.Key != o.Key &&
 		n.Value.Equal(value.Ref(o.Value)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *SymbolKeyValuePatternNode) String() string {
@@ -192,7 +192,7 @@ func (*SymbolKeyValuePatternNode) DirectClass() *value.Class {
 func (n *SymbolKeyValuePatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValuePatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValuePatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  key: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.Key).Inspect(), 1)
@@ -210,9 +210,9 @@ func (n *SymbolKeyValuePatternNode) Error() string {
 }
 
 // Create a symbol key value node eg. `foo: bar`
-func NewSymbolKeyValuePatternNode(span *position.Span, key string, val PatternNode) *SymbolKeyValuePatternNode {
+func NewSymbolKeyValuePatternNode(loc *position.Location, key string, val PatternNode) *SymbolKeyValuePatternNode {
 	return &SymbolKeyValuePatternNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Key:      key,
 		Value:    val,
 	}
@@ -231,7 +231,7 @@ func (n *KeyValuePatternNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Key.Equal(value.Ref(o.Key)) &&
 		n.Value.Equal(value.Ref(o.Value))
 }
@@ -261,7 +261,7 @@ func (*KeyValuePatternNode) DirectClass() *value.Class {
 func (n *KeyValuePatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValuePatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValuePatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  key: ")
 	indent.IndentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
@@ -279,9 +279,9 @@ func (n *KeyValuePatternNode) Error() string {
 }
 
 // Create a key value pattern node eg. `foo => bar`
-func NewKeyValuePatternNode(span *position.Span, key PatternExpressionNode, val PatternNode) *KeyValuePatternNode {
+func NewKeyValuePatternNode(loc *position.Location, key PatternExpressionNode, val PatternNode) *KeyValuePatternNode {
 	return &KeyValuePatternNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Key:      key,
 		Value:    val,
 	}

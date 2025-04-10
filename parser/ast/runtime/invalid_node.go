@@ -16,14 +16,14 @@ func initInvalidNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argToken := args[1].MustReference().(*token.Token)
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[2].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.ZeroLocation
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argLoc = (*position.Location)(args[2].Pointer())
 			}
 			self := ast.NewInvalidNode(
-				argSpan,
+				argLoc,
 				argToken,
 			)
 			return value.Ref(self), value.Undefined

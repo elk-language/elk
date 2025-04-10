@@ -34,7 +34,7 @@ func (n *SwitchExpressionNode) Equal(other value.Value) bool {
 
 	if len(n.Cases) != len(o.Cases) ||
 		len(n.ElseBody) != len(o.ElseBody) ||
-		!n.span.Equal(o.span) ||
+		!n.loc.Equal(o.loc) ||
 		!n.Value.Equal(value.Ref(o.Value)) {
 		return false
 	}
@@ -84,9 +84,9 @@ func (*SwitchExpressionNode) IsStatic() bool {
 }
 
 // Create a new `switch` expression node
-func NewSwitchExpressionNode(span *position.Span, val ExpressionNode, cases []*CaseNode, els []StatementNode) *SwitchExpressionNode {
+func NewSwitchExpressionNode(loc *position.Location, val ExpressionNode, cases []*CaseNode, els []StatementNode) *SwitchExpressionNode {
 	return &SwitchExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 		Cases:         cases,
 		ElseBody:      els,
@@ -104,7 +104,7 @@ func (*SwitchExpressionNode) DirectClass() *value.Class {
 func (n *SwitchExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SwitchExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SwitchExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
@@ -163,7 +163,7 @@ func (n *CaseNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.Span().Equal(o.Span())
+	return n.loc.Equal(o.loc)
 }
 
 func (n *CaseNode) String() string {
@@ -196,7 +196,7 @@ func (*CaseNode) DirectClass() *value.Class {
 func (n *CaseNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::CaseNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::CaseNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  pattern: ")
 	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
@@ -220,9 +220,9 @@ func (n *CaseNode) Error() string {
 }
 
 // Create a new `case` node
-func NewCaseNode(span *position.Span, pattern PatternNode, body []StatementNode) *CaseNode {
+func NewCaseNode(loc *position.Location, pattern PatternNode, body []StatementNode) *CaseNode {
 	return &CaseNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Pattern:  pattern,
 		Body:     body,
 	}

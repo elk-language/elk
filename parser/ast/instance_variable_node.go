@@ -20,7 +20,7 @@ func (n *InstanceVariableNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value != o.Value ||
-		!n.span.Equal(o.span)
+		!n.loc.Equal(o.loc)
 }
 
 func (n *InstanceVariableNode) String() string {
@@ -32,9 +32,9 @@ func (*InstanceVariableNode) IsStatic() bool {
 }
 
 // Create an instance variable node eg. `@foo`.
-func NewInstanceVariableNode(span *position.Span, val string) *InstanceVariableNode {
+func NewInstanceVariableNode(loc *position.Location, val string) *InstanceVariableNode {
 	return &InstanceVariableNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -48,7 +48,11 @@ func (*InstanceVariableNode) DirectClass() *value.Class {
 }
 
 func (i *InstanceVariableNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::InstanceVariableNode{span: %s, value: %s}", (*value.Span)(i.span).Inspect(), value.String(i.Value).Inspect())
+	return fmt.Sprintf(
+		"Std::Elk::AST::InstanceVariableNode{location: %s, value: %s}",
+		(*value.Location)(i.loc).Inspect(),
+		value.String(i.Value).Inspect(),
+	)
 }
 
 func (p *InstanceVariableNode) Error() string {

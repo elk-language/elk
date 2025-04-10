@@ -25,7 +25,7 @@ func (n *PostfixExpressionNode) Equal(other value.Value) bool {
 
 	return n.Op.Equal(o.Op) &&
 		n.Expression.Equal(value.Ref(o.Expression)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *PostfixExpressionNode) String() string {
@@ -50,9 +50,9 @@ func (i *PostfixExpressionNode) IsStatic() bool {
 }
 
 // Create a new postfix expression node.
-func NewPostfixExpressionNode(span *position.Span, op *token.Token, expr ExpressionNode) *PostfixExpressionNode {
+func NewPostfixExpressionNode(loc *position.Location, op *token.Token, expr ExpressionNode) *PostfixExpressionNode {
 	return &PostfixExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Op:            op,
 		Expression:    expr,
 	}
@@ -69,7 +69,7 @@ func (*PostfixExpressionNode) DirectClass() *value.Class {
 func (n *PostfixExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::PostfixExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::PostfixExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

@@ -5,9 +5,9 @@ module Std::Elk::AST
   sealed primitive class AsExpressionNode
     include ExpressionNode
 
-    init(value: ExpressionNode, runtime_type: ComplexConstantNode, span: String::Span = loop; end); end
+    init(value: ExpressionNode, runtime_type: ComplexConstantNode, location: FS::Location = loop; end); end
     def value: ExpressionNode; end
     def runtime_type: ComplexConstantNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

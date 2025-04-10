@@ -47,7 +47,7 @@ type transpiler struct {
 
 // Create a new location struct with the given position.
 func (t *transpiler) newLocation(span *position.Span) *position.Location {
-	return position.NewLocationWithSpan("regex", span)
+	return position.NewLocation("regex", span)
 }
 
 func asciiLetterIndex(char rune) int {

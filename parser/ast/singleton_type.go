@@ -22,7 +22,7 @@ func (n *SingletonTypeNode) Equal(other value.Value) bool {
 	}
 
 	return n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *SingletonTypeNode) String() string {
@@ -47,9 +47,9 @@ func (*SingletonTypeNode) IsStatic() bool {
 }
 
 // Create a new singleton type node eg. `&String`
-func NewSingletonTypeNode(span *position.Span, typ TypeNode) *SingletonTypeNode {
+func NewSingletonTypeNode(loc *position.Location, typ TypeNode) *SingletonTypeNode {
 	return &SingletonTypeNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		TypeNode:      typ,
 	}
 }
@@ -65,7 +65,7 @@ func (*SingletonTypeNode) DirectClass() *value.Class {
 func (n *SingletonTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SingletonTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SingletonTypeNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  type_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)

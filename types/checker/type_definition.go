@@ -113,12 +113,12 @@ func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Typ
 func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
-	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
+	node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 
 	switch constant.(type) {
 	case *types.ConstantPlaceholder, nil:
 	default:
-		c.addRedeclaredConstantError(fullConstantName, node.Constant.Span())
+		c.addRedeclaredConstantError(fullConstantName, node.Constant.Location())
 	}
 
 	namedType := types.NewNamedType(fullConstantName, nil)
@@ -141,11 +141,11 @@ func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionNode) {
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
-	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
+	node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 	switch constant.(type) {
 	case *types.ConstantPlaceholder, nil:
 	default:
-		c.addRedeclaredConstantError(fullConstantName, node.Constant.Span())
+		c.addRedeclaredConstantError(fullConstantName, node.Constant.Location())
 	}
 
 	namedType := types.NewGenericNamedType(
@@ -169,7 +169,7 @@ func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionN
 	)
 }
 
-func (c *Checker) checkTypeIfNecessary(name string, span *position.Span) (ok bool) {
+func (c *Checker) checkTypeIfNecessary(name string, location *position.Location) (ok bool) {
 	if c.phase != initPhase {
 		return true
 	}
@@ -178,7 +178,7 @@ func (c *Checker) checkTypeIfNecessary(name string, span *position.Span) (ok boo
 		return true
 	}
 
-	return c.checkTypeDefinition(typedefCheck, span)
+	return c.checkTypeDefinition(typedefCheck, location)
 }
 
 func (c *Checker) checkNamedType(node *ast.TypeDefinitionNode) bool {
@@ -211,7 +211,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 					"required type parameter `%s` cannot appear after optional type parameters",
 					lexer.Colorize(varNode.Name),
 				),
-				varNode.Span(),
+				varNode.Location(),
 			)
 		}
 
@@ -244,11 +244,11 @@ func (c *Checker) checkTypeDefinitions() {
 	c.typeDefinitionChecks = newTypeDefinitionChecks()
 }
 
-func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, span *position.Span) bool {
+func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, location *position.Location) bool {
 	if typedefCheck.state == CHECKING_TYPEDEF {
 		c.addFailure(
 			fmt.Sprintf("type `%s` circularly references itself", types.InspectWithColor(typedefCheck.typ)),
-			span,
+			location,
 		)
 		return false
 	}
@@ -321,7 +321,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 		if !ok {
 			c.addFailure(
 				"only mixins can be included",
-				node.Span(),
+				node.Location(),
 			)
 			return
 		}
@@ -334,7 +334,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 					types.InspectWithColor(con),
 					types.InspectWithColor(includedGeneric),
 				),
-				node.Span(),
+				node.Location(),
 			)
 			return
 		}
@@ -342,7 +342,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	default:
 		c.addFailure(
 			"only mixins can be included",
-			node.Span(),
+			node.Location(),
 		)
 		return
 	}
@@ -359,7 +359,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 				types.InspectWithColor(constantType),
 				types.InspectWithColor(target),
 			),
-			node.Span(),
+			node.Location(),
 		)
 	}
 
@@ -377,13 +377,13 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 				types.InspectWithColor(constantType),
 				types.InspectWithColor(t),
 			),
-			node.Span(),
+			node.Location(),
 		)
 		return
 	}
 
 	if c.shouldCompile() {
-		c.compiler.CompileInclude(target, mixin, position.DefaultSpan)
+		c.compiler.CompileInclude(target, mixin, position.DefaultLocation)
 	}
 }
 
@@ -407,7 +407,7 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 		if _, ok := con.Namespace.(*types.Interface); !ok {
 			c.addFailure(
 				"only interfaces can be implemented",
-				node.Span(),
+				node.Location(),
 			)
 			return
 		}
@@ -415,7 +415,7 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 	default:
 		c.addFailure(
 			"only interfaces can be implemented",
-			node.Span(),
+			node.Location(),
 		)
 		return
 	}
@@ -436,7 +436,7 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 				types.InspectWithColor(constantType),
 				types.InspectWithColor(t),
 			),
-			node.Span(),
+			node.Location(),
 		)
 	}
 }
@@ -453,7 +453,7 @@ func (c *Checker) checkInterfaceTypeParameters(node *ast.InterfaceDeclarationNod
 		node.TypeParameters,
 		iface,
 		iface.TypeParameters(),
-		node.Span(),
+		node.Location(),
 	)
 	if typeParams != nil {
 		iface.SetTypeParameters(typeParams)
@@ -475,7 +475,7 @@ func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
 		node.TypeParameters,
 		mixin,
 		mixin.TypeParameters(),
-		node.Span(),
+		node.Location(),
 	)
 	if typeParams != nil {
 		mixin.SetTypeParameters(typeParams)
@@ -490,7 +490,7 @@ func (c *Checker) checkNamespaceTypeParameters(
 	typeParamNodes []ast.TypeParameterNode,
 	namespace types.Namespace,
 	oldTypeParams []*types.TypeParameter,
-	span *position.Span,
+	location *position.Location,
 ) []*types.TypeParameter {
 	prevMode := c.mode
 	c.mode = inheritanceMode
@@ -513,7 +513,7 @@ func (c *Checker) checkNamespaceTypeParameters(
 							"required type parameter `%s` cannot appear after optional type parameters",
 							lexer.Colorize(varNode.Name),
 						),
-						varNode.Span(),
+						varNode.Location(),
 					)
 				}
 
@@ -538,7 +538,7 @@ func (c *Checker) checkNamespaceTypeParameters(
 				len(typeParamNodes),
 				len(oldTypeParams),
 			),
-			span,
+			location,
 		)
 		return nil
 	}
@@ -566,7 +566,7 @@ func (c *Checker) checkNamespaceTypeParameters(
 					newTypeParam.InspectSignature(),
 					oldTypeParam.InspectSignature(),
 				),
-				span,
+				location,
 			)
 		}
 	}
@@ -585,7 +585,7 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
 		node.TypeParameters,
 		class,
 		class.TypeParameters(),
-		node.Span(),
+		node.Location(),
 	)
 	if typeParams != nil {
 		class.SetTypeParameters(typeParams)
@@ -617,7 +617,7 @@ superclassSwitch:
 			if _, ok := s.Namespace.(*types.Class); !ok {
 				c.addFailure(
 					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
-					node.Superclass.Span(),
+					node.Superclass.Location(),
 				)
 				break superclassSwitch
 			}
@@ -625,7 +625,7 @@ superclassSwitch:
 			if !types.IsUntyped(superclassType) && superclassType != nil {
 				c.addFailure(
 					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
-					node.Superclass.Span(),
+					node.Superclass.Location(),
 				)
 			}
 			break superclassSwitch
@@ -634,13 +634,13 @@ superclassSwitch:
 		if superclass.IsSealed() && !c.IsHeader() {
 			c.addFailure(
 				fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
-				node.Superclass.Span(),
+				node.Superclass.Location(),
 			)
 		}
 		if class.IsPrimitive() && !superclass.IsPrimitive() {
 			c.addFailure(
 				fmt.Sprintf("class `%s` must not be primitive to inherit from non-primitive class `%s`", types.InspectWithColor(class), types.InspectWithColor(superclassType)),
-				node.Superclass.Span(),
+				node.Superclass.Location(),
 			)
 		}
 
@@ -650,11 +650,11 @@ superclassSwitch:
 	if !class.Checked && previousSuperclass == nil && superclass != nil {
 		class.SetParent(superclass)
 	} else if !c.isTheSameType(previousSuperclass, superclass, nil) {
-		var span *position.Span
+		var location *position.Location
 		if node.Superclass == nil {
-			span = node.Span()
+			location = node.Location()
 		} else {
-			span = node.Superclass.Span()
+			location = node.Superclass.Location()
 		}
 
 		if previousSuperclass == nil {
@@ -668,12 +668,12 @@ superclassSwitch:
 				types.InspectWithColor(superclassType),
 				types.InspectWithColor(previousSuperclass),
 			),
-			span,
+			location,
 		)
 	}
 	class.Checked = true
 	if c.shouldCompile() {
-		c.compiler.CompileClassInheritance(class, position.DefaultSpan)
+		c.compiler.CompileClassInheritance(class, position.DefaultLocation)
 	}
 
 	c.popConstScope()
@@ -688,7 +688,7 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 				lexer.Colorize("extend where"),
 				types.InspectWithColor(currentNamespace),
 			),
-			node.Span(),
+			node.Location(),
 		)
 		node.SetType(types.Untyped{})
 		return
@@ -723,7 +723,7 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 					"cannot add where constraints to nonexistent type parameter `%s`",
 					lexer.Colorize(whereTypeParamNode.Name),
 				),
-				whereTypeParamNode.Span(),
+				whereTypeParamNode.Location(),
 			)
 			continue
 		}
@@ -741,7 +741,7 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 						types.InspectWithColor(whereTypeParam.LowerBound),
 						types.InspectWithColor(originalTypeParam.LowerBound),
 					),
-					whereTypeParamNode.Span(),
+					whereTypeParamNode.Location(),
 				)
 				continue
 			}
@@ -760,7 +760,7 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 						types.InspectWithColor(whereTypeParam.UpperBound),
 						types.InspectWithColor(originalTypeParam.UpperBound),
 					),
-					whereTypeParamNode.Span(),
+					whereTypeParamNode.Location(),
 				)
 				continue
 			}
@@ -773,7 +773,7 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 					"cannot modify the variance of type parameter `%s` in a where clause",
 					lexer.Colorize(whereTypeParamNode.Name),
 				),
-				whereTypeParamNode.Span(),
+				whereTypeParamNode.Location(),
 			)
 			continue
 		}
@@ -828,8 +828,8 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, nam
 		node.Default = c.checkTypeNode(node.Default)
 		def = c.TypeOf(node.Default)
 
-		if lowerType != nil && !c.isSubtype(lowerType, def, node.Span()) ||
-			upperType != nil && !c.isSubtype(def, upperType, node.Span()) {
+		if lowerType != nil && !c.isSubtype(lowerType, def, node.Location()) ||
+			upperType != nil && !c.isSubtype(def, upperType, node.Location()) {
 			c.addFailure(
 				fmt.Sprintf(
 					"type parameter `%s` has an invalid default `%s`, should be a subtype of `%s` and supertype of `%s`",
@@ -838,7 +838,7 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, nam
 					types.InspectWithColor(upperType),
 					types.InspectWithColor(lowerType),
 				),
-				node.Default.Span(),
+				node.Default.Location(),
 			)
 		}
 	}
@@ -896,8 +896,8 @@ func (c *Checker) finishCheckingTypeParameterNode(typ *types.TypeParameter, node
 		node.Default = c.checkTypeNode(node.Default)
 		def = c.TypeOf(node.Default)
 
-		if lowerType != nil && !c.isSubtype(lowerType, def, node.Span()) ||
-			upperType != nil && !c.isSubtype(def, upperType, node.Span()) {
+		if lowerType != nil && !c.isSubtype(lowerType, def, node.Location()) ||
+			upperType != nil && !c.isSubtype(def, upperType, node.Location()) {
 			c.addFailure(
 				fmt.Sprintf(
 					"type parameter `%s` has an invalid default `%s`, should be a subtype of `%s` and supertype of `%s`",
@@ -906,7 +906,7 @@ func (c *Checker) finishCheckingTypeParameterNode(typ *types.TypeParameter, node
 					types.InspectWithColor(upperType),
 					types.InspectWithColor(lowerType),
 				),
-				node.Default.Span(),
+				node.Default.Location(),
 			)
 		}
 	}

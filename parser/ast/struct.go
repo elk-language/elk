@@ -36,7 +36,7 @@ func (n *StructDeclarationNode) Equal(other value.Value) bool {
 	}
 
 	if !n.Constant.Equal(value.Ref(o.Constant)) ||
-		!n.span.Equal(o.span) ||
+		!n.loc.Equal(o.loc) ||
 		n.comment != o.comment ||
 		len(n.TypeParameters) != len(o.TypeParameters) ||
 		len(n.Body) != len(o.Body) {
@@ -105,7 +105,7 @@ func (*StructDeclarationNode) IsStatic() bool {
 
 // Create a new struct declaration node eg. `struct Foo; end`
 func NewStructDeclarationNode(
-	span *position.Span,
+	loc *position.Location,
 	docComment string,
 	constant ExpressionNode,
 	typeParams []TypeParameterNode,
@@ -113,7 +113,7 @@ func NewStructDeclarationNode(
 ) *StructDeclarationNode {
 
 	return &StructDeclarationNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -134,7 +134,7 @@ func (*StructDeclarationNode) DirectClass() *value.Class {
 func (n *StructDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::StructDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::StructDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)

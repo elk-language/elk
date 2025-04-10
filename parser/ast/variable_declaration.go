@@ -26,7 +26,7 @@ func (n *VariableDeclarationNode) Equal(other value.Value) bool {
 
 	if n.Name != o.Name ||
 		n.comment != o.comment ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -81,7 +81,7 @@ func (*VariableDeclarationNode) DirectClass() *value.Class {
 func (n *VariableDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::VariableDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::VariableDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
 	buff.WriteString(n.Name)
@@ -102,9 +102,9 @@ func (v *VariableDeclarationNode) Error() string {
 }
 
 // Create a new variable declaration node eg. `var foo: String`
-func NewVariableDeclarationNode(span *position.Span, docComment string, name string, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
+func NewVariableDeclarationNode(loc *position.Location, docComment string, name string, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
 	return &VariableDeclarationNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},

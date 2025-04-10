@@ -22,7 +22,7 @@ func (n *YieldExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.span.Equal(o.span) ||
+	if !n.loc.Equal(o.loc) ||
 		n.Forward != o.Forward {
 		return false
 	}
@@ -66,9 +66,9 @@ func (*YieldExpressionNode) IsStatic() bool {
 }
 
 // Create a new `yield` expression node eg. `yield`, `yield true`, `yield* foo()`
-func NewYieldExpressionNode(span *position.Span, forward bool, val ExpressionNode) *YieldExpressionNode {
+func NewYieldExpressionNode(loc *position.Location, forward bool, val ExpressionNode) *YieldExpressionNode {
 	return &YieldExpressionNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Forward:  forward,
 		Value:    val,
 	}
@@ -85,7 +85,7 @@ func (*YieldExpressionNode) DirectClass() *value.Class {
 func (n *YieldExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::YieldExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::YieldExpressionNode{\n  loc: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

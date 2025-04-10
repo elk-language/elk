@@ -43,14 +43,14 @@ func initMixinDeclarationNode() {
 				argDocComment = string(args[5].MustReference().(value.String))
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[6].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.ZeroLocation
 			} else {
-				argSpan = (*position.Span)(args[6].Pointer())
+				argLoc = (*position.Location)(args[6].Pointer())
 			}
 			self := ast.NewMixinDeclarationNode(
-				argSpan,
+				argLoc,
 				argDocComment,
 				argAbstract,
 				argConstant,

@@ -30,14 +30,14 @@ func initSignatureParameterNode() {
 				argKind = ast.ParameterKind(args[4].AsUInt8())
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[5].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.ZeroLocation
 			} else {
-				argSpan = (*position.Span)(args[5].Pointer())
+				argLoc = (*position.Location)(args[5].Pointer())
 			}
 			self := ast.NewSignatureParameterNode(
-				argSpan,
+				argLoc,
 				argName,
 				argTypeNode,
 				argOptional,

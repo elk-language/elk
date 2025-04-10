@@ -19,7 +19,7 @@ func (n *FloatLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Value == o.Value
 }
 
@@ -40,7 +40,11 @@ func (*FloatLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *FloatLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::FloatLiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::FloatLiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *FloatLiteralNode) Error() string {
@@ -48,9 +52,9 @@ func (n *FloatLiteralNode) Error() string {
 }
 
 // Create a new float literal node eg. `5.2`, `.5`, `45e20`
-func NewFloatLiteralNode(span *position.Span, val string) *FloatLiteralNode {
+func NewFloatLiteralNode(loc *position.Location, val string) *FloatLiteralNode {
 	return &FloatLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -67,7 +71,7 @@ func (n *BigFloatLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Value == o.Value
 }
 
@@ -88,7 +92,11 @@ func (*BigFloatLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *BigFloatLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::BigFloatLiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::BigFloatLiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *BigFloatLiteralNode) Error() string {
@@ -96,9 +104,9 @@ func (n *BigFloatLiteralNode) Error() string {
 }
 
 // Create a new BigFloat literal node eg. `5.2bf`, `.5bf`, `45e20bf`
-func NewBigFloatLiteralNode(span *position.Span, val string) *BigFloatLiteralNode {
+func NewBigFloatLiteralNode(loc *position.Location, val string) *BigFloatLiteralNode {
 	return &BigFloatLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -115,7 +123,7 @@ func (n *Float64LiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Value == o.Value
 }
 
@@ -136,7 +144,11 @@ func (*Float64LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *Float64LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::Float64LiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::Float64LiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *Float64LiteralNode) Error() string {
@@ -144,9 +156,9 @@ func (n *Float64LiteralNode) Error() string {
 }
 
 // Create a new Float64 literal node eg. `5.2f64`, `.5f64`, `45e20f64`
-func NewFloat64LiteralNode(span *position.Span, val string) *Float64LiteralNode {
+func NewFloat64LiteralNode(loc *position.Location, val string) *Float64LiteralNode {
 	return &Float64LiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -163,7 +175,7 @@ func (n *Float32LiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Value == o.Value
 }
 
@@ -184,7 +196,11 @@ func (*Float32LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *Float32LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::Float32LiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::Float32LiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *Float32LiteralNode) Error() string {
@@ -192,9 +208,9 @@ func (n *Float32LiteralNode) Error() string {
 }
 
 // Create a new Float32 literal node eg. `5.2f32`, `.5f32`, `45e20f32`
-func NewFloat32LiteralNode(span *position.Span, val string) *Float32LiteralNode {
+func NewFloat32LiteralNode(loc *position.Location, val string) *Float32LiteralNode {
 	return &Float32LiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }

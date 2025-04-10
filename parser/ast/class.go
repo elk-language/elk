@@ -68,7 +68,7 @@ func (n *ClassDeclarationNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.Span().Equal(o.Span())
+	return n.loc.Equal(o.loc)
 }
 
 func (n *ClassDeclarationNode) String() string {
@@ -145,7 +145,7 @@ func (*ClassDeclarationNode) IsStatic() bool {
 
 // Create a new class declaration node eg. `class Foo; end`
 func NewClassDeclarationNode(
-	span *position.Span,
+	loc *position.Location,
 	docComment string,
 	abstract bool,
 	sealed bool,
@@ -158,7 +158,7 @@ func NewClassDeclarationNode(
 ) *ClassDeclarationNode {
 
 	return &ClassDeclarationNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -184,7 +184,7 @@ func (*ClassDeclarationNode) DirectClass() *value.Class {
 func (n *ClassDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ClassDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ClassDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	fmt.Fprintf(&buff, ",\n  abstract: %t", n.Abstract)
 	fmt.Fprintf(&buff, ",\n  sealed: %t", n.Sealed)

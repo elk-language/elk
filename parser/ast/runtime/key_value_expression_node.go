@@ -16,14 +16,14 @@ func initKeyValueExpressionNode() {
 			argKey := args[1].MustReference().(ast.ExpressionNode)
 			argValue := args[2].MustReference().(ast.ExpressionNode)
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[3].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.ZeroLocation
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argLoc = (*position.Location)(args[3].Pointer())
 			}
 			self := ast.NewKeyValueExpressionNode(
-				argSpan,
+				argLoc,
 				argKey,
 				argValue,
 			)

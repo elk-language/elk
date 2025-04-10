@@ -55,7 +55,7 @@ func (n *ClosureLiteralNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.Span().Equal(o.Span())
+	return n.loc.Equal(o.loc)
 }
 
 func (n *ClosureLiteralNode) String() string {
@@ -110,9 +110,9 @@ func (*ClosureLiteralNode) IsStatic() bool {
 }
 
 // Create a new closure expression node eg. `|i| -> println(i)`
-func NewClosureLiteralNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *ClosureLiteralNode {
+func NewClosureLiteralNode(loc *position.Location, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *ClosureLiteralNode {
 	return &ClosureLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Parameters:    params,
 		ReturnType:    retType,
 		ThrowType:     throwType,
@@ -131,7 +131,7 @@ func (*ClosureLiteralNode) DirectClass() *value.Class {
 func (n *ClosureLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  parameters: %[\n")
 	for i, element := range n.Parameters {

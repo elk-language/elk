@@ -23,14 +23,14 @@ func initAttrDeclarationNode() {
 			if !args[2].IsUndefined() {
 				docComment = (string)(args[2].MustReference().(value.String))
 			}
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[3].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.ZeroLocation
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argLoc = (*position.Location)(args[3].Pointer())
 			}
 			self := ast.NewAttrDeclarationNode(
-				argSpan,
+				argLoc,
 				docComment,
 				entries,
 			)

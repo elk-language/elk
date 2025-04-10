@@ -9,11 +9,11 @@ module Std::Elk::AST
     init(
       namespace: UsingEntryNode,
       subentries: ArrayTuple[UsingSubentryNode],
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def namespace: UsingEntryNode; end
     def subentries: ArrayTuple[UsingSubentryNode]; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

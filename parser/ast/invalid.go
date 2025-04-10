@@ -21,7 +21,7 @@ func (n *InvalidNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Token.Equal(o.Token)
 }
 
@@ -48,7 +48,11 @@ func (*InvalidNode) DirectClass() *value.Class {
 }
 
 func (n *InvalidNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::InvalidNode{span: %s, token: %s}", (*value.Span)(n.span).Inspect(), n.Token.Inspect())
+	return fmt.Sprintf(
+		"Std::Elk::AST::InvalidNode{span: %s, token: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Token.Inspect(),
+	)
 }
 
 func (p *InvalidNode) Error() string {
@@ -56,21 +60,21 @@ func (p *InvalidNode) Error() string {
 }
 
 // Create a new invalid node.
-func NewInvalidNode(span *position.Span, tok *token.Token) *InvalidNode {
+func NewInvalidNode(loc *position.Location, tok *token.Token) *InvalidNode {
 	return &InvalidNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Token:    tok,
 	}
 }
 
-func NewInvalidExpressionNode(span *position.Span, tok *token.Token) ExpressionNode {
-	return NewInvalidNode(span, tok)
+func NewInvalidExpressionNode(loc *position.Location, tok *token.Token) ExpressionNode {
+	return NewInvalidNode(loc, tok)
 }
 
-func NewInvalidPatternNode(span *position.Span, tok *token.Token) PatternNode {
-	return NewInvalidNode(span, tok)
+func NewInvalidPatternNode(loc *position.Location, tok *token.Token) PatternNode {
+	return NewInvalidNode(loc, tok)
 }
 
-func NewInvalidPatternExpressionNode(span *position.Span, tok *token.Token) PatternExpressionNode {
-	return NewInvalidNode(span, tok)
+func NewInvalidPatternExpressionNode(loc *position.Location, tok *token.Token) PatternExpressionNode {
+	return NewInvalidNode(loc, tok)
 }

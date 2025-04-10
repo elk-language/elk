@@ -16,6 +16,6 @@ module Std::Elk::AST
     def throw_type: TypeNode?; end
     def body: ArrayTuple[StatementNode]; end
     def location: FS::Location; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

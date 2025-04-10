@@ -49,7 +49,7 @@ func (l *Location) Error() string {
 }
 
 func (l *Location) SpanValue() *Span {
-	return (*Span)(&l.Span)
+	return (*Span)(l.Span)
 }
 
 func (l *Location) Equal(other *Location) bool {

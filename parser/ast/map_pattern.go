@@ -31,7 +31,7 @@ func (n *MapPatternNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *MapPatternNode) String() string {
@@ -56,16 +56,16 @@ func (m *MapPatternNode) IsStatic() bool {
 }
 
 // Create a Map pattern node eg. `{ foo: 5, bar: a, 5 => >= 10 }`
-func NewMapPatternNode(span *position.Span, elements []PatternNode) *MapPatternNode {
+func NewMapPatternNode(loc *position.Location, elements []PatternNode) *MapPatternNode {
 	return &MapPatternNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 	}
 }
 
 // Same as [NewMapPatternNode] but returns an interface
-func NewMapPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
-	return NewMapPatternNode(span, elements)
+func NewMapPatternNodeI(loc *position.Location, elements []PatternNode) PatternNode {
+	return NewMapPatternNode(loc, elements)
 }
 
 func (*MapPatternNode) Class() *value.Class {
@@ -79,7 +79,7 @@ func (*MapPatternNode) DirectClass() *value.Class {
 func (n *MapPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::MapPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::MapPatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, stmt := range n.Elements {

@@ -5,9 +5,9 @@ module Std::Elk::AST
   sealed primitive class SymbolKeyValuePatternNode
     include PatternNode
 
-    init(key: String, value: PatternNode, span: String::Span = loop; end); end
+    init(key: String, value: PatternNode, location: FS::Location = loop; end); end
     def key: String; end
     def value: PatternNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

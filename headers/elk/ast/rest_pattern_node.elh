@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class RestPatternNode
     include PatternNode
 
-    init(identifier: IdentifierNode, span: String::Span = loop; end); end
+    init(identifier: IdentifierNode, location: FS::Location = loop; end); end
     def identifier: IdentifierNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

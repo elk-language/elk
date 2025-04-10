@@ -145,13 +145,13 @@ func (c *Checker) getLocal(name string) *local {
 }
 
 // Resolve the local with the given name from the current local environment or any parent environment
-func (c *Checker) resolveLocal(name string, span *position.Span) (*local, bool) {
+func (c *Checker) resolveLocal(name string, location *position.Location) (*local, bool) {
 	env := c.currentLocalEnv()
 	local, inCurrentEnv := env.resolveLocal(name)
 	if local == nil {
 		c.addFailure(
 			fmt.Sprintf("undefined local `%s`", name),
-			span,
+			location,
 		)
 	}
 	return local, inCurrentEnv

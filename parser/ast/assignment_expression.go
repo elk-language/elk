@@ -23,9 +23,9 @@ func (*AssignmentExpressionNode) IsStatic() bool {
 }
 
 // Create a new assignment expression node eg. `foo = 3`
-func NewAssignmentExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode) *AssignmentExpressionNode {
+func NewAssignmentExpressionNode(loc *position.Location, op *token.Token, left, right ExpressionNode) *AssignmentExpressionNode {
 	return &AssignmentExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Op:            op,
 		Left:          left,
 		Right:         right,
@@ -43,7 +43,7 @@ func (*AssignmentExpressionNode) DirectClass() *value.Class {
 func (n *AssignmentExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::AssignmentExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::AssignmentExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
@@ -65,15 +65,9 @@ func (n *AssignmentExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.Span().Equal(o.Span()) {
-		return false
-	}
-
-	if !n.Op.Equal(o.Op) {
-		return false
-	}
-
-	return n.Left.Equal(value.Ref(o.Left)) &&
+	return n.loc.Equal(o.loc) &&
+		n.Op.Equal(o.Op) &&
+		n.Left.Equal(value.Ref(o.Left)) &&
 		n.Right.Equal(value.Ref(o.Right))
 }
 

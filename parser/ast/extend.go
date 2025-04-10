@@ -44,7 +44,7 @@ func (n *ExtendWhereBlockExpressionNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -85,9 +85,9 @@ func (*ExtendWhereBlockExpressionNode) IsStatic() bool {
 //	singleton
 //		def hello then println("awesome!")
 //	end
-func NewExtendWhereBlockExpressionNode(span *position.Span, body []StatementNode, where []TypeParameterNode) *ExtendWhereBlockExpressionNode {
+func NewExtendWhereBlockExpressionNode(loc *position.Location, body []StatementNode, where []TypeParameterNode) *ExtendWhereBlockExpressionNode {
 	return &ExtendWhereBlockExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Body:          body,
 		Where:         where,
 	}
@@ -104,7 +104,7 @@ func (*ExtendWhereBlockExpressionNode) DirectClass() *value.Class {
 func (n *ExtendWhereBlockExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ExtendWhereBlockExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ExtendWhereBlockExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  body: %[\n")
 	for i, element := range n.Body {

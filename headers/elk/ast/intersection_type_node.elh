@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class IntersectionTypeNode
     include TypeNode
 
-    init(elements: ArrayTuple[TypeNode], span: String::Span = loop; end); end
+    init(elements: ArrayTuple[TypeNode], location: FS::Location = loop; end); end
     def elements: ArrayTuple[TypeNode]; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

@@ -26,14 +26,14 @@ func initFormalParameterNode() {
 				argInit = args[4].MustReference().(ast.ExpressionNode)
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[5].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.ZeroLocation
 			} else {
-				argSpan = (*position.Span)(args[5].Pointer())
+				argLoc = (*position.Location)(args[5].Pointer())
 			}
 			self := ast.NewFormalParameterNode(
-				argSpan,
+				argLoc,
 				argName,
 				argType,
 				argInit,

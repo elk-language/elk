@@ -25,7 +25,7 @@ func (n *UnaryTypeNode) Equal(other value.Value) bool {
 
 	return n.Op.Equal(o.Op) &&
 		n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *UnaryTypeNode) String() string {
@@ -50,9 +50,9 @@ func (u *UnaryTypeNode) IsStatic() bool {
 }
 
 // Create a new unary expression node.
-func NewUnaryTypeNode(span *position.Span, op *token.Token, typeNode TypeNode) *UnaryTypeNode {
+func NewUnaryTypeNode(loc *position.Location, op *token.Token, typeNode TypeNode) *UnaryTypeNode {
 	return &UnaryTypeNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Op:            op,
 		TypeNode:      typeNode,
 	}
@@ -69,7 +69,7 @@ func (*UnaryTypeNode) DirectClass() *value.Class {
 func (n *UnaryTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::UnaryTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::UnaryTypeNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

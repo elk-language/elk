@@ -23,14 +23,14 @@ func initSingletonBlockExpressionNode() {
 				}
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[2].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.ZeroLocation
 			} else {
-				argSpan = (*position.Span)(args[2].Pointer())
+				argLoc = (*position.Location)(args[2].Pointer())
 			}
 			self := ast.NewSingletonBlockExpressionNode(
-				argSpan,
+				argLoc,
 				argBody,
 			)
 			return value.Ref(self), value.Undefined

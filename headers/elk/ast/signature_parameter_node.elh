@@ -10,12 +10,12 @@ module Std::Elk::AST
       type_node: TypeNode? = nil,
       is_optional: bool = false,
       kind: UInt8 = 0u8,
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def name: String; end
     def type_node: TypeNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
 
     ##[
       Returns an integer that determines whether

@@ -22,6 +22,7 @@ type Position struct {
 }
 
 var Default = New(0, 1, 1)
+var Zero = New(0, 0, 0)
 
 // Create a new source position struct.
 func New(byteOffset, line, column int) *Position {

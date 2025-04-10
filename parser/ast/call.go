@@ -23,7 +23,7 @@ func (n *NewExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.span.Equal(o.span) {
+	if !n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -98,9 +98,9 @@ func (*NewExpressionNode) IsStatic() bool {
 }
 
 // Create a new expression node eg. `new(123)`
-func NewNewExpressionNode(span *position.Span, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *NewExpressionNode {
+func NewNewExpressionNode(loc *position.Location, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *NewExpressionNode {
 	return &NewExpressionNode{
-		TypedNodeBase:       TypedNodeBase{span: span},
+		TypedNodeBase:       TypedNodeBase{loc: loc},
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,
 	}
@@ -117,7 +117,7 @@ func (*NewExpressionNode) DirectClass() *value.Class {
 func (n *NewExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::NewExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::NewExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
@@ -190,7 +190,7 @@ func (n *GenericConstructorCallNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // String returns a string representation of the GenericConstructorCallNode.
@@ -266,7 +266,7 @@ func (*GenericConstructorCallNode) DirectClass() *value.Class {
 func (n *GenericConstructorCallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::GenericConstructorCallNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::GenericConstructorCallNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  class_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.ClassNode.Inspect(), 1)
@@ -308,9 +308,9 @@ func (n *GenericConstructorCallNode) Error() string {
 }
 
 // Create a constructor call node eg. `ArrayList::[Int](1, 2, 3)`
-func NewGenericConstructorCallNode(span *position.Span, class ComplexConstantNode, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericConstructorCallNode {
+func NewGenericConstructorCallNode(loc *position.Location, class ComplexConstantNode, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericConstructorCallNode {
 	return &GenericConstructorCallNode{
-		TypedNodeBase:       TypedNodeBase{span: span},
+		TypedNodeBase:       TypedNodeBase{loc: loc},
 		ClassNode:           class,
 		TypeArguments:       typeArgs,
 		PositionalArguments: posArgs,
@@ -354,7 +354,7 @@ func (n *ConstructorCallNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -421,7 +421,7 @@ func (*ConstructorCallNode) DirectClass() *value.Class {
 func (n *ConstructorCallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ConstructorCallNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ConstructorCallNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  class_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.ClassNode.Inspect(), 1)
@@ -454,9 +454,9 @@ func (n *ConstructorCallNode) Error() string {
 }
 
 // Create a constructor call node eg. `String(123)`
-func NewConstructorCallNode(span *position.Span, class ComplexConstantNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ConstructorCallNode {
+func NewConstructorCallNode(loc *position.Location, class ComplexConstantNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ConstructorCallNode {
 	return &ConstructorCallNode{
-		TypedNodeBase:       TypedNodeBase{span: span},
+		TypedNodeBase:       TypedNodeBase{loc: loc},
 		ClassNode:           class,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,
@@ -484,7 +484,7 @@ func (*AttributeAccessNode) DirectClass() *value.Class {
 func (n *AttributeAccessNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::AttributeAccessNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::AttributeAccessNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  receiver: ")
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -531,9 +531,9 @@ func (n *AttributeAccessNode) Error() string {
 }
 
 // Create an attribute access node eg. `foo.bar`
-func NewAttributeAccessNode(span *position.Span, recv ExpressionNode, attrName string) *AttributeAccessNode {
+func NewAttributeAccessNode(loc *position.Location, recv ExpressionNode, attrName string) *AttributeAccessNode {
 	return &AttributeAccessNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Receiver:      recv,
 		AttributeName: attrName,
 	}
@@ -553,7 +553,7 @@ func (n *SubscriptExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.Key.Equal(value.Ref(o.Key))
 }
@@ -592,7 +592,7 @@ func (*SubscriptExpressionNode) DirectClass() *value.Class {
 func (n *SubscriptExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SubscriptExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SubscriptExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  receiver: ")
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -610,9 +610,9 @@ func (n *SubscriptExpressionNode) Error() string {
 }
 
 // Create a subscript expression node eg. `arr[5]`
-func NewSubscriptExpressionNode(span *position.Span, recv, key ExpressionNode) *SubscriptExpressionNode {
+func NewSubscriptExpressionNode(loc *position.Location, recv, key ExpressionNode) *SubscriptExpressionNode {
 	return &SubscriptExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Receiver:      recv,
 		Key:           key,
 		static:        recv.IsStatic() && key.IsStatic(),
@@ -633,7 +633,7 @@ func (n *NilSafeSubscriptExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.Key.Equal(value.Ref(o.Key))
 }
@@ -672,7 +672,7 @@ func (*NilSafeSubscriptExpressionNode) DirectClass() *value.Class {
 func (n *NilSafeSubscriptExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::NilSafeSubscriptExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::NilSafeSubscriptExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  receiver: ")
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -690,9 +690,9 @@ func (n *NilSafeSubscriptExpressionNode) Error() string {
 }
 
 // Create a nil-safe subscript expression node eg. `arr?[5]`
-func NewNilSafeSubscriptExpressionNode(span *position.Span, recv, key ExpressionNode) *NilSafeSubscriptExpressionNode {
+func NewNilSafeSubscriptExpressionNode(loc *position.Location, recv, key ExpressionNode) *NilSafeSubscriptExpressionNode {
 	return &NilSafeSubscriptExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Receiver:      recv,
 		Key:           key,
 		static:        recv.IsStatic() && key.IsStatic(),
@@ -739,7 +739,7 @@ func (n *CallNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.Span().Equal(o.Span())
+	return n.loc.Equal(o.loc)
 }
 
 func (n *CallNode) String() string {
@@ -808,7 +808,7 @@ func (*CallNode) DirectClass() *value.Class {
 func (n *CallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::CallNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::CallNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  receiver: ")
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -843,9 +843,9 @@ func (n *CallNode) Error() string {
 }
 
 // Create a method call node eg. `'123'.to_int()`
-func NewCallNode(span *position.Span, recv ExpressionNode, nilSafe bool, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *CallNode {
+func NewCallNode(loc *position.Location, recv ExpressionNode, nilSafe bool, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *CallNode {
 	return &CallNode{
-		TypedNodeBase:       TypedNodeBase{span: span},
+		TypedNodeBase:       TypedNodeBase{loc: loc},
 		Receiver:            recv,
 		NilSafe:             nilSafe,
 		PositionalArguments: posArgs,
@@ -875,7 +875,7 @@ func (n *GenericMethodCallNode) Equal(other value.Value) bool {
 	if n.MethodName != o.MethodName ||
 		!n.Receiver.Equal(value.Ref(o.Receiver)) ||
 		!n.Op.Equal(o.Op) ||
-		n.span.Equal(o.span) {
+		n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -981,7 +981,7 @@ func (*GenericMethodCallNode) DirectClass() *value.Class {
 func (n *GenericMethodCallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::GenericMethodCallNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::GenericMethodCallNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  receiver: ")
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -1029,9 +1029,9 @@ func (n *GenericMethodCallNode) Error() string {
 }
 
 // Create a method call node eg. `foo.bar::[String](a)`
-func NewGenericMethodCallNode(span *position.Span, recv ExpressionNode, op *token.Token, methodName string, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericMethodCallNode {
+func NewGenericMethodCallNode(loc *position.Location, recv ExpressionNode, op *token.Token, methodName string, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericMethodCallNode {
 	return &GenericMethodCallNode{
-		TypedNodeBase:       TypedNodeBase{span: span},
+		TypedNodeBase:       TypedNodeBase{loc: loc},
 		Receiver:            recv,
 		Op:                  op,
 		MethodName:          methodName,
@@ -1075,7 +1075,7 @@ func (n *MethodCallNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.Op.Equal(o.Op) &&
 		n.MethodName != o.MethodName
@@ -1145,7 +1145,7 @@ func (*MethodCallNode) DirectClass() *value.Class {
 func (n *MethodCallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::MethodCallNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::MethodCallNode{\n  loc: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  receiver: ")
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -1184,9 +1184,9 @@ func (n *MethodCallNode) Error() string {
 }
 
 // Create a method call node eg. `'123'.to_int()`
-func NewMethodCallNode(span *position.Span, recv ExpressionNode, op *token.Token, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
+func NewMethodCallNode(loc *position.Location, recv ExpressionNode, op *token.Token, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
 	return &MethodCallNode{
-		TypedNodeBase:       TypedNodeBase{span: span},
+		TypedNodeBase:       TypedNodeBase{loc: loc},
 		Receiver:            recv,
 		Op:                  op,
 		MethodName:          methodName,
@@ -1213,7 +1213,7 @@ func (n *ReceiverlessMethodCallNode) Equal(other value.Value) bool {
 	if n.MethodName != o.MethodName ||
 		len(n.PositionalArguments) != len(o.PositionalArguments) ||
 		len(n.NamedArguments) != len(o.NamedArguments) ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -1294,7 +1294,7 @@ func (*ReceiverlessMethodCallNode) DirectClass() *value.Class {
 func (n *ReceiverlessMethodCallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ReceiverlessMethodCallNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ReceiverlessMethodCallNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  method_name: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
@@ -1327,9 +1327,9 @@ func (n *ReceiverlessMethodCallNode) Error() string {
 }
 
 // Create a function call node eg. `to_string(123)`
-func NewReceiverlessMethodCallNode(span *position.Span, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ReceiverlessMethodCallNode {
+func NewReceiverlessMethodCallNode(loc *position.Location, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ReceiverlessMethodCallNode {
 	return &ReceiverlessMethodCallNode{
-		TypedNodeBase:       TypedNodeBase{span: span},
+		TypedNodeBase:       TypedNodeBase{loc: loc},
 		MethodName:          methodName,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,
@@ -1353,7 +1353,7 @@ func (n *GenericReceiverlessMethodCallNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if n.MethodName != o.MethodName || !n.span.Equal(o.span) {
+	if n.MethodName != o.MethodName || !n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -1457,7 +1457,7 @@ func (*GenericReceiverlessMethodCallNode) DirectClass() *value.Class {
 func (n *GenericReceiverlessMethodCallNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::GenericReceiverlessMethodCallNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::GenericReceiverlessMethodCallNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  method_name: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
@@ -1499,9 +1499,9 @@ func (n *GenericReceiverlessMethodCallNode) Error() string {
 }
 
 // Create a generic function call node eg. `foo::[Int](123)`
-func NewGenericReceiverlessMethodCallNode(span *position.Span, methodName string, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericReceiverlessMethodCallNode {
+func NewGenericReceiverlessMethodCallNode(loc *position.Location, methodName string, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericReceiverlessMethodCallNode {
 	return &GenericReceiverlessMethodCallNode{
-		TypedNodeBase:       TypedNodeBase{span: span},
+		TypedNodeBase:       TypedNodeBase{loc: loc},
 		MethodName:          methodName,
 		TypeArguments:       typeArgs,
 		PositionalArguments: posArgs,

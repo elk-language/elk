@@ -32,7 +32,7 @@ func (n *ObjectPatternNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.ObjectType.Equal(value.Ref(o.ObjectType))
 }
 
@@ -59,9 +59,9 @@ func (m *ObjectPatternNode) IsStatic() bool {
 }
 
 // Create an Object pattern node eg. `Foo(foo: 5, bar: a, c)`
-func NewObjectPatternNode(span *position.Span, objectType ComplexConstantNode, attrs []PatternNode) *ObjectPatternNode {
+func NewObjectPatternNode(loc *position.Location, objectType ComplexConstantNode, attrs []PatternNode) *ObjectPatternNode {
 	return &ObjectPatternNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		ObjectType:    objectType,
 		Attributes:    attrs,
 	}
@@ -78,7 +78,7 @@ func (*ObjectPatternNode) DirectClass() *value.Class {
 func (n *ObjectPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ObjectPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ObjectPatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  object_type: ")
 	indent.IndentStringFromSecondLine(&buff, n.ObjectType.Inspect(), 1)

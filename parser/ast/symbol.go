@@ -36,7 +36,7 @@ func (n *SimpleSymbolLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Content == o.Content &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *SimpleSymbolLiteralNode) String() string {
@@ -48,9 +48,9 @@ func (*SimpleSymbolLiteralNode) IsStatic() bool {
 }
 
 // Create a simple symbol literal node eg. `:foo`, `:'foo bar`, `:"lol"`
-func NewSimpleSymbolLiteralNode(span *position.Span, cont string) *SimpleSymbolLiteralNode {
+func NewSimpleSymbolLiteralNode(loc *position.Location, cont string) *SimpleSymbolLiteralNode {
 	return &SimpleSymbolLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Content:       cont,
 	}
 }
@@ -65,8 +65,8 @@ func (*SimpleSymbolLiteralNode) DirectClass() *value.Class {
 
 func (n *SimpleSymbolLiteralNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::SimpleSymbolLiteralNode{span: %s, content: %s}",
-		(*value.Span)(n.span).Inspect(),
+		"Std::Elk::AST::SimpleSymbolLiteralNode{location: %s, content: %s}",
+		(*value.Location)(n.loc).Inspect(),
 		value.String(n.Content).Inspect(),
 	)
 }
@@ -88,7 +88,7 @@ func (n *InterpolatedSymbolLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Content.Equal(value.Ref(o.Content)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *InterpolatedSymbolLiteralNode) String() string {
@@ -119,7 +119,7 @@ func (*InterpolatedSymbolLiteralNode) DirectClass() *value.Class {
 func (n *InterpolatedSymbolLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::InterpolatedSymbolLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::InterpolatedSymbolLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  content: ")
 	indent.IndentStringFromSecondLine(&buff, n.Content.Inspect(), 1)
@@ -134,9 +134,9 @@ func (n *InterpolatedSymbolLiteralNode) Error() string {
 }
 
 // Create an interpolated symbol literal node eg. `:"foo ${bar + 2}"`
-func NewInterpolatedSymbolLiteralNode(span *position.Span, cont *InterpolatedStringLiteralNode) *InterpolatedSymbolLiteralNode {
+func NewInterpolatedSymbolLiteralNode(loc *position.Location, cont *InterpolatedStringLiteralNode) *InterpolatedSymbolLiteralNode {
 	return &InterpolatedSymbolLiteralNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Content:  cont,
 	}
 }

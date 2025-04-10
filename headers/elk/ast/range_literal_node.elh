@@ -10,12 +10,12 @@ module Std::Elk::AST
       start: ExpressionNode,
       end_node: ExpressionNode,
       op: Elk::Token = loop; end,
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def start: ExpressionNode; end
     def end: ExpressionNode; end
     def op: Elk::Token; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

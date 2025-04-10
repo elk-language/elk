@@ -6,11 +6,11 @@ module Std::Elk::AST
     init(
       entries: ArrayTuple[ParameterNode],
       doc_comment: String = "",
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def doc_comment: String; end
     def entries: ArrayTuple[ParameterNode]; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

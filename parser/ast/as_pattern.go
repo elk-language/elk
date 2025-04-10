@@ -21,9 +21,9 @@ func (*AsPatternNode) IsStatic() bool {
 }
 
 // Create an Object pattern node eg. `Foo(foo: 5, bar: a, c)`
-func NewAsPatternNode(span *position.Span, pattern PatternNode, name IdentifierNode) *AsPatternNode {
+func NewAsPatternNode(loc *position.Location, pattern PatternNode, name IdentifierNode) *AsPatternNode {
 	return &AsPatternNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Pattern:  pattern,
 		Name:     name,
 	}
@@ -40,7 +40,7 @@ func (*AsPatternNode) DirectClass() *value.Class {
 func (n *AsPatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::AsPatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::AsPatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  pattern: ")
 	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
@@ -59,19 +59,9 @@ func (n *AsPatternNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.Span().Equal(o.Span()) {
-		return false
-	}
-
-	if !n.Pattern.Equal(value.Ref(o.Pattern)) {
-		return false
-	}
-
-	if !n.Name.Equal(value.Ref(o.Name)) {
-		return false
-	}
-
-	return true
+	return n.loc.Equal(o.loc) &&
+		n.Pattern.Equal(value.Ref(o.Pattern)) &&
+		n.Name.Equal(value.Ref(o.Name))
 }
 
 func (n *AsPatternNode) Error() string {

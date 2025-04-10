@@ -158,7 +158,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		nil,
 		node.TypeNode,
 		nil,
-		node.Span(),
+		node.Location(),
 	)
 	method.SetAttribute(true)
 
@@ -167,21 +167,21 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 
 	if init == nil {
 		body = ast.ExpressionToStatements(
-			ast.NewInstanceVariableNode(node.Span(), node.Name),
+			ast.NewInstanceVariableNode(node.Location(), node.Name),
 		)
 	} else {
 		body = ast.ExpressionToStatements(
 			ast.NewAssignmentExpressionNode(
-				node.Span(),
-				token.New(init.Span(), token.QUESTION_QUESTION_EQUAL),
-				ast.NewInstanceVariableNode(node.Span(), node.Name),
+				node.Location(),
+				token.New(init.Location(), token.QUESTION_QUESTION_EQUAL),
+				ast.NewInstanceVariableNode(node.Location(), node.Name),
 				init,
 			),
 		)
 	}
 
 	methodNode := ast.NewMethodDefinitionNode(
-		c.newLocation(node.Span()),
+		node.Location(),
 		"",
 		0,
 		node.Name,
@@ -241,11 +241,11 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 	setterName := node.Name + "="
 
 	methodScope := c.currentMethodScope()
-	var paramSpan *position.Span
+	var paramSpan *position.Location
 	if node.TypeNode != nil {
-		paramSpan = node.TypeNode.Span()
+		paramSpan = node.TypeNode.Location()
 	} else {
-		node.Span()
+		node.Location()
 	}
 	params := []ast.ParameterNode{
 		ast.NewMethodParameterNode(
@@ -271,12 +271,12 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		params,
 		nil,
 		nil,
-		node.Span(),
+		node.Location(),
 	)
 	method.SetAttribute(true)
 
 	methodNode := ast.NewMethodDefinitionNode(
-		c.newLocation(node.Span()),
+		node.Location(),
 		docComment,
 		0,
 		setterName,
@@ -296,10 +296,10 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 	}
 }
 
-func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span *position.Span) {
+func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, location *position.Location) {
 	c.addFailure(
 		fmt.Sprintf("expected %s arguments in call to `%s`, got %d", method.ExpectedParamCountString(), lexer.Colorize(method.Name.String()), got),
-		span,
+		location,
 	)
 }
 
@@ -318,7 +318,7 @@ func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, loc *po
 func (c *Checker) checkMethodOverride(
 	overrideMethod,
 	baseMethod *types.Method,
-	span *position.Span,
+	location *position.Location,
 ) {
 	var areIncompatible bool
 	errDetailsBuff := new(strings.Builder)
@@ -448,7 +448,7 @@ func (c *Checker) checkMethodOverride(
 				baseMethod.InspectSignatureWithColor(true),
 				errDetailsBuff.String(),
 			),
-			span,
+			location,
 		)
 	}
 
@@ -461,7 +461,7 @@ func (c *Checker) checkMethod(
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
 	body []ast.StatementNode,
-	span *position.Span,
+	location *position.Location,
 ) (ast.TypeNode, ast.TypeNode) {
 	prevCatchScopes := c.catchScopes
 	c.catchScopes = nil
@@ -485,7 +485,7 @@ func (c *Checker) checkMethod(
 				c.checkMethodOverride(
 					checkedMethod,
 					baseMethod,
-					span,
+					location,
 				)
 			}
 		}
@@ -524,7 +524,7 @@ func (c *Checker) checkMethod(
 			if p.Initialiser != nil {
 				initNode = c.checkExpression(p.Initialiser)
 				initType := c.TypeOf(initNode)
-				c.checkCanAssign(initType, declaredType, initNode.Span())
+				c.checkCanAssign(initType, declaredType, initNode.Location())
 			}
 			c.addLocal(p.Name, newLocal(declaredType, true, checkedMethod.IsGenerator()))
 			p.Initialiser = initNode
@@ -546,7 +546,7 @@ func (c *Checker) checkMethod(
 			if p.Initialiser != nil {
 				initNode = c.checkExpression(p.Initialiser)
 				initType := c.TypeOf(initNode)
-				c.checkCanAssign(initType, declaredType, initNode.Span())
+				c.checkCanAssign(initType, declaredType, initNode.Location())
 			}
 			c.addLocal(p.Name, newLocal(declaredType, true, false))
 			p.Initialiser = initNode
@@ -589,7 +589,7 @@ func (c *Checker) checkMethod(
 				"method `%s` cannot have a body because it is abstract",
 				name.String(),
 			),
-			span,
+			location,
 		)
 	}
 
@@ -621,7 +621,7 @@ func (c *Checker) checkMethod(
 				checkedMethod.ReturnType = c.returnType
 			} else {
 				if returnSpan == nil {
-					returnSpan = span
+					returnSpan = location
 				}
 				c.checkCanAssign(bodyReturnType, returnType, returnSpan)
 			}
@@ -644,29 +644,29 @@ func (c *Checker) checkMethod(
 	return typedReturnTypeNode, typedThrowTypeNode
 }
 
-func (c *Checker) checkSpecialMethods(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, span *position.Span) {
+func (c *Checker) checkSpecialMethods(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, location *position.Location) {
 	if symbol.IsEqualityOperator(name) {
-		c.checkEqualityOperator(name, checkedMethod, paramNodes, span)
+		c.checkEqualityOperator(name, checkedMethod, paramNodes, location)
 		return
 	}
 
 	if symbol.IsRelationalOperator(name) {
-		c.checkRelationalOperator(name, checkedMethod, paramNodes, span)
+		c.checkRelationalOperator(name, checkedMethod, paramNodes, location)
 		return
 	}
 
 	if symbol.RequiresOneParameter(name) {
-		c.checkFixedParameterCountMethod(name, checkedMethod, paramNodes, 1, span)
+		c.checkFixedParameterCountMethod(name, checkedMethod, paramNodes, 1, location)
 		return
 	}
 
 	if symbol.RequiresNoParameters(name) {
-		c.checkFixedParameterCountMethod(name, checkedMethod, paramNodes, 0, span)
+		c.checkFixedParameterCountMethod(name, checkedMethod, paramNodes, 0, location)
 		return
 	}
 }
 
-func (c *Checker) checkEqualityOperator(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, span *position.Span) {
+func (c *Checker) checkEqualityOperator(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, location *position.Location) {
 	params := checkedMethod.Params
 
 	if !c.isTheSameType(checkedMethod.ReturnType, types.Bool{}, nil) {
@@ -676,7 +676,7 @@ func (c *Checker) checkEqualityOperator(name value.Symbol, checkedMethod *types.
 				lexer.Colorize(name.String()),
 				lexer.Colorize("bool"),
 			),
-			span,
+			location,
 		)
 	}
 
@@ -687,17 +687,17 @@ func (c *Checker) checkEqualityOperator(name value.Symbol, checkedMethod *types.
 				lexer.Colorize(name.String()),
 				len(params),
 			),
-			span,
+			location,
 		)
 		return
 	}
 
 	param := params[0]
-	var paramSpan *position.Span
+	var paramSpan *position.Location
 	if paramNodes != nil {
-		paramSpan = paramNodes[0].Span()
+		paramSpan = paramNodes[0].Location()
 	} else {
-		paramSpan = span
+		paramSpan = location
 	}
 	if !types.IsAny(param.Type) {
 		c.addFailure(
@@ -724,7 +724,7 @@ func (c *Checker) checkEqualityOperator(name value.Symbol, checkedMethod *types.
 	}
 }
 
-func (c *Checker) checkRelationalOperator(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, span *position.Span) {
+func (c *Checker) checkRelationalOperator(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, location *position.Location) {
 	params := checkedMethod.Params
 
 	if !c.isTheSameType(checkedMethod.ReturnType, types.Bool{}, nil) {
@@ -734,7 +734,7 @@ func (c *Checker) checkRelationalOperator(name value.Symbol, checkedMethod *type
 				lexer.Colorize(name.String()),
 				lexer.Colorize("bool"),
 			),
-			span,
+			location,
 		)
 	}
 
@@ -745,17 +745,17 @@ func (c *Checker) checkRelationalOperator(name value.Symbol, checkedMethod *type
 				lexer.Colorize(name.String()),
 				len(params),
 			),
-			span,
+			location,
 		)
 		return
 	}
 
 	param := checkedMethod.Params[0]
-	var paramSpan *position.Span
+	var paramSpan *position.Location
 	if paramNodes != nil {
-		paramSpan = paramNodes[0].Span()
+		paramSpan = paramNodes[0].Location()
 	} else {
-		paramSpan = span
+		paramSpan = location
 	}
 	if !checkedMethod.IsAbstract() && !c.isSubtype(c.selfType, param.Type, nil) {
 		c.addFailure(
@@ -782,7 +782,7 @@ func (c *Checker) checkRelationalOperator(name value.Symbol, checkedMethod *type
 	}
 }
 
-func (c *Checker) checkFixedParameterCountMethod(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, desiredParamCount int, span *position.Span) {
+func (c *Checker) checkFixedParameterCountMethod(name value.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, desiredParamCount int, location *position.Location) {
 	params := checkedMethod.Params
 
 	if types.IsVoid(checkedMethod.ReturnType) {
@@ -791,7 +791,7 @@ func (c *Checker) checkFixedParameterCountMethod(name value.Symbol, checkedMetho
 				"method `%s` cannot be void",
 				lexer.Colorize(name.String()),
 			),
-			span,
+			location,
 		)
 	}
 
@@ -803,17 +803,17 @@ func (c *Checker) checkFixedParameterCountMethod(name value.Symbol, checkedMetho
 				desiredParamCount,
 				len(params),
 			),
-			span,
+			location,
 		)
 		return
 	}
 
 	for i, param := range params {
-		var paramSpan *position.Span
+		var paramSpan *position.Location
 		if paramNodes != nil {
-			paramSpan = paramNodes[i].Span()
+			paramSpan = paramNodes[i].Location()
 		} else {
-			paramSpan = span
+			paramSpan = location
 		}
 
 		switch param.Kind {
@@ -853,7 +853,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	positionalArguments []ast.ExpressionNode,
 	namedArguments []ast.NamedArgumentNode,
 	typeParams []*types.TypeParameter,
-	span *position.Span,
+	location *position.Location,
 ) (
 	_posArgs []ast.ExpressionNode,
 	typeArgs types.TypeArgumentMap,
@@ -883,7 +883,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	for range positionalRestParamIndex - len(positionalArguments) {
 		typedPositionalArguments = append(
 			typedPositionalArguments,
-			ast.NewUndefinedLiteralNode(span),
+			ast.NewUndefinedLiteralNode(location),
 		)
 	}
 
@@ -898,7 +898,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			c.addWrongArgumentCountError(
 				len(positionalArguments)+len(namedArguments),
 				method,
-				span,
+				location,
 			)
 			break
 		}
@@ -907,7 +907,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 		posArgType := c.TypeOf(typedPosArg)
 
-		inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Span())
+		inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
 		if inferredParamType == nil {
 			param.Type = types.Untyped{}
 		} else if inferredParamType != param.Type {
@@ -915,7 +915,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		}
 		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 
-		if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
+		if !c.isSubtype(posArgType, param.Type, posArg.Location()) {
 			c.addFailure(
 				fmt.Sprintf(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
@@ -924,7 +924,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					lexer.Colorize(method.Name.String()),
 					types.InspectWithColor(posArgType),
 				),
-				posArg.Span(),
+				posArg.Location(),
 			)
 		}
 	}
@@ -938,12 +938,12 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					lexer.Colorize(method.Name.String()),
 					len(positionalArguments),
 				),
-				span,
+				location,
 			)
 			return nil, nil
 		}
 		restPositionalArguments := ast.NewArrayTupleLiteralNode(
-			span,
+			location,
 			nil,
 		)
 		posRestParam := method.Params[positionalRestParamIndex]
@@ -954,14 +954,14 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			posArg := positionalArguments[currentArgIndex]
 			typedPosArg := c.checkRestArgument(posArg, posRestParam.Type)
 			posArgType := c.TypeOf(typedPosArg)
-			inferredParamType := c.inferTypeArguments(posArgType, posRestParam.Type, typeArgMap, typedPosArg.Span())
+			inferredParamType := c.inferTypeArguments(posArgType, posRestParam.Type, typeArgMap, typedPosArg.Location())
 			if inferredParamType == nil {
 				posRestParam.Type = types.Untyped{}
 			} else if inferredParamType != posRestParam.Type {
 				posRestParam.Type = inferredParamType
 			}
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
-			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Span()) {
+			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Location()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
@@ -970,7 +970,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(posArgType),
 					),
-					posArg.Span(),
+					posArg.Location(),
 				)
 			}
 		}
@@ -994,14 +994,14 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 
 			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 			posArgType := c.TypeOf(typedPosArg)
-			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Span())
+			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
 			if inferredParamType == nil {
 				param.Type = types.Untyped{}
 			} else if inferredParamType != param.Type {
 				param.Type = inferredParamType
 			}
 			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
-			if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
+			if !c.isSubtype(posArgType, param.Type, posArg.Location()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
@@ -1010,7 +1010,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(posArgType),
 					),
-					posArg.Span(),
+					posArg.Location(),
 				)
 			}
 		}
@@ -1054,7 +1054,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						paramName,
 						lexer.Colorize(method.Name.String()),
 					),
-					namedArg.Span(),
+					namedArg.Location(),
 				)
 			}
 			found = true
@@ -1062,14 +1062,14 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 
 			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
 			namedArgType := c.TypeOf(typedNamedArgValue)
-			inferredParamType := c.inferTypeArguments(namedArgType, param.Type, typeArgMap, typedNamedArgValue.Span())
+			inferredParamType := c.inferTypeArguments(namedArgType, param.Type, typeArgMap, typedNamedArgValue.Location())
 			if inferredParamType == nil {
 				param.Type = types.Untyped{}
 			} else if inferredParamType != param.Type {
 				param.Type = inferredParamType
 			}
 			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
-			if !c.isSubtype(namedArgType, param.Type, namedArg.Span()) {
+			if !c.isSubtype(namedArgType, param.Type, namedArg.Location()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
@@ -1078,7 +1078,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						lexer.Colorize(method.Name.String()),
 						types.InspectWithColor(namedArgType),
 					),
-					namedArg.Span(),
+					namedArg.Location(),
 				)
 			}
 		}
@@ -1099,21 +1099,21 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					paramName,
 					lexer.Colorize(method.Name.String()),
 				),
-				span,
+				location,
 			)
 		} else {
 			// the parameter is missing and is optional
 			// we push undefined as its value
 			typedPositionalArguments = append(
 				typedPositionalArguments,
-				ast.NewUndefinedLiteralNode(span),
+				ast.NewUndefinedLiteralNode(location),
 			)
 		}
 	}
 
 	if method.HasNamedRestParam() {
 		namedRestArgs := ast.NewHashRecordLiteralNode(
-			span,
+			location,
 			nil,
 		)
 		namedRestParam := method.Params[len(method.Params)-1]
@@ -1127,7 +1127,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			case *ast.NamedCallArgumentNode:
 				typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
 				posArgType := c.TypeOf(typedNamedArgValue)
-				inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap, typedNamedArgValue.Span())
+				inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap, typedNamedArgValue.Location())
 				if inferredParamType == nil {
 					namedRestParam.Type = types.Untyped{}
 				} else if inferredParamType != namedRestParam.Type {
@@ -1136,7 +1136,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				namedRestArgs.Elements = append(
 					namedRestArgs.Elements,
 					ast.NewSymbolKeyValueExpressionNode(
-						namedArg.Span(),
+						namedArg.Location(),
 						namedArg.Name,
 						typedNamedArgValue,
 					),
@@ -1146,7 +1146,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					method.Name.String(),
 					namedArgType,
 					namedRestParam,
-					namedArg.Span(),
+					namedArg.Location(),
 				)
 			case *ast.DoubleSplatExpressionNode:
 				result := c.checkDoubleSplatArgument(method.Name.String(), namedArg, namedRestParam)
@@ -1184,7 +1184,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						namedArg.Name,
 						lexer.Colorize(method.Name.String()),
 					),
-					namedArg.Span(),
+					namedArg.Location(),
 				)
 			case *ast.DoubleSplatExpressionNode:
 				c.addFailure(
@@ -1192,7 +1192,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						"double splat arguments cannot be present in calls to methods without a named rest parameter eg. `%s`",
 						lexer.Colorize("**foo: Int"),
 					),
-					namedArg.Span(),
+					namedArg.Location(),
 				)
 			}
 		}
@@ -1218,7 +1218,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						types.InspectWithColor(typeParam),
 						lexer.Colorize(method.Name.String()),
 					),
-					span,
+					location,
 				)
 			}
 
@@ -1234,14 +1234,14 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 
 func (c *Checker) checkDoubleSplatArgument(methodName string, node *ast.DoubleSplatExpressionNode, namedRestParam *types.Parameter) ast.ExpressionNode {
 	result, keyType, valueType := c.checkRecordDoubleSplatExpression(node)
-	if !c.isSubtype(keyType, c.Std(symbol.Symbol), node.Span()) {
+	if !c.isSubtype(keyType, c.Std(symbol.Symbol), node.Location()) {
 		c.addFailure(
 			fmt.Sprintf(
 				"expected type `%s` for double splat argument keys, got `%s`",
 				lexer.Colorize("Std::Symbol"),
 				types.InspectWithColor(keyType),
 			),
-			node.Span(),
+			node.Location(),
 		)
 	}
 
@@ -1249,14 +1249,14 @@ func (c *Checker) checkDoubleSplatArgument(methodName string, node *ast.DoubleSp
 		methodName,
 		valueType,
 		namedRestParam,
-		node.Span(),
+		node.Location(),
 	)
 
 	return result
 }
 
-func (c *Checker) checkNamedRestArgumentType(methodName string, argType types.Type, param *types.Parameter, span *position.Span) {
-	if c.isSubtype(argType, param.Type, span) {
+func (c *Checker) checkNamedRestArgumentType(methodName string, argType types.Type, param *types.Parameter, location *position.Location) {
+	if c.isSubtype(argType, param.Type, location) {
 		return
 	}
 
@@ -1268,12 +1268,12 @@ func (c *Checker) checkNamedRestArgumentType(methodName string, argType types.Ty
 			lexer.Colorize(methodName),
 			types.InspectWithColor(argType),
 		),
-		span,
+		location,
 	)
 }
 
-func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, span *position.Span) []ast.ExpressionNode {
-	posArgs, _ := c.checkMethodArgumentsAndInferTypeArguments(method, positionalArguments, namedArguments, nil, span)
+func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, location *position.Location) []ast.ExpressionNode {
+	posArgs, _ := c.checkMethodArgumentsAndInferTypeArguments(method, positionalArguments, namedArguments, nil, location)
 	return posArgs
 }
 
@@ -1291,14 +1291,14 @@ func (c *Checker) checkMethodArguments(
 	typeArgumentNodes []ast.TypeNode,
 	positionalArgumentNodes []ast.ExpressionNode,
 	namedArgumentNodes []ast.NamedArgumentNode,
-	span *position.Span,
+	location *position.Location,
 ) (_method *types.Method, typedPositionalArguments []ast.ExpressionNode) {
 	if len(typeArgumentNodes) > 0 {
 		typeArgs, ok := c.checkTypeArguments(
 			method,
 			typeArgumentNodes,
 			method.TypeParameters,
-			span,
+			location,
 		)
 		if !ok {
 			c.checkExpressions(positionalArgumentNodes)
@@ -1307,7 +1307,7 @@ func (c *Checker) checkMethodArguments(
 		}
 
 		method = c.replaceTypeParametersInMethodCopy(method, typeArgs.ArgumentMap, true)
-		typedPositionalArguments = c.checkNonGenericMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, span)
+		typedPositionalArguments = c.checkNonGenericMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, location)
 		return method, typedPositionalArguments
 	}
 
@@ -1319,7 +1319,7 @@ func (c *Checker) checkMethodArguments(
 			positionalArgumentNodes,
 			namedArgumentNodes,
 			method.TypeParameters,
-			span,
+			location,
 		)
 		if len(typeArgMap) != len(method.TypeParameters) {
 			return nil, nil
@@ -1329,7 +1329,7 @@ func (c *Checker) checkMethodArguments(
 		return method, typedPositionalArguments
 	}
 
-	typedPositionalArguments = c.checkNonGenericMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, span)
+	typedPositionalArguments = c.checkNonGenericMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, location)
 	return method, typedPositionalArguments
 }
 
@@ -1340,7 +1340,7 @@ func (c *Checker) checkSimpleMethodCall(
 	typeArgumentNodes []ast.TypeNode,
 	positionalArgumentNodes []ast.ExpressionNode,
 	namedArgumentNodes []ast.NamedArgumentNode,
-	span *position.Span,
+	location *position.Location,
 ) (
 	_receiver ast.ExpressionNode,
 	_positionalArguments []ast.ExpressionNode,
@@ -1371,10 +1371,10 @@ func (c *Checker) checkSimpleMethodCall(
 	var method *types.Method
 	switch op {
 	case token.DOT, token.DOT_DOT:
-		method = c.getMethod(receiverType, methodName, span)
+		method = c.getMethod(receiverType, methodName, location)
 	case token.QUESTION_DOT, token.QUESTION_DOT_DOT:
 		nonNilableReceiverType := c.ToNonNilable(receiverType)
-		method = c.getMethod(nonNilableReceiverType, methodName, span)
+		method = c.getMethod(nonNilableReceiverType, methodName, location)
 	default:
 		panic(fmt.Sprintf("invalid call operator: %#v", op))
 	}
@@ -1386,7 +1386,7 @@ func (c *Checker) checkSimpleMethodCall(
 
 	c.addToMethodCache(method)
 
-	method, typedPositionalArguments := c.checkMethodArguments(method, typeArgumentNodes, positionalArgumentNodes, namedArgumentNodes, span)
+	method, typedPositionalArguments := c.checkMethodArguments(method, typeArgumentNodes, positionalArgumentNodes, namedArgumentNodes, location)
 	if method == nil {
 		return receiver, positionalArgumentNodes, types.Untyped{}
 	}
@@ -1399,7 +1399,7 @@ func (c *Checker) checkSimpleMethodCall(
 		if !c.IsNilable(receiverType) {
 			c.addFailure(
 				fmt.Sprintf("cannot make a nil-safe call on type `%s` which is not nilable", types.InspectWithColor(receiverType)),
-				span,
+				location,
 			)
 			returnType = method.ReturnType
 		} else {
@@ -1411,13 +1411,13 @@ func (c *Checker) checkSimpleMethodCall(
 		if !c.IsNilable(receiverType) {
 			c.addFailure(
 				fmt.Sprintf("cannot make a nil-safe call on type `%s` which is not nilable", types.InspectWithColor(receiverType)),
-				span,
+				location,
 			)
 		}
 		returnType = receiverType
 	}
 
-	c.checkCalledMethodThrowType(method, span)
+	c.checkCalledMethodThrowType(method, location)
 
 	return receiver, typedPositionalArguments, returnType
 }
@@ -1426,7 +1426,7 @@ func (c *Checker) checkBinaryOpMethodCall(
 	left ast.ExpressionNode,
 	right ast.ExpressionNode,
 	methodName value.Symbol,
-	span *position.Span,
+	location *position.Location,
 ) types.Type {
 	_, _, returnType := c.checkSimpleMethodCall(
 		left,
@@ -1435,7 +1435,7 @@ func (c *Checker) checkBinaryOpMethodCall(
 		nil,
 		[]ast.ExpressionNode{right},
 		nil,
-		span,
+		location,
 	)
 
 	return returnType
@@ -1450,7 +1450,7 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *
 		node.ReturnType,
 		node.ThrowType,
 		node.Body,
-		node.Span(),
+		node.Location(),
 	)
 
 	node.ReturnType = returnType
@@ -1480,7 +1480,7 @@ func (c *Checker) declareMethod(
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
-	span *position.Span,
+	location *position.Location,
 ) (*types.Method, *types.TypeParamNamespace) {
 	prevMode := c.mode
 	if c.mode == interfaceMode {
@@ -1496,7 +1496,7 @@ func (c *Checker) declareMethod(
 					types.InspectModifier(abstract, sealed, false, false),
 					types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed(), false, false),
 				),
-				span,
+				location,
 			)
 		}
 	}
@@ -1511,7 +1511,7 @@ func (c *Checker) declareMethod(
 					name.String(),
 					types.InspectWithColor(methodNamespace),
 				),
-				span,
+				location,
 			)
 		}
 	case *types.Mixin:
@@ -1522,7 +1522,7 @@ func (c *Checker) declareMethod(
 					name.String(),
 					types.InspectWithColor(methodNamespace),
 				),
-				span,
+				location,
 			)
 		}
 	default:
@@ -1532,7 +1532,7 @@ func (c *Checker) declareMethod(
 					"cannot declare abstract method `%s` in this context",
 					name.String(),
 				),
-				span,
+				location,
 			)
 		}
 	}
@@ -1580,7 +1580,7 @@ func (c *Checker) declareMethod(
 			} else {
 				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
-					paramNode.Span(),
+					paramNode.Location(),
 				)
 			}
 
@@ -1616,7 +1616,7 @@ func (c *Checker) declareMethod(
 								"cannot infer the type of instance variable `%s`",
 								p.Name,
 							),
-							p.Span(),
+							p.Location(),
 						)
 					}
 
@@ -1625,9 +1625,9 @@ func (c *Checker) declareMethod(
 					p.TypeNode = c.checkTypeNode(p.TypeNode)
 					declaredType = c.TypeOf(p.TypeNode)
 					if currentIvar != nil {
-						c.checkCanAssignInstanceVariable(p.Name, declaredType, currentIvar, p.TypeNode.Span())
+						c.checkCanAssignInstanceVariable(p.Name, declaredType, currentIvar, p.TypeNode.Location())
 					} else {
-						c.declareInstanceVariable(value.ToSymbol(p.Name), declaredType, p.Span())
+						c.declareInstanceVariable(value.ToSymbol(p.Name), declaredType, p.Location())
 					}
 				}
 			} else if p.TypeNode != nil {
@@ -1638,7 +1638,7 @@ func (c *Checker) declareMethod(
 			} else {
 				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
-					paramNode.Span(),
+					paramNode.Location(),
 				)
 			}
 
@@ -1673,7 +1673,7 @@ func (c *Checker) declareMethod(
 			} else {
 				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
-					paramNode.Span(),
+					paramNode.Location(),
 				)
 			}
 
@@ -1701,7 +1701,7 @@ func (c *Checker) declareMethod(
 		default:
 			c.addFailure(
 				fmt.Sprintf("invalid param type %T", paramNode),
-				paramNode.Span(),
+				paramNode.Location(),
 			)
 		}
 	}
@@ -1745,7 +1745,7 @@ func (c *Checker) declareMethod(
 	if async && generator {
 		c.addFailure(
 			"async generators are illegal",
-			span,
+			location,
 		)
 	}
 
@@ -1793,12 +1793,12 @@ func (c *Checker) declareMethod(
 		throwType,
 		methodNamespace,
 	)
-	newMethod.SetLocation(c.newLocation(span))
+	newMethod.SetLocation(location)
 
-	c.checkMethodOverrideWithPlaceholder(newMethod, oldMethod, span)
+	c.checkMethodOverrideWithPlaceholder(newMethod, oldMethod, location)
 	methodNamespace.SetMethod(name, newMethod)
 
-	c.checkSpecialMethods(name, newMethod, paramNodes, span)
+	c.checkSpecialMethods(name, newMethod, paramNodes, location)
 
 	c.mode = prevMode
 
@@ -1808,7 +1808,7 @@ func (c *Checker) declareMethod(
 func (c *Checker) checkMethodOverrideWithPlaceholder(
 	overrideMethod,
 	baseMethod *types.Method,
-	span *position.Span,
+	location *position.Location,
 ) {
 	if baseMethod == nil {
 		return
@@ -1823,7 +1823,7 @@ func (c *Checker) checkMethodOverrideWithPlaceholder(
 	c.checkMethodOverride(
 		overrideMethod,
 		baseMethod,
-		span,
+		location,
 	)
 	overrideMethod.UsedInConstants.ConcatMut(baseMethod.UsedInConstants)
 }
@@ -1856,7 +1856,7 @@ func (c *Checker) setInputPositionTypeMode() {
 	}
 }
 
-func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod *types.Method, errSpan *position.Span) bool {
+func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod *types.Method, errSpan *position.Location) bool {
 	if !overrideMethod.IsGeneric() {
 		return c.checkMethodCompatibility(baseMethod, overrideMethod, errSpan, true)
 	}
@@ -1874,13 +1874,13 @@ func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, override
 	return typeArgs.HasAllTypeParams(overrideMethod.TypeParameters)
 }
 
-func (c *Checker) checkMethodCompatibilityForInterfaceIntersection(baseMethod, overrideMethod *types.Method, errSpan *position.Span, typeArgs types.TypeArgumentMap) bool {
+func (c *Checker) checkMethodCompatibilityForInterfaceIntersection(baseMethod, overrideMethod *types.Method, errSpan *position.Location, typeArgs types.TypeArgumentMap) bool {
 	areCompatible := c.checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideMethod, errSpan, typeArgs)
 	return areCompatible
 }
 
 // Checks whether two methods are compatible.
-func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Span, validateParamNames bool) bool {
+func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Location, validateParamNames bool) bool {
 	if baseMethod == nil {
 		return true
 	}
@@ -1971,7 +1971,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 	return areCompatible
 }
 
-func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideMethod *types.Method, errSpan *position.Span, typeArgs types.TypeArgumentMap) bool {
+func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideMethod *types.Method, errSpan *position.Location, typeArgs types.TypeArgumentMap) bool {
 	if baseMethod == nil {
 		return true
 	}
@@ -2067,7 +2067,7 @@ func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideM
 	return areCompatible
 }
 
-func (c *Checker) getMethod(typ types.Type, name value.Symbol, errSpan *position.Span) *types.Method {
+func (c *Checker) getMethod(typ types.Type, name value.Symbol, errSpan *position.Location) *types.Method {
 	return c._getMethod(typ, name, errSpan, false, false)
 }
 
@@ -2307,7 +2307,7 @@ func (c *Checker) resolveNonAbstractMethodInNamespace(namespace types.Namespace,
 	return nil
 }
 
-func (c *Checker) _getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, errSpan *position.Span, inParent bool) *types.Method {
+func (c *Checker) _getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, errSpan *position.Location, inParent bool) *types.Method {
 	method := c.resolveMethodInNamespace(namespace, name)
 	if method != nil {
 		return method
@@ -2327,7 +2327,7 @@ func (c *Checker) createTypeArgumentMapWithSelf(self types.Type) types.TypeArgum
 	}
 }
 
-func (c *Checker) getMethodInNamespaceWithSelf(namespace types.Namespace, typ types.Type, name value.Symbol, self types.Type, errSpan *position.Span, inParent, inSelf bool) *types.Method {
+func (c *Checker) getMethodInNamespaceWithSelf(namespace types.Namespace, typ types.Type, name value.Symbol, self types.Type, errSpan *position.Location, inParent, inSelf bool) *types.Method {
 	method := c._getMethodInNamespace(namespace, typ, name, errSpan, inParent)
 	if method == nil {
 		return nil
@@ -2339,7 +2339,7 @@ func (c *Checker) getMethodInNamespaceWithSelf(namespace types.Namespace, typ ty
 	return c.replaceTypeParametersInMethodCopy(method, m, false)
 }
 
-func (c *Checker) getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, errSpan *position.Span, inParent, inSelf bool) *types.Method {
+func (c *Checker) getMethodInNamespace(namespace types.Namespace, typ types.Type, name value.Symbol, errSpan *position.Location, inParent, inSelf bool) *types.Method {
 	return c.getMethodInNamespaceWithSelf(namespace, typ, name, namespace, errSpan, inParent, inSelf)
 }
 
@@ -2434,7 +2434,7 @@ func (c *Checker) replaceTypeParametersInWhere(whereParams []*types.TypeParamete
 	}
 }
 
-func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value.Symbol, errSpan *position.Span, inParent, inSelf bool) *types.Method {
+func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value.Symbol, errSpan *position.Location, inParent, inSelf bool) *types.Method {
 	switch upper := typ.UpperBound.(type) {
 	case *types.Class:
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typ, errSpan, inParent, inSelf)
@@ -2471,10 +2471,10 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 	}
 }
 
-func (c *Checker) getReceiverlessMethod(name value.Symbol, span *position.Span) (_ *types.Method, fromLocal bool) {
+func (c *Checker) getReceiverlessMethod(name value.Symbol, location *position.Location) (_ *types.Method, fromLocal bool) {
 	local, _ := c.resolveLocal(name.String(), nil)
 	if local != nil {
-		return c.getMethod(local.typ, symbol.L_call, span), true
+		return c.getMethod(local.typ, symbol.L_call, location), true
 	}
 	method := c.getMethod(c.selfType, name, nil)
 	if method != nil {
@@ -2495,12 +2495,12 @@ func (c *Checker) getReceiverlessMethod(name value.Symbol, span *position.Span) 
 		}
 	}
 
-	c.addMissingMethodError(c.selfType, name.String(), span)
+	c.addMissingMethodError(c.selfType, name.String(), location)
 
 	return nil, false
 }
 
-func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *position.Span, inParent, inSelf bool) *types.Method {
+func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *position.Location, inParent, inSelf bool) *types.Method {
 	typ = c.ToNonLiteral(typ, true)
 
 	switch t := typ.(type) {
@@ -2649,12 +2649,12 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 	}
 }
 
-func (c *Checker) addMissingMethodError(typ types.Type, name string, span *position.Span) {
+func (c *Checker) addMissingMethodError(typ types.Type, name string, location *position.Location) {
 	if types.IsUntyped(typ) {
 		return
 	}
 	c.addFailure(
 		fmt.Sprintf("method `%s` is not defined on type `%s`", name, types.InspectWithColor(typ)),
-		span,
+		location,
 	)
 }

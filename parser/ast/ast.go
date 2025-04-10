@@ -46,7 +46,7 @@ func areNodesStatic(elements ...Node) bool {
 
 // Turn an expression to a statement
 func ExpressionToStatement(expr ExpressionNode) StatementNode {
-	return NewExpressionStatementNode(expr.Span(), expr)
+	return NewExpressionStatementNode(expr.Location(), expr)
 }
 
 // Turn an expression to a collection of statements.
@@ -254,7 +254,7 @@ func PatternPrecedence(expr PatternNode) uint8 {
 
 // Every node type implements this interface.
 type Node interface {
-	position.SpanInterface
+	position.LocationInterface
 	value.Reference
 	IsStatic() bool // Value is known at compile-time
 	Type(*types.GlobalEnvironment) types.Type
@@ -284,8 +284,8 @@ func (d *DocCommentableNodeBase) SetDocComment(comment string) {
 
 // Base typed AST node.
 type TypedNodeBase struct {
-	span *position.Span
-	typ  types.Type
+	loc *position.Location
+	typ types.Type
 }
 
 func (t *TypedNodeBase) Type(*types.GlobalEnvironment) types.Type {
@@ -301,11 +301,19 @@ func (t *TypedNodeBase) SetType(typ types.Type) {
 }
 
 func (t *TypedNodeBase) Span() *position.Span {
-	return t.span
+	return t.loc.Span
 }
 
 func (t *TypedNodeBase) SetSpan(span *position.Span) {
-	t.span = span
+	t.loc.Span = span
+}
+
+func (t *TypedNodeBase) Location() *position.Location {
+	return t.loc
+}
+
+func (t *TypedNodeBase) SetLocation(loc *position.Location) {
+	t.loc = loc
 }
 
 func (t *TypedNodeBase) Class() *value.Class {
@@ -336,71 +344,9 @@ func (t *TypedNodeBase) Error() string {
 	return t.Inspect()
 }
 
-// Base typed AST node.
-type TypedNodeBaseWithLoc struct {
-	loc *position.Location
-	typ types.Type
-}
-
-func (t *TypedNodeBaseWithLoc) Type(*types.GlobalEnvironment) types.Type {
-	return t.typ
-}
-
-func (t *TypedNodeBaseWithLoc) SkipTypechecking() bool {
-	return t.typ != nil
-}
-
-func (t *TypedNodeBaseWithLoc) SetType(typ types.Type) {
-	t.typ = typ
-}
-
-func (t *TypedNodeBaseWithLoc) Span() *position.Span {
-	return &t.loc.Span
-}
-
-func (t *TypedNodeBaseWithLoc) SetSpan(span *position.Span) {
-	t.loc.Span = *span
-}
-
-func (t *TypedNodeBaseWithLoc) Location() *position.Location {
-	return t.loc
-}
-
-func (t *TypedNodeBaseWithLoc) SetLocation(loc *position.Location) {
-	t.loc = loc
-}
-
-func (t *TypedNodeBaseWithLoc) Class() *value.Class {
-	return nil
-}
-
-func (t *TypedNodeBaseWithLoc) DirectClass() *value.Class {
-	return nil
-}
-
-func (t *TypedNodeBaseWithLoc) SingletonClass() *value.Class {
-	return nil
-}
-
-func (t *TypedNodeBaseWithLoc) InstanceVariables() value.SymbolMap {
-	return nil
-}
-
-func (t *TypedNodeBaseWithLoc) Copy() value.Reference {
-	return t
-}
-
-func (t *TypedNodeBaseWithLoc) Inspect() string {
-	return fmt.Sprintf("Std::Node{&: %p}", t)
-}
-
-func (t *TypedNodeBaseWithLoc) Error() string {
-	return t.Inspect()
-}
-
 // Base AST node.
 type NodeBase struct {
-	span *position.Span
+	loc *position.Location
 }
 
 func (*NodeBase) Type(globalEnv *types.GlobalEnvironment) types.Type {
@@ -413,12 +359,20 @@ func (t *NodeBase) SkipTypechecking() bool {
 	return false
 }
 
-func (n *NodeBase) Span() *position.Span {
-	return n.span
+func (t *NodeBase) Span() *position.Span {
+	return t.loc.Span
 }
 
-func (n *NodeBase) SetSpan(span *position.Span) {
-	n.span = span
+func (t *NodeBase) SetSpan(span *position.Span) {
+	t.loc.Span = span
+}
+
+func (n *NodeBase) Location() *position.Location {
+	return n.loc
+}
+
+func (n *NodeBase) SetLocation(loc *position.Location) {
+	n.loc = loc
 }
 
 func (n *NodeBase) Class() *value.Class {

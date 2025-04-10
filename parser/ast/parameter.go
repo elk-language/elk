@@ -94,7 +94,7 @@ func (n *FormalParameterNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // String returns a string representation of the FormalParameterNode.
@@ -125,9 +125,9 @@ func (f *FormalParameterNode) IsOptional() bool {
 }
 
 // Create a new formal parameter node eg. `foo: String = 'bar'`
-func NewFormalParameterNode(span *position.Span, name string, typ TypeNode, init ExpressionNode, kind ParameterKind) *FormalParameterNode {
+func NewFormalParameterNode(loc *position.Location, name string, typ TypeNode, init ExpressionNode, kind ParameterKind) *FormalParameterNode {
 	return &FormalParameterNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Name:          name,
 		TypeNode:      typ,
 		Initialiser:   init,
@@ -146,7 +146,7 @@ func (*FormalParameterNode) DirectClass() *value.Class {
 func (n *FormalParameterNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::FormalParameterNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::FormalParameterNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
 	buff.WriteString(n.Name)
@@ -199,7 +199,7 @@ func (n *MethodParameterNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Name == o.Name &&
 		n.SetInstanceVariable == o.SetInstanceVariable &&
 		n.Kind == o.Kind
@@ -253,7 +253,7 @@ func (*MethodParameterNode) DirectClass() *value.Class {
 func (n *MethodParameterNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::MethodParameterNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::MethodParameterNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
 	buff.WriteString(n.Name)
@@ -277,9 +277,9 @@ func (n *MethodParameterNode) Error() string {
 }
 
 // Create a new formal parameter node eg. `foo: String = 'bar'`
-func NewMethodParameterNode(span *position.Span, name string, setIvar bool, typ TypeNode, init ExpressionNode, kind ParameterKind) *MethodParameterNode {
+func NewMethodParameterNode(loc *position.Location, name string, setIvar bool, typ TypeNode, init ExpressionNode, kind ParameterKind) *MethodParameterNode {
 	return &MethodParameterNode{
-		TypedNodeBase:       TypedNodeBase{span: span},
+		TypedNodeBase:       TypedNodeBase{loc: loc},
 		SetInstanceVariable: setIvar,
 		Name:                name,
 		TypeNode:            typ,
@@ -313,7 +313,7 @@ func (n *SignatureParameterNode) Equal(other value.Value) bool {
 	return n.Name == o.Name &&
 		n.Optional == o.Optional &&
 		n.Kind == o.Kind &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *SignatureParameterNode) String() string {
@@ -352,7 +352,7 @@ func (*SignatureParameterNode) DirectClass() *value.Class {
 func (n *SignatureParameterNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SignatureParameterNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SignatureParameterNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
 	buff.WriteString(n.Name)
@@ -375,9 +375,9 @@ func (n *SignatureParameterNode) Error() string {
 }
 
 // Create a new signature parameter node eg. `foo?: String`
-func NewSignatureParameterNode(span *position.Span, name string, typ TypeNode, opt bool, kind ParameterKind) *SignatureParameterNode {
+func NewSignatureParameterNode(loc *position.Location, name string, typ TypeNode, opt bool, kind ParameterKind) *SignatureParameterNode {
 	return &SignatureParameterNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Name:          name,
 		TypeNode:      typ,
 		Optional:      opt,
@@ -415,7 +415,7 @@ func (n *AttributeParameterNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.Span().Equal(o.Span()) {
+	if !n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -461,7 +461,7 @@ func (n *AttributeParameterNode) String() string {
 func (n *AttributeParameterNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::AttributeParameterNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::AttributeParameterNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
 	buff.WriteString(n.Name)
@@ -482,9 +482,9 @@ func (n *AttributeParameterNode) Error() string {
 }
 
 // Create a new attribute declaration in getters, setters and accessors eg. `foo: String`
-func NewAttributeParameterNode(span *position.Span, name string, typ TypeNode, init ExpressionNode) *AttributeParameterNode {
+func NewAttributeParameterNode(loc *position.Location, name string, typ TypeNode, init ExpressionNode) *AttributeParameterNode {
 	return &AttributeParameterNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Name:          name,
 		TypeNode:      typ,
 		Initialiser:   init,

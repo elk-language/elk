@@ -9,12 +9,12 @@ module Std::Elk::AST
       name: String,
       type_node: TypeNode? = nil,
       initialiser: ExpressionNode? = nil,
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def name: String; end
     def type_node: TypeNode?; end
     def initialiser: ExpressionNode?; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

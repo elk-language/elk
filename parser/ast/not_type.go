@@ -21,7 +21,7 @@ func (n *NotTypeNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.TypeNode.Equal(value.Ref(o.TypeNode))
 }
 
@@ -47,9 +47,9 @@ func (*NotTypeNode) IsStatic() bool {
 }
 
 // Create a new not type node eg. `~String`
-func NewNotTypeNode(span *position.Span, typ TypeNode) *NotTypeNode {
+func NewNotTypeNode(loc *position.Location, typ TypeNode) *NotTypeNode {
 	return &NotTypeNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		TypeNode:      typ,
 	}
 }
@@ -65,7 +65,7 @@ func (*NotTypeNode) DirectClass() *value.Class {
 func (n *NotTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::NotTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::NotTypeNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  type_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)

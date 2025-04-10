@@ -19,7 +19,7 @@ func (n *TrueLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *TrueLiteralNode) String() string {
@@ -43,7 +43,7 @@ func (*TrueLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *TrueLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::TrueLiteralNode{span: %s}", (*value.Span)(n.Span()).Inspect())
+	return fmt.Sprintf("Std::Elk::AST::TrueLiteralNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
 func (n *TrueLiteralNode) Error() string {
@@ -51,9 +51,9 @@ func (n *TrueLiteralNode) Error() string {
 }
 
 // Create a new `true` literal node.
-func NewTrueLiteralNode(span *position.Span) *TrueLiteralNode {
+func NewTrueLiteralNode(loc *position.Location) *TrueLiteralNode {
 	return &TrueLiteralNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 	}
 }
 
@@ -68,7 +68,7 @@ func (n *FalseLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.Span().Equal(o.Span())
+	return n.loc.Equal(o.loc)
 }
 
 func (n *FalseLiteralNode) String() string {
@@ -92,7 +92,7 @@ func (*FalseLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *FalseLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::FalseLiteralNode{span: %s}", (*value.Span)(n.span).Inspect())
+	return fmt.Sprintf("Std::Elk::AST::FalseLiteralNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
 func (n *FalseLiteralNode) Error() string {
@@ -100,9 +100,9 @@ func (n *FalseLiteralNode) Error() string {
 }
 
 // Create a new `false` literal node.
-func NewFalseLiteralNode(span *position.Span) *FalseLiteralNode {
+func NewFalseLiteralNode(loc *position.Location) *FalseLiteralNode {
 	return &FalseLiteralNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 	}
 }
 
@@ -117,7 +117,7 @@ func (n *SelfLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *SelfLiteralNode) String() string {
@@ -137,7 +137,7 @@ func (*SelfLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *SelfLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::SelfLiteralNode{span: %s}", (*value.Span)(n.span).Inspect())
+	return fmt.Sprintf("Std::Elk::AST::SelfLiteralNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
 func (n *SelfLiteralNode) Error() string {
@@ -145,9 +145,9 @@ func (n *SelfLiteralNode) Error() string {
 }
 
 // Create a new `self` literal node.
-func NewSelfLiteralNode(span *position.Span) *SelfLiteralNode {
+func NewSelfLiteralNode(loc *position.Location) *SelfLiteralNode {
 	return &SelfLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 	}
 }
 
@@ -162,7 +162,7 @@ func (n *NilLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *NilLiteralNode) String() string {
@@ -188,7 +188,7 @@ func (*NilLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *NilLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::NilLiteralNode{span: %s}", (*value.Span)(n.span).Inspect())
+	return fmt.Sprintf("Std::Elk::AST::NilLiteralNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
 func (n *NilLiteralNode) Error() string {
@@ -196,9 +196,9 @@ func (n *NilLiteralNode) Error() string {
 }
 
 // Create a new `nil` literal node.
-func NewNilLiteralNode(span *position.Span) *NilLiteralNode {
+func NewNilLiteralNode(loc *position.Location) *NilLiteralNode {
 	return &NilLiteralNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 	}
 }
 
@@ -213,7 +213,7 @@ func (n *UndefinedLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *UndefinedLiteralNode) String() string {
@@ -233,7 +233,7 @@ func (*UndefinedLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *UndefinedLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::UndefinedLiteralNode{span: %s}", (*value.Span)(n.span).Inspect())
+	return fmt.Sprintf("Std::Elk::AST::UndefinedLiteralNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
 func (n *UndefinedLiteralNode) Error() string {
@@ -241,8 +241,8 @@ func (n *UndefinedLiteralNode) Error() string {
 }
 
 // Create a new `undefined` literal node.
-func NewUndefinedLiteralNode(span *position.Span) *UndefinedLiteralNode {
+func NewUndefinedLiteralNode(loc *position.Location) *UndefinedLiteralNode {
 	return &UndefinedLiteralNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 	}
 }

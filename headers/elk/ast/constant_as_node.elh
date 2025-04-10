@@ -7,9 +7,9 @@ module Std::Elk::AST
     include ExpressionNode,
             UsingEntryNode
 
-    init(constant: ComplexConstantNode, as_name: String, span: String::Span = loop; end); end
+    init(constant: ComplexConstantNode, as_name: String, location: FS::Location = loop; end); end
     def constant: ComplexConstantNode; end
     def as_name: String; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

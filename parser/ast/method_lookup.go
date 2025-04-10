@@ -51,9 +51,9 @@ func (*MethodLookupNode) IsStatic() bool {
 }
 
 // Create a new method lookup expression node eg. `Foo::bar`, `a::c`
-func NewMethodLookupNode(span *position.Span, receiver ExpressionNode, name string) *MethodLookupNode {
+func NewMethodLookupNode(loc *position.Location, receiver ExpressionNode, name string) *MethodLookupNode {
 	return &MethodLookupNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Receiver:      receiver,
 		Name:          name,
 	}
@@ -70,7 +70,7 @@ func (*MethodLookupNode) DirectClass() *value.Class {
 func (n *MethodLookupNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::MethodLookupNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::MethodLookupNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  receiver: ")
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
@@ -102,7 +102,7 @@ func (n *MethodLookupAsNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.MethodLookup.Equal(value.Ref(o.MethodLookup)) &&
 		n.AsName == o.AsName
 }
@@ -123,9 +123,9 @@ func (*MethodLookupAsNode) IsStatic() bool {
 }
 
 // Create a new identifier with as eg. `Foo::bar as Bar`.
-func NewMethodLookupAsNode(span *position.Span, methodLookup *MethodLookupNode, as string) *MethodLookupAsNode {
+func NewMethodLookupAsNode(loc *position.Location, methodLookup *MethodLookupNode, as string) *MethodLookupAsNode {
 	return &MethodLookupAsNode{
-		NodeBase:     NodeBase{span: span},
+		NodeBase:     NodeBase{loc: loc},
 		MethodLookup: methodLookup,
 		AsName:       as,
 	}
@@ -142,7 +142,7 @@ func (*MethodLookupAsNode) DirectClass() *value.Class {
 func (n *MethodLookupAsNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::MethodLookupAsNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::MethodLookupAsNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  method_lookup: ")
 	indent.IndentStringFromSecondLine(&buff, n.MethodLookup.Inspect(), 1)

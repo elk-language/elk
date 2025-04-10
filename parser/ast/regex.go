@@ -49,7 +49,7 @@ func (n *UninterpolatedRegexLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Content == o.Content &&
 		n.Flags == o.Flags
 }
@@ -155,8 +155,8 @@ func (*UninterpolatedRegexLiteralNode) DirectClass() *value.Class {
 
 func (n *UninterpolatedRegexLiteralNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::UninterpolatedRegexLiteralNode{span: %s, content: %s, flags: %d}",
-		(*value.Span)(n.span).Inspect(),
+		"Std::Elk::AST::UninterpolatedRegexLiteralNode{location: %s, content: %s, flags: %d}",
+		(*value.Location)(n.loc).Inspect(),
 		value.String(n.Content).Inspect(),
 		n.Flags.Byte(),
 	)
@@ -167,9 +167,9 @@ func (n *UninterpolatedRegexLiteralNode) Error() string {
 }
 
 // Create a new uninterpolated regex literal node eg. `%/foo/`.
-func NewUninterpolatedRegexLiteralNode(span *position.Span, content string, flags bitfield.BitField8) *UninterpolatedRegexLiteralNode {
+func NewUninterpolatedRegexLiteralNode(loc *position.Location, content string, flags bitfield.BitField8) *UninterpolatedRegexLiteralNode {
 	return &UninterpolatedRegexLiteralNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Content:  content,
 		Flags:    flags,
 	}
@@ -188,7 +188,7 @@ func (n *RegexLiteralContentSectionNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *RegexLiteralContentSectionNode) String() string {
@@ -205,8 +205,8 @@ func (*RegexLiteralContentSectionNode) DirectClass() *value.Class {
 
 func (n *RegexLiteralContentSectionNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::RegexLiteralContentSectionNode{span: %s, value: %s}",
-		(*value.Span)(n.span).Inspect(),
+		"Std::Elk::AST::RegexLiteralContentSectionNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
 		value.String(n.Value).Inspect(),
 	)
 }
@@ -220,9 +220,9 @@ func (*RegexLiteralContentSectionNode) IsStatic() bool {
 }
 
 // Create a new regex literal content section node eg. `foo` in `%/foo${bar}/`.
-func NewRegexLiteralContentSectionNode(span *position.Span, val string) *RegexLiteralContentSectionNode {
+func NewRegexLiteralContentSectionNode(loc *position.Location, val string) *RegexLiteralContentSectionNode {
 	return &RegexLiteralContentSectionNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Value:    val,
 	}
 }
@@ -240,7 +240,7 @@ func (n *RegexInterpolationNode) Equal(other value.Value) bool {
 	}
 
 	return n.Expression.Equal(value.Ref(o.Expression)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *RegexInterpolationNode) String() string {
@@ -268,7 +268,7 @@ func (*RegexInterpolationNode) DirectClass() *value.Class {
 func (n *RegexInterpolationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::RegexInterpolationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::RegexInterpolationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
@@ -283,9 +283,9 @@ func (n *RegexInterpolationNode) Error() string {
 }
 
 // Create a new regex interpolation node eg. `bar + 2` in `%/foo${bar + 2}/`
-func NewRegexInterpolationNode(span *position.Span, expr ExpressionNode) *RegexInterpolationNode {
+func NewRegexInterpolationNode(loc *position.Location, expr ExpressionNode) *RegexInterpolationNode {
 	return &RegexInterpolationNode{
-		NodeBase:   NodeBase{span: span},
+		NodeBase:   NodeBase{loc: loc},
 		Expression: expr,
 	}
 }
@@ -313,7 +313,7 @@ func (n *InterpolatedRegexLiteralNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span) && n.Flags == o.Flags
+	return n.loc.Equal(o.loc) && n.Flags == o.Flags
 }
 
 func (n *InterpolatedRegexLiteralNode) String() string {
@@ -421,7 +421,7 @@ func (*InterpolatedRegexLiteralNode) DirectClass() *value.Class {
 func (n *InterpolatedRegexLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::InterpolatedRegexLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::InterpolatedRegexLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  content: %[\n")
 	for i, stmt := range n.Content {
@@ -443,9 +443,9 @@ func (n *InterpolatedRegexLiteralNode) Error() string {
 }
 
 // Create a new interpolated regex literal node eg. `%/foo${1 + 3}bar/`.
-func NewInterpolatedRegexLiteralNode(span *position.Span, content []RegexLiteralContentNode, flags bitfield.BitField8) *InterpolatedRegexLiteralNode {
+func NewInterpolatedRegexLiteralNode(loc *position.Location, content []RegexLiteralContentNode, flags bitfield.BitField8) *InterpolatedRegexLiteralNode {
 	return &InterpolatedRegexLiteralNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Content:  content,
 		Flags:    flags,
 	}

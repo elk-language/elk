@@ -5,9 +5,9 @@ module Std::Elk::AST
   sealed primitive class SubscriptExpressionNode
     include ExpressionNode
 
-    init(receiver: ExpressionNode, key: ExpressionNode, span: String::Span = loop; end); end
+    init(receiver: ExpressionNode, key: ExpressionNode, location: FS::Location = loop; end); end
     def receiver: ExpressionNode; end
     def key: ExpressionNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

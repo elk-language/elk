@@ -9,7 +9,7 @@ module Std::Elk::AST
       type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
       body: ArrayTuple[StatementNode] = loop; end,
       doc_comment: String = "",
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def doc_comment: String; end
@@ -17,6 +17,6 @@ module Std::Elk::AST
     def constant: ExpressionNode?; end
     def type_parameters: ArrayTuple[TypeParameterNode]; end
     def body: ArrayTuple[StatementNode]; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

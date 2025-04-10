@@ -29,6 +29,11 @@ var P = position.New
 // Create a new span in tests
 var S = position.NewSpan
 
+// Create a new location in tests
+func L(span *position.Span) *position.Location {
+	return position.NewLocation("<main>", span)
+}
+
 // Function which powers all lexer tests.
 // Inspects if the produced stream of tokens
 // matches the expected one.

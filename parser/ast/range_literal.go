@@ -44,7 +44,7 @@ func (n *RangeLiteralNode) Equal(other value.Value) bool {
 	return n.Start.Equal(value.Ref(o.Start)) &&
 		n.End.Equal(value.Ref(o.End)) &&
 		n.Op.Equal(o.Op) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *RangeLiteralNode) String() string {
@@ -79,9 +79,9 @@ func (r *RangeLiteralNode) IsStatic() bool {
 }
 
 // Create a Range literal node eg. `1...5`
-func NewRangeLiteralNode(span *position.Span, op *token.Token, start, end ExpressionNode) *RangeLiteralNode {
+func NewRangeLiteralNode(loc *position.Location, op *token.Token, start, end ExpressionNode) *RangeLiteralNode {
 	return &RangeLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Op:            op,
 		Start:         start,
 		End:           end,
@@ -100,7 +100,7 @@ func (*RangeLiteralNode) DirectClass() *value.Class {
 func (n *RangeLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::RangeLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::RangeLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  start: ")
 	indent.IndentStringFromSecondLine(&buff, n.Start.Inspect(), 1)

@@ -47,7 +47,7 @@ func (n *ProgramNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *ProgramNode) String() string {
@@ -74,7 +74,7 @@ func (*ProgramNode) DirectClass() *value.Class {
 func (n *ProgramNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ProgramNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ProgramNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  body: %[\n")
 	for i, stmt := range n.Body {
@@ -96,9 +96,9 @@ func (p *ProgramNode) Error() string {
 }
 
 // Create a new program node.
-func NewProgramNode(span *position.Span, body []StatementNode) *ProgramNode {
+func NewProgramNode(loc *position.Location, body []StatementNode) *ProgramNode {
 	return &ProgramNode{
-		NodeBase: NodeBase{span: span},
+		NodeBase: NodeBase{loc: loc},
 		Body:     body,
 	}
 }

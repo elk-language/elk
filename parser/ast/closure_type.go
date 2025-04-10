@@ -48,7 +48,7 @@ func (n *ClosureTypeNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return true
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -104,7 +104,7 @@ func (*ClosureTypeNode) DirectClass() *value.Class {
 func (n *ClosureTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureTypeNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureTypeNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  return_type: ")
 	indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
@@ -135,9 +135,9 @@ func (*ClosureTypeNode) IsStatic() bool {
 }
 
 // Create a new closure type node eg. `|i: Int|: String`
-func NewClosureTypeNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode) *ClosureTypeNode {
+func NewClosureTypeNode(loc *position.Location, params []ParameterNode, retType TypeNode, throwType TypeNode) *ClosureTypeNode {
 	return &ClosureTypeNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Parameters:    params,
 		ReturnType:    retType,
 		ThrowType:     throwType,

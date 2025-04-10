@@ -22,7 +22,7 @@ func (n *TypeofExpressionNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value.Equal(value.Ref(o.Value)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *TypeofExpressionNode) String() string {
@@ -46,9 +46,9 @@ func (*TypeofExpressionNode) IsStatic() bool {
 }
 
 // Create a new `typeof` expression node eg. `typeof foo()`
-func NewTypeofExpressionNode(span *position.Span, val ExpressionNode) *TypeofExpressionNode {
+func NewTypeofExpressionNode(loc *position.Location, val ExpressionNode) *TypeofExpressionNode {
 	return &TypeofExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -64,7 +64,7 @@ func (*TypeofExpressionNode) DirectClass() *value.Class {
 func (n *TypeofExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::TypeofExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::TypeofExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

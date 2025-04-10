@@ -55,7 +55,7 @@ func (n *NumericForExpressionNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 func (n *NumericForExpressionNode) String() string {
@@ -96,9 +96,9 @@ func (*NumericForExpressionNode) IsStatic() bool {
 }
 
 // Create a new numeric `fornum` expression eg. `for i := 0; i < 10; i += 1 then println(i)`
-func NewNumericForExpressionNode(span *position.Span, init, cond, incr ExpressionNode, then []StatementNode) *NumericForExpressionNode {
+func NewNumericForExpressionNode(loc *position.Location, init, cond, incr ExpressionNode, then []StatementNode) *NumericForExpressionNode {
 	return &NumericForExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Initialiser:   init,
 		Condition:     cond,
 		Increment:     incr,
@@ -117,7 +117,7 @@ func (*NumericForExpressionNode) DirectClass() *value.Class {
 func (n *NumericForExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::NumericForExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::NumericForExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  initialiser: ")
 	indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)

@@ -8,8 +8,8 @@ module Std::Elk::AST
             PatternNode,
             StringLiteralNode
 
-    init(content: ArrayTuple[StringLiteralContentNode], span: String::Span = loop; end); end
+    init(content: ArrayTuple[StringLiteralContentNode], location: FS::Location = loop; end); end
     def content: ArrayTuple[StringLiteralContentNode]; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

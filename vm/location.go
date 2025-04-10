@@ -19,7 +19,7 @@ func initLocation() {
 			span := (*value.Span)(args[2].Pointer())
 
 			self.FilePath = path.String()
-			self.Span = *(*position.Span)(span)
+			self.Span = (*position.Span)(span)
 			return value.Ref(self), value.Undefined
 		},
 		DefWithParameters(2),

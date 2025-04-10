@@ -16,14 +16,14 @@ func initKeyValuePatternNode() {
 			argKey := args[1].MustReference().(ast.PatternExpressionNode)
 			argValue := args[2].MustReference().(ast.PatternNode)
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[3].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.ZeroLocation
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argLoc = (*position.Location)(args[3].Pointer())
 			}
 			self := ast.NewKeyValuePatternNode(
-				argSpan,
+				argLoc,
 				argKey,
 				argValue,
 			)

@@ -10,13 +10,13 @@ module Std::Elk::AST
       type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
       body: ArrayTuple[StructBodyStatementNode] = loop; end,
       doc_comment: String = "",
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def doc_comment: String; end
     def constant: ExpressionNode?; end
     def type_parameters: ArrayTuple[TypeParameterNode]; end
     def body: ArrayTuple[StructBodyStatementNode]; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

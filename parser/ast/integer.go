@@ -20,7 +20,7 @@ func (n *IntLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *IntLiteralNode) String() string {
@@ -40,7 +40,10 @@ func (*IntLiteralNode) DirectClass() *value.Class {
 }
 
 func (n *IntLiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::IntLiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::IntLiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(), n.Value,
+	)
 }
 
 func (n *IntLiteralNode) Error() string {
@@ -48,9 +51,9 @@ func (n *IntLiteralNode) Error() string {
 }
 
 // Create a new int literal node eg. `5`, `125_355`, `0xff`
-func NewIntLiteralNode(span *position.Span, val string) *IntLiteralNode {
+func NewIntLiteralNode(loc *position.Location, val string) *IntLiteralNode {
 	return &IntLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -68,7 +71,7 @@ func (n *Int64LiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *Int64LiteralNode) String() string {
@@ -88,7 +91,11 @@ func (*Int64LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *Int64LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::Int64LiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::Int64LiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *Int64LiteralNode) Error() string {
@@ -96,9 +103,9 @@ func (n *Int64LiteralNode) Error() string {
 }
 
 // Create a new Int64 literal node eg. `5i64`, `125_355i64`, `0xffi64`
-func NewInt64LiteralNode(span *position.Span, val string) *Int64LiteralNode {
+func NewInt64LiteralNode(loc *position.Location, val string) *Int64LiteralNode {
 	return &Int64LiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -116,7 +123,7 @@ func (n *UInt64LiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *UInt64LiteralNode) String() string {
@@ -136,7 +143,11 @@ func (*UInt64LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *UInt64LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::UInt64LiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::UInt64LiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *UInt64LiteralNode) Error() string {
@@ -144,9 +155,9 @@ func (n *UInt64LiteralNode) Error() string {
 }
 
 // Create a new UInt64 literal node eg. `5u64`, `125_355u64`, `0xffu64`
-func NewUInt64LiteralNode(span *position.Span, val string) *UInt64LiteralNode {
+func NewUInt64LiteralNode(loc *position.Location, val string) *UInt64LiteralNode {
 	return &UInt64LiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -164,7 +175,7 @@ func (n *Int32LiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *Int32LiteralNode) String() string {
@@ -184,7 +195,7 @@ func (*Int32LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *Int32LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::Int32LiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf("Std::Elk::AST::Int32LiteralNode{location: %s, value: %s}", (*value.Location)(n.loc).Inspect(), n.Value)
 }
 
 func (n *Int32LiteralNode) Error() string {
@@ -192,9 +203,9 @@ func (n *Int32LiteralNode) Error() string {
 }
 
 // Create a new Int32 literal node eg. `5i32`, `1_20i32`, `0xffi32`
-func NewInt32LiteralNode(span *position.Span, val string) *Int32LiteralNode {
+func NewInt32LiteralNode(loc *position.Location, val string) *Int32LiteralNode {
 	return &Int32LiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -212,7 +223,7 @@ func (n *UInt32LiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *UInt32LiteralNode) String() string {
@@ -232,7 +243,11 @@ func (*UInt32LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *UInt32LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::UInt32LiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::UInt32LiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *UInt32LiteralNode) Error() string {
@@ -240,9 +255,9 @@ func (n *UInt32LiteralNode) Error() string {
 }
 
 // Create a new UInt32 literal node eg. `5u32`, `1_20u32`, `0xffu32`
-func NewUInt32LiteralNode(span *position.Span, val string) *UInt32LiteralNode {
+func NewUInt32LiteralNode(loc *position.Location, val string) *UInt32LiteralNode {
 	return &UInt32LiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -260,7 +275,7 @@ func (n *Int16LiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *Int16LiteralNode) String() string {
@@ -280,7 +295,11 @@ func (*Int16LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *Int16LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::Int16LiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::Int16LiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *Int16LiteralNode) Error() string {
@@ -288,9 +307,9 @@ func (n *Int16LiteralNode) Error() string {
 }
 
 // Create a new Int16 literal node eg. `5i16`, `1_20i16`, `0xffi16`
-func NewInt16LiteralNode(span *position.Span, val string) *Int16LiteralNode {
+func NewInt16LiteralNode(loc *position.Location, val string) *Int16LiteralNode {
 	return &Int16LiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -308,7 +327,7 @@ func (n *UInt16LiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *UInt16LiteralNode) String() string {
@@ -328,7 +347,11 @@ func (*UInt16LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *UInt16LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::UInt16LiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::UInt16LiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *UInt16LiteralNode) Error() string {
@@ -336,9 +359,9 @@ func (n *UInt16LiteralNode) Error() string {
 }
 
 // Create a new UInt16 literal node eg. `5u16`, `1_20u16`, `0xffu16`
-func NewUInt16LiteralNode(span *position.Span, val string) *UInt16LiteralNode {
+func NewUInt16LiteralNode(loc *position.Location, val string) *UInt16LiteralNode {
 	return &UInt16LiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -356,7 +379,7 @@ func (n *Int8LiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *Int8LiteralNode) String() string {
@@ -376,7 +399,11 @@ func (*Int8LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *Int8LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::Int8LiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::Int8LiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *Int8LiteralNode) Error() string {
@@ -384,9 +411,9 @@ func (n *Int8LiteralNode) Error() string {
 }
 
 // Create a new Int8 literal node eg. `5i8`, `1_20i8`, `0xffi8`
-func NewInt8LiteralNode(span *position.Span, val string) *Int8LiteralNode {
+func NewInt8LiteralNode(loc *position.Location, val string) *Int8LiteralNode {
 	return &Int8LiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -404,7 +431,7 @@ func (n *UInt8LiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *UInt8LiteralNode) String() string {
@@ -424,7 +451,11 @@ func (*UInt8LiteralNode) DirectClass() *value.Class {
 }
 
 func (n *UInt8LiteralNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::UInt8LiteralNode{span: %s, value: %s}", (*value.Span)(n.span).Inspect(), n.Value)
+	return fmt.Sprintf(
+		"Std::Elk::AST::UInt8LiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
 }
 
 func (n *UInt8LiteralNode) Error() string {
@@ -432,9 +463,9 @@ func (n *UInt8LiteralNode) Error() string {
 }
 
 // Create a new UInt8 literal node eg. `5u8`, `1_20u8`, `0xffu8`
-func NewUInt8LiteralNode(span *position.Span, val string) *UInt8LiteralNode {
+func NewUInt8LiteralNode(loc *position.Location, val string) *UInt8LiteralNode {
 	return &UInt8LiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }

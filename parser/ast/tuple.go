@@ -21,17 +21,17 @@ func (t *ArrayTupleLiteralNode) IsStatic() bool {
 }
 
 // Create a ArrayTuple literal node eg. `%[1, 5, -6]`
-func NewArrayTupleLiteralNode(span *position.Span, elements []ExpressionNode) *ArrayTupleLiteralNode {
+func NewArrayTupleLiteralNode(loc *position.Location, elements []ExpressionNode) *ArrayTupleLiteralNode {
 	return &ArrayTupleLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		static:        isExpressionSliceStatic(elements),
 	}
 }
 
 // Same as [NewArrayTupleLiteralNode] but returns an interface
-func NewArrayTupleLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
-	return NewArrayTupleLiteralNode(span, elements)
+func NewArrayTupleLiteralNodeI(loc *position.Location, elements []ExpressionNode) ExpressionNode {
+	return NewArrayTupleLiteralNode(loc, elements)
 }
 
 func (*ArrayTupleLiteralNode) Class() *value.Class {
@@ -106,7 +106,7 @@ func (n *ArrayTupleLiteralNode) String() string {
 func (n *ArrayTupleLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.Span()).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ArrayTupleLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -138,7 +138,7 @@ func (n *WordArrayTupleLiteralNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.span.Equal(o.span) ||
+	if !n.loc.Equal(o.loc) ||
 		len(n.Elements) != len(o.Elements) {
 		return false
 	}
@@ -180,21 +180,21 @@ func (*WordArrayTupleLiteralNode) IsStatic() bool {
 }
 
 // Create a word ArrayTuple literal node eg. `%w[foo bar]`
-func NewWordArrayTupleLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordArrayTupleLiteralNode {
+func NewWordArrayTupleLiteralNode(loc *position.Location, elements []WordCollectionContentNode) *WordArrayTupleLiteralNode {
 	return &WordArrayTupleLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 	}
 }
 
 // Same as [NewWordArrayTupleLiteralNode] but returns an interface.
-func NewWordArrayTupleLiteralExpressionNode(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
-	return NewWordArrayTupleLiteralNode(span, elements)
+func NewWordArrayTupleLiteralExpressionNode(loc *position.Location, elements []WordCollectionContentNode) ExpressionNode {
+	return NewWordArrayTupleLiteralNode(loc, elements)
 }
 
 // Same as [NewWordArrayTupleLiteralNode] but returns an interface.
-func NewWordArrayTupleLiteralPatternExpressionNode(span *position.Span, elements []WordCollectionContentNode) PatternExpressionNode {
-	return NewWordArrayTupleLiteralNode(span, elements)
+func NewWordArrayTupleLiteralPatternExpressionNode(loc *position.Location, elements []WordCollectionContentNode) PatternExpressionNode {
+	return NewWordArrayTupleLiteralNode(loc, elements)
 }
 
 func (*WordArrayTupleLiteralNode) Class() *value.Class {
@@ -208,7 +208,7 @@ func (*WordArrayTupleLiteralNode) DirectClass() *value.Class {
 func (n *WordArrayTupleLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayTupleLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -242,7 +242,7 @@ func (n *SymbolArrayTupleLiteralNode) Equal(other value.Value) bool {
 	}
 
 	if len(n.Elements) != len(o.Elements) ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -284,21 +284,21 @@ func (*SymbolArrayTupleLiteralNode) IsStatic() bool {
 }
 
 // Create a symbol arrayTuple literal node eg. `%s[foo bar]`
-func NewSymbolArrayTupleLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolArrayTupleLiteralNode {
+func NewSymbolArrayTupleLiteralNode(loc *position.Location, elements []SymbolCollectionContentNode) *SymbolArrayTupleLiteralNode {
 	return &SymbolArrayTupleLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 	}
 }
 
 // Same as [NewSymbolArrayTupleLiteralNode] but returns an interface.
-func NewSymbolArrayTupleLiteralExpressionNode(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
-	return NewSymbolArrayTupleLiteralNode(span, elements)
+func NewSymbolArrayTupleLiteralExpressionNode(loc *position.Location, elements []SymbolCollectionContentNode) ExpressionNode {
+	return NewSymbolArrayTupleLiteralNode(loc, elements)
 }
 
 // Same as [NewSymbolArrayTupleLiteralNode] but returns an interface.
-func NewSymbolArrayTupleLiteralPatternExpressionNode(span *position.Span, elements []SymbolCollectionContentNode) PatternExpressionNode {
-	return NewSymbolArrayTupleLiteralNode(span, elements)
+func NewSymbolArrayTupleLiteralPatternExpressionNode(loc *position.Location, elements []SymbolCollectionContentNode) PatternExpressionNode {
+	return NewSymbolArrayTupleLiteralNode(loc, elements)
 }
 
 func (*SymbolArrayTupleLiteralNode) Class() *value.Class {
@@ -312,7 +312,7 @@ func (*SymbolArrayTupleLiteralNode) DirectClass() *value.Class {
 func (n *SymbolArrayTupleLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayTupleLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -355,7 +355,7 @@ func (n *HexArrayTupleLiteralNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -387,21 +387,21 @@ func (*HexArrayTupleLiteralNode) IsStatic() bool {
 }
 
 // Create a hex ArrayTuple literal node eg. `%x[ff ee]`
-func NewHexArrayTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexArrayTupleLiteralNode {
+func NewHexArrayTupleLiteralNode(loc *position.Location, elements []IntCollectionContentNode) *HexArrayTupleLiteralNode {
 	return &HexArrayTupleLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 	}
 }
 
 // Same as [NewHexArrayTupleLiteralNode] but returns an interface.
-func NewHexArrayTupleLiteralExpressionNode(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return NewHexArrayTupleLiteralNode(span, elements)
+func NewHexArrayTupleLiteralExpressionNode(loc *position.Location, elements []IntCollectionContentNode) ExpressionNode {
+	return NewHexArrayTupleLiteralNode(loc, elements)
 }
 
 // Same as [NewHexArrayTupleLiteralNode] but returns an interface.
-func NewHexArrayTupleLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
-	return NewHexArrayTupleLiteralNode(span, elements)
+func NewHexArrayTupleLiteralPatternExpressionNode(loc *position.Location, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewHexArrayTupleLiteralNode(loc, elements)
 }
 
 func (*HexArrayTupleLiteralNode) Class() *value.Class {
@@ -415,7 +415,7 @@ func (*HexArrayTupleLiteralNode) DirectClass() *value.Class {
 func (n *HexArrayTupleLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayTupleLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -494,21 +494,21 @@ func (*BinArrayTupleLiteralNode) IsStatic() bool {
 }
 
 // Create a bin ArrayList literal node eg. `%b[11 10]`
-func NewBinArrayTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinArrayTupleLiteralNode {
+func NewBinArrayTupleLiteralNode(loc *position.Location, elements []IntCollectionContentNode) *BinArrayTupleLiteralNode {
 	return &BinArrayTupleLiteralNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 	}
 }
 
 // Same as [NewBinArrayTupleLiteralNode] but returns an interface.
-func NewBinArrayTupleLiteralExpressionNode(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return NewBinArrayTupleLiteralNode(span, elements)
+func NewBinArrayTupleLiteralExpressionNode(loc *position.Location, elements []IntCollectionContentNode) ExpressionNode {
+	return NewBinArrayTupleLiteralNode(loc, elements)
 }
 
 // Same as [NewBinArrayTupleLiteralNode] but returns an interface.
-func NewBinArrayTupleLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
-	return NewBinArrayTupleLiteralNode(span, elements)
+func NewBinArrayTupleLiteralPatternExpressionNode(loc *position.Location, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewBinArrayTupleLiteralNode(loc, elements)
 }
 
 func (*BinArrayTupleLiteralNode) Class() *value.Class {
@@ -522,7 +522,7 @@ func (*BinArrayTupleLiteralNode) DirectClass() *value.Class {
 func (n *BinArrayTupleLiteralNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayTupleLiteralNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayTupleLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {
@@ -555,7 +555,7 @@ func (n *TuplePatternNode) Equal(other value.Value) bool {
 	}
 
 	if len(n.Elements) != len(o.Elements) ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -588,16 +588,16 @@ func (l *TuplePatternNode) IsStatic() bool {
 }
 
 // Create a Tuple pattern node eg. `%[1, a, >= 10]`
-func NewTuplePatternNode(span *position.Span, elements []PatternNode) *TuplePatternNode {
+func NewTuplePatternNode(loc *position.Location, elements []PatternNode) *TuplePatternNode {
 	return &TuplePatternNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 	}
 }
 
 // Same as [NewTuplePatternNode] but returns an interface
-func NewTuplePatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
-	return NewTuplePatternNode(span, elements)
+func NewTuplePatternNodeI(loc *position.Location, elements []PatternNode) PatternNode {
+	return NewTuplePatternNode(loc, elements)
 }
 
 func (*TuplePatternNode) Class() *value.Class {
@@ -611,7 +611,7 @@ func (*TuplePatternNode) DirectClass() *value.Class {
 func (n *TuplePatternNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::TuplePatternNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::TuplePatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  elements: %[\n")
 	for i, element := range n.Elements {

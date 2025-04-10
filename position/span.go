@@ -21,6 +21,7 @@ func NewSpan(startPos, endPos *Position) *Span {
 }
 
 var DefaultSpan = NewSpanFromPosition(Default)
+var ZeroSpan = NewSpanFromPosition(Zero)
 
 // Create a new span from a single position.
 func NewSpanFromPosition(pos *Position) *Span {

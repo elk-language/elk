@@ -23,7 +23,7 @@ func (n *DoubleSplatExpressionNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value.Equal(value.Ref(o.Value)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -59,7 +59,7 @@ func (*DoubleSplatExpressionNode) DirectClass() *value.Class {
 func (n *DoubleSplatExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::DoubleSplatExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::DoubleSplatExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
@@ -74,9 +74,9 @@ func (n *DoubleSplatExpressionNode) Error() string {
 }
 
 // Create a double splat expression node eg. `**foo`
-func NewDoubleSplatExpressionNode(span *position.Span, val ExpressionNode) *DoubleSplatExpressionNode {
+func NewDoubleSplatExpressionNode(loc *position.Location, val ExpressionNode) *DoubleSplatExpressionNode {
 	return &DoubleSplatExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -94,7 +94,7 @@ func (n *SplatExpressionNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value.Equal(value.Ref(o.Value)) &&
-		n.span.Equal(o.span)
+		n.loc.Equal(o.loc)
 }
 
 func (n *SplatExpressionNode) String() string {
@@ -129,7 +129,7 @@ func (*SplatExpressionNode) DirectClass() *value.Class {
 func (n *SplatExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::SplatExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SplatExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
@@ -144,9 +144,9 @@ func (n *SplatExpressionNode) Error() string {
 }
 
 // Create a splat expression node eg. `*foo`
-func NewSplatExpressionNode(span *position.Span, val ExpressionNode) *SplatExpressionNode {
+func NewSplatExpressionNode(loc *position.Location, val ExpressionNode) *SplatExpressionNode {
 	return &SplatExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }

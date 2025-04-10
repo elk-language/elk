@@ -12,7 +12,7 @@ module Std::Elk::AST
       op: Elk::Token = loop; end,
       positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
       named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def receiver: ExpressionNode; end
@@ -21,6 +21,6 @@ module Std::Elk::AST
     def type_arguments: ArrayTuple[TypeNode]; end
     def positional_arguments: ArrayTuple[ExpressionNode]; end
     def named_arguments: ArrayTuple[NamedArgumentNode]; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

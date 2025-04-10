@@ -5,9 +5,9 @@ module Std::Elk::AST
   sealed primitive class LabeledExpressionNode
     include ExpressionNode
 
-    init(label: String, expression: ExpressionNode, span: String::Span = loop; end); end
+    init(label: String, expression: ExpressionNode, location: FS::Location = loop; end); end
     def label: String; end
     def expression: ExpressionNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

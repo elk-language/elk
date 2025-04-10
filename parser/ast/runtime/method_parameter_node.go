@@ -31,14 +31,14 @@ func initMethodParameterNode() {
 				argKind = ast.ParameterKind(args[5].AsUInt8())
 			}
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[6].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.ZeroLocation
 			} else {
-				argSpan = (*position.Span)(args[6].Pointer())
+				argLoc = (*position.Location)(args[6].Pointer())
 			}
 			self := ast.NewMethodParameterNode(
-				argSpan,
+				argLoc,
 				argName,
 				argSetInstanceVariable,
 				argTypeNode,

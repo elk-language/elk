@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class ParameterStatementNode
     include StructBodyStatementNode
 
-    init(parameter: ParameterNode, span: String::Span = loop; end); end
+    init(parameter: ParameterNode, location: FS::Location = loop; end); end
     def parameter: ParameterNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

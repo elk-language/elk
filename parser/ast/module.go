@@ -24,7 +24,7 @@ func (n *ModuleDeclarationNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.span.Equal(o.span) ||
+	if !n.loc.Equal(o.loc) ||
 		n.comment != o.comment ||
 		len(n.Body) != len(o.Body) {
 		return false
@@ -86,14 +86,14 @@ func (*ModuleDeclarationNode) IsStatic() bool {
 
 // Create a new module declaration node eg. `module Foo; end`
 func NewModuleDeclarationNode(
-	span *position.Span,
+	loc *position.Location,
 	docComment string,
 	constant ExpressionNode,
 	body []StatementNode,
 ) *ModuleDeclarationNode {
 
 	return &ModuleDeclarationNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
@@ -113,7 +113,7 @@ func (*ModuleDeclarationNode) DirectClass() *value.Class {
 func (n *ModuleDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ModuleDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ModuleDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)

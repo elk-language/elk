@@ -13,9 +13,12 @@ var L = position.NewLocation
 // Create a new position in tests
 var P = position.New
 
+// Create a new span in tests
+var S = position.NewSpan
+
 func TestDiagnosticString(t *testing.T) {
 	err := NewDiagnostic(
-		L("/opt/elk", P(0, 2, 1), P(5, 2, 1)),
+		L("/opt/elk", S(P(0, 2, 1), P(5, 2, 1))),
 		"foo bar",
 		FAIL,
 	)
@@ -29,22 +32,22 @@ func TestDiagnosticString(t *testing.T) {
 func TestDiagnosticListAdd(t *testing.T) {
 	got := DiagnosticList{
 		NewDiagnostic(
-			L("/opt/elk", P(0, 1, 1), P(5, 2, 1)),
+			L("/opt/elk", S(P(0, 1, 1), P(5, 2, 1))),
 			"foo bar",
 			FAIL,
 		),
 	}
 
-	got.Add("sick style dude!", L("/opt/elk", P(6, 2, 2), P(10, 2, 6)), FAIL)
+	got.Add("sick style dude!", L("/opt/elk", S(P(6, 2, 2), P(10, 2, 6))), FAIL)
 
 	want := DiagnosticList{
 		NewDiagnostic(
-			L("/opt/elk", P(0, 1, 1), P(5, 2, 1)),
+			L("/opt/elk", S(P(0, 1, 1), P(5, 2, 1))),
 			"foo bar",
 			FAIL,
 		),
 		NewDiagnostic(
-			L("/opt/elk", P(6, 2, 2), P(10, 2, 6)),
+			L("/opt/elk", S(P(6, 2, 2), P(10, 2, 6))),
 			"sick style dude!",
 			FAIL,
 		),
@@ -59,12 +62,12 @@ func TestDiagnosticListAdd(t *testing.T) {
 func TestDiagnosticListError(t *testing.T) {
 	err := DiagnosticList{
 		NewDiagnostic(
-			L("/some/path", P(5, 2, 1), P(5, 2, 1)),
+			L("/some/path", S(P(5, 2, 1), P(5, 2, 1))),
 			"foo bar",
 			FAIL,
 		),
 		NewDiagnostic(
-			L("<main>", P(20, 4, 5), P(25, 4, 10)),
+			L("<main>", S(P(20, 4, 5), P(25, 4, 10))),
 			"sick style dude!",
 			FAIL,
 		),
@@ -87,12 +90,12 @@ func TestDiagnosticListJoin(t *testing.T) {
 		"return left when right is nil": {
 			left: DiagnosticList{
 				NewDiagnostic(
-					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
+					L("/some/path", S(P(0, 1, 1), P(5, 2, 1))),
 					"foo bar",
 					FAIL,
 				),
 				NewDiagnostic(
-					L("<main>", P(18, 2, 3), P(20, 4, 5)),
+					L("<main>", S(P(18, 2, 3), P(20, 4, 5))),
 					"sick style dude!",
 					FAIL,
 				),
@@ -100,12 +103,12 @@ func TestDiagnosticListJoin(t *testing.T) {
 			right: nil,
 			want: DiagnosticList{
 				NewDiagnostic(
-					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
+					L("/some/path", S(P(0, 1, 1), P(5, 2, 1))),
 					"foo bar",
 					FAIL,
 				),
 				NewDiagnostic(
-					L("<main>", P(18, 2, 3), P(20, 4, 5)),
+					L("<main>", S(P(18, 2, 3), P(20, 4, 5))),
 					"sick style dude!",
 					FAIL,
 				),
@@ -115,24 +118,24 @@ func TestDiagnosticListJoin(t *testing.T) {
 			left: nil,
 			right: DiagnosticList{
 				NewDiagnostic(
-					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
+					L("/some/path", S(P(0, 1, 1), P(5, 2, 1))),
 					"foo bar",
 					FAIL,
 				),
 				NewDiagnostic(
-					L("<main>", P(18, 2, 3), P(20, 4, 5)),
+					L("<main>", S(P(18, 2, 3), P(20, 4, 5))),
 					"sick style dude!",
 					FAIL,
 				),
 			},
 			want: DiagnosticList{
 				NewDiagnostic(
-					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
+					L("/some/path", S(P(0, 1, 1), P(5, 2, 1))),
 					"foo bar",
 					FAIL,
 				),
 				NewDiagnostic(
-					L("<main>", P(18, 2, 3), P(20, 4, 5)),
+					L("<main>", S(P(18, 2, 3), P(20, 4, 5))),
 					"sick style dude!",
 					FAIL,
 				),
@@ -141,36 +144,36 @@ func TestDiagnosticListJoin(t *testing.T) {
 		"return joined list": {
 			left: DiagnosticList{
 				NewDiagnostic(
-					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
+					L("/some/path", S(P(0, 1, 1), P(5, 2, 1))),
 					"foo bar",
 					FAIL,
 				),
 				NewDiagnostic(
-					L("<main>", P(18, 2, 3), P(20, 4, 5)),
+					L("<main>", S(P(18, 2, 3), P(20, 4, 5))),
 					"sick style dude!",
 					FAIL,
 				),
 			},
 			right: DiagnosticList{
 				NewDiagnostic(
-					L("/foo/bar", P(50, 10, 2), P(51, 10, 3)),
+					L("/foo/bar", S(P(50, 10, 2), P(51, 10, 3))),
 					"baz",
 					FAIL,
 				),
 			},
 			want: DiagnosticList{
 				NewDiagnostic(
-					L("/some/path", P(0, 1, 1), P(5, 2, 1)),
+					L("/some/path", S(P(0, 1, 1), P(5, 2, 1))),
 					"foo bar",
 					FAIL,
 				),
 				NewDiagnostic(
-					L("<main>", P(18, 2, 3), P(20, 4, 5)),
+					L("<main>", S(P(18, 2, 3), P(20, 4, 5))),
 					"sick style dude!",
 					FAIL,
 				),
 				NewDiagnostic(
-					L("/foo/bar", P(50, 10, 2), P(51, 10, 3)),
+					L("/foo/bar", S(P(50, 10, 2), P(51, 10, 3))),
 					"baz",
 					FAIL,
 				),

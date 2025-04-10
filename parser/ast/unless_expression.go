@@ -26,7 +26,7 @@ func (n *UnlessExpressionNode) Equal(other value.Value) bool {
 	if len(n.ThenBody) != len(o.ThenBody) ||
 		len(n.ElseBody) != len(o.ElseBody) ||
 		!n.Condition.Equal(value.Ref(o.Condition)) ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -75,9 +75,9 @@ func (*UnlessExpressionNode) IsStatic() bool {
 }
 
 // Create a new `unless` expression node eg. `unless foo then println("bar")`
-func NewUnlessExpressionNode(span *position.Span, cond ExpressionNode, then, els []StatementNode) *UnlessExpressionNode {
+func NewUnlessExpressionNode(loc *position.Location, cond ExpressionNode, then, els []StatementNode) *UnlessExpressionNode {
 	return &UnlessExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		ThenBody:      then,
 		Condition:     cond,
 		ElseBody:      els,
@@ -95,7 +95,7 @@ func (*UnlessExpressionNode) DirectClass() *value.Class {
 func (n *UnlessExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::UnlessExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::UnlessExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  condition: ")
 	indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)

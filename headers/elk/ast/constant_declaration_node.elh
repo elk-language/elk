@@ -10,13 +10,13 @@ module Std::Elk::AST
       type_node: TypeNode? = nil,
       initialiser: ExpressionNode? = nil,
       doc_comment: String = "",
-      span: String::Span = loop; end,
+      location: FS::Location = loop; end,
     ); end
 
     def doc_comment: String; end
     def constant: ExpressionNode; end
     def type_node: TypeNode?; end
     def initialiser: ExpressionNode?; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

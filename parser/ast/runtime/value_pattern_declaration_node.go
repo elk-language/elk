@@ -16,14 +16,14 @@ func initValuePatternDeclarationNode() {
 			argPattern := args[1].MustReference().(ast.PatternNode)
 			argInitialiser := args[2].MustReference().(ast.ExpressionNode)
 
-			var argSpan *position.Span
+			var argLoc *position.Location
 			if args[3].IsUndefined() {
-				argSpan = position.DefaultSpan
+				argLoc = position.ZeroLocation
 			} else {
-				argSpan = (*position.Span)(args[3].Pointer())
+				argLoc = (*position.Location)(args[3].Pointer())
 			}
 			self := ast.NewValuePatternDeclarationNode(
-				argSpan,
+				argLoc,
 				argPattern,
 				argInitialiser,
 			)

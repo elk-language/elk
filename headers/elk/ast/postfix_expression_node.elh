@@ -5,9 +5,9 @@ module Std::Elk::AST
   sealed primitive class PostfixExpressionNode
     include ExpressionNode
 
-    init(op: Elk::Token, expression: ExpressionNode, span: String::Span = loop; end); end
+    init(op: Elk::Token, expression: ExpressionNode, location: FS::Location = loop; end); end
     def op: Elk::Token; end
     def expression: ExpressionNode; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

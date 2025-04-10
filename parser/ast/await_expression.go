@@ -20,9 +20,9 @@ func (*AwaitExpressionNode) IsStatic() bool {
 }
 
 // Create a new `await` expression node eg. `await foo()`
-func NewAwaitExpressionNode(span *position.Span, val ExpressionNode) *AwaitExpressionNode {
+func NewAwaitExpressionNode(loc *position.Location, val ExpressionNode) *AwaitExpressionNode {
 	return &AwaitExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -32,7 +32,7 @@ func (n *AwaitExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if !n.Span().Equal(o.Span()) {
+	if !n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -74,7 +74,7 @@ func (*AwaitExpressionNode) DirectClass() *value.Class {
 func (n *AwaitExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::AwaitExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::AwaitExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

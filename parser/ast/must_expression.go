@@ -21,7 +21,7 @@ func (n *MustExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Value.Equal(value.Ref(o.Value))
 }
 
@@ -39,9 +39,9 @@ func (*MustExpressionNode) IsStatic() bool {
 }
 
 // Create a new `must` expression node eg. `must foo()`
-func NewMustExpressionNode(span *position.Span, val ExpressionNode) *MustExpressionNode {
+func NewMustExpressionNode(loc *position.Location, val ExpressionNode) *MustExpressionNode {
 	return &MustExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
@@ -57,7 +57,7 @@ func (*MustExpressionNode) DirectClass() *value.Class {
 func (n *MustExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::MustExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::MustExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

@@ -9,12 +9,12 @@ module Std::Elk::AST
       method_name: String,
       positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
       named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
-      span: String::Span = loop; end
+      location: FS::Location = loop; end
     ); end
 
     def method_name: String; end
     def positional_arguments: ArrayTuple[ExpressionNode]; end
     def named_arguments: ArrayTuple[NamedArgumentNode]; end
-    def span: String::Span; end
+    def location: FS::Location; end
   end
 end

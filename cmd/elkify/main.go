@@ -387,7 +387,7 @@ func generateConstructorForStruct(buffer *bytes.Buffer, structDef *structDefinit
 		len(structDef.fields),
 	)
 
-	fmt.Fprintf(buffer, "self := ast.New%s(\nargSpan,\n", structDef.name)
+	fmt.Fprintf(buffer, "self := ast.New%s(\nargLoc,\n", structDef.name)
 	for i, fld := range structDef.fields {
 		if i == len(structDef.fields)-1 {
 			continue

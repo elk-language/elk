@@ -32,7 +32,7 @@ func (n *IncludeExpressionNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.span.Equal(o.span)
+	return n.loc.Equal(o.loc)
 }
 
 // Return a string representation of the node.
@@ -60,9 +60,9 @@ func (*IncludeExpressionNode) IsStatic() bool {
 }
 
 // Create an include expression node eg. `include Enumerable[V]`
-func NewIncludeExpressionNode(span *position.Span, consts []ComplexConstantNode) *IncludeExpressionNode {
+func NewIncludeExpressionNode(loc *position.Location, consts []ComplexConstantNode) *IncludeExpressionNode {
 	return &IncludeExpressionNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Constants:     consts,
 	}
 }
@@ -78,7 +78,7 @@ func (*IncludeExpressionNode) DirectClass() *value.Class {
 func (n *IncludeExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::IncludeExpressionNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::IncludeExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  constants: %[\n")
 	for i, element := range n.Constants {

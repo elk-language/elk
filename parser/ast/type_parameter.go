@@ -64,7 +64,7 @@ func (n *VariantTypeParameterNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.span.Equal(o.span) &&
+	return n.loc.Equal(o.loc) &&
 		n.Variance == o.Variance &&
 		n.Name == o.Name
 }
@@ -104,9 +104,9 @@ func (*VariantTypeParameterNode) IsStatic() bool {
 }
 
 // Create a new type variable node eg. `+V`
-func NewVariantTypeParameterNode(span *position.Span, variance Variance, name string, lower, upper, def TypeNode) *VariantTypeParameterNode {
+func NewVariantTypeParameterNode(loc *position.Location, variance Variance, name string, lower, upper, def TypeNode) *VariantTypeParameterNode {
 	return &VariantTypeParameterNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Variance:      variance,
 		Name:          name,
 		LowerBound:    lower,
@@ -126,7 +126,7 @@ func (*VariantTypeParameterNode) DirectClass() *value.Class {
 func (n *VariantTypeParameterNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::VariantTypeParameterNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::VariantTypeParameterNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  variance: ")
 	indent.IndentStringFromSecondLine(&buff, value.UInt8(n.Variance).Inspect(), 1)

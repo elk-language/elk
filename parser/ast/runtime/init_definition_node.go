@@ -39,7 +39,7 @@ func initInitDefinitionNode() {
 
 			var argLocation *position.Location
 			if args[4].IsUndefined() {
-				argLocation = position.DefaultLocation
+				argLocation = position.ZeroLocation
 			} else {
 				argLocation = (*position.Location)(args[4].Pointer())
 			}

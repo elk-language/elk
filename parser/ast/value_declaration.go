@@ -24,7 +24,7 @@ func (n *ValueDeclarationNode) Equal(other value.Value) bool {
 	}
 
 	if n.Name != o.Name ||
-		!n.span.Equal(o.span) {
+		!n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -69,9 +69,9 @@ func (*ValueDeclarationNode) IsStatic() bool {
 }
 
 // Create a new value declaration node eg. `val foo: String`
-func NewValueDeclarationNode(span *position.Span, name string, typ TypeNode, init ExpressionNode) *ValueDeclarationNode {
+func NewValueDeclarationNode(loc *position.Location, name string, typ TypeNode, init ExpressionNode) *ValueDeclarationNode {
 	return &ValueDeclarationNode{
-		TypedNodeBase: TypedNodeBase{span: span},
+		TypedNodeBase: TypedNodeBase{loc: loc},
 		Name:          name,
 		TypeNode:      typ,
 		Initialiser:   init,
@@ -89,7 +89,7 @@ func (*ValueDeclarationNode) DirectClass() *value.Class {
 func (n *ValueDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ValueDeclarationNode{\n  span: %s", (*value.Span)(n.span).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::ValueDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
 	buff.WriteString(n.Name)
