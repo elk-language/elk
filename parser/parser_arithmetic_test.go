@@ -284,8 +284,8 @@ func TestMultiplication(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(2, 2, 1), P(2, 2, 1)))), "unexpected *, expected an expression"),
-				diagnostic.NewFailure(L(S(P(6, 3, 1), P(6, 3, 1)))), "unexpected *, expected an expression"),
+				diagnostic.NewFailure(L(S(P(2, 2, 1), P(2, 2, 1))), "unexpected *, expected an expression"),
+				diagnostic.NewFailure(L(S(P(6, 3, 1), P(6, 3, 1))), "unexpected *, expected an expression"),
 			},
 		},
 		"has higher precedence than addition": {
@@ -385,8 +385,8 @@ func TestDivision(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(2, 2, 1), P(2, 2, 1)))), "unexpected /, expected an expression"),
-				diagnostic.NewFailure(L(S(P(6, 3, 1), P(6, 3, 1)))), "unexpected /, expected an expression"),
+				diagnostic.NewFailure(L(S(P(2, 2, 1), P(2, 2, 1))), "unexpected /, expected an expression"),
+				diagnostic.NewFailure(L(S(P(6, 3, 1), P(6, 3, 1))), "unexpected /, expected an expression"),
 			},
 		},
 		"has the same precedence as multiplication": {
@@ -486,8 +486,8 @@ func TestModulo(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(2, 2, 1), P(2, 2, 1)))), "unexpected %, expected an expression"),
-				diagnostic.NewFailure(L(S(P(6, 3, 1), P(6, 3, 1)))), "unexpected %, expected an expression"),
+				diagnostic.NewFailure(L(S(P(2, 2, 1), P(2, 2, 1))), "unexpected %, expected an expression"),
+				diagnostic.NewFailure(L(S(P(6, 3, 1), P(6, 3, 1))), "unexpected %, expected an expression"),
 			},
 		},
 		"has the same precedence as multiplication": {
@@ -540,7 +540,7 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(0, 1, 1), P(1, 1, 2)))), "unexpected ++, expected an expression"),
+				diagnostic.NewFailure(L(S(P(0, 1, 1), P(1, 1, 2))), "unexpected ++, expected an expression"),
 			},
 		},
 		"minus cannot be nested without spaces": {
@@ -560,7 +560,7 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(0, 1, 1), P(1, 1, 2)))), "unexpected --, expected an expression"),
+				diagnostic.NewFailure(L(S(P(0, 1, 1), P(1, 1, 2))), "unexpected --, expected an expression"),
 			},
 		},
 		"plus can be nested": {
@@ -792,8 +792,8 @@ func TestExponentiation(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(2, 2, 1), P(3, 2, 2)))), "unexpected **, expected an expression"),
-				diagnostic.NewFailure(L(S(P(7, 3, 1), P(8, 3, 2)))), "unexpected **, expected an expression"),
+				diagnostic.NewFailure(L(S(P(2, 2, 1), P(3, 2, 2))), "unexpected **, expected an expression"),
+				diagnostic.NewFailure(L(S(P(7, 3, 1), P(8, 3, 2))), "unexpected **, expected an expression"),
 			},
 		},
 		"has higher precedence than unary expressions": {

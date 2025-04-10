@@ -65,7 +65,7 @@ func initMethodDefinitionNode() {
 
 			var argLocation *position.Location
 			if args[9].IsUndefined() {
-				argLocation = position.DefaultLocation
+				argLocation = position.ZeroLocation
 			} else {
 				argLocation = (*position.Location)(args[9].Pointer())
 			}

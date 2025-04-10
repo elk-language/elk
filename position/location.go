@@ -22,6 +22,7 @@ type Location struct {
 }
 
 var DefaultLocation = NewLocation("<main>", DefaultSpan)
+var ZeroLocation = NewLocation("", ZeroSpan)
 
 // Create a new location with a given position.
 func NewLocation(filename string, span *Span) *Location {

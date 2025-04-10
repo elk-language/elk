@@ -26,11 +26,11 @@ func (c *Checker) popLoop() {
 	c.loops = c.loops[:len(c.loops)-1]
 }
 
-func (c *Checker) findLoop(label string, span *position.Span) *loop {
+func (c *Checker) findLoop(label string, location *position.Location) *loop {
 	if len(c.loops) < 1 {
 		c.addFailure(
 			"cannot jump with `break` or `continue` outside of a loop",
-			span,
+			location,
 		)
 		return nil
 	}
@@ -48,7 +48,7 @@ func (c *Checker) findLoop(label string, span *position.Span) *loop {
 
 	c.addFailure(
 		fmt.Sprintf("label $%s does not exist or is not attached to an enclosing loop", label),
-		span,
+		location,
 	)
 	return nil
 }

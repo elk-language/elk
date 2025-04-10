@@ -36,7 +36,9 @@ var P = position.New
 var S = position.NewSpan
 
 // Create a new source location in tests.
-var L = position.NewLocation
+func L(filename string, startPos, endPos *position.Position) *position.Location {
+	return position.NewLocation(filename, position.NewSpan(startPos, endPos))
+}
 
 // Function which powers all parser tests.
 // Inspects if the produced AST matches the expected one.
@@ -66,28 +68,28 @@ func TestChar(t *testing.T) {
 		"ascii char": {
 			input: "f",
 			want: ast.NewCharNode(
-				L(S(P(0, 1, 1), P(0, 1, 1))),
+				S(P(0, 1, 1), P(0, 1, 1)),
 				'f',
 			),
 		},
 		"two byte char": {
 			input: "ę",
 			want: ast.NewCharNode(
-				L(S(P(0, 1, 1), P(1, 1, 1))),
+				S(P(0, 1, 1), P(1, 1, 1)),
 				'ę',
 			),
 		},
 		"three byte char": {
 			input: "€",
 			want: ast.NewCharNode(
-				L(S(P(0, 1, 1), P(2, 1, 1))),
+				S(P(0, 1, 1), P(2, 1, 1)),
 				'€',
 			),
 		},
 		"four byte char": {
 			input: "𐍈",
 			want: ast.NewCharNode(
-				L(S(P(0, 1, 1), P(3, 1, 1))),
+				S(P(0, 1, 1), P(3, 1, 1)),
 				'𐍈',
 			),
 		},
@@ -105,135 +107,135 @@ func TestSimpleEscape(t *testing.T) {
 		"bell": {
 			input: `\a`,
 			want: ast.NewBellEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"form feed": {
 			input: `\f`,
 			want: ast.NewFormFeedEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"tab": {
 			input: `\t`,
 			want: ast.NewTabEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"newline": {
 			input: `\n`,
 			want: ast.NewNewlineEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"carriage return": {
 			input: `\r`,
 			want: ast.NewCarriageReturnEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"dot": {
 			input: `\.`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'.',
 			),
 		},
 		"question mark": {
 			input: `\?`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'?',
 			),
 		},
 		"dash": {
 			input: `\-`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'-',
 			),
 		},
 		"plus": {
 			input: `\+`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'+',
 			),
 		},
 		"star": {
 			input: `\*`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'*',
 			),
 		},
 		"caret": {
 			input: `\^`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'^',
 			),
 		},
 		"backslash": {
 			input: `\\`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'\\',
 			),
 		},
 		"pipe": {
 			input: `\|`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'|',
 			),
 		},
 		"dollar": {
 			input: `\$`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'$',
 			),
 		},
 		"left paren": {
 			input: `\(`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'(',
 			),
 		},
 		"right paren": {
 			input: `\)`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				')',
 			),
 		},
 		"left bracket": {
 			input: `\[`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'[',
 			),
 		},
 		"right bracket": {
 			input: `\]`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				']',
 			),
 		},
 		"left brace": {
 			input: `\{`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'{',
 			),
 		},
 		"right brace": {
 			input: `\}`,
 			want: ast.NewMetaCharEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				'}',
 			),
 		},
@@ -251,7 +253,7 @@ func TestUnicodeCharClass(t *testing.T) {
 		"one letter": {
 			input: `\pL`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				"L",
 				false,
 			),
@@ -259,7 +261,7 @@ func TestUnicodeCharClass(t *testing.T) {
 		"multi-letter": {
 			input: `\p{Latin}`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				"Latin",
 				false,
 			),
@@ -267,7 +269,7 @@ func TestUnicodeCharClass(t *testing.T) {
 		"negated": {
 			input: `\p{^Latin}`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				"Latin",
 				true,
 			),
@@ -275,7 +277,7 @@ func TestUnicodeCharClass(t *testing.T) {
 		"invalid multi-letter": {
 			input: `\p{Latin9}`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				"Latin9",
 				false,
 			),
@@ -286,7 +288,7 @@ func TestUnicodeCharClass(t *testing.T) {
 		"missing end brace": {
 			input: `\p{Latin`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				"Latin",
 				false,
 			),
@@ -297,7 +299,7 @@ func TestUnicodeCharClass(t *testing.T) {
 		"invalid single char": {
 			input: `\p'`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				"'",
 				false,
 			),
@@ -309,7 +311,7 @@ func TestUnicodeCharClass(t *testing.T) {
 		"missing single char": {
 			input: `\p`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				"E",
 				false,
 			),
@@ -331,7 +333,7 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 		"one letter": {
 			input: `\PL`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				"L",
 				true,
 			),
@@ -339,7 +341,7 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 		"multi-letter": {
 			input: `\P{Latin}`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				"Latin",
 				true,
 			),
@@ -347,7 +349,7 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 		"negated": {
 			input: `\P{^Latin}`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				"Latin",
 				false,
 			),
@@ -355,7 +357,7 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 		"invalid multi-letter": {
 			input: `\P{Latin9}`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				"Latin9",
 				true,
 			),
@@ -366,7 +368,7 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 		"missing end brace": {
 			input: `\P{Latin`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				"Latin",
 				true,
 			),
@@ -377,7 +379,7 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 		"invalid single char": {
 			input: `\P'`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				"'",
 				true,
 			),
@@ -389,7 +391,7 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 		"missing single char": {
 			input: `\P`,
 			want: ast.NewUnicodeCharClassNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				"E",
 				true,
 			),
@@ -411,9 +413,9 @@ func TestQuantifier(t *testing.T) {
 		"zero or one quantifier on char": {
 			input: `p?`,
 			want: ast.NewZeroOrOneQuantifierNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				false,
@@ -422,9 +424,9 @@ func TestQuantifier(t *testing.T) {
 		"zero or one quantifier on char class": {
 			input: `\w?`,
 			want: ast.NewZeroOrOneQuantifierNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				ast.NewWordCharClassNode(
-					L(S(P(0, 1, 1), P(1, 1, 2))),
+					S(P(0, 1, 1), P(1, 1, 2)),
 				),
 				false,
 			),
@@ -432,18 +434,18 @@ func TestQuantifier(t *testing.T) {
 		"zero or one quantifier on group": {
 			input: `(a\w)?`,
 			want: ast.NewZeroOrOneQuantifierNode(
-				L(S(P(0, 1, 1), P(5, 1, 6))),
+				S(P(0, 1, 1), P(5, 1, 6)),
 				ast.NewGroupNode(
-					L(S(P(0, 1, 1), P(4, 1, 5))),
+					S(P(0, 1, 1), P(4, 1, 5)),
 					ast.NewConcatenationNode(
-						L(S(P(1, 1, 2), P(3, 1, 4))),
+						S(P(1, 1, 2), P(3, 1, 4)),
 						[]ast.ConcatenationElementNode{
 							ast.NewCharNode(
-								L(S(P(1, 1, 2), P(1, 1, 2))),
+								S(P(1, 1, 2), P(1, 1, 2)),
 								'a',
 							),
 							ast.NewWordCharClassNode(
-								L(S(P(2, 1, 3), P(3, 1, 4))),
+								S(P(2, 1, 3), P(3, 1, 4)),
 							),
 						},
 					),
@@ -458,20 +460,20 @@ func TestQuantifier(t *testing.T) {
 		"applies to only a single preceding item": {
 			input: `ep\w?`,
 			want: ast.NewConcatenationNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				[]ast.ConcatenationElementNode{
 					ast.NewCharNode(
-						L(S(P(0, 1, 1), P(0, 1, 1))),
+						S(P(0, 1, 1), P(0, 1, 1)),
 						'e',
 					),
 					ast.NewCharNode(
-						L(S(P(1, 1, 2), P(1, 1, 2))),
+						S(P(1, 1, 2), P(1, 1, 2)),
 						'p',
 					),
 					ast.NewZeroOrOneQuantifierNode(
-						L(S(P(2, 1, 3), P(4, 1, 5))),
+						S(P(2, 1, 3), P(4, 1, 5)),
 						ast.NewWordCharClassNode(
-							L(S(P(2, 1, 3), P(3, 1, 4))),
+							S(P(2, 1, 3), P(3, 1, 4)),
 						),
 						false,
 					),
@@ -481,9 +483,9 @@ func TestQuantifier(t *testing.T) {
 		"zero or one alt quantifier": {
 			input: `p??`,
 			want: ast.NewZeroOrOneQuantifierNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				true,
@@ -492,9 +494,9 @@ func TestQuantifier(t *testing.T) {
 		"zero or more quantifier": {
 			input: `p*`,
 			want: ast.NewZeroOrMoreQuantifierNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				false,
@@ -503,9 +505,9 @@ func TestQuantifier(t *testing.T) {
 		"zero or more alt quantifier": {
 			input: `p*?`,
 			want: ast.NewZeroOrMoreQuantifierNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				true,
@@ -514,9 +516,9 @@ func TestQuantifier(t *testing.T) {
 		"one or more quantifier": {
 			input: `p+`,
 			want: ast.NewOneOrMoreQuantifierNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				false,
@@ -525,9 +527,9 @@ func TestQuantifier(t *testing.T) {
 		"one or more alt quantifier": {
 			input: `p+?`,
 			want: ast.NewOneOrMoreQuantifierNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				true,
@@ -536,9 +538,9 @@ func TestQuantifier(t *testing.T) {
 		"N quantifier one digit": {
 			input: `p{5}`,
 			want: ast.NewNQuantifierNode(
-				L(S(P(0, 1, 1), P(3, 1, 4))),
+				S(P(0, 1, 1), P(3, 1, 4)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"5",
@@ -548,9 +550,9 @@ func TestQuantifier(t *testing.T) {
 		"N quantifier alt": {
 			input: `p{5}?`,
 			want: ast.NewNQuantifierNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"5",
@@ -560,9 +562,9 @@ func TestQuantifier(t *testing.T) {
 		"N quantifier multiple digits": {
 			input: `p{164}`,
 			want: ast.NewNQuantifierNode(
-				L(S(P(0, 1, 1), P(5, 1, 6))),
+				S(P(0, 1, 1), P(5, 1, 6)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"164",
@@ -572,9 +574,9 @@ func TestQuantifier(t *testing.T) {
 		"N quantifier invalid chars": {
 			input: `p{5f+9}`,
 			want: ast.NewNQuantifierNode(
-				L(S(P(0, 1, 1), P(6, 1, 7))),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"5f9",
@@ -588,9 +590,9 @@ func TestQuantifier(t *testing.T) {
 		"N quantifier missing right brace": {
 			input: `p{5`,
 			want: ast.NewNQuantifierNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"5",
@@ -603,9 +605,9 @@ func TestQuantifier(t *testing.T) {
 		"N quantifier missing digit": {
 			input: `p{}`,
 			want: ast.NewNQuantifierNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"",
@@ -618,9 +620,9 @@ func TestQuantifier(t *testing.T) {
 		"N quantifier missing digit and right brace": {
 			input: `p{`,
 			want: ast.NewNQuantifierNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"",
@@ -634,9 +636,9 @@ func TestQuantifier(t *testing.T) {
 		"NM quantifier N only": {
 			input: `p{5,}`,
 			want: ast.NewNMQuantifierNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"5",
@@ -647,9 +649,9 @@ func TestQuantifier(t *testing.T) {
 		"NM quantifier N only missing right brace": {
 			input: `p{5,`,
 			want: ast.NewNMQuantifierNode(
-				L(S(P(0, 1, 1), P(0, 1, 1))),
+				S(P(0, 1, 1), P(0, 1, 1)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"5",
@@ -663,9 +665,9 @@ func TestQuantifier(t *testing.T) {
 		"NM quantifier N only alt": {
 			input: `p{58,}?`,
 			want: ast.NewNMQuantifierNode(
-				L(S(P(0, 1, 1), P(6, 1, 7))),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"58",
@@ -676,9 +678,9 @@ func TestQuantifier(t *testing.T) {
 		"NM quantifier": {
 			input: `p{58,153}`,
 			want: ast.NewNMQuantifierNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"58",
@@ -689,9 +691,9 @@ func TestQuantifier(t *testing.T) {
 		"NM quantifier only M": {
 			input: `p{,153}`,
 			want: ast.NewNMQuantifierNode(
-				L(S(P(0, 1, 1), P(6, 1, 7))),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"",
@@ -702,9 +704,9 @@ func TestQuantifier(t *testing.T) {
 		"NM quantifier only M alt": {
 			input: `p{,153}?`,
 			want: ast.NewNMQuantifierNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"",
@@ -715,9 +717,9 @@ func TestQuantifier(t *testing.T) {
 		"NM quantifier alt": {
 			input: `p{58,153}?`,
 			want: ast.NewNMQuantifierNode(
-				L(S(P(0, 1, 1), P(9, 1, 10))),
+				S(P(0, 1, 1), P(9, 1, 10)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"58",
@@ -728,9 +730,9 @@ func TestQuantifier(t *testing.T) {
 		"NM quantifier missing right brace": {
 			input: `p{58,153`,
 			want: ast.NewNMQuantifierNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"58",
@@ -744,9 +746,9 @@ func TestQuantifier(t *testing.T) {
 		"NM quantifier invalid chars": {
 			input: `p{a8,1f3}`,
 			want: ast.NewNMQuantifierNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
 				"a8",
@@ -772,21 +774,21 @@ func TestCaretEscape(t *testing.T) {
 		"simple": {
 			input: `\cA`,
 			want: ast.NewCaretEscapeNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				'A',
 			),
 		},
 		"consumes only a single letter": {
 			input: `\czl`,
 			want: ast.NewConcatenationNode(
-				L(S(P(0, 1, 1), P(3, 1, 4))),
+				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.ConcatenationElementNode{
 					ast.NewCaretEscapeNode(
-						L(S(P(0, 1, 1), P(2, 1, 3))),
+						S(P(0, 1, 1), P(2, 1, 3)),
 						'z',
 					),
 					ast.NewCharNode(
-						L(S(P(3, 1, 4), P(3, 1, 4))),
+						S(P(3, 1, 4), P(3, 1, 4)),
 						'l',
 					),
 				},
@@ -795,7 +797,7 @@ func TestCaretEscape(t *testing.T) {
 		"invalid char": {
 			input: `\cę`,
 			want: ast.NewCaretEscapeNode(
-				L(S(P(0, 1, 1), P(3, 1, 3))),
+				S(P(0, 1, 1), P(3, 1, 3)),
 				'ę',
 			),
 			err: diagnostic.DiagnosticList{
@@ -816,14 +818,14 @@ func TestUnicodeEscape(t *testing.T) {
 		"four digit": {
 			input: `\u6f45`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(5, 1, 6))),
+				S(P(0, 1, 1), P(5, 1, 6)),
 				"6f45",
 			),
 		},
 		"four digit with invalid char": {
 			input: `\u6f7l`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(5, 1, 6))),
+				S(P(0, 1, 1), P(5, 1, 6)),
 				"6f7l",
 			),
 			err: diagnostic.DiagnosticList{
@@ -833,7 +835,7 @@ func TestUnicodeEscape(t *testing.T) {
 		"four digit with invalid meta char": {
 			input: `\u67f{`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				"67f",
 			),
 			err: diagnostic.DiagnosticList{
@@ -843,7 +845,7 @@ func TestUnicodeEscape(t *testing.T) {
 		"missing digit": {
 			input: `\ufff`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				"fff",
 			),
 			err: diagnostic.DiagnosticList{
@@ -853,14 +855,14 @@ func TestUnicodeEscape(t *testing.T) {
 		"with braces": {
 			input: `\u{6f}`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				"6f",
 			),
 		},
 		"missing end brace": {
 			input: `\u{6f`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				"6f",
 			),
 			err: diagnostic.DiagnosticList{
@@ -870,14 +872,14 @@ func TestUnicodeEscape(t *testing.T) {
 		"long with braces": {
 			input: `\u{6f10}`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(6, 1, 7))),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				"6f10",
 			),
 		},
 		"with braces and invalid chars": {
 			input: `\u{6.f{0}`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				"6f0",
 			),
 			err: diagnostic.DiagnosticList{
@@ -899,14 +901,14 @@ func TestLongUnicodeEscape(t *testing.T) {
 		"eight digit": {
 			input: `\U00006f45`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(9, 1, 10))),
+				S(P(0, 1, 1), P(9, 1, 10)),
 				"00006f45",
 			),
 		},
 		"eight digit with invalid char": {
 			input: `\U00006f7l`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(9, 1, 10))),
+				S(P(0, 1, 1), P(9, 1, 10)),
 				"00006f7l",
 			),
 			err: diagnostic.DiagnosticList{
@@ -916,7 +918,7 @@ func TestLongUnicodeEscape(t *testing.T) {
 		"eight digit with invalid meta char": {
 			input: `\U000067f{`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				"000067f",
 			),
 			err: diagnostic.DiagnosticList{
@@ -926,7 +928,7 @@ func TestLongUnicodeEscape(t *testing.T) {
 		"missing digit": {
 			input: `\U0000fff`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				"0000fff",
 			),
 			err: diagnostic.DiagnosticList{
@@ -936,14 +938,14 @@ func TestLongUnicodeEscape(t *testing.T) {
 		"with braces": {
 			input: `\U{6f}`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				"6f",
 			),
 		},
 		"missing end brace": {
 			input: `\U{6f`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				"6f",
 			),
 			err: diagnostic.DiagnosticList{
@@ -953,14 +955,14 @@ func TestLongUnicodeEscape(t *testing.T) {
 		"missing end brace multiline": {
 			input: "\n\\U{6f",
 			want: ast.NewConcatenationNode(
-				L(S(P(0, 1, 1), P(5, 2, 5))),
+				S(P(0, 1, 1), P(5, 2, 5)),
 				[]ast.ConcatenationElementNode{
 					ast.NewCharNode(
-						L(S(P(0, 1, 1), P(0, 1, 1))),
+						S(P(0, 1, 1), P(0, 1, 1)),
 						'\n',
 					),
 					ast.NewUnicodeEscapeNode(
-						L(S(P(1, 2, 1), P(5, 2, 5))),
+						S(P(1, 2, 1), P(5, 2, 5)),
 						"6f",
 					),
 				},
@@ -972,14 +974,14 @@ func TestLongUnicodeEscape(t *testing.T) {
 		"long with braces": {
 			input: `\U{6f10}`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(6, 1, 7))),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				"6f10",
 			),
 		},
 		"with braces and invalid chars": {
 			input: `\U{6.f{0}`,
 			want: ast.NewUnicodeEscapeNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				"6f0",
 			),
 			err: diagnostic.DiagnosticList{
@@ -1001,14 +1003,14 @@ func TestHexEscape(t *testing.T) {
 		"two digit": {
 			input: `\x6f`,
 			want: ast.NewHexEscapeNode(
-				L(S(P(0, 1, 1), P(3, 1, 4))),
+				S(P(0, 1, 1), P(3, 1, 4)),
 				"6f",
 			),
 		},
 		"two digit with invalid char": {
 			input: `\x6l`,
 			want: ast.NewHexEscapeNode(
-				L(S(P(0, 1, 1), P(3, 1, 4))),
+				S(P(0, 1, 1), P(3, 1, 4)),
 				"6l",
 			),
 			err: diagnostic.DiagnosticList{
@@ -1018,7 +1020,7 @@ func TestHexEscape(t *testing.T) {
 		"two digit with invalid meta char": {
 			input: `\x6{`,
 			want: ast.NewHexEscapeNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				"6",
 			),
 			err: diagnostic.DiagnosticList{
@@ -1028,7 +1030,7 @@ func TestHexEscape(t *testing.T) {
 		"missing digit": {
 			input: `\xf`,
 			want: ast.NewHexEscapeNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				"f",
 			),
 			err: diagnostic.DiagnosticList{
@@ -1038,14 +1040,14 @@ func TestHexEscape(t *testing.T) {
 		"with braces": {
 			input: `\x{6f}`,
 			want: ast.NewHexEscapeNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				"6f",
 			),
 		},
 		"missing end brace": {
 			input: `\x{6f`,
 			want: ast.NewHexEscapeNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				"6f",
 			),
 			err: diagnostic.DiagnosticList{
@@ -1055,14 +1057,14 @@ func TestHexEscape(t *testing.T) {
 		"long with braces": {
 			input: `\x{6f10}`,
 			want: ast.NewHexEscapeNode(
-				L(S(P(0, 1, 1), P(6, 1, 7))),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				"6f10",
 			),
 		},
 		"with braces and invalid chars": {
 			input: `\x{6.f{0}`,
 			want: ast.NewHexEscapeNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				"6f0",
 			),
 			err: diagnostic.DiagnosticList{
@@ -1084,21 +1086,21 @@ func TestOctalEscape(t *testing.T) {
 		"simple single digit": {
 			input: `\1`,
 			want: ast.NewOctalEscapeNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 				"1",
 			),
 		},
 		"simple stops on last digit": {
 			input: `\1f`,
 			want: ast.NewConcatenationNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				[]ast.ConcatenationElementNode{
 					ast.NewOctalEscapeNode(
-						L(S(P(0, 1, 1), P(1, 1, 2))),
+						S(P(0, 1, 1), P(1, 1, 2)),
 						"1",
 					),
 					ast.NewCharNode(
-						L(S(P(2, 1, 3), P(2, 1, 3))),
+						S(P(2, 1, 3), P(2, 1, 3)),
 						'f',
 					),
 				},
@@ -1107,22 +1109,22 @@ func TestOctalEscape(t *testing.T) {
 		"simple two digits": {
 			input: `\12`,
 			want: ast.NewOctalEscapeNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				"12",
 			),
 		},
 		"simple three digits": {
 			input: `\123`,
 			want: ast.NewOctalEscapeNode(
-				L(S(P(0, 1, 1), P(3, 1, 4))),
+				S(P(0, 1, 1), P(3, 1, 4)),
 				"123",
 			),
 		},
 		"simple too many digits": {
 			input: `\1234`,
 			want: ast.NewInvalidNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
-				V(L(S(P(0, 1, 1), P(4, 1, 5))), token.ERROR, `invalid octal escape: \1234`),
+				S(P(0, 1, 1), P(4, 1, 5)),
+				V(S(P(0, 1, 1), P(4, 1, 5)), token.ERROR, `invalid octal escape: \1234`),
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("regex", P(0, 1, 1), P(4, 1, 5)), `invalid octal escape: \1234`),
@@ -1131,8 +1133,8 @@ func TestOctalEscape(t *testing.T) {
 		"simple invalid digit": {
 			input: `\182`,
 			want: ast.NewInvalidNode(
-				L(S(P(0, 1, 1), P(3, 1, 4))),
-				V(L(S(P(0, 1, 1), P(3, 1, 4))), token.ERROR, `invalid octal escape: \182`),
+				S(P(0, 1, 1), P(3, 1, 4)),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.ERROR, `invalid octal escape: \182`),
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("regex", P(0, 1, 1), P(3, 1, 4)), `invalid octal escape: \182`),
@@ -1142,14 +1144,14 @@ func TestOctalEscape(t *testing.T) {
 		"three digits": {
 			input: `\o612`,
 			want: ast.NewOctalEscapeNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				"612",
 			),
 		},
 		"two digit with invalid char": {
 			input: `\o691`,
 			want: ast.NewOctalEscapeNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				"691",
 			),
 			err: diagnostic.DiagnosticList{
@@ -1159,7 +1161,7 @@ func TestOctalEscape(t *testing.T) {
 		"two digit with invalid meta char": {
 			input: `\o6{`,
 			want: ast.NewOctalEscapeNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				"6",
 			),
 			err: diagnostic.DiagnosticList{
@@ -1170,7 +1172,7 @@ func TestOctalEscape(t *testing.T) {
 		"missing digit": {
 			input: `\o72`,
 			want: ast.NewOctalEscapeNode(
-				L(S(P(0, 1, 1), P(3, 1, 4))),
+				S(P(0, 1, 1), P(3, 1, 4)),
 				"72",
 			),
 			err: diagnostic.DiagnosticList{
@@ -1180,14 +1182,14 @@ func TestOctalEscape(t *testing.T) {
 		"with braces": {
 			input: `\o{62}`,
 			want: ast.NewOctalEscapeNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				"62",
 			),
 		},
 		"missing end brace": {
 			input: `\o{62`,
 			want: ast.NewOctalEscapeNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				"62",
 			),
 			err: diagnostic.DiagnosticList{
@@ -1197,14 +1199,14 @@ func TestOctalEscape(t *testing.T) {
 		"long with braces": {
 			input: `\o{612}`,
 			want: ast.NewOctalEscapeNode(
-				L(S(P(0, 1, 1), P(5, 1, 6))),
+				S(P(0, 1, 1), P(5, 1, 6)),
 				"612",
 			),
 		},
 		"with braces and too long": {
 			input: `\o{6123}`,
 			want: ast.NewOctalEscapeNode(
-				L(S(P(0, 1, 1), P(6, 1, 7))),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				"6123",
 			),
 			err: diagnostic.DiagnosticList{
@@ -1225,37 +1227,37 @@ func TestAnchor(t *testing.T) {
 		"absolute start of string": {
 			input: `\A`,
 			want: ast.NewAbsoluteStartOfStringAnchorNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"absolute end of string": {
 			input: `\z`,
 			want: ast.NewAbsoluteEndOfStringAnchorNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"start of string": {
 			input: `^`,
 			want: ast.NewStartOfStringAnchorNode(
-				L(S(P(0, 1, 1), P(0, 1, 1))),
+				S(P(0, 1, 1), P(0, 1, 1)),
 			),
 		},
 		"end of string": {
 			input: `$`,
 			want: ast.NewEndOfStringAnchorNode(
-				L(S(P(0, 1, 1), P(0, 1, 1))),
+				S(P(0, 1, 1), P(0, 1, 1)),
 			),
 		},
 		"word boundary": {
 			input: `\b`,
 			want: ast.NewWordBoundaryAnchorNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"not word boundary": {
 			input: `\B`,
 			want: ast.NewNotWordBoundaryAnchorNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 	}
@@ -1272,61 +1274,61 @@ func TestSimpleCharClass(t *testing.T) {
 		"word": {
 			input: `\w`,
 			want: ast.NewWordCharClassNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"not word": {
 			input: `\W`,
 			want: ast.NewNotWordCharClassNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"digit": {
 			input: `\d`,
 			want: ast.NewDigitCharClassNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"not digit": {
 			input: `\D`,
 			want: ast.NewNotDigitCharClassNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"whitespace": {
 			input: `\s`,
 			want: ast.NewWhitespaceCharClassNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"not whitespace": {
 			input: `\S`,
 			want: ast.NewNotWhitespaceCharClassNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"horizontal whitespace": {
 			input: `\h`,
 			want: ast.NewHorizontalWhitespaceCharClassNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"not horizontal whitespace": {
 			input: `\H`,
 			want: ast.NewNotHorizontalWhitespaceCharClassNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"vertical whitespace": {
 			input: `\v`,
 			want: ast.NewVerticalWhitespaceCharClassNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 		"not vertical whitespace": {
 			input: `\V`,
 			want: ast.NewNotVerticalWhitespaceCharClassNode(
-				L(S(P(0, 1, 1), P(1, 1, 2))),
+				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
 	}
@@ -1343,33 +1345,33 @@ func TestQuotedText(t *testing.T) {
 		"simple chars": {
 			input: `\Qfoo\E`,
 			want: ast.NewQuotedTextNode(
-				L(S(P(0, 1, 1), P(6, 1, 7))),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				"foo",
 			),
 		},
 		"meta chars": {
 			input: `\Q+-*.{}()[]?$^\E`,
 			want: ast.NewQuotedTextNode(
-				L(S(P(0, 1, 1), P(16, 1, 17))),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				"+-*.{}()[]?$^",
 			),
 		},
 		"invalid escapes": {
 			input: `\Q\e\E`,
 			want: ast.NewConcatenationNode(
-				L(S(P(0, 1, 1), P(5, 1, 6))),
+				S(P(0, 1, 1), P(5, 1, 6)),
 				[]ast.ConcatenationElementNode{
 					ast.NewInvalidNode(
-						L(S(P(0, 1, 1), P(2, 1, 3))),
-						V(L(S(P(0, 1, 1), P(2, 1, 3))), token.ERROR, "expected end of quoted text"),
+						S(P(0, 1, 1), P(2, 1, 3)),
+						V(S(P(0, 1, 1), P(2, 1, 3)), token.ERROR, "expected end of quoted text"),
 					),
 					ast.NewCharNode(
-						L(S(P(3, 1, 4), P(3, 1, 4))),
+						S(P(3, 1, 4), P(3, 1, 4)),
 						'e',
 					),
 					ast.NewInvalidNode(
-						L(S(P(4, 1, 5), P(5, 1, 6))),
-						V(L(S(P(4, 1, 5), P(5, 1, 6))), token.ERROR, "invalid escape sequence: \\E"),
+						S(P(4, 1, 5), P(5, 1, 6)),
+						V(S(P(4, 1, 5), P(5, 1, 6)), token.ERROR, "invalid escape sequence: \\E"),
 					),
 				},
 			),
@@ -1392,18 +1394,18 @@ func TestConcatenation(t *testing.T) {
 		"ascii chars": {
 			input: "foo",
 			want: ast.NewConcatenationNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				[]ast.ConcatenationElementNode{
 					ast.NewCharNode(
-						L(S(P(0, 1, 1), P(0, 1, 1))),
+						S(P(0, 1, 1), P(0, 1, 1)),
 						'f',
 					),
 					ast.NewCharNode(
-						L(S(P(1, 1, 2), P(1, 1, 2))),
+						S(P(1, 1, 2), P(1, 1, 2)),
 						'o',
 					),
 					ast.NewCharNode(
-						L(S(P(2, 1, 3), P(2, 1, 3))),
+						S(P(2, 1, 3), P(2, 1, 3)),
 						'o',
 					),
 				},
@@ -1412,18 +1414,18 @@ func TestConcatenation(t *testing.T) {
 		"with comments": {
 			input: "f(?#some awesome comment)oo",
 			want: ast.NewConcatenationNode(
-				L(S(P(0, 1, 1), P(26, 1, 27))),
+				S(P(0, 1, 1), P(26, 1, 27)),
 				[]ast.ConcatenationElementNode{
 					ast.NewCharNode(
-						L(S(P(0, 1, 1), P(0, 1, 1))),
+						S(P(0, 1, 1), P(0, 1, 1)),
 						'f',
 					),
 					ast.NewCharNode(
-						L(S(P(25, 1, 26), P(25, 1, 26))),
+						S(P(25, 1, 26), P(25, 1, 26)),
 						'o',
 					),
 					ast.NewCharNode(
-						L(S(P(26, 1, 27), P(26, 1, 27))),
+						S(P(26, 1, 27), P(26, 1, 27)),
 						'o',
 					),
 				},
@@ -1432,30 +1434,30 @@ func TestConcatenation(t *testing.T) {
 		"multi-byte chars": {
 			input: "fęłó€𐍈",
 			want: ast.NewConcatenationNode(
-				L(S(P(0, 1, 1), P(13, 1, 6))),
+				S(P(0, 1, 1), P(13, 1, 6)),
 				[]ast.ConcatenationElementNode{
 					ast.NewCharNode(
-						L(S(P(0, 1, 1), P(0, 1, 1))),
+						S(P(0, 1, 1), P(0, 1, 1)),
 						'f',
 					),
 					ast.NewCharNode(
-						L(S(P(1, 1, 2), P(2, 1, 2))),
+						S(P(1, 1, 2), P(2, 1, 2)),
 						'ę',
 					),
 					ast.NewCharNode(
-						L(S(P(3, 1, 3), P(4, 1, 3))),
+						S(P(3, 1, 3), P(4, 1, 3)),
 						'ł',
 					),
 					ast.NewCharNode(
-						L(S(P(5, 1, 4), P(6, 1, 4))),
+						S(P(5, 1, 4), P(6, 1, 4)),
 						'ó',
 					),
 					ast.NewCharNode(
-						L(S(P(7, 1, 5), P(9, 1, 5))),
+						S(P(7, 1, 5), P(9, 1, 5)),
 						'€',
 					),
 					ast.NewCharNode(
-						L(S(P(10, 1, 6), P(13, 1, 6))),
+						S(P(10, 1, 6), P(13, 1, 6)),
 						'𐍈',
 					),
 				},
@@ -1464,20 +1466,20 @@ func TestConcatenation(t *testing.T) {
 		"chars escapes and anchors": {
 			input: `f\n\w$`,
 			want: ast.NewConcatenationNode(
-				L(S(P(0, 1, 1), P(5, 1, 6))),
+				S(P(0, 1, 1), P(5, 1, 6)),
 				[]ast.ConcatenationElementNode{
 					ast.NewCharNode(
-						L(S(P(0, 1, 1), P(0, 1, 1))),
+						S(P(0, 1, 1), P(0, 1, 1)),
 						'f',
 					),
 					ast.NewNewlineEscapeNode(
-						L(S(P(1, 1, 2), P(2, 1, 3))),
+						S(P(1, 1, 2), P(2, 1, 3)),
 					),
 					ast.NewWordCharClassNode(
-						L(S(P(3, 1, 4), P(4, 1, 5))),
+						S(P(3, 1, 4), P(4, 1, 5)),
 					),
 					ast.NewEndOfStringAnchorNode(
-						L(S(P(5, 1, 6), P(5, 1, 6))),
+						S(P(5, 1, 6), P(5, 1, 6)),
 					),
 				},
 			),
@@ -1485,19 +1487,19 @@ func TestConcatenation(t *testing.T) {
 		"chars escapes, anchors and groups": {
 			input: `(f\n)\w$`,
 			want: ast.NewConcatenationNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				[]ast.ConcatenationElementNode{
 					ast.NewGroupNode(
-						L(S(P(0, 1, 1), P(4, 1, 5))),
+						S(P(0, 1, 1), P(4, 1, 5)),
 						ast.NewConcatenationNode(
-							L(S(P(1, 1, 2), P(3, 1, 4))),
+							S(P(1, 1, 2), P(3, 1, 4)),
 							[]ast.ConcatenationElementNode{
 								ast.NewCharNode(
-									L(S(P(1, 1, 2), P(1, 1, 2))),
+									S(P(1, 1, 2), P(1, 1, 2)),
 									'f',
 								),
 								ast.NewNewlineEscapeNode(
-									L(S(P(2, 1, 3), P(3, 1, 4))),
+									S(P(2, 1, 3), P(3, 1, 4)),
 								),
 							},
 						),
@@ -1507,10 +1509,10 @@ func TestConcatenation(t *testing.T) {
 						false,
 					),
 					ast.NewWordCharClassNode(
-						L(S(P(5, 1, 6), P(6, 1, 7))),
+						S(P(5, 1, 6), P(6, 1, 7)),
 					),
 					ast.NewEndOfStringAnchorNode(
-						L(S(P(7, 1, 8), P(7, 1, 8))),
+						S(P(7, 1, 8), P(7, 1, 8)),
 					),
 				},
 			),
@@ -1529,18 +1531,18 @@ func TestCharClass(t *testing.T) {
 		"ascii chars": {
 			input: "[foa]",
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				[]ast.CharClassElementNode{
 					ast.NewCharNode(
-						L(S(P(1, 1, 2), P(1, 1, 2))),
+						S(P(1, 1, 2), P(1, 1, 2)),
 						'f',
 					),
 					ast.NewCharNode(
-						L(S(P(2, 1, 3), P(2, 1, 3))),
+						S(P(2, 1, 3), P(2, 1, 3)),
 						'o',
 					),
 					ast.NewCharNode(
-						L(S(P(3, 1, 4), P(3, 1, 4))),
+						S(P(3, 1, 4), P(3, 1, 4)),
 						'a',
 					),
 				},
@@ -1550,18 +1552,18 @@ func TestCharClass(t *testing.T) {
 		"negated": {
 			input: "[^foa]",
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(5, 1, 6))),
+				S(P(0, 1, 1), P(5, 1, 6)),
 				[]ast.CharClassElementNode{
 					ast.NewCharNode(
-						L(S(P(2, 1, 3), P(2, 1, 3))),
+						S(P(2, 1, 3), P(2, 1, 3)),
 						'f',
 					),
 					ast.NewCharNode(
-						L(S(P(3, 1, 4), P(3, 1, 4))),
+						S(P(3, 1, 4), P(3, 1, 4)),
 						'o',
 					),
 					ast.NewCharNode(
-						L(S(P(4, 1, 5), P(4, 1, 5))),
+						S(P(4, 1, 5), P(4, 1, 5)),
 						'a',
 					),
 				},
@@ -1571,18 +1573,18 @@ func TestCharClass(t *testing.T) {
 		"unterminated": {
 			input: "[foa",
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(3, 1, 4))),
+				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.CharClassElementNode{
 					ast.NewCharNode(
-						L(S(P(1, 1, 2), P(1, 1, 2))),
+						S(P(1, 1, 2), P(1, 1, 2)),
 						'f',
 					),
 					ast.NewCharNode(
-						L(S(P(2, 1, 3), P(2, 1, 3))),
+						S(P(2, 1, 3), P(2, 1, 3)),
 						'o',
 					),
 					ast.NewCharNode(
-						L(S(P(3, 1, 4), P(3, 1, 4))),
+						S(P(3, 1, 4), P(3, 1, 4)),
 						'a',
 					),
 				},
@@ -1595,11 +1597,11 @@ func TestCharClass(t *testing.T) {
 		"invalid chars": {
 			input: "[-]",
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				[]ast.CharClassElementNode{
 					ast.NewInvalidNode(
-						L(S(P(1, 1, 2), P(1, 1, 2))),
-						T(L(S(P(1, 1, 2), P(1, 1, 2))), token.DASH),
+						S(P(1, 1, 2), P(1, 1, 2)),
+						T(S(P(1, 1, 2), P(1, 1, 2)), token.DASH),
 					),
 				},
 				false,
@@ -1611,45 +1613,45 @@ func TestCharClass(t *testing.T) {
 		"char ranges": {
 			input: `[a-z\n-\r\x22-\x7f56]`,
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(20, 1, 21))),
+				S(P(0, 1, 1), P(20, 1, 21)),
 				[]ast.CharClassElementNode{
 					ast.NewCharRangeNode(
-						L(S(P(1, 1, 2), P(3, 1, 4))),
+						S(P(1, 1, 2), P(3, 1, 4)),
 						ast.NewCharNode(
-							L(S(P(1, 1, 2), P(1, 1, 2))),
+							S(P(1, 1, 2), P(1, 1, 2)),
 							'a',
 						),
 						ast.NewCharNode(
-							L(S(P(3, 1, 4), P(3, 1, 4))),
+							S(P(3, 1, 4), P(3, 1, 4)),
 							'z',
 						),
 					),
 					ast.NewCharRangeNode(
-						L(S(P(4, 1, 5), P(8, 1, 9))),
+						S(P(4, 1, 5), P(8, 1, 9)),
 						ast.NewNewlineEscapeNode(
-							L(S(P(4, 1, 5), P(5, 1, 6))),
+							S(P(4, 1, 5), P(5, 1, 6)),
 						),
 						ast.NewCarriageReturnEscapeNode(
-							L(S(P(7, 1, 8), P(8, 1, 9))),
+							S(P(7, 1, 8), P(8, 1, 9)),
 						),
 					),
 					ast.NewCharRangeNode(
-						L(S(P(9, 1, 10), P(17, 1, 18))),
+						S(P(9, 1, 10), P(17, 1, 18)),
 						ast.NewHexEscapeNode(
-							L(S(P(9, 1, 10), P(12, 1, 13))),
+							S(P(9, 1, 10), P(12, 1, 13)),
 							"22",
 						),
 						ast.NewHexEscapeNode(
-							L(S(P(14, 1, 15), P(17, 1, 18))),
+							S(P(14, 1, 15), P(17, 1, 18)),
 							"7f",
 						),
 					),
 					ast.NewCharNode(
-						L(S(P(18, 1, 19), P(18, 1, 19))),
+						S(P(18, 1, 19), P(18, 1, 19)),
 						'5',
 					),
 					ast.NewCharNode(
-						L(S(P(19, 1, 20), P(19, 1, 20))),
+						S(P(19, 1, 20), P(19, 1, 20)),
 						'6',
 					),
 				},
@@ -1659,50 +1661,50 @@ func TestCharClass(t *testing.T) {
 		"meta-chars": {
 			input: "[*+.{}()$^|?]",
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(12, 1, 13))),
+				S(P(0, 1, 1), P(12, 1, 13)),
 				[]ast.CharClassElementNode{
 					ast.NewCharNode(
-						L(S(P(1, 1, 2), P(1, 1, 2))),
+						S(P(1, 1, 2), P(1, 1, 2)),
 						'*',
 					),
 					ast.NewCharNode(
-						L(S(P(2, 1, 3), P(2, 1, 3))),
+						S(P(2, 1, 3), P(2, 1, 3)),
 						'+',
 					),
 					ast.NewCharNode(
-						L(S(P(3, 1, 4), P(3, 1, 4))),
+						S(P(3, 1, 4), P(3, 1, 4)),
 						'.',
 					),
 					ast.NewCharNode(
-						L(S(P(4, 1, 5), P(4, 1, 5))),
+						S(P(4, 1, 5), P(4, 1, 5)),
 						'{',
 					),
 					ast.NewCharNode(
-						L(S(P(5, 1, 6), P(5, 1, 6))),
+						S(P(5, 1, 6), P(5, 1, 6)),
 						'}',
 					),
 					ast.NewCharNode(
-						L(S(P(6, 1, 7), P(6, 1, 7))),
+						S(P(6, 1, 7), P(6, 1, 7)),
 						'(',
 					),
 					ast.NewCharNode(
-						L(S(P(7, 1, 8), P(7, 1, 8))),
+						S(P(7, 1, 8), P(7, 1, 8)),
 						')',
 					),
 					ast.NewCharNode(
-						L(S(P(8, 1, 9), P(8, 1, 9))),
+						S(P(8, 1, 9), P(8, 1, 9)),
 						'$',
 					),
 					ast.NewCharNode(
-						L(S(P(9, 1, 10), P(9, 1, 10))),
+						S(P(9, 1, 10), P(9, 1, 10)),
 						'^',
 					),
 					ast.NewCharNode(
-						L(S(P(10, 1, 11), P(10, 1, 11))),
+						S(P(10, 1, 11), P(10, 1, 11)),
 						'|',
 					),
 					ast.NewCharNode(
-						L(S(P(11, 1, 12), P(11, 1, 12))),
+						S(P(11, 1, 12), P(11, 1, 12)),
 						'?',
 					),
 				},
@@ -1712,30 +1714,30 @@ func TestCharClass(t *testing.T) {
 		"multi-byte chars": {
 			input: "[fęłó€𐍈]",
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(15, 1, 8))),
+				S(P(0, 1, 1), P(15, 1, 8)),
 				[]ast.CharClassElementNode{
 					ast.NewCharNode(
-						L(S(P(1, 1, 2), P(1, 1, 2))),
+						S(P(1, 1, 2), P(1, 1, 2)),
 						'f',
 					),
 					ast.NewCharNode(
-						L(S(P(2, 1, 3), P(3, 1, 3))),
+						S(P(2, 1, 3), P(3, 1, 3)),
 						'ę',
 					),
 					ast.NewCharNode(
-						L(S(P(4, 1, 4), P(5, 1, 4))),
+						S(P(4, 1, 4), P(5, 1, 4)),
 						'ł',
 					),
 					ast.NewCharNode(
-						L(S(P(6, 1, 5), P(7, 1, 5))),
+						S(P(6, 1, 5), P(7, 1, 5)),
 						'ó',
 					),
 					ast.NewCharNode(
-						L(S(P(8, 1, 6), P(10, 1, 6))),
+						S(P(8, 1, 6), P(10, 1, 6)),
 						'€',
 					),
 					ast.NewCharNode(
-						L(S(P(11, 1, 7), P(14, 1, 7))),
+						S(P(11, 1, 7), P(14, 1, 7)),
 						'𐍈',
 					),
 				},
@@ -1745,44 +1747,44 @@ func TestCharClass(t *testing.T) {
 		"escapes and simple char classes": {
 			input: `[\n\-\*\.\p{Latin}\x7f\w\s\123\o123]`,
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(35, 1, 36))),
+				S(P(0, 1, 1), P(35, 1, 36)),
 				[]ast.CharClassElementNode{
 					ast.NewNewlineEscapeNode(
-						L(S(P(1, 1, 2), P(2, 1, 3))),
+						S(P(1, 1, 2), P(2, 1, 3)),
 					),
 					ast.NewMetaCharEscapeNode(
-						L(S(P(3, 1, 4), P(4, 1, 5))),
+						S(P(3, 1, 4), P(4, 1, 5)),
 						'-',
 					),
 					ast.NewMetaCharEscapeNode(
-						L(S(P(5, 1, 6), P(6, 1, 7))),
+						S(P(5, 1, 6), P(6, 1, 7)),
 						'*',
 					),
 					ast.NewMetaCharEscapeNode(
-						L(S(P(7, 1, 8), P(8, 1, 9))),
+						S(P(7, 1, 8), P(8, 1, 9)),
 						'.',
 					),
 					ast.NewUnicodeCharClassNode(
-						L(S(P(9, 1, 10), P(16, 1, 17))),
+						S(P(9, 1, 10), P(16, 1, 17)),
 						"Latin",
 						false,
 					),
 					ast.NewHexEscapeNode(
-						L(S(P(18, 1, 19), P(21, 1, 22))),
+						S(P(18, 1, 19), P(21, 1, 22)),
 						"7f",
 					),
 					ast.NewWordCharClassNode(
-						L(S(P(22, 1, 23), P(23, 1, 24))),
+						S(P(22, 1, 23), P(23, 1, 24)),
 					),
 					ast.NewWhitespaceCharClassNode(
-						L(S(P(24, 1, 25), P(25, 1, 26))),
+						S(P(24, 1, 25), P(25, 1, 26)),
 					),
 					ast.NewOctalEscapeNode(
-						L(S(P(26, 1, 27), P(29, 1, 30))),
+						S(P(26, 1, 27), P(29, 1, 30)),
 						"123",
 					),
 					ast.NewOctalEscapeNode(
-						L(S(P(30, 1, 31), P(34, 1, 35))),
+						S(P(30, 1, 31), P(34, 1, 35)),
 						"123",
 					),
 				},
@@ -1792,10 +1794,10 @@ func TestCharClass(t *testing.T) {
 		"named char class": {
 			input: "[[:alpha:]]",
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(10, 1, 11))),
+				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.CharClassElementNode{
 					ast.NewNamedCharClassNode(
-						L(S(P(1, 1, 2), P(9, 1, 10))),
+						S(P(1, 1, 2), P(9, 1, 10)),
 						"alpha",
 						false,
 					),
@@ -1806,10 +1808,10 @@ func TestCharClass(t *testing.T) {
 		"named char class with invalid chars": {
 			input: "[[:alphę:]]",
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(11, 1, 11))),
+				S(P(0, 1, 1), P(11, 1, 11)),
 				[]ast.CharClassElementNode{
 					ast.NewNamedCharClassNode(
-						L(S(P(1, 1, 2), P(10, 1, 10))),
+						S(P(1, 1, 2), P(10, 1, 10)),
 						"alphę",
 						false,
 					),
@@ -1823,26 +1825,26 @@ func TestCharClass(t *testing.T) {
 		"named char class with other elements": {
 			input: "[[:alpha:]a-zB]",
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(14, 1, 15))),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.CharClassElementNode{
 					ast.NewNamedCharClassNode(
-						L(S(P(1, 1, 2), P(9, 1, 10))),
+						S(P(1, 1, 2), P(9, 1, 10)),
 						"alpha",
 						false,
 					),
 					ast.NewCharRangeNode(
-						L(S(P(10, 1, 11), P(12, 1, 13))),
+						S(P(10, 1, 11), P(12, 1, 13)),
 						ast.NewCharNode(
-							L(S(P(10, 1, 11), P(10, 1, 11))),
+							S(P(10, 1, 11), P(10, 1, 11)),
 							'a',
 						),
 						ast.NewCharNode(
-							L(S(P(12, 1, 13), P(12, 1, 13))),
+							S(P(12, 1, 13), P(12, 1, 13)),
 							'z',
 						),
 					),
 					ast.NewCharNode(
-						L(S(P(13, 1, 14), P(13, 1, 14))),
+						S(P(13, 1, 14), P(13, 1, 14)),
 						'B',
 					),
 				},
@@ -1852,10 +1854,10 @@ func TestCharClass(t *testing.T) {
 		"negated named char class": {
 			input: "[[:^alpha:]]",
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(11, 1, 12))),
+				S(P(0, 1, 1), P(11, 1, 12)),
 				[]ast.CharClassElementNode{
 					ast.NewNamedCharClassNode(
-						L(S(P(1, 1, 2), P(10, 1, 11))),
+						S(P(1, 1, 2), P(10, 1, 11)),
 						"alpha",
 						true,
 					),
@@ -1866,10 +1868,10 @@ func TestCharClass(t *testing.T) {
 		"negated named char class in negated char class": {
 			input: "[^[:^alpha:]]",
 			want: ast.NewCharClassNode(
-				L(S(P(0, 1, 1), P(12, 1, 13))),
+				S(P(0, 1, 1), P(12, 1, 13)),
 				[]ast.CharClassElementNode{
 					ast.NewNamedCharClassNode(
-						L(S(P(2, 1, 3), P(11, 1, 12))),
+						S(P(2, 1, 3), P(11, 1, 12)),
 						"alpha",
 						true,
 					),
@@ -1891,13 +1893,13 @@ func TestUnion(t *testing.T) {
 		"char union": {
 			input: "f|o",
 			want: ast.NewUnionNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				ast.NewCharNode(
-					L(S(P(0, 1, 1), P(0, 1, 1))),
+					S(P(0, 1, 1), P(0, 1, 1)),
 					'f',
 				),
 				ast.NewCharNode(
-					L(S(P(2, 1, 3), P(2, 1, 3))),
+					S(P(2, 1, 3), P(2, 1, 3)),
 					'o',
 				),
 			),
@@ -1905,41 +1907,41 @@ func TestUnion(t *testing.T) {
 		"concat union": {
 			input: "foo|barę",
 			want: ast.NewUnionNode(
-				L(S(P(0, 1, 1), P(8, 1, 8))),
+				S(P(0, 1, 1), P(8, 1, 8)),
 				ast.NewConcatenationNode(
-					L(S(P(0, 1, 1), P(2, 1, 3))),
+					S(P(0, 1, 1), P(2, 1, 3)),
 					[]ast.ConcatenationElementNode{
 						ast.NewCharNode(
-							L(S(P(0, 1, 1), P(0, 1, 1))),
+							S(P(0, 1, 1), P(0, 1, 1)),
 							'f',
 						),
 						ast.NewCharNode(
-							L(S(P(1, 1, 2), P(1, 1, 2))),
+							S(P(1, 1, 2), P(1, 1, 2)),
 							'o',
 						),
 						ast.NewCharNode(
-							L(S(P(2, 1, 3), P(2, 1, 3))),
+							S(P(2, 1, 3), P(2, 1, 3)),
 							'o',
 						),
 					},
 				),
 				ast.NewConcatenationNode(
-					L(S(P(4, 1, 5), P(8, 1, 8))),
+					S(P(4, 1, 5), P(8, 1, 8)),
 					[]ast.ConcatenationElementNode{
 						ast.NewCharNode(
-							L(S(P(4, 1, 5), P(4, 1, 5))),
+							S(P(4, 1, 5), P(4, 1, 5)),
 							'b',
 						),
 						ast.NewCharNode(
-							L(S(P(5, 1, 6), P(5, 1, 6))),
+							S(P(5, 1, 6), P(5, 1, 6)),
 							'a',
 						),
 						ast.NewCharNode(
-							L(S(P(6, 1, 7), P(6, 1, 7))),
+							S(P(6, 1, 7), P(6, 1, 7)),
 							'r',
 						),
 						ast.NewCharNode(
-							L(S(P(7, 1, 8), P(8, 1, 8))),
+							S(P(7, 1, 8), P(8, 1, 8)),
 							'ę',
 						),
 					},
@@ -1949,22 +1951,22 @@ func TestUnion(t *testing.T) {
 		"group union": {
 			input: "(foo)|barę",
 			want: ast.NewUnionNode(
-				L(S(P(0, 1, 1), P(10, 1, 10))),
+				S(P(0, 1, 1), P(10, 1, 10)),
 				ast.NewGroupNode(
-					L(S(P(0, 1, 1), P(4, 1, 5))),
+					S(P(0, 1, 1), P(4, 1, 5)),
 					ast.NewConcatenationNode(
-						L(S(P(1, 1, 2), P(3, 1, 4))),
+						S(P(1, 1, 2), P(3, 1, 4)),
 						[]ast.ConcatenationElementNode{
 							ast.NewCharNode(
-								L(S(P(1, 1, 2), P(1, 1, 2))),
+								S(P(1, 1, 2), P(1, 1, 2)),
 								'f',
 							),
 							ast.NewCharNode(
-								L(S(P(2, 1, 3), P(2, 1, 3))),
+								S(P(2, 1, 3), P(2, 1, 3)),
 								'o',
 							),
 							ast.NewCharNode(
-								L(S(P(3, 1, 4), P(3, 1, 4))),
+								S(P(3, 1, 4), P(3, 1, 4)),
 								'o',
 							),
 						},
@@ -1975,22 +1977,22 @@ func TestUnion(t *testing.T) {
 					false,
 				),
 				ast.NewConcatenationNode(
-					L(S(P(6, 1, 7), P(10, 1, 10))),
+					S(P(6, 1, 7), P(10, 1, 10)),
 					[]ast.ConcatenationElementNode{
 						ast.NewCharNode(
-							L(S(P(6, 1, 7), P(6, 1, 7))),
+							S(P(6, 1, 7), P(6, 1, 7)),
 							'b',
 						),
 						ast.NewCharNode(
-							L(S(P(7, 1, 8), P(7, 1, 8))),
+							S(P(7, 1, 8), P(7, 1, 8)),
 							'a',
 						),
 						ast.NewCharNode(
-							L(S(P(8, 1, 9), P(8, 1, 9))),
+							S(P(8, 1, 9), P(8, 1, 9)),
 							'r',
 						),
 						ast.NewCharNode(
-							L(S(P(9, 1, 10), P(10, 1, 10))),
+							S(P(9, 1, 10), P(10, 1, 10)),
 							'ę',
 						),
 					},
@@ -2000,33 +2002,33 @@ func TestUnion(t *testing.T) {
 		"nested unions": {
 			input: "foo|b|u",
 			want: ast.NewUnionNode(
-				L(S(P(0, 1, 1), P(6, 1, 7))),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				ast.NewUnionNode(
-					L(S(P(0, 1, 1), P(4, 1, 5))),
+					S(P(0, 1, 1), P(4, 1, 5)),
 					ast.NewConcatenationNode(
-						L(S(P(0, 1, 1), P(2, 1, 3))),
+						S(P(0, 1, 1), P(2, 1, 3)),
 						[]ast.ConcatenationElementNode{
 							ast.NewCharNode(
-								L(S(P(0, 1, 1), P(0, 1, 1))),
+								S(P(0, 1, 1), P(0, 1, 1)),
 								'f',
 							),
 							ast.NewCharNode(
-								L(S(P(1, 1, 2), P(1, 1, 2))),
+								S(P(1, 1, 2), P(1, 1, 2)),
 								'o',
 							),
 							ast.NewCharNode(
-								L(S(P(2, 1, 3), P(2, 1, 3))),
+								S(P(2, 1, 3), P(2, 1, 3)),
 								'o',
 							),
 						},
 					),
 					ast.NewCharNode(
-						L(S(P(4, 1, 5), P(4, 1, 5))),
+						S(P(4, 1, 5), P(4, 1, 5)),
 						'b',
 					),
 				),
 				ast.NewCharNode(
-					L(S(P(6, 1, 7), P(6, 1, 7))),
+					S(P(6, 1, 7), P(6, 1, 7)),
 					'u',
 				),
 			),
@@ -2045,9 +2047,9 @@ func TestGroup(t *testing.T) {
 		"non capturing group": {
 			input: "(?:f)",
 			want: ast.NewGroupNode(
-				L(S(P(0, 1, 1), P(4, 1, 5))),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				ast.NewCharNode(
-					L(S(P(3, 1, 4), P(3, 1, 4))),
+					S(P(3, 1, 4), P(3, 1, 4)),
 					'f',
 				),
 				"",
@@ -2059,9 +2061,9 @@ func TestGroup(t *testing.T) {
 		"named group": {
 			input: "(?<foo>f)",
 			want: ast.NewGroupNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				ast.NewCharNode(
-					L(S(P(7, 1, 8), P(7, 1, 8))),
+					S(P(7, 1, 8), P(7, 1, 8)),
 					'f',
 				),
 				"foo",
@@ -2073,9 +2075,9 @@ func TestGroup(t *testing.T) {
 		"named group with single quotes": {
 			input: "(?'foo'f)",
 			want: ast.NewGroupNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				ast.NewCharNode(
-					L(S(P(7, 1, 8), P(7, 1, 8))),
+					S(P(7, 1, 8), P(7, 1, 8)),
 					'f',
 				),
 				"foo",
@@ -2087,9 +2089,9 @@ func TestGroup(t *testing.T) {
 		"named group with P": {
 			input: "(?P<foo>f)",
 			want: ast.NewGroupNode(
-				L(S(P(0, 1, 1), P(9, 1, 10))),
+				S(P(0, 1, 1), P(9, 1, 10)),
 				ast.NewCharNode(
-					L(S(P(8, 1, 9), P(8, 1, 9))),
+					S(P(8, 1, 9), P(8, 1, 9)),
 					'f',
 				),
 				"foo",
@@ -2101,7 +2103,7 @@ func TestGroup(t *testing.T) {
 		"flags only": {
 			input: "(?imUxa)",
 			want: ast.NewGroupNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				nil,
 				"",
 				bitfield.BitField8FromBitFlag(
@@ -2118,9 +2120,9 @@ func TestGroup(t *testing.T) {
 		"flags and content": {
 			input: "(?mi-s:f)",
 			want: ast.NewGroupNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				ast.NewCharNode(
-					L(S(P(7, 1, 8), P(7, 1, 8))),
+					S(P(7, 1, 8), P(7, 1, 8)),
 					'f',
 				),
 				"",
@@ -2132,9 +2134,9 @@ func TestGroup(t *testing.T) {
 		"invalid flags": {
 			input: "(?mihs:f)",
 			want: ast.NewGroupNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				ast.NewCharNode(
-					L(S(P(7, 1, 8), P(7, 1, 8))),
+					S(P(7, 1, 8), P(7, 1, 8)),
 					'f',
 				),
 				"",
@@ -2149,9 +2151,9 @@ func TestGroup(t *testing.T) {
 		"char in group": {
 			input: "(f)",
 			want: ast.NewGroupNode(
-				L(S(P(0, 1, 1), P(2, 1, 3))),
+				S(P(0, 1, 1), P(2, 1, 3)),
 				ast.NewCharNode(
-					L(S(P(1, 1, 2), P(1, 1, 2))),
+					S(P(1, 1, 2), P(1, 1, 2)),
 					'f',
 				),
 				"",
@@ -2163,8 +2165,8 @@ func TestGroup(t *testing.T) {
 		"missing right paren": {
 			input: "(f",
 			want: ast.NewInvalidNode(
-				L(S(P(2, 1, 3), P(1, 1, 2))),
-				T(L(S(P(2, 1, 3), P(1, 1, 2))), token.END_OF_FILE),
+				S(P(2, 1, 3), P(1, 1, 2)),
+				T(S(P(2, 1, 3), P(1, 1, 2)), token.END_OF_FILE),
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected )"),
@@ -2173,43 +2175,43 @@ func TestGroup(t *testing.T) {
 		"union in group": {
 			input: "(foo|barę)",
 			want: ast.NewGroupNode(
-				L(S(P(0, 1, 1), P(10, 1, 10))),
+				S(P(0, 1, 1), P(10, 1, 10)),
 				ast.NewUnionNode(
-					L(S(P(1, 1, 2), P(9, 1, 9))),
+					S(P(1, 1, 2), P(9, 1, 9)),
 					ast.NewConcatenationNode(
-						L(S(P(1, 1, 2), P(3, 1, 4))),
+						S(P(1, 1, 2), P(3, 1, 4)),
 						[]ast.ConcatenationElementNode{
 							ast.NewCharNode(
-								L(S(P(1, 1, 2), P(1, 1, 2))),
+								S(P(1, 1, 2), P(1, 1, 2)),
 								'f',
 							),
 							ast.NewCharNode(
-								L(S(P(2, 1, 3), P(2, 1, 3))),
+								S(P(2, 1, 3), P(2, 1, 3)),
 								'o',
 							),
 							ast.NewCharNode(
-								L(S(P(3, 1, 4), P(3, 1, 4))),
+								S(P(3, 1, 4), P(3, 1, 4)),
 								'o',
 							),
 						},
 					),
 					ast.NewConcatenationNode(
-						L(S(P(5, 1, 6), P(9, 1, 9))),
+						S(P(5, 1, 6), P(9, 1, 9)),
 						[]ast.ConcatenationElementNode{
 							ast.NewCharNode(
-								L(S(P(5, 1, 6), P(5, 1, 6))),
+								S(P(5, 1, 6), P(5, 1, 6)),
 								'b',
 							),
 							ast.NewCharNode(
-								L(S(P(6, 1, 7), P(6, 1, 7))),
+								S(P(6, 1, 7), P(6, 1, 7)),
 								'a',
 							),
 							ast.NewCharNode(
-								L(S(P(7, 1, 8), P(7, 1, 8))),
+								S(P(7, 1, 8), P(7, 1, 8)),
 								'r',
 							),
 							ast.NewCharNode(
-								L(S(P(8, 1, 9), P(9, 1, 9))),
+								S(P(8, 1, 9), P(9, 1, 9)),
 								'ę',
 							),
 						},
@@ -2224,24 +2226,24 @@ func TestGroup(t *testing.T) {
 		"nested groups": {
 			input: "((foo)|barę)",
 			want: ast.NewGroupNode(
-				L(S(P(0, 1, 1), P(12, 1, 12))),
+				S(P(0, 1, 1), P(12, 1, 12)),
 				ast.NewUnionNode(
-					L(S(P(1, 1, 2), P(11, 1, 11))),
+					S(P(1, 1, 2), P(11, 1, 11)),
 					ast.NewGroupNode(
-						L(S(P(1, 1, 2), P(5, 1, 6))),
+						S(P(1, 1, 2), P(5, 1, 6)),
 						ast.NewConcatenationNode(
-							L(S(P(2, 1, 3), P(4, 1, 5))),
+							S(P(2, 1, 3), P(4, 1, 5)),
 							[]ast.ConcatenationElementNode{
 								ast.NewCharNode(
-									L(S(P(2, 1, 3), P(2, 1, 3))),
+									S(P(2, 1, 3), P(2, 1, 3)),
 									'f',
 								),
 								ast.NewCharNode(
-									L(S(P(3, 1, 4), P(3, 1, 4))),
+									S(P(3, 1, 4), P(3, 1, 4)),
 									'o',
 								),
 								ast.NewCharNode(
-									L(S(P(4, 1, 5), P(4, 1, 5))),
+									S(P(4, 1, 5), P(4, 1, 5)),
 									'o',
 								),
 							},
@@ -2252,22 +2254,22 @@ func TestGroup(t *testing.T) {
 						false,
 					),
 					ast.NewConcatenationNode(
-						L(S(P(7, 1, 8), P(11, 1, 11))),
+						S(P(7, 1, 8), P(11, 1, 11)),
 						[]ast.ConcatenationElementNode{
 							ast.NewCharNode(
-								L(S(P(7, 1, 8), P(7, 1, 8))),
+								S(P(7, 1, 8), P(7, 1, 8)),
 								'b',
 							),
 							ast.NewCharNode(
-								L(S(P(8, 1, 9), P(8, 1, 9))),
+								S(P(8, 1, 9), P(8, 1, 9)),
 								'a',
 							),
 							ast.NewCharNode(
-								L(S(P(9, 1, 10), P(9, 1, 10))),
+								S(P(9, 1, 10), P(9, 1, 10)),
 								'r',
 							),
 							ast.NewCharNode(
-								L(S(P(10, 1, 11), P(11, 1, 11))),
+								S(P(10, 1, 11), P(11, 1, 11)),
 								'ę',
 							),
 						},

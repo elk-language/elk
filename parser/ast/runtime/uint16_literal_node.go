@@ -17,7 +17,7 @@ func initUInt16LiteralNode() {
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
-				argLoc = position.DefaultLocation
+				argLoc = position.ZeroLocation
 			} else {
 				argLoc = (*position.Location)(args[2].Pointer())
 			}

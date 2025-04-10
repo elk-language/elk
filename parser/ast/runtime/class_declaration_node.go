@@ -61,7 +61,7 @@ func initClassDeclarationNode() {
 
 			var argLoc *position.Location
 			if args[10].IsUndefined() {
-				argLoc = position.DefaultLocation
+				argLoc = position.ZeroLocation
 			} else {
 				argLoc = (*position.Location)(args[10].Pointer())
 			}

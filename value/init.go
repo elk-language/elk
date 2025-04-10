@@ -136,6 +136,7 @@ func InitGlobalEnvironment() {
 	initSyncDiagnosticList()
 	initElkLexer()
 	initElkParser()
+	initLocation()
 }
 
 func init() {

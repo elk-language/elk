@@ -28,11 +28,11 @@ func initToken() {
 		"#init",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			typ := args[1].MustUInt16()
-			span := (*value.Span)(args[2].Pointer())
+			loc := (*value.Location)(args[2].Pointer())
 			val := args[3].SafeAsReference().(value.String)
 
 			self := token.NewWithValue(
-				(*position.Span)(span),
+				(*position.Location)(loc),
 				token.Type(typ),
 				string(val),
 			)
@@ -77,10 +77,10 @@ func initToken() {
 	)
 	Def(
 		c,
-		"span",
+		"location",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*token.Token)(args[0].Pointer())
-			return value.Ref((*value.Span)(self.Span())), value.Undefined
+			return value.Ref((*value.Location)(self.Location())), value.Undefined
 		},
 	)
 	Def(

@@ -15,7 +15,7 @@ func initFalseLiteralNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			var argLoc *position.Location
 			if args[1].IsUndefined() {
-				argLoc = position.DefaultLocation
+				argLoc = position.ZeroLocation
 			} else {
 				argLoc = (*position.Location)(args[1].Pointer())
 			}

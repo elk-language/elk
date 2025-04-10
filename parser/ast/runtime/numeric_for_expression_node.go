@@ -39,7 +39,7 @@ func initNumericForExpressionNode() {
 
 			var argLoc *position.Location
 			if args[5].IsUndefined() {
-				argLoc = position.DefaultLocation
+				argLoc = position.ZeroLocation
 			} else {
 				argLoc = (*position.Location)(args[5].Pointer())
 			}

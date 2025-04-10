@@ -50,7 +50,7 @@ func initMethodSignatureDefinitionNode() {
 
 			var argLoc *position.Location
 			if args[7].IsUndefined() {
-				argLoc = position.DefaultLocation
+				argLoc = position.ZeroLocation
 			} else {
 				argLoc = (*position.Location)(args[7].Pointer())
 			}

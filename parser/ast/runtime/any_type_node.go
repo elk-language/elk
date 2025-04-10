@@ -16,7 +16,7 @@ func initAnyTypeNode() {
 
 			var argLoc *position.Location
 			if args[1].IsUndefined() {
-				argLoc = position.DefaultLocation
+				argLoc = position.ZeroLocation
 			} else {
 				argLoc = (*position.Location)(args[1].Pointer())
 			}

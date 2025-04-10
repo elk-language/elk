@@ -52,10 +52,10 @@ func (c *Compiler) InitGlobalEnv() *Compiler {
 
 func (c *Compiler) EmitExecInParent() {
 	parent := c.Parent
-	span := &parent.Bytecode.Location.Span
-	parent.emitValue(value.Ref(c.Bytecode), span)
-	parent.emit(span.StartPos.Line, bytecode.EXEC)
-	parent.emit(span.StartPos.Line, bytecode.POP)
+	location := parent.Bytecode.Location
+	parent.emitValue(value.Ref(c.Bytecode), location)
+	parent.emit(location.StartPos.Line, bytecode.EXEC)
+	parent.emit(location.StartPos.Line, bytecode.POP)
 }
 
 // Compiler mode
@@ -121,9 +121,9 @@ const (
 )
 
 type loopJumpInfo struct {
-	typ    loopJumpInfoType
-	offset int
-	span   *position.Span
+	typ      loopJumpInfoType
+	offset   int
+	location *position.Location
 }
 
 type loopJumpSet struct {
@@ -181,7 +181,7 @@ func New(name string, mode mode, loc *position.Location, checker types.Checker) 
 		Errors:         diagnostic.NewSyncDiagnosticList(),
 	}
 	// reserve the first slot on the stack for `self`
-	c.defineLocal("$self", &position.Span{})
+	c.defineLocal("$self", position.DefaultLocation)
 	switch mode {
 	case topLevelMode, namespaceMode,
 		methodMode, setterMethodMode, initMethodMode:
@@ -191,15 +191,15 @@ func New(name string, mode mode, loc *position.Location, checker types.Checker) 
 }
 
 func (c *Compiler) EmitReturnNil() {
-	span := &c.Bytecode.Location.Span
-	c.emit(span.EndPos.Line, bytecode.NIL)
-	c.emit(span.EndPos.Line, bytecode.RETURN)
+	location := c.Bytecode.Location
+	c.emit(location.EndPos.Line, bytecode.NIL)
+	c.emit(location.EndPos.Line, bytecode.RETURN)
 }
 
 func (c *Compiler) EmitReturn() {
-	span := &c.Bytecode.Location.Span
+	location := c.Bytecode.Location
 	if c.lastOpCode != bytecode.RETURN {
-		c.emit(span.EndPos.Line, bytecode.RETURN)
+		c.emit(location.EndPos.Line, bytecode.RETURN)
 	}
 	c.prepLocals()
 }
@@ -209,22 +209,22 @@ func (c *Compiler) typeOf(node ast.Node) types.Type {
 }
 
 func (c *Compiler) compileGlobalEnv() {
-	span := &c.Bytecode.Location.Span
+	location := c.Bytecode.Location
 	env := c.checker.Env()
-	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"), span)
+	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"), location)
 }
 
-func (c *Compiler) compileNamespaceDefinition(parentNamespace, namespace types.Namespace, namespaceType byte, constName value.Symbol, span *position.Span) {
+func (c *Compiler) compileNamespaceDefinition(parentNamespace, namespace types.Namespace, namespaceType byte, constName value.Symbol, location *position.Location) {
 	if !namespace.IsDefined() {
 		switch p := parentNamespace.(type) {
 		case *types.SingletonClass:
-			c.emitGetConst(value.ToSymbol(p.AttachedObject.Name()), span)
-			c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
+			c.emitGetConst(value.ToSymbol(p.AttachedObject.Name()), location)
+			c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 		default:
-			c.emitGetConst(value.ToSymbol(p.Name()), span)
+			c.emitGetConst(value.ToSymbol(p.Name()), location)
 		}
-		c.emitValue(constName.ToValue(), span)
-		c.emit(span.StartPos.Line, bytecode.DEF_NAMESPACE, namespaceType)
+		c.emitValue(constName.ToValue(), location)
+		c.emit(location.StartPos.Line, bytecode.DEF_NAMESPACE, namespaceType)
 		namespace.SetDefined(true)
 	}
 
@@ -232,40 +232,40 @@ func (c *Compiler) compileNamespaceDefinition(parentNamespace, namespace types.N
 		if subtype.Type == namespace {
 			continue
 		}
-		c.compileSubtypeDefinition(namespace, subtype.Type, name, span)
+		c.compileSubtypeDefinition(namespace, subtype.Type, name, location)
 	}
 }
 
-func (c *Compiler) compileModuleDefinition(parentNamespace types.Namespace, module *types.Module, constName value.Symbol, span *position.Span) {
-	c.compileNamespaceDefinition(parentNamespace, module, bytecode.DEF_MODULE_FLAG, constName, span)
+func (c *Compiler) compileModuleDefinition(parentNamespace types.Namespace, module *types.Module, constName value.Symbol, location *position.Location) {
+	c.compileNamespaceDefinition(parentNamespace, module, bytecode.DEF_MODULE_FLAG, constName, location)
 }
 
-func (c *Compiler) compileClassDefinition(parentNamespace types.Namespace, class *types.Class, constName value.Symbol, span *position.Span) {
-	c.compileNamespaceDefinition(parentNamespace, class, bytecode.DEF_CLASS_FLAG, constName, span)
+func (c *Compiler) compileClassDefinition(parentNamespace types.Namespace, class *types.Class, constName value.Symbol, location *position.Location) {
+	c.compileNamespaceDefinition(parentNamespace, class, bytecode.DEF_CLASS_FLAG, constName, location)
 }
 
-func (c *Compiler) compileMixinDefinition(parentNamespace types.Namespace, mixin *types.Mixin, constName value.Symbol, span *position.Span) {
-	c.compileNamespaceDefinition(parentNamespace, mixin, bytecode.DEF_MIXIN_FLAG, constName, span)
+func (c *Compiler) compileMixinDefinition(parentNamespace types.Namespace, mixin *types.Mixin, constName value.Symbol, location *position.Location) {
+	c.compileNamespaceDefinition(parentNamespace, mixin, bytecode.DEF_MIXIN_FLAG, constName, location)
 }
 
-func (c *Compiler) compileInterfaceDefinition(parentNamespace types.Namespace, iface *types.Interface, constName value.Symbol, span *position.Span) {
-	c.compileNamespaceDefinition(parentNamespace, iface, bytecode.DEF_INTERFACE_FLAG, constName, span)
+func (c *Compiler) compileInterfaceDefinition(parentNamespace types.Namespace, iface *types.Interface, constName value.Symbol, location *position.Location) {
+	c.compileNamespaceDefinition(parentNamespace, iface, bytecode.DEF_INTERFACE_FLAG, constName, location)
 }
 
-func (c *Compiler) compileSubtypeDefinition(parentNamespace types.Namespace, typ types.Type, constName value.Symbol, span *position.Span) {
+func (c *Compiler) compileSubtypeDefinition(parentNamespace types.Namespace, typ types.Type, constName value.Symbol, location *position.Location) {
 	switch t := typ.(type) {
 	case *types.Module:
-		c.compileModuleDefinition(parentNamespace, t, constName, span)
+		c.compileModuleDefinition(parentNamespace, t, constName, location)
 	case *types.Class:
-		c.compileClassDefinition(parentNamespace, t, constName, span)
+		c.compileClassDefinition(parentNamespace, t, constName, location)
 	case *types.Mixin:
-		c.compileMixinDefinition(parentNamespace, t, constName, span)
+		c.compileMixinDefinition(parentNamespace, t, constName, location)
 	case *types.Interface:
-		c.compileInterfaceDefinition(parentNamespace, t, constName, span)
+		c.compileInterfaceDefinition(parentNamespace, t, constName, location)
 	}
 }
 
-func (c *Compiler) CompileClassInheritance(class *types.Class, span *position.Span) {
+func (c *Compiler) CompileClassInheritance(class *types.Class, location *position.Location) {
 	if class.IsCompiled() {
 		return
 	}
@@ -277,38 +277,38 @@ func (c *Compiler) CompileClassInheritance(class *types.Class, span *position.Sp
 	class.SetCompiled(true)
 	name := value.ToSymbol(class.Name())
 	// get the class
-	c.emitGetConst(name, span)
+	c.emitGetConst(name, location)
 
 	superclassName := value.ToSymbol(superclass.Name())
-	c.emitGetConst(superclassName, span)
+	c.emitGetConst(superclassName, location)
 
-	c.emit(span.StartPos.Line, bytecode.SET_SUPERCLASS)
+	c.emit(location.StartPos.Line, bytecode.SET_SUPERCLASS)
 }
 
-func (c *Compiler) CompileInclude(target types.Namespace, mixin *types.Mixin, span *position.Span) {
+func (c *Compiler) CompileInclude(target types.Namespace, mixin *types.Mixin, location *position.Location) {
 	switch t := target.(type) {
 	case *types.SingletonClass:
 		targetName := value.ToSymbol(t.AttachedObject.Name())
-		c.emitGetConst(targetName, span)
-		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
+		c.emitGetConst(targetName, location)
+		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 	default:
 		targetName := value.ToSymbol(t.Name())
-		c.emitGetConst(targetName, span)
+		c.emitGetConst(targetName, location)
 	}
 
 	mixinName := value.ToSymbol(mixin.Name())
-	c.emitGetConst(mixinName, span)
+	c.emitGetConst(mixinName, location)
 
-	c.emit(span.StartPos.Line, bytecode.INCLUDE)
+	c.emit(location.StartPos.Line, bytecode.INCLUDE)
 }
 
-func (c *Compiler) InitExpressionCompiler(filename string, span *position.Span) *Compiler {
+func (c *Compiler) InitExpressionCompiler(filename string, location *position.Location) *Compiler {
 	exprCompiler := New(filename, topLevelMode, c.Bytecode.Location, c.checker)
 	exprCompiler.Errors = c.Errors
 
-	c.emitValue(value.Ref(exprCompiler.Bytecode), span)
-	c.emit(span.StartPos.Line, bytecode.EXEC)
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emitValue(value.Ref(exprCompiler.Bytecode), location)
+	c.emit(location.StartPos.Line, bytecode.EXEC)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
 	return exprCompiler
 }
@@ -320,17 +320,17 @@ func (c *Compiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 // Entry point to the compilation process
 func (c *Compiler) compileProgram(node ast.Node) {
 	c.compileNode(node, false)
-	c.emitReturn(node.Span(), nil)
+	c.emitReturn(node.Location(), nil)
 	c.prepLocals()
 }
 
 // Entry point for compiling the body of a function.
-func (c *Compiler) compileFunction(span *position.Span, parameters []ast.ParameterNode, body []ast.StatementNode) {
+func (c *Compiler) compileFunction(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
 	c.Bytecode.SetParameterCount(len(parameters))
 
 	for _, param := range parameters {
 		p := param.(*ast.FormalParameterNode)
-		pSpan := p.Span()
+		pSpan := p.Location()
 
 		local := c.defineLocal(p.Name, pSpan)
 		if local == nil {
@@ -341,7 +341,7 @@ func (c *Compiler) compileFunction(span *position.Span, parameters []ast.Paramet
 		if p.Initialiser != nil {
 			c.Bytecode.IncrementOptionalParameterCount()
 
-			c.emitGetLocal(span.StartPos.Line, local.index)
+			c.emitGetLocal(location.StartPos.Line, local.index)
 			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
 
 			c.compileNode(p.Initialiser, false)
@@ -350,30 +350,30 @@ func (c *Compiler) compileFunction(span *position.Span, parameters []ast.Paramet
 			c.patchJump(jump, pSpan)
 		}
 	}
-	c.compileStatements(body, span, false)
+	c.compileStatements(body, location, false)
 
-	c.emitReturn(span, nil)
+	c.emitReturn(location, nil)
 	c.prepLocals()
 }
 
-func (c *Compiler) InitMethodCompiler(span *position.Span) (*Compiler, int) {
+func (c *Compiler) InitMethodCompiler(location *position.Location) (*Compiler, int) {
 	methodCompiler := New("<methodDefinitions>", topLevelMode, c.Bytecode.Location, c.checker)
 	methodCompiler.Errors = c.Errors
 	methodCompiler.Parent = c
 
 	offset := c.nextInstructionOffset()
-	c.emitValue(value.Ref(methodCompiler.Bytecode), span)
-	c.emit(span.StartPos.Line, bytecode.EXEC)
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emitValue(value.Ref(methodCompiler.Bytecode), location)
+	c.emit(location.StartPos.Line, bytecode.EXEC)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
 	return methodCompiler, offset
 }
 
-func (c *Compiler) CompileMethods(span *position.Span, execOffset int) {
-	c.compileMethodsWithinModule(c.checker.Env().Root, span)
+func (c *Compiler) CompileMethods(location *position.Location, execOffset int) {
+	c.compileMethodsWithinModule(c.checker.Env().Root, location)
 	if len(c.Bytecode.Instructions) > 0 {
-		c.emit(span.EndPos.Line, bytecode.NIL)
-		c.emit(span.EndPos.Line, bytecode.RETURN)
+		c.emit(location.EndPos.Line, bytecode.NIL)
+		c.emit(location.EndPos.Line, bytecode.RETURN)
 		return
 	}
 
@@ -404,42 +404,42 @@ func (c *Compiler) removeMethodDefinitionsBytecodeFunction() {
 	}
 }
 
-func (c *Compiler) compileMethodsWithinModule(module *types.Module, span *position.Span) {
+func (c *Compiler) compileMethodsWithinModule(module *types.Module, location *position.Location) {
 	if types.NamespaceHasAnyDefinableMethods(module) {
-		c.emitGetConst(value.ToSymbol(module.Name()), span)
-		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
+		c.emitGetConst(value.ToSymbol(module.Name()), location)
+		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 
 		for methodName, method := range types.SortedOwnMethods(module) {
-			c.compileMethodDefinition(methodName, method, span)
+			c.compileMethodDefinition(methodName, method, location)
 		}
 
 		for aliasName, alias := range types.SortedOwnMethodAliases(module) {
-			c.compileMethodAliasDefinition(aliasName, alias, span)
+			c.compileMethodAliasDefinition(aliasName, alias, location)
 		}
 
-		c.emit(span.StartPos.Line, bytecode.POP)
+		c.emit(location.StartPos.Line, bytecode.POP)
 	}
 
 	for _, subtype := range types.SortedSubtypes(module) {
 		if subtype.Type == module {
 			continue
 		}
-		c.compileMethodsWithinType(subtype.Type, span)
+		c.compileMethodsWithinType(subtype.Type, location)
 	}
 }
 
-func (c *Compiler) compileMethodAliasDefinition(aliasName value.Symbol, alias *types.MethodAlias, span *position.Span) {
+func (c *Compiler) compileMethodAliasDefinition(aliasName value.Symbol, alias *types.MethodAlias, location *position.Location) {
 	if !alias.IsDefinable() {
 		return
 	}
 
-	c.emitValue(alias.Method.Name.ToValue(), span)
-	c.emitValue(aliasName.ToValue(), span)
-	c.emit(span.StartPos.Line, bytecode.DEF_METHOD_ALIAS)
+	c.emitValue(alias.Method.Name.ToValue(), location)
+	c.emitValue(aliasName.ToValue(), location)
+	c.emit(location.StartPos.Line, bytecode.DEF_METHOD_ALIAS)
 	alias.Compiled = true
 }
 
-func (c *Compiler) compileMethodDefinition(name value.Symbol, method *types.Method, span *position.Span) {
+func (c *Compiler) compileMethodDefinition(name value.Symbol, method *types.Method, location *position.Location) {
 	if !method.IsDefinable() {
 		return
 	}
@@ -447,74 +447,74 @@ func (c *Compiler) compileMethodDefinition(name value.Symbol, method *types.Meth
 	if method.IsAttribute() {
 		if method.IsSetter() {
 			nameStr := name.String()
-			c.emitValue(value.ToSymbol(nameStr[:len(nameStr)-1]).ToValue(), span)
-			c.emit(span.StartPos.Line, bytecode.DEF_SETTER)
+			c.emitValue(value.ToSymbol(nameStr[:len(nameStr)-1]).ToValue(), location)
+			c.emit(location.StartPos.Line, bytecode.DEF_SETTER)
 			method.SetCompiled(true)
 			return
 		}
 
-		c.emitValue(name.ToValue(), span)
-		c.emit(span.StartPos.Line, bytecode.DEF_GETTER)
+		c.emitValue(name.ToValue(), location)
+		c.emit(location.StartPos.Line, bytecode.DEF_GETTER)
 		method.SetCompiled(true)
 		return
 	}
 
-	c.emitValue(value.Ref(method.Bytecode), span)
-	c.emitValue(name.ToValue(), span)
-	c.emit(span.StartPos.Line, bytecode.DEF_METHOD)
+	c.emitValue(value.Ref(method.Bytecode), location)
+	c.emitValue(name.ToValue(), location)
+	c.emit(location.StartPos.Line, bytecode.DEF_METHOD)
 	method.SetCompiled(true)
 }
 
-func (c *Compiler) compileMethodsWithinNamespace(namespace types.Namespace, span *position.Span) {
+func (c *Compiler) compileMethodsWithinNamespace(namespace types.Namespace, location *position.Location) {
 	namespaceHasCompiledMethods := types.NamespaceHasAnyDefinableMethods(namespace)
 
 	singleton := namespace.Singleton()
 	singletonHasCompiledMethods := types.NamespaceHasAnyDefinableMethods(singleton)
 
 	if namespaceHasCompiledMethods || singletonHasCompiledMethods {
-		c.emitGetConst(value.ToSymbol(namespace.Name()), span)
+		c.emitGetConst(value.ToSymbol(namespace.Name()), location)
 
 		for methodName, method := range types.SortedOwnMethods(namespace) {
-			c.compileMethodDefinition(methodName, method, span)
+			c.compileMethodDefinition(methodName, method, location)
 		}
 
 		for aliasName, alias := range types.SortedOwnMethodAliases(namespace) {
-			c.compileMethodAliasDefinition(aliasName, alias, span)
+			c.compileMethodAliasDefinition(aliasName, alias, location)
 		}
 
 		if singletonHasCompiledMethods {
-			c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
+			c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 
 			for methodName, method := range types.SortedOwnMethods(singleton) {
-				c.compileMethodDefinition(methodName, method, span)
+				c.compileMethodDefinition(methodName, method, location)
 			}
 
 			for aliasName, alias := range types.SortedOwnMethodAliases(singleton) {
-				c.compileMethodAliasDefinition(aliasName, alias, span)
+				c.compileMethodAliasDefinition(aliasName, alias, location)
 			}
 		}
 
-		c.emit(span.StartPos.Line, bytecode.POP)
+		c.emit(location.StartPos.Line, bytecode.POP)
 	}
 
 	for _, subtype := range types.SortedSubtypes(namespace) {
 		if subtype.Type == namespace {
 			continue
 		}
-		c.compileMethodsWithinType(subtype.Type, span)
+		c.compileMethodsWithinType(subtype.Type, location)
 	}
 }
 
-func (c *Compiler) compileMethodsWithinType(typ types.Type, span *position.Span) {
+func (c *Compiler) compileMethodsWithinType(typ types.Type, location *position.Location) {
 	switch t := typ.(type) {
 	case *types.Module:
-		c.compileMethodsWithinModule(t, span)
+		c.compileMethodsWithinModule(t, location)
 	case *types.Class:
-		c.compileMethodsWithinNamespace(t, span)
+		c.compileMethodsWithinNamespace(t, location)
 	case *types.Mixin:
-		c.compileMethodsWithinNamespace(t, span)
+		c.compileMethodsWithinNamespace(t, location)
 	case *types.Interface:
-		c.compileMethodsWithinNamespace(t, span)
+		c.compileMethodsWithinNamespace(t, location)
 	}
 }
 
@@ -528,20 +528,20 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.
 		mode = methodMode
 	}
 
-	methodCompiler := New(name.String(), mode, c.newLocation(node.Span()), c.checker)
+	methodCompiler := New(name.String(), mode, node.Location(), c.checker)
 	methodCompiler.isGenerator = node.IsGenerator()
 	methodCompiler.isAsync = node.IsAsync()
 	methodCompiler.Errors = c.Errors
-	methodCompiler.compileMethodBody(node.Span(), node.Parameters, node.Body)
+	methodCompiler.compileMethodBody(node.Location(), node.Parameters, node.Body)
 
 	return methodCompiler.Bytecode
 }
 
 // Entry point for compiling the body of a method.
-func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.ParameterNode, body []ast.StatementNode) {
+func (c *Compiler) compileMethodBody(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
 	for _, param := range parameters {
 		p := param.(*ast.MethodParameterNode)
-		pSpan := p.Span()
+		pSpan := p.Location()
 
 		local := c.defineLocal(p.Name, pSpan)
 		if local == nil {
@@ -552,7 +552,7 @@ func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.Param
 		if p.Initialiser != nil {
 			c.Bytecode.IncrementOptionalParameterCount()
 
-			c.emitGetLocal(span.StartPos.Line, local.index)
+			c.emitGetLocal(location.StartPos.Line, local.index)
 			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
 
 			c.compileNode(p.Initialiser, false)
@@ -562,7 +562,7 @@ func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.Param
 		}
 
 		if p.SetInstanceVariable {
-			c.emitGetLocal(span.StartPos.Line, local.index)
+			c.emitGetLocal(location.StartPos.Line, local.index)
 			c.emitSetInstanceVariableNoPop(value.ToSymbol(p.Name), pSpan)
 			// pop the value after setting it
 			c.emit(pSpan.StartPos.Line, bytecode.POP)
@@ -571,31 +571,31 @@ func (c *Compiler) compileMethodBody(span *position.Span, parameters []ast.Param
 
 	paramCount := len(parameters)
 	if c.isGenerator {
-		c.emit(span.StartPos.Line, bytecode.GENERATOR)
-		c.emit(span.EndPos.Line, bytecode.RETURN)
+		c.emit(location.StartPos.Line, bytecode.GENERATOR)
+		c.emit(location.EndPos.Line, bytecode.RETURN)
 		c.registerCatch(-1, -1, c.nextInstructionOffset(), false)
 	} else if c.isAsync {
-		poolVar := c.defineLocal("_pool", span)
+		poolVar := c.defineLocal("_pool", location)
 		paramCount++
 		c.predefinedLocals++
 		c.Bytecode.IncrementOptionalParameterCount()
 
-		c.emitGetLocal(span.StartPos.Line, poolVar.index)
-		c.emit(span.StartPos.Line, bytecode.PROMISE)
-		c.emit(span.EndPos.Line, bytecode.RETURN)
+		c.emitGetLocal(location.StartPos.Line, poolVar.index)
+		c.emit(location.StartPos.Line, bytecode.PROMISE)
+		c.emit(location.EndPos.Line, bytecode.RETURN)
 	}
 	c.Bytecode.SetParameterCount(paramCount)
 
-	c.compileStatements(body, span, false)
+	c.compileStatements(body, location, false)
 
-	c.emitReturn(span, nil)
-	c.emitFinalReturn(span, nil)
+	c.emitReturn(location, nil)
+	c.emitFinalReturn(location, nil)
 	c.prepLocals()
 }
 
 // Entry point for compiling the body of a namespace eg. Module, Class, Mixin, Struct, Interface.
 func (c *Compiler) compileNamespace(node ast.Node) bool {
-	span := node.Span()
+	location := node.Location()
 	switch n := node.(type) {
 	case *ast.ClassDeclarationNode:
 		if !c.compileStatementsOk(n.Body) {
@@ -620,19 +620,14 @@ func (c *Compiler) compileNamespace(node ast.Node) bool {
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("incorrect namespace type %#v", n),
-			c.newLocation(span),
+			location,
 		)
 		return false
 	}
 
-	c.emitReturn(span, nil)
+	c.emitReturn(location, nil)
 	c.prepLocals()
 	return true
-}
-
-// Create a new location struct with the given position.
-func (c *Compiler) newLocation(span *position.Span) *position.Location {
-	return position.NewLocation(c.Bytecode.Location.FilePath, span)
 }
 
 func (c *Compiler) prepLocals() {
@@ -684,11 +679,11 @@ func (c *Compiler) initLoopJumpSet(label string, returnsValFromLastIteration boo
 	)
 }
 
-func (c *Compiler) findLoopJumpSet(label string, span *position.Span) *loopJumpSet {
+func (c *Compiler) findLoopJumpSet(label string, location *position.Location) *loopJumpSet {
 	if len(c.loopJumpSets) < 1 {
 		c.Errors.AddFailure(
 			"cannot jump with `break` or `continue` outside of a loop",
-			c.newLocation(span),
+			location,
 		)
 		return nil
 	}
@@ -706,7 +701,7 @@ func (c *Compiler) findLoopJumpSet(label string, span *position.Span) *loopJumpS
 
 	c.Errors.AddFailure(
 		fmt.Sprintf("label $%s does not exist or is not attached to an enclosing loop", label),
-		c.newLocation(span),
+		location,
 	)
 	return nil
 }
@@ -721,8 +716,8 @@ func (c *Compiler) addLoopJumpTo(jumpSet *loopJumpSet, typ loopJumpInfoType, off
 	)
 }
 
-func (c *Compiler) addLoopJump(label string, typ loopJumpInfoType, offset int, span *position.Span) {
-	jumpSet := c.findLoopJumpSet(label, span)
+func (c *Compiler) addLoopJump(label string, typ loopJumpInfoType, offset int, location *position.Location) {
+	jumpSet := c.findLoopJumpSet(label, location)
 	if jumpSet == nil {
 		return
 	}
@@ -731,11 +726,11 @@ func (c *Compiler) addLoopJump(label string, typ loopJumpInfoType, offset int, s
 }
 
 func (c *Compiler) compilePublicConstantNode(node *ast.PublicConstantNode) {
-	c.emitGetConst(value.ToSymbol(node.Value), node.Span())
+	c.emitGetConst(value.ToSymbol(node.Value), node.Location())
 }
 
 func (c *Compiler) compilePrivateConstantNode(node *ast.PrivateConstantNode) {
-	c.emitGetConst(value.ToSymbol(node.Value), node.Span())
+	c.emitGetConst(value.ToSymbol(node.Value), node.Location())
 }
 
 func (c *Compiler) nodeIsCompilable(node ast.Node) bool {
@@ -776,14 +771,14 @@ const (
 
 func (c *Compiler) compileNodeWithoutResult(node ast.Node) {
 	if c.compileNode(node, true) == expressionCompiled {
-		c.emit(node.Span().EndPos.Line, bytecode.POP)
+		c.emit(node.Location().EndPos.Line, bytecode.POP)
 	}
 }
 
 func (c *Compiler) compileNodeWithResult(node ast.Node) {
 	switch c.compileNode(node, false) {
 	case expressionCompiledWithoutResult, expressionIgnored:
-		c.emit(node.Span().EndPos.Line, bytecode.NIL)
+		c.emit(node.Location().EndPos.Line, bytecode.NIL)
 	}
 }
 
@@ -807,15 +802,15 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		*ast.InstanceVariableDeclarationNode:
 		return expressionIgnored
 	case *ast.ProgramNode:
-		return c.compileStatements(node.Body, node.Span(), valueIsIgnored)
+		return c.compileStatements(node.Body, node.Location(), valueIsIgnored)
 	case *ast.ExtendWhereBlockExpressionNode:
-		c.compileStatements(node.Body, node.Span(), false)
+		c.compileStatements(node.Body, node.Location(), false)
 	case *ast.ExpressionStatementNode:
 		return c.compileNode(node.Expression, valueIsIgnored)
 	case *ast.LabeledExpressionNode:
 		return c.compileLabeledExpressionNode(node, valueIsIgnored)
 	case *ast.UndefinedLiteralNode:
-		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
+		c.emit(node.Location().StartPos.Line, bytecode.UNDEFINED)
 	case *ast.PublicConstantNode:
 		c.compilePublicConstantNode(node)
 	case *ast.PrivateConstantNode:
@@ -823,7 +818,7 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	case *ast.GenericConstantNode:
 		return c.compileNode(node.Constant, valueIsIgnored)
 	case *ast.SelfLiteralNode:
-		c.emit(node.Span().StartPos.Line, bytecode.SELF)
+		c.emit(node.Location().StartPos.Line, bytecode.SELF)
 	case *ast.AssignmentExpressionNode:
 		return c.compileAssignmentExpressionNode(node, valueIsIgnored)
 	case *ast.InterfaceDeclarationNode:
@@ -877,11 +872,11 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	case *ast.ValueDeclarationNode:
 		return c.compileValueDeclarationNode(node, valueIsIgnored)
 	case *ast.PublicIdentifierNode:
-		c.compileLocalVariableAccess(node.Value, node.Span())
+		c.compileLocalVariableAccess(node.Value, node.Location())
 	case *ast.PrivateIdentifierNode:
-		c.compileLocalVariableAccess(node.Value, node.Span())
+		c.compileLocalVariableAccess(node.Value, node.Location())
 	case *ast.InstanceVariableNode:
-		c.compileInstanceVariableAccess(node.Value, node.Span())
+		c.compileInstanceVariableAccess(node.Value, node.Location())
 	case *ast.BinaryExpressionNode:
 		c.compileBinaryExpressionNode(node)
 	case *ast.LogicalExpressionNode:
@@ -929,23 +924,23 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	case *ast.InterpolatedRegexLiteralNode:
 		c.compileInterpolatedRegexLiteralNode(node)
 	case *ast.RawStringLiteralNode:
-		c.emitValue(value.Ref(value.String(node.Value)), node.Span())
+		c.emitValue(value.Ref(value.String(node.Value)), node.Location())
 	case *ast.DoubleQuotedStringLiteralNode:
-		c.emitValue(value.Ref(value.String(node.Value)), node.Span())
+		c.emitValue(value.Ref(value.String(node.Value)), node.Location())
 	case *ast.InterpolatedStringLiteralNode:
 		c.compileInterpolatedStringLiteralNode(node)
 	case *ast.InterpolatedSymbolLiteralNode:
 		c.compileInterpolatedSymbolLiteralNode(node)
 	case *ast.CharLiteralNode:
-		c.emitValue(value.Char(node.Value).ToValue(), node.Span())
+		c.emitValue(value.Char(node.Value).ToValue(), node.Location())
 	case *ast.RawCharLiteralNode:
-		c.emitValue(value.Char(node.Value).ToValue(), node.Span())
+		c.emitValue(value.Char(node.Value).ToValue(), node.Location())
 	case *ast.FalseLiteralNode:
-		c.emit(node.Span().StartPos.Line, bytecode.FALSE)
+		c.emit(node.Location().StartPos.Line, bytecode.FALSE)
 	case *ast.TrueLiteralNode:
-		c.emit(node.Span().StartPos.Line, bytecode.TRUE)
+		c.emit(node.Location().StartPos.Line, bytecode.TRUE)
 	case *ast.NilLiteralNode:
-		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+		c.emit(node.Location().StartPos.Line, bytecode.NIL)
 	case *ast.ThrowExpressionNode:
 		c.compileThrowExpressionNode(node)
 	case *ast.MustExpressionNode:
@@ -961,11 +956,11 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	case *ast.MacroBoundaryNode:
 		c.compileMacroBoundaryNode(node)
 	case *ast.IfExpressionNode:
-		return c.compileIfExpression(false, node.Condition, node.ThenBody, node.ElseBody, node.Span(), valueIsIgnored)
+		return c.compileIfExpression(false, node.Condition, node.ThenBody, node.ElseBody, node.Location(), valueIsIgnored)
 	case *ast.UnlessExpressionNode:
-		return c.compileIfExpression(true, node.Condition, node.ThenBody, node.ElseBody, node.Span(), valueIsIgnored)
+		return c.compileIfExpression(true, node.Condition, node.ThenBody, node.ElseBody, node.Location(), valueIsIgnored)
 	case *ast.ModifierIfElseNode:
-		return c.compileModifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Span(), valueIsIgnored)
+		return c.compileModifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Location(), valueIsIgnored)
 	case *ast.ModifierNode:
 		return c.compileModifierExpressionNode("", node, valueIsIgnored)
 	case *ast.BreakExpressionNode:
@@ -973,7 +968,7 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	case *ast.ContinueExpressionNode:
 		c.compileContinueExpressionNode(node)
 	case *ast.LoopExpressionNode:
-		c.compileLoopExpressionNode("", node.ThenBody, node.Span())
+		c.compileLoopExpressionNode("", node.ThenBody, node.Location())
 	case *ast.WhileExpressionNode:
 		c.compileWhileExpressionNode("", node)
 	case *ast.UntilExpressionNode:
@@ -987,97 +982,97 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	case *ast.PostfixExpressionNode:
 		return c.compilePostfixExpressionNode(node, valueIsIgnored)
 	case *ast.SimpleSymbolLiteralNode:
-		c.emitValue(value.ToSymbol(node.Content).ToValue(), node.Span())
+		c.emitValue(value.ToSymbol(node.Content).ToValue(), node.Location())
 	case *ast.IntLiteralNode:
 		c.compileIntLiteralNode(node)
 	case *ast.Int8LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 8)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
-		c.emitValue(value.Int8(i).ToValue(), node.Span())
+		c.emitValue(value.Int8(i).ToValue(), node.Location())
 	case *ast.Int16LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 16)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
-		c.emitValue(value.Int16(i).ToValue(), node.Span())
+		c.emitValue(value.Int16(i).ToValue(), node.Location())
 	case *ast.Int32LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 32)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
-		c.emitValue(value.Int32(i).ToValue(), node.Span())
+		c.emitValue(value.Int32(i).ToValue(), node.Location())
 	case *ast.Int64LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 64)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
-		c.emitValue(value.Int64(i).ToValue(), node.Span())
+		c.emitValue(value.Int64(i).ToValue(), node.Location())
 	case *ast.UInt8LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 8)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
-		c.emitValue(value.UInt8(i).ToValue(), node.Span())
+		c.emitValue(value.UInt8(i).ToValue(), node.Location())
 	case *ast.UInt16LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 16)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
-		c.emitValue(value.UInt16(i).ToValue(), node.Span())
+		c.emitValue(value.UInt16(i).ToValue(), node.Location())
 	case *ast.UInt32LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 32)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
-		c.emitValue(value.UInt32(i).ToValue(), node.Span())
+		c.emitValue(value.UInt32(i).ToValue(), node.Location())
 	case *ast.UInt64LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 64)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
-		c.emitValue(value.UInt64(i).ToValue(), node.Span())
+		c.emitValue(value.UInt64(i).ToValue(), node.Location())
 	case *ast.FloatLiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
-			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
-		c.emitValue(value.Float(f).ToValue(), node.Span())
+		c.emitValue(value.Float(f).ToValue(), node.Location())
 	case *ast.BigFloatLiteralNode:
 		f, err := value.ParseBigFloat(node.Value)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
-		c.emitValue(value.Ref(f), node.Span())
+		c.emitValue(value.Ref(f), node.Location())
 	case *ast.Float64LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
-			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
-		c.emitValue(value.Float64(f).ToValue(), node.Span())
+		c.emitValue(value.Float64(f).ToValue(), node.Location())
 	case *ast.Float32LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 32)
 		if err != nil {
-			c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
-		c.emitValue(value.Float32(f).ToValue(), node.Span())
+		c.emitValue(value.Float32(f).ToValue(), node.Location())
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
-			c.newLocation(node.Span()),
+			node.Location(),
 		)
 	}
 
@@ -1093,27 +1088,27 @@ func (c *Compiler) compileTryExpressionNode(node *ast.TryExpressionNode, valueIs
 }
 
 func (c *Compiler) compileMustExpressionNode(node *ast.MustExpressionNode) {
-	span := node.Span()
+	location := node.Location()
 	c.compileNodeWithResult(node.Value)
-	c.emit(span.StartPos.Line, bytecode.MUST)
+	c.emit(location.StartPos.Line, bytecode.MUST)
 }
 
 func (c *Compiler) compileAsExpressionNode(node *ast.AsExpressionNode) {
-	span := node.Span()
+	location := node.Location()
 	c.compileNode(node.Value, false)
 	c.compileNode(node.RuntimeType, false)
-	c.emit(span.StartPos.Line, bytecode.AS)
+	c.emit(location.StartPos.Line, bytecode.AS)
 }
 
 func (c *Compiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) {
-	span := node.Span()
+	location := node.Location()
 	if node.Value != nil {
 		c.compileNode(node.Value, false)
 	} else {
-		c.emitValue(value.Ref(value.NewError(value.ErrorClass, "error")), span)
+		c.emitValue(value.Ref(value.NewError(value.ErrorClass, "error")), location)
 	}
 
-	c.emit(span.StartPos.Line, bytecode.THROW)
+	c.emit(location.StartPos.Line, bytecode.THROW)
 }
 
 func (c *Compiler) isNestedInFinally() bool {
@@ -1140,23 +1135,23 @@ func (c *Compiler) registerCatch(from, to, jumpAddress int, finally bool) {
 }
 
 func (c *Compiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNode, namespace types.Namespace, constName value.Symbol) {
-	span := node.Span()
+	location := node.Location()
 	switch n := namespace.(type) {
 	case *types.SingletonClass:
 		namespaceName := value.ToSymbol(n.AttachedObject.Name())
-		c.emitGetConst(namespaceName, node.Constant.Span())
-		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
+		c.emitGetConst(namespaceName, node.Constant.Location())
+		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 	default:
 		namespaceName := value.ToSymbol(n.Name())
-		c.emitGetConst(namespaceName, node.Constant.Span())
+		c.emitGetConst(namespaceName, node.Constant.Location())
 	}
-	c.emitValue(constName.ToValue(), span)
+	c.emitValue(constName.ToValue(), location)
 	c.compileNode(node.Initialiser, false)
-	c.emit(span.StartPos.Line, bytecode.DEF_CONST)
+	c.emit(location.StartPos.Line, bytecode.DEF_CONST)
 }
 
 func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
-	span := node.Span()
+	location := node.Location()
 
 	doStartOffset := c.nextInstructionOffset()
 
@@ -1168,8 +1163,8 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 	}
 
 	c.enterScope("", scopeType)
-	c.compileStatementsWithResult(node.Body, span)
-	c.leaveScope(span.EndPos.Line)
+	c.compileStatementsWithResult(node.Body, location)
+	c.leaveScope(location.EndPos.Line)
 
 	doEndOffset := c.nextInstructionOffset()
 
@@ -1177,14 +1172,14 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 		c.enterScope("", defaultScopeType)
 		// pop the return value of finally leaving the return value of do
 		c.compileStatementsWithoutResult(node.Finally)
-		c.leaveScope(span.EndPos.Line)
+		c.leaveScope(location.EndPos.Line)
 	}
 
 	if len(node.Catches) <= 0 && len(node.Finally) <= 0 {
 		return
 	}
 
-	jumpOverCatchOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+	jumpOverCatchOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP)
 
 	var jumpsToEndOfCatch []int
 	catchStartOffset := c.nextInstructionOffset()
@@ -1194,10 +1189,10 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 	c.enterScope("", defaultScopeType)
 
 	for _, catchNode := range node.Catches {
-		span := catchNode.Span()
+		location := catchNode.Location()
 
 		if catchNode.StackTraceVar != nil {
-			c.emit(span.EndPos.Line, bytecode.DUP_SECOND)
+			c.emit(location.EndPos.Line, bytecode.DUP_SECOND)
 
 			var stackTraceVarName string
 			switch s := catchNode.StackTraceVar.(type) {
@@ -1209,97 +1204,97 @@ func (c *Compiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 				panic(fmt.Sprintf("invalid stack trace variable name in catch: %T", catchNode.StackTraceVar))
 			}
 
-			stackTraceVar := c.defineLocal(stackTraceVarName, span)
+			stackTraceVar := c.defineLocal(stackTraceVarName, location)
 			if stackTraceVar != nil {
-				c.emitSetLocalPop(span.StartPos.Line, stackTraceVar.index)
+				c.emitSetLocalPop(location.StartPos.Line, stackTraceVar.index)
 			}
 		}
 
 		c.pattern(catchNode.Pattern)
-		jumpOverCatchBody := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		jumpOverCatchBody := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS)
 
-		c.compileStatementsWithResult(catchNode.Body, catchNode.Span())
+		c.compileStatementsWithResult(catchNode.Body, catchNode.Location())
 
 		if len(node.Finally) < 1 {
 			// pop the thrown value and the stack trace, leaving the return value of the catch
-			c.emit(span.EndPos.Line, bytecode.POP_2_SKIP_ONE)
+			c.emit(location.EndPos.Line, bytecode.POP_2_SKIP_ONE)
 		}
-		jump := c.emitJump(span.EndPos.Line, bytecode.JUMP)
+		jump := c.emitJump(location.EndPos.Line, bytecode.JUMP)
 		jumpsToEndOfCatch = append(jumpsToEndOfCatch, jump)
 
-		c.patchJump(jumpOverCatchBody, span)
+		c.patchJump(jumpOverCatchBody, location)
 	}
 
 	if len(node.Finally) > 0 {
-		c.emit(span.EndPos.Line, bytecode.TRUE)
+		c.emit(location.EndPos.Line, bytecode.TRUE)
 	} else {
-		c.emit(span.EndPos.Line, bytecode.RETHROW)
+		c.emit(location.EndPos.Line, bytecode.RETHROW)
 	}
 
 	var jumpOverFalseOffset int
 	if len(node.Finally) > 0 {
 
-		jumpOverFalseOffset = c.emitJump(span.EndPos.Line, bytecode.JUMP)
+		jumpOverFalseOffset = c.emitJump(location.EndPos.Line, bytecode.JUMP)
 	}
 	for _, jump := range jumpsToEndOfCatch {
-		c.patchJump(jump, span)
+		c.patchJump(jump, location)
 	}
 	if len(node.Finally) > 0 {
-		c.emit(span.EndPos.Line, bytecode.FALSE)
-		c.patchJump(jumpOverFalseOffset, span)
+		c.emit(location.EndPos.Line, bytecode.FALSE)
+		c.patchJump(jumpOverFalseOffset, location)
 
-		jumpOverReturnBreakOrContinueEntryOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP)
+		jumpOverReturnBreakOrContinueEntryOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
 		finallyEntryOffset := c.nextInstructionOffset()
 		c.registerCatch(doStartOffset, doEndOffset, finallyEntryOffset, true)
 		// entry point for return when executing finally
-		c.emit(span.EndPos.Line, bytecode.NIL)
+		c.emit(location.EndPos.Line, bytecode.NIL)
 
-		jumpOverBreakOrContinueEntryOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP)
+		jumpOverBreakOrContinueEntryOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
 		// entry point for break or continue when executing finally
-		c.emit(span.EndPos.Line, bytecode.UNDEFINED)
+		c.emit(location.EndPos.Line, bytecode.UNDEFINED)
 
-		c.patchJump(jumpOverBreakOrContinueEntryOffset, span)
-		c.patchJump(jumpOverReturnBreakOrContinueEntryOffset, span)
+		c.patchJump(jumpOverBreakOrContinueEntryOffset, location)
+		c.patchJump(jumpOverReturnBreakOrContinueEntryOffset, location)
 
-		c.compileStatementsWithResult(node.Finally, span)
+		c.compileStatementsWithResult(node.Finally, location)
 
-		c.emit(span.EndPos.Line, bytecode.SWAP)
-		jumpOverFinallyBreakOrContinueOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_UNLESS_UNP)
-		c.emit(span.EndPos.Line, bytecode.POP_2)
-		c.emit(span.EndPos.Line, bytecode.JUMP_TO_FINALLY)
-		c.patchJump(jumpOverFinallyBreakOrContinueOffset, span)
+		c.emit(location.EndPos.Line, bytecode.SWAP)
+		jumpOverFinallyBreakOrContinueOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_UNLESS_UNP)
+		c.emit(location.EndPos.Line, bytecode.POP_2)
+		c.emit(location.EndPos.Line, bytecode.JUMP_TO_FINALLY)
+		c.patchJump(jumpOverFinallyBreakOrContinueOffset, location)
 
-		jumpToRethrowOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_IF_NP)
-		jumpToFinallyReturnOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_IF_NIL_NP)
+		jumpToRethrowOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_IF_NP)
+		jumpToFinallyReturnOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_IF_NIL_NP)
 		// FALSE
-		c.emit(span.EndPos.Line, bytecode.POP_2)          // pop the flag and return value of finally
-		c.emit(span.EndPos.Line, bytecode.POP_2_SKIP_ONE) // pop the thrown value and the stack trace leaving the return value of catch
-		jumpToEndOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP)
+		c.emit(location.EndPos.Line, bytecode.POP_2)          // pop the flag and return value of finally
+		c.emit(location.EndPos.Line, bytecode.POP_2_SKIP_ONE) // pop the thrown value and the stack trace leaving the return value of catch
+		jumpToEndOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
 
-		c.patchJump(jumpToFinallyReturnOffset, span)
+		c.patchJump(jumpToFinallyReturnOffset, location)
 		// return with finally
-		c.emit(span.EndPos.Line, bytecode.POP_2) // pop the flag and return value of finally
-		c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
+		c.emit(location.EndPos.Line, bytecode.POP_2) // pop the flag and return value of finally
+		c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
 
-		c.patchJump(jumpToRethrowOffset, span)
+		c.patchJump(jumpToRethrowOffset, location)
 		// pop the flag and the return value of finally
-		c.emit(span.EndPos.Line, bytecode.POP_2)
-		c.emit(span.EndPos.Line, bytecode.RETHROW)
+		c.emit(location.EndPos.Line, bytecode.POP_2)
+		c.emit(location.EndPos.Line, bytecode.RETHROW)
 
-		c.patchJump(jumpToEndOffset, span)
+		c.patchJump(jumpToEndOffset, location)
 	}
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 
-	c.patchJump(jumpOverCatchOffset, span)
+	c.patchJump(jumpOverCatchOffset, location)
 }
 
 func (c *Compiler) compileMacroBoundaryNode(node *ast.MacroBoundaryNode) {
-	span := node.Span()
+	location := node.Location()
 
 	c.enterScope("", defaultScopeType)
-	c.compileStatementsWithResult(node.Body, span)
-	c.leaveScope(span.EndPos.Line)
+	c.compileStatementsWithResult(node.Body, location)
+	c.leaveScope(location.EndPos.Line)
 }
 
 // Count `finally` blocks we are currently nested in under
@@ -1349,28 +1344,28 @@ func (c *Compiler) leaveScopeOnBreak(line int, label string) {
 }
 
 func (c *Compiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) {
-	span := node.Span()
+	location := node.Location()
 	if node.Value == nil {
-		c.emit(span.StartPos.Line, bytecode.NIL)
+		c.emit(location.StartPos.Line, bytecode.NIL)
 	} else {
 		c.compileNode(node.Value, false)
 	}
 
 	finallyCount := c.countFinallyInLoop(node.Label)
 	if finallyCount <= 0 {
-		c.leaveScopeOnBreak(span.StartPos.Line, node.Label)
+		c.leaveScopeOnBreak(location.StartPos.Line, node.Label)
 
-		breakJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
-		c.addLoopJump(node.Label, breakLoopJump, breakJumpOffset, span)
+		breakJumpOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP)
+		c.addLoopJump(node.Label, breakLoopJump, breakJumpOffset, location)
 		return
 	}
 
-	jumpOffsetId := c.emitLoadValue(value.Undefined, span)
+	jumpOffsetId := c.emitLoadValue(value.Undefined, location)
 	c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
-	c.addLoopJump(node.Label, breakFinallyLoopJump, jumpOffsetId, span)
+	c.addLoopJump(node.Label, breakFinallyLoopJump, jumpOffsetId, location)
 
-	c.emitValue(value.SmallInt(finallyCount).ToValue(), span)
-	c.emit(span.StartPos.Line, bytecode.JUMP_TO_FINALLY)
+	c.emitValue(value.SmallInt(finallyCount).ToValue(), location)
+	c.emit(location.StartPos.Line, bytecode.JUMP_TO_FINALLY)
 }
 
 func (c *Compiler) leaveScopeOnContinue(line int, label string) {
@@ -1399,8 +1394,8 @@ func (c *Compiler) leaveScopeOnContinue(line int, label string) {
 }
 
 func (c *Compiler) compileContinueExpressionNode(node *ast.ContinueExpressionNode) {
-	span := node.Span()
-	loop := c.findLoopJumpSet(node.Label, span)
+	location := node.Location()
+	loop := c.findLoopJumpSet(node.Label, location)
 	if loop == nil {
 		return
 	}
@@ -1408,11 +1403,11 @@ func (c *Compiler) compileContinueExpressionNode(node *ast.ContinueExpressionNod
 	if !loop.returnsValueFromLastIteration {
 		if node.Value != nil {
 			c.compileNode(node.Value, false)
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		}
 	} else {
 		if node.Value == nil {
-			c.emit(span.StartPos.Line, bytecode.NIL)
+			c.emit(location.StartPos.Line, bytecode.NIL)
 		} else {
 			c.compileNode(node.Value, false)
 		}
@@ -1420,19 +1415,19 @@ func (c *Compiler) compileContinueExpressionNode(node *ast.ContinueExpressionNod
 
 	finallyCount := c.countFinallyInLoop(node.Label)
 	if finallyCount <= 0 {
-		c.leaveScopeOnContinue(span.StartPos.Line, node.Label)
+		c.leaveScopeOnContinue(location.StartPos.Line, node.Label)
 
-		continueJumpOffset := c.emitJump(span.StartPos.Line, bytecode.LOOP)
+		continueJumpOffset := c.emitJump(location.StartPos.Line, bytecode.LOOP)
 		c.addLoopJumpTo(loop, continueLoopJump, continueJumpOffset)
 		return
 	}
 
-	jumpOffsetId := c.emitLoadValue(value.Undefined, span)
+	jumpOffsetId := c.emitLoadValue(value.Undefined, location)
 	c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
-	c.addLoopJump(node.Label, continueFinallyLoopJump, jumpOffsetId, span)
+	c.addLoopJump(node.Label, continueFinallyLoopJump, jumpOffsetId, location)
 
-	c.emitValue(value.SmallInt(finallyCount).ToValue(), span)
-	c.emit(span.StartPos.Line, bytecode.JUMP_TO_FINALLY)
+	c.emitValue(value.SmallInt(finallyCount).ToValue(), location)
+	c.emit(location.StartPos.Line, bytecode.JUMP_TO_FINALLY)
 }
 
 // Patch loop jump addresses for `break` and `continue` expressions.
@@ -1445,19 +1440,19 @@ func (c *Compiler) patchLoopJumps(continueOffset int) {
 		case continueFinallyLoopJump:
 			c.Bytecode.Values[loopJump.offset] = value.SmallInt(continueOffset).ToValue()
 		case breakLoopJump:
-			c.patchJump(loopJump.offset, loopJump.span)
+			c.patchJump(loopJump.offset, loopJump.location)
 		case continueLoopJump:
 			target := continueOffset - loopJump.offset
 			if target >= 0 {
 				// jump forward
 				// override the opcode to JUMP
 				c.Bytecode.Instructions[loopJump.offset-1] = byte(bytecode.JUMP)
-				c.patchJumpWithTarget(target-2, loopJump.offset, loopJump.span)
+				c.patchJumpWithTarget(target-2, loopJump.offset, loopJump.location)
 			} else {
 				// jump backward
 				// override the opcode to LOOP
 				c.Bytecode.Instructions[loopJump.offset-1] = byte(bytecode.LOOP)
-				c.patchJumpWithTarget((-target)+2, loopJump.offset, loopJump.span)
+				c.patchJumpWithTarget((-target)+2, loopJump.offset, loopJump.location)
 			}
 		default:
 			panic(fmt.Sprintf("invalid loop jump info: %#v", loopJump))
@@ -1466,74 +1461,74 @@ func (c *Compiler) patchLoopJumps(continueOffset int) {
 	c.loopJumpSets = c.loopJumpSets[:len(c.loopJumpSets)-1]
 }
 
-func (c *Compiler) compileLoopExpressionNode(label string, body []ast.StatementNode, span *position.Span) {
+func (c *Compiler) compileLoopExpressionNode(label string, body []ast.StatementNode, location *position.Location) {
 	c.enterScope(label, loopScopeType)
 	c.initLoopJumpSet(label, false)
 
 	start := c.nextInstructionOffset()
 	c.enterScope("", defaultScopeType)
 	if c.compileStatementsOk(body) {
-		c.emit(span.EndPos.Line, bytecode.POP)
+		c.emit(location.EndPos.Line, bytecode.POP)
 	}
-	c.leaveScope(span.EndPos.Line)
-	c.emitLoop(span, start)
+	c.leaveScope(location.EndPos.Line)
+	c.emitLoop(location, start)
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	c.patchLoopJumps(start)
 }
 
 func (c *Compiler) compileWhileExpressionNode(label string, node *ast.WhileExpressionNode) {
-	span := node.Span()
+	location := node.Location()
 
 	if result := resolve(node.Condition); !result.IsUndefined() {
 		if value.Falsy(result) {
 			// the loop won't run at all
 			// it can be optimised into a simple NIL operation
-			c.emit(span.StartPos.Line, bytecode.NIL)
+			c.emit(location.StartPos.Line, bytecode.NIL)
 			return
 		}
 
 		// the loop is endless
-		c.compileLoopExpressionNode(label, node.ThenBody, span)
+		c.compileLoopExpressionNode(label, node.ThenBody, location)
 		return
 	}
 
 	c.enterScope(label, loopScopeType)
 	c.initLoopJumpSet(label, true)
 
-	c.emit(span.StartPos.Line, bytecode.NIL)
+	c.emit(location.StartPos.Line, bytecode.NIL)
 	// loop start
 	start := c.nextInstructionOffset()
 	var loopBodyOffset int
 
-	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_UNLESS, node.Condition, span); optimisedCond != nil {
+	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_UNLESS, node.Condition, location); optimisedCond != nil {
 		optimisedCond()
-		loopBodyOffset = c.emitJump(span.StartPos.Line, optimisedJumpOp)
+		loopBodyOffset = c.emitJump(location.StartPos.Line, optimisedJumpOp)
 	} else {
 		// loop condition eg. `i < 5`
 		c.compileNodeWithResult(node.Condition)
 		// jump past the loop if the condition is falsy
-		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS)
 	}
 	// pop the return value of the last iteration
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
 	// loop body
-	c.compileStatementsWithResult(node.ThenBody, span)
+	c.compileStatementsWithResult(node.ThenBody, location)
 
-	c.closeUpvaluesInCurrentScope(span.EndPos.Line)
+	c.closeUpvaluesInCurrentScope(location.EndPos.Line)
 	// jump to loop condition
-	c.emitLoop(span, start)
+	c.emitLoop(location, start)
 
 	// after loop
-	c.patchJump(loopBodyOffset, span)
+	c.patchJump(loopBodyOffset, location)
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	c.patchLoopJumps(start)
 }
 
 func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode) {
-	span := node.Span()
+	location := node.Location()
 
 	body := node.Left
 	condition := node.Right
@@ -1543,7 +1538,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	if result := resolve(condition); !result.IsUndefined() {
 		if value.Truthy(result) {
 			// the loop is endless
-			c.compileLoopExpressionNode(label, ast.ExpressionToStatements(body), span)
+			c.compileLoopExpressionNode(label, ast.ExpressionToStatements(body), location)
 			return
 		}
 
@@ -1566,36 +1561,36 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	if conditionIsStaticFalsy {
 		// the loop has a static falsy condition
 		// it will only finish one iteration
-		c.leaveScope(span.EndPos.Line)
+		c.leaveScope(location.EndPos.Line)
 		c.patchLoopJumps(continueOffset)
 		return
 	}
 
-	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_UNLESS, condition, span); optimisedCond != nil {
+	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_UNLESS, condition, location); optimisedCond != nil {
 		optimisedCond()
-		loopBodyOffset = c.emitJump(span.StartPos.Line, optimisedJumpOp)
+		loopBodyOffset = c.emitJump(location.StartPos.Line, optimisedJumpOp)
 	} else {
 		// loop condition eg. `i < 5`
 		c.compileNodeWithResult(condition)
 		// jump past the loop if the condition is falsy
-		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS)
 	}
 	// pop the return value of the last iteration
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	// jump to loop start
-	c.emitLoop(span, start)
+	c.emitLoop(location, start)
 
 	// after loop
-	c.patchJump(loopBodyOffset, span)
+	c.patchJump(loopBodyOffset, location)
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
 }
 
 func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode) {
-	span := node.Span()
+	location := node.Location()
 
 	body := node.Left
 	condition := node.Right
@@ -1605,7 +1600,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	if result := resolve(condition); !result.IsUndefined() {
 		if value.Falsy(result) {
 			// the loop is endless
-			c.compileLoopExpressionNode(label, ast.ExpressionToStatements(body), span)
+			c.compileLoopExpressionNode(label, ast.ExpressionToStatements(body), location)
 			return
 		}
 
@@ -1628,82 +1623,82 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	if conditionIsStaticTruthy {
 		// the loop has a static truthy condition
 		// it will only finish one iteration
-		c.leaveScope(span.EndPos.Line)
+		c.leaveScope(location.EndPos.Line)
 		c.patchLoopJumps(continueOffset)
 		return
 	}
 
-	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_IF, condition, span); optimisedCond != nil {
+	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_IF, condition, location); optimisedCond != nil {
 		optimisedCond()
-		loopBodyOffset = c.emitJump(span.StartPos.Line, optimisedJumpOp)
+		loopBodyOffset = c.emitJump(location.StartPos.Line, optimisedJumpOp)
 	} else {
 		// loop condition eg. `i > 5`
 		c.compileNodeWithResult(condition)
 		// jump past the loop if the condition is truthy
-		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+		loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.JUMP_IF)
 	}
 	// pop the return value of the last iteration
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	// jump to loop start
-	c.emitLoop(span, start)
+	c.emitLoop(location, start)
 
 	// after loop
-	c.patchJump(loopBodyOffset, span)
+	c.patchJump(loopBodyOffset, location)
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
 }
 
 func (c *Compiler) compileUntilExpressionNode(label string, node *ast.UntilExpressionNode) {
-	span := node.Span()
+	location := node.Location()
 
 	if result := resolve(node.Condition); !result.IsUndefined() {
 		if value.Falsy(result) {
 			// the loop is endless
-			c.compileLoopExpressionNode(label, node.ThenBody, span)
+			c.compileLoopExpressionNode(label, node.ThenBody, location)
 			return
 		}
 
 		// the loop won't run at all
 		// it can be optimised into a simple NIL operation
-		c.emit(span.StartPos.Line, bytecode.NIL)
+		c.emit(location.StartPos.Line, bytecode.NIL)
 		return
 	}
 
 	c.enterScope(label, loopScopeType)
 	c.initLoopJumpSet(label, true)
 
-	c.emit(span.StartPos.Line, bytecode.NIL)
+	c.emit(location.StartPos.Line, bytecode.NIL)
 	// loop start
 	start := c.nextInstructionOffset()
 	c.enterScope("", defaultScopeType)
 	var loopBodyOffset int
 
-	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_IF, node.Condition, span); optimisedCond != nil {
+	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_IF, node.Condition, location); optimisedCond != nil {
 		optimisedCond()
-		loopBodyOffset = c.emitJump(span.StartPos.Line, optimisedJumpOp)
+		loopBodyOffset = c.emitJump(location.StartPos.Line, optimisedJumpOp)
 	} else {
 		// loop condition eg. `i > 5`
 		c.compileNodeWithResult(node.Condition)
 		// jump past the loop if the condition is truthy
-		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+		loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.JUMP_IF)
 	}
 	// pop the return value of the last iteration
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
 	// loop body
-	c.compileStatementsWithResult(node.ThenBody, span)
+	c.compileStatementsWithResult(node.ThenBody, location)
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	// jump to loop condition
-	c.emitLoop(span, start)
+	c.emitLoop(location, start)
 
 	// after loop
-	c.patchJump(loopBodyOffset, span)
+	c.patchJump(loopBodyOffset, location)
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	c.patchLoopJumps(start)
 }
 
@@ -1715,7 +1710,7 @@ func (c *Compiler) compileLabeledExpressionNode(node *ast.LabeledExpressionNode,
 	case *ast.UntilExpressionNode:
 		c.compileUntilExpressionNode(node.Label, expr)
 	case *ast.LoopExpressionNode:
-		c.compileLoopExpressionNode(node.Label, expr.ThenBody, expr.Span())
+		c.compileLoopExpressionNode(node.Label, expr.ThenBody, expr.Location())
 	case *ast.NumericForExpressionNode:
 		c.compileNumericForExpressionNode(node.Label, expr)
 	case *ast.ForInExpressionNode:
@@ -1738,9 +1733,9 @@ func (c *Compiler) compileForInExpressionNode(label string, node *ast.ForInExpre
 		node.Pattern,
 		node.InExpression,
 		func() {
-			c.compileStatements(node.ThenBody, node.Span(), false)
+			c.compileStatements(node.ThenBody, node.Location(), false)
 		},
-		node.Span(),
+		node.Location(),
 		false,
 	)
 }
@@ -1755,10 +1750,10 @@ func (c *Compiler) compileModifierForInNode(label string, node *ast.ModifierForI
 			result := c.compileNode(node.ThenExpression, false)
 			switch result {
 			case expressionIgnored, expressionCompiledWithoutResult:
-				c.emit(node.ThenExpression.Span().StartPos.Line, bytecode.NIL)
+				c.emit(node.ThenExpression.Location().StartPos.Line, bytecode.NIL)
 			}
 		},
-		node.Span(),
+		node.Location(),
 		false,
 	)
 }
@@ -1768,7 +1763,7 @@ func (c *Compiler) compileForInAsNumericFor(
 	param ast.PatternNode,
 	inExpression ast.ExpressionNode,
 	then func(),
-	span *position.Span,
+	location *position.Location,
 	collectionLiteral bool,
 ) bool {
 	var paramExpr ast.ExpressionNode
@@ -1786,50 +1781,50 @@ func (c *Compiler) compileForInAsNumericFor(
 
 	switch in := inExpression.(type) {
 	case *ast.RangeLiteralNode:
-		return c.compileForInRangeLiteralAsNumericFor(label, in, then, paramExpr, paramName, collectionLiteral, span)
+		return c.compileForInRangeLiteralAsNumericFor(label, in, then, paramExpr, paramName, collectionLiteral, location)
 	case *ast.IntLiteralNode:
-		return c.compileForInIntLiteralAsNumericFor(label, in, then, paramExpr, paramName, collectionLiteral, span)
+		return c.compileForInIntLiteralAsNumericFor(label, in, then, paramExpr, paramName, collectionLiteral, location)
 	}
 
 	inExpressionType := c.typeOf(inExpression)
 	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.Range)) {
-		return c.compileForInRangeAsNumericFor(label, inExpression, then, paramExpr, paramName, collectionLiteral, span)
+		return c.compileForInRangeAsNumericFor(label, inExpression, then, paramExpr, paramName, collectionLiteral, location)
 	}
 	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.Int)) {
-		return c.compileForInIntAsNumericFor(label, inExpression, then, paramExpr, paramName, collectionLiteral, span)
+		return c.compileForInIntAsNumericFor(label, inExpression, then, paramExpr, paramName, collectionLiteral, location)
 	}
 
 	return false
 }
 
-func (c *Compiler) compileForInIntAsNumericFor(label string, inExpression ast.ExpressionNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, span *position.Span) bool {
+func (c *Compiler) compileForInIntAsNumericFor(label string, inExpression ast.ExpressionNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, location *position.Location) bool {
 	c.enterScope("", defaultScopeType)
 
 	intVarName := fmt.Sprintf("#!forInt%d", len(c.scopes))
 
 	c.compileNodeWithResult(inExpression)
-	intVar := c.defineLocal(intVarName, span)
+	intVar := c.defineLocal(intVarName, location)
 
-	c.emitSetLocalPop(span.StartPos.Line, intVar.index)
+	c.emitSetLocalPop(location.StartPos.Line, intVar.index)
 
 	init := ast.NewVariableDeclarationNode(
-		paramExpr.Span(),
+		paramExpr.Location(),
 		"",
 		paramName,
 		nil,
-		ast.NewIntLiteralNode(span, "0"),
+		ast.NewIntLiteralNode(location, "0"),
 	)
 	increment := ast.NewPostfixExpressionNode(
-		span,
-		token.New(span, token.PLUS_PLUS),
+		location,
+		token.New(location, token.PLUS_PLUS),
 		paramExpr,
 	)
 
 	cond := ast.NewBinaryExpressionNode(
-		span,
-		token.New(span, token.LESS),
+		location,
+		token.New(location, token.LESS),
 		paramExpr,
-		ast.NewPublicIdentifierNode(inExpression.Span(), intVarName),
+		ast.NewPublicIdentifierNode(inExpression.Location(), intVarName),
 	)
 
 	c.compileNumericFor(
@@ -1839,18 +1834,18 @@ func (c *Compiler) compileForInIntAsNumericFor(label string, inExpression ast.Ex
 		increment,
 		then,
 		collectionLiteral,
-		span,
+		location,
 	)
 	if !collectionLiteral {
-		c.emit(span.EndPos.Line, bytecode.POP)
-		c.emit(span.EndPos.Line, bytecode.NIL)
+		c.emit(location.EndPos.Line, bytecode.POP)
+		c.emit(location.EndPos.Line, bytecode.NIL)
 	}
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	return true
 }
 
-func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.ExpressionNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, span *position.Span) bool {
+func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.ExpressionNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, location *position.Location) bool {
 	inExpressionType := c.typeOf(inExpression).(*types.Generic)
 
 	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.BeginlessClosedRange)) ||
@@ -1864,9 +1859,9 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 	rangeEndVarName := fmt.Sprintf("#!forRangeEnd%d", len(c.scopes))
 
 	initVal := ast.NewMethodCallNode(
-		span,
-		ast.NewPublicIdentifierNode(inExpression.Span(), rangeVarName),
-		token.New(span, token.DOT),
+		location,
+		ast.NewPublicIdentifierNode(inExpression.Location(), rangeVarName),
+		token.New(location, token.DOT),
 		"start",
 		nil,
 		nil,
@@ -1883,9 +1878,9 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.OpenRange)) {
 		cmpOp = token.LESS
 		initVal = ast.NewMethodCallNode(
-			span,
+			location,
 			initVal,
-			token.New(span, token.DOT),
+			token.New(location, token.DOT),
 			"++",
 			nil,
 			nil,
@@ -1893,18 +1888,18 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.LeftOpenRange)) {
 		cmpOp = token.LESS_EQUAL
 		initVal = ast.NewMethodCallNode(
-			span,
+			location,
 			initVal,
-			token.New(span, token.DOT),
+			token.New(location, token.DOT),
 			"++",
 			nil,
 			nil,
 		)
 	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.EndlessOpenRange)) {
 		initVal = ast.NewMethodCallNode(
-			span,
+			location,
 			initVal,
-			token.New(span, token.DOT),
+			token.New(location, token.DOT),
 			"++",
 			nil,
 			nil,
@@ -1912,36 +1907,36 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 	}
 
 	c.compileNodeWithResult(inExpression)
-	rangeVar := c.defineLocal(rangeVarName, span)
+	rangeVar := c.defineLocal(rangeVarName, location)
 	if cmpOp != token.ZERO_VALUE {
-		c.emitSetLocalNoPop(span.StartPos.Line, rangeVar.index)
+		c.emitSetLocalNoPop(location.StartPos.Line, rangeVar.index)
 
-		c.emitCallMethod(value.NewCallSiteInfo(value.ToSymbol("end"), 0), span, false)
-		rangeEndVar := c.defineLocal(rangeEndVarName, span)
-		c.emitSetLocalPop(span.StartPos.Line, rangeEndVar.index)
+		c.emitCallMethod(value.NewCallSiteInfo(value.ToSymbol("end"), 0), location, false)
+		rangeEndVar := c.defineLocal(rangeEndVarName, location)
+		c.emitSetLocalPop(location.StartPos.Line, rangeEndVar.index)
 	} else {
-		c.emitSetLocalPop(span.StartPos.Line, rangeVar.index)
+		c.emitSetLocalPop(location.StartPos.Line, rangeVar.index)
 	}
 
 	init := ast.NewVariableDeclarationNode(
-		paramExpr.Span(),
+		paramExpr.Location(),
 		"",
 		paramName,
 		nil,
 		initVal,
 	)
 	increment := ast.NewPostfixExpressionNode(
-		span,
-		token.New(span, token.PLUS_PLUS),
+		location,
+		token.New(location, token.PLUS_PLUS),
 		paramExpr,
 	)
 	var cond ast.ExpressionNode
 	if cmpOp != token.ZERO_VALUE {
 		cond = ast.NewBinaryExpressionNode(
-			span,
-			token.New(span, cmpOp),
+			location,
+			token.New(location, cmpOp),
 			paramExpr,
-			ast.NewPublicIdentifierNode(inExpression.Span(), rangeEndVarName),
+			ast.NewPublicIdentifierNode(inExpression.Location(), rangeEndVarName),
 		)
 	}
 	c.compileNumericFor(
@@ -1951,34 +1946,34 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 		increment,
 		then,
 		collectionLiteral,
-		span,
+		location,
 	)
 	if !collectionLiteral {
-		c.emit(span.EndPos.Line, bytecode.POP)
-		c.emit(span.EndPos.Line, bytecode.NIL)
+		c.emit(location.EndPos.Line, bytecode.POP)
+		c.emit(location.EndPos.Line, bytecode.NIL)
 	}
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	return true
 }
 
-func (c *Compiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast.IntLiteralNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, span *position.Span) bool {
+func (c *Compiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast.IntLiteralNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, location *position.Location) bool {
 	init := ast.NewVariableDeclarationNode(
-		paramExpr.Span(),
+		paramExpr.Location(),
 		"",
 		paramName,
 		nil,
-		ast.NewIntLiteralNode(paramExpr.Span(), "0"),
+		ast.NewIntLiteralNode(paramExpr.Location(), "0"),
 	)
 	increment := ast.NewPostfixExpressionNode(
-		paramExpr.Span(),
-		token.New(paramExpr.Span(), token.PLUS_PLUS),
+		paramExpr.Location(),
+		token.New(paramExpr.Location(), token.PLUS_PLUS),
 		paramExpr,
 	)
 
 	cond := ast.NewBinaryExpressionNode(
-		inInt.Span(),
-		token.New(inInt.Span(), token.LESS),
+		inInt.Location(),
+		token.New(inInt.Location(), token.LESS),
 		paramExpr,
 		inInt,
 	)
@@ -1989,17 +1984,17 @@ func (c *Compiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast.I
 		increment,
 		then,
 		collectionLiteral,
-		span,
+		location,
 	)
 	if !collectionLiteral {
-		c.emit(span.EndPos.Line, bytecode.POP)
-		c.emit(span.EndPos.Line, bytecode.NIL)
+		c.emit(location.EndPos.Line, bytecode.POP)
+		c.emit(location.EndPos.Line, bytecode.NIL)
 	}
 
 	return true
 }
 
-func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *ast.RangeLiteralNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, span *position.Span) bool {
+func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *ast.RangeLiteralNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, location *position.Location) bool {
 	if inRange.Start == nil {
 		return false
 	}
@@ -2017,9 +2012,9 @@ func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *a
 	case token.LEFT_OPEN_RANGE_OP:
 		op = token.LESS_EQUAL
 		initVal = ast.NewMethodCallNode(
-			inRange.Span(),
+			inRange.Location(),
 			inRange.Start,
-			token.New(inRange.Op.Span(), token.DOT),
+			token.New(inRange.Op.Location(), token.DOT),
 			"++",
 			nil,
 			nil,
@@ -2027,9 +2022,9 @@ func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *a
 	case token.OPEN_RANGE_OP:
 		op = token.LESS
 		initVal = ast.NewMethodCallNode(
-			inRange.Span(),
+			inRange.Location(),
 			inRange.Start,
-			token.New(inRange.Op.Span(), token.DOT),
+			token.New(inRange.Op.Location(), token.DOT),
 			"++",
 			nil,
 			nil,
@@ -2039,23 +2034,23 @@ func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *a
 	}
 
 	init := ast.NewVariableDeclarationNode(
-		paramExpr.Span(),
+		paramExpr.Location(),
 		"",
 		paramName,
 		nil,
 		initVal,
 	)
 	increment := ast.NewPostfixExpressionNode(
-		inRange.Op.Span(),
-		token.New(inRange.Op.Span(), token.PLUS_PLUS),
+		inRange.Op.Location(),
+		token.New(inRange.Op.Location(), token.PLUS_PLUS),
 		paramExpr,
 	)
 
 	var cond ast.ExpressionNode
 	if inRange.End != nil {
 		cond = ast.NewBinaryExpressionNode(
-			inRange.End.Span(),
-			token.New(inRange.Op.Span(), op),
+			inRange.End.Location(),
+			token.New(inRange.Op.Location(), op),
 			paramExpr,
 			inRange.End,
 		)
@@ -2067,11 +2062,11 @@ func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *a
 		increment,
 		then,
 		collectionLiteral,
-		span,
+		location,
 	)
 	if !collectionLiteral {
-		c.emit(span.EndPos.Line, bytecode.POP)
-		c.emit(span.EndPos.Line, bytecode.NIL)
+		c.emit(location.EndPos.Line, bytecode.POP)
+		c.emit(location.EndPos.Line, bytecode.NIL)
 	}
 
 	return true
@@ -2082,10 +2077,10 @@ func (c *Compiler) compileForIn(
 	param ast.PatternNode,
 	inExpression ast.ExpressionNode,
 	then func(),
-	span *position.Span,
+	location *position.Location,
 	collectionLiteral bool,
 ) {
-	if c.compileForInAsNumericFor(label, param, inExpression, then, span, collectionLiteral) {
+	if c.compileForInAsNumericFor(label, param, inExpression, then, location, collectionLiteral) {
 		return
 	}
 
@@ -2095,53 +2090,53 @@ func (c *Compiler) compileForIn(
 	c.compileNode(inExpression, false)
 	inExpressionType := c.typeOf(inExpression)
 	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.S_BuiltinIterable)) {
-		c.emit(span.StartPos.Line, bytecode.GET_ITERATOR)
+		c.emit(location.StartPos.Line, bytecode.GET_ITERATOR)
 	} else {
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.L_iter, 0), inExpression.Span(), false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.L_iter, 0), inExpression.Location(), false)
 	}
 
 	iteratorVarName := fmt.Sprintf("#!forIn%d", len(c.scopes))
-	iteratorVar := c.defineLocal(iteratorVarName, span)
-	c.emitSetLocalPop(span.StartPos.Line, iteratorVar.index)
+	iteratorVar := c.defineLocal(iteratorVarName, location)
+	c.emitSetLocalPop(location.StartPos.Line, iteratorVar.index)
 
 	// loop start
 	start := c.nextInstructionOffset()
 	continueOffset := start
 
-	c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
+	c.emitGetLocal(location.StartPos.Line, iteratorVar.index)
 
 	var loopBodyOffset int
 
 	nextType := c.checker.GetIteratorType(inExpressionType)
 	if c.checker.IsSubtype(nextType, c.checker.Std(symbol.S_BuiltinIterator)) {
-		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.FOR_IN_BUILTIN)
+		loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.FOR_IN_BUILTIN)
 	} else {
-		c.emitCallNext(value.NewCallSiteInfo(symbol.L_next, 0), inExpression.Span())
-		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.FOR_IN)
+		c.emitCallNext(value.NewCallSiteInfo(symbol.L_next, 0), inExpression.Location())
+		loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.FOR_IN)
 	}
 
 	switch p := param.(type) {
 	case *ast.PrivateIdentifierNode:
-		paramVar := c.defineLocal(p.Value, param.Span())
-		c.emitSetLocalPop(param.Span().StartPos.Line, paramVar.index)
+		paramVar := c.defineLocal(p.Value, param.Location())
+		c.emitSetLocalPop(param.Location().StartPos.Line, paramVar.index)
 	case *ast.PublicIdentifierNode:
-		paramVar := c.defineLocal(p.Value, param.Span())
-		c.emitSetLocalPop(param.Span().StartPos.Line, paramVar.index)
+		paramVar := c.defineLocal(p.Value, param.Location())
+		c.emitSetLocalPop(param.Location().StartPos.Line, paramVar.index)
 	default:
 		c.pattern(param)
-		jumpOverErrorOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+		jumpOverErrorOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF)
 
 		c.emitValue(
 			value.Ref(value.NewError(
 				value.PatternNotMatchedErrorClass,
 				"assigned value does not match the pattern defined in for in loop",
 			)),
-			span,
+			location,
 		)
-		c.emit(span.EndPos.Line, bytecode.THROW)
+		c.emit(location.EndPos.Line, bytecode.THROW)
 
-		c.patchJump(jumpOverErrorOffset, span)
-		c.emit(param.Span().EndPos.Line, bytecode.POP)
+		c.patchJump(jumpOverErrorOffset, location)
+		c.emit(param.Location().EndPos.Line, bytecode.POP)
 	}
 
 	// loop body
@@ -2149,28 +2144,28 @@ func (c *Compiler) compileForIn(
 
 	// pop the return value of the block
 	if !collectionLiteral {
-		c.emit(span.EndPos.Line, bytecode.POP)
+		c.emit(location.EndPos.Line, bytecode.POP)
 	}
 	// jump to loop condition
-	c.emitLoop(span, start)
+	c.emitLoop(location, start)
 
 	// after loop
-	c.patchJump(loopBodyOffset, span)
+	c.patchJump(loopBodyOffset, location)
 	if !collectionLiteral {
-		c.emit(span.EndPos.Line, bytecode.NIL)
+		c.emit(location.EndPos.Line, bytecode.NIL)
 	}
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
 }
 
 // Compile a numeric for loop eg. `for i := 0; i < 5; i += 1 then println(i)`
 func (c *Compiler) compileNumericForExpressionNode(label string, node *ast.NumericForExpressionNode) {
-	span := node.Span()
+	location := node.Location()
 
 	if node.Initialiser == nil && node.Condition == nil && node.Increment == nil {
 		// the loop is endless
-		c.compileLoopExpressionNode(label, node.ThenBody, span)
+		c.compileLoopExpressionNode(label, node.ThenBody, location)
 		return
 	}
 
@@ -2180,14 +2175,14 @@ func (c *Compiler) compileNumericForExpressionNode(label string, node *ast.Numer
 		node.Condition,
 		node.Increment,
 		func() {
-			c.compileStatementsWithResult(node.ThenBody, span)
+			c.compileStatementsWithResult(node.ThenBody, location)
 		},
 		false,
-		span,
+		location,
 	)
 }
 
-func (c *Compiler) compileNumericFor(label string, init, cond, increment ast.ExpressionNode, then func(), collectionLiteral bool, span *position.Span) {
+func (c *Compiler) compileNumericFor(label string, init, cond, increment ast.ExpressionNode, then func(), collectionLiteral bool, location *position.Location) {
 	c.enterScope(label, loopScopeType)
 	c.initLoopJumpSet(label, true)
 
@@ -2197,7 +2192,7 @@ func (c *Compiler) compileNumericFor(label string, init, cond, increment ast.Exp
 	}
 
 	if !collectionLiteral {
-		c.emit(span.StartPos.Line, bytecode.NIL)
+		c.emit(location.StartPos.Line, bytecode.NIL)
 	}
 	// loop start
 	start := c.nextInstructionOffset()
@@ -2207,23 +2202,23 @@ func (c *Compiler) compileNumericFor(label string, init, cond, increment ast.Exp
 	// loop condition eg. `i < 5`
 	if cond != nil {
 		// jump past the loop if the condition is falsy
-		if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_UNLESS, cond, span); optimisedCond != nil {
+		if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_UNLESS, cond, location); optimisedCond != nil {
 			optimisedCond()
-			loopBodyOffset = c.emitJump(span.StartPos.Line, optimisedJumpOp)
+			loopBodyOffset = c.emitJump(location.StartPos.Line, optimisedJumpOp)
 		} else {
 			c.compileNodeWithResult(cond)
-			loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS)
 		}
 	}
 	if !collectionLiteral {
 		// pop the return value of the last iteration
-		c.emit(span.EndPos.Line, bytecode.POP)
+		c.emit(location.EndPos.Line, bytecode.POP)
 	}
 
 	// loop body
 	then()
 
-	c.closeUpvaluesInCurrentScope(span.EndPos.Line)
+	c.closeUpvaluesInCurrentScope(location.EndPos.Line)
 	if increment != nil {
 		continueOffset = c.nextInstructionOffset()
 		// increment step eg. `i += 1`
@@ -2231,171 +2226,171 @@ func (c *Compiler) compileNumericFor(label string, init, cond, increment ast.Exp
 	}
 
 	// jump to loop condition
-	c.emitLoop(span, start)
+	c.emitLoop(location, start)
 
 	// after loop
 	if cond != nil {
-		c.patchJump(loopBodyOffset, span)
+		c.patchJump(loopBodyOffset, location)
 	}
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
 }
 
-func (c *Compiler) emitSetterCall(name string, span *position.Span) {
+func (c *Compiler) emitSetterCall(name string, location *position.Location) {
 	nameSymbol := value.ToSymbol(name + "=")
 	callInfo := value.NewCallSiteInfo(nameSymbol, 1)
-	c.emitCallMethod(callInfo, span, false)
+	c.emitCallMethod(callInfo, location, false)
 }
 
-func (c *Compiler) emitGetterCall(name string, span *position.Span) {
+func (c *Compiler) emitGetterCall(name string, location *position.Location) {
 	nameSymbol := value.ToSymbol(name)
 	callInfo := value.NewCallSiteInfo(nameSymbol, 0)
-	c.emitCallMethod(callInfo, span, false)
+	c.emitCallMethod(callInfo, location, false)
 }
 
-func (c *Compiler) compileIncrement(typ types.Type, span *position.Span) {
+func (c *Compiler) compileIncrement(typ types.Type, location *position.Location) {
 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-		c.emit(span.EndPos.Line, bytecode.INCREMENT_INT)
+		c.emit(location.EndPos.Line, bytecode.INCREMENT_INT)
 		return
 	}
 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinIncrementable)) {
-		c.emit(span.EndPos.Line, bytecode.INCREMENT)
+		c.emit(location.EndPos.Line, bytecode.INCREMENT)
 		return
 	}
 
-	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpIncrement, 0), span, false)
+	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpIncrement, 0), location, false)
 }
 
-func (c *Compiler) compileDecrement(typ types.Type, span *position.Span) {
+func (c *Compiler) compileDecrement(typ types.Type, location *position.Location) {
 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-		c.emit(span.EndPos.Line, bytecode.DECREMENT_INT)
+		c.emit(location.EndPos.Line, bytecode.DECREMENT_INT)
 		return
 	}
 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinIncrementable)) {
-		c.emit(span.EndPos.Line, bytecode.DECREMENT)
+		c.emit(location.EndPos.Line, bytecode.DECREMENT)
 		return
 	}
 
-	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpDecrement, 0), span, false)
+	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpDecrement, 0), location, false)
 }
 
-func (c *Compiler) compileSubscript(typ types.Type, span *position.Span) {
+func (c *Compiler) compileSubscript(typ types.Type, location *position.Location) {
 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinSubscriptable)) {
-		c.emit(span.EndPos.Line, bytecode.SUBSCRIPT)
+		c.emit(location.EndPos.Line, bytecode.SUBSCRIPT)
 		return
 	}
 
-	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), span, false)
+	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscript, 1), location, false)
 }
 
-func (c *Compiler) compileSubscriptSet(typ types.Type, span *position.Span) {
+func (c *Compiler) compileSubscriptSet(typ types.Type, location *position.Location) {
 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinSubscriptable)) {
-		c.emit(span.EndPos.Line, bytecode.SUBSCRIPT_SET)
+		c.emit(location.EndPos.Line, bytecode.SUBSCRIPT_SET)
 		return
 	}
 
-	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscriptSet, 2), span, false)
+	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubscriptSet, 2), location, false)
 }
 
 func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode, valueIsIgnored bool) expressionResult {
 	switch n := node.Expression.(type) {
 	case *ast.PublicIdentifierNode:
 		// get variable value
-		c.compileLocalVariableAccess(n.Value, n.Span())
+		c.compileLocalVariableAccess(n.Value, n.Location())
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
-			c.compileIncrement(c.typeOf(n), node.Span())
+			c.compileIncrement(c.typeOf(n), node.Location())
 		case token.MINUS_MINUS:
-			c.compileDecrement(c.typeOf(n), node.Span())
+			c.compileDecrement(c.typeOf(n), node.Location())
 		default:
 			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
 		}
 
 		// set variable
-		return c.setLocalWithoutValue(n.Value, n.Span(), valueIsIgnored)
+		return c.setLocalWithoutValue(n.Value, n.Location(), valueIsIgnored)
 	case *ast.PrivateIdentifierNode:
 		// get variable value
-		c.compileLocalVariableAccess(n.Value, n.Span())
+		c.compileLocalVariableAccess(n.Value, n.Location())
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
-			c.compileIncrement(c.typeOf(n), node.Span())
+			c.compileIncrement(c.typeOf(n), node.Location())
 		case token.MINUS_MINUS:
-			c.compileDecrement(c.typeOf(n), node.Span())
+			c.compileDecrement(c.typeOf(n), node.Location())
 		default:
 			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
 		}
 
 		// set variable
-		return c.setLocalWithoutValue(n.Value, n.Span(), valueIsIgnored)
+		return c.setLocalWithoutValue(n.Value, n.Location(), valueIsIgnored)
 	case *ast.SubscriptExpressionNode:
 		// get value
 		c.compileNodeWithResult(n.Receiver)
 		c.compileNodeWithResult(n.Key)
-		c.emit(node.Span().EndPos.Line, bytecode.DUP_2)
+		c.emit(node.Location().EndPos.Line, bytecode.DUP_2)
 
 		receiverType := c.typeOf(n.Receiver)
-		c.compileSubscript(receiverType, node.Span())
+		c.compileSubscript(receiverType, node.Location())
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
-			c.compileIncrement(c.typeOf(n), node.Span())
+			c.compileIncrement(c.typeOf(n), node.Location())
 		case token.MINUS_MINUS:
-			c.compileDecrement(c.typeOf(n), node.Span())
+			c.compileDecrement(c.typeOf(n), node.Location())
 		default:
 			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
 		}
 
 		// set value
-		c.compileSubscriptSet(receiverType, node.Span())
+		c.compileSubscriptSet(receiverType, node.Location())
 	case *ast.InstanceVariableNode:
 		switch c.mode {
 		case topLevelMode:
 			c.Errors.AddFailure(
 				"instance variables cannot be set in the top level",
-				c.newLocation(node.Span()),
+				node.Location(),
 			)
 		}
 		// get value
 		ivarSymbol := value.ToSymbol(n.Value)
-		c.emitGetInstanceVariable(ivarSymbol, n.Span())
+		c.emitGetInstanceVariable(ivarSymbol, n.Location())
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
-			c.compileIncrement(c.typeOf(n), node.Span())
+			c.compileIncrement(c.typeOf(n), node.Location())
 		case token.MINUS_MINUS:
-			c.compileDecrement(c.typeOf(n), node.Span())
+			c.compileDecrement(c.typeOf(n), node.Location())
 		default:
 			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
 		}
 
 		// set instance variable
-		c.emitSetInstanceVariable(ivarSymbol, node.Span(), valueIsIgnored)
+		c.emitSetInstanceVariable(ivarSymbol, node.Location(), valueIsIgnored)
 		return valueIgnoredToResult(valueIsIgnored)
 	case *ast.AttributeAccessNode:
 		// get value
 		c.compileNodeWithResult(n.Receiver)
 		name := value.ToSymbol(n.AttributeName)
 		callInfo := value.NewCallSiteInfo(name, 0)
-		c.emitCallMethod(callInfo, node.Span(), false)
+		c.emitCallMethod(callInfo, node.Location(), false)
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
-			c.compileIncrement(c.typeOf(n), node.Span())
+			c.compileIncrement(c.typeOf(n), node.Location())
 		case token.MINUS_MINUS:
-			c.compileDecrement(c.typeOf(n), node.Span())
+			c.compileDecrement(c.typeOf(n), node.Location())
 		default:
 			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
 		}
 
 		// set attribute
-		c.emitSetterCall(n.AttributeName, node.Span())
+		c.emitSetterCall(n.AttributeName, node.Location())
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Expression),
-			c.newLocation(node.Span()),
+			node.Location(),
 		)
 	}
 
@@ -2408,56 +2403,56 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 	case token.EQUAL_OP:
 		c.compileNodeWithResult(attr.Receiver)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(attr.AttributeName, node.Span())
+		c.emitSetterCall(attr.AttributeName, node.Location())
 	case token.OR_OR_EQUAL:
-		span := node.Span()
+		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(attr.Receiver)
-		c.emitGetterCall(attr.AttributeName, span)
+		c.emitGetterCall(attr.AttributeName, location)
 
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
+		jump := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF_NP)
 
 		// if falsy
-		c.emit(span.StartPos.Line, bytecode.POP)
+		c.emit(location.StartPos.Line, bytecode.POP)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(attr.AttributeName, span)
+		c.emitSetterCall(attr.AttributeName, location)
 
 		// if truthy
-		c.patchJump(jump, span)
+		c.patchJump(jump, location)
 	case token.AND_AND_EQUAL:
-		span := node.Span()
+		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(attr.Receiver)
-		c.emitGetterCall(attr.AttributeName, span)
+		c.emitGetterCall(attr.AttributeName, location)
 
-		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+		jump := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 
 		// if truthy
-		c.emit(span.StartPos.Line, bytecode.POP)
+		c.emit(location.StartPos.Line, bytecode.POP)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(attr.AttributeName, span)
+		c.emitSetterCall(attr.AttributeName, location)
 
 		// if falsy
-		c.patchJump(jump, span)
+		c.patchJump(jump, location)
 	case token.QUESTION_QUESTION_EQUAL:
-		span := node.Span()
+		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(attr.Receiver)
-		c.emitGetterCall(attr.AttributeName, span)
+		c.emitGetterCall(attr.AttributeName, location)
 
-		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
-		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+		nilJump := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
+		nonNilJump := c.emitJump(location.StartPos.Line, bytecode.JUMP)
 
 		// if nil
-		c.patchJump(nilJump, span)
-		c.emit(span.StartPos.Line, bytecode.POP)
+		c.patchJump(nilJump, location)
+		c.emit(location.StartPos.Line, bytecode.POP)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(attr.AttributeName, span)
+		c.emitSetterCall(attr.AttributeName, location)
 
 		// if not nil
-		c.patchJump(nonNilJump, span)
+		c.patchJump(nonNilJump, location)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
 	}
 }
 
@@ -2466,7 +2461,7 @@ func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode
 	case topLevelMode:
 		c.Errors.AddFailure(
 			"instance variables cannot be set in the top level",
-			c.newLocation(node.Span()),
+			node.Location(),
 		)
 	}
 
@@ -2474,76 +2469,76 @@ func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode
 	switch node.Op.Type {
 	case token.EQUAL_OP:
 		c.compileNodeWithResult(node.Right)
-		c.emitSetInstanceVariable(ivarSymbol, ivar.Span(), valueIsIgnored)
+		c.emitSetInstanceVariable(ivarSymbol, ivar.Location(), valueIsIgnored)
 		return valueIgnoredToResult(valueIsIgnored)
 	case token.OR_OR_EQUAL:
-		span := node.Span()
+		location := node.Location()
 		// Read the current value
-		c.emitGetInstanceVariable(ivarSymbol, span)
+		c.emitGetInstanceVariable(ivarSymbol, location)
 
 		var jump int
 		if valueIsIgnored {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_IF)
 		} else {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_IF_NP)
 		}
 
 		// if falsy
 		if !valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		}
 		c.compileNodeWithResult(node.Right)
-		c.emitSetInstanceVariable(ivarSymbol, ivar.Span(), valueIsIgnored)
+		c.emitSetInstanceVariable(ivarSymbol, ivar.Location(), valueIsIgnored)
 
 		// if truthy
-		c.patchJump(jump, span)
+		c.patchJump(jump, location)
 		return valueIgnoredToResult(valueIsIgnored)
 	case token.AND_AND_EQUAL:
-		span := node.Span()
+		location := node.Location()
 		// Read the current value
-		c.emitGetInstanceVariable(ivarSymbol, span)
+		c.emitGetInstanceVariable(ivarSymbol, location)
 
 		var jump int
 		if valueIsIgnored {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS)
 		} else {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 		}
 
 		// if truthy
 		if !valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		}
 		c.compileNodeWithResult(node.Right)
-		c.emitSetInstanceVariable(ivarSymbol, ivar.Span(), valueIsIgnored)
+		c.emitSetInstanceVariable(ivarSymbol, ivar.Location(), valueIsIgnored)
 
 		// if falsy
-		c.patchJump(jump, span)
+		c.patchJump(jump, location)
 		return valueIgnoredToResult(valueIsIgnored)
 	case token.QUESTION_QUESTION_EQUAL:
-		span := node.Span()
+		location := node.Location()
 		// Read the current value
-		c.emitGetInstanceVariable(ivarSymbol, span)
+		c.emitGetInstanceVariable(ivarSymbol, location)
 
 		var jump int
 		if valueIsIgnored {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NIL)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NIL)
 		} else {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NNP)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NNP)
 		}
 
 		// if nil
 		if !valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		}
 		c.compileNodeWithResult(node.Right)
-		c.emitSetInstanceVariable(ivarSymbol, ivar.Span(), valueIsIgnored)
+		c.emitSetInstanceVariable(ivarSymbol, ivar.Location(), valueIsIgnored)
 
 		// if not nil
-		c.patchJump(jump, span)
+		c.patchJump(jump, location)
 		return valueIgnoredToResult(valueIsIgnored)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
 	}
 
 	return expressionCompiled
@@ -2558,103 +2553,103 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 		c.compileNodeWithResult(subscript.Key)
 		c.compileNodeWithResult(node.Right)
 
-		c.compileSubscriptSet(receiverType, node.Span())
+		c.compileSubscriptSet(receiverType, node.Location())
 	case token.OR_OR_EQUAL:
-		span := node.Span()
+		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(subscript.Receiver)
 		c.compileNodeWithResult(subscript.Key)
-		c.emit(node.Span().EndPos.Line, bytecode.DUP_2)
-		c.compileSubscript(receiverType, node.Span())
+		c.emit(node.Location().EndPos.Line, bytecode.DUP_2)
+		c.compileSubscript(receiverType, node.Location())
 
 		var jump int
 		if valueIsIgnored {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_IF)
 		} else {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_IF_NP)
 		}
 
 		// if falsy
 		if !valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		}
 		c.compileNodeWithResult(node.Right)
-		c.compileSubscriptSet(receiverType, node.Span())
+		c.compileSubscriptSet(receiverType, node.Location())
 
 		if valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		}
 
 		// if truthy
-		c.patchJump(jump, span)
+		c.patchJump(jump, location)
 		if valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP_2)
+			c.emit(location.StartPos.Line, bytecode.POP_2)
 		} else {
-			c.emit(span.StartPos.Line, bytecode.POP_2_SKIP_ONE)
+			c.emit(location.StartPos.Line, bytecode.POP_2_SKIP_ONE)
 		}
 		return valueIgnoredToResult(valueIsIgnored)
 	case token.AND_AND_EQUAL:
-		span := node.Span()
+		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(subscript.Receiver)
 		c.compileNodeWithResult(subscript.Key)
-		c.emit(node.Span().EndPos.Line, bytecode.DUP_2)
-		c.compileSubscript(receiverType, node.Span())
+		c.emit(node.Location().EndPos.Line, bytecode.DUP_2)
+		c.compileSubscript(receiverType, node.Location())
 
 		var jump int
 		if valueIsIgnored {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS)
 		} else {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 		}
 
 		// if truthy
 		if !valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		}
 		c.compileNodeWithResult(node.Right)
-		c.compileSubscriptSet(receiverType, node.Span())
+		c.compileSubscriptSet(receiverType, node.Location())
 
 		// if falsy
-		c.patchJump(jump, span)
+		c.patchJump(jump, location)
 		if valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP_2)
+			c.emit(location.StartPos.Line, bytecode.POP_2)
 		} else {
-			c.emit(span.StartPos.Line, bytecode.POP_2_SKIP_ONE)
+			c.emit(location.StartPos.Line, bytecode.POP_2_SKIP_ONE)
 		}
 		return valueIgnoredToResult(valueIsIgnored)
 	case token.QUESTION_QUESTION_EQUAL:
-		span := node.Span()
+		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(subscript.Receiver)
 		c.compileNodeWithResult(subscript.Key)
-		c.emit(node.Span().EndPos.Line, bytecode.DUP_2)
-		c.compileSubscript(receiverType, node.Span())
+		c.emit(node.Location().EndPos.Line, bytecode.DUP_2)
+		c.compileSubscript(receiverType, node.Location())
 
 		var jump int
 		if valueIsIgnored {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NIL)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NIL)
 		} else {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NNP)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NNP)
 		}
 
 		// if nil
 		if !valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		}
 		c.compileNodeWithResult(node.Right)
-		c.compileSubscriptSet(receiverType, node.Span())
+		c.compileSubscriptSet(receiverType, node.Location())
 
 		// if not nil
-		c.patchJump(jump, span)
+		c.patchJump(jump, location)
 		if valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP_2)
+			c.emit(location.StartPos.Line, bytecode.POP_2)
 		} else {
-			c.emit(span.StartPos.Line, bytecode.POP_2_SKIP_ONE)
+			c.emit(location.StartPos.Line, bytecode.POP_2_SKIP_ONE)
 		}
 		return valueIgnoredToResult(valueIsIgnored)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
 	}
 
 	return expressionCompiled
@@ -2663,9 +2658,9 @@ func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subsc
 func (c *Compiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressionNode, valueIsIgnored bool) expressionResult {
 	switch n := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
-		return c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span(), valueIsIgnored)
+		return c.localVariableAssignment(n.Value, node.Op, node.Right, node.Location(), valueIsIgnored)
 	case *ast.PrivateIdentifierNode:
-		return c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span(), valueIsIgnored)
+		return c.localVariableAssignment(n.Value, node.Op, node.Right, node.Location(), valueIsIgnored)
 	case *ast.SubscriptExpressionNode:
 		return c.subscriptAssignment(node, n, valueIsIgnored)
 	case *ast.InstanceVariableNode:
@@ -2675,7 +2670,7 @@ func (c *Compiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressio
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Left),
-			c.newLocation(node.Span()),
+			node.Location(),
 		)
 	}
 
@@ -2687,107 +2682,107 @@ func (c *Compiler) nextInstructionOffset() int {
 	return len(c.Bytecode.Instructions)
 }
 
-func (c *Compiler) setLocalWithoutValue(name string, span *position.Span, valueIsIgnored bool) expressionResult {
+func (c *Compiler) setLocalWithoutValue(name string, location *position.Location, valueIsIgnored bool) expressionResult {
 	if local, ok := c.resolveLocal(name); ok {
-		return c.emitSetLocal(span.StartPos.Line, local.index, valueIsIgnored)
-	} else if upvalue, ok := c.resolveUpvalue(name, span); ok {
-		return c.emitSetUpvalue(span.StartPos.Line, upvalue.index, valueIsIgnored)
+		return c.emitSetLocal(location.StartPos.Line, local.index, valueIsIgnored)
+	} else if upvalue, ok := c.resolveUpvalue(name, location); ok {
+		return c.emitSetUpvalue(location.StartPos.Line, upvalue.index, valueIsIgnored)
 	}
 
 	return valueIgnoredToResult(valueIsIgnored)
 }
 
-func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, span *position.Span, valueIsIgnored bool) expressionResult {
+func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, location *position.Location, valueIsIgnored bool) expressionResult {
 	c.compileNodeWithResult(valueNode)
-	return c.setLocalWithoutValue(name, span, valueIsIgnored)
+	return c.setLocalWithoutValue(name, location, valueIsIgnored)
 }
 
-func (c *Compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span, valueIsIgnored bool) expressionResult {
+func (c *Compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, location *position.Location, valueIsIgnored bool) expressionResult {
 	switch operator.Type {
 	case token.OR_OR_EQUAL:
-		c.compileLocalVariableAccess(name, span)
+		c.compileLocalVariableAccess(name, location)
 		var jump int
 		if valueIsIgnored {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_IF)
 		} else {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NP)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_IF_NP)
 		}
 
 		// if falsy
 		if !valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		}
-		c.setLocal(name, right, span, valueIsIgnored)
+		c.setLocal(name, right, location, valueIsIgnored)
 
 		// if truthy
-		c.patchJump(jump, span)
+		c.patchJump(jump, location)
 		return valueIgnoredToResult(valueIsIgnored)
 	case token.AND_AND_EQUAL:
-		c.compileLocalVariableAccess(name, span)
+		c.compileLocalVariableAccess(name, location)
 		var jump int
 		if valueIsIgnored {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS)
 		} else {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 		}
 
 		// if truthy
 		if !valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		}
-		c.setLocal(name, right, span, valueIsIgnored)
+		c.setLocal(name, right, location, valueIsIgnored)
 
 		// if falsy
-		c.patchJump(jump, span)
+		c.patchJump(jump, location)
 		return valueIgnoredToResult(valueIsIgnored)
 	case token.QUESTION_QUESTION_EQUAL:
-		c.compileLocalVariableAccess(name, span)
+		c.compileLocalVariableAccess(name, location)
 		var jump int
 		if valueIsIgnored {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NIL)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NIL)
 		} else {
-			jump = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NNP)
+			jump = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NNP)
 		}
 
 		// if nil
 		if !valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		}
-		c.setLocal(name, right, span, valueIsIgnored)
+		c.setLocal(name, right, location, valueIsIgnored)
 
 		// if not nil
-		c.patchJump(jump, span)
+		c.patchJump(jump, location)
 		return valueIgnoredToResult(valueIsIgnored)
 	case token.EQUAL_OP:
-		return c.setLocal(name, right, span, valueIsIgnored)
+		return c.setLocal(name, right, location, valueIsIgnored)
 	case token.COLON_EQUAL:
 		c.compileNodeWithResult(right)
-		local := c.defineLocal(name, span)
+		local := c.defineLocal(name, location)
 		if local == nil {
 			return valueIgnoredToResult(valueIsIgnored)
 		}
-		return c.emitSetLocal(span.StartPos.Line, local.index, valueIsIgnored)
+		return c.emitSetLocal(location.StartPos.Line, local.index, valueIsIgnored)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.Name()),
-			c.newLocation(span),
+			location,
 		)
 	}
 
 	return expressionCompiled
 }
 
-func (c *Compiler) compileInstanceVariableAccess(name string, span *position.Span) {
-	c.emitGetInstanceVariable(value.ToSymbol(name), span)
+func (c *Compiler) compileInstanceVariableAccess(name string, location *position.Location) {
+	c.emitGetInstanceVariable(value.ToSymbol(name), location)
 }
 
-func (c *Compiler) compileLocalVariableAccess(name string, span *position.Span) (*local, *upvalue, bool) {
+func (c *Compiler) compileLocalVariableAccess(name string, location *position.Location) (*local, *upvalue, bool) {
 	if local, ok := c.resolveLocal(name); ok {
-		c.emitGetLocal(span.StartPos.Line, local.index)
+		c.emitGetLocal(location.StartPos.Line, local.index)
 		return local, nil, true
-	} else if upvalue, ok := c.resolveUpvalue(name, span); ok {
+	} else if upvalue, ok := c.resolveUpvalue(name, location); ok {
 		local := upvalue.local
-		c.emitGetUpvalue(span.StartPos.Line, upvalue.index)
+		c.emitGetUpvalue(location.StartPos.Line, upvalue.index)
 		return local, upvalue, true
 	}
 
@@ -2795,25 +2790,25 @@ func (c *Compiler) compileLocalVariableAccess(name string, span *position.Span) 
 }
 
 // Resolve an upvalue from an outer context and get its index.
-func (c *Compiler) resolveUpvalue(name string, span *position.Span) (*upvalue, bool) {
+func (c *Compiler) resolveUpvalue(name string, location *position.Location) (*upvalue, bool) {
 	parent := c.Parent
 	if parent == nil {
 		return nil, false
 	}
 	local, ok := parent.resolveLocal(name)
 	if ok {
-		return c.addUpvalue(local, local.index, true, span), true
+		return c.addUpvalue(local, local.index, true, location), true
 	}
 
-	upvalue, ok := parent.resolveUpvalue(name, span)
+	upvalue, ok := parent.resolveUpvalue(name, location)
 	if ok {
-		return c.addUpvalue(upvalue.local, upvalue.index, false, span), true
+		return c.addUpvalue(upvalue.local, upvalue.index, false, location), true
 	}
 
 	return nil, false
 }
 
-func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, span *position.Span) *upvalue {
+func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, location *position.Location) *upvalue {
 	for _, upvalue := range c.upvalues {
 		if upvalue.upIndex == upIndex && upvalue.isLocal == isLocal {
 			return upvalue
@@ -2823,7 +2818,7 @@ func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, span *
 	if len(c.upvalues) > math.MaxUint16 {
 		c.Errors.AddFailure(
 			fmt.Sprintf("upvalue limit reached: %d", math.MaxUint16),
-			c.newLocation(span),
+			location,
 		)
 	}
 
@@ -2842,9 +2837,9 @@ func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, span *
 func (c *Compiler) compileModifierExpressionNode(label string, node *ast.ModifierNode, valueIsIgnored bool) expressionResult {
 	switch node.Modifier.Type {
 	case token.IF:
-		return c.compileModifierIfExpression(false, node.Right, node.Left, nil, node.Span(), valueIsIgnored)
+		return c.compileModifierIfExpression(false, node.Right, node.Left, nil, node.Location(), valueIsIgnored)
 	case token.UNLESS:
-		return c.compileModifierIfExpression(true, node.Right, node.Left, nil, node.Span(), valueIsIgnored)
+		return c.compileModifierIfExpression(true, node.Right, node.Left, nil, node.Location(), valueIsIgnored)
 	case token.WHILE:
 		c.modifierWhileExpression(label, node)
 	case token.UNTIL:
@@ -2852,14 +2847,14 @@ func (c *Compiler) compileModifierExpressionNode(label string, node *ast.Modifie
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("illegal modifier: %s", node.Modifier.FetchValue()),
-			c.newLocation(node.Span()),
+			node.Location(),
 		)
 	}
 
 	return expressionCompiled
 }
 
-func (c *Compiler) compileModifierIfExpression(unless bool, condition, then, els ast.ExpressionNode, span *position.Span, valueIsIgnored bool) expressionResult {
+func (c *Compiler) compileModifierIfExpression(unless bool, condition, then, els ast.ExpressionNode, location *position.Location, valueIsIgnored bool) expressionResult {
 	var elsFunc func()
 	if els != nil {
 		elsFunc = func() {
@@ -2879,16 +2874,16 @@ func (c *Compiler) compileModifierIfExpression(unless bool, condition, then, els
 			c.mustCompileNode(then, valueIsIgnored)
 		},
 		elsFunc,
-		span,
+		location,
 		valueIsIgnored,
 	)
 }
 
-func (c *Compiler) compileIfExpression(unless bool, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span, valueIsIgnored bool) expressionResult {
+func (c *Compiler) compileIfExpression(unless bool, condition ast.ExpressionNode, then, els []ast.StatementNode, location *position.Location, valueIsIgnored bool) expressionResult {
 	var elsFunc func()
 	if els != nil {
 		elsFunc = func() {
-			c.compileStatements(els, span, valueIsIgnored)
+			c.compileStatements(els, location, valueIsIgnored)
 		}
 	}
 
@@ -2903,40 +2898,40 @@ func (c *Compiler) compileIfExpression(unless bool, condition ast.ExpressionNode
 		jumpOp,
 		condition,
 		func() {
-			c.compileStatements(then, span, valueIsIgnored)
+			c.compileStatements(then, location, valueIsIgnored)
 		},
 		elsFunc,
-		span,
+		location,
 		valueIsIgnored,
 	)
 }
 
-func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition, then, els func(), span *position.Span, valueIsIgnored bool) expressionResult {
+func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition, then, els func(), location *position.Location, valueIsIgnored bool) expressionResult {
 	c.enterScope("", defaultScopeType)
 	condition()
 
-	thenJumpOffset := c.emitJump(span.StartPos.Line, jumpOp)
+	thenJumpOffset := c.emitJump(location.StartPos.Line, jumpOp)
 
 	then()
-	c.leaveScope(span.StartPos.Line)
+	c.leaveScope(location.StartPos.Line)
 
 	compileElse := !valueIsIgnored || els != nil
 	var elseJumpOffset int
 	if compileElse {
-		elseJumpOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP)
+		elseJumpOffset = c.emitJump(location.StartPos.Line, bytecode.JUMP)
 	}
 
-	c.patchJump(thenJumpOffset, span)
+	c.patchJump(thenJumpOffset, location)
 
 	if compileElse {
 		if els != nil {
 			c.enterScope("", defaultScopeType)
 			els()
-			c.leaveScope(span.StartPos.Line)
+			c.leaveScope(location.StartPos.Line)
 		} else if !valueIsIgnored {
-			c.emit(span.StartPos.Line, bytecode.NIL)
+			c.emit(location.StartPos.Line, bytecode.NIL)
 		}
-		c.patchJump(elseJumpOffset, span)
+		c.patchJump(elseJumpOffset, location)
 	}
 
 	return valueIgnoredToResult(valueIsIgnored)
@@ -2949,11 +2944,11 @@ func valueIgnoredToResult(valueIsIgnored bool) expressionResult {
 	return expressionCompiled
 }
 
-func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), span *position.Span, valueIsIgnored bool) expressionResult {
+func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), location *position.Location, valueIsIgnored bool) expressionResult {
 	if result := resolve(condition); !result.IsUndefined() {
 		// if gets optimised away
 		c.enterScope("", defaultScopeType)
-		defer c.leaveScope(span.StartPos.Line)
+		defer c.leaveScope(location.StartPos.Line)
 
 		var checkFunc func(value.Value) bool
 		switch jumpOp {
@@ -2970,7 +2965,7 @@ func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, cond
 				if valueIsIgnored {
 					return expressionCompiledWithoutResult
 				}
-				c.emit(span.StartPos.Line, bytecode.NIL)
+				c.emit(location.StartPos.Line, bytecode.NIL)
 				return expressionCompiled
 			}
 			then()
@@ -2981,7 +2976,7 @@ func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, cond
 			if valueIsIgnored {
 				return expressionCompiledWithoutResult
 			}
-			c.emit(span.StartPos.Line, bytecode.NIL)
+			c.emit(location.StartPos.Line, bytecode.NIL)
 			return expressionCompiled
 		}
 		els()
@@ -2991,7 +2986,7 @@ func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, cond
 	cond := func() {
 		c.compileNodeWithResult(condition)
 	}
-	if optimisedJumpOp, optimisedCond := c.optimiseCondition(jumpOp, condition, span); optimisedCond != nil {
+	if optimisedJumpOp, optimisedCond := c.optimiseCondition(jumpOp, condition, location); optimisedCond != nil {
 		jumpOp = optimisedJumpOp
 		cond = optimisedCond
 	}
@@ -3001,12 +2996,12 @@ func (c *Compiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, cond
 		cond,
 		then,
 		els,
-		span,
+		location,
 		valueIsIgnored,
 	)
 }
 
-func (c *Compiler) optimiseCondition(jumpOp bytecode.OpCode, condition ast.ExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
+func (c *Compiler) optimiseCondition(jumpOp bytecode.OpCode, condition ast.ExpressionNode, location *position.Location) (bytecode.OpCode, func()) {
 	cond, ok := condition.(*ast.BinaryExpressionNode)
 	if !ok {
 		return 0, nil
@@ -3014,23 +3009,23 @@ func (c *Compiler) optimiseCondition(jumpOp bytecode.OpCode, condition ast.Expre
 
 	switch cond.Op.Type {
 	case token.LESS_EQUAL:
-		return c.optimiseIfLessEqual(jumpOp, cond, span)
+		return c.optimiseIfLessEqual(jumpOp, cond, location)
 	case token.LESS:
-		return c.optimiseIfLess(jumpOp, cond, span)
+		return c.optimiseIfLess(jumpOp, cond, location)
 	case token.GREATER_EQUAL:
-		return c.optimiseIfGreaterEqual(jumpOp, cond, span)
+		return c.optimiseIfGreaterEqual(jumpOp, cond, location)
 	case token.GREATER:
-		return c.optimiseIfGreater(jumpOp, cond, span)
+		return c.optimiseIfGreater(jumpOp, cond, location)
 	case token.EQUAL_EQUAL:
-		return c.optimiseIfEqual(jumpOp, cond, span)
+		return c.optimiseIfEqual(jumpOp, cond, location)
 	case token.NOT_EQUAL:
-		return c.optimiseIfNotEqual(jumpOp, cond, span)
+		return c.optimiseIfNotEqual(jumpOp, cond, location)
 	}
 
 	return 0, nil
 }
 
-func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
+func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, location *position.Location) (bytecode.OpCode, func()) {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
@@ -3079,7 +3074,7 @@ func (c *Compiler) optimiseIfNotEqual(jumpOp bytecode.OpCode, condition *ast.Bin
 	return 0, nil
 }
 
-func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
+func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, location *position.Location) (bytecode.OpCode, func()) {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
@@ -3127,7 +3122,7 @@ func (c *Compiler) optimiseIfEqual(jumpOp bytecode.OpCode, condition *ast.Binary
 	return 0, nil
 }
 
-func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
+func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, location *position.Location) (bytecode.OpCode, func()) {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
@@ -3157,7 +3152,7 @@ func (c *Compiler) optimiseIfGreater(jumpOp bytecode.OpCode, condition *ast.Bina
 	return 0, nil
 }
 
-func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
+func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, location *position.Location) (bytecode.OpCode, func()) {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
@@ -3188,7 +3183,7 @@ func (c *Compiler) optimiseIfGreaterEqual(jumpOp bytecode.OpCode, condition *ast
 	return 0, nil
 }
 
-func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
+func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, location *position.Location) (bytecode.OpCode, func()) {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
@@ -3218,7 +3213,7 @@ func (c *Compiler) optimiseIfLess(jumpOp bytecode.OpCode, condition *ast.BinaryE
 	return 0, nil
 }
 
-func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, span *position.Span) (bytecode.OpCode, func()) {
+func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.BinaryExpressionNode, location *position.Location) (bytecode.OpCode, func()) {
 	leftType := c.typeOf(condition.Left)
 	rightType := c.typeOf(condition.Right)
 
@@ -3254,17 +3249,17 @@ func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode, v
 	if initialised {
 		c.compileNodeWithResult(node.Initialiser)
 	}
-	local := c.defineLocal(node.Name, node.Span())
+	local := c.defineLocal(node.Name, node.Location())
 	if local == nil {
 		return valueIgnoredToResult(valueIsIgnored)
 	}
 
 	if initialised {
-		return c.emitSetLocal(node.Span().StartPos.Line, local.index, valueIsIgnored)
+		return c.emitSetLocal(node.Location().StartPos.Line, local.index, valueIsIgnored)
 	}
 
 	if !valueIsIgnored {
-		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+		c.emit(node.Location().StartPos.Line, bytecode.NIL)
 		return expressionCompiled
 	}
 
@@ -3272,34 +3267,34 @@ func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode, v
 }
 
 func (c *Compiler) compileAwaitExpressionNode(node *ast.AwaitExpressionNode) {
-	span := node.Span()
+	location := node.Location()
 	c.compileNodeWithResult(node.Value)
 	if !c.isAsync {
-		c.emitCallMethod(value.NewCallSiteInfo(value.ToSymbol("await_sync"), 0), node.Span(), false)
+		c.emitCallMethod(value.NewCallSiteInfo(value.ToSymbol("await_sync"), 0), node.Location(), false)
 		return
 	}
 
-	c.emit(span.StartPos.Line, bytecode.AWAIT)
-	c.emit(span.StartPos.Line, bytecode.AWAIT_RESULT)
+	c.emit(location.StartPos.Line, bytecode.AWAIT)
+	c.emit(location.StartPos.Line, bytecode.AWAIT_RESULT)
 }
 
 func (c *Compiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode) {
-	span := node.Span()
+	location := node.Location()
 	if node.Value != nil {
-		c.emitReturn(span, node.Value)
+		c.emitReturn(location, node.Value)
 	} else {
-		c.emit(span.StartPos.Line, bytecode.NIL)
-		c.emitReturn(span, nil)
+		c.emit(location.StartPos.Line, bytecode.NIL)
+		c.emitReturn(location, nil)
 	}
 }
 
 func (c *Compiler) compileYieldExpressionNode(node *ast.YieldExpressionNode) {
-	span := node.Span()
+	location := node.Location()
 	if node.Value != nil {
-		c.emitYield(span, node.Value)
+		c.emitYield(location, node.Value)
 	} else {
-		c.emit(span.StartPos.Line, bytecode.NIL)
-		c.emitYield(span, nil)
+		c.emit(location.StartPos.Line, bytecode.NIL)
+		c.emitYield(location, nil)
 	}
 }
 
@@ -3316,48 +3311,48 @@ func (c *Compiler) compileNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscr
 			c.compileNodeWithResult(node.Key)
 
 			receiverType := c.typeOf(node.Receiver)
-			c.compileSubscript(receiverType, node.Span())
+			c.compileSubscript(receiverType, node.Location())
 		},
 		func() {},
-		node.Span(),
+		node.Location(),
 		false,
 	)
 }
 
 func (c *Compiler) relationalPattern(pattern ast.Node, opcode bytecode.OpCode) {
-	span := pattern.Span()
+	location := pattern.Location()
 
 	c.compileIf(
 		bytecode.JUMP_UNLESS,
 		func() {
-			c.emit(span.StartPos.Line, bytecode.DUP)
+			c.emit(location.StartPos.Line, bytecode.DUP)
 			c.compileNodeWithResult(pattern)
-			c.emit(span.StartPos.Line, bytecode.DUP_2)
-			c.emit(span.StartPos.Line, bytecode.SWAP)
-			c.emit(span.StartPos.Line, bytecode.GET_CLASS)
-			c.emit(span.StartPos.Line, bytecode.IS_A)
+			c.emit(location.StartPos.Line, bytecode.DUP_2)
+			c.emit(location.StartPos.Line, bytecode.SWAP)
+			c.emit(location.StartPos.Line, bytecode.GET_CLASS)
+			c.emit(location.StartPos.Line, bytecode.IS_A)
 		},
 		func() {
-			c.emit(span.StartPos.Line, opcode)
+			c.emit(location.StartPos.Line, opcode)
 		},
 		func() {
-			c.emit(span.StartPos.Line, bytecode.POP_2)
-			c.emit(span.StartPos.Line, bytecode.FALSE)
+			c.emit(location.StartPos.Line, bytecode.POP_2)
+			c.emit(location.StartPos.Line, bytecode.FALSE)
 		},
-		span,
+		location,
 		false,
 	)
 }
 
 func (c *Compiler) literalPattern(pattern ast.Node, opcode bytecode.OpCode) {
-	span := pattern.Span()
-	c.emit(span.StartPos.Line, bytecode.DUP)
+	location := pattern.Location()
+	c.emit(location.StartPos.Line, bytecode.DUP)
 	c.compileNodeWithResult(pattern)
-	c.emit(span.StartPos.Line, opcode)
+	c.emit(location.StartPos.Line, opcode)
 }
 
 func (c *Compiler) pattern(pattern ast.PatternNode) {
-	span := pattern.Span()
+	location := pattern.Location()
 	switch pat := pattern.(type) {
 	case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.NilLiteralNode,
 		*ast.CharLiteralNode, *ast.RawCharLiteralNode, *ast.DoubleQuotedStringLiteralNode,
@@ -3373,53 +3368,53 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 			bytecode.EQUAL,
 		)
 	case *ast.RangeLiteralNode:
-		c.emit(span.StartPos.Line, bytecode.DUP)
+		c.emit(location.StartPos.Line, bytecode.DUP)
 		c.compileRangeLiteralNode(pat)
-		c.emit(span.StartPos.Line, bytecode.SWAP)
+		c.emit(location.StartPos.Line, bytecode.SWAP)
 		callInfo := value.NewCallSiteInfo(symbol.S_contains, 1)
-		c.emitCallMethod(callInfo, span, false)
+		c.emitCallMethod(callInfo, location, false)
 	case *ast.PublicIdentifierNode:
 		switch c.mode {
 		case valuePatternDeclarationNode:
-			c.defineLocal(pat.Value, span)
+			c.defineLocal(pat.Value, location)
 		default:
-			c.defineLocalOverrideCurrentScope(pat.Value, span)
+			c.defineLocalOverrideCurrentScope(pat.Value, location)
 		}
-		c.setLocalWithoutValue(pat.Value, span, false)
-		c.emit(span.StartPos.Line, bytecode.TRUE)
+		c.setLocalWithoutValue(pat.Value, location, false)
+		c.emit(location.StartPos.Line, bytecode.TRUE)
 	case *ast.PrivateIdentifierNode:
 		switch c.mode {
 		case valuePatternDeclarationNode:
-			c.defineLocal(pat.Value, span)
+			c.defineLocal(pat.Value, location)
 		default:
-			c.defineLocalOverrideCurrentScope(pat.Value, span)
+			c.defineLocalOverrideCurrentScope(pat.Value, location)
 		}
-		c.setLocalWithoutValue(pat.Value, span, false)
-		c.emit(span.StartPos.Line, bytecode.TRUE)
+		c.setLocalWithoutValue(pat.Value, location, false)
+		c.emit(location.StartPos.Line, bytecode.TRUE)
 	case *ast.ObjectPatternNode:
 		c.objectPattern(pat)
 	case *ast.AsPatternNode:
 		c.asPattern(pat)
 	case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
-		c.emit(span.StartPos.Line, bytecode.DUP)
+		c.emit(location.StartPos.Line, bytecode.DUP)
 		c.compileNode(pat, false)
-		c.emit(span.StartPos.Line, bytecode.SWAP)
+		c.emit(location.StartPos.Line, bytecode.SWAP)
 		callInfo := value.NewCallSiteInfo(matchesSymbol, 1)
-		c.emitCallMethod(callInfo, span, false)
+		c.emitCallMethod(callInfo, location, false)
 	case *ast.UnaryExpressionNode:
 		c.unaryPattern(pat)
 	case *ast.BinaryPatternNode:
 		c.binaryPattern(pat)
 	case *ast.MapPatternNode:
-		c.mapOrRecordPattern(c.typeOf(pat), pat.Span(), pat.Elements, true)
+		c.mapOrRecordPattern(c.typeOf(pat), pat.Location(), pat.Elements, true)
 	case *ast.RecordPatternNode:
-		c.mapOrRecordPattern(c.typeOf(pat), pat.Span(), pat.Elements, false)
+		c.mapOrRecordPattern(c.typeOf(pat), pat.Location(), pat.Elements, false)
 	case *ast.SetPatternNode:
-		c.setPattern(pat.Span(), pat.Elements)
+		c.setPattern(pat.Location(), pat.Elements)
 	case *ast.ListPatternNode:
-		c.listOrTuplePattern(c.typeOf(pat), pat.Span(), pat.Elements, true)
+		c.listOrTuplePattern(c.typeOf(pat), pat.Location(), pat.Elements, true)
 	case *ast.TuplePatternNode:
-		c.listOrTuplePattern(c.typeOf(pat), pat.Span(), pat.Elements, false)
+		c.listOrTuplePattern(c.typeOf(pat), pat.Location(), pat.Elements, false)
 	case *ast.WordArrayListLiteralNode, *ast.SymbolArrayListLiteralNode, *ast.BinArrayListLiteralNode, *ast.HexArrayListLiteralNode,
 		*ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode,
 		*ast.WordHashSetLiteralNode, *ast.SymbolHashSetLiteralNode, *ast.BinHashSetLiteralNode, *ast.HexHashSetLiteralNode:
@@ -3427,7 +3422,7 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("compilation of this pattern has not been implemented: %T", pattern),
-			c.newLocation(span),
+			location,
 		)
 	}
 }
@@ -3493,7 +3488,7 @@ func (c *Compiler) unaryPattern(pat *ast.UnaryExpressionNode) {
 }
 
 func (c *Compiler) binaryPattern(pat *ast.BinaryPatternNode) {
-	span := pat.Span()
+	location := pat.Location()
 	var op bytecode.OpCode
 	switch pat.Op.Type {
 	case token.OR_OR:
@@ -3505,18 +3500,18 @@ func (c *Compiler) binaryPattern(pat *ast.BinaryPatternNode) {
 	}
 
 	c.pattern(pat.Left)
-	jump := c.emitJump(span.StartPos.Line, op)
+	jump := c.emitJump(location.StartPos.Line, op)
 
 	// branch one
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emit(location.StartPos.Line, bytecode.POP)
 	c.pattern(pat.Right)
 
 	// branch two
-	c.patchJump(jump, span)
+	c.patchJump(jump, location)
 }
 
 func (c *Compiler) asPattern(node *ast.AsPatternNode) {
-	span := node.Span()
+	location := node.Location()
 	var varName string
 	switch n := node.Name.(type) {
 	case *ast.PrivateIdentifierNode:
@@ -3529,184 +3524,184 @@ func (c *Compiler) asPattern(node *ast.AsPatternNode) {
 
 	switch c.mode {
 	case valuePatternDeclarationNode:
-		c.defineLocal(varName, span)
+		c.defineLocal(varName, location)
 	default:
-		c.defineLocalOverrideCurrentScope(varName, span)
+		c.defineLocalOverrideCurrentScope(varName, location)
 	}
-	c.setLocalWithoutValue(varName, span, false)
+	c.setLocalWithoutValue(varName, location, false)
 	c.pattern(node.Pattern)
 }
 
-func (c *Compiler) identifierObjectPatternAttribute(name string, span *position.Span) {
-	c.emit(span.StartPos.Line, bytecode.DUP)
+func (c *Compiler) identifierObjectPatternAttribute(name string, location *position.Location) {
+	c.emit(location.StartPos.Line, bytecode.DUP)
 	callInfo := value.NewCallSiteInfo(value.ToSymbol(name), 0)
-	c.emitCallMethod(callInfo, span, false)
+	c.emitCallMethod(callInfo, location, false)
 
 	var identVar *local
 	switch c.mode {
 	case valuePatternDeclarationNode:
-		identVar = c.defineLocal(name, span)
+		identVar = c.defineLocal(name, location)
 	default:
-		identVar = c.defineLocalOverrideCurrentScope(name, span)
+		identVar = c.defineLocalOverrideCurrentScope(name, location)
 	}
-	c.emitSetLocalPop(span.StartPos.Line, identVar.index)
+	c.emitSetLocalPop(location.StartPos.Line, identVar.index)
 }
 
 func (c *Compiler) objectPattern(node *ast.ObjectPatternNode) {
 	var jumpsToPatch []int
 	c.enterPattern()
 
-	span := node.Span()
-	c.emit(node.ObjectType.Span().StartPos.Line, bytecode.DUP)
+	location := node.Location()
+	c.emit(node.ObjectType.Location().StartPos.Line, bytecode.DUP)
 	c.compileNodeWithResult(node.ObjectType)
-	c.emit(node.ObjectType.Span().StartPos.Line, bytecode.IS_A)
+	c.emit(node.ObjectType.Location().StartPos.Line, bytecode.IS_A)
 
-	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+	jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	jumpsToPatch = append(jumpsToPatch, jmp)
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
 	for _, attr := range node.Attributes {
-		span := attr.Span()
+		location := attr.Location()
 		switch e := attr.(type) {
 		case *ast.SymbolKeyValuePatternNode:
-			c.emit(span.StartPos.Line, bytecode.DUP)
+			c.emit(location.StartPos.Line, bytecode.DUP)
 			callInfo := value.NewCallSiteInfo(value.ToSymbol(e.Key), 0)
-			c.emitCallMethod(callInfo, span, false)
+			c.emitCallMethod(callInfo, location, false)
 
 			c.pattern(e.Value)
-			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+			c.emit(location.StartPos.Line, bytecode.POP_SKIP_ONE)
+			jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 			jumpsToPatch = append(jumpsToPatch, jmp)
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		case *ast.PublicIdentifierNode:
-			c.identifierObjectPatternAttribute(e.Value, span)
+			c.identifierObjectPatternAttribute(e.Value, location)
 		case *ast.PrivateIdentifierNode:
-			c.identifierObjectPatternAttribute(e.Value, span)
+			c.identifierObjectPatternAttribute(e.Value, location)
 		default:
 			c.Errors.AddFailure(
 				fmt.Sprintf("invalid object pattern attribute: %T", attr),
-				c.newLocation(span),
+				location,
 			)
 		}
 	}
 
 	// leave true as the result of the happy path
-	c.emit(span.StartPos.Line, bytecode.TRUE)
+	c.emit(location.StartPos.Line, bytecode.TRUE)
 
 	// leave false on the stack from the falsy if that jumped here
 	for _, jmp := range jumpsToPatch {
-		c.patchJump(jmp, span)
+		c.patchJump(jmp, location)
 	}
 	c.leavePattern()
 }
 
 func (c *Compiler) specialCollectionPattern(node ast.PatternNode) {
-	span := node.Span()
-	c.emit(span.StartPos.Line, bytecode.DUP)
+	location := node.Location()
+	c.emit(location.StartPos.Line, bytecode.DUP)
 	switch node.(type) {
 	case *ast.WordArrayListLiteralNode, *ast.SymbolArrayListLiteralNode, *ast.BinArrayListLiteralNode, *ast.HexArrayListLiteralNode:
-		c.emitValue(value.Ref(value.ListMixin), span)
+		c.emitValue(value.Ref(value.ListMixin), location)
 	case *ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode:
-		c.emitValue(value.Ref(value.TupleMixin), span)
+		c.emitValue(value.Ref(value.TupleMixin), location)
 	case *ast.WordHashSetLiteralNode, *ast.SymbolHashSetLiteralNode, *ast.BinHashSetLiteralNode, *ast.HexHashSetLiteralNode:
-		c.emitValue(value.Ref(value.SetMixin), span)
+		c.emitValue(value.Ref(value.SetMixin), location)
 	default:
 		panic(fmt.Sprintf("invalid special collection pattern node: %#v", node))
 	}
-	c.emit(span.StartPos.Line, bytecode.IS_A)
+	c.emit(location.StartPos.Line, bytecode.IS_A)
 
-	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
-	c.emit(span.StartPos.Line, bytecode.POP)
+	jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
-	c.emit(span.StartPos.Line, bytecode.DUP)
+	c.emit(location.StartPos.Line, bytecode.DUP)
 	c.compileNodeWithResult(node)
-	c.emit(span.StartPos.Line, bytecode.LAX_EQUAL)
+	c.emit(location.StartPos.Line, bytecode.LAX_EQUAL)
 
 	// leave false on the stack from the falsy if that jumped here
-	c.patchJump(jmp, span)
+	c.patchJump(jmp, location)
 }
 
-func (c *Compiler) identifierMapPatternElement(name string, collectionType types.Type, span *position.Span) {
-	c.emit(span.StartPos.Line, bytecode.DUP)
-	c.emitValue(value.ToSymbol(name).ToValue(), span)
-	c.compileSubscript(collectionType, span)
+func (c *Compiler) identifierMapPatternElement(name string, collectionType types.Type, location *position.Location) {
+	c.emit(location.StartPos.Line, bytecode.DUP)
+	c.emitValue(value.ToSymbol(name).ToValue(), location)
+	c.compileSubscript(collectionType, location)
 
 	var identVar *local
 	switch c.mode {
 	case valuePatternDeclarationNode:
-		identVar = c.defineLocal(name, span)
+		identVar = c.defineLocal(name, location)
 	default:
-		identVar = c.defineLocalOverrideCurrentScope(name, span)
+		identVar = c.defineLocalOverrideCurrentScope(name, location)
 	}
 	if identVar == nil {
 		return
 	}
-	c.emitSetLocalNoPop(span.StartPos.Line, identVar.index)
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emitSetLocalNoPop(location.StartPos.Line, identVar.index)
+	c.emit(location.StartPos.Line, bytecode.POP)
 }
 
-func (c *Compiler) mapOrRecordPattern(typ types.Type, span *position.Span, elements []ast.PatternNode, isMap bool) {
+func (c *Compiler) mapOrRecordPattern(typ types.Type, location *position.Location, elements []ast.PatternNode, isMap bool) {
 	var jumpsToPatch []int
 	c.enterPattern()
 
-	c.emit(span.StartPos.Line, bytecode.DUP)
+	c.emit(location.StartPos.Line, bytecode.DUP)
 	if isMap {
-		c.emitValue(value.Ref(value.MapMixin), span)
+		c.emitValue(value.Ref(value.MapMixin), location)
 	} else {
-		c.emitValue(value.Ref(value.RecordMixin), span)
+		c.emitValue(value.Ref(value.RecordMixin), location)
 	}
-	c.emit(span.StartPos.Line, bytecode.IS_A)
+	c.emit(location.StartPos.Line, bytecode.IS_A)
 
-	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+	jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	jumpsToPatch = append(jumpsToPatch, jmp)
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
 	for _, element := range elements {
-		span := element.Span()
+		location := element.Location()
 		switch e := element.(type) {
 		case *ast.SymbolKeyValuePatternNode:
-			c.emit(span.StartPos.Line, bytecode.DUP)
-			c.emitValue(value.ToSymbol(e.Key).ToValue(), span)
-			c.compileSubscript(typ, span)
+			c.emit(location.StartPos.Line, bytecode.DUP)
+			c.emitValue(value.ToSymbol(e.Key).ToValue(), location)
+			c.compileSubscript(typ, location)
 
 			c.pattern(e.Value)
-			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+			c.emit(location.StartPos.Line, bytecode.POP_SKIP_ONE)
+			jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 			jumpsToPatch = append(jumpsToPatch, jmp)
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		case *ast.KeyValuePatternNode:
-			c.emit(span.StartPos.Line, bytecode.DUP)
+			c.emit(location.StartPos.Line, bytecode.DUP)
 			c.compileNodeWithResult(e.Key)
-			c.compileSubscript(typ, span)
+			c.compileSubscript(typ, location)
 
 			c.pattern(e.Value)
-			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+			c.emit(location.StartPos.Line, bytecode.POP_SKIP_ONE)
+			jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 			jumpsToPatch = append(jumpsToPatch, jmp)
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 		case *ast.PublicIdentifierNode:
-			c.identifierMapPatternElement(e.Value, typ, span)
+			c.identifierMapPatternElement(e.Value, typ, location)
 		case *ast.PrivateIdentifierNode:
-			c.identifierMapPatternElement(e.Value, typ, span)
+			c.identifierMapPatternElement(e.Value, typ, location)
 		default:
 			c.Errors.AddFailure(
 				fmt.Sprintf("invalid map pattern element: %T", element),
-				c.newLocation(span),
+				location,
 			)
 		}
 	}
 
 	// leave true as the result of the happy path
-	c.emit(span.StartPos.Line, bytecode.TRUE)
+	c.emit(location.StartPos.Line, bytecode.TRUE)
 
 	// leave false on the stack from the falsy if that jumped here
 	for _, jmp := range jumpsToPatch {
-		c.patchJump(jmp, span)
+		c.patchJump(jmp, location)
 	}
 	c.leavePattern()
 }
 
-func (c *Compiler) setPattern(span *position.Span, elements []ast.PatternNode) {
+func (c *Compiler) setPattern(location *position.Location, elements []ast.PatternNode) {
 	var jumpsToPatch []int
 	var subPatternElements []ast.PatternNode
 
@@ -3717,7 +3712,7 @@ func (c *Compiler) setPattern(span *position.Span, elements []ast.PatternNode) {
 			if restElementIsPresent {
 				c.Errors.AddFailure(
 					"there should be only a single rest element",
-					c.newLocation(element.Span()),
+					element.Location(),
 				)
 			}
 			restElementIsPresent = true
@@ -3727,29 +3722,29 @@ func (c *Compiler) setPattern(span *position.Span, elements []ast.PatternNode) {
 	}
 	c.enterPattern()
 
-	c.emit(span.StartPos.Line, bytecode.DUP)
-	c.emitValue(value.Ref(value.SetMixin), span)
-	c.emit(span.StartPos.Line, bytecode.IS_A)
+	c.emit(location.StartPos.Line, bytecode.DUP)
+	c.emitValue(value.Ref(value.SetMixin), location)
+	c.emit(location.StartPos.Line, bytecode.IS_A)
 
-	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+	jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	jumpsToPatch = append(jumpsToPatch, jmp)
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
-	c.emit(span.StartPos.Line, bytecode.DUP)
+	c.emit(location.StartPos.Line, bytecode.DUP)
 	callInfo := value.NewCallSiteInfo(symbol.L_length, 0)
-	c.emitCallMethod(callInfo, span, false)
+	c.emitCallMethod(callInfo, location, false)
 
 	if !restElementIsPresent {
-		c.emitValue(value.SmallInt(len(subPatternElements)).ToValue(), span)
-		c.emit(span.StartPos.Line, bytecode.EQUAL)
+		c.emitValue(value.SmallInt(len(subPatternElements)).ToValue(), location)
+		c.emit(location.StartPos.Line, bytecode.EQUAL)
 	} else {
-		c.emitValue(value.SmallInt(len(subPatternElements)).ToValue(), span)
-		c.emit(span.StartPos.Line, bytecode.GREATER_EQUAL)
+		c.emitValue(value.SmallInt(len(subPatternElements)).ToValue(), location)
+		c.emit(location.StartPos.Line, bytecode.GREATER_EQUAL)
 	}
 
-	jmp = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+	jmp = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	jumpsToPatch = append(jumpsToPatch, jmp)
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
 subPatternLoop:
 	for _, element := range subPatternElements {
@@ -3758,28 +3753,28 @@ subPatternLoop:
 			continue subPatternLoop
 		}
 
-		span := element.Span()
-		c.emit(span.StartPos.Line, bytecode.DUP)
+		location := element.Location()
+		c.emit(location.StartPos.Line, bytecode.DUP)
 		c.compileNodeWithResult(element)
 		callInfo := value.NewCallSiteInfo(symbol.L_contains, 1)
-		c.emitCallMethod(callInfo, span, false)
+		c.emitCallMethod(callInfo, location, false)
 
-		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+		jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 		jumpsToPatch = append(jumpsToPatch, jmp)
-		c.emit(span.StartPos.Line, bytecode.POP)
+		c.emit(location.StartPos.Line, bytecode.POP)
 	}
 
 	// leave true as the result of the happy path
-	c.emit(span.StartPos.Line, bytecode.TRUE)
+	c.emit(location.StartPos.Line, bytecode.TRUE)
 
 	// leave false on the stack from the falsy if that jumped here
 	for _, jmp := range jumpsToPatch {
-		c.patchJump(jmp, span)
+		c.patchJump(jmp, location)
 	}
 	c.leavePattern()
 }
 
-func (c *Compiler) listOrTuplePattern(typ types.Type, span *position.Span, elements []ast.PatternNode, isList bool) {
+func (c *Compiler) listOrTuplePattern(typ types.Type, location *position.Location, elements []ast.PatternNode, isList bool) {
 	var jumpsToPatch []int
 
 	var restVariableName string
@@ -3790,7 +3785,7 @@ func (c *Compiler) listOrTuplePattern(typ types.Type, span *position.Span, eleme
 			if elementBeforeRestCount != -1 {
 				c.Errors.AddFailure(
 					"there should be only a single rest element",
-					c.newLocation(element.Span()),
+					element.Location(),
 				)
 			}
 			elementBeforeRestCount = i
@@ -3808,152 +3803,152 @@ func (c *Compiler) listOrTuplePattern(typ types.Type, span *position.Span, eleme
 	elementAfterRestCount := len(elements) - 1 - elementBeforeRestCount
 	var restListVar *local
 	if restVariableName != "" {
-		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
-		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
-		c.emitNewArrayList(0, span)
-		restListVar = c.defineLocal(restVariableName, span)
-		c.emitSetLocalNoPop(span.StartPos.Line, restListVar.index)
-		c.emit(span.StartPos.Line, bytecode.POP)
+		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
+		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
+		c.emitNewArrayList(0, location)
+		restListVar = c.defineLocal(restVariableName, location)
+		c.emitSetLocalNoPop(location.StartPos.Line, restListVar.index)
+		c.emit(location.StartPos.Line, bytecode.POP)
 	}
 	c.enterPattern()
 
-	c.emit(span.StartPos.Line, bytecode.DUP)
+	c.emit(location.StartPos.Line, bytecode.DUP)
 	if isList {
-		c.emitValue(value.Ref(value.ListMixin), span)
+		c.emitValue(value.Ref(value.ListMixin), location)
 	} else {
-		c.emitValue(value.Ref(value.TupleMixin), span)
+		c.emitValue(value.Ref(value.TupleMixin), location)
 	}
-	c.emit(span.StartPos.Line, bytecode.IS_A)
+	c.emit(location.StartPos.Line, bytecode.IS_A)
 
-	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+	jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	jumpsToPatch = append(jumpsToPatch, jmp)
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
-	c.emit(span.StartPos.Line, bytecode.DUP)
+	c.emit(location.StartPos.Line, bytecode.DUP)
 	callInfo := value.NewCallSiteInfo(symbol.L_length, 0)
-	c.emitCallMethod(callInfo, span, false)
+	c.emitCallMethod(callInfo, location, false)
 	var lengthVar *local
 	if elementBeforeRestCount != -1 {
-		lengthVar = c.defineLocal(fmt.Sprintf("#!listPatternLength%d", c.patternNesting), span)
-		c.emitSetLocalNoPop(span.StartPos.Line, lengthVar.index)
+		lengthVar = c.defineLocal(fmt.Sprintf("#!listPatternLength%d", c.patternNesting), location)
+		c.emitSetLocalNoPop(location.StartPos.Line, lengthVar.index)
 	}
 
 	if elementBeforeRestCount == -1 {
-		c.emitValue(value.SmallInt(len(elements)).ToValue(), span)
-		c.emit(span.StartPos.Line, bytecode.EQUAL_INT)
+		c.emitValue(value.SmallInt(len(elements)).ToValue(), location)
+		c.emit(location.StartPos.Line, bytecode.EQUAL_INT)
 	} else {
 		staticElementCount := elementBeforeRestCount + elementAfterRestCount
-		c.emitValue(value.SmallInt(staticElementCount).ToValue(), span)
-		c.emit(span.StartPos.Line, bytecode.GREATER_EQUAL_I)
+		c.emitValue(value.SmallInt(staticElementCount).ToValue(), location)
+		c.emit(location.StartPos.Line, bytecode.GREATER_EQUAL_I)
 	}
 
-	jmp = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+	jmp = c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	jumpsToPatch = append(jumpsToPatch, jmp)
-	c.emit(span.StartPos.Line, bytecode.POP)
+	c.emit(location.StartPos.Line, bytecode.POP)
 
 	elementsBeforeRest := elements
 	if elementBeforeRestCount != -1 {
 		elementsBeforeRest = elements[:elementBeforeRestCount]
 	}
 	for i, element := range elementsBeforeRest {
-		span := element.Span()
-		c.emit(span.StartPos.Line, bytecode.DUP)
-		c.emitValue(value.SmallInt(i).ToValue(), element.Span())
-		c.compileSubscript(typ, span)
+		location := element.Location()
+		c.emit(location.StartPos.Line, bytecode.DUP)
+		c.emitValue(value.SmallInt(i).ToValue(), element.Location())
+		c.compileSubscript(typ, location)
 
 		c.pattern(element)
-		c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+		c.emit(location.StartPos.Line, bytecode.POP_SKIP_ONE)
+		jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 		jumpsToPatch = append(jumpsToPatch, jmp)
-		c.emit(span.StartPos.Line, bytecode.POP)
+		c.emit(location.StartPos.Line, bytecode.POP)
 	}
 
 	if elementBeforeRestCount != -1 {
-		iteratorVar := c.defineLocal(fmt.Sprintf("#!listPatternIterator%d", c.patternNesting), span)
+		iteratorVar := c.defineLocal(fmt.Sprintf("#!listPatternIterator%d", c.patternNesting), location)
 
 		if restVariableName != "" {
 			// adjust the length variable
 			// length -= element_after_rest_count
 			if elementAfterRestCount != 0 {
-				c.emitGetLocal(span.StartPos.Line, lengthVar.index)
-				c.emitValue(value.SmallInt(elementAfterRestCount).ToValue(), span)
-				c.emit(span.StartPos.Line, bytecode.SUBTRACT_INT)
-				c.emitSetLocalNoPop(span.StartPos.Line, lengthVar.index)
-				c.emit(span.StartPos.Line, bytecode.POP)
+				c.emitGetLocal(location.StartPos.Line, lengthVar.index)
+				c.emitValue(value.SmallInt(elementAfterRestCount).ToValue(), location)
+				c.emit(location.StartPos.Line, bytecode.SUBTRACT_INT)
+				c.emitSetLocalNoPop(location.StartPos.Line, lengthVar.index)
+				c.emit(location.StartPos.Line, bytecode.POP)
 			}
 
 			// create the iterator variable
 			// i := element_before_rest_count
-			c.emitValue(value.SmallInt(elementBeforeRestCount).ToValue(), span)
-			c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emitValue(value.SmallInt(elementBeforeRestCount).ToValue(), location)
+			c.emitSetLocalNoPop(location.StartPos.Line, iteratorVar.index)
+			c.emit(location.StartPos.Line, bytecode.POP)
 
 			// loop header
 			// i < length
 			loopStartOffset := c.nextInstructionOffset()
-			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
-			c.emitGetLocal(span.StartPos.Line, lengthVar.index)
-			loopEndJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_ILT)
+			c.emitGetLocal(location.StartPos.Line, iteratorVar.index)
+			c.emitGetLocal(location.StartPos.Line, lengthVar.index)
+			loopEndJump := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_ILT)
 
 			// loop body
-			c.emit(span.StartPos.Line, bytecode.DUP)
-			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
-			c.compileSubscript(typ, span)
-			c.emitGetLocal(span.StartPos.Line, restListVar.index)
-			c.emit(span.StartPos.Line, bytecode.SWAP)
-			c.emit(span.StartPos.Line, bytecode.APPEND) // append to the list
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.DUP)
+			c.emitGetLocal(location.StartPos.Line, iteratorVar.index)
+			c.compileSubscript(typ, location)
+			c.emitGetLocal(location.StartPos.Line, restListVar.index)
+			c.emit(location.StartPos.Line, bytecode.SWAP)
+			c.emit(location.StartPos.Line, bytecode.APPEND) // append to the list
+			c.emit(location.StartPos.Line, bytecode.POP)
 			// i++
-			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
-			c.compileIncrement(c.checker.StdInt(), span)
-			c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emitGetLocal(location.StartPos.Line, iteratorVar.index)
+			c.compileIncrement(c.checker.StdInt(), location)
+			c.emitSetLocalNoPop(location.StartPos.Line, iteratorVar.index)
+			c.emit(location.StartPos.Line, bytecode.POP)
 
-			c.emitLoop(span, loopStartOffset)
+			c.emitLoop(location, loopStartOffset)
 			// loop end
-			c.patchJump(loopEndJump, span)
+			c.patchJump(loopEndJump, location)
 		} else {
 			// create the iterator variable
 			// i := length - element_after_rest_count
 			if elementAfterRestCount == 0 {
-				c.emitGetLocal(span.StartPos.Line, lengthVar.index)
-				c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
-				c.emit(span.StartPos.Line, bytecode.POP)
+				c.emitGetLocal(location.StartPos.Line, lengthVar.index)
+				c.emitSetLocalNoPop(location.StartPos.Line, iteratorVar.index)
+				c.emit(location.StartPos.Line, bytecode.POP)
 			} else {
-				c.emitGetLocal(span.StartPos.Line, lengthVar.index)
-				c.emitValue(value.SmallInt(elementAfterRestCount).ToValue(), span)
-				c.emit(span.StartPos.Line, bytecode.SUBTRACT_INT)
-				c.emitSetLocalNoPop(span.StartPos.Line, iteratorVar.index)
-				c.emit(span.StartPos.Line, bytecode.POP)
+				c.emitGetLocal(location.StartPos.Line, lengthVar.index)
+				c.emitValue(value.SmallInt(elementAfterRestCount).ToValue(), location)
+				c.emit(location.StartPos.Line, bytecode.SUBTRACT_INT)
+				c.emitSetLocalNoPop(location.StartPos.Line, iteratorVar.index)
+				c.emit(location.StartPos.Line, bytecode.POP)
 			}
 		}
 
 		elementsAfterRest := elements[elementBeforeRestCount+1:]
 		for _, element := range elementsAfterRest {
-			span := element.Span()
-			c.emit(span.StartPos.Line, bytecode.DUP)
-			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
-			c.compileSubscript(typ, span)
+			location := element.Location()
+			c.emit(location.StartPos.Line, bytecode.DUP)
+			c.emitGetLocal(location.StartPos.Line, iteratorVar.index)
+			c.compileSubscript(typ, location)
 
 			c.pattern(element)
-			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+			c.emit(location.StartPos.Line, bytecode.POP_SKIP_ONE)
+			jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 			jumpsToPatch = append(jumpsToPatch, jmp)
-			c.emit(span.StartPos.Line, bytecode.POP)
+			c.emit(location.StartPos.Line, bytecode.POP)
 
 			// i++
-			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
-			c.compileIncrement(c.checker.StdInt(), span)
-			c.emitSetLocalPop(span.StartPos.Line, iteratorVar.index)
+			c.emitGetLocal(location.StartPos.Line, iteratorVar.index)
+			c.compileIncrement(c.checker.StdInt(), location)
+			c.emitSetLocalPop(location.StartPos.Line, iteratorVar.index)
 		}
 	}
 
 	// leave true as the result of the happy path
-	c.emit(span.StartPos.Line, bytecode.TRUE)
+	c.emit(location.StartPos.Line, bytecode.TRUE)
 
 	// leave false on the stack from the falsy if that jumped here
 	for _, jmp := range jumpsToPatch {
-		c.patchJump(jmp, span)
+		c.patchJump(jmp, location)
 	}
 	c.leavePattern()
 }
@@ -3969,7 +3964,7 @@ func (c *Compiler) leavePattern() {
 }
 
 func (c *Compiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode, valueIsIgnored bool) expressionResult {
-	span := node.Span()
+	location := node.Location()
 
 	c.enterScope("", defaultScopeType)
 	c.compileNodeWithResult(node.Value)
@@ -3979,7 +3974,7 @@ func (c *Compiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode, v
 	for _, caseNode := range node.Cases {
 		c.enterScope("", defaultScopeType)
 
-		caseSpan := caseNode.Span()
+		caseSpan := caseNode.Location()
 		c.pattern(caseNode.Pattern)
 
 		jumpOverBodyOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP_UNLESS)
@@ -3997,14 +3992,14 @@ func (c *Compiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode, v
 		c.leaveScope(caseSpan.EndPos.Line)
 	}
 
-	c.emit(span.StartPos.Line, bytecode.POP)
-	c.compileStatements(node.ElseBody, span, valueIsIgnored)
+	c.emit(location.StartPos.Line, bytecode.POP)
+	c.compileStatements(node.ElseBody, location, valueIsIgnored)
 
 	for _, offset := range jumpToEndOffsets {
-		c.patchJump(offset, span)
+		c.patchJump(offset, location)
 	}
 
-	c.leaveScope(span.EndPos.Line)
+	c.leaveScope(location.EndPos.Line)
 	return valueIgnoredToResult(valueIsIgnored)
 }
 
@@ -4017,7 +4012,7 @@ func (c *Compiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressionN
 	c.compileNodeWithResult(node.Key)
 
 	receiverType := c.typeOf(node.Receiver)
-	c.compileSubscript(receiverType, node.Span())
+	c.compileSubscript(receiverType, node.Location())
 }
 
 func (c *Compiler) compileAttributeAccessNode(node *ast.AttributeAccessNode) {
@@ -4026,9 +4021,9 @@ func (c *Compiler) compileAttributeAccessNode(node *ast.AttributeAccessNode) {
 	name := value.ToSymbol(node.AttributeName)
 	callInfo := value.NewCallSiteInfo(name, 0)
 	if node.AttributeName == "call" {
-		c.emitCall(callInfo, node.Span())
+		c.emitCall(callInfo, node.Location())
 	} else {
-		c.emitCallMethod(callInfo, node.Span(), false)
+		c.emitCallMethod(callInfo, node.Location(), false)
 	}
 }
 
@@ -4038,17 +4033,17 @@ func (c *Compiler) compileConstructorCallNode(node *ast.ConstructorCallNode) {
 			c.compileNodeWithResult(node.ClassNode)
 		},
 		node.PositionalArguments,
-		node.Span(),
+		node.Location(),
 	)
 }
 
 func (c *Compiler) compileNewExpressionNode(node *ast.NewExpressionNode) {
 	c.compileConstructorCall(
 		func() {
-			c.emit(node.Span().StartPos.Line, bytecode.SELF)
+			c.emit(node.Location().StartPos.Line, bytecode.SELF)
 		},
 		node.PositionalArguments,
-		node.Span(),
+		node.Location(),
 	)
 }
 
@@ -4058,17 +4053,17 @@ func (c *Compiler) compileGenericConstructorCallNode(node *ast.GenericConstructo
 			c.compileNodeWithResult(node.ClassNode)
 		},
 		node.PositionalArguments,
-		node.Span(),
+		node.Location(),
 	)
 }
 
-func (c *Compiler) compileConstructorCall(class func(), args []ast.ExpressionNode, span *position.Span) {
+func (c *Compiler) compileConstructorCall(class func(), args []ast.ExpressionNode, location *position.Location) {
 	class()
 	for _, posArg := range args {
 		c.compileNodeWithResult(posArg)
 	}
 
-	c.emitInstantiate(len(args), span)
+	c.emitInstantiate(len(args), location)
 }
 
 func (c *Compiler) compileMethodCallNode(node *ast.MethodCallNode) {
@@ -4078,7 +4073,7 @@ func (c *Compiler) compileMethodCallNode(node *ast.MethodCallNode) {
 		node.MethodName,
 		node.PositionalArguments,
 		node.TailCall,
-		node.Span(),
+		node.Location(),
 	)
 }
 func (c *Compiler) compileGenericMethodCallNode(node *ast.GenericMethodCallNode) {
@@ -4088,54 +4083,54 @@ func (c *Compiler) compileGenericMethodCallNode(node *ast.GenericMethodCallNode)
 		node.MethodName,
 		node.PositionalArguments,
 		node.TailCall,
-		node.Span(),
+		node.Location(),
 	)
 }
 
-func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, name string, args []ast.ExpressionNode, tailCall bool, span *position.Span) {
+func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, name string, args []ast.ExpressionNode, tailCall bool, location *position.Location) {
 	_, onSelf := receiver.(*ast.SelfLiteralNode)
 
 	switch op.Type {
 	case token.QUESTION_DOT:
 		c.compileNodeWithResult(receiver)
-		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
+		nilJump := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 
 		// if not nil
 		// call the method
-		c.compileInnerMethodCall(receiver, name, op, args, false, tailCall, span)
+		c.compileInnerMethodCall(receiver, name, op, args, false, tailCall, location)
 
 		// if nil
 		// leave nil on the stack
-		c.patchJump(nilJump, span)
+		c.patchJump(nilJump, location)
 	case token.QUESTION_DOT_DOT:
 		c.compileNodeWithResult(receiver)
-		c.emit(span.EndPos.Line, bytecode.DUP)
-		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
+		c.emit(location.EndPos.Line, bytecode.DUP)
+		nilJump := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 
 		// if not nil
 		// call the method
-		c.compileInnerMethodCall(receiver, name, op, args, false, tailCall, span)
+		c.compileInnerMethodCall(receiver, name, op, args, false, tailCall, location)
 
 		// if nil
 		// leave nil on the stack
-		c.patchJump(nilJump, span)
+		c.patchJump(nilJump, location)
 	case token.DOT_DOT:
 		if !onSelf {
 			c.compileNodeWithResult(receiver)
 		}
-		c.emit(span.EndPos.Line, bytecode.DUP)
-		c.compileInnerMethodCall(receiver, name, op, args, onSelf, tailCall, span)
+		c.emit(location.EndPos.Line, bytecode.DUP)
+		c.compileInnerMethodCall(receiver, name, op, args, onSelf, tailCall, location)
 	case token.DOT:
 		if !onSelf {
 			c.compileNodeWithResult(receiver)
 		}
-		c.compileInnerMethodCall(receiver, name, op, args, onSelf, tailCall, span)
+		c.compileInnerMethodCall(receiver, name, op, args, onSelf, tailCall, location)
 	default:
 		panic(fmt.Sprintf("invalid method call operator: %#v", op))
 	}
 }
 
-func (c *Compiler) compileInnerMethodCall(receiver ast.ExpressionNode, name string, op *token.Token, args []ast.ExpressionNode, onSelf bool, tailCall bool, span *position.Span) {
+func (c *Compiler) compileInnerMethodCall(receiver ast.ExpressionNode, name string, op *token.Token, args []ast.ExpressionNode, onSelf bool, tailCall bool, location *position.Location) {
 	for _, posArg := range args {
 		c.compileNodeWithResult(posArg)
 	}
@@ -4144,23 +4139,23 @@ func (c *Compiler) compileInnerMethodCall(receiver ast.ExpressionNode, name stri
 	nameSym := value.ToSymbol(name)
 	callInfo := value.NewCallSiteInfo(nameSym, len(args))
 	if onSelf {
-		c.emitCallSelf(callInfo, span, tailCall)
+		c.emitCallSelf(callInfo, location, tailCall)
 	} else {
 		switch name {
 		case "call":
-			c.emitCall(callInfo, span)
+			c.emitCall(callInfo, location)
 		case "++":
-			c.compileIncrement(receiverType, span)
+			c.compileIncrement(receiverType, location)
 		case "--":
-			c.compileDecrement(receiverType, span)
+			c.compileDecrement(receiverType, location)
 		default:
-			c.emitCallMethod(callInfo, span, tailCall)
+			c.emitCallMethod(callInfo, location, tailCall)
 		}
 	}
 
 	switch op.Type {
 	case token.DOT_DOT, token.QUESTION_DOT_DOT:
-		c.emit(span.EndPos.Line, bytecode.POP)
+		c.emit(location.EndPos.Line, bytecode.POP)
 	case token.DOT, token.QUESTION_DOT:
 	default:
 		panic(fmt.Sprintf("invalid method call operator: %#v", op))
@@ -4171,7 +4166,7 @@ func (c *Compiler) compileCallNode(node *ast.CallNode) {
 	c.compileNodeWithResult(node.Receiver)
 
 	if node.NilSafe {
-		nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL_NP)
+		nilJump := c.emitJump(node.Location().StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 
 		// if not nil
 		// call the method
@@ -4179,7 +4174,7 @@ func (c *Compiler) compileCallNode(node *ast.CallNode) {
 
 		// if nil
 		// leave nil on the stack
-		c.patchJump(nilJump, node.Span())
+		c.patchJump(nilJump, node.Location())
 		return
 	}
 
@@ -4193,7 +4188,7 @@ func (c *Compiler) compileInnerCall(node *ast.CallNode) {
 
 	name := value.ToSymbol("call")
 	callInfo := value.NewCallSiteInfo(name, len(node.PositionalArguments))
-	c.emitCall(callInfo, node.Span())
+	c.emitCall(callInfo, node.Location())
 }
 
 func (c *Compiler) singletonBlockIsCompilable(node *ast.SingletonBlockExpressionNode) bool {
@@ -4201,11 +4196,11 @@ func (c *Compiler) singletonBlockIsCompilable(node *ast.SingletonBlockExpression
 		return false
 	}
 
-	span := node.Span()
+	location := node.Location()
 	singletonType := c.typeOf(node).(*types.SingletonClass)
 	singletonName := singletonType.Name()
 
-	singletonCompiler := New(fmt.Sprintf("<singleton_class: %s>", singletonName), namespaceMode, c.newLocation(span), c.checker)
+	singletonCompiler := New(fmt.Sprintf("<singleton_class: %s>", singletonName), namespaceMode, location, c.checker)
 	singletonCompiler.Errors = c.Errors
 	if !singletonCompiler.compileNamespace(node) {
 		return false
@@ -4220,25 +4215,25 @@ func (c *Compiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockE
 		return expressionIgnored
 	}
 
-	span := node.Span()
-	c.emit(span.StartPos.Line, bytecode.SELF)
-	c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
+	location := node.Location()
+	c.emit(location.StartPos.Line, bytecode.SELF)
+	c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 
-	c.emitValue(value.Ref(node.Bytecode), span)
-	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	c.emitValue(value.Ref(node.Bytecode), location)
+	c.emit(location.StartPos.Line, bytecode.INIT_NAMESPACE)
 	return expressionCompiled
 }
 
 func (c *Compiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
-	closureCompiler := New("<closure>", methodMode, c.newLocation(node.Span()), c.checker)
+	closureCompiler := New("<closure>", methodMode, node.Location(), c.checker)
 	closureCompiler.Parent = c
 	closureCompiler.Errors = c.Errors
-	closureCompiler.compileFunction(node.Span(), nil, node.Body)
+	closureCompiler.compileFunction(node.Location(), nil, node.Body)
 
 	result := closureCompiler.Bytecode
-	c.emitValue(value.Ref(result), node.Span())
+	c.emitValue(value.Ref(result), node.Location())
 
-	c.emit(node.Span().StartPos.Line, bytecode.CLOSURE)
+	c.emit(node.Location().StartPos.Line, bytecode.CLOSURE)
 
 	for _, upvalue := range closureCompiler.upvalues {
 		var flags bitfield.BitField8
@@ -4259,19 +4254,19 @@ func (c *Compiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
 
 	c.emitByte(vm.ClosureTerminatorFlag)
 
-	c.emit(node.Span().StartPos.Line, bytecode.GO)
+	c.emit(node.Location().StartPos.Line, bytecode.GO)
 }
 
 func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
-	closureCompiler := New("<closure>", methodMode, c.newLocation(node.Span()), c.checker)
+	closureCompiler := New("<closure>", methodMode, node.Location(), c.checker)
 	closureCompiler.Parent = c
 	closureCompiler.Errors = c.Errors
-	closureCompiler.compileFunction(node.Span(), node.Parameters, node.Body)
+	closureCompiler.compileFunction(node.Location(), node.Parameters, node.Body)
 
 	result := closureCompiler.Bytecode
-	c.emitValue(value.Ref(result), node.Span())
+	c.emitValue(value.Ref(result), node.Location())
 
-	c.emit(node.Span().StartPos.Line, bytecode.CLOSURE)
+	c.emit(node.Location().StartPos.Line, bytecode.CLOSURE)
 
 	for _, upvalue := range closureCompiler.upvalues {
 		var flags bitfield.BitField8
@@ -4300,7 +4295,7 @@ func (c *Compiler) mixinIsCompilable(node *ast.MixinDeclarationNode) bool {
 
 	mixinType := c.typeOf(node).(*types.Mixin)
 
-	mixinCompiler := New(fmt.Sprintf("<mixin: %s>", mixinType.Name()), namespaceMode, c.newLocation(node.Span()), c.checker)
+	mixinCompiler := New(fmt.Sprintf("<mixin: %s>", mixinType.Name()), namespaceMode, node.Location(), c.checker)
 	mixinCompiler.Errors = c.Errors
 	if !mixinCompiler.compileNamespace(node) {
 		return false
@@ -4315,13 +4310,13 @@ func (c *Compiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) e
 		return expressionIgnored
 	}
 
-	span := node.Span()
+	location := node.Location()
 	mixinType := c.typeOf(node).(*types.Mixin)
 	mixinName := value.ToSymbol(mixinType.Name())
 
-	c.emitGetConst(mixinName, node.Constant.Span())
-	c.emitValue(value.Ref(node.Bytecode), span)
-	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	c.emitGetConst(mixinName, node.Constant.Location())
+	c.emitValue(value.Ref(node.Bytecode), location)
+	c.emit(location.StartPos.Line, bytecode.INIT_NAMESPACE)
 	return expressionCompiled
 }
 
@@ -4331,7 +4326,7 @@ func (c *Compiler) moduleIsCompilable(node *ast.ModuleDeclarationNode) bool {
 	}
 
 	modType := c.typeOf(node).(*types.Module)
-	modCompiler := New(fmt.Sprintf("<module: %s>", modType.Name()), namespaceMode, c.newLocation(node.Span()), c.checker)
+	modCompiler := New(fmt.Sprintf("<module: %s>", modType.Name()), namespaceMode, node.Location(), c.checker)
 	modCompiler.Errors = c.Errors
 	if !modCompiler.compileNamespace(node) {
 		return false
@@ -4345,13 +4340,13 @@ func (c *Compiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode)
 		return expressionIgnored
 	}
 
-	span := node.Span()
+	location := node.Location()
 	modType := c.typeOf(node).(*types.Module)
 	modName := value.ToSymbol(modType.Name())
 
-	c.emitGetConst(modName, node.Constant.Span())
-	c.emitValue(value.Ref(node.Bytecode), span)
-	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	c.emitGetConst(modName, node.Constant.Location())
+	c.emitValue(value.Ref(node.Bytecode), location)
+	c.emit(location.StartPos.Line, bytecode.INIT_NAMESPACE)
 	return expressionCompiled
 }
 
@@ -4362,7 +4357,7 @@ func (c *Compiler) interfaceIsCompilable(node *ast.InterfaceDeclarationNode) boo
 
 	ifaceType := c.typeOf(node).(*types.Interface)
 
-	ifaceCompiler := New(fmt.Sprintf("<interface: %s>", ifaceType.Name()), namespaceMode, c.newLocation(node.Span()), c.checker)
+	ifaceCompiler := New(fmt.Sprintf("<interface: %s>", ifaceType.Name()), namespaceMode, node.Location(), c.checker)
 	ifaceCompiler.Errors = c.Errors
 	if !ifaceCompiler.compileNamespace(node) {
 		return false
@@ -4376,13 +4371,13 @@ func (c *Compiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclaratio
 		return expressionIgnored
 	}
 
-	span := node.Span()
+	location := node.Location()
 	ifaceType := c.typeOf(node).(*types.Interface)
 	className := value.ToSymbol(ifaceType.Name())
 
-	c.emitGetConst(className, node.Constant.Span())
-	c.emitValue(value.Ref(node.Bytecode), span)
-	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	c.emitGetConst(className, node.Constant.Location())
+	c.emitValue(value.Ref(node.Bytecode), location)
+	c.emit(location.StartPos.Line, bytecode.INIT_NAMESPACE)
 	return expressionCompiled
 }
 
@@ -4393,7 +4388,7 @@ func (c *Compiler) classIsCompilable(node *ast.ClassDeclarationNode) bool {
 
 	classType := c.typeOf(node).(*types.Class)
 
-	classCompiler := New(fmt.Sprintf("<class: %s>", classType.Name()), namespaceMode, c.newLocation(node.Span()), c.checker)
+	classCompiler := New(fmt.Sprintf("<class: %s>", classType.Name()), namespaceMode, node.Location(), c.checker)
 	classCompiler.Errors = c.Errors
 	if !classCompiler.compileNamespace(node) {
 		return false
@@ -4407,13 +4402,13 @@ func (c *Compiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) e
 		return expressionIgnored
 	}
 
-	span := node.Span()
+	location := node.Location()
 	classType := c.typeOf(node).(*types.Class)
 	className := value.ToSymbol(classType.Name())
 
-	c.emitGetConst(className, node.Constant.Span())
-	c.emitValue(value.Ref(node.Bytecode), span)
-	c.emit(span.StartPos.Line, bytecode.INIT_NAMESPACE)
+	c.emitGetConst(className, node.Constant.Location())
+	c.emitValue(value.Ref(node.Bytecode), location)
+	c.emit(location.StartPos.Line, bytecode.INIT_NAMESPACE)
 	return expressionCompiled
 }
 
@@ -4424,41 +4419,41 @@ func (c *Compiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDecl
 		c.mode = previousMode
 	}()
 
-	span := node.Span()
+	location := node.Location()
 	c.compileNodeWithResult(node.Initialiser)
 	c.pattern(node.Pattern)
 
-	jumpOverErrorOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+	jumpOverErrorOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF)
 
 	c.emitValue(
 		value.Ref(value.NewError(
 			value.PatternNotMatchedErrorClass,
 			"assigned value does not match the pattern defined in value declaration",
 		)),
-		span,
+		location,
 	)
-	c.emit(span.EndPos.Line, bytecode.THROW)
+	c.emit(location.EndPos.Line, bytecode.THROW)
 
-	c.patchJump(jumpOverErrorOffset, span)
+	c.patchJump(jumpOverErrorOffset, location)
 }
 
 func (c *Compiler) compilerVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) {
-	span := node.Span()
+	location := node.Location()
 	c.compileNodeWithResult(node.Initialiser)
 	c.pattern(node.Pattern)
 
-	jumpOverErrorOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+	jumpOverErrorOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF)
 
 	c.emitValue(
 		value.Ref(value.NewError(
 			value.PatternNotMatchedErrorClass,
 			"assigned value does not match the pattern defined in variable declaration",
 		)),
-		span,
+		location,
 	)
-	c.emit(span.EndPos.Line, bytecode.THROW)
+	c.emit(location.EndPos.Line, bytecode.THROW)
 
-	c.patchJump(jumpOverErrorOffset, span)
+	c.patchJump(jumpOverErrorOffset, location)
 }
 
 func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationNode, valueIsIgnored bool) expressionResult {
@@ -4467,17 +4462,17 @@ func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationN
 	if initialised {
 		c.compileNodeWithResult(node.Initialiser)
 	}
-	local := c.defineLocal(node.Name, node.Span())
+	local := c.defineLocal(node.Name, node.Location())
 	if local == nil {
 		return valueIgnoredToResult(valueIsIgnored)
 	}
 
 	if initialised {
-		return c.emitSetLocal(node.Span().StartPos.Line, local.index, valueIsIgnored)
+		return c.emitSetLocal(node.Location().StartPos.Line, local.index, valueIsIgnored)
 	}
 
 	if !valueIsIgnored {
-		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+		c.emit(node.Location().StartPos.Line, bytecode.NIL)
 		return expressionCompiled
 	}
 
@@ -4485,13 +4480,13 @@ func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationN
 }
 
 // Compile each element of a collection of statements.
-func (c *Compiler) compileStatements(collection []ast.StatementNode, span *position.Span, valueIsIgnored bool) expressionResult {
+func (c *Compiler) compileStatements(collection []ast.StatementNode, location *position.Location, valueIsIgnored bool) expressionResult {
 	if valueIsIgnored {
 		c.compileStatementsWithoutResult(collection)
 		return expressionCompiledWithoutResult
 	}
 
-	c.compileStatementsWithResult(collection, span)
+	c.compileStatementsWithResult(collection, location)
 	return expressionCompiled
 }
 
@@ -4501,15 +4496,15 @@ func (c *Compiler) compileStatementsWithoutResult(collection []ast.StatementNode
 		result := c.compileNode(s, true)
 		switch result {
 		case expressionCompiled:
-			c.emit(s.Span().EndPos.Line, bytecode.POP)
+			c.emit(s.Location().EndPos.Line, bytecode.POP)
 		}
 	}
 }
 
 // Compiles a list of statements leaving the value produced by the last statement on the stack
-func (c *Compiler) compileStatementsWithResult(collection []ast.StatementNode, span *position.Span) {
+func (c *Compiler) compileStatementsWithResult(collection []ast.StatementNode, location *position.Location) {
 	if !c.compileStatementsOk(collection) {
-		c.emit(span.EndPos.Line, bytecode.NIL)
+		c.emit(location.EndPos.Line, bytecode.NIL)
 		return
 	}
 }
@@ -4533,7 +4528,7 @@ func (c *Compiler) compileStatementsOk(collection []ast.StatementNode) bool {
 		switch result {
 		case expressionCompiled:
 			if !isLast {
-				c.emit(s.Span().EndPos.Line, bytecode.POP)
+				c.emit(s.Location().EndPos.Line, bytecode.POP)
 			}
 		}
 	}
@@ -4552,16 +4547,16 @@ func (c *Compiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) {
 		return
 	}
 
-	span := node.Span()
+	location := node.Location()
 
 	if node.Start == nil {
 		c.compileNodeWithResult(node.End)
 
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP:
-			c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.BEGINLESS_CLOSED_RANGE_FLAG)
+			c.emit(location.StartPos.Line, bytecode.NEW_RANGE, bytecode.BEGINLESS_CLOSED_RANGE_FLAG)
 		case token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
-			c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.BEGINLESS_OPEN_RANGE_FLAG)
+			c.emit(location.StartPos.Line, bytecode.NEW_RANGE, bytecode.BEGINLESS_OPEN_RANGE_FLAG)
 		default:
 			panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
 		}
@@ -4573,9 +4568,9 @@ func (c *Compiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) {
 
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP:
-			c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.ENDLESS_CLOSED_RANGE_FLAG)
+			c.emit(location.StartPos.Line, bytecode.NEW_RANGE, bytecode.ENDLESS_CLOSED_RANGE_FLAG)
 		case token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
-			c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.ENDLESS_OPEN_RANGE_FLAG)
+			c.emit(location.StartPos.Line, bytecode.NEW_RANGE, bytecode.ENDLESS_OPEN_RANGE_FLAG)
 		default:
 			panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
 		}
@@ -4587,20 +4582,20 @@ func (c *Compiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) {
 	c.compileNodeWithResult(node.End)
 	switch node.Op.Type {
 	case token.CLOSED_RANGE_OP:
-		c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.CLOSED_RANGE_FLAG)
+		c.emit(location.StartPos.Line, bytecode.NEW_RANGE, bytecode.CLOSED_RANGE_FLAG)
 	case token.OPEN_RANGE_OP:
-		c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.OPEN_RANGE_FLAG)
+		c.emit(location.StartPos.Line, bytecode.NEW_RANGE, bytecode.OPEN_RANGE_FLAG)
 	case token.LEFT_OPEN_RANGE_OP:
-		c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.LEFT_OPEN_RANGE_FLAG)
+		c.emit(location.StartPos.Line, bytecode.NEW_RANGE, bytecode.LEFT_OPEN_RANGE_FLAG)
 	case token.RIGHT_OPEN_RANGE_OP:
-		c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.RIGHT_OPEN_RANGE_FLAG)
+		c.emit(location.StartPos.Line, bytecode.NEW_RANGE, bytecode.RIGHT_OPEN_RANGE_FLAG)
 	default:
 		panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
 	}
 }
 
 func (c *Compiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
-	span := node.Span()
+	location := node.Location()
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -4619,15 +4614,15 @@ func (c *Compiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
 	}
 
 	if node.Capacity == nil {
-		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
 		c.compileNodeWithResult(node.Capacity)
 	}
 
 	if baseSet.Length() == 0 && baseSet.Capacity() == 0 {
-		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitLoadValue(value.Ref(baseSet), span)
+		c.emitLoadValue(value.Ref(baseSet), location)
 	}
 
 	firstModifierElementIndex := -1
@@ -4642,11 +4637,11 @@ func (c *Compiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
 				if node.Capacity != nil {
 					c.Errors.AddFailure(
 						"capacity cannot be specified in collection literals with conditional elements or loops",
-						c.newLocation(node.Capacity.Span()),
+						node.Capacity.Location(),
 					)
 					return
 				}
-				c.emitNewHashSet(i, span)
+				c.emitNewHashSet(i, location)
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			default:
@@ -4675,10 +4670,10 @@ func (c *Compiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
 					e.Right,
 					func() {
 						c.compileNodeWithResult(e.Left)
-						c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+						c.emit(e.Location().StartPos.Line, bytecode.APPEND)
 					},
 					func() {},
-					e.Span(),
+					e.Location(),
 					false,
 				)
 			case *ast.ModifierIfElseNode:
@@ -4687,13 +4682,13 @@ func (c *Compiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
 					e.Condition,
 					func() {
 						c.compileNodeWithResult(e.ThenExpression)
-						c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+						c.emit(e.Location().StartPos.Line, bytecode.APPEND)
 					},
 					func() {
 						c.compileNodeWithResult(e.ElseExpression)
-						c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+						c.emit(e.Location().StartPos.Line, bytecode.APPEND)
 					},
-					e.Span(),
+					e.Location(),
 					false,
 				)
 			case *ast.ModifierForInNode:
@@ -4703,21 +4698,21 @@ func (c *Compiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
 					e.InExpression,
 					func() {
 						c.compileNodeWithResult(e.ThenExpression)
-						c.emit(e.ThenExpression.Span().EndPos.Line, bytecode.APPEND)
+						c.emit(e.ThenExpression.Location().EndPos.Line, bytecode.APPEND)
 					},
-					e.Span(),
+					e.Location(),
 					true,
 				)
 			default:
 				c.compileNodeWithResult(elementNode)
-				c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+				c.emit(e.Location().StartPos.Line, bytecode.APPEND)
 			}
 		}
 
 		return
 	}
 
-	c.emitNewHashSet(len(dynamicElementNodes), span)
+	c.emitNewHashSet(len(dynamicElementNodes), location)
 }
 
 func (c *Compiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) {
@@ -4725,7 +4720,7 @@ func (c *Compiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) {
 		return
 	}
 
-	span := node.Span()
+	location := node.Location()
 	baseMap := value.NewHashMap(len(node.Elements))
 	firstDynamicIndex := -1
 
@@ -4764,15 +4759,15 @@ elementLoop:
 	}
 
 	if node.Capacity == nil {
-		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
 		c.compileNodeWithResult(node.Capacity)
 	}
 
 	if baseMap.Length() == 0 && baseMap.Capacity() == 0 {
-		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitLoadValue(value.Ref(baseMap), span)
+		c.emitLoadValue(value.Ref(baseMap), location)
 	}
 
 	firstModifierElementIndex := -1
@@ -4787,25 +4782,25 @@ elementLoop:
 				if node.Capacity != nil {
 					c.Errors.AddFailure(
 						"capacity cannot be specified in collection literals with conditional elements or loops",
-						c.newLocation(node.Capacity.Span()),
+						node.Capacity.Location(),
 					)
 					return
 				}
-				c.emitNewHashMap(i, span)
+				c.emitNewHashMap(i, location)
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			case *ast.KeyValueExpressionNode:
 				c.compileNodeWithResult(element.Key)
 				c.compileNodeWithResult(element.Value)
 			case *ast.SymbolKeyValueExpressionNode:
-				c.emitValue(value.ToSymbol(element.Key).ToValue(), element.Span())
+				c.emitValue(value.ToSymbol(element.Key).ToValue(), element.Location())
 				c.compileNodeWithResult(element.Value)
 			case *ast.PublicIdentifierNode:
-				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Span())
-				c.compileLocalVariableAccess(element.Value, element.Span())
+				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Location())
+				c.compileLocalVariableAccess(element.Value, element.Location())
 			case *ast.PrivateIdentifierNode:
-				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Span())
-				c.compileLocalVariableAccess(element.Value, element.Span())
+				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Location())
+				c.compileLocalVariableAccess(element.Value, element.Location())
 			default:
 				panic(fmt.Sprintf("invalid element in hashmap literal: %#v", elementNode))
 			}
@@ -4819,11 +4814,11 @@ elementLoop:
 			case *ast.KeyValueExpressionNode:
 				c.compileNodeWithResult(e.Key)
 				c.compileNodeWithResult(e.Value)
-				c.emit(e.Span().StartPos.Line, bytecode.MAP_SET)
+				c.emit(e.Location().StartPos.Line, bytecode.MAP_SET)
 			case *ast.SymbolKeyValueExpressionNode:
-				c.emitValue(value.ToSymbol(e.Key).ToValue(), e.Span())
+				c.emitValue(value.ToSymbol(e.Key).ToValue(), e.Location())
 				c.compileNodeWithResult(e.Value)
-				c.emit(e.Span().StartPos.Line, bytecode.MAP_SET)
+				c.emit(e.Location().StartPos.Line, bytecode.MAP_SET)
 			case *ast.ModifierNode:
 				var jumpOp bytecode.OpCode
 				switch e.Modifier.Type {
@@ -4843,17 +4838,17 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(then.Key)
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
+							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Span())
+							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
+							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
 						}
 					},
 					func() {},
-					e.Span(),
+					e.Location(),
 					false,
 				)
 			case *ast.ModifierIfElseNode:
@@ -4865,11 +4860,11 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(then.Key)
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
+							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Span())
+							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
+							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
 						}
@@ -4879,16 +4874,16 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(els.Key)
 							c.compileNodeWithResult(els.Value)
-							c.emit(els.Span().EndPos.Line, bytecode.MAP_SET)
+							c.emit(els.Location().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(els.Key).ToValue(), els.Span())
+							c.emitValue(value.ToSymbol(els.Key).ToValue(), els.Location())
 							c.compileNodeWithResult(els.Value)
-							c.emit(els.Span().EndPos.Line, bytecode.MAP_SET)
+							c.emit(els.Location().EndPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
 						}
 					},
-					e.Span(),
+					e.Location(),
 					false,
 				)
 			case *ast.ModifierForInNode:
@@ -4901,16 +4896,16 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(then.Key)
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().EndPos.Line, bytecode.MAP_SET)
+							c.emit(then.Location().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Span())
+							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().EndPos.Line, bytecode.MAP_SET)
+							c.emit(then.Location().EndPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
 						}
 					},
-					e.Span(),
+					e.Location(),
 					true,
 				)
 			default:
@@ -4921,7 +4916,7 @@ elementLoop:
 		return
 	}
 
-	c.emitNewHashMap(len(dynamicElementNodes), span)
+	c.emitNewHashMap(len(dynamicElementNodes), location)
 }
 
 func (c *Compiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNode) {
@@ -4929,7 +4924,7 @@ func (c *Compiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNode)
 		return
 	}
 
-	span := node.Span()
+	location := node.Location()
 	baseRecord := value.NewHashRecord(len(node.Elements))
 	firstDynamicIndex := -1
 
@@ -4968,9 +4963,9 @@ elementLoop:
 	}
 
 	if baseRecord.Length() == 0 {
-		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitLoadValue(value.Ref(baseRecord), span)
+		c.emitLoadValue(value.Ref(baseRecord), location)
 	}
 
 	firstModifierElementIndex := -1
@@ -4982,21 +4977,21 @@ elementLoop:
 		for i, elementNode := range dynamicElementNodes {
 			switch element := elementNode.(type) {
 			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
-				c.emitNewHashRecord(i, span)
+				c.emitNewHashRecord(i, location)
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			case *ast.KeyValueExpressionNode:
 				c.compileNodeWithResult(element.Key)
 				c.compileNodeWithResult(element.Value)
 			case *ast.SymbolKeyValueExpressionNode:
-				c.emitValue(value.ToSymbol(element.Key).ToValue(), element.Span())
+				c.emitValue(value.ToSymbol(element.Key).ToValue(), element.Location())
 				c.compileNodeWithResult(element.Value)
 			case *ast.PublicIdentifierNode:
-				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Span())
-				c.compileLocalVariableAccess(element.Value, element.Span())
+				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Location())
+				c.compileLocalVariableAccess(element.Value, element.Location())
 			case *ast.PrivateIdentifierNode:
-				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Span())
-				c.compileLocalVariableAccess(element.Value, element.Span())
+				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Location())
+				c.compileLocalVariableAccess(element.Value, element.Location())
 			default:
 				panic(fmt.Sprintf("invalid element in hashmap literal: %#v", elementNode))
 			}
@@ -5010,11 +5005,11 @@ elementLoop:
 			case *ast.KeyValueExpressionNode:
 				c.compileNodeWithResult(e.Key)
 				c.compileNodeWithResult(e.Value)
-				c.emit(e.Span().StartPos.Line, bytecode.MAP_SET)
+				c.emit(e.Location().StartPos.Line, bytecode.MAP_SET)
 			case *ast.SymbolKeyValueExpressionNode:
-				c.emitValue(value.ToSymbol(e.Key).ToValue(), e.Span())
+				c.emitValue(value.ToSymbol(e.Key).ToValue(), e.Location())
 				c.compileNodeWithResult(e.Value)
-				c.emit(e.Span().StartPos.Line, bytecode.MAP_SET)
+				c.emit(e.Location().StartPos.Line, bytecode.MAP_SET)
 			case *ast.ModifierNode:
 				var jumpOp bytecode.OpCode
 				switch e.Modifier.Type {
@@ -5034,17 +5029,17 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(then.Key)
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
+							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Span())
+							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
+							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
 						}
 					},
 					func() {},
-					e.Span(),
+					e.Location(),
 					false,
 				)
 			case *ast.ModifierIfElseNode:
@@ -5056,11 +5051,11 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(then.Key)
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
+							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Span())
+							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
+							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
 						}
@@ -5070,16 +5065,16 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(els.Key)
 							c.compileNodeWithResult(els.Value)
-							c.emit(els.Span().EndPos.Line, bytecode.MAP_SET)
+							c.emit(els.Location().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(els.Key).ToValue(), els.Span())
+							c.emitValue(value.ToSymbol(els.Key).ToValue(), els.Location())
 							c.compileNodeWithResult(els.Value)
-							c.emit(els.Span().EndPos.Line, bytecode.MAP_SET)
+							c.emit(els.Location().EndPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
 						}
 					},
-					e.Span(),
+					e.Location(),
 					false,
 				)
 			case *ast.ModifierForInNode:
@@ -5092,16 +5087,16 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(then.Key)
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().EndPos.Line, bytecode.MAP_SET)
+							c.emit(then.Location().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Span())
+							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().EndPos.Line, bytecode.MAP_SET)
+							c.emit(then.Location().EndPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
 						}
 					},
-					e.Span(),
+					e.Location(),
 					true,
 				)
 			default:
@@ -5112,11 +5107,11 @@ elementLoop:
 		return
 	}
 
-	c.emitNewHashRecord(len(dynamicElementNodes), span)
+	c.emitNewHashRecord(len(dynamicElementNodes), location)
 }
 
 func (c *Compiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode) {
-	span := node.Span()
+	location := node.Location()
 	if c.resolveAndEmitList(node) {
 		return
 	}
@@ -5161,15 +5156,15 @@ elementLoop:
 	}
 
 	if node.Capacity == nil {
-		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
 		c.compileNodeWithResult(node.Capacity)
 	}
 
 	if len(baseList) == 0 && (keyValueCount == 0 || cap(baseList) == 0) {
-		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitLoadValue(value.Ref(&baseList), span)
+		c.emitLoadValue(value.Ref(&baseList), location)
 	}
 
 	firstModifierElementIndex := -1
@@ -5184,15 +5179,15 @@ elementLoop:
 				if node.Capacity != nil {
 					c.Errors.AddFailure(
 						"capacity cannot be specified in collection literals with conditional elements or loops",
-						c.newLocation(node.Capacity.Span()),
+						node.Capacity.Location(),
 					)
 					return
 				}
-				c.emitNewArrayList(i, span)
+				c.emitNewArrayList(i, location)
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			case *ast.KeyValueExpressionNode:
-				c.emitNewArrayList(i, span)
+				c.emitNewArrayList(i, location)
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			default:
@@ -5208,7 +5203,7 @@ elementLoop:
 			case *ast.KeyValueExpressionNode:
 				c.compileNodeWithResult(e.Key)
 				c.compileNodeWithResult(e.Value)
-				c.emit(e.Span().StartPos.Line, bytecode.APPEND_AT)
+				c.emit(e.Location().StartPos.Line, bytecode.APPEND_AT)
 			case *ast.ModifierNode:
 				var jumpOp bytecode.OpCode
 				switch e.Modifier.Type {
@@ -5228,14 +5223,14 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(then.Key)
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
+							c.emit(then.Location().StartPos.Line, bytecode.APPEND_AT)
 						default:
 							c.compileNodeWithResult(e.Left)
-							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+							c.emit(e.Location().StartPos.Line, bytecode.APPEND)
 						}
 					},
 					func() {},
-					e.Span(),
+					e.Location(),
 					false,
 				)
 			case *ast.ModifierIfElseNode:
@@ -5247,10 +5242,10 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(then.Key)
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
+							c.emit(then.Location().StartPos.Line, bytecode.APPEND_AT)
 						default:
 							c.compileNodeWithResult(e.ThenExpression)
-							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+							c.emit(e.Location().StartPos.Line, bytecode.APPEND)
 						}
 					},
 					func() {
@@ -5258,13 +5253,13 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(els.Key)
 							c.compileNodeWithResult(els.Value)
-							c.emit(els.Span().StartPos.Line, bytecode.APPEND_AT)
+							c.emit(els.Location().StartPos.Line, bytecode.APPEND_AT)
 						default:
 							c.compileNodeWithResult(e.ElseExpression)
-							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+							c.emit(e.Location().StartPos.Line, bytecode.APPEND)
 						}
 					},
-					e.Span(),
+					e.Location(),
 					false,
 				)
 			case *ast.ModifierForInNode:
@@ -5277,25 +5272,25 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(then.Key)
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().EndPos.Line, bytecode.APPEND_AT)
+							c.emit(then.Location().EndPos.Line, bytecode.APPEND_AT)
 						default:
 							c.compileNodeWithResult(e.ThenExpression)
-							c.emit(then.Span().EndPos.Line, bytecode.APPEND)
+							c.emit(then.Location().EndPos.Line, bytecode.APPEND)
 						}
 					},
-					e.Span(),
+					e.Location(),
 					true,
 				)
 			default:
 				c.compileNodeWithResult(elementNode)
-				c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+				c.emit(e.Location().StartPos.Line, bytecode.APPEND)
 			}
 		}
 
 		return
 	}
 
-	c.emitNewArrayList(len(dynamicElementNodes), span)
+	c.emitNewArrayList(len(dynamicElementNodes), location)
 }
 
 func (c *Compiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) {
@@ -5303,7 +5298,7 @@ func (c *Compiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode)
 		return
 	}
 
-	span := node.Span()
+	location := node.Location()
 
 	var baseArrayTuple value.ArrayTuple
 	firstDynamicIndex := -1
@@ -5338,9 +5333,9 @@ elementLoop:
 	}
 
 	if len(baseArrayTuple) == 0 {
-		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitLoadValue(value.Ref(&baseArrayTuple), span)
+		c.emitLoadValue(value.Ref(&baseArrayTuple), location)
 	}
 
 	firstModifierElementIndex := -1
@@ -5353,9 +5348,9 @@ elementLoop:
 			switch e := elementNode.(type) {
 			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode, *ast.KeyValueExpressionNode:
 				if i == 0 && firstDynamicIndex != 0 {
-					c.emit(e.Span().StartPos.Line, bytecode.COPY)
+					c.emit(e.Location().StartPos.Line, bytecode.COPY)
 				} else {
-					c.emitNewArrayTuple(i, span)
+					c.emitNewArrayTuple(i, location)
 				}
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
@@ -5372,7 +5367,7 @@ elementLoop:
 			case *ast.KeyValueExpressionNode:
 				c.compileNodeWithResult(e.Key)
 				c.compileNodeWithResult(e.Value)
-				c.emit(e.Span().StartPos.Line, bytecode.APPEND_AT)
+				c.emit(e.Location().StartPos.Line, bytecode.APPEND_AT)
 			case *ast.ModifierNode:
 				var jumpOp bytecode.OpCode
 				switch e.Modifier.Type {
@@ -5392,14 +5387,14 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(then.Key)
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
+							c.emit(then.Location().StartPos.Line, bytecode.APPEND_AT)
 						default:
 							c.compileNodeWithResult(e.Left)
-							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+							c.emit(e.Location().StartPos.Line, bytecode.APPEND)
 						}
 					},
 					func() {},
-					e.Span(),
+					e.Location(),
 					false,
 				)
 			case *ast.ModifierIfElseNode:
@@ -5411,10 +5406,10 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(then.Key)
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().EndPos.Line, bytecode.APPEND_AT)
+							c.emit(then.Location().EndPos.Line, bytecode.APPEND_AT)
 						default:
 							c.compileNodeWithResult(e.ThenExpression)
-							c.emit(e.Span().EndPos.Line, bytecode.APPEND)
+							c.emit(e.Location().EndPos.Line, bytecode.APPEND)
 						}
 					},
 					func() {
@@ -5422,13 +5417,13 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(els.Key)
 							c.compileNodeWithResult(els.Value)
-							c.emit(els.Span().EndPos.Line, bytecode.APPEND_AT)
+							c.emit(els.Location().EndPos.Line, bytecode.APPEND_AT)
 						default:
 							c.compileNodeWithResult(e.ElseExpression)
-							c.emit(e.Span().EndPos.Line, bytecode.APPEND)
+							c.emit(e.Location().EndPos.Line, bytecode.APPEND)
 						}
 					},
-					e.Span(),
+					e.Location(),
 					false,
 				)
 			case *ast.ModifierForInNode:
@@ -5441,25 +5436,25 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNodeWithResult(then.Key)
 							c.compileNodeWithResult(then.Value)
-							c.emit(then.Span().EndPos.Line, bytecode.APPEND_AT)
+							c.emit(then.Location().EndPos.Line, bytecode.APPEND_AT)
 						default:
 							c.compileNodeWithResult(e.ThenExpression)
-							c.emit(then.Span().EndPos.Line, bytecode.APPEND)
+							c.emit(then.Location().EndPos.Line, bytecode.APPEND)
 						}
 					},
-					e.Span(),
+					e.Location(),
 					true,
 				)
 			default:
 				c.compileNodeWithResult(elementNode)
-				c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+				c.emit(e.Location().StartPos.Line, bytecode.APPEND)
 			}
 		}
 
 		return
 	}
 
-	c.emitNewArrayTuple(len(dynamicElementNodes), span)
+	c.emitNewArrayTuple(len(dynamicElementNodes), location)
 }
 
 func (c *Compiler) compileWordArrayTupleLiteralNode(node *ast.WordArrayTupleLiteralNode) {
@@ -5467,7 +5462,7 @@ func (c *Compiler) compileWordArrayTupleLiteralNode(node *ast.WordArrayTupleLite
 		return
 	}
 
-	c.Errors.AddFailure("invalid word arrayTuple literal", c.newLocation(node.Span()))
+	c.Errors.AddFailure("invalid word arrayTuple literal", node.Location())
 }
 
 func (c *Compiler) compileBinArrayTupleLiteralNode(node *ast.BinArrayTupleLiteralNode) {
@@ -5475,7 +5470,7 @@ func (c *Compiler) compileBinArrayTupleLiteralNode(node *ast.BinArrayTupleLitera
 		return
 	}
 
-	c.Errors.AddFailure("invalid binary arrayTuple literal", c.newLocation(node.Span()))
+	c.Errors.AddFailure("invalid binary arrayTuple literal", node.Location())
 }
 
 func (c *Compiler) compileSymbolArrayTupleLiteralNode(node *ast.SymbolArrayTupleLiteralNode) {
@@ -5483,7 +5478,7 @@ func (c *Compiler) compileSymbolArrayTupleLiteralNode(node *ast.SymbolArrayTuple
 		return
 	}
 
-	c.Errors.AddFailure("invalid symbol arrayTuple literal", c.newLocation(node.Span()))
+	c.Errors.AddFailure("invalid symbol arrayTuple literal", node.Location())
 }
 
 func (c *Compiler) compileHexArrayTupleLiteralNode(node *ast.HexArrayTupleLiteralNode) {
@@ -5491,181 +5486,181 @@ func (c *Compiler) compileHexArrayTupleLiteralNode(node *ast.HexArrayTupleLitera
 		return
 	}
 
-	c.Errors.AddFailure("invalid hex arrayTuple literal", c.newLocation(node.Span()))
+	c.Errors.AddFailure("invalid hex arrayTuple literal", node.Location())
 }
 
 func (c *Compiler) compileWordArrayListLiteralNode(node *ast.WordArrayListLiteralNode) {
 	list := resolve(node)
-	span := node.Span()
+	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid word arrayList literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid word arrayList literal", location)
 		return
 	}
 
 	if node.Capacity == nil {
-		c.emitLoadValue(list, span)
-		c.emit(span.EndPos.Line, bytecode.COPY)
+		c.emitLoadValue(list, location)
+		c.emit(location.EndPos.Line, bytecode.COPY)
 	} else {
 		c.compileNodeWithResult(node.Capacity)
-		c.emitLoadValue(list, span)
-		c.emitNewArrayList(0, span)
+		c.emitLoadValue(list, location)
+		c.emitNewArrayList(0, location)
 	}
 }
 
 func (c *Compiler) compileBinArrayListLiteralNode(node *ast.BinArrayListLiteralNode) {
 	list := resolve(node)
-	span := node.Span()
+	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid bin arrayList literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid bin arrayList literal", location)
 		return
 	}
 
 	if node.Capacity == nil {
-		c.emitLoadValue(list, span)
-		c.emit(span.EndPos.Line, bytecode.COPY)
+		c.emitLoadValue(list, location)
+		c.emit(location.EndPos.Line, bytecode.COPY)
 	} else {
 		c.compileNodeWithResult(node.Capacity)
-		c.emitLoadValue(list, span)
-		c.emitNewArrayList(0, span)
+		c.emitLoadValue(list, location)
+		c.emitNewArrayList(0, location)
 	}
 }
 
 func (c *Compiler) compileSymbolArrayListLiteralNode(node *ast.SymbolArrayListLiteralNode) {
 	list := resolve(node)
-	span := node.Span()
+	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid symbol arrayList literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid symbol arrayList literal", location)
 		return
 	}
 
 	if node.Capacity == nil {
-		c.emitLoadValue(list, span)
-		c.emit(span.EndPos.Line, bytecode.COPY)
+		c.emitLoadValue(list, location)
+		c.emit(location.EndPos.Line, bytecode.COPY)
 	} else {
 		c.compileNodeWithResult(node.Capacity)
-		c.emitLoadValue(list, span)
-		c.emitNewArrayList(0, span)
+		c.emitLoadValue(list, location)
+		c.emitNewArrayList(0, location)
 	}
 }
 
 func (c *Compiler) compileHexArrayListLiteralNode(node *ast.HexArrayListLiteralNode) {
 	list := resolve(node)
-	span := node.Span()
+	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid hex arrayList literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid hex arrayList literal", location)
 		return
 	}
 
 	if node.Capacity == nil {
-		c.emitLoadValue(list, span)
-		c.emit(span.EndPos.Line, bytecode.COPY)
+		c.emitLoadValue(list, location)
+		c.emit(location.EndPos.Line, bytecode.COPY)
 	} else {
 		c.compileNodeWithResult(node.Capacity)
-		c.emitLoadValue(list, span)
-		c.emitNewArrayList(0, span)
+		c.emitLoadValue(list, location)
+		c.emitNewArrayList(0, location)
 	}
 }
 
 func (c *Compiler) compileWordHashSetLiteralNode(node *ast.WordHashSetLiteralNode) {
 	list := resolve(node)
-	span := node.Span()
+	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid word hashSet literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid word hashSet literal", location)
 		return
 	}
 
 	if node.Capacity == nil {
-		c.emitLoadValue(list, span)
-		c.emit(span.EndPos.Line, bytecode.COPY)
+		c.emitLoadValue(list, location)
+		c.emit(location.EndPos.Line, bytecode.COPY)
 	} else {
 		c.compileNodeWithResult(node.Capacity)
-		c.emitLoadValue(list, span)
-		c.emitNewHashSet(0, span)
+		c.emitLoadValue(list, location)
+		c.emitNewHashSet(0, location)
 	}
 }
 
 func (c *Compiler) compileBinHashSetLiteralNode(node *ast.BinHashSetLiteralNode) {
 	list := resolve(node)
-	span := node.Span()
+	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid bin hashSet literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid bin hashSet literal", location)
 		return
 	}
 
 	if node.Capacity == nil {
-		c.emitLoadValue(list, span)
-		c.emit(span.EndPos.Line, bytecode.COPY)
+		c.emitLoadValue(list, location)
+		c.emit(location.EndPos.Line, bytecode.COPY)
 	} else {
 		c.compileNodeWithResult(node.Capacity)
-		c.emitLoadValue(list, span)
-		c.emitNewHashSet(0, span)
+		c.emitLoadValue(list, location)
+		c.emitNewHashSet(0, location)
 	}
 }
 
 func (c *Compiler) compileSymbolHashSetLiteralNode(node *ast.SymbolHashSetLiteralNode) {
 	list := resolve(node)
-	span := node.Span()
+	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid symbol hashSet literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid symbol hashSet literal", location)
 		return
 	}
 
 	if node.Capacity == nil {
-		c.emitLoadValue(list, span)
-		c.emit(span.EndPos.Line, bytecode.COPY)
+		c.emitLoadValue(list, location)
+		c.emit(location.EndPos.Line, bytecode.COPY)
 	} else {
 		c.compileNodeWithResult(node.Capacity)
-		c.emitLoadValue(list, span)
-		c.emitNewHashSet(0, span)
+		c.emitLoadValue(list, location)
+		c.emitNewHashSet(0, location)
 	}
 }
 
 func (c *Compiler) compileHexHashSetLiteralNode(node *ast.HexHashSetLiteralNode) {
 	list := resolve(node)
-	span := node.Span()
+	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid hex hashSet literal", c.newLocation(span))
+		c.Errors.AddFailure("invalid hex hashSet literal", location)
 		return
 	}
 
 	if node.Capacity == nil {
-		c.emitLoadValue(list, span)
-		c.emit(span.EndPos.Line, bytecode.COPY)
+		c.emitLoadValue(list, location)
+		c.emit(location.EndPos.Line, bytecode.COPY)
 	} else {
 		c.compileNodeWithResult(node.Capacity)
-		c.emitLoadValue(list, span)
-		c.emitNewHashSet(0, span)
+		c.emitLoadValue(list, location)
+		c.emitNewHashSet(0, location)
 	}
 }
 
-func (c *Compiler) emitNewHashSet(size int, span *position.Span) {
-	c.emitNewCollection(bytecode.NEW_HASH_SET8, bytecode.NEW_HASH_SET16, size, span)
+func (c *Compiler) emitNewHashSet(size int, location *position.Location) {
+	c.emitNewCollection(bytecode.NEW_HASH_SET8, bytecode.NEW_HASH_SET16, size, location)
 }
 
-func (c *Compiler) emitNewArrayTuple(size int, span *position.Span) {
-	c.emitNewCollection(bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_TUPLE16, size, span)
+func (c *Compiler) emitNewArrayTuple(size int, location *position.Location) {
+	c.emitNewCollection(bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_TUPLE16, size, location)
 }
 
-func (c *Compiler) emitNewArrayList(size int, span *position.Span) {
-	c.emitNewCollection(bytecode.NEW_ARRAY_LIST8, bytecode.NEW_ARRAY_LIST16, size, span)
+func (c *Compiler) emitNewArrayList(size int, location *position.Location) {
+	c.emitNewCollection(bytecode.NEW_ARRAY_LIST8, bytecode.NEW_ARRAY_LIST16, size, location)
 }
 
-func (c *Compiler) emitNewHashMap(size int, span *position.Span) {
-	c.emitNewCollection(bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_MAP16, size, span)
+func (c *Compiler) emitNewHashMap(size int, location *position.Location) {
+	c.emitNewCollection(bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_MAP16, size, location)
 }
 
-func (c *Compiler) emitNewHashRecord(size int, span *position.Span) {
-	c.emitNewCollection(bytecode.NEW_HASH_RECORD8, bytecode.NEW_HASH_RECORD16, size, span)
+func (c *Compiler) emitNewHashRecord(size int, location *position.Location) {
+	c.emitNewCollection(bytecode.NEW_HASH_RECORD8, bytecode.NEW_HASH_RECORD16, size, location)
 }
 
-func (c *Compiler) emitNewRegex(flags bitfield.BitField8, size int, span *position.Span) {
+func (c *Compiler) emitNewRegex(flags bitfield.BitField8, size int, location *position.Location) {
 	if size <= math.MaxUint8 {
-		c.emit(span.EndPos.Line, bytecode.NEW_REGEX8, flags.Byte(), byte(size))
+		c.emit(location.EndPos.Line, bytecode.NEW_REGEX8, flags.Byte(), byte(size))
 		return
 	}
 
 	if size <= math.MaxUint16 {
-		c.emit(span.EndPos.Line, bytecode.NEW_REGEX16)
+		c.emit(location.EndPos.Line, bytecode.NEW_REGEX16)
 		c.emitByte(flags.Byte())
 		c.emitUint16(uint16(size))
 		return
@@ -5673,26 +5668,26 @@ func (c *Compiler) emitNewRegex(flags bitfield.BitField8, size int, span *positi
 
 	c.Errors.AddFailure(
 		fmt.Sprintf("max number of regex literal elements reached: %d", math.MaxUint16),
-		c.newLocation(span),
+		location,
 	)
 }
 
-func (c *Compiler) emitNewCollection(opcode8, opcode16 bytecode.OpCode, size int, span *position.Span) {
+func (c *Compiler) emitNewCollection(opcode8, opcode16 bytecode.OpCode, size int, location *position.Location) {
 	if size <= math.MaxUint8 {
-		c.emit(span.EndPos.Line, opcode8, byte(size))
+		c.emit(location.EndPos.Line, opcode8, byte(size))
 		return
 	}
 
 	if size <= math.MaxUint16 {
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(size))
-		c.emit(span.EndPos.Line, opcode16, bytes...)
+		c.emit(location.EndPos.Line, opcode16, bytes...)
 		return
 	}
 
 	c.Errors.AddFailure(
 		fmt.Sprintf("max number of collection literal elements reached: %d", math.MaxUint16),
-		c.newLocation(span),
+		location,
 	)
 }
 
@@ -5703,7 +5698,7 @@ func (c *Compiler) compileUninterpolatedRegexLiteralNode(node *ast.Uninterpolate
 
 	re, err := value.CompileRegex(node.Content, node.Flags)
 	if errList, ok := err.(diagnostic.DiagnosticList); ok {
-		regexStartPos := node.Span().StartPos
+		regexStartPos := node.Location().StartPos
 		for _, err := range errList {
 			errStartPos := err.Span.StartPos
 			errEndPos := err.Span.EndPos
@@ -5733,11 +5728,11 @@ func (c *Compiler) compileUninterpolatedRegexLiteralNode(node *ast.Uninterpolate
 	}
 
 	if err != nil {
-		c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+		c.Errors.AddFailure(err.Error(), node.Location())
 		return
 	}
 
-	c.emitValue(value.Ref(re), node.Span())
+	c.emitValue(value.Ref(re), node.Location())
 }
 
 func (c *Compiler) compileInterpolatedRegexLiteralNode(node *ast.InterpolatedRegexLiteralNode) {
@@ -5748,12 +5743,12 @@ func (c *Compiler) compileInterpolatedRegexLiteralNode(node *ast.InterpolatedReg
 	for _, elementNode := range node.Content {
 		switch element := elementNode.(type) {
 		case *ast.RegexLiteralContentSectionNode:
-			c.emitValue(value.Ref(value.String(element.Value)), element.Span())
+			c.emitValue(value.Ref(value.String(element.Value)), element.Location())
 		case *ast.RegexInterpolationNode:
 			c.compileNodeWithResult(element.Expression)
 		}
 	}
-	c.emitNewRegex(node.Flags, len(node.Content), node.Span())
+	c.emitNewRegex(node.Flags, len(node.Content), node.Location())
 }
 
 var inspectSymbol = value.ToSymbol("inspect")
@@ -5766,17 +5761,17 @@ func (c *Compiler) compileInterpolatedStringLiteralNode(node *ast.InterpolatedSt
 	for _, elementNode := range node.Content {
 		switch element := elementNode.(type) {
 		case *ast.StringLiteralContentSectionNode:
-			c.emitValue(value.Ref(value.String(element.Value)), element.Span())
+			c.emitValue(value.Ref(value.String(element.Value)), element.Location())
 		case *ast.StringInterpolationNode:
 			c.compileNodeWithResult(element.Expression)
 		case *ast.StringInspectInterpolationNode:
 			c.compileNodeWithResult(element.Expression)
 			callInfo := value.NewCallSiteInfo(inspectSymbol, 0)
-			c.emitCallMethod(callInfo, element.Span(), false)
+			c.emitCallMethod(callInfo, element.Location(), false)
 		}
 	}
 
-	c.emitNewCollection(bytecode.NEW_STRING8, bytecode.NEW_STRING16, len(node.Content), node.Span())
+	c.emitNewCollection(bytecode.NEW_STRING8, bytecode.NEW_STRING16, len(node.Content), node.Location())
 }
 
 func (c *Compiler) compileInterpolatedSymbolLiteralNode(node *ast.InterpolatedSymbolLiteralNode) {
@@ -5787,26 +5782,26 @@ func (c *Compiler) compileInterpolatedSymbolLiteralNode(node *ast.InterpolatedSy
 	for _, elementNode := range node.Content.Content {
 		switch element := elementNode.(type) {
 		case *ast.StringLiteralContentSectionNode:
-			c.emitValue(value.Ref(value.String(element.Value)), element.Span())
+			c.emitValue(value.Ref(value.String(element.Value)), element.Location())
 		case *ast.StringInterpolationNode:
 			c.compileNodeWithResult(element.Expression)
 		}
 	}
 
-	c.emitNewCollection(bytecode.NEW_SYMBOL8, bytecode.NEW_SYMBOL16, len(node.Content.Content), node.Span())
+	c.emitNewCollection(bytecode.NEW_SYMBOL8, bytecode.NEW_SYMBOL16, len(node.Content.Content), node.Location())
 }
 
 func (c *Compiler) compileIntLiteralNode(node *ast.IntLiteralNode) {
 	i, err := value.ParseBigInt(node.Value, 0)
 	if !err.IsUndefined() {
-		c.Errors.AddFailure(err.Error(), c.newLocation(node.Span()))
+		c.Errors.AddFailure(err.Error(), node.Location())
 		return
 	}
 	if i.IsSmallInt() {
-		c.emitValue(i.ToSmallInt().ToValue(), node.Span())
+		c.emitValue(i.ToSmallInt().ToValue(), node.Location())
 		return
 	}
-	c.emitValue(value.Ref(i), node.Span())
+	c.emitValue(value.Ref(i), node.Location())
 }
 
 // Compiles boolean binary operators
@@ -5815,7 +5810,7 @@ func (c *Compiler) compileLogicalExpressionNode(node *ast.LogicalExpressionNode,
 		if valueIsIgnored {
 			return expressionCompiledWithoutResult
 		}
-		c.emitValue(r, node.Span())
+		c.emitValue(r, node.Location())
 		return expressionCompiled
 	}
 
@@ -5827,7 +5822,7 @@ func (c *Compiler) compileLogicalExpressionNode(node *ast.LogicalExpressionNode,
 	case token.QUESTION_QUESTION:
 		return c.nilCoalescing(node, valueIsIgnored)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.AddFailure(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), node.Location())
 	}
 
 	return expressionCompiled
@@ -5838,19 +5833,19 @@ func (c *Compiler) nilCoalescing(node *ast.LogicalExpressionNode, valueIsIgnored
 	c.compileNodeWithResult(node.Left)
 	var jump int
 	if valueIsIgnored {
-		jump = c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS_NIL)
+		jump = c.emitJump(node.Location().StartPos.Line, bytecode.JUMP_UNLESS_NIL)
 	} else {
-		jump = c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS_NNP)
+		jump = c.emitJump(node.Location().StartPos.Line, bytecode.JUMP_UNLESS_NNP)
 	}
 
 	// if nil
 	if !valueIsIgnored {
-		c.emit(node.Span().StartPos.Line, bytecode.POP)
+		c.emit(node.Location().StartPos.Line, bytecode.POP)
 	}
 	c.mustCompileNode(node.Right, valueIsIgnored)
 
 	// if not nil
-	c.patchJump(jump, node.Span())
+	c.patchJump(jump, node.Location())
 	return valueIgnoredToResult(valueIsIgnored)
 }
 
@@ -5859,19 +5854,19 @@ func (c *Compiler) logicalOr(node *ast.LogicalExpressionNode, valueIsIgnored boo
 	c.compileNodeWithResult(node.Left)
 	var jump int
 	if valueIsIgnored {
-		jump = c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF)
+		jump = c.emitJump(node.Location().StartPos.Line, bytecode.JUMP_IF)
 	} else {
-		jump = c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NP)
+		jump = c.emitJump(node.Location().StartPos.Line, bytecode.JUMP_IF_NP)
 	}
 
 	// if falsy
 	if !valueIsIgnored {
-		c.emit(node.Span().StartPos.Line, bytecode.POP)
+		c.emit(node.Location().StartPos.Line, bytecode.POP)
 	}
 	c.mustCompileNode(node.Right, valueIsIgnored)
 
 	// if truthy
-	c.patchJump(jump, node.Span())
+	c.patchJump(jump, node.Location())
 	return valueIgnoredToResult(valueIsIgnored)
 }
 
@@ -5880,19 +5875,19 @@ func (c *Compiler) logicalAnd(node *ast.LogicalExpressionNode, valueIsIgnored bo
 	c.compileNodeWithResult(node.Left)
 	var jump int
 	if valueIsIgnored {
-		jump = c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS)
+		jump = c.emitJump(node.Location().StartPos.Line, bytecode.JUMP_UNLESS)
 	} else {
-		jump = c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS_NP)
+		jump = c.emitJump(node.Location().StartPos.Line, bytecode.JUMP_UNLESS_NP)
 	}
 
 	// if truthy
 	if !valueIsIgnored {
-		c.emit(node.Span().StartPos.Line, bytecode.POP)
+		c.emit(node.Location().StartPos.Line, bytecode.POP)
 	}
 	c.compileNode(node.Right, valueIsIgnored)
 
 	// if falsy
-	c.patchJump(jump, node.Span())
+	c.patchJump(jump, node.Location())
 	return valueIgnoredToResult(valueIsIgnored)
 }
 
@@ -5902,11 +5897,11 @@ func (c *Compiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode) {
 	}
 	c.compileNodeWithResult(node.Left)
 	c.compileNodeWithResult(node.Right)
-	c.emitBinaryOperation(c.typeOf(node.Left), node.Op, node.Span())
+	c.emitBinaryOperation(c.typeOf(node.Left), node.Op, node.Location())
 }
 
-func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, span *position.Span) {
-	line := span.StartPos.Line
+func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, location *position.Location) {
+	line := location.StartPos.Line
 	switch opToken.Type {
 	case token.PLUS:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
@@ -5921,7 +5916,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.ADD)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAdd, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAdd, 1), location, false)
 	case token.MINUS:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.SUBTRACT_INT)
@@ -5935,7 +5930,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.SUBTRACT)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubtract, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpSubtract, 1), location, false)
 	case token.STAR:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.MULTIPLY_INT)
@@ -5949,7 +5944,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.MULTIPLY)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpMultiply, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpMultiply, 1), location, false)
 	case token.SLASH:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.DIVIDE_INT)
@@ -5963,7 +5958,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.DIVIDE)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpDivide, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpDivide, 1), location, false)
 	case token.STAR_STAR:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.EXPONENTIATE_INT)
@@ -5973,7 +5968,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.EXPONENTIATE)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpExponentiate, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpExponentiate, 1), location, false)
 	case token.LBITSHIFT:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.LBITSHIFT_INT)
@@ -5983,13 +5978,13 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.LBITSHIFT)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLeftBitshift, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLeftBitshift, 1), location, false)
 	case token.LTRIPLE_BITSHIFT:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
 			c.emit(line, bytecode.LOGIC_LBITSHIFT)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLogicalLeftBitshift, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLogicalLeftBitshift, 1), location, false)
 	case token.RBITSHIFT:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.RBITSHIFT_INT)
@@ -5999,13 +5994,13 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.RBITSHIFT)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpRightBitshift, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpRightBitshift, 1), location, false)
 	case token.RTRIPLE_BITSHIFT:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
 			c.emit(line, bytecode.LOGIC_RBITSHIFT)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLogicalRightBitshift, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLogicalRightBitshift, 1), location, false)
 	case token.AND:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.BITWISE_AND_INT)
@@ -6015,13 +6010,13 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.BITWISE_AND)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAnd, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAnd, 1), location, false)
 	case token.AND_TILDE:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
 			c.emit(line, bytecode.BITWISE_AND_NOT)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAndNot, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAndNot, 1), location, false)
 	case token.OR:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.BITWISE_OR_INT)
@@ -6031,7 +6026,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.BITWISE_OR)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpOr, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpOr, 1), location, false)
 	case token.XOR:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.BITWISE_XOR_INT)
@@ -6041,7 +6036,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.BITWISE_XOR)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpXor, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpXor, 1), location, false)
 	case token.PERCENT:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.MODULO_INT)
@@ -6055,19 +6050,19 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.MODULO)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpModulo, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpModulo, 1), location, false)
 	case token.LAX_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
 			c.emit(line, bytecode.LAX_EQUAL)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), location, false)
 	case token.LAX_NOT_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
 			c.emit(line, bytecode.LAX_NOT_EQUAL)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), location, false)
 		c.emit(line, bytecode.NOT)
 	case token.EQUAL_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
@@ -6082,7 +6077,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.EQUAL)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), location, false)
 	case token.NOT_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.NOT_EQUAL_INT)
@@ -6096,7 +6091,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.NOT_EQUAL)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), location, false)
 		c.emit(line, bytecode.NOT)
 	case token.STRICT_EQUAL:
 		c.emit(line, bytecode.STRICT_EQUAL)
@@ -6115,7 +6110,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.GREATER)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpGreaterThan, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpGreaterThan, 1), location, false)
 	case token.GREATER_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.GREATER_EQUAL_I)
@@ -6129,7 +6124,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.GREATER_EQUAL)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpGreaterThanEqual, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpGreaterThanEqual, 1), location, false)
 	case token.LESS:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.LESS_INT)
@@ -6143,7 +6138,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.LESS)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLessThan, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLessThan, 1), location, false)
 	case token.LESS_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 			c.emit(line, bytecode.LESS_EQUAL_INT)
@@ -6157,7 +6152,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 			c.emit(line, bytecode.LESS_EQUAL)
 			return
 		}
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLessThanEqual, 1), span, false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLessThanEqual, 1), location, false)
 	case token.SPACESHIP_OP:
 		c.emit(line, bytecode.COMPARE)
 	case token.INSTANCE_OF_OP:
@@ -6171,7 +6166,7 @@ func (c *Compiler) emitBinaryOperation(typ types.Type, opToken *token.Token, spa
 		c.emit(line, bytecode.IS_A)
 		c.emit(line, bytecode.NOT)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", opToken.String()), c.newLocation(span))
+		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", opToken.String()), location)
 	}
 }
 
@@ -6185,7 +6180,7 @@ func (c *Compiler) resolveAndEmit(node ast.ExpressionNode) bool {
 		return false
 	}
 
-	c.emitValue(result, node.Span())
+	c.emitValue(result, node.Location())
 	return true
 }
 
@@ -6195,85 +6190,85 @@ func (c *Compiler) resolveAndEmitList(node *ast.ArrayListLiteralNode) bool {
 		return false
 	}
 
-	c.emitValue(result, node.Span())
+	c.emitValue(result, node.Location())
 	return true
 }
 
-func (c *Compiler) emitValue(val value.Value, span *position.Span) {
+func (c *Compiler) emitValue(val value.Value, location *position.Location) {
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
 		case *value.ArrayList:
-			c.emitArrayList(v, span)
+			c.emitArrayList(v, location)
 		case *value.ArrayTuple:
-			c.emitArrayTuple(v, span)
+			c.emitArrayTuple(v, location)
 		case *value.HashSet:
-			c.emitHashSet(v, span)
+			c.emitHashSet(v, location)
 		case *value.HashMap:
-			c.emitHashMap(v, span)
+			c.emitHashMap(v, location)
 		case *value.HashRecord:
-			c.emitHashRecord(v, span)
+			c.emitHashRecord(v, location)
 		default:
-			c.emitLoadValue(val, span)
+			c.emitLoadValue(val, location)
 		}
 		return
 	}
 
 	switch val.ValueFlag() {
 	case value.TRUE_FLAG:
-		c.emit(span.StartPos.Line, bytecode.TRUE)
+		c.emit(location.StartPos.Line, bytecode.TRUE)
 	case value.FALSE_FLAG:
-		c.emit(span.StartPos.Line, bytecode.FALSE)
+		c.emit(location.StartPos.Line, bytecode.FALSE)
 	case value.NIL_FLAG:
-		c.emit(span.StartPos.Line, bytecode.NIL)
+		c.emit(location.StartPos.Line, bytecode.NIL)
 	case value.SMALL_INT_FLAG:
-		c.emitSmallInt(val.AsSmallInt(), span)
+		c.emitSmallInt(val.AsSmallInt(), location)
 	case value.INT64_FLAG:
-		emitSignedInt(c, val, val.AsInt64(), bytecode.LOAD_INT64_8, span)
+		emitSignedInt(c, val, val.AsInt64(), bytecode.LOAD_INT64_8, location)
 	case value.UINT64_FLAG:
-		emitUnsignedInt(c, val, val.AsUInt64(), bytecode.LOAD_UINT64_8, span)
+		emitUnsignedInt(c, val, val.AsUInt64(), bytecode.LOAD_UINT64_8, location)
 	case value.INT32_FLAG:
-		emitSignedInt(c, val, val.AsInt32(), bytecode.LOAD_INT32_8, span)
+		emitSignedInt(c, val, val.AsInt32(), bytecode.LOAD_INT32_8, location)
 	case value.UINT32_FLAG:
-		emitUnsignedInt(c, val, val.AsUInt32(), bytecode.LOAD_UINT32_8, span)
+		emitUnsignedInt(c, val, val.AsUInt32(), bytecode.LOAD_UINT32_8, location)
 	case value.INT16_FLAG:
-		emitSignedInt(c, val, val.AsInt16(), bytecode.LOAD_INT16_8, span)
+		emitSignedInt(c, val, val.AsInt16(), bytecode.LOAD_INT16_8, location)
 	case value.UINT16_FLAG:
-		emitUnsignedInt(c, val, val.AsUInt16(), bytecode.LOAD_UINT16_8, span)
+		emitUnsignedInt(c, val, val.AsUInt16(), bytecode.LOAD_UINT16_8, location)
 	case value.INT8_FLAG:
-		emitSignedInt(c, val, val.AsInt8(), bytecode.LOAD_INT8, span)
+		emitSignedInt(c, val, val.AsInt8(), bytecode.LOAD_INT8, location)
 	case value.UINT8_FLAG:
-		emitUnsignedInt(c, val, val.AsUInt8(), bytecode.LOAD_UINT8, span)
+		emitUnsignedInt(c, val, val.AsUInt8(), bytecode.LOAD_UINT8, location)
 	case value.CHAR_FLAG:
-		c.emitChar(val.AsChar(), span)
+		c.emitChar(val.AsChar(), location)
 	case value.FLOAT_FLAG:
-		c.emitFloat(val.AsFloat(), span)
+		c.emitFloat(val.AsFloat(), location)
 	default:
-		c.emitLoadValue(val, span)
+		c.emitLoadValue(val, location)
 	}
 }
 
-func emitSignedInt[I value.SingedInt](c *Compiler, iVal value.Value, i I, opcodeLoad bytecode.OpCode, span *position.Span) {
-	line := span.StartPos.Line
+func emitSignedInt[I value.SingedInt](c *Compiler, iVal value.Value, i I, opcodeLoad bytecode.OpCode, location *position.Location) {
+	line := location.StartPos.Line
 	if i >= math.MinInt8 && i <= math.MaxInt8 {
 		c.emit(line, opcodeLoad, byte(i))
 		return
 	}
 
-	c.emitLoadValue(iVal, span)
+	c.emitLoadValue(iVal, location)
 }
 
-func emitUnsignedInt[I value.UnsignedInt](c *Compiler, iVal value.Value, i I, opcodeLoad bytecode.OpCode, span *position.Span) {
-	line := span.StartPos.Line
+func emitUnsignedInt[I value.UnsignedInt](c *Compiler, iVal value.Value, i I, opcodeLoad bytecode.OpCode, location *position.Location) {
+	line := location.StartPos.Line
 	if i <= math.MaxUint8 {
 		c.emit(line, opcodeLoad, byte(i))
 		return
 	}
 
-	c.emitLoadValue(iVal, span)
+	c.emitLoadValue(iVal, location)
 }
 
-func (c *Compiler) emitSmallInt(i value.SmallInt, span *position.Span) {
-	line := span.StartPos.Line
+func (c *Compiler) emitSmallInt(i value.SmallInt, location *position.Location) {
+	line := location.StartPos.Line
 	switch i {
 	case -1:
 		c.emit(line, bytecode.INT_M1)
@@ -6309,22 +6304,22 @@ func (c *Compiler) emitSmallInt(i value.SmallInt, span *position.Span) {
 		return
 	}
 
-	c.emitLoadValue(i.ToValue(), span)
+	c.emitLoadValue(i.ToValue(), location)
 }
 
-func (c *Compiler) emitChar(char value.Char, span *position.Span) {
-	line := span.StartPos.Line
+func (c *Compiler) emitChar(char value.Char, location *position.Location) {
+	line := location.StartPos.Line
 
 	if char >= math.MinInt8 && char <= math.MaxInt8 {
 		c.emit(line, bytecode.LOAD_CHAR_8, byte(char))
 		return
 	}
 
-	c.emitLoadValue(char.ToValue(), span)
+	c.emitLoadValue(char.ToValue(), location)
 }
 
-func (c *Compiler) emitFloat(f value.Float, span *position.Span) {
-	line := span.StartPos.Line
+func (c *Compiler) emitFloat(f value.Float, location *position.Location) {
+	line := location.StartPos.Line
 	switch f {
 	case 0:
 		c.emit(line, bytecode.FLOAT_0)
@@ -6337,10 +6332,10 @@ func (c *Compiler) emitFloat(f value.Float, span *position.Span) {
 		return
 	}
 
-	c.emitLoadValue(f.ToValue(), span)
+	c.emitLoadValue(f.ToValue(), location)
 }
 
-func (c *Compiler) emitHashSet(set *value.HashSet, span *position.Span) {
+func (c *Compiler) emitHashSet(set *value.HashSet, location *position.Location) {
 	baseSet := value.NewHashSet(set.Length())
 	var mutableElements []value.Value
 
@@ -6360,22 +6355,22 @@ listLoop:
 	}
 
 	if len(mutableElements) == 0 {
-		c.emitLoadValue(value.Ref(baseSet), span)
-		c.emit(span.EndPos.Line, bytecode.COPY)
+		c.emitLoadValue(value.Ref(baseSet), location)
+		c.emit(location.EndPos.Line, bytecode.COPY)
 		return
 	}
 
 	// capacity
-	c.emit(span.StartPos.Line, bytecode.UNDEFINED)
-	c.emitLoadValue(value.Ref(baseSet), span)
+	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
+	c.emitLoadValue(value.Ref(baseSet), location)
 
 	for _, element := range mutableElements {
-		c.emitValue(element, span)
+		c.emitValue(element, location)
 	}
 
-	c.emitNewHashMap(len(mutableElements), span)
+	c.emitNewHashMap(len(mutableElements), location)
 }
-func (c *Compiler) emitHashMap(hmap *value.HashMap, span *position.Span) {
+func (c *Compiler) emitHashMap(hmap *value.HashMap, location *position.Location) {
 	baseMap := value.NewHashMap(hmap.Length())
 	var mutablePairs []value.Pair
 
@@ -6395,24 +6390,24 @@ listLoop:
 	}
 
 	if len(mutablePairs) == 0 {
-		c.emitLoadValue(value.Ref(baseMap), span)
-		c.emit(span.EndPos.Line, bytecode.COPY)
+		c.emitLoadValue(value.Ref(baseMap), location)
+		c.emit(location.EndPos.Line, bytecode.COPY)
 		return
 	}
 
 	// capacity
-	c.emit(span.StartPos.Line, bytecode.UNDEFINED)
-	c.emitLoadValue(value.Ref(baseMap), span)
+	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
+	c.emitLoadValue(value.Ref(baseMap), location)
 
 	for _, element := range mutablePairs {
-		c.emitValue(element.Key, span)
-		c.emitValue(element.Value, span)
+		c.emitValue(element.Key, location)
+		c.emitValue(element.Value, location)
 	}
 
-	c.emitNewHashMap(len(mutablePairs), span)
+	c.emitNewHashMap(len(mutablePairs), location)
 }
 
-func (c *Compiler) emitHashRecord(hrec *value.HashRecord, span *position.Span) {
+func (c *Compiler) emitHashRecord(hrec *value.HashRecord, location *position.Location) {
 	baseRecord := value.NewHashRecord(hrec.Length())
 	var mutablePairs []value.Pair
 
@@ -6431,21 +6426,21 @@ listLoop:
 	}
 
 	if len(mutablePairs) == 0 {
-		c.emitLoadValue(value.Ref(baseRecord), span)
+		c.emitLoadValue(value.Ref(baseRecord), location)
 		return
 	}
 
-	c.emitLoadValue(value.Ref(baseRecord), span)
+	c.emitLoadValue(value.Ref(baseRecord), location)
 
 	for _, element := range mutablePairs {
-		c.emitValue(element.Key, span)
-		c.emitValue(element.Value, span)
+		c.emitValue(element.Key, location)
+		c.emitValue(element.Value, location)
 	}
 
-	c.emitNewHashRecord(len(mutablePairs), span)
+	c.emitNewHashRecord(len(mutablePairs), location)
 }
 
-func (c *Compiler) emitArrayList(list *value.ArrayList, span *position.Span) {
+func (c *Compiler) emitArrayList(list *value.ArrayList, location *position.Location) {
 	firstMutableElementIndex := -1
 	l := *list
 
@@ -6458,26 +6453,26 @@ listLoop:
 	}
 
 	if firstMutableElementIndex == -1 {
-		c.emitLoadValue(value.Ref(list), span)
-		c.emit(span.EndPos.Line, bytecode.COPY)
+		c.emitLoadValue(value.Ref(list), location)
+		c.emit(location.EndPos.Line, bytecode.COPY)
 		return
 	}
 
 	// capacity
-	c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 
 	baseList := l[:firstMutableElementIndex]
-	c.emitLoadValue(value.Ref(&baseList), span)
+	c.emitLoadValue(value.Ref(&baseList), location)
 
 	rest := l[firstMutableElementIndex:]
 	for _, element := range rest {
-		c.emitValue(element, span)
+		c.emitValue(element, location)
 	}
 
-	c.emitNewArrayList(len(rest), span)
+	c.emitNewArrayList(len(rest), location)
 }
 
-func (c *Compiler) emitArrayTuple(tuple *value.ArrayTuple, span *position.Span) {
+func (c *Compiler) emitArrayTuple(tuple *value.ArrayTuple, location *position.Location) {
 	firstMutableElementIndex := -1
 	t := *tuple
 
@@ -6490,19 +6485,19 @@ listLoop:
 	}
 
 	if firstMutableElementIndex == -1 {
-		c.emitLoadValue(value.Ref(tuple), span)
+		c.emitLoadValue(value.Ref(tuple), location)
 		return
 	}
 
 	baseTuple := t[:firstMutableElementIndex]
-	c.emitLoadValue(value.Ref(&baseTuple), span)
+	c.emitLoadValue(value.Ref(&baseTuple), location)
 
 	rest := t[firstMutableElementIndex:]
 	for _, element := range rest {
-		c.emitValue(element, span)
+		c.emitValue(element, location)
 	}
 
-	c.emitNewArrayList(len(rest), span)
+	c.emitNewArrayList(len(rest), location)
 }
 
 func (c *Compiler) compileUnaryExpressionNode(node *ast.UnaryExpressionNode) {
@@ -6515,42 +6510,42 @@ func (c *Compiler) compileUnaryExpressionNode(node *ast.UnaryExpressionNode) {
 	switch node.Op.Type {
 	case token.PLUS:
 		if c.checker.IsSubtype(rightType, c.checker.Std(symbol.S_BuiltinNumeric)) {
-			c.emit(node.Span().StartPos.Line, bytecode.UNARY_PLUS)
+			c.emit(node.Location().StartPos.Line, bytecode.UNARY_PLUS)
 			return
 		}
 
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpUnaryPlus, 0), node.Span(), false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpUnaryPlus, 0), node.Location(), false)
 	case token.MINUS:
 		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
-			c.emit(node.Span().StartPos.Line, bytecode.NEGATE_INT)
+			c.emit(node.Location().StartPos.Line, bytecode.NEGATE_INT)
 			return
 		}
 		if c.checker.IsSubtype(rightType, c.checker.StdFloat()) {
-			c.emit(node.Span().StartPos.Line, bytecode.NEGATE_FLOAT)
+			c.emit(node.Location().StartPos.Line, bytecode.NEGATE_FLOAT)
 			return
 		}
 		if c.checker.IsSubtype(rightType, c.checker.Std(symbol.S_BuiltinNumeric)) {
-			c.emit(node.Span().StartPos.Line, bytecode.NEGATE)
+			c.emit(node.Location().StartPos.Line, bytecode.NEGATE)
 			return
 		}
 
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpNegate, 0), node.Span(), false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpNegate, 0), node.Location(), false)
 	case token.BANG:
 		// logical not
-		c.emit(node.Span().StartPos.Line, bytecode.NOT)
+		c.emit(node.Location().StartPos.Line, bytecode.NOT)
 	case token.TILDE:
 		// binary negation
 		if c.checker.IsSubtype(rightType, c.checker.Std(symbol.S_BuiltinNumeric)) {
-			c.emit(node.Span().StartPos.Line, bytecode.BITWISE_NOT)
+			c.emit(node.Location().StartPos.Line, bytecode.BITWISE_NOT)
 			return
 		}
 
-		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpBitwiseNot, 0), node.Span(), false)
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpBitwiseNot, 0), node.Location(), false)
 	case token.AND:
 		// get singleton class
-		c.emit(node.Span().StartPos.Line, bytecode.GET_SINGLETON)
+		c.emit(node.Location().StartPos.Line, bytecode.GET_SINGLETON)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.AddFailure(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), node.Location())
 	}
 }
 
@@ -6564,18 +6559,18 @@ func (c *Compiler) emitJump(line int, op bytecode.OpCode) int {
 // Emit an instruction that yields a value.
 // Provide `nil` as the value when the yielded value is already
 // on the stack.
-func (c *Compiler) emitYield(span *position.Span, value ast.Node) {
+func (c *Compiler) emitYield(location *position.Location, value ast.Node) {
 	if value != nil {
 		c.compileNodeWithResult(value)
 	}
 
-	c.emit(span.EndPos.Line, bytecode.YIELD)
+	c.emit(location.EndPos.Line, bytecode.YIELD)
 }
 
 // Emit an instruction that returns a value.
 // Provide `nil` as the value when the returned value is already
 // on the stack.
-func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
+func (c *Compiler) emitReturn(location *position.Location, value ast.Node) {
 	switch c.lastOpCode {
 	case bytecode.RETURN, bytecode.RETURN_FIRST_ARG,
 		bytecode.RETURN_SELF, bytecode.RETURN_FINALLY:
@@ -6583,8 +6578,8 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 	}
 
 	if c.isGenerator {
-		c.emitYield(span, value)
-		c.emit(span.EndPos.Line, bytecode.STOP_ITERATION)
+		c.emitYield(location, value)
+		c.emit(location.EndPos.Line, bytecode.STOP_ITERATION)
 		return
 	}
 
@@ -6593,75 +6588,75 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 		if value != nil {
 			c.compileNodeWithResult(value)
 		}
-		c.emit(span.EndPos.Line, bytecode.POP)
+		c.emit(location.EndPos.Line, bytecode.POP)
 		if c.isNestedInFinally() {
-			c.emit(span.EndPos.Line, bytecode.GET_LOCAL8, 1)
-			c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
+			c.emit(location.EndPos.Line, bytecode.GET_LOCAL8, 1)
+			c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
 		} else {
-			c.emit(span.EndPos.Line, bytecode.RETURN_FIRST_ARG)
+			c.emit(location.EndPos.Line, bytecode.RETURN_FIRST_ARG)
 		}
 	case initMethodMode:
 		if value != nil {
 			c.compileNodeWithResult(value)
 		}
-		c.emit(span.EndPos.Line, bytecode.POP)
+		c.emit(location.EndPos.Line, bytecode.POP)
 		if c.isNestedInFinally() {
-			c.emit(span.EndPos.Line, bytecode.SELF)
-			c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
+			c.emit(location.EndPos.Line, bytecode.SELF)
+			c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
 		} else {
-			c.emit(span.EndPos.Line, bytecode.RETURN_SELF)
+			c.emit(location.EndPos.Line, bytecode.RETURN_SELF)
 		}
 	case namespaceMode:
 		if value != nil {
 			c.compileNodeWithResult(value)
 		}
 		if c.lastOpCode != bytecode.NIL {
-			c.emit(span.EndPos.Line, bytecode.POP)
-			c.emit(span.EndPos.Line, bytecode.NIL)
+			c.emit(location.EndPos.Line, bytecode.POP)
+			c.emit(location.EndPos.Line, bytecode.NIL)
 		}
 		if c.isNestedInFinally() {
-			c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
+			c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
 		} else {
-			c.emit(span.EndPos.Line, bytecode.RETURN)
+			c.emit(location.EndPos.Line, bytecode.RETURN)
 		}
 	default:
 		if value != nil {
 			c.compileNodeWithResult(value)
 		}
 		if c.isNestedInFinally() {
-			c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
+			c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
 		} else {
-			c.emit(span.EndPos.Line, bytecode.RETURN)
+			c.emit(location.EndPos.Line, bytecode.RETURN)
 		}
 	}
 }
 
-func (c *Compiler) emitFinalReturn(span *position.Span, value ast.Node) {
+func (c *Compiler) emitFinalReturn(location *position.Location, value ast.Node) {
 	if !c.isGenerator {
-		c.emitReturn(span, value)
+		c.emitReturn(location, value)
 		return
 	}
 
 	if c.lastOpCode == bytecode.STOP_ITERATION {
-		c.emit(span.StartPos.Line, bytecode.LOOP, 0, 4) // 3 bytes for LOOP + 1 byte for STOP_ITERATION
+		c.emit(location.StartPos.Line, bytecode.LOOP, 0, 4) // 3 bytes for LOOP + 1 byte for STOP_ITERATION
 		return
 	}
 
-	c.emitYield(span, value)
+	c.emitYield(location, value)
 	start := c.nextInstructionOffset()
-	c.emit(span.EndPos.Line, bytecode.STOP_ITERATION)
-	c.emitLoop(span, start)
+	c.emit(location.EndPos.Line, bytecode.STOP_ITERATION)
+	c.emitLoop(location, start)
 }
 
 // Emit an instruction that jumps back to the given Bytecode offset.
-func (c *Compiler) emitLoop(span *position.Span, startOffset int) {
-	c.emit(span.EndPos.Line, bytecode.LOOP)
+func (c *Compiler) emitLoop(location *position.Location, startOffset int) {
+	c.emit(location.EndPos.Line, bytecode.LOOP)
 
 	offset := c.nextInstructionOffset() - startOffset + 2
 	if offset > math.MaxUint16 {
 		c.Errors.AddFailure(
 			fmt.Sprintf("too many bytes to jump backward: %d", math.MaxUint16),
-			c.newLocation(span),
+			location,
 		)
 	}
 
@@ -6669,11 +6664,11 @@ func (c *Compiler) emitLoop(span *position.Span, startOffset int) {
 }
 
 // Overwrite the placeholder operand of a jump instruction
-func (c *Compiler) patchJumpWithTarget(target int, offset int, span *position.Span) {
+func (c *Compiler) patchJumpWithTarget(target int, offset int, location *position.Location) {
 	if target > math.MaxUint16 {
 		c.Errors.AddFailure(
 			fmt.Sprintf("too many bytes to jump over: %d", target),
-			c.newLocation(span),
+			location,
 		)
 		return
 	}
@@ -6683,8 +6678,8 @@ func (c *Compiler) patchJumpWithTarget(target int, offset int, span *position.Sp
 }
 
 // Overwrite the placeholder operand of a jump instruction
-func (c *Compiler) patchJump(offset int, span *position.Span) {
-	c.patchJumpWithTarget(c.nextInstructionOffset()-offset-2, offset, span)
+func (c *Compiler) patchJump(offset int, location *position.Location) {
+	c.patchJumpWithTarget(c.nextInstructionOffset()-offset-2, offset, location)
 }
 
 // Emit an instruction that sets a local variable or value
@@ -6837,19 +6832,19 @@ func (c *Compiler) emitCloseUpvalue(line int, index uint16) {
 }
 
 // Emit an instruction that loads a value from the pool
-func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, opCode16 bytecode.OpCode) int {
+func (c *Compiler) emitAddValue(val value.Value, location *position.Location, opCode8, opCode16 bytecode.OpCode) int {
 	id, size := c.Bytecode.AddValue(val)
 	switch size {
 	case bytecode.UINT8_SIZE:
-		c.Bytecode.AddInstruction(span.StartPos.Line, opCode8, byte(id))
+		c.Bytecode.AddInstruction(location.StartPos.Line, opCode8, byte(id))
 	case bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.Bytecode.AddInstruction(span.StartPos.Line, opCode16, bytes...)
+		c.Bytecode.AddInstruction(location.StartPos.Line, opCode16, bytes...)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
-			c.newLocation(span),
+			location,
 		)
 		return -1
 	}
@@ -6858,45 +6853,45 @@ func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, o
 }
 
 // Emit an instruction that retrieves a constant
-func (c *Compiler) emitGetConst(val value.Symbol, span *position.Span) int {
+func (c *Compiler) emitGetConst(val value.Symbol, location *position.Location) int {
 	return c.emitAddValue(
 		val.ToValue(),
-		span,
+		location,
 		bytecode.GET_CONST8,
 		bytecode.GET_CONST16,
 	)
 }
 
 // Add a value to the value pool and emit appropriate bytecode.
-func (c *Compiler) emitLoadValue(val value.Value, span *position.Span) int {
+func (c *Compiler) emitLoadValue(val value.Value, location *position.Location) int {
 	id, size := c.Bytecode.AddValue(val)
 
 	switch id {
 	case 0:
-		c.emit(span.StartPos.Line, bytecode.LOAD_VALUE_0)
+		c.emit(location.StartPos.Line, bytecode.LOAD_VALUE_0)
 		return id
 	case 1:
-		c.emit(span.StartPos.Line, bytecode.LOAD_VALUE_1)
+		c.emit(location.StartPos.Line, bytecode.LOAD_VALUE_1)
 		return id
 	case 2:
-		c.emit(span.StartPos.Line, bytecode.LOAD_VALUE_2)
+		c.emit(location.StartPos.Line, bytecode.LOAD_VALUE_2)
 		return id
 	case 3:
-		c.emit(span.StartPos.Line, bytecode.LOAD_VALUE_3)
+		c.emit(location.StartPos.Line, bytecode.LOAD_VALUE_3)
 		return id
 	}
 
 	switch size {
 	case bytecode.UINT8_SIZE:
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.LOAD_VALUE8, byte(id))
+		c.Bytecode.AddInstruction(location.StartPos.Line, bytecode.LOAD_VALUE8, byte(id))
 	case bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.LOAD_VALUE16, bytes...)
+		c.Bytecode.AddInstruction(location.StartPos.Line, bytecode.LOAD_VALUE16, bytes...)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
-			c.newLocation(span),
+			location,
 		)
 		return -1
 	}
@@ -6905,65 +6900,65 @@ func (c *Compiler) emitLoadValue(val value.Value, span *position.Span) int {
 }
 
 // Emit an instruction that instantiates an object
-func (c *Compiler) emitInstantiate(args int, span *position.Span) {
+func (c *Compiler) emitInstantiate(args int, location *position.Location) {
 	if args <= math.MaxUint8 {
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.INSTANTIATE8, byte(args))
+		c.Bytecode.AddInstruction(location.StartPos.Line, bytecode.INSTANTIATE8, byte(args))
 		return
 	}
 
 	if args <= math.MaxUint16 {
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(args))
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.INSTANTIATE8, bytes...)
+		c.Bytecode.AddInstruction(location.StartPos.Line, bytecode.INSTANTIATE8, bytes...)
 		return
 	}
 
 	c.Errors.AddFailure(
 		fmt.Sprintf("constructor argument limit reached: %d", math.MaxUint16),
-		c.newLocation(span),
+		location,
 	)
 }
 
 // Emit an instruction that sets the value of an instance variable
-func (c *Compiler) emitSetInstanceVariable(name value.Symbol, span *position.Span, valueIsIgnored bool) int {
+func (c *Compiler) emitSetInstanceVariable(name value.Symbol, location *position.Location, valueIsIgnored bool) int {
 	if valueIsIgnored {
-		return c.emitSetInstanceVariablePop(name, span)
+		return c.emitSetInstanceVariablePop(name, location)
 	}
-	return c.emitSetInstanceVariableNoPop(name, span)
+	return c.emitSetInstanceVariableNoPop(name, location)
 }
 
 // Emit an instruction that sets the value of an instance variable and pops it
-func (c *Compiler) emitSetInstanceVariablePop(name value.Symbol, span *position.Span) int {
+func (c *Compiler) emitSetInstanceVariablePop(name value.Symbol, location *position.Location) int {
 	return c.emitAddValue(
 		name.ToValue(),
-		span,
+		location,
 		bytecode.SET_IVAR8,
 		bytecode.SET_IVAR16,
 	)
 }
 
 // Emit an instruction that sets the value of an instance variable without popping
-func (c *Compiler) emitSetInstanceVariableNoPop(name value.Symbol, span *position.Span) int {
-	c.emit(span.StartPos.Line, bytecode.DUP)
-	return c.emitSetInstanceVariablePop(name, span)
+func (c *Compiler) emitSetInstanceVariableNoPop(name value.Symbol, location *position.Location) int {
+	c.emit(location.StartPos.Line, bytecode.DUP)
+	return c.emitSetInstanceVariablePop(name, location)
 }
 
 // Emit an instruction that reads the value of an instance variable.
-func (c *Compiler) emitGetInstanceVariable(name value.Symbol, span *position.Span) int {
+func (c *Compiler) emitGetInstanceVariable(name value.Symbol, location *position.Location) int {
 	return c.emitAddValue(
 		name.ToValue(),
-		span,
+		location,
 		bytecode.GET_IVAR8,
 		bytecode.GET_IVAR16,
 	)
 }
 
 // Emit an instruction that calls a method on self
-func (c *Compiler) emitCallSelf(callInfo *value.CallSiteInfo, span *position.Span, tailCall bool) int {
+func (c *Compiler) emitCallSelf(callInfo *value.CallSiteInfo, location *position.Location, tailCall bool) int {
 	if tailCall {
 		return c.emitAddValue(
 			value.Ref(callInfo),
-			span,
+			location,
 			bytecode.CALL_SELF_TCO8,
 			bytecode.CALL_SELF_TCO16,
 		)
@@ -6971,28 +6966,28 @@ func (c *Compiler) emitCallSelf(callInfo *value.CallSiteInfo, span *position.Spa
 
 	return c.emitAddValue(
 		value.Ref(callInfo),
-		span,
+		location,
 		bytecode.CALL_SELF8,
 		bytecode.CALL_SELF16,
 	)
 }
 
 // Emit an instruction that calls the `call` method
-func (c *Compiler) emitCall(callInfo *value.CallSiteInfo, span *position.Span) int {
+func (c *Compiler) emitCall(callInfo *value.CallSiteInfo, location *position.Location) int {
 	return c.emitAddValue(
 		value.Ref(callInfo),
-		span,
+		location,
 		bytecode.CALL8,
 		bytecode.CALL16,
 	)
 }
 
 // Emit an instruction that calls a method
-func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, span *position.Span, tailCall bool) int {
+func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, location *position.Location, tailCall bool) int {
 	if tailCall {
 		return c.emitAddValue(
 			value.Ref(callInfo),
-			span,
+			location,
 			bytecode.CALL_METHOD_TCO8,
 			bytecode.CALL_METHOD_TCO16,
 		)
@@ -7000,17 +6995,17 @@ func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, span *position.S
 
 	return c.emitAddValue(
 		value.Ref(callInfo),
-		span,
+		location,
 		bytecode.CALL_METHOD8,
 		bytecode.CALL_METHOD16,
 	)
 }
 
 // Emit an instruction that calls the `next` method
-func (c *Compiler) emitCallNext(callInfo *value.CallSiteInfo, span *position.Span) int {
+func (c *Compiler) emitCallNext(callInfo *value.CallSiteInfo, location *position.Location) int {
 	return c.emitAddValue(
 		value.Ref(callInfo),
-		span,
+		location,
 		bytecode.NEXT8,
 		bytecode.NEXT16,
 	)
@@ -7092,33 +7087,33 @@ func (c *Compiler) emitLeaveScope(line, maxLocalIndex, varsToPop int) {
 }
 
 // Register a local variable.
-func (c *Compiler) defineLocal(name string, span *position.Span) *local {
+func (c *Compiler) defineLocal(name string, location *position.Location) *local {
 	varScope := c.scopes.last()
 	_, ok := varScope.localTable[name]
 	if ok {
 		c.Errors.AddFailure(
 			fmt.Sprintf("a variable with this name has already been declared in this scope `%s`", name),
-			c.newLocation(span),
+			location,
 		)
 		return nil
 	}
-	return c.defineVariableInScope(varScope, name, span)
+	return c.defineVariableInScope(varScope, name, location)
 }
 
 // Register a local variable, reusing the variable with the same name that has already been defined in this scope.
-func (c *Compiler) defineLocalOverrideCurrentScope(name string, span *position.Span) *local {
+func (c *Compiler) defineLocalOverrideCurrentScope(name string, location *position.Location) *local {
 	varScope := c.scopes.last()
 	if currentVar, ok := varScope.localTable[name]; ok {
 		return currentVar
 	}
-	return c.defineVariableInScope(varScope, name, span)
+	return c.defineVariableInScope(varScope, name, location)
 }
 
-func (c *Compiler) defineVariableInScope(scope *scope, name string, span *position.Span) *local {
+func (c *Compiler) defineVariableInScope(scope *scope, name string, location *position.Location) *local {
 	if c.lastLocalIndex == math.MaxUint16 {
 		c.Errors.AddFailure(
 			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxUint16, name),
-			c.newLocation(span),
+			location,
 		)
 		return nil
 	}

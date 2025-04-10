@@ -47,13 +47,13 @@ func (c *Checker) checkThrowExpressionNode(node *ast.ThrowExpressionNode) *ast.T
 	}
 
 	if !node.Unchecked {
-		c.checkThrowType(thrownType, node.Span())
+		c.checkThrowType(thrownType, node.Location())
 	}
 
 	return node
 }
 
-func (c *Checker) checkCalledMethodThrowType(method *types.Method, span *position.Span) {
+func (c *Checker) checkCalledMethodThrowType(method *types.Method, location *position.Location) {
 	if types.IsNever(method.ThrowType) {
 		return
 	}
@@ -63,10 +63,10 @@ func (c *Checker) checkCalledMethodThrowType(method *types.Method, span *positio
 		return
 	}
 
-	c.checkThrowType(method.ThrowType, span)
+	c.checkThrowType(method.ThrowType, location)
 }
 
-func (c *Checker) checkThrowType(throwType types.Type, span *position.Span) {
+func (c *Checker) checkThrowType(throwType types.Type, location *position.Location) {
 	if types.IsNever(throwType) || types.IsUntyped(throwType) {
 		return
 	}
@@ -91,7 +91,7 @@ func (c *Checker) checkThrowType(throwType types.Type, span *position.Span) {
 				types.InspectWithColor(throwType),
 				lexer.Colorize(inspectThrow(expectedThrowType)),
 			),
-			span,
+			location,
 		)
 	default:
 		c.addFailure(
@@ -99,7 +99,7 @@ func (c *Checker) checkThrowType(throwType types.Type, span *position.Span) {
 				"thrown value of type `%s` must be caught",
 				types.InspectWithColor(throwType),
 			),
-			span,
+			location,
 		)
 	}
 }

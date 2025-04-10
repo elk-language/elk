@@ -27,7 +27,7 @@ func initBinHashSetLiteralNode() {
 
 			var argLoc *position.Location
 			if args[3].IsUndefined() {
-				argLoc = position.DefaultLocation
+				argLoc = position.ZeroLocation
 			} else {
 				argLoc = (*position.Location)(args[3].Pointer())
 			}

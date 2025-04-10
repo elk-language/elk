@@ -51,8 +51,8 @@ func (c *Checker) IsTheSameType(a, b types.Type) bool {
 
 // Check whether the two given types represent the same type.
 // Return true if they do, otherwise false.
-func (c *Checker) isTheSameType(a, b types.Type, errSpan *position.Span) bool {
-	return c.isSubtype(a, b, errSpan) && c.isSubtype(b, a, errSpan)
+func (c *Checker) isTheSameType(a, b types.Type, errLoc *position.Location) bool {
+	return c.isSubtype(a, b, errLoc) && c.isSubtype(b, a, errLoc)
 }
 
 func (c *Checker) toInnerNamespace(a types.Namespace) types.Namespace {
@@ -428,7 +428,7 @@ func (c *Checker) IsSubtype(a, b types.Type) bool {
 	return c.isSubtype(a, b, nil)
 }
 
-func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
+func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 	if a == nil && b != nil || a != nil && b == nil {
 		return false
 	}
@@ -449,7 +449,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	}
 	switch narrowedB := b.(type) {
 	case *types.NamedType:
-		return c.isSubtype(a, narrowedB.Type, errSpan)
+		return c.isSubtype(a, narrowedB.Type, errLoc)
 	case types.Any, types.Void, types.Untyped:
 		return true
 	case types.Nil:
@@ -470,25 +470,25 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 
 	switch a := a.(type) {
 	case *types.NamedType:
-		return c.isSubtype(a.Type, b, errSpan)
+		return c.isSubtype(a.Type, b, errLoc)
 	case *types.Union:
 		for _, aElement := range a.Elements {
-			if !c.isSubtype(aElement, b, errSpan) {
+			if !c.isSubtype(aElement, b, errLoc) {
 				return false
 			}
 		}
 		return true
 	case *types.Nilable:
-		return c.isSubtype(a.Type, b, errSpan) && c.isSubtype(types.Nil{}, b, errSpan)
+		return c.isSubtype(a.Type, b, errLoc) && c.isSubtype(types.Nil{}, b, errLoc)
 	case *types.Not:
 		if bNot, ok := b.(*types.Not); ok {
 			return c.isSubtype(bNot.Type, a.Type, nil)
 		}
 		return false
 	case types.Self:
-		return c.isSubtype(c.selfType, b, errSpan)
+		return c.isSubtype(c.selfType, b, errLoc)
 	case *types.TypeParameter:
-		result, end := c.typeParameterIsSubtype(a, b, errSpan)
+		result, end := c.typeParameterIsSubtype(a, b, errLoc)
 		if end {
 			return result
 		}
@@ -497,7 +497,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	if bIntersection, ok := b.(*types.Intersection); ok {
 		subtype := true
 		for _, bElement := range bIntersection.Elements {
-			if !c.isSubtype(a, bElement, errSpan) {
+			if !c.isSubtype(a, bElement, errLoc) {
 				subtype = false
 			}
 		}
@@ -517,7 +517,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	case *types.Not:
 		return !c.TypesIntersect(a, b.Type)
 	case *types.TypeParameter:
-		result, end := c.isSubtypeOfTypeParameter(a, b, errSpan)
+		result, end := c.isSubtypeOfTypeParameter(a, b, errLoc)
 		if end {
 			return result
 		}
@@ -533,7 +533,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	}
 
 	aNonLiteral := c.ToNonLiteral(a, true)
-	if a != aNonLiteral && c.isSubtype(aNonLiteral, b, errSpan) {
+	if a != aNonLiteral && c.isSubtype(aNonLiteral, b, errLoc) {
 		return true
 	}
 
@@ -550,44 +550,44 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	case types.False:
 		return types.IsFalse(b) || b == c.StdFalse()
 	case *types.SingletonClass:
-		return c.singletonClassIsSubtype(a, b, errSpan)
+		return c.singletonClassIsSubtype(a, b, errLoc)
 	case *types.Class:
-		return c.classIsSubtype(a, b, errSpan)
+		return c.classIsSubtype(a, b, errLoc)
 	case *types.Mixin:
-		return c.mixinIsSubtype(a, b, errSpan)
+		return c.mixinIsSubtype(a, b, errLoc)
 	case *types.MixinProxy:
-		return c.mixinIsSubtype(a.Mixin, b, errSpan)
+		return c.mixinIsSubtype(a.Mixin, b, errLoc)
 	case *types.Module:
-		return c.moduleIsSubtype(a, b, errSpan)
+		return c.moduleIsSubtype(a, b, errLoc)
 	case *types.Interface:
-		return c.interfaceIsSubtype(a, b, errSpan)
+		return c.interfaceIsSubtype(a, b, errLoc)
 	case *types.InterfaceProxy:
-		return c.interfaceIsSubtype(a.Interface, b, errSpan)
+		return c.interfaceIsSubtype(a.Interface, b, errLoc)
 	case *types.Closure:
-		return c.closureIsSubtype(a, b, errSpan)
+		return c.closureIsSubtype(a, b, errLoc)
 	case *types.InstanceOf:
 		switch narrowB := b.(type) {
 		case *types.InstanceOf:
-			return c.isSubtype(a.Type, narrowB.Type, errSpan)
+			return c.isSubtype(a.Type, narrowB.Type, errLoc)
 		case *types.Class:
-			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
+			return c.isSubtype(a.Type, narrowB.Singleton(), errLoc)
 		case *types.Mixin:
-			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
+			return c.isSubtype(a.Type, narrowB.Singleton(), errLoc)
 		case *types.MixinProxy:
-			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
+			return c.isSubtype(a.Type, narrowB.Singleton(), errLoc)
 		case *types.Interface:
-			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
+			return c.isSubtype(a.Type, narrowB.Singleton(), errLoc)
 		case *types.InterfaceProxy:
-			return c.isSubtype(a.Type, narrowB.Singleton(), errSpan)
+			return c.isSubtype(a.Type, narrowB.Singleton(), errLoc)
 		default:
 			return false
 		}
 	case *types.SingletonOf:
 		switch narrowB := b.(type) {
 		case *types.SingletonOf:
-			return c.isSubtype(a.Type, narrowB.Type, errSpan)
+			return c.isSubtype(a.Type, narrowB.Type, errLoc)
 		case *types.SingletonClass:
-			return c.isSubtype(a.Type, narrowB.AttachedObject, errSpan)
+			return c.isSubtype(a.Type, narrowB.AttachedObject, errLoc)
 		default:
 			return false
 		}
@@ -600,11 +600,11 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	case *types.Generic:
 		switch narrowedB := b.(type) {
 		case *types.Generic:
-			return c.isSubtypeOfGeneric(a, narrowedB, errSpan)
+			return c.isSubtypeOfGeneric(a, narrowedB, errLoc)
 		case *types.Interface:
-			return c.isSubtypeOfInterface(a, narrowedB, errSpan)
+			return c.isSubtypeOfInterface(a, narrowedB, errLoc)
 		default:
-			return c.isSubtype(a.Namespace, b, errSpan)
+			return c.isSubtype(a.Namespace, b, errLoc)
 		}
 	case *types.Method:
 		b, ok := b.(*types.Method)
@@ -713,7 +713,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	}
 }
 
-func (c *Checker) isSubtypeOfTypeParameter(a types.Type, b *types.TypeParameter, errSpan *position.Span) (result bool, end bool) {
+func (c *Checker) isSubtypeOfTypeParameter(a types.Type, b *types.TypeParameter, errLoc *position.Location) (result bool, end bool) {
 	switch c.mode {
 	case methodCompatibilityInAlgebraicTypeMode:
 		if a, ok := a.(*types.TypeParameter); ok {
@@ -736,7 +736,7 @@ func (c *Checker) isSubtypeOfTypeParameter(a types.Type, b *types.TypeParameter,
 
 		return false, true
 	default:
-		if c.isSubtype(a, b.LowerBound, errSpan) {
+		if c.isSubtype(a, b.LowerBound, errLoc) {
 			return true, true
 		}
 	}
@@ -744,7 +744,7 @@ func (c *Checker) isSubtypeOfTypeParameter(a types.Type, b *types.TypeParameter,
 	return false, false
 }
 
-func (c *Checker) typeParameterIsSubtype(a *types.TypeParameter, b types.Type, errSpan *position.Span) (result bool, end bool) {
+func (c *Checker) typeParameterIsSubtype(a *types.TypeParameter, b types.Type, errLoc *position.Location) (result bool, end bool) {
 	switch c.mode {
 	case inferTypeArgumentMode:
 		b, ok := b.(*types.TypeParameter)
@@ -773,7 +773,7 @@ func (c *Checker) typeParameterIsSubtype(a *types.TypeParameter, b types.Type, e
 
 		return false, true
 	default:
-		if c.isSubtype(a.UpperBound, b, errSpan) {
+		if c.isSubtype(a.UpperBound, b, errLoc) {
 			return true, true
 		}
 	}
@@ -781,7 +781,7 @@ func (c *Checker) typeParameterIsSubtype(a *types.TypeParameter, b types.Type, e
 	return false, false
 }
 
-func (c *Checker) typeArgsAreSubtype(a, b *types.TypeArguments, errSpan *position.Span) bool {
+func (c *Checker) typeArgsAreSubtype(a, b *types.TypeArguments, errLoc *position.Location) bool {
 	for i := range b.ArgumentOrder {
 		argB := b.ArgumentMap[b.ArgumentOrder[i]]
 		argA := a.ArgumentMap[a.ArgumentOrder[i]]
@@ -795,19 +795,19 @@ func (c *Checker) typeArgsAreSubtype(a, b *types.TypeArguments, errSpan *positio
 
 		switch variance {
 		case types.INVARIANT:
-			if !c.isTheSameType(argA.Type, argB.Type, errSpan) {
+			if !c.isTheSameType(argA.Type, argB.Type, errLoc) {
 				return false
 			}
 		case types.COVARIANT:
-			if !c.isSubtype(argA.Type, argB.Type, errSpan) {
+			if !c.isSubtype(argA.Type, argB.Type, errLoc) {
 				return false
 			}
 		case types.CONTRAVARIANT:
-			if !c.isSubtype(argB.Type, argA.Type, errSpan) {
+			if !c.isSubtype(argB.Type, argA.Type, errLoc) {
 				return false
 			}
 		case types.BIVARIANT:
-			if !c.isSubtype(argB.Type, argA.Type, errSpan) && !c.isSubtype(argA.Type, argB.Type, errSpan) {
+			if !c.isSubtype(argB.Type, argA.Type, errLoc) && !c.isSubtype(argA.Type, argB.Type, errLoc) {
 				return false
 			}
 		}
@@ -816,64 +816,64 @@ func (c *Checker) typeArgsAreSubtype(a, b *types.TypeArguments, errSpan *positio
 	return true
 }
 
-func (c *Checker) singletonClassIsSubtype(a *types.SingletonClass, b types.Type, errSpan *position.Span) bool {
+func (c *Checker) singletonClassIsSubtype(a *types.SingletonClass, b types.Type, errLoc *position.Location) bool {
 	switch b := b.(type) {
 	case *types.SingletonClass:
-		return c.isSubtype(a.AttachedObject, b.AttachedObject, errSpan)
+		return c.isSubtype(a.AttachedObject, b.AttachedObject, errLoc)
 	case *types.SingletonOf:
-		return c.isSubtype(a.AttachedObject, b.Type, errSpan)
+		return c.isSubtype(a.AttachedObject, b.Type, errLoc)
 	case *types.Class:
 		return c.isSubtypeOfClass(a, b)
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
 	case *types.Generic:
-		return c.isSubtypeOfGeneric(a, b, errSpan)
+		return c.isSubtypeOfGeneric(a, b, errLoc)
 	case *types.Interface:
-		return c.isSubtypeOfInterface(a, b, errSpan)
+		return c.isSubtypeOfInterface(a, b, errLoc)
 	case *types.Closure:
-		return c.isSubtypeOfClosure(a, b, errSpan)
+		return c.isSubtypeOfClosure(a, b, errLoc)
 	default:
 		return false
 	}
 }
 
-func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errSpan *position.Span) bool {
+func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errLoc *position.Location) bool {
 	switch b := b.(type) {
 	case *types.Class:
 		return c.isSubtypeOfClass(a, b)
 	case *types.Generic:
-		return c.isSubtypeOfGeneric(a, b, errSpan)
+		return c.isSubtypeOfGeneric(a, b, errLoc)
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
 	case *types.MixinProxy:
 		return c.isSubtypeOfMixin(a, b.Mixin)
 	case *types.Interface:
-		return c.isSubtypeOfInterface(a, b, errSpan)
+		return c.isSubtypeOfInterface(a, b, errLoc)
 	case *types.InterfaceProxy:
-		return c.isSubtypeOfInterface(a, b.Interface, errSpan)
+		return c.isSubtypeOfInterface(a, b.Interface, errLoc)
 	case *types.Closure:
-		return c.isSubtypeOfClosure(a, b, errSpan)
+		return c.isSubtypeOfClosure(a, b, errLoc)
 	default:
 		return false
 	}
 }
 
-func (c *Checker) moduleIsSubtype(a *types.Module, b types.Type, errSpan *position.Span) bool {
+func (c *Checker) moduleIsSubtype(a *types.Module, b types.Type, errLoc *position.Location) bool {
 	switch b := b.(type) {
 	case *types.Class:
 		return c.isSubtypeOfClass(a, b)
 	case *types.Generic:
-		return c.isSubtypeOfGeneric(a, b, errSpan)
+		return c.isSubtypeOfGeneric(a, b, errLoc)
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
 	case *types.MixinProxy:
 		return c.isSubtypeOfMixin(a, b.Mixin)
 	case *types.Interface:
-		return c.isSubtypeOfInterface(a, b, errSpan)
+		return c.isSubtypeOfInterface(a, b, errLoc)
 	case *types.InterfaceProxy:
-		return c.isSubtypeOfInterface(a, b.Interface, errSpan)
+		return c.isSubtypeOfInterface(a, b.Interface, errLoc)
 	case *types.Closure:
-		return c.isSubtypeOfClosure(a, b, errSpan)
+		return c.isSubtypeOfClosure(a, b, errLoc)
 	case *types.Module:
 		return a == b
 	default:
@@ -881,7 +881,7 @@ func (c *Checker) moduleIsSubtype(a *types.Module, b types.Type, errSpan *positi
 	}
 }
 
-func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errSpan *position.Span) bool {
+func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errLoc *position.Location) bool {
 	switch b := b.(type) {
 	case *types.Class:
 		return c.isSubtypeOfClass(a, b)
@@ -890,20 +890,20 @@ func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errSpan *position
 	case *types.MixinProxy:
 		return c.isSubtypeOfMixin(a, b.Mixin)
 	case *types.Generic:
-		return c.isSubtypeOfGeneric(a, b, errSpan)
+		return c.isSubtypeOfGeneric(a, b, errLoc)
 	case *types.Interface:
-		return c.isSubtypeOfInterface(a, b, errSpan)
+		return c.isSubtypeOfInterface(a, b, errLoc)
 	case *types.InterfaceProxy:
-		return c.isSubtypeOfInterface(a, b.Interface, errSpan)
+		return c.isSubtypeOfInterface(a, b.Interface, errLoc)
 	case *types.Closure:
-		return c.isSubtypeOfClosure(a, b, errSpan)
+		return c.isSubtypeOfClosure(a, b, errLoc)
 	default:
 		return false
 	}
 }
 
-func (c *Checker) isSubtypeOfGeneric(a types.Namespace, b *types.Generic, errSpan *position.Span) bool {
-	isSubtype, shouldContinue := c.isSubtypeOfGenericNamespace(a, b, errSpan)
+func (c *Checker) isSubtypeOfGeneric(a types.Namespace, b *types.Generic, errLoc *position.Location) bool {
+	isSubtype, shouldContinue := c.isSubtypeOfGenericNamespace(a, b, errLoc)
 	if isSubtype {
 		return true
 	}
@@ -913,13 +913,13 @@ func (c *Checker) isSubtypeOfGeneric(a types.Namespace, b *types.Generic, errSpa
 
 	switch b.Namespace.(type) {
 	case *types.Interface:
-		return c.isImplicitSubtypeOfInterface(a, b, errSpan)
+		return c.isImplicitSubtypeOfInterface(a, b, errLoc)
 	default:
 		return false
 	}
 }
 
-func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generic, errSpan *position.Span) (isSubtype bool, shouldContinue bool) {
+func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generic, errLoc *position.Location) (isSubtype bool, shouldContinue bool) {
 	var generics []*types.Generic
 
 	for parent := range types.Parents(a) {
@@ -940,7 +940,7 @@ func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generi
 			target = c.replaceTypeParameters(target, m, false)
 			targetGeneric := target.(*types.Generic)
 
-			return c.typeArgsAreSubtype(targetGeneric.TypeArguments, b.TypeArguments, errSpan), false
+			return c.typeArgsAreSubtype(targetGeneric.TypeArguments, b.TypeArguments, errLoc), false
 		}
 		generics = append(generics, parent)
 	}
@@ -1019,15 +1019,15 @@ func (c *Checker) isExplicitSubtypeOfInterface(a types.Namespace, b *types.Inter
 	return false
 }
 
-func (c *Checker) isSubtypeOfInterface(a types.Namespace, b *types.Interface, errSpan *position.Span) bool {
+func (c *Checker) isSubtypeOfInterface(a types.Namespace, b *types.Interface, errLoc *position.Location) bool {
 	if c.isExplicitSubtypeOfInterface(a, b) {
 		return true
 	}
 
-	return c.isImplicitSubtypeOfInterface(a, b, errSpan)
+	return c.isImplicitSubtypeOfInterface(a, b, errLoc)
 }
 
-func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namespace, errSpan *position.Span) bool {
+func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namespace, errLoc *position.Location) bool {
 	if c.phase == initPhase && len(b.Methods()) < 1 {
 		return false
 	}
@@ -1100,7 +1100,7 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 				types.InspectWithColor(b),
 				methodDetailsBuff.String(),
 			),
-			errSpan,
+			errLoc,
 		)
 
 		return false
@@ -1109,7 +1109,7 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 	return true
 }
 
-func (c *Checker) isSubtypeOfClosure(a types.Namespace, b *types.Closure, errSpan *position.Span) bool {
+func (c *Checker) isSubtypeOfClosure(a types.Namespace, b *types.Closure, errLoc *position.Location) bool {
 	abstractMethod := b.Body
 	method := c.resolveMethodInNamespace(a, symbol.L_call)
 
@@ -1139,7 +1139,7 @@ func (c *Checker) isSubtypeOfClosure(a types.Namespace, b *types.Closure, errSpa
 				types.InspectWithColor(b),
 				methodDetailsBuff.String(),
 			),
-			errSpan,
+			errLoc,
 		)
 
 		return false
@@ -1148,29 +1148,29 @@ func (c *Checker) isSubtypeOfClosure(a types.Namespace, b *types.Closure, errSpa
 	return true
 }
 
-func (c *Checker) interfaceIsSubtype(a *types.Interface, b types.Type, errSpan *position.Span) bool {
+func (c *Checker) interfaceIsSubtype(a *types.Interface, b types.Type, errLoc *position.Location) bool {
 	switch narrowedB := b.(type) {
 	case *types.Interface:
-		return c.isSubtypeOfInterface(a, narrowedB, errSpan)
+		return c.isSubtypeOfInterface(a, narrowedB, errLoc)
 	case *types.InterfaceProxy:
-		return c.isSubtypeOfInterface(a, narrowedB.Interface, errSpan)
+		return c.isSubtypeOfInterface(a, narrowedB.Interface, errLoc)
 	case *types.Closure:
-		return c.isSubtypeOfClosure(a, narrowedB, errSpan)
+		return c.isSubtypeOfClosure(a, narrowedB, errLoc)
 	case *types.Generic:
-		return c.isSubtypeOfGeneric(a, narrowedB, errSpan)
+		return c.isSubtypeOfGeneric(a, narrowedB, errLoc)
 	default:
 		return false
 	}
 }
 
-func (c *Checker) closureIsSubtype(a *types.Closure, b types.Type, errSpan *position.Span) bool {
+func (c *Checker) closureIsSubtype(a *types.Closure, b types.Type, errLoc *position.Location) bool {
 	switch narrowedB := b.(type) {
 	case *types.Interface:
-		return c.isSubtypeOfInterface(a, narrowedB, errSpan)
+		return c.isSubtypeOfInterface(a, narrowedB, errLoc)
 	case *types.InterfaceProxy:
-		return c.isSubtypeOfInterface(a, narrowedB.Interface, errSpan)
+		return c.isSubtypeOfInterface(a, narrowedB.Interface, errLoc)
 	case *types.Closure:
-		return c.isSubtypeOfClosure(a, narrowedB, errSpan)
+		return c.isSubtypeOfClosure(a, narrowedB, errLoc)
 	default:
 		return false
 	}

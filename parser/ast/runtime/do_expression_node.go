@@ -42,7 +42,7 @@ func initDoExpressionNode() {
 
 			var argLoc *position.Location
 			if args[4].IsUndefined() {
-				argLoc = position.DefaultLocation
+				argLoc = position.ZeroLocation
 			} else {
 				argLoc = (*position.Location)(args[4].Pointer())
 			}
