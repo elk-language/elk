@@ -20,6 +20,18 @@ type InterfaceDeclarationNode struct {
 	Bytecode       value.Method
 }
 
+func (n *InterfaceDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &InterfaceDeclarationNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Constant:               n.Constant.Splice(loc, args).(ExpressionNode),
+		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args),
+		Body:                   SpliceSlice(n.Body, loc, args),
+		Implements:             SpliceSlice(n.Implements, loc, args),
+		Bytecode:               n.Bytecode,
+	}
+}
+
 func (n *InterfaceDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InterfaceDeclarationNode)
 	if !ok {

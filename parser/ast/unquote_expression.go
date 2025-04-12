@@ -15,6 +15,21 @@ type UnquoteExpressionNode struct {
 	Expression ExpressionNode
 }
 
+func (n *UnquoteExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	if args == nil || len(*args) == 0 {
+		panic("too few arguments for splicing AST nodes")
+	}
+
+	arg := (*args)[0]
+	*args = (*args)[1:]
+
+	arg = arg.Splice(loc, nil)
+	if arg.Location().FilePath == "" {
+		arg.SetLocation(loc)
+	}
+	return arg
+}
+
 // Check if this node equals another node.
 func (n *UnquoteExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnquoteExpressionNode)

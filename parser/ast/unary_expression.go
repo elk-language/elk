@@ -17,6 +17,14 @@ type UnaryExpressionNode struct {
 	Right ExpressionNode // right hand side
 }
 
+func (n *UnaryExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UnaryExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Op:            n.Op,
+		Right:         n.Right.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *UnaryExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnaryExpressionNode)
 	if !ok {

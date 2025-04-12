@@ -15,6 +15,13 @@ type IncludeExpressionNode struct {
 	Constants []ComplexConstantNode
 }
 
+func (n *IncludeExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &IncludeExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Constants:     SpliceSlice(n.Constants, loc, args),
+	}
+}
+
 // Check if this node equals another node.
 func (n *IncludeExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*IncludeExpressionNode)

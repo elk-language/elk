@@ -18,6 +18,16 @@ type ModuleDeclarationNode struct {
 	Bytecode value.Method
 }
 
+func (n *ModuleDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ModuleDeclarationNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Constant:               n.Constant.Splice(loc, args).(ExpressionNode),
+		Body:                   SpliceSlice(n.Body, loc, args),
+		Bytecode:               n.Bytecode,
+	}
+}
+
 func (n *ModuleDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ModuleDeclarationNode)
 	if !ok {

@@ -15,6 +15,13 @@ type RecordPatternNode struct {
 	Elements []PatternNode
 }
 
+func (n *RecordPatternNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &RecordPatternNode{
+		NodeBase: n.NodeBase,
+		Elements: SpliceSlice(n.Elements, loc, args),
+	}
+}
+
 func (n *RecordPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RecordPatternNode)
 	if !ok {

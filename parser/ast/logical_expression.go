@@ -19,6 +19,15 @@ type LogicalExpressionNode struct {
 	static bool
 }
 
+func (n *LogicalExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &LogicalExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Op:            n.Op,
+		Left:          n.Left.Splice(loc, args).(ComplexConstantNode),
+		Right:         n.Right.Splice(loc, args).(ComplexConstantNode),
+	}
+}
+
 func (n *LogicalExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*LogicalExpressionNode)
 	if !ok {

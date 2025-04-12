@@ -21,6 +21,19 @@ type MixinDeclarationNode struct {
 	Bytecode              value.Method
 }
 
+func (n *MixinDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &MixinDeclarationNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Abstract:               n.Abstract,
+		Constant:               n.Constant.Splice(loc, args).(ExpressionNode),
+		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args),
+		Body:                   SpliceSlice(n.Body, loc, args),
+		IncludesAndImplements:  SpliceSlice(n.IncludesAndImplements, loc, args),
+		Bytecode:               n.Bytecode,
+	}
+}
+
 func (n *MixinDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MixinDeclarationNode)
 	if !ok {

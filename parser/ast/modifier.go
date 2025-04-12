@@ -18,6 +18,15 @@ type ModifierNode struct {
 	Right    ExpressionNode // right hand side
 }
 
+func (n *ModifierNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ModifierNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Modifier:      n.Modifier,
+		Left:          n.Left.Splice(loc, args).(ExpressionNode),
+		Right:         n.Right.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *ModifierNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ModifierNode)
 	if !ok {
@@ -112,6 +121,15 @@ type ModifierIfElseNode struct {
 	ElseExpression ExpressionNode // else expression body
 }
 
+func (n *ModifierIfElseNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ModifierIfElseNode{
+		TypedNodeBase:  n.TypedNodeBase,
+		ThenExpression: n.ThenExpression.Splice(loc, args).(ExpressionNode),
+		Condition:      n.Condition.Splice(loc, args).(ExpressionNode),
+		ElseExpression: n.ElseExpression.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *ModifierIfElseNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ModifierIfElseNode)
 	if !ok {
@@ -203,6 +221,15 @@ type ModifierForInNode struct {
 	ThenExpression ExpressionNode // then expression body
 	Pattern        PatternNode
 	InExpression   ExpressionNode // expression that will be iterated through
+}
+
+func (n *ModifierForInNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ModifierForInNode{
+		TypedNodeBase:  n.TypedNodeBase,
+		ThenExpression: n.ThenExpression.Splice(loc, args).(ExpressionNode),
+		Pattern:        n.Pattern.Splice(loc, args).(PatternNode),
+		InExpression:   n.InExpression.Splice(loc, args).(ExpressionNode),
+	}
 }
 
 func (n *ModifierForInNode) Equal(other value.Value) bool {

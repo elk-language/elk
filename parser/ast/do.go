@@ -21,6 +21,15 @@ type DoExpressionNode struct {
 	Finally []StatementNode
 }
 
+func (n *DoExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &DoExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Body:          SpliceSlice(n.Body, loc, args),
+		Catches:       SpliceSlice(n.Catches, loc, args),
+		Finally:       SpliceSlice(n.Finally, loc, args),
+	}
+}
+
 // Check if this node equals another node.
 func (n *DoExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*DoExpressionNode)
@@ -161,6 +170,15 @@ type CatchNode struct {
 	Pattern       PatternNode
 	StackTraceVar IdentifierNode
 	Body          []StatementNode // do expression body
+}
+
+func (n *CatchNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &CatchNode{
+		NodeBase:      n.NodeBase,
+		Pattern:       n.Pattern.Splice(loc, args).(PatternNode),
+		StackTraceVar: n.StackTraceVar.Splice(loc, args).(IdentifierNode),
+		Body:          SpliceSlice(n.Body, loc, args),
+	}
 }
 
 func (n *CatchNode) Equal(other value.Value) bool {

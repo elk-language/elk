@@ -29,6 +29,13 @@ type SimpleSymbolLiteralNode struct {
 	Content string
 }
 
+func (n *SimpleSymbolLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SimpleSymbolLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Content:       n.Content,
+	}
+}
+
 func (n *SimpleSymbolLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SimpleSymbolLiteralNode)
 	if !ok {
@@ -79,6 +86,13 @@ func (n *SimpleSymbolLiteralNode) Error() string {
 type InterpolatedSymbolLiteralNode struct {
 	NodeBase
 	Content *InterpolatedStringLiteralNode
+}
+
+func (n *InterpolatedSymbolLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &InterpolatedSymbolLiteralNode{
+		NodeBase: n.NodeBase,
+		Content:  n.Content.Splice(loc, args).(*InterpolatedStringLiteralNode),
+	}
 }
 
 func (n *InterpolatedSymbolLiteralNode) Equal(other value.Value) bool {

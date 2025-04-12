@@ -17,6 +17,14 @@ type ThrowExpressionNode struct {
 	Value     ExpressionNode
 }
 
+func (n *ThrowExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ThrowExpressionNode{
+		NodeBase:  n.NodeBase,
+		Unchecked: n.Unchecked,
+		Value:     n.Value.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *ThrowExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ThrowExpressionNode)
 	if !ok {

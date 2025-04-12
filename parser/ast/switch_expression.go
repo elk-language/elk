@@ -26,6 +26,15 @@ type SwitchExpressionNode struct {
 	ElseBody []StatementNode
 }
 
+func (n *SwitchExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SwitchExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value.Splice(loc, args).(ExpressionNode),
+		Cases:         SpliceSlice(n.Cases, loc, args),
+		ElseBody:      SpliceSlice(n.ElseBody, loc, args),
+	}
+}
+
 func (n *SwitchExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SwitchExpressionNode)
 	if !ok {
@@ -141,6 +150,14 @@ type CaseNode struct {
 	NodeBase
 	Pattern PatternNode
 	Body    []StatementNode
+}
+
+func (n *CaseNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &CaseNode{
+		NodeBase: n.NodeBase,
+		Pattern:  n.Pattern.Splice(loc, args).(PatternNode),
+		Body:     SpliceSlice(n.Body, loc, args),
+	}
 }
 
 func (n *CaseNode) Equal(other value.Value) bool {

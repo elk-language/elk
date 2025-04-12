@@ -18,6 +18,15 @@ type AssignmentExpressionNode struct {
 	Right ExpressionNode // right hand side
 }
 
+func (n *AssignmentExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &AssignmentExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Op:            n.Op,
+		Left:          n.Left.Splice(loc, args).(ExpressionNode),
+		Right:         n.Right.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (*AssignmentExpressionNode) IsStatic() bool {
 	return false
 }

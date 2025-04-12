@@ -48,6 +48,13 @@ type UsingAllEntryNode struct {
 	Namespace UsingEntryNode
 }
 
+func (n *UsingAllEntryNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UsingAllEntryNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Namespace:     n.Namespace.Splice(loc, args).(UsingEntryNode),
+	}
+}
+
 func (n *UsingAllEntryNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UsingAllEntryNode)
 	if !ok {
@@ -109,6 +116,14 @@ type UsingEntryWithSubentriesNode struct {
 	NodeBase
 	Namespace  UsingEntryNode
 	Subentries []UsingSubentryNode
+}
+
+func (n *UsingEntryWithSubentriesNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UsingEntryWithSubentriesNode{
+		NodeBase:   n.NodeBase,
+		Namespace:  n.Namespace.Splice(loc, args).(UsingEntryNode),
+		Subentries: SpliceSlice(n.Subentries, loc, args),
+	}
 }
 
 func (n *UsingEntryWithSubentriesNode) Equal(other value.Value) bool {
@@ -201,6 +216,13 @@ func (n *UsingEntryWithSubentriesNode) Error() string {
 type UsingExpressionNode struct {
 	TypedNodeBase
 	Entries []UsingEntryNode
+}
+
+func (n *UsingExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UsingExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Entries:       SpliceSlice(n.Entries, loc, args),
+	}
 }
 
 func (n *UsingExpressionNode) Equal(other value.Value) bool {

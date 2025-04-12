@@ -13,6 +13,12 @@ type TrueLiteralNode struct {
 	NodeBase
 }
 
+func (n *TrueLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &TrueLiteralNode{
+		NodeBase: n.NodeBase,
+	}
+}
+
 func (n *TrueLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*TrueLiteralNode)
 	if !ok {
@@ -60,6 +66,12 @@ func NewTrueLiteralNode(loc *position.Location) *TrueLiteralNode {
 // `false` literal.
 type FalseLiteralNode struct {
 	NodeBase
+}
+
+func (n *FalseLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &FalseLiteralNode{
+		NodeBase: n.NodeBase,
+	}
 }
 
 func (n *FalseLiteralNode) Equal(other value.Value) bool {
@@ -111,6 +123,12 @@ type SelfLiteralNode struct {
 	TypedNodeBase
 }
 
+func (n *SelfLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SelfLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+	}
+}
+
 func (n *SelfLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SelfLiteralNode)
 	if !ok {
@@ -154,6 +172,12 @@ func NewSelfLiteralNode(loc *position.Location) *SelfLiteralNode {
 // `nil` literal.
 type NilLiteralNode struct {
 	NodeBase
+}
+
+func (n *NilLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &NilLiteralNode{
+		NodeBase: n.NodeBase,
+	}
 }
 
 func (n *NilLiteralNode) Equal(other value.Value) bool {
@@ -205,6 +229,12 @@ func NewNilLiteralNode(loc *position.Location) *NilLiteralNode {
 // `undefined` literal.
 type UndefinedLiteralNode struct {
 	NodeBase
+}
+
+func (n *UndefinedLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UndefinedLiteralNode{
+		NodeBase: n.NodeBase,
+	}
 }
 
 func (n *UndefinedLiteralNode) Equal(other value.Value) bool {

@@ -18,6 +18,16 @@ type ConstantDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the constant
 }
 
+func (n *ConstantDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ConstantDeclarationNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Constant:               n.Constant.Splice(loc, args).(ExpressionNode),
+		TypeNode:               n.TypeNode.Splice(loc, args).(TypeNode),
+		Initialiser:            n.Initialiser.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 // Check if this node equals another node.
 func (n *ConstantDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ConstantDeclarationNode)

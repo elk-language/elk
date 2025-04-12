@@ -17,6 +17,15 @@ type ClosureTypeNode struct {
 	ThrowType  TypeNode
 }
 
+func (n *ClosureTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ClosureTypeNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Parameters:    SpliceSlice(n.Parameters, loc, args),
+		ReturnType:    n.ReturnType.Splice(loc, args).(TypeNode),
+		ThrowType:     n.ThrowType.Splice(loc, args).(TypeNode),
+	}
+}
+
 // Check if this node equals another node.
 func (n *ClosureTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ClosureTypeNode)

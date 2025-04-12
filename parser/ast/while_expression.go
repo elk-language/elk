@@ -16,6 +16,14 @@ type WhileExpressionNode struct {
 	ThenBody  []StatementNode // then expression body
 }
 
+func (n *WhileExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &WhileExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Condition:     n.Condition.Splice(loc, args).(ExpressionNode),
+		ThenBody:      SpliceSlice(n.ThenBody, loc, args),
+	}
+}
+
 func (n *WhileExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WhileExpressionNode)
 	if !ok {

@@ -17,6 +17,14 @@ type LabeledExpressionNode struct {
 	Expression ExpressionNode
 }
 
+func (n *LabeledExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &LabeledExpressionNode{
+		NodeBase:   n.NodeBase,
+		Label:      n.Label,
+		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *LabeledExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*LabeledExpressionNode)
 	if !ok {

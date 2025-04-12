@@ -18,6 +18,15 @@ type BinaryPatternNode struct {
 	Right PatternNode  // right hand side
 }
 
+func (n *BinaryPatternNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &BinaryPatternNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Op:            n.Op,
+		Left:          n.Left.Splice(loc, args).(PatternNode),
+		Right:         n.Right.Splice(loc, args).(PatternNode),
+	}
+}
+
 func (n *BinaryPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BinaryPatternNode)
 	if !ok {

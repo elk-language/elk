@@ -18,6 +18,16 @@ type GenericTypeDefinitionNode struct {
 	TypeNode       TypeNode            // the type
 }
 
+func (n *GenericTypeDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &GenericTypeDefinitionNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args),
+		Constant:               n.Constant.Splice(loc, args).(ComplexConstantNode),
+		TypeNode:               n.TypeNode.Splice(loc, args).(TypeNode),
+	}
+}
+
 // Equal compares this node to another value for equality.
 func (n *GenericTypeDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*GenericTypeDefinitionNode)
@@ -136,6 +146,15 @@ type TypeDefinitionNode struct {
 	DocCommentableNodeBase
 	Constant ComplexConstantNode // new name of the type
 	TypeNode TypeNode            // the type
+}
+
+func (n *TypeDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &TypeDefinitionNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Constant:               n.Constant.Splice(loc, args).(ComplexConstantNode),
+		TypeNode:               n.TypeNode.Splice(loc, args).(TypeNode),
+	}
 }
 
 func (n *TypeDefinitionNode) Equal(other value.Value) bool {

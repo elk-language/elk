@@ -15,6 +15,13 @@ type NotTypeNode struct {
 	TypeNode TypeNode // right hand side
 }
 
+func (n *NotTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &NotTypeNode{
+		TypedNodeBase: n.TypedNodeBase,
+		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
+	}
+}
+
 func (n *NotTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NotTypeNode)
 	if !ok {

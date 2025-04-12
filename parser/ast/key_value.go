@@ -17,6 +17,15 @@ type KeyValueExpressionNode struct {
 	static bool
 }
 
+func (n *KeyValueExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &KeyValueExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Key:           n.Key.Splice(loc, args).(ExpressionNode),
+		Value:         n.Value.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
+}
+
 func (n *KeyValueExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*KeyValueExpressionNode)
 	if !ok {
@@ -85,6 +94,14 @@ type SymbolKeyValueExpressionNode struct {
 	NodeBase
 	Key   string
 	Value ExpressionNode
+}
+
+func (n *SymbolKeyValueExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SymbolKeyValueExpressionNode{
+		NodeBase: n.NodeBase,
+		Key:      n.Key,
+		Value:    n.Value.Splice(loc, args).(ExpressionNode),
+	}
 }
 
 func (n *SymbolKeyValueExpressionNode) Equal(other value.Value) bool {
@@ -156,6 +173,14 @@ type SymbolKeyValuePatternNode struct {
 	Value PatternNode
 }
 
+func (n *SymbolKeyValuePatternNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SymbolKeyValuePatternNode{
+		NodeBase: n.NodeBase,
+		Key:      n.Key,
+		Value:    n.Value.Splice(loc, args).(PatternNode),
+	}
+}
+
 func (n *SymbolKeyValuePatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolKeyValuePatternNode)
 	if !ok {
@@ -223,6 +248,14 @@ type KeyValuePatternNode struct {
 	NodeBase
 	Key   PatternExpressionNode
 	Value PatternNode
+}
+
+func (n *KeyValuePatternNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &KeyValuePatternNode{
+		NodeBase: n.NodeBase,
+		Key:      n.Key.Splice(loc, args).(PatternExpressionNode),
+		Value:    n.Value.Splice(loc, args).(PatternNode),
+	}
 }
 
 func (n *KeyValuePatternNode) Equal(other value.Value) bool {

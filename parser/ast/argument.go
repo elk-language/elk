@@ -27,6 +27,14 @@ type NamedCallArgumentNode struct {
 	Value ExpressionNode
 }
 
+func (n *NamedCallArgumentNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &NamedCallArgumentNode{
+		NodeBase: n.NodeBase,
+		Name:     n.Name,
+		Value:    n.Value.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *NamedCallArgumentNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NamedCallArgumentNode)
 	if !ok {

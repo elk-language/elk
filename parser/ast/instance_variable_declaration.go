@@ -17,6 +17,15 @@ type InstanceVariableDeclarationNode struct {
 	TypeNode TypeNode // type of the variable
 }
 
+func (n *InstanceVariableDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &InstanceVariableDeclarationNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Name:                   n.Name,
+		TypeNode:               n.TypeNode.Splice(loc, args).(ComplexConstantNode),
+	}
+}
+
 func (n *InstanceVariableDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InstanceVariableDeclarationNode)
 	if !ok {

@@ -27,6 +27,13 @@ type PublicIdentifierNode struct {
 	Value string
 }
 
+func (n *PublicIdentifierNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &PublicIdentifierNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *PublicIdentifierNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*PublicIdentifierNode)
 	if !ok {
@@ -77,6 +84,13 @@ func NewPublicIdentifierNode(loc *position.Location, val string) *PublicIdentifi
 type PrivateIdentifierNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *PrivateIdentifierNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &PrivateIdentifierNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
 }
 
 func (n *PrivateIdentifierNode) Equal(other value.Value) bool {
@@ -131,6 +145,14 @@ type PublicIdentifierAsNode struct {
 	NodeBase
 	Target *PublicIdentifierNode
 	AsName string
+}
+
+func (n *PublicIdentifierAsNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &PublicIdentifierAsNode{
+		NodeBase: n.NodeBase,
+		Target:   n.Target.Splice(loc, args).(*PublicIdentifierNode),
+		AsName:   n.AsName,
+	}
 }
 
 func (n *PublicIdentifierAsNode) Equal(other value.Value) bool {

@@ -16,6 +16,14 @@ type MethodLookupNode struct {
 	Name     string
 }
 
+func (n *MethodLookupNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &MethodLookupNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Receiver:      n.Receiver.Splice(loc, args).(ExpressionNode),
+		Name:          n.Name,
+	}
+}
+
 func (n *MethodLookupNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodLookupNode)
 	if !ok {
@@ -93,6 +101,14 @@ type MethodLookupAsNode struct {
 	NodeBase
 	MethodLookup *MethodLookupNode
 	AsName       string
+}
+
+func (n *MethodLookupAsNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &MethodLookupAsNode{
+		NodeBase:     n.NodeBase,
+		MethodLookup: n.MethodLookup.Splice(loc, args).(*MethodLookupNode),
+		AsName:       n.AsName,
+	}
 }
 
 // Check if this method lookup as node is equal to another value.

@@ -15,6 +15,13 @@ type IntersectionTypeNode struct {
 	Elements []TypeNode
 }
 
+func (n *IntersectionTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &IntersectionTypeNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+	}
+}
+
 func (n *IntersectionTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*IntersectionTypeNode)
 	if !ok {

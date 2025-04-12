@@ -31,6 +31,15 @@ type ProgramNode struct {
 	State       ProgramState
 }
 
+func (n *ProgramNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ProgramNode{
+		NodeBase:    n.NodeBase,
+		Body:        SpliceSlice(n.Body, loc, args),
+		ImportPaths: n.ImportPaths,
+		State:       n.State,
+	}
+}
+
 func (n *ProgramNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ProgramNode)
 	if !ok {

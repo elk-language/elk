@@ -19,6 +19,16 @@ type BinaryExpressionNode struct {
 	static bool
 }
 
+func (n *BinaryExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &BinaryExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Op:            n.Op,
+		Left:          n.Left.Splice(loc, args).(ExpressionNode),
+		Right:         n.Right.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
+}
+
 func (n *BinaryExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BinaryExpressionNode)
 	if !ok {

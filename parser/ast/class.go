@@ -24,6 +24,21 @@ type ClassDeclarationNode struct {
 	Bytecode       value.Method
 }
 
+func (n *ClassDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ClassDeclarationNode{
+		TypedNodeBase:  n.TypedNodeBase,
+		Abstract:       n.Abstract,
+		Sealed:         n.Sealed,
+		Primitive:      n.Primitive,
+		NoInit:         n.NoInit,
+		Constant:       n.Constant.Splice(loc, args).(ExpressionNode),
+		TypeParameters: SpliceSlice(n.TypeParameters, loc, args),
+		Superclass:     n.Superclass.Splice(loc, args).(ExpressionNode),
+		Body:           SpliceSlice(n.Body, loc, args),
+		Bytecode:       n.Bytecode,
+	}
+}
+
 func (n *ClassDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ClassDeclarationNode)
 	if !ok {

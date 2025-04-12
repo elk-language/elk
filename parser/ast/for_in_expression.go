@@ -17,6 +17,15 @@ type ForInExpressionNode struct {
 	ThenBody     []StatementNode // then expression body
 }
 
+func (n *ForInExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ForInExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Pattern:       n.Pattern.Splice(loc, args).(PatternNode),
+		InExpression:  n.InExpression.Splice(loc, args).(ExpressionNode),
+		ThenBody:      SpliceSlice(n.ThenBody, loc, args),
+	}
+}
+
 func (n *ForInExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ForInExpressionNode)
 	if !ok {

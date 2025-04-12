@@ -16,6 +16,14 @@ type ObjectPatternNode struct {
 	Attributes []PatternNode
 }
 
+func (n *ObjectPatternNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ObjectPatternNode{
+		TypedNodeBase: n.TypedNodeBase,
+		ObjectType:    n.ObjectType.Splice(loc, args).(ComplexConstantNode),
+		Attributes:    SpliceSlice(n.Attributes, loc, args),
+	}
+}
+
 func (n *ObjectPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ObjectPatternNode)
 	if !ok {

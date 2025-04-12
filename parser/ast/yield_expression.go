@@ -16,6 +16,14 @@ type YieldExpressionNode struct {
 	Forward bool
 }
 
+func (n *YieldExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &YieldExpressionNode{
+		NodeBase: n.NodeBase,
+		Value:    n.Value.Splice(loc, args).(ExpressionNode),
+		Forward:  n.Forward,
+	}
+}
+
 func (n *YieldExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*YieldExpressionNode)
 	if !ok {

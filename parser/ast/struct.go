@@ -29,6 +29,16 @@ type StructDeclarationNode struct {
 	Body           []StructBodyStatementNode // body of the struct
 }
 
+func (n *StructDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &StructDeclarationNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Constant:               n.Constant.Splice(loc, args).(ExpressionNode),
+		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args),
+		Body:                   SpliceSlice(n.Body, loc, args),
+	}
+}
+
 func (n *StructDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*StructDeclarationNode)
 	if !ok {

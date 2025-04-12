@@ -18,6 +18,16 @@ type ClosureLiteralNode struct {
 	Body       []StatementNode // body of the closure
 }
 
+func (n *ClosureLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ClosureLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Parameters:    SpliceSlice(n.Parameters, loc, args),
+		ReturnType:    n.ReturnType.Splice(loc, args).(TypeNode),
+		ThrowType:     n.ThrowType.Splice(loc, args).(TypeNode),
+		Body:          SpliceSlice(n.Body, loc, args),
+	}
+}
+
 func (n *ClosureLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ClosureLiteralNode)
 	if !ok {

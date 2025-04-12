@@ -17,6 +17,14 @@ type UnaryTypeNode struct {
 	TypeNode TypeNode     // right hand side
 }
 
+func (n *UnaryTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UnaryTypeNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Op:            n.Op,
+		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
+	}
+}
+
 func (n *UnaryTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnaryTypeNode)
 	if !ok {

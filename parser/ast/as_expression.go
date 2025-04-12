@@ -16,6 +16,14 @@ type AsExpressionNode struct {
 	RuntimeType ComplexConstantNode
 }
 
+func (n *AsExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &AsExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value.Splice(loc, args).(ExpressionNode),
+		RuntimeType:   n.RuntimeType.Splice(loc, args).(ComplexConstantNode),
+	}
+}
+
 func (*AsExpressionNode) IsStatic() bool {
 	return false
 }

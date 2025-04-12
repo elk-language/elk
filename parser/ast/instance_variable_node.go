@@ -13,6 +13,13 @@ type InstanceVariableNode struct {
 	Value string
 }
 
+func (n *InstanceVariableNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &InstanceVariableNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *InstanceVariableNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InstanceVariableNode)
 	if !ok {

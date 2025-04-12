@@ -17,6 +17,15 @@ type HashMapLiteralNode struct {
 	static   bool
 }
 
+func (n *HashMapLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &HashMapLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
+}
+
 // Check if this node equals another node.
 func (n *HashMapLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HashMapLiteralNode)
@@ -161,6 +170,14 @@ type HashRecordLiteralNode struct {
 	TypedNodeBase
 	Elements []ExpressionNode
 	static   bool
+}
+
+func (n *HashRecordLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &HashRecordLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		static:        n.static,
+	}
 }
 
 // Check if this node equals another node.

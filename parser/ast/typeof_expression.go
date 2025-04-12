@@ -15,6 +15,13 @@ type TypeofExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *TypeofExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &TypeofExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *TypeofExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*TypeofExpressionNode)
 	if !ok {

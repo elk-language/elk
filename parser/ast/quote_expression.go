@@ -15,6 +15,13 @@ type QuoteExpressionNode struct {
 	Body []StatementNode
 }
 
+func (n *QuoteExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &QuoteExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Body:          SpliceSlice(n.Body, loc, args),
+	}
+}
+
 // Check if this node equals another node.
 func (n *QuoteExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*QuoteExpressionNode)

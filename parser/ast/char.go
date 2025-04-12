@@ -13,6 +13,13 @@ type CharLiteralNode struct {
 	Value rune // value of the string literal
 }
 
+func (n *CharLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &CharLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *CharLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*CharLiteralNode)
 	if !ok {
@@ -62,6 +69,13 @@ func NewCharLiteralNode(loc *position.Location, val rune) *CharLiteralNode {
 type RawCharLiteralNode struct {
 	TypedNodeBase
 	Value rune // value of the char literal
+}
+
+func (n *RawCharLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &RawCharLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
 }
 
 func (n *RawCharLiteralNode) Equal(other value.Value) bool {

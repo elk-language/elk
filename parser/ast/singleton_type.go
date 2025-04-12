@@ -15,6 +15,13 @@ type SingletonTypeNode struct {
 	TypeNode TypeNode // right hand side
 }
 
+func (n *SingletonTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SingletonTypeNode{
+		TypedNodeBase: n.TypedNodeBase,
+		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
+	}
+}
+
 func (n *SingletonTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SingletonTypeNode)
 	if !ok {

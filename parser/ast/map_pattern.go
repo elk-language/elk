@@ -15,6 +15,13 @@ type MapPatternNode struct {
 	Elements []PatternNode
 }
 
+func (n *MapPatternNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &MapPatternNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+	}
+}
+
 func (n *MapPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MapPatternNode)
 	if !ok {

@@ -57,6 +57,13 @@ type RawStringLiteralNode struct {
 	Value string // value of the string literal
 }
 
+func (n *RawStringLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &RawStringLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *RawStringLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RawStringLiteralNode)
 	if !ok {
@@ -109,6 +116,13 @@ type StringLiteralContentSectionNode struct {
 	Value string
 }
 
+func (n *StringLiteralContentSectionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &StringLiteralContentSectionNode{
+		NodeBase: n.NodeBase,
+		Value:    n.Value,
+	}
+}
+
 func (n *StringLiteralContentSectionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*StringLiteralContentSectionNode)
 	if !ok {
@@ -159,6 +173,13 @@ func NewStringLiteralContentSectionNode(loc *position.Location, val string) *Str
 type StringInspectInterpolationNode struct {
 	NodeBase
 	Expression ExpressionNode
+}
+
+func (n *StringInspectInterpolationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &StringInspectInterpolationNode{
+		NodeBase:   n.NodeBase,
+		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
+	}
 }
 
 func (n *StringInspectInterpolationNode) Equal(other value.Value) bool {
@@ -224,6 +245,13 @@ type StringInterpolationNode struct {
 	Expression ExpressionNode
 }
 
+func (n *StringInterpolationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &StringInterpolationNode{
+		NodeBase:   n.NodeBase,
+		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *StringInterpolationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*StringInterpolationNode)
 	if !ok {
@@ -285,6 +313,13 @@ func NewStringInterpolationNode(loc *position.Location, expr ExpressionNode) *St
 type InterpolatedStringLiteralNode struct {
 	NodeBase
 	Content []StringLiteralContentNode
+}
+
+func (n *InterpolatedStringLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &InterpolatedStringLiteralNode{
+		NodeBase: n.NodeBase,
+		Content:  SpliceSlice(n.Content, loc, args),
+	}
 }
 
 func (n *InterpolatedStringLiteralNode) Equal(other value.Value) bool {
@@ -370,6 +405,13 @@ func NewInterpolatedStringLiteralNode(loc *position.Location, cont []StringLiter
 type DoubleQuotedStringLiteralNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *DoubleQuotedStringLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &DoubleQuotedStringLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
 }
 
 // Check if this node equals another node.

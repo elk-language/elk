@@ -18,6 +18,16 @@ type VariableDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
+func (n *VariableDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &VariableDeclarationNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Name:                   n.Name,
+		TypeNode:               n.TypeNode.Splice(loc, args).(TypeNode),
+		Initialiser:            n.Initialiser.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *VariableDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VariableDeclarationNode)
 	if !ok {

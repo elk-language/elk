@@ -17,6 +17,14 @@ type ContinueExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *ContinueExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ContinueExpressionNode{
+		NodeBase: n.NodeBase,
+		Label:    n.Label,
+		Value:    n.Value.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 // Check if this node equals another node.
 func (n *ContinueExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ContinueExpressionNode)

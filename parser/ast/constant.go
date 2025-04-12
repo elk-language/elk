@@ -69,6 +69,13 @@ type PublicConstantNode struct {
 	Value string
 }
 
+func (n *PublicConstantNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &PublicConstantNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *PublicConstantNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*PublicConstantNode)
 	if !ok {
@@ -119,6 +126,13 @@ func NewPublicConstantNode(loc *position.Location, val string) *PublicConstantNo
 type PrivateConstantNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *PrivateConstantNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &PrivateConstantNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
 }
 
 func (n *PrivateConstantNode) Equal(other value.Value) bool {
@@ -173,6 +187,14 @@ type PublicConstantAsNode struct {
 	NodeBase
 	Target *PublicConstantNode
 	AsName string
+}
+
+func (n *PublicConstantAsNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &PublicConstantAsNode{
+		NodeBase: n.NodeBase,
+		Target:   n.Target.Splice(loc, args).(*PublicConstantNode),
+		AsName:   n.AsName,
+	}
 }
 
 func (n *PublicConstantAsNode) Equal(other value.Value) bool {
@@ -236,6 +258,14 @@ type ConstantLookupNode struct {
 	TypedNodeBase
 	Left  ExpressionNode      // left hand side
 	Right ComplexConstantNode // right hand side
+}
+
+func (n *ConstantLookupNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ConstantLookupNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Left:          n.Left.Splice(loc, args).(ExpressionNode),
+		Right:         n.Right.Splice(loc, args).(ComplexConstantNode),
+	}
 }
 
 // Check if this node equals another node.
@@ -315,6 +345,14 @@ type GenericConstantNode struct {
 	TypedNodeBase
 	Constant      ComplexConstantNode
 	TypeArguments []TypeNode
+}
+
+func (n *GenericConstantNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &GenericConstantNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Constant:      n.Constant.Splice(loc, args).(ComplexConstantNode),
+		TypeArguments: SpliceSlice(n.TypeArguments, loc, args),
+	}
 }
 
 // Equal checks if the given GenericConstantNode is equal to another value.

@@ -35,6 +35,16 @@ type RangeLiteralNode struct {
 	static bool
 }
 
+func (n *RangeLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &RangeLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Start:         n.Start.Splice(loc, args).(ExpressionNode),
+		End:           n.End.Splice(loc, args).(ExpressionNode),
+		Op:            n.Op,
+		static:        n.static,
+	}
+}
+
 func (n *RangeLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RangeLiteralNode)
 	if !ok {

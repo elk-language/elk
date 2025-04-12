@@ -37,6 +37,17 @@ type VariantTypeParameterNode struct {
 	Default    TypeNode
 }
 
+func (n *VariantTypeParameterNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &VariantTypeParameterNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Variance:      n.Variance,
+		Name:          n.Name,
+		LowerBound:    n.LowerBound.Splice(loc, args).(TypeNode),
+		UpperBound:    n.UpperBound.Splice(loc, args).(TypeNode),
+		Default:       n.Default.Splice(loc, args).(TypeNode),
+	}
+}
+
 func (n *VariantTypeParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VariantTypeParameterNode)
 	if !ok {

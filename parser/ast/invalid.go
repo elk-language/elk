@@ -15,6 +15,13 @@ type InvalidNode struct {
 	Token *token.Token
 }
 
+func (n *InvalidNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &InvalidNode{
+		NodeBase: n.NodeBase,
+		Token:    n.Token,
+	}
+}
+
 func (n *InvalidNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InvalidNode)
 	if !ok {

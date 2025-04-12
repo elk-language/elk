@@ -17,6 +17,15 @@ type HashSetLiteralNode struct {
 	static   bool
 }
 
+func (n *HashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &HashSetLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
+}
+
 // Check if this node equals another node.
 func (n *HashSetLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HashSetLiteralNode)
@@ -164,6 +173,15 @@ type WordHashSetLiteralNode struct {
 	static   bool
 }
 
+func (n *WordHashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &WordHashSetLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
+}
+
 func (n *WordHashSetLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WordHashSetLiteralNode)
 	if !ok {
@@ -299,6 +317,15 @@ type SymbolHashSetLiteralNode struct {
 	static   bool
 }
 
+func (n *SymbolHashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SymbolHashSetLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
+}
+
 func (n *SymbolHashSetLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolHashSetLiteralNode)
 	if !ok {
@@ -432,6 +459,15 @@ type HexHashSetLiteralNode struct {
 	Elements []IntCollectionContentNode
 	Capacity ExpressionNode
 	static   bool
+}
+
+func (n *HexHashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &HexHashSetLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
 }
 
 func (h *HexHashSetLiteralNode) IsStatic() bool {
@@ -570,6 +606,15 @@ type BinHashSetLiteralNode struct {
 	static   bool
 }
 
+func (n *BinHashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &BinHashSetLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
+}
+
 func (n *BinHashSetLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BinHashSetLiteralNode)
 	if !ok {
@@ -706,6 +751,13 @@ func (n *BinHashSetLiteralNode) Error() string {
 type SetPatternNode struct {
 	TypedNodeBase
 	Elements []PatternNode
+}
+
+func (n *SetPatternNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SetPatternNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+	}
 }
 
 func (n *SetPatternNode) Equal(other value.Value) bool {

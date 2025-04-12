@@ -15,6 +15,13 @@ type ImplementExpressionNode struct {
 	Constants []ComplexConstantNode
 }
 
+func (n *ImplementExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ImplementExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Constants:     SpliceSlice(n.Constants, loc, args),
+	}
+}
+
 // Check if this node equals another node.
 func (n *ImplementExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ImplementExpressionNode)

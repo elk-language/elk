@@ -20,6 +20,14 @@ type SingletonBlockExpressionNode struct {
 	Bytecode value.Method
 }
 
+func (n *SingletonBlockExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SingletonBlockExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Body:          SpliceSlice(n.Body, loc, args),
+		Bytecode:      n.Bytecode,
+	}
+}
+
 func (n *SingletonBlockExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SingletonBlockExpressionNode)
 	if !ok {

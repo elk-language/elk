@@ -17,6 +17,15 @@ type ArrayListLiteralNode struct {
 	static   bool
 }
 
+func (n *ArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ArrayListLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
+}
+
 func (l *ArrayListLiteralNode) IsStatic() bool {
 	return l.static
 }
@@ -167,6 +176,15 @@ type WordArrayListLiteralNode struct {
 	static   bool
 }
 
+func (n *WordArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &WordArrayListLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
+}
+
 func (n *WordArrayListLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WordArrayListLiteralNode)
 	if !ok {
@@ -302,6 +320,15 @@ type SymbolArrayListLiteralNode struct {
 	static   bool
 }
 
+func (n *SymbolArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SymbolArrayListLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
+}
+
 func (n *SymbolArrayListLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolArrayListLiteralNode)
 	if !ok {
@@ -435,6 +462,15 @@ type HexArrayListLiteralNode struct {
 	Elements []IntCollectionContentNode
 	Capacity ExpressionNode
 	static   bool
+}
+
+func (n *HexArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &HexArrayListLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
 }
 
 // Check if this node equals another node.
@@ -573,6 +609,15 @@ type BinArrayListLiteralNode struct {
 	static   bool
 }
 
+func (n *BinArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &BinArrayListLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
+}
+
 func (b *BinArrayListLiteralNode) IsStatic() bool {
 	return b.static
 }
@@ -708,6 +753,13 @@ func (n *BinArrayListLiteralNode) Error() string {
 type ListPatternNode struct {
 	TypedNodeBase
 	Elements []PatternNode
+}
+
+func (n *ListPatternNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ListPatternNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+	}
 }
 
 func (n *ListPatternNode) Equal(other value.Value) bool {

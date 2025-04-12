@@ -15,6 +15,13 @@ type DoubleSplatExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *DoubleSplatExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &DoubleSplatExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 // Check if this node equals another node.
 func (n *DoubleSplatExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*DoubleSplatExpressionNode)
@@ -85,6 +92,13 @@ func NewDoubleSplatExpressionNode(loc *position.Location, val ExpressionNode) *D
 type SplatExpressionNode struct {
 	TypedNodeBase
 	Value ExpressionNode
+}
+
+func (n *SplatExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SplatExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value.Splice(loc, args).(ExpressionNode),
+	}
 }
 
 func (n *SplatExpressionNode) Equal(other value.Value) bool {

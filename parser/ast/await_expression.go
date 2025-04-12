@@ -15,6 +15,13 @@ type AwaitExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *AwaitExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &AwaitExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (*AwaitExpressionNode) IsStatic() bool {
 	return false
 }

@@ -17,6 +17,14 @@ type ConstantAsNode struct {
 	AsName   string
 }
 
+func (n *ConstantAsNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ConstantAsNode{
+		NodeBase: n.NodeBase,
+		Constant: n.Constant.Splice(loc, args).(ComplexConstantNode),
+		AsName:   n.AsName,
+	}
+}
+
 // Check if this node equals another node.
 func (n *ConstantAsNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ConstantAsNode)

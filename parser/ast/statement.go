@@ -29,6 +29,13 @@ type ExpressionStatementNode struct {
 	Expression ExpressionNode
 }
 
+func (n *ExpressionStatementNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ExpressionStatementNode{
+		NodeBase:   n.NodeBase,
+		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (e *ExpressionStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ExpressionStatementNode)
 	if !ok {
@@ -94,6 +101,12 @@ type EmptyStatementNode struct {
 	NodeBase
 }
 
+func (n *EmptyStatementNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &EmptyStatementNode{
+		NodeBase: n.NodeBase,
+	}
+}
+
 // Check if this node equals another node.
 func (n *EmptyStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*EmptyStatementNode)
@@ -141,6 +154,14 @@ type ImportStatementNode struct {
 	NodeBase
 	Path    StringLiteralNode
 	FsPaths []string // resolved file system paths
+}
+
+func (n *ImportStatementNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ImportStatementNode{
+		NodeBase: n.NodeBase,
+		Path:     n.Path,
+		FsPaths:  n.FsPaths,
+	}
 }
 
 // Check if this node equals another node.
@@ -195,6 +216,13 @@ func NewImportStatementNode(loc *position.Location, path StringLiteralNode) *Imp
 type ParameterStatementNode struct {
 	NodeBase
 	Parameter ParameterNode
+}
+
+func (n *ParameterStatementNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ParameterStatementNode{
+		NodeBase:  n.NodeBase,
+		Parameter: n.Parameter.Splice(loc, args).(ParameterNode),
+	}
 }
 
 func (n *ParameterStatementNode) Equal(other value.Value) bool {

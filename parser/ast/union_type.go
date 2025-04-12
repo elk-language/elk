@@ -15,6 +15,13 @@ type UnionTypeNode struct {
 	Elements []TypeNode
 }
 
+func (n *UnionTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UnionTypeNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+	}
+}
+
 func (n *UnionTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnionTypeNode)
 	if !ok {

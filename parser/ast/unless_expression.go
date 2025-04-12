@@ -17,6 +17,15 @@ type UnlessExpressionNode struct {
 	ElseBody  []StatementNode // else expression body
 }
 
+func (n *UnlessExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UnlessExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Condition:     n.Condition.Splice(loc, args).(ExpressionNode),
+		ThenBody:      SpliceSlice(n.ThenBody, loc, args),
+		ElseBody:      SpliceSlice(n.ElseBody, loc, args),
+	}
+}
+
 func (n *UnlessExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnlessExpressionNode)
 	if !ok {

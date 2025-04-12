@@ -17,6 +17,15 @@ type IfExpressionNode struct {
 	ElseBody  []StatementNode // else expression body
 }
 
+func (n *IfExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &IfExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Condition:     n.Condition.Splice(loc, args).(ComplexConstantNode),
+		ThenBody:      SpliceSlice(n.ThenBody, loc, args),
+		ElseBody:      SpliceSlice(n.ElseBody, loc, args),
+	}
+}
+
 // Check if this node equals another node.
 func (n *IfExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*IfExpressionNode)

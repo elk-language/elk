@@ -16,6 +16,14 @@ type MacroBoundaryNode struct {
 	Body []StatementNode
 }
 
+func (n *MacroBoundaryNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &MacroBoundaryNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Name:          n.Name,
+		Body:          SpliceSlice(n.Body, loc, args),
+	}
+}
+
 // Check if this node equals another node.
 func (n *MacroBoundaryNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MacroBoundaryNode)

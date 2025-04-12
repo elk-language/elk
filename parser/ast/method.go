@@ -36,6 +36,20 @@ type MethodDefinitionNode struct {
 	Flags          bitfield.BitField8
 }
 
+func (n *MethodDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &MethodDefinitionNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Name:                   n.Name,
+		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args),
+		Parameters:             SpliceSlice(n.Parameters, loc, args),
+		ReturnType:             n.ReturnType.Splice(loc, args).(TypeNode),
+		ThrowType:              n.ThrowType.Splice(loc, args).(TypeNode),
+		Body:                   SpliceSlice(n.Body, loc, args),
+		Flags:                  n.Flags,
+	}
+}
+
 // Check if this method definition is equal to another value.
 func (n *MethodDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodDefinitionNode)
@@ -304,6 +318,16 @@ type InitDefinitionNode struct {
 	Body       []StatementNode // body of the method
 }
 
+func (n *InitDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &InitDefinitionNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Parameters:             SpliceSlice(n.Parameters, loc, args),
+		ThrowType:              n.ThrowType.Splice(loc, args).(TypeNode),
+		Body:                   SpliceSlice(n.Body, loc, args),
+	}
+}
+
 // Check if this node equals another node.
 func (n *InitDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InitDefinitionNode)
@@ -451,6 +475,18 @@ type MethodSignatureDefinitionNode struct {
 	Parameters     []ParameterNode // formal parameters
 	ReturnType     TypeNode
 	ThrowType      TypeNode
+}
+
+func (n *MethodSignatureDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &MethodSignatureDefinitionNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Name:                   n.Name,
+		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args),
+		Parameters:             SpliceSlice(n.Parameters, loc, args),
+		ReturnType:             n.ReturnType.Splice(loc, args).(TypeNode),
+		ThrowType:              n.ThrowType.Splice(loc, args).(TypeNode),
+	}
 }
 
 func (n *MethodSignatureDefinitionNode) Equal(other value.Value) bool {
@@ -622,6 +658,14 @@ type AliasDeclarationEntry struct {
 	OldName string
 }
 
+func (n *AliasDeclarationEntry) Splice(loc *position.Location, args *[]Node) Node {
+	return &AliasDeclarationEntry{
+		NodeBase: n.NodeBase,
+		NewName:  n.NewName,
+		OldName:  n.OldName,
+	}
+}
+
 func (*AliasDeclarationEntry) IsStatic() bool {
 	return false
 }
@@ -689,6 +733,13 @@ func NewAliasDeclarationEntry(loc *position.Location, newName, oldName string) *
 type AliasDeclarationNode struct {
 	TypedNodeBase
 	Entries []*AliasDeclarationEntry
+}
+
+func (n *AliasDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &AliasDeclarationNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Entries:       SpliceSlice(n.Entries, loc, args),
+	}
 }
 
 func (n *AliasDeclarationNode) String() string {
@@ -777,6 +828,14 @@ type GetterDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
 	Entries []ParameterNode
+}
+
+func (n *GetterDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &GetterDeclarationNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Entries:                SpliceSlice(n.Entries, loc, args),
+	}
 }
 
 // Equal checks if this node equals the other node.
@@ -883,6 +942,14 @@ type SetterDeclarationNode struct {
 	Entries []ParameterNode
 }
 
+func (n *SetterDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SetterDeclarationNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Entries:                SpliceSlice(n.Entries, loc, args),
+	}
+}
+
 func (n *SetterDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SetterDeclarationNode)
 	if !ok {
@@ -978,6 +1045,14 @@ type AttrDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
 	Entries []ParameterNode
+}
+
+func (n *AttrDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &AttrDeclarationNode{
+		TypedNodeBase:          n.TypedNodeBase,
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Entries:                SpliceSlice(n.Entries, loc, args),
+	}
 }
 
 func (*AttrDeclarationNode) IsStatic() bool {

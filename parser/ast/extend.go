@@ -20,6 +20,14 @@ type ExtendWhereBlockExpressionNode struct {
 	Where []TypeParameterNode
 }
 
+func (n *ExtendWhereBlockExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ExtendWhereBlockExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Body:          SpliceSlice(n.Body, loc, args),
+		Where:         SpliceSlice(n.Where, loc, args),
+	}
+}
+
 // Check if this node equals another node.
 func (n *ExtendWhereBlockExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ExtendWhereBlockExpressionNode)

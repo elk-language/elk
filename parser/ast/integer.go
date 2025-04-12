@@ -13,6 +13,13 @@ type IntLiteralNode struct {
 	Value string
 }
 
+func (n *IntLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &IntLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *IntLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*IntLiteralNode)
 	if !ok {
@@ -62,6 +69,13 @@ func NewIntLiteralNode(loc *position.Location, val string) *IntLiteralNode {
 type Int64LiteralNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *Int64LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &Int64LiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
 }
 
 func (n *Int64LiteralNode) Equal(other value.Value) bool {
@@ -116,6 +130,13 @@ type UInt64LiteralNode struct {
 	Value string
 }
 
+func (n *UInt64LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UInt64LiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *UInt64LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UInt64LiteralNode)
 	if !ok {
@@ -168,6 +189,13 @@ type Int32LiteralNode struct {
 	Value string
 }
 
+func (n *Int32LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &Int32LiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *Int32LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Int32LiteralNode)
 	if !ok {
@@ -214,6 +242,13 @@ func NewInt32LiteralNode(loc *position.Location, val string) *Int32LiteralNode {
 type UInt32LiteralNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *UInt32LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UInt32LiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
 }
 
 func (n *UInt32LiteralNode) Equal(other value.Value) bool {
@@ -268,6 +303,13 @@ type Int16LiteralNode struct {
 	Value string
 }
 
+func (n *Int16LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &Int16LiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *Int16LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Int16LiteralNode)
 	if !ok {
@@ -318,6 +360,13 @@ func NewInt16LiteralNode(loc *position.Location, val string) *Int16LiteralNode {
 type UInt16LiteralNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *UInt16LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UInt16LiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
 }
 
 func (n *UInt16LiteralNode) Equal(other value.Value) bool {
@@ -372,6 +421,13 @@ type Int8LiteralNode struct {
 	Value string
 }
 
+func (n *Int8LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &Int8LiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *Int8LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Int8LiteralNode)
 	if !ok {
@@ -422,6 +478,13 @@ func NewInt8LiteralNode(loc *position.Location, val string) *Int8LiteralNode {
 type UInt8LiteralNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *UInt8LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UInt8LiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
 }
 
 func (n *UInt8LiteralNode) Equal(other value.Value) bool {

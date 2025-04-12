@@ -16,6 +16,14 @@ type ArrayTupleLiteralNode struct {
 	static   bool
 }
 
+func (n *ArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ArrayTupleLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+		static:        n.static,
+	}
+}
+
 func (t *ArrayTupleLiteralNode) IsStatic() bool {
 	return t.static
 }
@@ -132,6 +140,13 @@ type WordArrayTupleLiteralNode struct {
 	Elements []WordCollectionContentNode
 }
 
+func (n *WordArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &WordArrayTupleLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+	}
+}
+
 func (n *WordArrayTupleLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WordArrayTupleLiteralNode)
 	if !ok {
@@ -232,6 +247,13 @@ func (n *WordArrayTupleLiteralNode) Error() string {
 type SymbolArrayTupleLiteralNode struct {
 	TypedNodeBase
 	Elements []SymbolCollectionContentNode
+}
+
+func (n *SymbolArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SymbolArrayTupleLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+	}
 }
 
 // Check if this node equals another node.
@@ -338,6 +360,13 @@ type HexArrayTupleLiteralNode struct {
 	Elements []IntCollectionContentNode
 }
 
+func (n *HexArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &HexArrayTupleLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+	}
+}
+
 // Check if this node equals another node.
 func (n *HexArrayTupleLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HexArrayTupleLiteralNode)
@@ -439,6 +468,13 @@ func (n *HexArrayTupleLiteralNode) Error() string {
 type BinArrayTupleLiteralNode struct {
 	TypedNodeBase
 	Elements []IntCollectionContentNode
+}
+
+func (n *BinArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &BinArrayTupleLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+	}
 }
 
 func (n *BinArrayTupleLiteralNode) Equal(other value.Value) bool {
@@ -546,6 +582,13 @@ func (n *BinArrayTupleLiteralNode) Error() string {
 type TuplePatternNode struct {
 	TypedNodeBase
 	Elements []PatternNode
+}
+
+func (n *TuplePatternNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &TuplePatternNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Elements:      SpliceSlice(n.Elements, loc, args),
+	}
 }
 
 func (n *TuplePatternNode) Equal(other value.Value) bool {

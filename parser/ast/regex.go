@@ -43,6 +43,14 @@ type UninterpolatedRegexLiteralNode struct {
 	Flags   bitfield.BitField8
 }
 
+func (n *UninterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &UninterpolatedRegexLiteralNode{
+		NodeBase: n.NodeBase,
+		Content:  n.Content,
+		Flags:    n.Flags,
+	}
+}
+
 func (n *UninterpolatedRegexLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UninterpolatedRegexLiteralNode)
 	if !ok {
@@ -181,6 +189,13 @@ type RegexLiteralContentSectionNode struct {
 	Value string
 }
 
+func (n *RegexLiteralContentSectionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &RegexLiteralContentSectionNode{
+		NodeBase: n.NodeBase,
+		Value:    n.Value,
+	}
+}
+
 func (n *RegexLiteralContentSectionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RegexLiteralContentSectionNode)
 	if !ok {
@@ -231,6 +246,13 @@ func NewRegexLiteralContentSectionNode(loc *position.Location, val string) *Rege
 type RegexInterpolationNode struct {
 	NodeBase
 	Expression ExpressionNode
+}
+
+func (n *RegexInterpolationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &RegexInterpolationNode{
+		NodeBase:   n.NodeBase,
+		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
+	}
 }
 
 func (n *RegexInterpolationNode) Equal(other value.Value) bool {
@@ -295,6 +317,14 @@ type InterpolatedRegexLiteralNode struct {
 	NodeBase
 	Content []RegexLiteralContentNode
 	Flags   bitfield.BitField8
+}
+
+func (n *InterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &InterpolatedRegexLiteralNode{
+		NodeBase: n.NodeBase,
+		Content:  SpliceSlice(n.Content, loc, args),
+		Flags:    n.Flags,
+	}
 }
 
 func (n *InterpolatedRegexLiteralNode) Equal(other value.Value) bool {

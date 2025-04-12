@@ -16,6 +16,13 @@ type ReturnExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *ReturnExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ReturnExpressionNode{
+		NodeBase: n.NodeBase,
+		Value:    n.Value.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *ReturnExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ReturnExpressionNode)
 	if !ok {

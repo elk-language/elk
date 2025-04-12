@@ -17,6 +17,14 @@ type PostfixExpressionNode struct {
 	Expression ExpressionNode
 }
 
+func (n *PostfixExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &PostfixExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Op:            n.Op,
+		Expression:    n.Expression.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *PostfixExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*PostfixExpressionNode)
 	if !ok {

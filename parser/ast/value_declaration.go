@@ -17,6 +17,15 @@ type ValueDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the value
 }
 
+func (n *ValueDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ValueDeclarationNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Name:          n.Name,
+		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
+		Initialiser:   n.Initialiser.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *ValueDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ValueDeclarationNode)
 	if !ok {

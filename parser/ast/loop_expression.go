@@ -15,6 +15,13 @@ type LoopExpressionNode struct {
 	ThenBody []StatementNode // then expression body
 }
 
+func (n *LoopExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &LoopExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		ThenBody:      SpliceSlice(n.ThenBody, loc, args),
+	}
+}
+
 func (n *LoopExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*LoopExpressionNode)
 	if !ok {

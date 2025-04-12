@@ -16,6 +16,14 @@ type VariablePatternDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
+func (n *VariablePatternDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &VariablePatternDeclarationNode{
+		NodeBase:    n.NodeBase,
+		Pattern:     n.Pattern.Splice(loc, args).(PatternNode),
+		Initialiser: n.Initialiser.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *VariablePatternDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VariablePatternDeclarationNode)
 	if !ok {

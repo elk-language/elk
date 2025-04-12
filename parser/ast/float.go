@@ -13,6 +13,13 @@ type FloatLiteralNode struct {
 	Value string
 }
 
+func (n *FloatLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &FloatLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *FloatLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*FloatLiteralNode)
 	if !ok {
@@ -63,6 +70,13 @@ func NewFloatLiteralNode(loc *position.Location, val string) *FloatLiteralNode {
 type BigFloatLiteralNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *BigFloatLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &BigFloatLiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
 }
 
 func (n *BigFloatLiteralNode) Equal(other value.Value) bool {
@@ -117,6 +131,13 @@ type Float64LiteralNode struct {
 	Value string
 }
 
+func (n *Float64LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &Float64LiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *Float64LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Float64LiteralNode)
 	if !ok {
@@ -167,6 +188,13 @@ func NewFloat64LiteralNode(loc *position.Location, val string) *Float64LiteralNo
 type Float32LiteralNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *Float32LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &Float32LiteralNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
 }
 
 func (n *Float32LiteralNode) Equal(other value.Value) bool {

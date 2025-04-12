@@ -15,6 +15,13 @@ type RestPatternNode struct {
 	Identifier IdentifierNode
 }
 
+func (n *RestPatternNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &RestPatternNode{
+		NodeBase:   n.NodeBase,
+		Identifier: n.Identifier.Splice(loc, args).(IdentifierNode),
+	}
+}
+
 func (n *RestPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RestPatternNode)
 	if !ok {

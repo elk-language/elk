@@ -15,6 +15,13 @@ type MustExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *MustExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &MustExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Value:         n.Value,
+	}
+}
+
 func (n *MustExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MustExpressionNode)
 	if !ok {

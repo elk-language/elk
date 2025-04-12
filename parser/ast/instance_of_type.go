@@ -15,6 +15,13 @@ type InstanceOfTypeNode struct {
 	TypeNode TypeNode // right hand side
 }
 
+func (n *InstanceOfTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &InstanceOfTypeNode{
+		TypedNodeBase: n.TypedNodeBase,
+		TypeNode:      n.TypeNode.Splice(loc, args).(ComplexConstantNode),
+	}
+}
+
 // Equal checks if this node equals the other node.
 func (n *InstanceOfTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InstanceOfTypeNode)

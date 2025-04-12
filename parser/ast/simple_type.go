@@ -13,6 +13,12 @@ type BoolLiteralNode struct {
 	NodeBase
 }
 
+func (n *BoolLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &BoolLiteralNode{
+		NodeBase: n.NodeBase,
+	}
+}
+
 func (n *BoolLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BoolLiteralNode)
 	if !ok {
@@ -62,6 +68,12 @@ type VoidTypeNode struct {
 	NodeBase
 }
 
+func (n *VoidTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &VoidTypeNode{
+		NodeBase: n.NodeBase,
+	}
+}
+
 func (n *VoidTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VoidTypeNode)
 	if !ok {
@@ -104,6 +116,12 @@ func NewVoidTypeNode(loc *position.Location) *VoidTypeNode {
 // `never` type.
 type NeverTypeNode struct {
 	NodeBase
+}
+
+func (n *NeverTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &NeverTypeNode{
+		NodeBase: n.NodeBase,
+	}
 }
 
 func (n *NeverTypeNode) Equal(other value.Value) bool {
@@ -152,6 +170,12 @@ func NewNeverTypeNode(loc *position.Location) *NeverTypeNode {
 // `any` type.
 type AnyTypeNode struct {
 	NodeBase
+}
+
+func (n *AnyTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &AnyTypeNode{
+		NodeBase: n.NodeBase,
+	}
 }
 
 func (n *AnyTypeNode) Equal(other value.Value) bool {

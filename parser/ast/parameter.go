@@ -69,6 +69,16 @@ type FormalParameterNode struct {
 	Kind        ParameterKind
 }
 
+func (n *FormalParameterNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &FormalParameterNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Name:          n.Name,
+		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
+		Initialiser:   n.Initialiser.Splice(loc, args).(ExpressionNode),
+		Kind:          n.Kind,
+	}
+}
+
 // Equal checks if the given FormalParameterNode is equal to another value.
 func (n *FormalParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*FormalParameterNode)
@@ -177,6 +187,17 @@ type MethodParameterNode struct {
 	Initialiser         ExpressionNode // value assigned to the variable
 	SetInstanceVariable bool           // whether an instance variable with this name gets automatically assigned
 	Kind                ParameterKind
+}
+
+func (n *MethodParameterNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &MethodParameterNode{
+		TypedNodeBase:       n.TypedNodeBase,
+		Name:                n.Name,
+		TypeNode:            n.TypeNode.Splice(loc, args).(TypeNode),
+		Initialiser:         n.Initialiser.Splice(loc, args).(ExpressionNode),
+		SetInstanceVariable: n.SetInstanceVariable,
+		Kind:                n.Kind,
+	}
 }
 
 func (n *MethodParameterNode) Equal(other value.Value) bool {
@@ -297,6 +318,16 @@ type SignatureParameterNode struct {
 	Kind     ParameterKind
 }
 
+func (n *SignatureParameterNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SignatureParameterNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Name:          n.Name,
+		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
+		Optional:      n.Optional,
+		Kind:          n.Kind,
+	}
+}
+
 func (n *SignatureParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SignatureParameterNode)
 	if !ok {
@@ -391,6 +422,15 @@ type AttributeParameterNode struct {
 	Name        string         // name of the variable
 	TypeNode    TypeNode       // type of the variable
 	Initialiser ExpressionNode // value assigned to the variable
+}
+
+func (n *AttributeParameterNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &AttributeParameterNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Name:          n.Name,
+		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
+		Initialiser:   n.Initialiser.Splice(loc, args).(ExpressionNode),
+	}
 }
 
 func (*AttributeParameterNode) IsStatic() bool {

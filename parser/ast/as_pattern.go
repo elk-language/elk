@@ -16,6 +16,14 @@ type AsPatternNode struct {
 	Name    IdentifierNode
 }
 
+func (n *AsPatternNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &AsPatternNode{
+		NodeBase: n.NodeBase,
+		Pattern:  n.Pattern.Splice(loc, args).(PatternNode),
+		Name:     n.Name.Splice(loc, args).(IdentifierNode),
+	}
+}
+
 func (*AsPatternNode) IsStatic() bool {
 	return false
 }

@@ -17,6 +17,14 @@ type BreakExpressionNode struct {
 	Value ExpressionNode
 }
 
+func (n *BreakExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &BreakExpressionNode{
+		NodeBase: n.NodeBase,
+		Label:    n.Label,
+		Value:    n.Value.Splice(loc, args).(ExpressionNode),
+	}
+}
+
 func (n *BreakExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BreakExpressionNode)
 	if !ok {

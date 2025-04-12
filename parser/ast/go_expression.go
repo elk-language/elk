@@ -15,6 +15,13 @@ type GoExpressionNode struct {
 	Body []StatementNode
 }
 
+func (n *GoExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &GoExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Body:          SpliceSlice(n.Body, loc, args),
+	}
+}
+
 // Check if this node equals another node.
 func (n *GoExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*GoExpressionNode)

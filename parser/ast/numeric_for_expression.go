@@ -18,6 +18,16 @@ type NumericForExpressionNode struct {
 	ThenBody    []StatementNode // then expression body
 }
 
+func (n *NumericForExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &NumericForExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Initialiser:   n.Initialiser.Splice(loc, args).(ExpressionNode),
+		Condition:     n.Condition.Splice(loc, args).(ExpressionNode),
+		Increment:     n.Increment.Splice(loc, args).(ExpressionNode),
+		ThenBody:      SpliceSlice(n.ThenBody, loc, args),
+	}
+}
+
 func (n *NumericForExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NumericForExpressionNode)
 	if !ok {

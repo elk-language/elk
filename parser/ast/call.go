@@ -17,6 +17,14 @@ type NewExpressionNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
+func (n *NewExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &NewExpressionNode{
+		TypedNodeBase:       n.TypedNodeBase,
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+	}
+}
+
 func (n *NewExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NewExpressionNode)
 	if !ok {
@@ -153,6 +161,16 @@ type GenericConstructorCallNode struct {
 	TypeArguments       []TypeNode
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
+}
+
+func (n *GenericConstructorCallNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &GenericConstructorCallNode{
+		TypedNodeBase:       n.TypedNodeBase,
+		ClassNode:           n.ClassNode.Splice(loc, args).(ComplexConstantNode),
+		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args),
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+	}
 }
 
 // Equal checks if the given GenericConstructorCallNode is equal to another value.
@@ -326,6 +344,15 @@ type ConstructorCallNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
+func (n *ConstructorCallNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ConstructorCallNode{
+		TypedNodeBase:       n.TypedNodeBase,
+		ClassNode:           n.ClassNode.Splice(loc, args).(ComplexConstantNode),
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+	}
+}
+
 // Check if this node equals another node.
 func (n *ConstructorCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ConstructorCallNode)
@@ -470,6 +497,14 @@ type AttributeAccessNode struct {
 	AttributeName string
 }
 
+func (n *AttributeAccessNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &AttributeAccessNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Receiver:      n.Receiver.Splice(loc, args).(ExpressionNode),
+		AttributeName: n.AttributeName,
+	}
+}
+
 func (*AttributeAccessNode) IsStatic() bool {
 	return false
 }
@@ -545,6 +580,15 @@ type SubscriptExpressionNode struct {
 	Receiver ExpressionNode
 	Key      ExpressionNode
 	static   bool
+}
+
+func (n *SubscriptExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &SubscriptExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Receiver:      n.Receiver.Splice(loc, args).(ExpressionNode),
+		Key:           n.Key.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
 }
 
 func (n *SubscriptExpressionNode) Equal(other value.Value) bool {
@@ -627,6 +671,15 @@ type NilSafeSubscriptExpressionNode struct {
 	static   bool
 }
 
+func (n *NilSafeSubscriptExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &NilSafeSubscriptExpressionNode{
+		TypedNodeBase: n.TypedNodeBase,
+		Receiver:      n.Receiver.Splice(loc, args).(ExpressionNode),
+		Key:           n.Key.Splice(loc, args).(ExpressionNode),
+		static:        n.static,
+	}
+}
+
 func (n *NilSafeSubscriptExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NilSafeSubscriptExpressionNode)
 	if !ok {
@@ -706,6 +759,16 @@ type CallNode struct {
 	NilSafe             bool
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
+}
+
+func (n *CallNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &CallNode{
+		TypedNodeBase:       n.TypedNodeBase,
+		Receiver:            n.Receiver.Splice(loc, args).(ExpressionNode),
+		NilSafe:             n.NilSafe,
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+	}
 }
 
 func (n *CallNode) Equal(other value.Value) bool {
@@ -863,6 +926,19 @@ type GenericMethodCallNode struct {
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 	TailCall            bool
+}
+
+func (n *GenericMethodCallNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &GenericMethodCallNode{
+		TypedNodeBase:       n.TypedNodeBase,
+		Receiver:            n.Receiver.Splice(loc, args).(ExpressionNode),
+		Op:                  n.Op,
+		MethodName:          n.MethodName,
+		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args),
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+		TailCall:            n.TailCall,
+	}
 }
 
 // Equal checks if the given GenericMethodCallNode is equal to another value.
@@ -1052,6 +1128,18 @@ type MethodCallNode struct {
 	TailCall            bool
 }
 
+func (n *MethodCallNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &MethodCallNode{
+		TypedNodeBase:       n.TypedNodeBase,
+		Receiver:            n.Receiver.Splice(loc, args).(ExpressionNode),
+		Op:                  n.Op,
+		MethodName:          n.MethodName,
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+		TailCall:            n.TailCall,
+	}
+}
+
 func (n *MethodCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodCallNode)
 	if !ok {
@@ -1204,6 +1292,16 @@ type ReceiverlessMethodCallNode struct {
 	TailCall            bool
 }
 
+func (n *ReceiverlessMethodCallNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &ReceiverlessMethodCallNode{
+		TypedNodeBase:       n.TypedNodeBase,
+		MethodName:          n.MethodName,
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+		TailCall:            n.TailCall,
+	}
+}
+
 func (n *ReceiverlessMethodCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ReceiverlessMethodCallNode)
 	if !ok {
@@ -1344,6 +1442,17 @@ type GenericReceiverlessMethodCallNode struct {
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 	TailCall            bool
+}
+
+func (n *GenericReceiverlessMethodCallNode) Splice(loc *position.Location, args *[]Node) Node {
+	return &GenericReceiverlessMethodCallNode{
+		TypedNodeBase:       n.TypedNodeBase,
+		MethodName:          n.MethodName,
+		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args),
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+		TailCall:            n.TailCall,
+	}
 }
 
 // Equal checks if the given GenericReceiverlessMethodCallNode is equal to another value.
