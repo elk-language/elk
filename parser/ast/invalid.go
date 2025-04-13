@@ -17,7 +17,7 @@ type InvalidNode struct {
 
 func (n *InvalidNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &InvalidNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Token:    n.Token,
 	}
 }

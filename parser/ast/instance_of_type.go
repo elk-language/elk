@@ -17,7 +17,7 @@ type InstanceOfTypeNode struct {
 
 func (n *InstanceOfTypeNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &InstanceOfTypeNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		TypeNode:      n.TypeNode.Splice(loc, args).(ComplexConstantNode),
 	}
 }

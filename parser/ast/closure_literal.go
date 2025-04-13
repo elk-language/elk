@@ -34,7 +34,7 @@ func (n *ClosureLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	body := SpliceSlice(n.Body, loc, args)
 
 	return &ClosureLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Parameters:    params,
 		ReturnType:    returnType,
 		ThrowType:     throwType,

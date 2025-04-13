@@ -24,7 +24,7 @@ func (n *ThrowExpressionNode) Splice(loc *position.Location, args *[]Node) Node 
 	}
 
 	return &ThrowExpressionNode{
-		NodeBase:  n.NodeBase,
+		NodeBase:  NodeBase{loc: getLoc(loc, n.loc)},
 		Unchecked: n.Unchecked,
 		Value:     val,
 	}

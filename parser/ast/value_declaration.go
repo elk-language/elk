@@ -29,7 +29,7 @@ func (n *ValueDeclarationNode) Splice(loc *position.Location, args *[]Node) Node
 	}
 
 	return &ValueDeclarationNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Name:          n.Name,
 		TypeNode:      typeNode,
 		Initialiser:   init,

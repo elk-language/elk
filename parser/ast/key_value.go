@@ -22,7 +22,7 @@ func (n *KeyValueExpressionNode) Splice(loc *position.Location, args *[]Node) No
 	val := n.Value.Splice(loc, args).(ExpressionNode)
 
 	return &KeyValueExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Key:           key,
 		Value:         val,
 		static:        areExpressionsStatic(key, val),
@@ -101,7 +101,7 @@ type SymbolKeyValueExpressionNode struct {
 
 func (n *SymbolKeyValueExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &SymbolKeyValueExpressionNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Key:      n.Key,
 		Value:    n.Value.Splice(loc, args).(ExpressionNode),
 	}
@@ -178,7 +178,7 @@ type SymbolKeyValuePatternNode struct {
 
 func (n *SymbolKeyValuePatternNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &SymbolKeyValuePatternNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Key:      n.Key,
 		Value:    n.Value.Splice(loc, args).(PatternNode),
 	}
@@ -255,7 +255,7 @@ type KeyValuePatternNode struct {
 
 func (n *KeyValuePatternNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &KeyValuePatternNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Key:      n.Key.Splice(loc, args).(PatternExpressionNode),
 		Value:    n.Value.Splice(loc, args).(PatternNode),
 	}

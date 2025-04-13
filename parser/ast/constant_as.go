@@ -19,7 +19,7 @@ type ConstantAsNode struct {
 
 func (n *ConstantAsNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ConstantAsNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Constant: n.Constant.Splice(loc, args).(ComplexConstantNode),
 		AsName:   n.AsName,
 	}

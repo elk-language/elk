@@ -47,7 +47,7 @@ func (n *RangeLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	}
 
 	return &RangeLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Start:         start,
 		End:           end,
 		Op:            n.Op,

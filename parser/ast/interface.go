@@ -31,7 +31,7 @@ func (n *InterfaceDeclarationNode) Splice(loc *position.Location, args *[]Node) 
 	implements := SpliceSlice(n.Implements, loc, args)
 
 	return &InterfaceDeclarationNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Constant:               constant,
 		TypeParameters:         typeParams,

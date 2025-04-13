@@ -33,7 +33,7 @@ type ProgramNode struct {
 
 func (n *ProgramNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ProgramNode{
-		NodeBase:    n.NodeBase,
+		NodeBase:    NodeBase{loc: getLoc(loc, n.loc)},
 		Body:        SpliceSlice(n.Body, loc, args),
 		ImportPaths: n.ImportPaths,
 		State:       n.State,

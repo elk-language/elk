@@ -17,7 +17,7 @@ type TypeExpressionNode struct {
 
 func (n *TypeExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &TypeExpressionNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		TypeNode: n.TypeNode.Splice(loc, args).(TypeNode),
 	}
 }

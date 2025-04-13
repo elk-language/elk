@@ -39,7 +39,7 @@ func (n *StructDeclarationNode) Splice(loc *position.Location, args *[]Node) Nod
 	body := SpliceSlice(n.Body, loc, args)
 
 	return &StructDeclarationNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Constant:               constant,
 		TypeParameters:         typeParams,

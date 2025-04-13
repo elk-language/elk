@@ -30,7 +30,7 @@ func (n *ArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) Node
 	}
 
 	return &ArrayListLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -202,7 +202,7 @@ func (n *WordArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) 
 	}
 
 	return &WordArrayListLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -359,7 +359,7 @@ func (n *SymbolArrayListLiteralNode) Splice(loc *position.Location, args *[]Node
 	}
 
 	return &SymbolArrayListLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -515,7 +515,7 @@ func (n *HexArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) N
 	}
 
 	return &HexArrayListLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -673,7 +673,7 @@ func (n *BinArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) N
 	}
 
 	return &BinArrayListLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -823,7 +823,7 @@ type ListPatternNode struct {
 
 func (n *ListPatternNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ListPatternNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args),
 	}
 }

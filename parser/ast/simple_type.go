@@ -15,7 +15,7 @@ type BoolLiteralNode struct {
 
 func (n *BoolLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &BoolLiteralNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 	}
 }
 
@@ -70,7 +70,7 @@ type VoidTypeNode struct {
 
 func (n *VoidTypeNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &VoidTypeNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 	}
 }
 
@@ -120,7 +120,7 @@ type NeverTypeNode struct {
 
 func (n *NeverTypeNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &NeverTypeNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 	}
 }
 
@@ -174,7 +174,7 @@ type AnyTypeNode struct {
 
 func (n *AnyTypeNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &AnyTypeNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 	}
 }
 

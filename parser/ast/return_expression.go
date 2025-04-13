@@ -23,7 +23,7 @@ func (n *ReturnExpressionNode) Splice(loc *position.Location, args *[]Node) Node
 	}
 
 	return &ReturnExpressionNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Value:    val,
 	}
 }

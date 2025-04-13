@@ -18,7 +18,7 @@ type MacroBoundaryNode struct {
 
 func (n *MacroBoundaryNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &MacroBoundaryNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Name:          n.Name,
 		Body:          SpliceSlice(n.Body, loc, args),
 	}

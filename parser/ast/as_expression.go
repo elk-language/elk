@@ -18,7 +18,7 @@ type AsExpressionNode struct {
 
 func (n *AsExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &AsExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value.Splice(loc, args).(ExpressionNode),
 		RuntimeType:   n.RuntimeType.Splice(loc, args).(ComplexConstantNode),
 	}

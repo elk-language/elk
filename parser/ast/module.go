@@ -27,7 +27,7 @@ func (n *ModuleDeclarationNode) Splice(loc *position.Location, args *[]Node) Nod
 	body := SpliceSlice(n.Body, loc, args)
 
 	return &ModuleDeclarationNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Constant:               constant,
 		Body:                   body,

@@ -24,7 +24,7 @@ func (n *BinaryExpressionNode) Splice(loc *position.Location, args *[]Node) Node
 	right := n.Right.Splice(loc, args).(ExpressionNode)
 
 	return &BinaryExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Op:            n.Op,
 		Left:          left,
 		Right:         right,

@@ -23,7 +23,7 @@ type DoExpressionNode struct {
 
 func (n *DoExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &DoExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Body:          SpliceSlice(n.Body, loc, args),
 		Catches:       SpliceSlice(n.Catches, loc, args),
 		Finally:       SpliceSlice(n.Finally, loc, args),
@@ -183,7 +183,7 @@ func (n *CatchNode) Splice(loc *position.Location, args *[]Node) Node {
 	body := SpliceSlice(n.Body, loc, args)
 
 	return &CatchNode{
-		NodeBase:      n.NodeBase,
+		NodeBase:      NodeBase{loc: getLoc(loc, n.loc)},
 		Pattern:       pattern,
 		StackTraceVar: stackTraceVar,
 		Body:          body,

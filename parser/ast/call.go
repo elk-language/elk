@@ -19,7 +19,7 @@ type NewExpressionNode struct {
 
 func (n *NewExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &NewExpressionNode{
-		TypedNodeBase:       n.TypedNodeBase,
+		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
 	}
@@ -165,7 +165,7 @@ type GenericConstructorCallNode struct {
 
 func (n *GenericConstructorCallNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &GenericConstructorCallNode{
-		TypedNodeBase:       n.TypedNodeBase,
+		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		ClassNode:           n.ClassNode.Splice(loc, args).(ComplexConstantNode),
 		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
@@ -346,7 +346,7 @@ type ConstructorCallNode struct {
 
 func (n *ConstructorCallNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ConstructorCallNode{
-		TypedNodeBase:       n.TypedNodeBase,
+		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		ClassNode:           n.ClassNode.Splice(loc, args).(ComplexConstantNode),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
@@ -499,7 +499,7 @@ type AttributeAccessNode struct {
 
 func (n *AttributeAccessNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &AttributeAccessNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Receiver:      n.Receiver.Splice(loc, args).(ExpressionNode),
 		AttributeName: n.AttributeName,
 	}
@@ -587,7 +587,7 @@ func (n *SubscriptExpressionNode) Splice(loc *position.Location, args *[]Node) N
 	key := n.Key.Splice(loc, args).(ExpressionNode)
 
 	return &SubscriptExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Receiver:      receiver,
 		Key:           key,
 		static:        receiver.IsStatic() && key.IsStatic(),
@@ -679,7 +679,7 @@ func (n *NilSafeSubscriptExpressionNode) Splice(loc *position.Location, args *[]
 	key := n.Key.Splice(loc, args).(ExpressionNode)
 
 	return &NilSafeSubscriptExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Receiver:      receiver,
 		Key:           key,
 		static:        receiver.IsStatic() && key.IsStatic(),
@@ -769,7 +769,7 @@ type CallNode struct {
 
 func (n *CallNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &CallNode{
-		TypedNodeBase:       n.TypedNodeBase,
+		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Receiver:            n.Receiver.Splice(loc, args).(ExpressionNode),
 		NilSafe:             n.NilSafe,
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
@@ -936,7 +936,7 @@ type GenericMethodCallNode struct {
 
 func (n *GenericMethodCallNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &GenericMethodCallNode{
-		TypedNodeBase:       n.TypedNodeBase,
+		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Receiver:            n.Receiver.Splice(loc, args).(ExpressionNode),
 		Op:                  n.Op,
 		MethodName:          n.MethodName,
@@ -1136,7 +1136,7 @@ type MethodCallNode struct {
 
 func (n *MethodCallNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &MethodCallNode{
-		TypedNodeBase:       n.TypedNodeBase,
+		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Receiver:            n.Receiver.Splice(loc, args).(ExpressionNode),
 		Op:                  n.Op,
 		MethodName:          n.MethodName,
@@ -1300,7 +1300,7 @@ type ReceiverlessMethodCallNode struct {
 
 func (n *ReceiverlessMethodCallNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ReceiverlessMethodCallNode{
-		TypedNodeBase:       n.TypedNodeBase,
+		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		MethodName:          n.MethodName,
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
@@ -1452,7 +1452,7 @@ type GenericReceiverlessMethodCallNode struct {
 
 func (n *GenericReceiverlessMethodCallNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &GenericReceiverlessMethodCallNode{
-		TypedNodeBase:       n.TypedNodeBase,
+		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		MethodName:          n.MethodName,
 		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),

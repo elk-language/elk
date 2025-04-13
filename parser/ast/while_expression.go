@@ -18,7 +18,7 @@ type WhileExpressionNode struct {
 
 func (n *WhileExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &WhileExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Condition:     n.Condition.Splice(loc, args).(ExpressionNode),
 		ThenBody:      SpliceSlice(n.ThenBody, loc, args),
 	}

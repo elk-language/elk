@@ -19,7 +19,7 @@ type UnlessExpressionNode struct {
 
 func (n *UnlessExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &UnlessExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Condition:     n.Condition.Splice(loc, args).(ExpressionNode),
 		ThenBody:      SpliceSlice(n.ThenBody, loc, args),
 		ElseBody:      SpliceSlice(n.ElseBody, loc, args),

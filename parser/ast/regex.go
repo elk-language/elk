@@ -45,7 +45,7 @@ type UninterpolatedRegexLiteralNode struct {
 
 func (n *UninterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &UninterpolatedRegexLiteralNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Content:  n.Content,
 		Flags:    n.Flags,
 	}
@@ -191,7 +191,7 @@ type RegexLiteralContentSectionNode struct {
 
 func (n *RegexLiteralContentSectionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &RegexLiteralContentSectionNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Value:    n.Value,
 	}
 }
@@ -250,7 +250,7 @@ type RegexInterpolationNode struct {
 
 func (n *RegexInterpolationNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &RegexInterpolationNode{
-		NodeBase:   n.NodeBase,
+		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
 		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
 	}
 }
@@ -321,7 +321,7 @@ type InterpolatedRegexLiteralNode struct {
 
 func (n *InterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &InterpolatedRegexLiteralNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Content:  SpliceSlice(n.Content, loc, args),
 		Flags:    n.Flags,
 	}

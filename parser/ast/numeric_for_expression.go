@@ -37,7 +37,7 @@ func (n *NumericForExpressionNode) Splice(loc *position.Location, args *[]Node) 
 	thenBody := SpliceSlice(n.ThenBody, loc, args)
 
 	return &NumericForExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Initialiser:   init,
 		Condition:     condition,
 		Increment:     increment,

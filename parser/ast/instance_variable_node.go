@@ -15,7 +15,7 @@ type InstanceVariableNode struct {
 
 func (n *InstanceVariableNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &InstanceVariableNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }

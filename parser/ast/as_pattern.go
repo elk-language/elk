@@ -18,7 +18,7 @@ type AsPatternNode struct {
 
 func (n *AsPatternNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &AsPatternNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Pattern:  n.Pattern.Splice(loc, args).(PatternNode),
 		Name:     n.Name.Splice(loc, args).(IdentifierNode),
 	}

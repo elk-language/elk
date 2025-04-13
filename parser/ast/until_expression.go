@@ -18,7 +18,7 @@ type UntilExpressionNode struct {
 
 func (n *UntilExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &UntilExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Condition:     n.Condition.Splice(loc, args).(ExpressionNode),
 		ThenBody:      SpliceSlice(n.ThenBody, loc, args),
 	}

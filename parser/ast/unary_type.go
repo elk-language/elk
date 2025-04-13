@@ -19,7 +19,7 @@ type UnaryTypeNode struct {
 
 func (n *UnaryTypeNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &UnaryTypeNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Op:            n.Op,
 		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
 	}

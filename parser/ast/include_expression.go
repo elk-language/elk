@@ -17,7 +17,7 @@ type IncludeExpressionNode struct {
 
 func (n *IncludeExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &IncludeExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Constants:     SpliceSlice(n.Constants, loc, args),
 	}
 }

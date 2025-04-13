@@ -20,7 +20,7 @@ type AssignmentExpressionNode struct {
 
 func (n *AssignmentExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &AssignmentExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Op:            n.Op,
 		Left:          n.Left.Splice(loc, args).(ExpressionNode),
 		Right:         n.Right.Splice(loc, args).(ExpressionNode),

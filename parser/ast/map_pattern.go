@@ -17,7 +17,7 @@ type MapPatternNode struct {
 
 func (n *MapPatternNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &MapPatternNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args),
 	}
 }

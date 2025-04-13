@@ -19,7 +19,7 @@ type PostfixExpressionNode struct {
 
 func (n *PostfixExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &PostfixExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Op:            n.Op,
 		Expression:    n.Expression.Splice(loc, args).(ExpressionNode),
 	}

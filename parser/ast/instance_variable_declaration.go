@@ -24,7 +24,7 @@ func (n *InstanceVariableDeclarationNode) Splice(loc *position.Location, args *[
 	}
 
 	return &InstanceVariableDeclarationNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Name:                   n.Name,
 		TypeNode:               typeNode,

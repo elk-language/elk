@@ -30,7 +30,7 @@ func (n *HashMapLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	}
 
 	return &HashMapLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -192,7 +192,7 @@ func (n *HashRecordLiteralNode) Splice(loc *position.Location, args *[]Node) Nod
 	static := isExpressionSliceStatic(elements)
 
 	return &HashRecordLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		static:        static,
 	}

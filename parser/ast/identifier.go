@@ -29,7 +29,7 @@ type PublicIdentifierNode struct {
 
 func (n *PublicIdentifierNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &PublicIdentifierNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -88,7 +88,7 @@ type PrivateIdentifierNode struct {
 
 func (n *PrivateIdentifierNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &PrivateIdentifierNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -149,7 +149,7 @@ type PublicIdentifierAsNode struct {
 
 func (n *PublicIdentifierAsNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &PublicIdentifierAsNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Target:   n.Target.Splice(loc, args).(*PublicIdentifierNode),
 		AsName:   n.AsName,
 	}

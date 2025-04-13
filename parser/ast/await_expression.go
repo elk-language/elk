@@ -17,7 +17,7 @@ type AwaitExpressionNode struct {
 
 func (n *AwaitExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &AwaitExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value.Splice(loc, args).(ExpressionNode),
 	}
 }

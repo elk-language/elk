@@ -19,7 +19,7 @@ type LabeledExpressionNode struct {
 
 func (n *LabeledExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &LabeledExpressionNode{
-		NodeBase:   n.NodeBase,
+		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
 		Label:      n.Label,
 		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
 	}

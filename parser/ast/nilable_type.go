@@ -17,7 +17,7 @@ type NilableTypeNode struct {
 
 func (n *NilableTypeNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &NilableTypeNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
 	}
 }

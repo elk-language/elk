@@ -31,7 +31,7 @@ type ExpressionStatementNode struct {
 
 func (n *ExpressionStatementNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ExpressionStatementNode{
-		NodeBase:   n.NodeBase,
+		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
 		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
 	}
 }
@@ -103,7 +103,7 @@ type EmptyStatementNode struct {
 
 func (n *EmptyStatementNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &EmptyStatementNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 	}
 }
 
@@ -158,7 +158,7 @@ type ImportStatementNode struct {
 
 func (n *ImportStatementNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ImportStatementNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Path:     n.Path,
 		FsPaths:  n.FsPaths,
 	}
@@ -220,7 +220,7 @@ type ParameterStatementNode struct {
 
 func (n *ParameterStatementNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ParameterStatementNode{
-		NodeBase:  n.NodeBase,
+		NodeBase:  NodeBase{loc: getLoc(loc, n.loc)},
 		Parameter: n.Parameter.Splice(loc, args).(ParameterNode),
 	}
 }

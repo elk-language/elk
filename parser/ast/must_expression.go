@@ -17,7 +17,7 @@ type MustExpressionNode struct {
 
 func (n *MustExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &MustExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }

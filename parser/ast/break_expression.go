@@ -24,7 +24,7 @@ func (n *BreakExpressionNode) Splice(loc *position.Location, args *[]Node) Node 
 	}
 
 	return &BreakExpressionNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Label:    n.Label,
 		Value:    val,
 	}

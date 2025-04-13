@@ -17,7 +17,7 @@ type UnionTypeNode struct {
 
 func (n *UnionTypeNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &UnionTypeNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args),
 	}
 }

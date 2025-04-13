@@ -50,7 +50,7 @@ type UsingAllEntryNode struct {
 
 func (n *UsingAllEntryNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &UsingAllEntryNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Namespace:     n.Namespace.Splice(loc, args).(UsingEntryNode),
 	}
 }
@@ -120,7 +120,7 @@ type UsingEntryWithSubentriesNode struct {
 
 func (n *UsingEntryWithSubentriesNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &UsingEntryWithSubentriesNode{
-		NodeBase:   n.NodeBase,
+		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
 		Namespace:  n.Namespace.Splice(loc, args).(UsingEntryNode),
 		Subentries: SpliceSlice(n.Subentries, loc, args),
 	}
@@ -220,7 +220,7 @@ type UsingExpressionNode struct {
 
 func (n *UsingExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &UsingExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Entries:       SpliceSlice(n.Entries, loc, args),
 	}
 }

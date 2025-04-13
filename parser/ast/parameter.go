@@ -81,7 +81,7 @@ func (n *FormalParameterNode) Splice(loc *position.Location, args *[]Node) Node 
 	}
 
 	return &FormalParameterNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Name:          n.Name,
 		TypeNode:      typeNode,
 		Initialiser:   init,
@@ -219,7 +219,7 @@ func (n *MethodParameterNode) Splice(loc *position.Location, args *[]Node) Node 
 	}
 
 	return &MethodParameterNode{
-		TypedNodeBase:       n.TypedNodeBase,
+		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Name:                n.Name,
 		TypeNode:            typeNode,
 		Initialiser:         init,
@@ -361,7 +361,7 @@ func (n *SignatureParameterNode) Splice(loc *position.Location, args *[]Node) No
 	}
 
 	return &SignatureParameterNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Name:          n.Name,
 		TypeNode:      typeNode,
 		Optional:      n.Optional,
@@ -481,7 +481,7 @@ func (n *AttributeParameterNode) Splice(loc *position.Location, args *[]Node) No
 	}
 
 	return &AttributeParameterNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Name:          n.Name,
 		TypeNode:      typeNode,
 		Initialiser:   init,

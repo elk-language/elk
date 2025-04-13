@@ -21,7 +21,7 @@ type LogicalExpressionNode struct {
 
 func (n *LogicalExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &LogicalExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Op:            n.Op,
 		Left:          n.Left.Splice(loc, args).(ComplexConstantNode),
 		Right:         n.Right.Splice(loc, args).(ComplexConstantNode),

@@ -15,7 +15,7 @@ type CharLiteralNode struct {
 
 func (n *CharLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &CharLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -73,7 +73,7 @@ type RawCharLiteralNode struct {
 
 func (n *RawCharLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &RawCharLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }

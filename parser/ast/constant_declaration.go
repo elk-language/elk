@@ -32,7 +32,7 @@ func (n *ConstantDeclarationNode) Splice(loc *position.Location, args *[]Node) N
 	}
 
 	return &ConstantDeclarationNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Constant:               constant,
 		TypeNode:               typeNode,

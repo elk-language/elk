@@ -54,7 +54,7 @@ func (n *VariantTypeParameterNode) Splice(loc *position.Location, args *[]Node) 
 	}
 
 	return &VariantTypeParameterNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Variance:      n.Variance,
 		Name:          n.Name,
 		LowerBound:    lowerBound,

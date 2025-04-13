@@ -31,7 +31,7 @@ func (n *ClosureTypeNode) Splice(loc *position.Location, args *[]Node) Node {
 	}
 
 	return &ClosureTypeNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Parameters:    params,
 		ReturnType:    returnType,
 		ThrowType:     throwType,

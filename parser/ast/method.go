@@ -53,7 +53,7 @@ func (n *MethodDefinitionNode) Splice(loc *position.Location, args *[]Node) Node
 	body := SpliceSlice(n.Body, loc, args)
 
 	return &MethodDefinitionNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Name:                   n.Name,
 		TypeParameters:         typeParams,
@@ -352,7 +352,7 @@ func (n *InitDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
 	body := SpliceSlice(n.Body, loc, args)
 
 	return &InitDefinitionNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Parameters:             params,
 		ThrowType:              throwType,
@@ -528,7 +528,7 @@ func (n *MethodSignatureDefinitionNode) Splice(loc *position.Location, args *[]N
 	}
 
 	return &MethodSignatureDefinitionNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Name:                   n.Name,
 		TypeParameters:         typeParams,
@@ -794,7 +794,7 @@ type AliasDeclarationNode struct {
 
 func (n *AliasDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &AliasDeclarationNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Entries:       SpliceSlice(n.Entries, loc, args),
 	}
 }
@@ -889,7 +889,7 @@ type GetterDeclarationNode struct {
 
 func (n *GetterDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &GetterDeclarationNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Entries:                SpliceSlice(n.Entries, loc, args),
 	}
@@ -1001,7 +1001,7 @@ type SetterDeclarationNode struct {
 
 func (n *SetterDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &SetterDeclarationNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Entries:                SpliceSlice(n.Entries, loc, args),
 	}
@@ -1106,7 +1106,7 @@ type AttrDeclarationNode struct {
 
 func (n *AttrDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &AttrDeclarationNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Entries:                SpliceSlice(n.Entries, loc, args),
 	}

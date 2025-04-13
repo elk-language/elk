@@ -29,7 +29,7 @@ type NamedCallArgumentNode struct {
 
 func (n *NamedCallArgumentNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &NamedCallArgumentNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Name:     n.Name,
 		Value:    n.Value.Splice(loc, args).(ExpressionNode),
 	}

@@ -19,7 +19,7 @@ type UnaryExpressionNode struct {
 
 func (n *UnaryExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &UnaryExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Op:            n.Op,
 		Right:         n.Right.Splice(loc, args).(ExpressionNode),
 	}

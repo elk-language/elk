@@ -23,7 +23,7 @@ func (n *YieldExpressionNode) Splice(loc *position.Location, args *[]Node) Node 
 	}
 
 	return &YieldExpressionNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Value:    val,
 		Forward:  n.Forward,
 	}

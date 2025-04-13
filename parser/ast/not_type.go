@@ -17,7 +17,7 @@ type NotTypeNode struct {
 
 func (n *NotTypeNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &NotTypeNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
 	}
 }

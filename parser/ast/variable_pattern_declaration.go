@@ -18,7 +18,7 @@ type VariablePatternDeclarationNode struct {
 
 func (n *VariablePatternDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &VariablePatternDeclarationNode{
-		NodeBase:    n.NodeBase,
+		NodeBase:    NodeBase{loc: getLoc(loc, n.loc)},
 		Pattern:     n.Pattern.Splice(loc, args).(PatternNode),
 		Initialiser: n.Initialiser.Splice(loc, args).(ExpressionNode),
 	}

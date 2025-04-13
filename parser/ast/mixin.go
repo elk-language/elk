@@ -32,7 +32,7 @@ func (n *MixinDeclarationNode) Splice(loc *position.Location, args *[]Node) Node
 	includes := SpliceSlice(n.IncludesAndImplements, loc, args)
 
 	return &MixinDeclarationNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Abstract:               n.Abstract,
 		Constant:               constant,

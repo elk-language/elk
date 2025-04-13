@@ -20,7 +20,7 @@ type ModifierNode struct {
 
 func (n *ModifierNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ModifierNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Modifier:      n.Modifier,
 		Left:          n.Left.Splice(loc, args).(ExpressionNode),
 		Right:         n.Right.Splice(loc, args).(ExpressionNode),
@@ -123,7 +123,7 @@ type ModifierIfElseNode struct {
 
 func (n *ModifierIfElseNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ModifierIfElseNode{
-		TypedNodeBase:  n.TypedNodeBase,
+		TypedNodeBase:  TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		ThenExpression: n.ThenExpression.Splice(loc, args).(ExpressionNode),
 		Condition:      n.Condition.Splice(loc, args).(ExpressionNode),
 		ElseExpression: n.ElseExpression.Splice(loc, args).(ExpressionNode),
@@ -225,7 +225,7 @@ type ModifierForInNode struct {
 
 func (n *ModifierForInNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ModifierForInNode{
-		TypedNodeBase:  n.TypedNodeBase,
+		TypedNodeBase:  TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		ThenExpression: n.ThenExpression.Splice(loc, args).(ExpressionNode),
 		Pattern:        n.Pattern.Splice(loc, args).(PatternNode),
 		InExpression:   n.InExpression.Splice(loc, args).(ExpressionNode),

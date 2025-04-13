@@ -18,7 +18,7 @@ type ObjectPatternNode struct {
 
 func (n *ObjectPatternNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ObjectPatternNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		ObjectType:    n.ObjectType.Splice(loc, args).(ComplexConstantNode),
 		Attributes:    SpliceSlice(n.Attributes, loc, args),
 	}

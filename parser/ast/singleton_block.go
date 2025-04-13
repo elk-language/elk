@@ -22,7 +22,7 @@ type SingletonBlockExpressionNode struct {
 
 func (n *SingletonBlockExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &SingletonBlockExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Body:          SpliceSlice(n.Body, loc, args),
 		Bytecode:      n.Bytecode,
 	}

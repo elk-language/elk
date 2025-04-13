@@ -21,7 +21,7 @@ func (n *ContinueExpressionNode) Splice(loc *position.Location, args *[]Node) No
 	val := n.Value.Splice(loc, args).(ExpressionNode)
 
 	return &ContinueExpressionNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Label:    n.Label,
 		Value:    val,
 	}

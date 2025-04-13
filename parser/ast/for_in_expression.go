@@ -19,7 +19,7 @@ type ForInExpressionNode struct {
 
 func (n *ForInExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ForInExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Pattern:       n.Pattern.Splice(loc, args).(PatternNode),
 		InExpression:  n.InExpression.Splice(loc, args).(ExpressionNode),
 		ThenBody:      SpliceSlice(n.ThenBody, loc, args),

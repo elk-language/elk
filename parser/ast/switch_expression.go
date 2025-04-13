@@ -28,7 +28,7 @@ type SwitchExpressionNode struct {
 
 func (n *SwitchExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &SwitchExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value.Splice(loc, args).(ExpressionNode),
 		Cases:         SpliceSlice(n.Cases, loc, args),
 		ElseBody:      SpliceSlice(n.ElseBody, loc, args),
@@ -154,7 +154,7 @@ type CaseNode struct {
 
 func (n *CaseNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &CaseNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Pattern:  n.Pattern.Splice(loc, args).(PatternNode),
 		Body:     SpliceSlice(n.Body, loc, args),
 	}

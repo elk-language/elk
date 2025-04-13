@@ -17,7 +17,7 @@ type SingletonTypeNode struct {
 
 func (n *SingletonTypeNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &SingletonTypeNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
 	}
 }

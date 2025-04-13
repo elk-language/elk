@@ -40,7 +40,7 @@ func (n *ClassDeclarationNode) Splice(loc *position.Location, args *[]Node) Node
 	body := SpliceSlice(n.Body, loc, args)
 
 	return &ClassDeclarationNode{
-		TypedNodeBase:  n.TypedNodeBase,
+		TypedNodeBase:  TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Abstract:       n.Abstract,
 		Sealed:         n.Sealed,
 		Primitive:      n.Primitive,

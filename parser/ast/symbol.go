@@ -31,7 +31,7 @@ type SimpleSymbolLiteralNode struct {
 
 func (n *SimpleSymbolLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &SimpleSymbolLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Content:       n.Content,
 	}
 }
@@ -90,7 +90,7 @@ type InterpolatedSymbolLiteralNode struct {
 
 func (n *InterpolatedSymbolLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &InterpolatedSymbolLiteralNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Content:  n.Content.Splice(loc, args).(*InterpolatedStringLiteralNode),
 	}
 }

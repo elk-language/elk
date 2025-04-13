@@ -71,7 +71,7 @@ type PublicConstantNode struct {
 
 func (n *PublicConstantNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &PublicConstantNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -130,7 +130,7 @@ type PrivateConstantNode struct {
 
 func (n *PrivateConstantNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &PrivateConstantNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -191,7 +191,7 @@ type PublicConstantAsNode struct {
 
 func (n *PublicConstantAsNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &PublicConstantAsNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Target:   n.Target.Splice(loc, args).(*PublicConstantNode),
 		AsName:   n.AsName,
 	}
@@ -268,7 +268,7 @@ func (n *ConstantLookupNode) Splice(loc *position.Location, args *[]Node) Node {
 	right := n.Right.Splice(loc, args).(ComplexConstantNode)
 
 	return &ConstantLookupNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Left:          left,
 		Right:         right,
 	}
@@ -359,7 +359,7 @@ type GenericConstantNode struct {
 
 func (n *GenericConstantNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &GenericConstantNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Constant:      n.Constant.Splice(loc, args).(ComplexConstantNode),
 		TypeArguments: SpliceSlice(n.TypeArguments, loc, args),
 	}

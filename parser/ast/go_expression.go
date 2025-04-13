@@ -17,7 +17,7 @@ type GoExpressionNode struct {
 
 func (n *GoExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &GoExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Body:          SpliceSlice(n.Body, loc, args),
 	}
 }

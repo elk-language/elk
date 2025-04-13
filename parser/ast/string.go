@@ -59,7 +59,7 @@ type RawStringLiteralNode struct {
 
 func (n *RawStringLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &RawStringLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -118,7 +118,7 @@ type StringLiteralContentSectionNode struct {
 
 func (n *StringLiteralContentSectionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &StringLiteralContentSectionNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Value:    n.Value,
 	}
 }
@@ -177,7 +177,7 @@ type StringInspectInterpolationNode struct {
 
 func (n *StringInspectInterpolationNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &StringInspectInterpolationNode{
-		NodeBase:   n.NodeBase,
+		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
 		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
 	}
 }
@@ -247,7 +247,7 @@ type StringInterpolationNode struct {
 
 func (n *StringInterpolationNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &StringInterpolationNode{
-		NodeBase:   n.NodeBase,
+		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
 		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
 	}
 }
@@ -317,7 +317,7 @@ type InterpolatedStringLiteralNode struct {
 
 func (n *InterpolatedStringLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &InterpolatedStringLiteralNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Content:  SpliceSlice(n.Content, loc, args),
 	}
 }
@@ -409,7 +409,7 @@ type DoubleQuotedStringLiteralNode struct {
 
 func (n *DoubleQuotedStringLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &DoubleQuotedStringLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }

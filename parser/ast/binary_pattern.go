@@ -20,7 +20,7 @@ type BinaryPatternNode struct {
 
 func (n *BinaryPatternNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &BinaryPatternNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Op:            n.Op,
 		Left:          n.Left.Splice(loc, args).(PatternNode),
 		Right:         n.Right.Splice(loc, args).(PatternNode),

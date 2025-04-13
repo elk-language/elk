@@ -20,7 +20,7 @@ type GenericTypeDefinitionNode struct {
 
 func (n *GenericTypeDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &GenericTypeDefinitionNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args),
 		Constant:               n.Constant.Splice(loc, args).(ComplexConstantNode),
@@ -150,7 +150,7 @@ type TypeDefinitionNode struct {
 
 func (n *TypeDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &TypeDefinitionNode{
-		TypedNodeBase:          n.TypedNodeBase,
+		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Constant:               n.Constant.Splice(loc, args).(ComplexConstantNode),
 		TypeNode:               n.TypeNode.Splice(loc, args).(TypeNode),

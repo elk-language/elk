@@ -30,7 +30,7 @@ func (n *HashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	}
 
 	return &HashSetLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -199,7 +199,7 @@ func (n *WordHashSetLiteralNode) Splice(loc *position.Location, args *[]Node) No
 	}
 
 	return &WordHashSetLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -356,7 +356,7 @@ func (n *SymbolHashSetLiteralNode) Splice(loc *position.Location, args *[]Node) 
 	}
 
 	return &SymbolHashSetLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -512,7 +512,7 @@ func (n *HexHashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Nod
 	}
 
 	return &HexHashSetLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -669,7 +669,7 @@ func (n *BinHashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Nod
 	}
 
 	return &BinHashSetLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -819,7 +819,7 @@ type SetPatternNode struct {
 
 func (n *SetPatternNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &SetPatternNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args),
 	}
 }

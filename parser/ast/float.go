@@ -15,7 +15,7 @@ type FloatLiteralNode struct {
 
 func (n *FloatLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &FloatLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -74,7 +74,7 @@ type BigFloatLiteralNode struct {
 
 func (n *BigFloatLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &BigFloatLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -133,7 +133,7 @@ type Float64LiteralNode struct {
 
 func (n *Float64LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &Float64LiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -192,7 +192,7 @@ type Float32LiteralNode struct {
 
 func (n *Float32LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &Float32LiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value,
 	}
 }

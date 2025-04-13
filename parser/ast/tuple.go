@@ -20,7 +20,7 @@ func (n *ArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Nod
 	elements := SpliceSlice(n.Elements, loc, args)
 
 	return &ArrayTupleLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      elements,
 		static:        isExpressionSliceStatic(elements),
 	}
@@ -144,7 +144,7 @@ type WordArrayTupleLiteralNode struct {
 
 func (n *WordArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &WordArrayTupleLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args),
 	}
 }
@@ -253,7 +253,7 @@ type SymbolArrayTupleLiteralNode struct {
 
 func (n *SymbolArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &SymbolArrayTupleLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args),
 	}
 }
@@ -364,7 +364,7 @@ type HexArrayTupleLiteralNode struct {
 
 func (n *HexArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &HexArrayTupleLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args),
 	}
 }
@@ -474,7 +474,7 @@ type BinArrayTupleLiteralNode struct {
 
 func (n *BinArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &BinArrayTupleLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args),
 	}
 }
@@ -588,7 +588,7 @@ type TuplePatternNode struct {
 
 func (n *TuplePatternNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &TuplePatternNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args),
 	}
 }

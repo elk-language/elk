@@ -17,7 +17,7 @@ type RestPatternNode struct {
 
 func (n *RestPatternNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &RestPatternNode{
-		NodeBase:   n.NodeBase,
+		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
 		Identifier: n.Identifier.Splice(loc, args).(IdentifierNode),
 	}
 }

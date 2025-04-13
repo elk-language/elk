@@ -17,7 +17,7 @@ type ImplementExpressionNode struct {
 
 func (n *ImplementExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ImplementExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Constants:     SpliceSlice(n.Constants, loc, args),
 	}
 }

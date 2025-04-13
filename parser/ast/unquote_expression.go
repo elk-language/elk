@@ -23,7 +23,7 @@ func (n *UnquoteExpressionNode) Splice(loc *position.Location, args *[]Node) Nod
 	arg := (*args)[0]
 	*args = (*args)[1:]
 
-	arg = arg.Splice(loc, nil)
+	arg = arg.Splice(nil, nil)
 	if arg.Location().FilePath == "" {
 		arg.SetLocation(loc)
 	}

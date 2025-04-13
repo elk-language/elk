@@ -15,7 +15,7 @@ type TrueLiteralNode struct {
 
 func (n *TrueLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &TrueLiteralNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 	}
 }
 
@@ -70,7 +70,7 @@ type FalseLiteralNode struct {
 
 func (n *FalseLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &FalseLiteralNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 	}
 }
 
@@ -125,7 +125,7 @@ type SelfLiteralNode struct {
 
 func (n *SelfLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &SelfLiteralNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 	}
 }
 
@@ -176,7 +176,7 @@ type NilLiteralNode struct {
 
 func (n *NilLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &NilLiteralNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 	}
 }
 
@@ -233,7 +233,7 @@ type UndefinedLiteralNode struct {
 
 func (n *UndefinedLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &UndefinedLiteralNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 	}
 }
 

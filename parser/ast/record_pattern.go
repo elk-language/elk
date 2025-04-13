@@ -17,7 +17,7 @@ type RecordPatternNode struct {
 
 func (n *RecordPatternNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &RecordPatternNode{
-		NodeBase: n.NodeBase,
+		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
 		Elements: SpliceSlice(n.Elements, loc, args),
 	}
 }

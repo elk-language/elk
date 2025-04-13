@@ -22,7 +22,7 @@ type ExtendWhereBlockExpressionNode struct {
 
 func (n *ExtendWhereBlockExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &ExtendWhereBlockExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Body:          SpliceSlice(n.Body, loc, args),
 		Where:         SpliceSlice(n.Where, loc, args),
 	}

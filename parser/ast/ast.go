@@ -274,6 +274,14 @@ func SpliceSlice[N Node](slice []N, loc *position.Location, args *[]Node) []N {
 	return result
 }
 
+func getLoc(a, b *position.Location) *position.Location {
+	if a != nil {
+		return a
+	}
+
+	return b
+}
+
 type DocCommentableNode interface {
 	DocComment() string
 	SetDocComment(string)

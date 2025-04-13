@@ -17,7 +17,7 @@ type DoubleSplatExpressionNode struct {
 
 func (n *DoubleSplatExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &DoubleSplatExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value.Splice(loc, args).(ExpressionNode),
 	}
 }
@@ -96,7 +96,7 @@ type SplatExpressionNode struct {
 
 func (n *SplatExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
 	return &SplatExpressionNode{
-		TypedNodeBase: n.TypedNodeBase,
+		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
 		Value:         n.Value.Splice(loc, args).(ExpressionNode),
 	}
 }
