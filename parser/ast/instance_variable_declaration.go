@@ -17,14 +17,14 @@ type InstanceVariableDeclarationNode struct {
 	TypeNode TypeNode // type of the variable
 }
 
-func (n *InstanceVariableDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *InstanceVariableDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var typeNode ComplexConstantNode
 	if n.TypeNode != nil {
-		typeNode = n.TypeNode.Splice(loc, args).(ComplexConstantNode)
+		typeNode = n.TypeNode.Splice(loc, args, unquote).(ComplexConstantNode)
 	}
 
 	return &InstanceVariableDeclarationNode{
-		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Name:                   n.Name,
 		TypeNode:               typeNode,

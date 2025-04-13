@@ -13,9 +13,9 @@ type IntLiteralNode struct {
 	Value string
 }
 
-func (n *IntLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *IntLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &IntLiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -71,9 +71,9 @@ type Int64LiteralNode struct {
 	Value string
 }
 
-func (n *Int64LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *Int64LiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &Int64LiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -130,9 +130,9 @@ type UInt64LiteralNode struct {
 	Value string
 }
 
-func (n *UInt64LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *UInt64LiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UInt64LiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -189,9 +189,9 @@ type Int32LiteralNode struct {
 	Value string
 }
 
-func (n *Int32LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *Int32LiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &Int32LiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -244,9 +244,9 @@ type UInt32LiteralNode struct {
 	Value string
 }
 
-func (n *UInt32LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *UInt32LiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UInt32LiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -303,9 +303,9 @@ type Int16LiteralNode struct {
 	Value string
 }
 
-func (n *Int16LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *Int16LiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &Int16LiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -362,9 +362,9 @@ type UInt16LiteralNode struct {
 	Value string
 }
 
-func (n *UInt16LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *UInt16LiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UInt16LiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -421,9 +421,9 @@ type Int8LiteralNode struct {
 	Value string
 }
 
-func (n *Int8LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *Int8LiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &Int8LiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -480,9 +480,9 @@ type UInt8LiteralNode struct {
 	Value string
 }
 
-func (n *UInt8LiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *UInt8LiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UInt8LiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }

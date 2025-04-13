@@ -15,10 +15,10 @@ type ImplementExpressionNode struct {
 	Constants []ComplexConstantNode
 }
 
-func (n *ImplementExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *ImplementExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ImplementExpressionNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Constants:     SpliceSlice(n.Constants, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Constants:     SpliceSlice(n.Constants, loc, args, unquote),
 	}
 }
 

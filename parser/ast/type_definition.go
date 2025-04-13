@@ -18,13 +18,13 @@ type GenericTypeDefinitionNode struct {
 	TypeNode       TypeNode            // the type
 }
 
-func (n *GenericTypeDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *GenericTypeDefinitionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &GenericTypeDefinitionNode{
-		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args),
-		Constant:               n.Constant.Splice(loc, args).(ComplexConstantNode),
-		TypeNode:               n.TypeNode.Splice(loc, args).(TypeNode),
+		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args, unquote),
+		Constant:               n.Constant.Splice(loc, args, unquote).(ComplexConstantNode),
+		TypeNode:               n.TypeNode.Splice(loc, args, unquote).(TypeNode),
 	}
 }
 
@@ -148,12 +148,12 @@ type TypeDefinitionNode struct {
 	TypeNode TypeNode            // the type
 }
 
-func (n *TypeDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *TypeDefinitionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &TypeDefinitionNode{
-		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Constant:               n.Constant.Splice(loc, args).(ComplexConstantNode),
-		TypeNode:               n.TypeNode.Splice(loc, args).(TypeNode),
+		Constant:               n.Constant.Splice(loc, args, unquote).(ComplexConstantNode),
+		TypeNode:               n.TypeNode.Splice(loc, args, unquote).(TypeNode),
 	}
 }
 

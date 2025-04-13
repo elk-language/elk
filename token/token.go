@@ -18,6 +18,14 @@ type Token struct {
 	loc   *position.Location
 }
 
+func (t *Token) Splice(loc *position.Location, unquote bool) *Token {
+	return &Token{
+		Type:  t.Type,
+		Value: t.Value,
+		loc:   position.SpliceLocation(loc, t.loc, unquote),
+	}
+}
+
 func (*Token) Class() *value.Class {
 	return value.ElkTokenClass
 }

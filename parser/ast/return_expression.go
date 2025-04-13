@@ -16,14 +16,14 @@ type ReturnExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (n *ReturnExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *ReturnExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var val ExpressionNode
 	if n.Value != nil {
-		val = n.Value.Splice(loc, args).(ExpressionNode)
+		val = n.Value.Splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	return &ReturnExpressionNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Value:    val,
 	}
 }

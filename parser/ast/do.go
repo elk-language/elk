@@ -21,12 +21,12 @@ type DoExpressionNode struct {
 	Finally []StatementNode
 }
 
-func (n *DoExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *DoExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &DoExpressionNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Body:          SpliceSlice(n.Body, loc, args),
-		Catches:       SpliceSlice(n.Catches, loc, args),
-		Finally:       SpliceSlice(n.Finally, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Body:          SpliceSlice(n.Body, loc, args, unquote),
+		Catches:       SpliceSlice(n.Catches, loc, args, unquote),
+		Finally:       SpliceSlice(n.Finally, loc, args, unquote),
 	}
 }
 
@@ -172,18 +172,18 @@ type CatchNode struct {
 	Body          []StatementNode // do expression body
 }
 
-func (n *CatchNode) Splice(loc *position.Location, args *[]Node) Node {
-	pattern := n.Pattern.Splice(loc, args).(PatternNode)
+func (n *CatchNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	pattern := n.Pattern.Splice(loc, args, unquote).(PatternNode)
 
 	var stackTraceVar IdentifierNode
 	if n.StackTraceVar != nil {
-		stackTraceVar = n.StackTraceVar.Splice(loc, args).(IdentifierNode)
+		stackTraceVar = n.StackTraceVar.Splice(loc, args, unquote).(IdentifierNode)
 	}
 
-	body := SpliceSlice(n.Body, loc, args)
+	body := SpliceSlice(n.Body, loc, args, unquote)
 
 	return &CatchNode{
-		NodeBase:      NodeBase{loc: getLoc(loc, n.loc)},
+		NodeBase:      NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Pattern:       pattern,
 		StackTraceVar: stackTraceVar,
 		Body:          body,

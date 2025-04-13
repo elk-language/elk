@@ -18,12 +18,12 @@ type BinaryTypeNode struct {
 	Right TypeNode     // right hand side
 }
 
-func (n *BinaryTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *BinaryTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &BinaryTypeNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Op:            n.Op,
-		Left:          n.Left.Splice(loc, args).(TypeNode),
-		Right:         n.Right.Splice(loc, args).(TypeNode),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Op:            n.Op.Splice(loc, unquote),
+		Left:          n.Left.Splice(loc, args, unquote).(TypeNode),
+		Right:         n.Right.Splice(loc, args, unquote).(TypeNode),
 	}
 }
 

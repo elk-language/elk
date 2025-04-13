@@ -17,20 +17,20 @@ type HashMapLiteralNode struct {
 	static   bool
 }
 
-func (n *HashMapLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
-	elements := SpliceSlice(n.Elements, loc, args)
+func (n *HashMapLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	elements := SpliceSlice(n.Elements, loc, args, unquote)
 	var capacity ExpressionNode
 	var static bool
 
 	if n.Capacity != nil {
-		capacity = n.Capacity.Splice(loc, args).(ExpressionNode)
+		capacity = n.Capacity.Splice(loc, args, unquote).(ExpressionNode)
 		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
 	} else {
 		static = isExpressionSliceStatic(elements)
 	}
 
 	return &HashMapLiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
 		static:        static,
@@ -187,12 +187,12 @@ type HashRecordLiteralNode struct {
 	static   bool
 }
 
-func (n *HashRecordLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
-	elements := SpliceSlice(n.Elements, loc, args)
+func (n *HashRecordLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	elements := SpliceSlice(n.Elements, loc, args, unquote)
 	static := isExpressionSliceStatic(elements)
 
 	return &HashRecordLiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		static:        static,
 	}

@@ -17,10 +17,10 @@ type ConstantAsNode struct {
 	AsName   string
 }
 
-func (n *ConstantAsNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *ConstantAsNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ConstantAsNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
-		Constant: n.Constant.Splice(loc, args).(ComplexConstantNode),
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Constant: n.Constant.Splice(loc, args, unquote).(ComplexConstantNode),
 		AsName:   n.AsName,
 	}
 }

@@ -16,11 +16,11 @@ type ArrayTupleLiteralNode struct {
 	static   bool
 }
 
-func (n *ArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
-	elements := SpliceSlice(n.Elements, loc, args)
+func (n *ArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
 	return &ArrayTupleLiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		static:        isExpressionSliceStatic(elements),
 	}
@@ -142,10 +142,10 @@ type WordArrayTupleLiteralNode struct {
 	Elements []WordCollectionContentNode
 }
 
-func (n *WordArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *WordArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &WordArrayTupleLiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Elements:      SpliceSlice(n.Elements, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
 }
 
@@ -251,10 +251,10 @@ type SymbolArrayTupleLiteralNode struct {
 	Elements []SymbolCollectionContentNode
 }
 
-func (n *SymbolArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *SymbolArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SymbolArrayTupleLiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Elements:      SpliceSlice(n.Elements, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
 }
 
@@ -362,10 +362,10 @@ type HexArrayTupleLiteralNode struct {
 	Elements []IntCollectionContentNode
 }
 
-func (n *HexArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *HexArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &HexArrayTupleLiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Elements:      SpliceSlice(n.Elements, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
 }
 
@@ -472,10 +472,10 @@ type BinArrayTupleLiteralNode struct {
 	Elements []IntCollectionContentNode
 }
 
-func (n *BinArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *BinArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &BinArrayTupleLiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Elements:      SpliceSlice(n.Elements, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
 }
 
@@ -586,10 +586,10 @@ type TuplePatternNode struct {
 	Elements []PatternNode
 }
 
-func (n *TuplePatternNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *TuplePatternNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &TuplePatternNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Elements:      SpliceSlice(n.Elements, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
 }
 

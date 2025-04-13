@@ -57,9 +57,9 @@ type RawStringLiteralNode struct {
 	Value string // value of the string literal
 }
 
-func (n *RawStringLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *RawStringLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &RawStringLiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -116,9 +116,9 @@ type StringLiteralContentSectionNode struct {
 	Value string
 }
 
-func (n *StringLiteralContentSectionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *StringLiteralContentSectionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &StringLiteralContentSectionNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Value:    n.Value,
 	}
 }
@@ -175,10 +175,10 @@ type StringInspectInterpolationNode struct {
 	Expression ExpressionNode
 }
 
-func (n *StringInspectInterpolationNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *StringInspectInterpolationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &StringInspectInterpolationNode{
-		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
-		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
+		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Expression: n.Expression.Splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 
@@ -245,10 +245,10 @@ type StringInterpolationNode struct {
 	Expression ExpressionNode
 }
 
-func (n *StringInterpolationNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *StringInterpolationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &StringInterpolationNode{
-		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
-		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
+		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Expression: n.Expression.Splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 
@@ -315,10 +315,10 @@ type InterpolatedStringLiteralNode struct {
 	Content []StringLiteralContentNode
 }
 
-func (n *InterpolatedStringLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *InterpolatedStringLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &InterpolatedStringLiteralNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
-		Content:  SpliceSlice(n.Content, loc, args),
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Content:  SpliceSlice(n.Content, loc, args, unquote),
 	}
 }
 
@@ -407,9 +407,9 @@ type DoubleQuotedStringLiteralNode struct {
 	Value string
 }
 
-func (n *DoubleQuotedStringLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *DoubleQuotedStringLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &DoubleQuotedStringLiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }

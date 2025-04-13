@@ -43,9 +43,9 @@ type UninterpolatedRegexLiteralNode struct {
 	Flags   bitfield.BitField8
 }
 
-func (n *UninterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *UninterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UninterpolatedRegexLiteralNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Content:  n.Content,
 		Flags:    n.Flags,
 	}
@@ -189,9 +189,9 @@ type RegexLiteralContentSectionNode struct {
 	Value string
 }
 
-func (n *RegexLiteralContentSectionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *RegexLiteralContentSectionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &RegexLiteralContentSectionNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Value:    n.Value,
 	}
 }
@@ -248,10 +248,10 @@ type RegexInterpolationNode struct {
 	Expression ExpressionNode
 }
 
-func (n *RegexInterpolationNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *RegexInterpolationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &RegexInterpolationNode{
-		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
-		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
+		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Expression: n.Expression.Splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 
@@ -319,10 +319,10 @@ type InterpolatedRegexLiteralNode struct {
 	Flags   bitfield.BitField8
 }
 
-func (n *InterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *InterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &InterpolatedRegexLiteralNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
-		Content:  SpliceSlice(n.Content, loc, args),
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Content:  SpliceSlice(n.Content, loc, args, unquote),
 		Flags:    n.Flags,
 	}
 }

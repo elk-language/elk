@@ -19,13 +19,13 @@ type BinaryExpressionNode struct {
 	static bool
 }
 
-func (n *BinaryExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
-	left := n.Left.Splice(loc, args).(ExpressionNode)
-	right := n.Right.Splice(loc, args).(ExpressionNode)
+func (n *BinaryExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	left := n.Left.Splice(loc, args, unquote).(ExpressionNode)
+	right := n.Right.Splice(loc, args, unquote).(ExpressionNode)
 
 	return &BinaryExpressionNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Op:            n.Op,
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Op:            n.Op.Splice(loc, unquote),
 		Left:          left,
 		Right:         right,
 		static:        areExpressionsStatic(left, right),

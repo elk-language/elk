@@ -36,24 +36,24 @@ type MethodDefinitionNode struct {
 	Flags          bitfield.BitField8
 }
 
-func (n *MethodDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
-	typeParams := SpliceSlice(n.TypeParameters, loc, args)
-	params := SpliceSlice(n.Parameters, loc, args)
+func (n *MethodDefinitionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	typeParams := SpliceSlice(n.TypeParameters, loc, args, unquote)
+	params := SpliceSlice(n.Parameters, loc, args, unquote)
 
 	var returnType TypeNode
 	if n.ReturnType != nil {
-		returnType = n.ReturnType.Splice(loc, args).(TypeNode)
+		returnType = n.ReturnType.Splice(loc, args, unquote).(TypeNode)
 	}
 
 	var throwType TypeNode
 	if n.ThrowType != nil {
-		throwType = n.ThrowType.Splice(loc, args).(TypeNode)
+		throwType = n.ThrowType.Splice(loc, args, unquote).(TypeNode)
 	}
 
-	body := SpliceSlice(n.Body, loc, args)
+	body := SpliceSlice(n.Body, loc, args, unquote)
 
 	return &MethodDefinitionNode{
-		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Name:                   n.Name,
 		TypeParameters:         typeParams,
@@ -341,18 +341,18 @@ type InitDefinitionNode struct {
 	Body       []StatementNode // body of the method
 }
 
-func (n *InitDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
-	params := SpliceSlice(n.Parameters, loc, args)
+func (n *InitDefinitionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	params := SpliceSlice(n.Parameters, loc, args, unquote)
 
 	var throwType TypeNode
 	if n.ThrowType != nil {
-		throwType = n.ThrowType.Splice(loc, args).(TypeNode)
+		throwType = n.ThrowType.Splice(loc, args, unquote).(TypeNode)
 	}
 
-	body := SpliceSlice(n.Body, loc, args)
+	body := SpliceSlice(n.Body, loc, args, unquote)
 
 	return &InitDefinitionNode{
-		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Parameters:             params,
 		ThrowType:              throwType,
@@ -513,22 +513,22 @@ type MethodSignatureDefinitionNode struct {
 	ThrowType      TypeNode
 }
 
-func (n *MethodSignatureDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
-	typeParams := SpliceSlice(n.TypeParameters, loc, args)
-	params := SpliceSlice(n.Parameters, loc, args)
+func (n *MethodSignatureDefinitionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	typeParams := SpliceSlice(n.TypeParameters, loc, args, unquote)
+	params := SpliceSlice(n.Parameters, loc, args, unquote)
 
 	var returnType TypeNode
 	if n.ReturnType != nil {
-		returnType = n.ReturnType.Splice(loc, args).(TypeNode)
+		returnType = n.ReturnType.Splice(loc, args, unquote).(TypeNode)
 	}
 
 	var throwType TypeNode
 	if n.ThrowType != nil {
-		throwType = n.ThrowType.Splice(loc, args).(TypeNode)
+		throwType = n.ThrowType.Splice(loc, args, unquote).(TypeNode)
 	}
 
 	return &MethodSignatureDefinitionNode{
-		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Name:                   n.Name,
 		TypeParameters:         typeParams,
@@ -715,7 +715,7 @@ type AliasDeclarationEntry struct {
 	OldName string
 }
 
-func (n *AliasDeclarationEntry) Splice(loc *position.Location, args *[]Node) Node {
+func (n *AliasDeclarationEntry) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AliasDeclarationEntry{
 		NodeBase: n.NodeBase,
 		NewName:  n.NewName,
@@ -792,10 +792,10 @@ type AliasDeclarationNode struct {
 	Entries []*AliasDeclarationEntry
 }
 
-func (n *AliasDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *AliasDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AliasDeclarationNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Entries:       SpliceSlice(n.Entries, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Entries:       SpliceSlice(n.Entries, loc, args, unquote),
 	}
 }
 
@@ -887,11 +887,11 @@ type GetterDeclarationNode struct {
 	Entries []ParameterNode
 }
 
-func (n *GetterDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *GetterDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &GetterDeclarationNode{
-		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Entries:                SpliceSlice(n.Entries, loc, args),
+		Entries:                SpliceSlice(n.Entries, loc, args, unquote),
 	}
 }
 
@@ -999,11 +999,11 @@ type SetterDeclarationNode struct {
 	Entries []ParameterNode
 }
 
-func (n *SetterDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *SetterDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SetterDeclarationNode{
-		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Entries:                SpliceSlice(n.Entries, loc, args),
+		Entries:                SpliceSlice(n.Entries, loc, args, unquote),
 	}
 }
 
@@ -1104,11 +1104,11 @@ type AttrDeclarationNode struct {
 	Entries []ParameterNode
 }
 
-func (n *AttrDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *AttrDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AttrDeclarationNode{
-		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Entries:                SpliceSlice(n.Entries, loc, args),
+		Entries:                SpliceSlice(n.Entries, loc, args, unquote),
 	}
 }
 

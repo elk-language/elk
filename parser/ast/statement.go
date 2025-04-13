@@ -29,10 +29,10 @@ type ExpressionStatementNode struct {
 	Expression ExpressionNode
 }
 
-func (n *ExpressionStatementNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *ExpressionStatementNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ExpressionStatementNode{
-		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
-		Expression: n.Expression.Splice(loc, args).(ExpressionNode),
+		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Expression: n.Expression.Splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 
@@ -101,9 +101,9 @@ type EmptyStatementNode struct {
 	NodeBase
 }
 
-func (n *EmptyStatementNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *EmptyStatementNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &EmptyStatementNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
 }
 
@@ -156,9 +156,9 @@ type ImportStatementNode struct {
 	FsPaths []string // resolved file system paths
 }
 
-func (n *ImportStatementNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *ImportStatementNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ImportStatementNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Path:     n.Path,
 		FsPaths:  n.FsPaths,
 	}
@@ -218,10 +218,10 @@ type ParameterStatementNode struct {
 	Parameter ParameterNode
 }
 
-func (n *ParameterStatementNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *ParameterStatementNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ParameterStatementNode{
-		NodeBase:  NodeBase{loc: getLoc(loc, n.loc)},
-		Parameter: n.Parameter.Splice(loc, args).(ParameterNode),
+		NodeBase:  NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Parameter: n.Parameter.Splice(loc, args, unquote).(ParameterNode),
 	}
 }
 

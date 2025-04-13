@@ -27,9 +27,9 @@ type PublicIdentifierNode struct {
 	Value string
 }
 
-func (n *PublicIdentifierNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *PublicIdentifierNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &PublicIdentifierNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -86,9 +86,9 @@ type PrivateIdentifierNode struct {
 	Value string
 }
 
-func (n *PrivateIdentifierNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *PrivateIdentifierNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &PrivateIdentifierNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -147,10 +147,10 @@ type PublicIdentifierAsNode struct {
 	AsName string
 }
 
-func (n *PublicIdentifierAsNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *PublicIdentifierAsNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &PublicIdentifierAsNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
-		Target:   n.Target.Splice(loc, args).(*PublicIdentifierNode),
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Target:   n.Target.Splice(loc, args, unquote).(*PublicIdentifierNode),
 		AsName:   n.AsName,
 	}
 }

@@ -18,12 +18,12 @@ type AssignmentExpressionNode struct {
 	Right ExpressionNode // right hand side
 }
 
-func (n *AssignmentExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *AssignmentExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AssignmentExpressionNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Op:            n.Op,
-		Left:          n.Left.Splice(loc, args).(ExpressionNode),
-		Right:         n.Right.Splice(loc, args).(ExpressionNode),
+		Left:          n.Left.Splice(loc, args, unquote).(ExpressionNode),
+		Right:         n.Right.Splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 

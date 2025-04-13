@@ -17,11 +17,11 @@ type NewExpressionNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
-func (n *NewExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *NewExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &NewExpressionNode{
-		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
-		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
 }
 
@@ -163,13 +163,13 @@ type GenericConstructorCallNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
-func (n *GenericConstructorCallNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *GenericConstructorCallNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &GenericConstructorCallNode{
-		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		ClassNode:           n.ClassNode.Splice(loc, args).(ComplexConstantNode),
-		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args),
-		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
-		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		ClassNode:           n.ClassNode.Splice(loc, args, unquote).(ComplexConstantNode),
+		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args, unquote),
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
 }
 
@@ -344,12 +344,12 @@ type ConstructorCallNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
-func (n *ConstructorCallNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *ConstructorCallNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ConstructorCallNode{
-		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		ClassNode:           n.ClassNode.Splice(loc, args).(ComplexConstantNode),
-		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
-		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		ClassNode:           n.ClassNode.Splice(loc, args, unquote).(ComplexConstantNode),
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
 }
 
@@ -497,10 +497,10 @@ type AttributeAccessNode struct {
 	AttributeName string
 }
 
-func (n *AttributeAccessNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *AttributeAccessNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AttributeAccessNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Receiver:      n.Receiver.Splice(loc, args).(ExpressionNode),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Receiver:      n.Receiver.Splice(loc, args, unquote).(ExpressionNode),
 		AttributeName: n.AttributeName,
 	}
 }
@@ -582,12 +582,12 @@ type SubscriptExpressionNode struct {
 	static   bool
 }
 
-func (n *SubscriptExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
-	receiver := n.Receiver.Splice(loc, args).(ExpressionNode)
-	key := n.Key.Splice(loc, args).(ExpressionNode)
+func (n *SubscriptExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	receiver := n.Receiver.Splice(loc, args, unquote).(ExpressionNode)
+	key := n.Key.Splice(loc, args, unquote).(ExpressionNode)
 
 	return &SubscriptExpressionNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:      receiver,
 		Key:           key,
 		static:        receiver.IsStatic() && key.IsStatic(),
@@ -674,12 +674,12 @@ type NilSafeSubscriptExpressionNode struct {
 	static   bool
 }
 
-func (n *NilSafeSubscriptExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
-	receiver := n.Receiver.Splice(loc, args).(ExpressionNode)
-	key := n.Key.Splice(loc, args).(ExpressionNode)
+func (n *NilSafeSubscriptExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	receiver := n.Receiver.Splice(loc, args, unquote).(ExpressionNode)
+	key := n.Key.Splice(loc, args, unquote).(ExpressionNode)
 
 	return &NilSafeSubscriptExpressionNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:      receiver,
 		Key:           key,
 		static:        receiver.IsStatic() && key.IsStatic(),
@@ -767,13 +767,13 @@ type CallNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
-func (n *CallNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *CallNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &CallNode{
-		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Receiver:            n.Receiver.Splice(loc, args).(ExpressionNode),
+		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Receiver:            n.Receiver.Splice(loc, args, unquote).(ExpressionNode),
 		NilSafe:             n.NilSafe,
-		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
-		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
 }
 
@@ -934,15 +934,15 @@ type GenericMethodCallNode struct {
 	TailCall            bool
 }
 
-func (n *GenericMethodCallNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *GenericMethodCallNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &GenericMethodCallNode{
-		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Receiver:            n.Receiver.Splice(loc, args).(ExpressionNode),
-		Op:                  n.Op,
+		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Receiver:            n.Receiver.Splice(loc, args, unquote).(ExpressionNode),
+		Op:                  n.Op.Splice(loc, unquote),
 		MethodName:          n.MethodName,
-		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args),
-		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
-		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args, unquote),
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 		TailCall:            n.TailCall,
 	}
 }
@@ -1134,14 +1134,14 @@ type MethodCallNode struct {
 	TailCall            bool
 }
 
-func (n *MethodCallNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *MethodCallNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MethodCallNode{
-		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Receiver:            n.Receiver.Splice(loc, args).(ExpressionNode),
-		Op:                  n.Op,
+		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Receiver:            n.Receiver.Splice(loc, args, unquote).(ExpressionNode),
+		Op:                  n.Op.Splice(loc, unquote),
 		MethodName:          n.MethodName,
-		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
-		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 		TailCall:            n.TailCall,
 	}
 }
@@ -1298,12 +1298,12 @@ type ReceiverlessMethodCallNode struct {
 	TailCall            bool
 }
 
-func (n *ReceiverlessMethodCallNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *ReceiverlessMethodCallNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ReceiverlessMethodCallNode{
-		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		MethodName:          n.MethodName,
-		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
-		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 		TailCall:            n.TailCall,
 	}
 }
@@ -1450,13 +1450,13 @@ type GenericReceiverlessMethodCallNode struct {
 	TailCall            bool
 }
 
-func (n *GenericReceiverlessMethodCallNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *GenericReceiverlessMethodCallNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &GenericReceiverlessMethodCallNode{
-		TypedNodeBase:       TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		MethodName:          n.MethodName,
-		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args),
-		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args),
-		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args),
+		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args, unquote),
+		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
+		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 		TailCall:            n.TailCall,
 	}
 }

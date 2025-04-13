@@ -20,18 +20,18 @@ type InterfaceDeclarationNode struct {
 	Bytecode       value.Method
 }
 
-func (n *InterfaceDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *InterfaceDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var constant ExpressionNode
 	if n.Constant != nil {
-		constant = n.Constant.Splice(loc, args).(ExpressionNode)
+		constant = n.Constant.Splice(loc, args, unquote).(ExpressionNode)
 	}
 
-	typeParams := SpliceSlice(n.TypeParameters, loc, args)
-	body := SpliceSlice(n.Body, loc, args)
-	implements := SpliceSlice(n.Implements, loc, args)
+	typeParams := SpliceSlice(n.TypeParameters, loc, args, unquote)
+	body := SpliceSlice(n.Body, loc, args, unquote)
+	implements := SpliceSlice(n.Implements, loc, args, unquote)
 
 	return &InterfaceDeclarationNode{
-		TypedNodeBase:          TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Constant:               constant,
 		TypeParameters:         typeParams,

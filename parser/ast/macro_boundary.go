@@ -16,11 +16,11 @@ type MacroBoundaryNode struct {
 	Body []StatementNode
 }
 
-func (n *MacroBoundaryNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *MacroBoundaryNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MacroBoundaryNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Name:          n.Name,
-		Body:          SpliceSlice(n.Body, loc, args),
+		Body:          SpliceSlice(n.Body, loc, args, unquote),
 	}
 }
 

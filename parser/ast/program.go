@@ -31,10 +31,10 @@ type ProgramNode struct {
 	State       ProgramState
 }
 
-func (n *ProgramNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *ProgramNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ProgramNode{
-		NodeBase:    NodeBase{loc: getLoc(loc, n.loc)},
-		Body:        SpliceSlice(n.Body, loc, args),
+		NodeBase:    NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Body:        SpliceSlice(n.Body, loc, args, unquote),
 		ImportPaths: n.ImportPaths,
 		State:       n.State,
 	}

@@ -7,6 +7,35 @@ import (
 	"strings"
 )
 
+func SpliceLocation(target, current *Location, unqoute bool) *Location {
+	if unqoute {
+		return spliceLocationUnquote(target, current)
+	}
+
+	return spliceLocation(target, current)
+}
+
+func spliceLocation(target, current *Location) *Location {
+	if target == nil {
+		return current
+	}
+	if current == nil {
+		return target
+	}
+
+	result := target.Copy()
+	result.Parent = current
+	return result
+}
+
+func spliceLocationUnquote(target, current *Location) *Location {
+	if current != nil {
+		return current
+	}
+
+	return target
+}
+
 // Represents something that contains a location.
 type LocationInterface interface {
 	Location() *Location
@@ -19,6 +48,7 @@ type LocationInterface interface {
 type Location struct {
 	*Span
 	FilePath string
+	Parent   *Location
 }
 
 var DefaultLocation = NewLocation("<main>", DefaultSpan)
@@ -29,6 +59,23 @@ func NewLocation(filename string, span *Span) *Location {
 	return &Location{
 		Span:     span,
 		FilePath: filename,
+	}
+}
+
+// Create a new location with a given position.
+func NewLocationWithParent(filename string, span *Span, parent *Location) *Location {
+	return &Location{
+		Span:     span,
+		FilePath: filename,
+		Parent:   parent,
+	}
+}
+
+func (l *Location) Copy() *Location {
+	return &Location{
+		Span:     l.Span,
+		FilePath: l.FilePath,
+		Parent:   l.Parent,
 	}
 }
 

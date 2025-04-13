@@ -16,11 +16,11 @@ type WhileExpressionNode struct {
 	ThenBody  []StatementNode // then expression body
 }
 
-func (n *WhileExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *WhileExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &WhileExpressionNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Condition:     n.Condition.Splice(loc, args).(ExpressionNode),
-		ThenBody:      SpliceSlice(n.ThenBody, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Condition:     n.Condition.Splice(loc, args, unquote).(ExpressionNode),
+		ThenBody:      SpliceSlice(n.ThenBody, loc, args, unquote),
 	}
 }
 

@@ -29,9 +29,9 @@ type SimpleSymbolLiteralNode struct {
 	Content string
 }
 
-func (n *SimpleSymbolLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *SimpleSymbolLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SimpleSymbolLiteralNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Content:       n.Content,
 	}
 }
@@ -88,10 +88,10 @@ type InterpolatedSymbolLiteralNode struct {
 	Content *InterpolatedStringLiteralNode
 }
 
-func (n *InterpolatedSymbolLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *InterpolatedSymbolLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &InterpolatedSymbolLiteralNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
-		Content:  n.Content.Splice(loc, args).(*InterpolatedStringLiteralNode),
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Content:  n.Content.Splice(loc, args, unquote).(*InterpolatedStringLiteralNode),
 	}
 }
 

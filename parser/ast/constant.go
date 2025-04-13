@@ -69,9 +69,9 @@ type PublicConstantNode struct {
 	Value string
 }
 
-func (n *PublicConstantNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *PublicConstantNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &PublicConstantNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -128,9 +128,9 @@ type PrivateConstantNode struct {
 	Value string
 }
 
-func (n *PrivateConstantNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *PrivateConstantNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &PrivateConstantNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
@@ -189,10 +189,10 @@ type PublicConstantAsNode struct {
 	AsName string
 }
 
-func (n *PublicConstantAsNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *PublicConstantAsNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &PublicConstantAsNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
-		Target:   n.Target.Splice(loc, args).(*PublicConstantNode),
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Target:   n.Target.Splice(loc, args, unquote).(*PublicConstantNode),
 		AsName:   n.AsName,
 	}
 }
@@ -260,15 +260,15 @@ type ConstantLookupNode struct {
 	Right ComplexConstantNode // right hand side
 }
 
-func (n *ConstantLookupNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *ConstantLookupNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var left ExpressionNode
 	if n.Left != nil {
-		left = n.Left.Splice(loc, args).(ExpressionNode)
+		left = n.Left.Splice(loc, args, unquote).(ExpressionNode)
 	}
-	right := n.Right.Splice(loc, args).(ComplexConstantNode)
+	right := n.Right.Splice(loc, args, unquote).(ComplexConstantNode)
 
 	return &ConstantLookupNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Left:          left,
 		Right:         right,
 	}
@@ -357,11 +357,11 @@ type GenericConstantNode struct {
 	TypeArguments []TypeNode
 }
 
-func (n *GenericConstantNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *GenericConstantNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &GenericConstantNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Constant:      n.Constant.Splice(loc, args).(ComplexConstantNode),
-		TypeArguments: SpliceSlice(n.TypeArguments, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Constant:      n.Constant.Splice(loc, args, unquote).(ComplexConstantNode),
+		TypeArguments: SpliceSlice(n.TypeArguments, loc, args, unquote),
 	}
 }
 

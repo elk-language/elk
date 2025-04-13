@@ -18,26 +18,26 @@ type NumericForExpressionNode struct {
 	ThenBody    []StatementNode // then expression body
 }
 
-func (n *NumericForExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *NumericForExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var init ExpressionNode
 	if n.Initialiser != nil {
-		init = n.Initialiser.Splice(loc, args).(ExpressionNode)
+		init = n.Initialiser.Splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	var condition ExpressionNode
 	if n.Condition != nil {
-		condition = n.Condition.Splice(loc, args).(ExpressionNode)
+		condition = n.Condition.Splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	var increment ExpressionNode
 	if n.Increment != nil {
-		increment = n.Increment.Splice(loc, args).(ExpressionNode)
+		increment = n.Increment.Splice(loc, args, unquote).(ExpressionNode)
 	}
 
-	thenBody := SpliceSlice(n.ThenBody, loc, args)
+	thenBody := SpliceSlice(n.ThenBody, loc, args, unquote)
 
 	return &NumericForExpressionNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Initialiser:   init,
 		Condition:     condition,
 		Increment:     increment,

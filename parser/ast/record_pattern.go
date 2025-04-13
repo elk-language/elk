@@ -15,10 +15,10 @@ type RecordPatternNode struct {
 	Elements []PatternNode
 }
 
-func (n *RecordPatternNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *RecordPatternNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &RecordPatternNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
-		Elements: SpliceSlice(n.Elements, loc, args),
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Elements: SpliceSlice(n.Elements, loc, args, unquote),
 	}
 }
 

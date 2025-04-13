@@ -15,10 +15,10 @@ type GoExpressionNode struct {
 	Body []StatementNode
 }
 
-func (n *GoExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *GoExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &GoExpressionNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Body:          SpliceSlice(n.Body, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Body:          SpliceSlice(n.Body, loc, args, unquote),
 	}
 }
 

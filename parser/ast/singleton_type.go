@@ -15,10 +15,10 @@ type SingletonTypeNode struct {
 	TypeNode TypeNode // right hand side
 }
 
-func (n *SingletonTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *SingletonTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SingletonTypeNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		TypeNode:      n.TypeNode.Splice(loc, args, unquote).(TypeNode),
 	}
 }
 

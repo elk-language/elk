@@ -15,10 +15,10 @@ type InvalidNode struct {
 	Token *token.Token
 }
 
-func (n *InvalidNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *InvalidNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &InvalidNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
-		Token:    n.Token,
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Token:    n.Token.Splice(loc, unquote),
 	}
 }
 

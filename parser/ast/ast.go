@@ -262,24 +262,16 @@ type Node interface {
 	SkipTypechecking() bool
 	Equal(value.Value) bool
 	String() string
-	Splice(loc *position.Location, args *[]Node) Node // Create a copy of AST replacing consecutive unquote nodes with the given arguments
+	Splice(loc *position.Location, args *[]Node, unquote bool) Node // Create a copy of AST replacing consecutive unquote nodes with the given arguments
 }
 
-func SpliceSlice[N Node](slice []N, loc *position.Location, args *[]Node) []N {
+func SpliceSlice[N Node](slice []N, loc *position.Location, args *[]Node, unquote bool) []N {
 	result := make([]N, len(slice))
 	for i, n := range slice {
-		result[i] = n.Splice(loc, args).(N)
+		result[i] = n.Splice(loc, args, unquote).(N)
 	}
 
 	return result
-}
-
-func getLoc(a, b *position.Location) *position.Location {
-	if a != nil {
-		return a
-	}
-
-	return b
 }
 
 type DocCommentableNode interface {

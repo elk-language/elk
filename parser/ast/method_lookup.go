@@ -16,10 +16,10 @@ type MethodLookupNode struct {
 	Name     string
 }
 
-func (n *MethodLookupNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *MethodLookupNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MethodLookupNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Receiver:      n.Receiver.Splice(loc, args).(ExpressionNode),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Receiver:      n.Receiver.Splice(loc, args, unquote).(ExpressionNode),
 		Name:          n.Name,
 	}
 }
@@ -103,10 +103,10 @@ type MethodLookupAsNode struct {
 	AsName       string
 }
 
-func (n *MethodLookupAsNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *MethodLookupAsNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MethodLookupAsNode{
-		NodeBase:     NodeBase{loc: getLoc(loc, n.loc)},
-		MethodLookup: n.MethodLookup.Splice(loc, args).(*MethodLookupNode),
+		NodeBase:     NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		MethodLookup: n.MethodLookup.Splice(loc, args, unquote).(*MethodLookupNode),
 		AsName:       n.AsName,
 	}
 }

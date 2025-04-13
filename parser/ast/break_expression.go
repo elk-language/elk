@@ -17,14 +17,14 @@ type BreakExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (n *BreakExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *BreakExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var val ExpressionNode
 	if n.Value != nil {
-		val = n.Value.Splice(loc, args).(ExpressionNode)
+		val = n.Value.Splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	return &BreakExpressionNode{
-		NodeBase: NodeBase{loc: getLoc(loc, n.loc)},
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Label:    n.Label,
 		Value:    val,
 	}

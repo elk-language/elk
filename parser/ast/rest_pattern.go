@@ -15,10 +15,10 @@ type RestPatternNode struct {
 	Identifier IdentifierNode
 }
 
-func (n *RestPatternNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *RestPatternNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &RestPatternNode{
-		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
-		Identifier: n.Identifier.Splice(loc, args).(IdentifierNode),
+		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Identifier: n.Identifier.Splice(loc, args, unquote).(IdentifierNode),
 	}
 }
 

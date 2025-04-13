@@ -15,10 +15,10 @@ type MapPatternNode struct {
 	Elements []PatternNode
 }
 
-func (n *MapPatternNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *MapPatternNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MapPatternNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Elements:      SpliceSlice(n.Elements, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
 }
 

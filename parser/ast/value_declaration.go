@@ -17,19 +17,19 @@ type ValueDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the value
 }
 
-func (n *ValueDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *ValueDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var typeNode TypeNode
 	if n.TypeNode != nil {
-		typeNode = n.TypeNode.Splice(loc, args).(TypeNode)
+		typeNode = n.TypeNode.Splice(loc, args, unquote).(TypeNode)
 	}
 
 	var init ExpressionNode
 	if n.Initialiser != nil {
-		init = n.Initialiser.Splice(loc, args).(ExpressionNode)
+		init = n.Initialiser.Splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	return &ValueDeclarationNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Name:          n.Name,
 		TypeNode:      typeNode,
 		Initialiser:   init,

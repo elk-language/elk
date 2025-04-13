@@ -28,10 +28,11 @@ var L = position.NewLocation
 
 func TestSplice(t *testing.T) {
 	tests := map[string]struct {
-		node Node
-		loc  *position.Location
-		args *[]Node
-		want Node
+		node    Node
+		loc     *position.Location
+		args    *[]Node
+		unquote bool
+		want    Node
 	}{
 		"replace nested unquote with the argument": {
 			node: NewBinaryExpressionNode(
@@ -114,7 +115,7 @@ func TestSplice(t *testing.T) {
 				),
 			}
 
-			got := tc.node.Splice(tc.loc, tc.args)
+			got := tc.node.Splice(tc.loc, tc.args, tc.unquote)
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Log(pp.Sprint(got))
 				t.Log(diff)

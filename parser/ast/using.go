@@ -48,10 +48,10 @@ type UsingAllEntryNode struct {
 	Namespace UsingEntryNode
 }
 
-func (n *UsingAllEntryNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *UsingAllEntryNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UsingAllEntryNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Namespace:     n.Namespace.Splice(loc, args).(UsingEntryNode),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Namespace:     n.Namespace.Splice(loc, args, unquote).(UsingEntryNode),
 	}
 }
 
@@ -118,11 +118,11 @@ type UsingEntryWithSubentriesNode struct {
 	Subentries []UsingSubentryNode
 }
 
-func (n *UsingEntryWithSubentriesNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *UsingEntryWithSubentriesNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UsingEntryWithSubentriesNode{
-		NodeBase:   NodeBase{loc: getLoc(loc, n.loc)},
-		Namespace:  n.Namespace.Splice(loc, args).(UsingEntryNode),
-		Subentries: SpliceSlice(n.Subentries, loc, args),
+		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Namespace:  n.Namespace.Splice(loc, args, unquote).(UsingEntryNode),
+		Subentries: SpliceSlice(n.Subentries, loc, args, unquote),
 	}
 }
 
@@ -218,10 +218,10 @@ type UsingExpressionNode struct {
 	Entries []UsingEntryNode
 }
 
-func (n *UsingExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *UsingExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UsingExpressionNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		Entries:       SpliceSlice(n.Entries, loc, args),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Entries:       SpliceSlice(n.Entries, loc, args, unquote),
 	}
 }
 

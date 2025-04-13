@@ -15,10 +15,10 @@ type InstanceOfTypeNode struct {
 	TypeNode TypeNode // right hand side
 }
 
-func (n *InstanceOfTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+func (n *InstanceOfTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &InstanceOfTypeNode{
-		TypedNodeBase: TypedNodeBase{loc: getLoc(loc, n.loc), typ: n.typ},
-		TypeNode:      n.TypeNode.Splice(loc, args).(ComplexConstantNode),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		TypeNode:      n.TypeNode.Splice(loc, args, unquote).(ComplexConstantNode),
 	}
 }
 
