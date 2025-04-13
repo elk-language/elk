@@ -38,13 +38,28 @@ type VariantTypeParameterNode struct {
 }
 
 func (n *VariantTypeParameterNode) Splice(loc *position.Location, args *[]Node) Node {
+	var lowerBound TypeNode
+	if n.LowerBound != nil {
+		lowerBound = n.LowerBound.Splice(loc, args).(TypeNode)
+	}
+
+	var upperBound TypeNode
+	if n.UpperBound != nil {
+		upperBound = n.UpperBound.Splice(loc, args).(TypeNode)
+	}
+
+	var def TypeNode
+	if n.Default != nil {
+		def = n.Default.Splice(loc, args).(TypeNode)
+	}
+
 	return &VariantTypeParameterNode{
 		TypedNodeBase: n.TypedNodeBase,
 		Variance:      n.Variance,
 		Name:          n.Name,
-		LowerBound:    n.LowerBound.Splice(loc, args).(TypeNode),
-		UpperBound:    n.UpperBound.Splice(loc, args).(TypeNode),
-		Default:       n.Default.Splice(loc, args).(TypeNode),
+		LowerBound:    lowerBound,
+		UpperBound:    upperBound,
+		Default:       def,
 	}
 }
 
@@ -146,13 +161,25 @@ func (n *VariantTypeParameterNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, value.String(n.Name).Inspect(), 1)
 
 	buff.WriteString(",\n  lower_bound: ")
-	indent.IndentStringFromSecondLine(&buff, n.LowerBound.Inspect(), 1)
+	if n.LowerBound == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.LowerBound.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  upper_bound: ")
-	indent.IndentStringFromSecondLine(&buff, n.UpperBound.Inspect(), 1)
+	if n.UpperBound == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.UpperBound.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  default: ")
-	indent.IndentStringFromSecondLine(&buff, n.Default.Inspect(), 1)
+	if n.Default == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Default.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 

@@ -22,14 +22,23 @@ type MixinDeclarationNode struct {
 }
 
 func (n *MixinDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	var constant ExpressionNode
+	if n.Constant != nil {
+		constant = n.Constant.Splice(loc, args).(ExpressionNode)
+	}
+
+	typeParams := SpliceSlice(n.TypeParameters, loc, args)
+	body := SpliceSlice(n.Body, loc, args)
+	includes := SpliceSlice(n.IncludesAndImplements, loc, args)
+
 	return &MixinDeclarationNode{
 		TypedNodeBase:          n.TypedNodeBase,
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Abstract:               n.Abstract,
-		Constant:               n.Constant.Splice(loc, args).(ExpressionNode),
-		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args),
-		Body:                   SpliceSlice(n.Body, loc, args),
-		IncludesAndImplements:  SpliceSlice(n.IncludesAndImplements, loc, args),
+		Constant:               constant,
+		TypeParameters:         typeParams,
+		Body:                   body,
+		IncludesAndImplements:  includes,
 		Bytecode:               n.Bytecode,
 	}
 }
@@ -165,7 +174,11 @@ func (n *MixinDeclarationNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  constant: ")
-	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	if n.Constant == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  type_parameters: %[\n")
 	for i, element := range n.TypeParameters {

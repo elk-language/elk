@@ -19,12 +19,29 @@ type NumericForExpressionNode struct {
 }
 
 func (n *NumericForExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		init = n.Initialiser.Splice(loc, args).(ExpressionNode)
+	}
+
+	var condition ExpressionNode
+	if n.Condition != nil {
+		condition = n.Condition.Splice(loc, args).(ExpressionNode)
+	}
+
+	var increment ExpressionNode
+	if n.Increment != nil {
+		increment = n.Increment.Splice(loc, args).(ExpressionNode)
+	}
+
+	thenBody := SpliceSlice(n.ThenBody, loc, args)
+
 	return &NumericForExpressionNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Initialiser:   n.Initialiser.Splice(loc, args).(ExpressionNode),
-		Condition:     n.Condition.Splice(loc, args).(ExpressionNode),
-		Increment:     n.Increment.Splice(loc, args).(ExpressionNode),
-		ThenBody:      SpliceSlice(n.ThenBody, loc, args),
+		Initialiser:   init,
+		Condition:     condition,
+		Increment:     increment,
+		ThenBody:      thenBody,
 	}
 }
 
@@ -130,13 +147,25 @@ func (n *NumericForExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::NumericForExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  initialiser: ")
-	indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	if n.Initialiser == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  condition: ")
-	indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)
+	if n.Condition == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  increment: ")
-	indent.IndentStringFromSecondLine(&buff, n.Increment.Inspect(), 1)
+	if n.Increment == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Increment.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  then_body: %[\n")
 	for i, stmt := range n.ThenBody {

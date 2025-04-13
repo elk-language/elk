@@ -37,15 +37,30 @@ type MethodDefinitionNode struct {
 }
 
 func (n *MethodDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
+	typeParams := SpliceSlice(n.TypeParameters, loc, args)
+	params := SpliceSlice(n.Parameters, loc, args)
+
+	var returnType TypeNode
+	if n.ReturnType != nil {
+		returnType = n.ReturnType.Splice(loc, args).(TypeNode)
+	}
+
+	var throwType TypeNode
+	if n.ThrowType != nil {
+		throwType = n.ThrowType.Splice(loc, args).(TypeNode)
+	}
+
+	body := SpliceSlice(n.Body, loc, args)
+
 	return &MethodDefinitionNode{
 		TypedNodeBase:          n.TypedNodeBase,
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Name:                   n.Name,
-		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args),
-		Parameters:             SpliceSlice(n.Parameters, loc, args),
-		ReturnType:             n.ReturnType.Splice(loc, args).(TypeNode),
-		ThrowType:              n.ThrowType.Splice(loc, args).(TypeNode),
-		Body:                   SpliceSlice(n.Body, loc, args),
+		TypeParameters:         typeParams,
+		Parameters:             params,
+		ReturnType:             returnType,
+		ThrowType:              throwType,
+		Body:                   body,
 		Flags:                  n.Flags,
 	}
 }
@@ -241,10 +256,18 @@ func (n *MethodDefinitionNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  return_type: ")
-	indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
+	if n.ReturnType == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  throw_type: ")
-	indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	if n.ThrowType == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  type_parameters: %[\n")
 	for i, element := range n.TypeParameters {
@@ -319,12 +342,21 @@ type InitDefinitionNode struct {
 }
 
 func (n *InitDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
+	params := SpliceSlice(n.Parameters, loc, args)
+
+	var throwType TypeNode
+	if n.ThrowType != nil {
+		throwType = n.ThrowType.Splice(loc, args).(TypeNode)
+	}
+
+	body := SpliceSlice(n.Body, loc, args)
+
 	return &InitDefinitionNode{
 		TypedNodeBase:          n.TypedNodeBase,
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Parameters:             SpliceSlice(n.Parameters, loc, args),
-		ThrowType:              n.ThrowType.Splice(loc, args).(TypeNode),
-		Body:                   SpliceSlice(n.Body, loc, args),
+		Parameters:             params,
+		ThrowType:              throwType,
+		Body:                   body,
 	}
 }
 
@@ -427,7 +459,11 @@ func (n *InitDefinitionNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  throw_type: ")
-	indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	if n.ThrowType == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  parameters: %[\n")
 	for i, element := range n.Parameters {
@@ -478,14 +514,27 @@ type MethodSignatureDefinitionNode struct {
 }
 
 func (n *MethodSignatureDefinitionNode) Splice(loc *position.Location, args *[]Node) Node {
+	typeParams := SpliceSlice(n.TypeParameters, loc, args)
+	params := SpliceSlice(n.Parameters, loc, args)
+
+	var returnType TypeNode
+	if n.ReturnType != nil {
+		returnType = n.ReturnType.Splice(loc, args).(TypeNode)
+	}
+
+	var throwType TypeNode
+	if n.ThrowType != nil {
+		throwType = n.ThrowType.Splice(loc, args).(TypeNode)
+	}
+
 	return &MethodSignatureDefinitionNode{
 		TypedNodeBase:          n.TypedNodeBase,
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Name:                   n.Name,
-		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args),
-		Parameters:             SpliceSlice(n.Parameters, loc, args),
-		ReturnType:             n.ReturnType.Splice(loc, args).(TypeNode),
-		ThrowType:              n.ThrowType.Splice(loc, args).(TypeNode),
+		TypeParameters:         typeParams,
+		Parameters:             params,
+		ReturnType:             returnType,
+		ThrowType:              throwType,
 	}
 }
 
@@ -604,10 +653,18 @@ func (n *MethodSignatureDefinitionNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  return_type: ")
-	indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
+	if n.ReturnType == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  throw_type: ")
-	indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	if n.ThrowType == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  type_parameters: %[\n")
 	for i, element := range n.TypeParameters {

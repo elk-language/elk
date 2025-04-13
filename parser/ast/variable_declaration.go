@@ -19,12 +19,22 @@ type VariableDeclarationNode struct {
 }
 
 func (n *VariableDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	var typeNode TypeNode
+	if n.TypeNode != nil {
+		typeNode = n.TypeNode.Splice(loc, args).(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		init = n.Initialiser.Splice(loc, args).(ExpressionNode)
+	}
+
 	return &VariableDeclarationNode{
 		TypedNodeBase:          n.TypedNodeBase,
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Name:                   n.Name,
-		TypeNode:               n.TypeNode.Splice(loc, args).(TypeNode),
-		Initialiser:            n.Initialiser.Splice(loc, args).(ExpressionNode),
+		TypeNode:               typeNode,
+		Initialiser:            init,
 	}
 }
 
@@ -97,10 +107,18 @@ func (n *VariableDeclarationNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  type_node: ")
-	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	if n.TypeNode == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  initialiser: ")
-	indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	if n.Initialiser == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 

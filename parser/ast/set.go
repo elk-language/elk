@@ -18,11 +18,22 @@ type HashSetLiteralNode struct {
 }
 
 func (n *HashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+	var capacity ExpressionNode
+	var static bool
+
+	if n.Capacity != nil {
+		capacity = n.Capacity.Splice(loc, args).(ExpressionNode)
+		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
+	} else {
+		static = isExpressionSliceStatic(elements)
+	}
+
 	return &HashSetLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -154,7 +165,11 @@ func (n *HashSetLiteralNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	if n.Capacity == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 
@@ -174,11 +189,20 @@ type WordHashSetLiteralNode struct {
 }
 
 func (n *WordHashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+
+	static := true
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.Splice(loc, args).(ExpressionNode)
+		static = capacity.IsStatic()
+	}
+
 	return &WordHashSetLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -298,7 +322,11 @@ func (n *WordHashSetLiteralNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	if n.Capacity == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 
@@ -318,11 +346,20 @@ type SymbolHashSetLiteralNode struct {
 }
 
 func (n *SymbolHashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+
+	static := true
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.Splice(loc, args).(ExpressionNode)
+		static = capacity.IsStatic()
+	}
+
 	return &SymbolHashSetLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -442,8 +479,11 @@ func (n *SymbolHashSetLiteralNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
-
+	if n.Capacity == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	}
 	buff.WriteString("\n}")
 
 	return buff.String()
@@ -462,11 +502,20 @@ type HexHashSetLiteralNode struct {
 }
 
 func (n *HexHashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+
+	static := true
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.Splice(loc, args).(ExpressionNode)
+		static = capacity.IsStatic()
+	}
+
 	return &HexHashSetLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -587,8 +636,11 @@ func (n *HexHashSetLiteralNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
-
+	if n.Capacity == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	}
 	buff.WriteString("\n}")
 
 	return buff.String()
@@ -607,11 +659,20 @@ type BinHashSetLiteralNode struct {
 }
 
 func (n *BinHashSetLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+
+	static := true
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.Splice(loc, args).(ExpressionNode)
+		static = capacity.IsStatic()
+	}
+
 	return &BinHashSetLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -736,8 +797,11 @@ func (n *BinHashSetLiteralNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
-
+	if n.Capacity == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	}
 	buff.WriteString("\n}")
 
 	return buff.String()

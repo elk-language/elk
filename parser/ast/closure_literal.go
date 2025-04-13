@@ -19,12 +19,26 @@ type ClosureLiteralNode struct {
 }
 
 func (n *ClosureLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	params := SpliceSlice(n.Parameters, loc, args)
+
+	var returnType TypeNode
+	if n.ReturnType != nil {
+		returnType = n.ReturnType.Splice(loc, args).(TypeNode)
+	}
+
+	var throwType TypeNode
+	if n.ThrowType != nil {
+		throwType = n.ThrowType.Splice(loc, args).(TypeNode)
+	}
+
+	body := SpliceSlice(n.Body, loc, args)
+
 	return &ClosureLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Parameters:    SpliceSlice(n.Parameters, loc, args),
-		ReturnType:    n.ReturnType.Splice(loc, args).(TypeNode),
-		ThrowType:     n.ThrowType.Splice(loc, args).(TypeNode),
-		Body:          SpliceSlice(n.Body, loc, args),
+		Parameters:    params,
+		ReturnType:    returnType,
+		ThrowType:     throwType,
+		Body:          body,
 	}
 }
 
@@ -153,10 +167,18 @@ func (n *ClosureLiteralNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  return_type: ")
-	indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
+	if n.ReturnType == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  throw_type: ")
-	indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	if n.ThrowType == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  body: %[\n")
 	for i, element := range n.Body {

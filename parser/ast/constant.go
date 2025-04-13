@@ -261,10 +261,16 @@ type ConstantLookupNode struct {
 }
 
 func (n *ConstantLookupNode) Splice(loc *position.Location, args *[]Node) Node {
+	var left ExpressionNode
+	if n.Left != nil {
+		left = n.Left.Splice(loc, args).(ExpressionNode)
+	}
+	right := n.Right.Splice(loc, args).(ComplexConstantNode)
+
 	return &ConstantLookupNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Left:          n.Left.Splice(loc, args).(ExpressionNode),
-		Right:         n.Right.Splice(loc, args).(ComplexConstantNode),
+		Left:          left,
+		Right:         right,
 	}
 }
 
@@ -317,7 +323,11 @@ func (n *ConstantLookupNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ConstantLookupNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  left: ")
-	indent.IndentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
+	if n.Left == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Left.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  right: ")
 	indent.IndentStringFromSecondLine(&buff, n.Right.Inspect(), 1)

@@ -17,9 +17,14 @@ type YieldExpressionNode struct {
 }
 
 func (n *YieldExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	var val ExpressionNode
+	if n.Value != nil {
+		val = n.Value.Splice(loc, args).(ExpressionNode)
+	}
+
 	return &YieldExpressionNode{
 		NodeBase: n.NodeBase,
-		Value:    n.Value.Splice(loc, args).(ExpressionNode),
+		Value:    val,
 		Forward:  n.Forward,
 	}
 }
@@ -96,7 +101,11 @@ func (n *YieldExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::YieldExpressionNode{\n  loc: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
-	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	if n.Value == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 

@@ -18,11 +18,16 @@ type InstanceVariableDeclarationNode struct {
 }
 
 func (n *InstanceVariableDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	var typeNode ComplexConstantNode
+	if n.TypeNode != nil {
+		typeNode = n.TypeNode.Splice(loc, args).(ComplexConstantNode)
+	}
+
 	return &InstanceVariableDeclarationNode{
 		TypedNodeBase:          n.TypedNodeBase,
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Name:                   n.Name,
-		TypeNode:               n.TypeNode.Splice(loc, args).(ComplexConstantNode),
+		TypeNode:               typeNode,
 	}
 }
 
@@ -90,7 +95,11 @@ func (n *InstanceVariableDeclarationNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  type_node: ")
-	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	if n.TypeNode == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 

@@ -18,10 +18,15 @@ type BreakExpressionNode struct {
 }
 
 func (n *BreakExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	var val ExpressionNode
+	if n.Value != nil {
+		val = n.Value.Splice(loc, args).(ExpressionNode)
+	}
+
 	return &BreakExpressionNode{
 		NodeBase: n.NodeBase,
 		Label:    n.Label,
-		Value:    n.Value.Splice(loc, args).(ExpressionNode),
+		Value:    val,
 	}
 }
 
@@ -105,7 +110,11 @@ func (n *BreakExpressionNode) Inspect() string {
 	buff.WriteString(n.Label)
 
 	buff.WriteString(",\n  value: ")
-	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	if n.Value == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 

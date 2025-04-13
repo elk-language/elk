@@ -173,11 +173,20 @@ type CatchNode struct {
 }
 
 func (n *CatchNode) Splice(loc *position.Location, args *[]Node) Node {
+	pattern := n.Pattern.Splice(loc, args).(PatternNode)
+
+	var stackTraceVar IdentifierNode
+	if n.StackTraceVar != nil {
+		stackTraceVar = n.StackTraceVar.Splice(loc, args).(IdentifierNode)
+	}
+
+	body := SpliceSlice(n.Body, loc, args)
+
 	return &CatchNode{
 		NodeBase:      n.NodeBase,
-		Pattern:       n.Pattern.Splice(loc, args).(PatternNode),
-		StackTraceVar: n.StackTraceVar.Splice(loc, args).(IdentifierNode),
-		Body:          SpliceSlice(n.Body, loc, args),
+		Pattern:       pattern,
+		StackTraceVar: stackTraceVar,
+		Body:          body,
 	}
 }
 
@@ -252,7 +261,11 @@ func (n *CatchNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
 
 	buff.WriteString(",\n  stack_trace_var: ")
-	indent.IndentStringFromSecondLine(&buff, n.StackTraceVar.Inspect(), 1)
+	if n.StackTraceVar == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.StackTraceVar.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  body: %[\n")
 	for i, element := range n.Body {

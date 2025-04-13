@@ -18,11 +18,22 @@ type ArrayListLiteralNode struct {
 }
 
 func (n *ArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+
+	var static bool
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.Splice(loc, args).(ExpressionNode)
+		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
+	} else {
+		static = isExpressionSliceStatic(elements)
+	}
+
 	return &ArrayListLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -157,7 +168,11 @@ func (n *ArrayListLiteralNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	if n.Capacity == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 
@@ -177,11 +192,20 @@ type WordArrayListLiteralNode struct {
 }
 
 func (n *WordArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+
+	static := true
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.Splice(loc, args).(ExpressionNode)
+		static = capacity.IsStatic()
+	}
+
 	return &WordArrayListLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -301,7 +325,11 @@ func (n *WordArrayListLiteralNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	if n.Capacity == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 
@@ -321,11 +349,20 @@ type SymbolArrayListLiteralNode struct {
 }
 
 func (n *SymbolArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+
+	static := true
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.Splice(loc, args).(ExpressionNode)
+		static = capacity.IsStatic()
+	}
+
 	return &SymbolArrayListLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -445,8 +482,11 @@ func (n *SymbolArrayListLiteralNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
-
+	if n.Capacity == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	}
 	buff.WriteString("\n}")
 
 	return buff.String()
@@ -465,11 +505,20 @@ type HexArrayListLiteralNode struct {
 }
 
 func (n *HexArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+
+	static := true
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.Splice(loc, args).(ExpressionNode)
+		static = capacity.IsStatic()
+	}
+
 	return &HexArrayListLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -590,7 +639,11 @@ func (n *HexArrayListLiteralNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	if n.Capacity == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 
@@ -610,11 +663,20 @@ type BinArrayListLiteralNode struct {
 }
 
 func (n *BinArrayListLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+
+	static := true
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.Splice(loc, args).(ExpressionNode)
+		static = capacity.IsStatic()
+	}
+
 	return &BinArrayListLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -738,7 +800,11 @@ func (n *BinArrayListLiteralNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	if n.Capacity == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 

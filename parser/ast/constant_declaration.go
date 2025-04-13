@@ -19,12 +19,24 @@ type ConstantDeclarationNode struct {
 }
 
 func (n *ConstantDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	constant := n.Constant.Splice(loc, args).(ExpressionNode)
+
+	var typeNode TypeNode
+	if n.TypeNode != nil {
+		typeNode = n.TypeNode.Splice(loc, args).(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		init = n.Initialiser.Splice(loc, args).(ExpressionNode)
+	}
+
 	return &ConstantDeclarationNode{
 		TypedNodeBase:          n.TypedNodeBase,
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Constant:               n.Constant.Splice(loc, args).(ExpressionNode),
-		TypeNode:               n.TypeNode.Splice(loc, args).(TypeNode),
-		Initialiser:            n.Initialiser.Splice(loc, args).(ExpressionNode),
+		Constant:               constant,
+		TypeNode:               typeNode,
+		Initialiser:            init,
 	}
 }
 
@@ -139,13 +151,21 @@ func (n *ConstantDeclarationNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  constant: ")
-	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	if n.Constant == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  type_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
 
 	buff.WriteString(",\n  initialiser: ")
-	indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	if n.Initialiser == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 

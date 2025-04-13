@@ -583,11 +583,14 @@ type SubscriptExpressionNode struct {
 }
 
 func (n *SubscriptExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	receiver := n.Receiver.Splice(loc, args).(ExpressionNode)
+	key := n.Key.Splice(loc, args).(ExpressionNode)
+
 	return &SubscriptExpressionNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Receiver:      n.Receiver.Splice(loc, args).(ExpressionNode),
-		Key:           n.Key.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Receiver:      receiver,
+		Key:           key,
+		static:        receiver.IsStatic() && key.IsStatic(),
 	}
 }
 
@@ -672,11 +675,14 @@ type NilSafeSubscriptExpressionNode struct {
 }
 
 func (n *NilSafeSubscriptExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	receiver := n.Receiver.Splice(loc, args).(ExpressionNode)
+	key := n.Key.Splice(loc, args).(ExpressionNode)
+
 	return &NilSafeSubscriptExpressionNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Receiver:      n.Receiver.Splice(loc, args).(ExpressionNode),
-		Key:           n.Key.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Receiver:      receiver,
+		Key:           key,
+		static:        receiver.IsStatic() && key.IsStatic(),
 	}
 }
 

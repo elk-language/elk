@@ -18,10 +18,12 @@ type ContinueExpressionNode struct {
 }
 
 func (n *ContinueExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	val := n.Value.Splice(loc, args).(ExpressionNode)
+
 	return &ContinueExpressionNode{
 		NodeBase: n.NodeBase,
 		Label:    n.Label,
-		Value:    n.Value.Splice(loc, args).(ExpressionNode),
+		Value:    val,
 	}
 }
 
@@ -104,7 +106,11 @@ func (n *ContinueExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ContinueExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  value: ")
-	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	if n.Value == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 

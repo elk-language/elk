@@ -18,11 +18,23 @@ type ClosureTypeNode struct {
 }
 
 func (n *ClosureTypeNode) Splice(loc *position.Location, args *[]Node) Node {
+	params := SpliceSlice(n.Parameters, loc, args)
+
+	var returnType TypeNode
+	if n.ReturnType != nil {
+		returnType = n.ReturnType.Splice(loc, args).(TypeNode)
+	}
+
+	var throwType TypeNode
+	if n.ThrowType != nil {
+		throwType = n.ThrowType.Splice(loc, args).(TypeNode)
+	}
+
 	return &ClosureTypeNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Parameters:    SpliceSlice(n.Parameters, loc, args),
-		ReturnType:    n.ReturnType.Splice(loc, args).(TypeNode),
-		ThrowType:     n.ThrowType.Splice(loc, args).(TypeNode),
+		Parameters:    params,
+		ReturnType:    returnType,
+		ThrowType:     throwType,
 	}
 }
 

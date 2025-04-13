@@ -70,11 +70,21 @@ type FormalParameterNode struct {
 }
 
 func (n *FormalParameterNode) Splice(loc *position.Location, args *[]Node) Node {
+	var typeNode TypeNode
+	if n.TypeNode != nil {
+		typeNode = n.TypeNode.Splice(loc, args).(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		init = n.Initialiser.Splice(loc, args).(ExpressionNode)
+	}
+
 	return &FormalParameterNode{
 		TypedNodeBase: n.TypedNodeBase,
 		Name:          n.Name,
-		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
-		Initialiser:   n.Initialiser.Splice(loc, args).(ExpressionNode),
+		TypeNode:      typeNode,
+		Initialiser:   init,
 		Kind:          n.Kind,
 	}
 }
@@ -162,10 +172,18 @@ func (n *FormalParameterNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  type_node: ")
-	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	if n.TypeNode == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  initialiser: ")
-	indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	if n.Initialiser == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  kind: ")
 	buff.WriteString(value.UInt8(n.Kind).Inspect())
@@ -190,11 +208,21 @@ type MethodParameterNode struct {
 }
 
 func (n *MethodParameterNode) Splice(loc *position.Location, args *[]Node) Node {
+	var typeNode TypeNode
+	if n.TypeNode != nil {
+		typeNode = n.TypeNode.Splice(loc, args).(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		init = n.Initialiser.Splice(loc, args).(ExpressionNode)
+	}
+
 	return &MethodParameterNode{
 		TypedNodeBase:       n.TypedNodeBase,
 		Name:                n.Name,
-		TypeNode:            n.TypeNode.Splice(loc, args).(TypeNode),
-		Initialiser:         n.Initialiser.Splice(loc, args).(ExpressionNode),
+		TypeNode:            typeNode,
+		Initialiser:         init,
 		SetInstanceVariable: n.SetInstanceVariable,
 		Kind:                n.Kind,
 	}
@@ -280,10 +308,18 @@ func (n *MethodParameterNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  type_node: ")
-	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	if n.TypeNode == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  initialiser: ")
-	indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	if n.Initialiser == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Initialiser.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  kind: ")
 	buff.WriteString(value.UInt8(n.Kind).Inspect())
@@ -319,10 +355,15 @@ type SignatureParameterNode struct {
 }
 
 func (n *SignatureParameterNode) Splice(loc *position.Location, args *[]Node) Node {
+	var typeNode TypeNode
+	if n.TypeNode != nil {
+		typeNode = n.TypeNode.Splice(loc, args).(TypeNode)
+	}
+
 	return &SignatureParameterNode{
 		TypedNodeBase: n.TypedNodeBase,
 		Name:          n.Name,
-		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
+		TypeNode:      typeNode,
 		Optional:      n.Optional,
 		Kind:          n.Kind,
 	}
@@ -389,7 +430,11 @@ func (n *SignatureParameterNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  type_node: ")
-	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	if n.TypeNode == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	}
 
 	fmt.Fprintf(&buff, ",\n  optional: %t", n.Optional)
 
@@ -425,11 +470,21 @@ type AttributeParameterNode struct {
 }
 
 func (n *AttributeParameterNode) Splice(loc *position.Location, args *[]Node) Node {
+	var typeNode TypeNode
+	if n.TypeNode != nil {
+		typeNode = n.TypeNode.Splice(loc, args).(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		init = n.Initialiser.Splice(loc, args).(ExpressionNode)
+	}
+
 	return &AttributeParameterNode{
 		TypedNodeBase: n.TypedNodeBase,
 		Name:          n.Name,
-		TypeNode:      n.TypeNode.Splice(loc, args).(TypeNode),
-		Initialiser:   n.Initialiser.Splice(loc, args).(ExpressionNode),
+		TypeNode:      typeNode,
+		Initialiser:   init,
 	}
 }
 
@@ -507,10 +562,18 @@ func (n *AttributeParameterNode) Inspect() string {
 	buff.WriteString(n.Name)
 
 	buff.WriteString(",\n  type_node: ")
-	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	if n.TypeNode == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  initialiser: ")
-	buff.WriteString(n.Initialiser.Inspect())
+	if n.Initialiser == nil {
+		buff.WriteString("nil")
+	} else {
+		buff.WriteString(n.Initialiser.Inspect())
+	}
 
 	buff.WriteString("\n}")
 

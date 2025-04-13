@@ -18,11 +18,14 @@ type KeyValueExpressionNode struct {
 }
 
 func (n *KeyValueExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	key := n.Key.Splice(loc, args).(ExpressionNode)
+	val := n.Value.Splice(loc, args).(ExpressionNode)
+
 	return &KeyValueExpressionNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Key:           n.Key.Splice(loc, args).(ExpressionNode),
-		Value:         n.Value.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Key:           key,
+		Value:         val,
+		static:        areExpressionsStatic(key, val),
 	}
 }
 

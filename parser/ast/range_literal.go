@@ -36,12 +36,22 @@ type RangeLiteralNode struct {
 }
 
 func (n *RangeLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	var start ExpressionNode
+	if n.Start != nil {
+		start = n.Start.Splice(loc, args).(ExpressionNode)
+	}
+
+	var end ExpressionNode
+	if n.End != nil {
+		end = n.End.Splice(loc, args).(ExpressionNode)
+	}
+
 	return &RangeLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Start:         n.Start.Splice(loc, args).(ExpressionNode),
-		End:           n.End.Splice(loc, args).(ExpressionNode),
+		Start:         start,
+		End:           end,
 		Op:            n.Op,
-		static:        n.static,
+		static:        areExpressionsStatic(start, end),
 	}
 }
 
@@ -113,10 +123,18 @@ func (n *RangeLiteralNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::RangeLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  start: ")
-	indent.IndentStringFromSecondLine(&buff, n.Start.Inspect(), 1)
+	if n.Start == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Start.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  end: ")
-	indent.IndentStringFromSecondLine(&buff, n.End.Inspect(), 1)
+	if n.End == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.End.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  op: ")
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)

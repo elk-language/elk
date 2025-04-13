@@ -19,11 +19,18 @@ type ModuleDeclarationNode struct {
 }
 
 func (n *ModuleDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	var constant ExpressionNode
+	if n.Constant != nil {
+		constant = n.Constant.Splice(loc, args).(ExpressionNode)
+	}
+
+	body := SpliceSlice(n.Body, loc, args)
+
 	return &ModuleDeclarationNode{
 		TypedNodeBase:          n.TypedNodeBase,
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Constant:               n.Constant.Splice(loc, args).(ExpressionNode),
-		Body:                   SpliceSlice(n.Body, loc, args),
+		Constant:               constant,
+		Body:                   body,
 		Bytecode:               n.Bytecode,
 	}
 }
@@ -129,7 +136,11 @@ func (n *ModuleDeclarationNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  constant: ")
-	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	if n.Constant == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  body: %[\n")
 	for i, element := range n.Body {

@@ -18,10 +18,15 @@ type ThrowExpressionNode struct {
 }
 
 func (n *ThrowExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	var val ExpressionNode
+	if n.Value != nil {
+		val = n.Value.Splice(loc, args).(ExpressionNode)
+	}
+
 	return &ThrowExpressionNode{
 		NodeBase:  n.NodeBase,
 		Unchecked: n.Unchecked,
-		Value:     n.Value.Splice(loc, args).(ExpressionNode),
+		Value:     val,
 	}
 }
 
@@ -99,7 +104,11 @@ func (n *ThrowExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, ",\n  unchecked: %t", n.Unchecked)
 
 	buff.WriteString(",\n  value: ")
-	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	if n.Value == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 

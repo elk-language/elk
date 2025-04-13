@@ -18,11 +18,22 @@ type HashMapLiteralNode struct {
 }
 
 func (n *HashMapLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+	var capacity ExpressionNode
+	var static bool
+
+	if n.Capacity != nil {
+		capacity = n.Capacity.Splice(loc, args).(ExpressionNode)
+		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
+	} else {
+		static = isExpressionSliceStatic(elements)
+	}
+
 	return &HashMapLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		Capacity:      n.Capacity.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Elements:      elements,
+		Capacity:      capacity,
+		static:        static,
 	}
 }
 
@@ -154,7 +165,11 @@ func (n *HashMapLiteralNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  capacity: ")
-	indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	if n.Capacity == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Capacity.Inspect(), 1)
+	}
 
 	buff.WriteString("\n}")
 
@@ -173,10 +188,13 @@ type HashRecordLiteralNode struct {
 }
 
 func (n *HashRecordLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+	static := isExpressionSliceStatic(elements)
+
 	return &HashRecordLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		static:        n.static,
+		Elements:      elements,
+		static:        static,
 	}
 }
 

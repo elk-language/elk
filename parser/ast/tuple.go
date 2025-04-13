@@ -17,10 +17,12 @@ type ArrayTupleLiteralNode struct {
 }
 
 func (n *ArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node) Node {
+	elements := SpliceSlice(n.Elements, loc, args)
+
 	return &ArrayTupleLiteralNode{
 		TypedNodeBase: n.TypedNodeBase,
-		Elements:      SpliceSlice(n.Elements, loc, args),
-		static:        n.static,
+		Elements:      elements,
+		static:        isExpressionSliceStatic(elements),
 	}
 }
 

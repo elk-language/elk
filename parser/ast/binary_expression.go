@@ -20,12 +20,15 @@ type BinaryExpressionNode struct {
 }
 
 func (n *BinaryExpressionNode) Splice(loc *position.Location, args *[]Node) Node {
+	left := n.Left.Splice(loc, args).(ExpressionNode)
+	right := n.Right.Splice(loc, args).(ExpressionNode)
+
 	return &BinaryExpressionNode{
 		TypedNodeBase: n.TypedNodeBase,
 		Op:            n.Op,
-		Left:          n.Left.Splice(loc, args).(ExpressionNode),
-		Right:         n.Right.Splice(loc, args).(ExpressionNode),
-		static:        n.static,
+		Left:          left,
+		Right:         right,
+		static:        areExpressionsStatic(left, right),
 	}
 }
 

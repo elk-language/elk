@@ -30,12 +30,20 @@ type StructDeclarationNode struct {
 }
 
 func (n *StructDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	var constant ExpressionNode
+	if n.Constant != nil {
+		constant = n.Constant.Splice(loc, args).(ExpressionNode)
+	}
+
+	typeParams := SpliceSlice(n.TypeParameters, loc, args)
+	body := SpliceSlice(n.Body, loc, args)
+
 	return &StructDeclarationNode{
 		TypedNodeBase:          n.TypedNodeBase,
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Constant:               n.Constant.Splice(loc, args).(ExpressionNode),
-		TypeParameters:         SpliceSlice(n.TypeParameters, loc, args),
-		Body:                   SpliceSlice(n.Body, loc, args),
+		Constant:               constant,
+		TypeParameters:         typeParams,
+		Body:                   body,
 	}
 }
 
@@ -150,7 +158,11 @@ func (n *StructDeclarationNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  constant: ")
-	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	if n.Constant == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  type_parameters: %[\n")
 	for i, element := range n.TypeParameters {

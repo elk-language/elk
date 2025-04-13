@@ -25,16 +25,30 @@ type ClassDeclarationNode struct {
 }
 
 func (n *ClassDeclarationNode) Splice(loc *position.Location, args *[]Node) Node {
+	var constant ExpressionNode
+	if n.Constant != nil {
+		constant = n.Constant.Splice(loc, args).(ExpressionNode)
+	}
+
+	typeParams := SpliceSlice(n.TypeParameters, loc, args)
+
+	var superclass ExpressionNode
+	if n.Superclass != nil {
+		superclass = n.Superclass.Splice(loc, args).(ExpressionNode)
+	}
+
+	body := SpliceSlice(n.Body, loc, args)
+
 	return &ClassDeclarationNode{
 		TypedNodeBase:  n.TypedNodeBase,
 		Abstract:       n.Abstract,
 		Sealed:         n.Sealed,
 		Primitive:      n.Primitive,
 		NoInit:         n.NoInit,
-		Constant:       n.Constant.Splice(loc, args).(ExpressionNode),
-		TypeParameters: SpliceSlice(n.TypeParameters, loc, args),
-		Superclass:     n.Superclass.Splice(loc, args).(ExpressionNode),
-		Body:           SpliceSlice(n.Body, loc, args),
+		Constant:       constant,
+		TypeParameters: typeParams,
+		Superclass:     superclass,
+		Body:           body,
 		Bytecode:       n.Bytecode,
 	}
 }
@@ -210,7 +224,11 @@ func (n *ClassDeclarationNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
 	buff.WriteString(",\n  constant: ")
-	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	if n.Constant == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  type_parameters: %[\n")
 	for i, element := range n.TypeParameters {
@@ -222,7 +240,11 @@ func (n *ClassDeclarationNode) Inspect() string {
 	buff.WriteString("\n  ]")
 
 	buff.WriteString(",\n  superclass: ")
-	indent.IndentStringFromSecondLine(&buff, n.Superclass.Inspect(), 1)
+	if n.Superclass == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Superclass.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  body: %[\n")
 	for i, element := range n.Body {
