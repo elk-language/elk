@@ -9,6 +9,7 @@ import (
 
 // Create a new location in tests
 var L = position.NewLocation
+var LP = position.NewLocationWithParent
 
 // Create a new position in tests
 var P = position.New
@@ -77,6 +78,56 @@ func TestDiagnosticListError(t *testing.T) {
 	want := "/some/path:2:1: foo bar\n<main>:4:5: sick style dude!\n"
 
 	if diff := cmp.Diff(want, got); diff != "" {
+		t.Fatal(diff)
+	}
+}
+
+func TestDiagnosticList_HumanStringWithSource(t *testing.T) {
+	list := DiagnosticList{
+		NewDiagnostic(
+			L("fixtures/if.elk", S(P(3, 1, 4), P(7, 1, 8))),
+			"undefined variable 'style'",
+			FAIL,
+		),
+		NewDiagnostic(
+			LP(
+				"fixtures/if.elk",
+				S(P(9, 1, 10), P(10, 1, 11)),
+				L("fixtures/if.elk", S(P(0, 1, 1), P(1, 1, 2))),
+			),
+			"invalid operator '=='",
+			FAIL,
+		),
+	}
+
+	got, err := list.HumanString(false, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	want := `[FAIL] undefined variable 'style'
+
+  fixtures/if.elk:1:4
+    1 | if style == FOO
+           └───┤
+               └ Here
+
+[FAIL] invalid operator '=='
+
+  fixtures/if.elk:1:10
+    1 | if style == FOO
+                 └┤
+                  └ Here
+
+  fixtures/if.elk:1:1
+    1 | if style == FOO
+        └┤
+         └ Here
+
+`
+
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Log(got)
 		t.Fatal(diff)
 	}
 }

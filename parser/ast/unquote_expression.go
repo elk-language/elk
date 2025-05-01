@@ -9,7 +9,7 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Represents an unquoted piecie of AST inside of a quote
+// Represents an unquoted piece of AST inside of a quote
 type UnquoteExpressionNode struct {
 	TypedNodeBase
 	Expression ExpressionNode

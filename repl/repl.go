@@ -41,17 +41,25 @@ type evaluator struct {
 	inspectStack bool
 }
 
+const replName = "<repl>"
+
 func (e *evaluator) evaluate(input string) {
 	if e.typechecker == nil {
 		e.typechecker = checker.New()
 		e.vm = vm.New()
 	}
-	fn, err := e.typechecker.CheckSource("<repl>", input)
+	fn, dl := e.typechecker.CheckSource(replName, input)
 
-	if err != nil {
+	if dl != nil {
 		fmt.Println()
-		fmt.Println(err.HumanStringWithSource(input, true, lexer.Colorizer{}))
-		isFailure := err.IsFailure()
+
+		sourceMap := map[string]string{replName: input}
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, sourceMap)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(str)
+		isFailure := dl.IsFailure()
 		e.typechecker.ClearErrors()
 		if isFailure {
 			return
@@ -73,12 +81,19 @@ func (e *evaluator) evaluate(input string) {
 
 // parses the input and prints it to the output
 func (e *evaluator) parse(input string) {
-	ast, err := parser.Parse("<repl>", input)
+	ast, dl := parser.Parse(replName, input)
 
-	if err != nil {
+	if dl != nil {
 		fmt.Println()
-		fmt.Println(err.HumanStringWithSource(input, true, lexer.Colorizer{}))
-		if err.IsFailure() {
+
+		sourceMap := map[string]string{replName: input}
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, sourceMap)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(str)
+		if dl.IsFailure() {
 			return
 		}
 	}
@@ -90,12 +105,19 @@ func (e *evaluator) disassemble(input string) {
 	if e.typechecker == nil {
 		e.typechecker = checker.New()
 	}
-	fn, err := e.typechecker.CheckSource("<repl>", input)
+	fn, dl := e.typechecker.CheckSource(replName, input)
 
-	if err != nil {
+	if dl != nil {
 		fmt.Println()
-		fmt.Println(err.HumanStringWithSource(input, true, lexer.Colorizer{}))
-		isFailure := err.IsFailure()
+
+		sourceMap := map[string]string{replName: input}
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, sourceMap)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(str)
+		isFailure := dl.IsFailure()
 		e.typechecker.ClearErrors()
 		if isFailure {
 			return
@@ -110,12 +132,19 @@ func (e *evaluator) typecheck(input string) {
 	if e.typechecker == nil {
 		e.typechecker = checker.New()
 	}
-	_, err := e.typechecker.CheckSource("<repl>", input)
+	_, dl := e.typechecker.CheckSource(replName, input)
 
-	if err != nil {
+	if dl != nil {
 		fmt.Println()
-		fmt.Println(err.HumanStringWithSource(input, true, lexer.Colorizer{}))
-		isFailure := err.IsFailure()
+
+		sourceMap := map[string]string{replName: input}
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, sourceMap)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(str)
+		isFailure := dl.IsFailure()
 		e.typechecker.ClearErrors()
 		if isFailure {
 			return

@@ -98,23 +98,13 @@ func initDiagnostic() {
 				colorizer = vm.MakeColorizer(v, args[2])
 			}
 
-			var result string
-			var err error
-			if args[3].IsUndefined() {
-				result, err = self.HumanString(style, colorizer)
-			} else {
-				result, err = self.HumanStringWithSource(
-					string(args[3].AsReference().(value.String)),
-					style,
-					colorizer,
-				)
-			}
+			result, err := self.HumanString(style, colorizer)
 
 			if err != nil {
 				return value.Undefined, value.Ref(value.NewError(value.ColorizerErrorClass, err.Error()))
 			}
 			return value.Ref(value.String(result)), value.Undefined
 		},
-		vm.DefWithParameters(3),
+		vm.DefWithParameters(2),
 	)
 }

@@ -38,5 +38,5 @@ sealed primitive class ::Std::Diagnostic
 		It will attempt to read the source fragment from the file
 		if no source string is given.
 	]##
-	def to_human_string(style: bool = true, colorizer: Colorizer? = loop; end, source: String? = nil); end
+	def to_human_string(style: bool = true, colorizer: Colorizer? = loop; end); end
 end
