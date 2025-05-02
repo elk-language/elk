@@ -157,6 +157,8 @@ var GenericMethodCallNodeClass *Class             // Std::Elk::AST::GenericMetho
 var MethodCallNodeClass *Class                    // Std::Elk::AST::MethodCallNode
 var ReceiverlessMethodCallNodeClass *Class        // Std::Elk::AST::ReceiverlessMethodCallNode
 var GenericReceiverlessMethodCallNodeClass *Class // Std::Elk::AST::GenericReceiverlessMethodCallNode
+var MacroCallNodeClass *Class                     // Std::Elk::AST::MacroCallNode
+var ReceiverlessMacroCallNodeClass *Class         // Std::Elk::AST::ReceiverlessMacroCallNode
 var SplatExpressionNodeClass *Class               // Std::Elk::AST::SplatExpressionNode
 var KeyValueExpressionNodeClass *Class            // Std::Elk::AST::KeyValueExpressionNode
 var SymbolKeyValueExpressionNodeClass *Class      // Std::Elk::AST::SymbolKeyValueExpressionNode
@@ -962,6 +964,14 @@ func initElkAST() {
 	GenericReceiverlessMethodCallNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	GenericReceiverlessMethodCallNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("GenericReceiverlessMethodCallNode", Ref(GenericReceiverlessMethodCallNodeClass))
+
+	MacroCallNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	MacroCallNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("MacroCallNode", Ref(MacroCallNodeClass))
+
+	ReceiverlessMacroCallNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	ReceiverlessMacroCallNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("ReceiverlessMacroCallNode", Ref(ReceiverlessMacroCallNodeClass))
 
 	SplatExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	SplatExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)

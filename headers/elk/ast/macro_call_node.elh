@@ -1,0 +1,24 @@
+module Std::Elk::AST
+  ##[
+    Represents a macro call eg. `'123'.foo!()`
+  ]##
+  sealed primitive class MacroCallNode
+    include ExpressionNode
+
+    init(
+      receiver: ExpressionNode,
+      op: Elk::Token,
+      macro_name: String,
+      positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
+      named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
+      location: FS::Location = loop; end,
+    ); end
+
+    def receiver: ExpressionNode; end
+    def op: Elk::Token; end
+    def macro_name: String; end
+    def positional_arguments: ArrayTuple[ExpressionNode]; end
+    def named_arguments: ArrayTuple[NamedArgumentNode]; end
+    def location: FS::Location; end
+  end
+end

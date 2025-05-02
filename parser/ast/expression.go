@@ -112,6 +112,8 @@ func (*GenericConstructorCallNode) expressionNode()        {}
 func (*ConstructorCallNode) expressionNode()               {}
 func (*SubscriptExpressionNode) expressionNode()           {}
 func (*NilSafeSubscriptExpressionNode) expressionNode()    {}
+func (*MacroCallNode) expressionNode()                     {}
+func (*ReceiverlessMacroCallNode) expressionNode()         {}
 func (*CallNode) expressionNode()                          {}
 func (*GenericMethodCallNode) expressionNode()             {}
 func (*MethodCallNode) expressionNode()                    {}

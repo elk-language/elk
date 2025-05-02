@@ -1490,7 +1490,53 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	// function call
 	var receiver ast.ExpressionNode
 
-	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) &&
+	// receiverless macro
+	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) && p.acceptSecond(token.BANG) &&
+		(p.acceptThird(token.LPAREN, token.COLON_COLON_LBRACKET) || p.thirdLookahead.IsValidAsArgumentToNoParenFunctionCall()) {
+		macroName := p.advance()
+		location := macroName.Location()
+
+		p.advance() // bang !
+
+		lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
+		if errToken != nil {
+			return ast.NewInvalidNode(
+				errToken.Location(),
+				errToken,
+			)
+		}
+		if lastArgSpan == nil {
+			p.errorExpected("macro arguments")
+			errToken = p.advance()
+			return ast.NewInvalidNode(
+				errToken.Location(),
+				errToken,
+			)
+		}
+		location = location.Join(lastArgSpan)
+
+		if p.hasTrailingClosure() {
+			function := p.closureExpression()
+			if len(namedArgs) > 0 {
+				namedArgs = append(
+					namedArgs,
+					ast.NewNamedCallArgumentNode(function.Location(), "func", function),
+				)
+			} else {
+				posArgs = append(posArgs, function)
+			}
+			location = location.Join(function.Location())
+		}
+
+		receiver = ast.NewReceiverlessMacroCallNode(
+			location,
+			macroName.Value,
+			posArgs,
+			namedArgs,
+		)
+
+		// receiverless method
+	} else if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) &&
 		(p.acceptSecond(token.LPAREN, token.COLON_COLON_LBRACKET) || p.secondLookahead.IsValidAsArgumentToNoParenFunctionCall()) {
 		methodName := p.advance()
 		location := methodName.Location()
