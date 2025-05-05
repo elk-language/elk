@@ -25,6 +25,7 @@ var S = position.NewSpan
 
 // Create a new source location in tests.
 var L = position.NewLocation
+var LP = position.NewLocationWithParent
 
 func TestSplice(t *testing.T) {
 	tests := map[string]struct {
@@ -62,18 +63,39 @@ func TestSplice(t *testing.T) {
 				),
 			},
 			want: NewBinaryExpressionNode(
-				L("main", S(P(0, 1, 1), P(15, 1, 16))),
-				T(L("main", S(P(0, 1, 1), P(15, 1, 16))), token.PLUS),
+				LP(
+					"bar", S(P(92, 7, 10), P(115, 5, 32)),
+					L("main", S(P(0, 1, 1), P(15, 1, 16))),
+				),
+				T(
+					LP(
+						"bar", S(P(92, 7, 10), P(115, 5, 32)),
+						L("main", S(P(0, 1, 1), P(15, 1, 16))),
+					),
+					token.PLUS,
+				),
 				NewUnaryExpressionNode(
-					L("foo", S(P(5, 5, 2), P(15, 5, 6))),
-					T(L("main", S(P(0, 1, 1), P(15, 1, 16))), token.MINUS),
+					LP(
+						"bar", S(P(92, 7, 10), P(115, 5, 32)),
+						L("foo", S(P(5, 5, 2), P(15, 5, 6))),
+					),
+					T(
+						LP(
+							"bar", S(P(92, 7, 10), P(115, 5, 32)),
+							L("main", S(P(0, 1, 1), P(15, 1, 16))),
+						),
+						token.MINUS,
+					),
 					NewRawCharLiteralNode(
 						L("baz", S(P(135, 41, 46), P(145, 75, 2))),
 						'r',
 					),
 				),
 				NewIntLiteralNode(
-					L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+					LP(
+						"bar", S(P(92, 7, 10), P(115, 5, 32)),
+						L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+					),
 					"20",
 				),
 			),

@@ -1609,8 +1609,8 @@ methodCallLoop:
 	for {
 		var opToken *token.Token
 
+		// subscript
 		if p.accept(token.LBRACKET, token.QUESTION_LBRACKET) {
-			// subscript
 			nilSafe := p.accept(token.QUESTION_LBRACKET)
 			p.advance()
 			p.swallowNewlines()
@@ -1651,6 +1651,7 @@ methodCallLoop:
 			}
 		}
 
+		// closure call
 		if p.accept(token.LPAREN) {
 			lastLocation, posArgs, namedArgs, errToken := p.callArgumentList()
 			if errToken != nil {
@@ -1714,8 +1715,14 @@ methodCallLoop:
 			continue
 		}
 
+		var isMacro bool
+		if tok, ok := p.matchOk(token.BANG); ok {
+			isMacro = true
+			location = location.Join(tok.Location())
+		}
+
 		var typeArgs []ast.TypeNode
-		if p.match(token.COLON_COLON_LBRACKET) {
+		if op, ok := p.matchOk(token.COLON_COLON_LBRACKET); ok {
 			p.swallowNewlines()
 			// generic constructor call
 			typeArgs = p.typeAnnotationList(token.RBRACKET)
@@ -1725,6 +1732,9 @@ methodCallLoop:
 				return ast.NewInvalidNode(rbracket.Location(), rbracket)
 			}
 			location = location.Join(rbracket.Location())
+			if isMacro {
+				p.errorMessageLocation("macro calls cannot be generic", op.Location().Join(rbracket.Location()))
+			}
 		}
 
 		hasParentheses := p.lookahead.Type == token.LPAREN
@@ -1741,8 +1751,12 @@ methodCallLoop:
 
 		hasTrailingClosure := p.hasTrailingClosure()
 
-		if !hasTrailingClosure && !hasParentheses &&
-			len(posArgs) == 0 && len(namedArgs) == 0 && opToken.Type == token.DOT &&
+		if !isMacro &&
+			!hasTrailingClosure &&
+			!hasParentheses &&
+			len(posArgs) == 0 &&
+			len(namedArgs) == 0 &&
+			opToken.Type == token.DOT &&
 			len(typeArgs) == 0 {
 			receiver = ast.NewAttributeAccessNode(
 				location,
@@ -1765,7 +1779,16 @@ methodCallLoop:
 			location = location.Join(function.Location())
 		}
 
-		if len(typeArgs) > 0 {
+		if isMacro {
+			receiver = ast.NewMacroCallNode(
+				location,
+				receiver,
+				opToken,
+				methodName,
+				posArgs,
+				namedArgs,
+			)
+		} else if len(typeArgs) > 0 {
 			receiver = ast.NewGenericMethodCallNode(
 				location,
 				receiver,
@@ -1789,7 +1812,10 @@ methodCallLoop:
 }
 
 func (p *Parser) hasTrailingClosure() bool {
-	return p.accept(token.THIN_ARROW) || (p.accept(token.OR_OR) && p.acceptSecond(token.THIN_ARROW)) || (p.accept(token.OR) && (p.acceptSecond(token.STAR, token.STAR_STAR) || p.acceptSecond(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptThird(token.OR, token.COMMA, token.COLON)))
+	return p.accept(token.THIN_ARROW) ||
+		(p.accept(token.OR_OR) && p.acceptSecond(token.THIN_ARROW)) ||
+		(p.accept(token.OR) && (p.acceptSecond(token.STAR, token.STAR_STAR) ||
+			p.acceptSecond(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptThird(token.OR, token.COMMA, token.COLON)))
 }
 
 // beginlessRangeLiteral = ("..." | "<.<" | "<.." | "..<") constructorCall
