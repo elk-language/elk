@@ -3,7 +3,6 @@ package runtime
 import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -15,12 +14,11 @@ func initMacroCallNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
-			argOp := args[2].MustReference().(*token.Token)
-			argMethodName := (string)(args[3].MustReference().(value.String))
+			argMethodName := (string)(args[2].MustReference().(value.String))
 
 			var argPositionalArguments []ast.ExpressionNode
-			if !args[4].IsUndefined() {
-				argPositionalArgumentsTuple := args[4].MustReference().(*value.ArrayTuple)
+			if !args[3].IsUndefined() {
+				argPositionalArgumentsTuple := args[3].MustReference().(*value.ArrayTuple)
 				argPositionalArguments = make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
 				for i, el := range *argPositionalArgumentsTuple {
 					argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
@@ -28,8 +26,8 @@ func initMacroCallNode() {
 			}
 
 			var argNamedArguments []ast.NamedArgumentNode
-			if !args[5].IsUndefined() {
-				argNamedArgumentsTuple := args[5].MustReference().(*value.ArrayTuple)
+			if !args[4].IsUndefined() {
+				argNamedArgumentsTuple := args[4].MustReference().(*value.ArrayTuple)
 				argNamedArguments = make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
 				for i, el := range *argNamedArgumentsTuple {
 					argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -37,15 +35,14 @@ func initMacroCallNode() {
 			}
 
 			var argLoc *position.Location
-			if args[6].IsUndefined() {
+			if args[5].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[6].Pointer())
+				argLoc = (*position.Location)(args[5].Pointer())
 			}
 			self := ast.NewMacroCallNode(
 				argLoc,
 				argReceiver,
-				argOp,
 				argMethodName,
 				argPositionalArguments,
 				argNamedArguments,
@@ -53,7 +50,7 @@ func initMacroCallNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(6),
+		vm.DefWithParameters(5),
 	)
 
 	vm.Def(
@@ -62,17 +59,6 @@ func initMacroCallNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroCallNode)
 			result := value.Ref(self.Receiver)
-			return result, value.Undefined
-
-		},
-	)
-
-	vm.Def(
-		c,
-		"op",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.MacroCallNode)
-			result := value.Ref(self.Op)
 			return result, value.Undefined
 
 		},

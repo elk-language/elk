@@ -7,7 +7,6 @@ module Std::Elk::AST
 
     init(
       receiver: ExpressionNode,
-      op: Elk::Token,
       macro_name: String,
       positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
       named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
@@ -15,7 +14,6 @@ module Std::Elk::AST
     ); end
 
     def receiver: ExpressionNode; end
-    def op: Elk::Token; end
     def macro_name: String; end
     def positional_arguments: ArrayTuple[ExpressionNode]; end
     def named_arguments: ArrayTuple[NamedArgumentNode]; end

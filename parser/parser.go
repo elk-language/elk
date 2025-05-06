@@ -1719,6 +1719,9 @@ methodCallLoop:
 		if tok, ok := p.matchOk(token.BANG); ok {
 			isMacro = true
 			location = location.Join(tok.Location())
+			if opToken.Type != token.DOT {
+				p.errorMessageLocation("invalid macro call operator", opToken.Location())
+			}
 		}
 
 		var typeArgs []ast.TypeNode
@@ -1783,7 +1786,6 @@ methodCallLoop:
 			receiver = ast.NewMacroCallNode(
 				location,
 				receiver,
-				opToken,
 				methodName,
 				posArgs,
 				namedArgs,

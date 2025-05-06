@@ -6,7 +6,6 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
 )
 
@@ -14,7 +13,6 @@ import (
 type MacroCallNode struct {
 	TypedNodeBase
 	Receiver            ExpressionNode
-	Op                  *token.Token
 	MacroName           string
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
@@ -24,7 +22,6 @@ func (n *MacroCallNode) Splice(loc *position.Location, args *[]Node, unquote boo
 	return &MacroCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:            n.Receiver.Splice(loc, args, unquote).(ExpressionNode),
-		Op:                  n.Op.Splice(loc, unquote),
 		MacroName:           n.MacroName,
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
@@ -56,7 +53,6 @@ func (n *MacroCallNode) Equal(other value.Value) bool {
 
 	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
-		n.Op.Equal(o.Op) &&
 		n.MacroName != o.MacroName
 }
 
@@ -64,7 +60,7 @@ func (n *MacroCallNode) String() string {
 	var buff strings.Builder
 
 	buff.WriteString(n.Receiver.String())
-	buff.WriteString(n.Op.String())
+	buff.WriteRune('.')
 	buff.WriteString(n.MacroName)
 	buff.WriteString("!(")
 
@@ -129,9 +125,6 @@ func (n *MacroCallNode) Inspect() string {
 	buff.WriteString(",\n  receiver: ")
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
-	buff.WriteString(",\n  op: ")
-	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
-
 	buff.WriteString(",\n  macro_name: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.MacroName).Inspect(), 1)
 
@@ -163,11 +156,10 @@ func (n *MacroCallNode) Error() string {
 }
 
 // Create a macro call node eg. `'123'.to_int!()`
-func NewMacroCallNode(loc *position.Location, recv ExpressionNode, op *token.Token, macroName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MacroCallNode {
+func NewMacroCallNode(loc *position.Location, recv ExpressionNode, macroName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MacroCallNode {
 	return &MacroCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: loc},
 		Receiver:            recv,
-		Op:                  op,
 		MacroName:           macroName,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,
