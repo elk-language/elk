@@ -1491,29 +1491,35 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	var receiver ast.ExpressionNode
 
 	// receiverless macro
-	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) && p.acceptSecond(token.BANG) &&
-		(p.acceptThird(token.LPAREN, token.COLON_COLON_LBRACKET) || p.thirdLookahead.IsValidAsArgumentToNoParenFunctionCall()) {
+	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) && p.acceptSecond(token.BANG) {
 		macroName := p.advance()
 		location := macroName.Location()
 
 		p.advance() // bang !
 
-		lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
-		if errToken != nil {
-			return ast.NewInvalidNode(
-				errToken.Location(),
-				errToken,
-			)
+		var posArgs []ast.ExpressionNode
+		var namedArgs []ast.NamedArgumentNode
+		if p.accept(token.LPAREN) || p.lookahead.IsValidAsArgumentToNoParenFunctionCall() {
+			var lastArgSpan *position.Location
+			var errToken *token.Token
+
+			lastArgSpan, posArgs, namedArgs, errToken = p.callArgumentList()
+			if errToken != nil {
+				return ast.NewInvalidNode(
+					errToken.Location(),
+					errToken,
+				)
+			}
+			if lastArgSpan == nil {
+				p.errorExpected("macro arguments")
+				errToken = p.advance()
+				return ast.NewInvalidNode(
+					errToken.Location(),
+					errToken,
+				)
+			}
+			location = location.Join(lastArgSpan)
 		}
-		if lastArgSpan == nil {
-			p.errorExpected("macro arguments")
-			errToken = p.advance()
-			return ast.NewInvalidNode(
-				errToken.Location(),
-				errToken,
-			)
-		}
-		location = location.Join(lastArgSpan)
 
 		if p.hasTrailingClosure() {
 			function := p.closureExpression()
@@ -1721,6 +1727,9 @@ methodCallLoop:
 			location = location.Join(tok.Location())
 			if opToken.Type != token.DOT {
 				p.errorMessageLocation("invalid macro call operator", opToken.Location())
+			}
+			if methodNameTok.Type != token.PUBLIC_IDENTIFIER && !methodNameTok.IsKeyword() {
+				p.errorMessageLocation("invalid macro name", methodNameTok.Location())
 			}
 		}
 
