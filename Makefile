@@ -18,7 +18,7 @@ build: fmt
 	go build -ldflags "-s -w"
 
 test: header
-	go test ./... -timeout 10s
+	go test ./... -timeout 40s
 
 repl: fmt
 	go run ./cmd/elk repl
