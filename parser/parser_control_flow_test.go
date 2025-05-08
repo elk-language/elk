@@ -3204,6 +3204,82 @@ func TestMust(t *testing.T) {
 				},
 			),
 		},
+		"can resemble a method call": {
+			input: `foo.must`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(7, 1, 8))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(7, 1, 8))),
+						ast.NewMustExpressionNode(
+							L(S(P(0, 1, 1), P(7, 1, 8))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+						),
+					),
+				},
+			),
+		},
+		"cannot have arguments": {
+			input: `foo.must(2)`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(7, 1, 8))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(7, 1, 8))),
+						ast.NewMustExpressionNode(
+							L(S(P(0, 1, 1), P(7, 1, 8))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(8, 1, 9), P(8, 1, 9))), "unexpected (, expected a statement separator `\\n`, `;`"),
+			},
+		},
+		"can be chained": {
+			input: `foo.must.elo().must`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(18, 1, 19))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(18, 1, 19))),
+						ast.NewMustExpressionNode(
+							L(S(P(0, 1, 1), P(18, 1, 19))),
+							ast.NewMethodCallNode(
+								L(S(P(0, 1, 1), P(13, 1, 14))),
+								ast.NewMustExpressionNode(
+									L(S(P(0, 1, 1), P(7, 1, 8))),
+									ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+								),
+								T(L(S(P(8, 1, 9), P(8, 1, 9))), token.DOT),
+								"elo",
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"invalid operator": {
+			input: `foo..must`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 1, 9))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(8, 1, 9))),
+						ast.NewMustExpressionNode(
+							L(S(P(0, 1, 1), P(8, 1, 9))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(3, 1, 4), P(4, 1, 5))), "invalid must operator"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

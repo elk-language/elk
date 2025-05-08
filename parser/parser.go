@@ -1481,11 +1481,6 @@ const (
 	expectedMethodMessage       = "a method name (identifier, keyword or overridable operator)"
 )
 
-// methodCall = identifier ["::[" typeAnnotationList "]"] ( "(" argumentList ")" | argumentList) |
-// "self" ("." | "?." | ".." | "?..") (identifier | keyword | overridableOperator) ["::[" typeAnnotationList "]"] ( "(" argumentList ")" | argumentList) |
-// (methodCall | subscript | constructorCall) ("."| "?." | ".." | "?..") [publicIdentifier | keyword | overridableOperator] ["::[" typeAnnotationList "]"] ( "(" argumentList ")" | argumentList)
-//
-// subscript = methodCall | subscript ("[" | "?[") expressionWithoutModifier "]"
 func (p *Parser) methodCall() ast.ExpressionNode {
 	// function call
 	var receiver ast.ExpressionNode
@@ -1710,7 +1705,8 @@ methodCallLoop:
 		methodName := methodNameTok.FetchValue()
 		location := receiver.Location().Join(methodNameTok.Location())
 
-		if methodNameTok.Type == token.AWAIT {
+		switch methodNameTok.Type {
+		case token.AWAIT:
 			if opToken.Type != token.DOT {
 				p.errorMessageLocation("invalid await operator", opToken.Location())
 			}
@@ -1719,6 +1715,17 @@ methodCallLoop:
 				receiver,
 			)
 			continue
+		case token.MUST:
+			if methodNameTok.Type == token.MUST {
+				if opToken.Type != token.DOT {
+					p.errorMessageLocation("invalid must operator", opToken.Location())
+				}
+				receiver = ast.NewMustExpressionNode(
+					location,
+					receiver,
+				)
+				continue
+			}
 		}
 
 		var isMacro bool
