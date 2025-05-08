@@ -93,6 +93,7 @@ func InitGlobalEnvironment() {
 	initReceiverlessMacroCallNode()
 	initMacroCallNode()
 	initMethodCallNode()
+	initMacroDefinitionNode()
 	initMethodDefinitionNode()
 	initMethodLookupAsNode()
 	initMethodLookupNode()

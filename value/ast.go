@@ -128,6 +128,7 @@ var ModuleDeclarationNodeClass *Class             // Std::Elk::AST::ModuleDeclar
 var MixinDeclarationNodeClass *Class              // Std::Elk::AST::MixinDeclarationNode
 var InterfaceDeclarationNodeClass *Class          // Std::Elk::AST::InterfaceDeclarationNode
 var StructDeclarationNodeClass *Class             // Std::Elk::AST::StructDeclarationNode
+var MacroDefinitionNodeClass *Class               // Std::Elk::AST::MacroDefinitionNode
 var MethodDefinitionNodeClass *Class              // Std::Elk::AST::MethodDefinitionNode
 var InitDefinitionNodeClass *Class                // Std::Elk::AST::InitDefinitionNode
 var MethodSignatureDefinitionNodeClass *Class     // Std::Elk::AST::MethodSignatureDefinitionNode
@@ -846,6 +847,10 @@ func initElkAST() {
 	MethodDefinitionNodeClass.AddConstantString("GENERATOR_FLAG", UInt8(4).ToValue())
 	MethodDefinitionNodeClass.AddConstantString("ASYNC_FLAG", UInt8(8).ToValue())
 	ElkASTModule.AddConstantString("MethodDefinitionNode", Ref(MethodDefinitionNodeClass))
+
+	MacroDefinitionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	MacroDefinitionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("MacroDefinitionNode", Ref(MacroDefinitionNodeClass))
 
 	InitDefinitionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	InitDefinitionNodeClass.IncludeMixin(ExpressionNodeMixin)

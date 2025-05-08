@@ -93,6 +93,7 @@ func (*ModuleDeclarationNode) expressionNode()             {}
 func (*MixinDeclarationNode) expressionNode()              {}
 func (*InterfaceDeclarationNode) expressionNode()          {}
 func (*StructDeclarationNode) expressionNode()             {}
+func (*MacroDefinitionNode) expressionNode()               {}
 func (*MethodDefinitionNode) expressionNode()              {}
 func (*InitDefinitionNode) expressionNode()                {}
 func (*MethodSignatureDefinitionNode) expressionNode()     {}

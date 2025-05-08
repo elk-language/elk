@@ -9,6 +9,169 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+// Represents a macro definition eg. `macro foo(a: Elk::AST::StringLiteralNode); a; end`
+type MacroDefinitionNode struct {
+	TypedNodeBase
+	DocCommentableNodeBase
+	sealed     bool
+	Name       string
+	Parameters []ParameterNode // formal parameters
+	Body       []StatementNode // body of the method
+}
+
+func (n *MacroDefinitionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	params := SpliceSlice(n.Parameters, loc, args, unquote)
+	body := SpliceSlice(n.Body, loc, args, unquote)
+
+	return &MacroDefinitionNode{
+		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Name:                   n.Name,
+		Parameters:             params,
+		Body:                   body,
+		sealed:                 n.sealed,
+	}
+}
+
+// Check if this method definition is equal to another value.
+func (n *MacroDefinitionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MacroDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Parameters) != len(o.Parameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, param := range n.Parameters {
+		if !param.Equal(value.Ref(o.Parameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return n.loc.Equal(o.loc) &&
+		n.Name == o.Name &&
+		n.sealed == o.sealed
+}
+
+// Return a string representation of this method definition.
+func (n *MacroDefinitionNode) String() string {
+	var buff strings.Builder
+
+	if n.IsSealed() {
+		buff.WriteString("sealed ")
+	}
+	buff.WriteString("macro ")
+	buff.WriteString(n.Name)
+
+	buff.WriteString("(")
+	for i, param := range n.Parameters {
+		if i > 0 {
+			buff.WriteString(", ")
+		}
+		buff.WriteString(param.String())
+	}
+	buff.WriteString(")")
+
+	buff.WriteRune('\n')
+	for _, stmt := range n.Body {
+		indent.IndentString(&buff, stmt.String(), 1)
+		buff.WriteRune('\n')
+	}
+	buff.WriteString("end")
+
+	return buff.String()
+}
+
+func (*MacroDefinitionNode) IsStatic() bool {
+	return false
+}
+
+func (m *MacroDefinitionNode) IsSealed() bool {
+	return m.sealed
+}
+
+func (m *MacroDefinitionNode) SetSealed() {
+	m.sealed = true
+}
+
+func (*MacroDefinitionNode) Class() *value.Class {
+	return value.MacroDefinitionNodeClass
+}
+
+func (*MacroDefinitionNode) DirectClass() *value.Class {
+	return value.MacroDefinitionNodeClass
+}
+
+func (n *MacroDefinitionNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::Elk::AST::MacroDefinitionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+
+	buff.WriteString(",\n  doc_comment: ")
+	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
+
+	fmt.Fprintf(&buff, ",\n  sealed: %t", n.IsSealed())
+
+	buff.WriteString(",\n  name: ")
+	buff.WriteString(n.Name)
+
+	buff.WriteString(",\n  parameters: %[\n")
+	for i, element := range n.Parameters {
+		if i != 0 {
+			buff.WriteString(",\n")
+		}
+		indent.IndentString(&buff, element.Inspect(), 2)
+	}
+	buff.WriteString("\n  ]")
+
+	buff.WriteString(",\n  body: %[\n")
+	for i, element := range n.Body {
+		if i != 0 {
+			buff.WriteString(",\n")
+		}
+		indent.IndentString(&buff, element.Inspect(), 2)
+	}
+	buff.WriteString("\n  ]")
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (p *MacroDefinitionNode) Error() string {
+	return p.Inspect()
+}
+
+// Create a method definition node eg. `def foo: String then 'hello world'`
+func NewMacroDefinitionNode(
+	loc *position.Location,
+	docComment string,
+	sealed bool,
+	name string,
+	params []ParameterNode,
+	body []StatementNode,
+) *MacroDefinitionNode {
+	return &MacroDefinitionNode{
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
+		sealed:     sealed,
+		Name:       name,
+		Parameters: params,
+		Body:       body,
+	}
+}
+
 // Represents a method call eg. `'123'.to_int!()`
 type MacroCallNode struct {
 	TypedNodeBase

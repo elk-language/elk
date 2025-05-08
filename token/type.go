@@ -148,39 +148,28 @@ func (t Type) IsOperator() bool {
 
 // Check whether the token is a valid simple symbol content.
 func (t Type) IsValidSimpleSymbolContent() bool {
-	if t.IsIdentifier() || t == RAW_STRING || t.IsKeyword() || t.IsOverridableOperator() {
-		return true
-	}
-
-	return false
+	return t.IsIdentifier() || t == RAW_STRING || t.IsKeyword() || t.IsOverridableOperator()
 }
 
 // Check whether the token is a valid method name (without operators).
 func (t Type) IsValidRegularMethodName() bool {
-	if t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER || t.IsKeyword() {
-		return true
-	}
+	return t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER || t.IsKeyword()
+}
 
-	return false
+// Check whether the token is a valid macro name.
+func (t Type) IsValidMacroName() bool {
+	return t == PUBLIC_IDENTIFIER || t.IsKeyword()
 }
 
 // Check whether the token is a valid method name (including operators).
 func (t Type) IsValidMethodName() bool {
-	if t.IsValidRegularMethodName() || t.IsOverridableOperator() {
-		return true
-	}
-
-	return false
+	return t.IsValidRegularMethodName() || t.IsOverridableOperator()
 }
 
 // Check whether the token is a valid method name in method
 // call expressions.
 func (t Type) IsValidPublicMethodName() bool {
-	if t == PUBLIC_IDENTIFIER || t.IsKeyword() || t.IsOverridableOperator() {
-		return true
-	}
-
-	return false
+	return t == PUBLIC_IDENTIFIER || t.IsKeyword() || t.IsOverridableOperator()
 }
 
 // Check whether the token is an overridable operator.

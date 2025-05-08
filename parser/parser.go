@@ -685,6 +685,8 @@ func (p *Parser) topLevelExpression() ast.ExpressionNode {
 
 func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 	switch p.lookahead.Type {
+	case token.MACRO:
+		return p.macroDefinition(allowed)
 	case token.DEF:
 		return p.methodDefinition(allowed)
 	case token.SIG:
@@ -2207,6 +2209,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.constantDeclaration(false)
 	case token.DEF:
 		return p.methodDefinition(false)
+	case token.MACRO:
+		return p.macroDefinition(false)
 	case token.INIT:
 		return p.initDefinition(false)
 	case token.SWITCH:
@@ -3113,6 +3117,18 @@ func (p *Parser) typeDefinition(allowed bool) ast.ExpressionNode {
 	)
 }
 
+func (p *Parser) macroName() (*token.Token, bool) {
+	if p.lookahead.IsValidMacroName() {
+		macroNameTok := p.advance()
+		return macroNameTok, true
+	} else {
+		p.errorExpected("a macro name (public identifier, keyword)")
+		p.updateErrorMode(true)
+		tok := p.advance()
+		return tok, false
+	}
+}
+
 func (p *Parser) methodName() (string, *position.Location) {
 	var methodName string
 	var location *position.Location
@@ -3149,6 +3165,73 @@ func (p *Parser) methodName() (string, *position.Location) {
 	}
 
 	return methodName, location
+}
+
+// macroDefinition = "macro" macroName ["(" formalParameterList ")"] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
+	var params []ast.ParameterNode
+	var body []ast.StatementNode
+	var location *position.Location
+
+	macroTok := p.advance()
+	location = macroTok.Location()
+
+	p.swallowNewlines()
+	macroNameTok, ok := p.macroName()
+	if !ok {
+		return ast.NewInvalidNode(macroNameTok.Location(), macroNameTok)
+	}
+
+	if p.match(token.LPAREN) {
+		p.swallowNewlines()
+		if !p.match(token.RPAREN) {
+			params = p.formalParameterList(token.RPAREN)
+
+			p.swallowNewlines()
+			rparen, ok := p.consume(token.RPAREN)
+			if !ok {
+				return ast.NewInvalidNode(
+					rparen.Location(),
+					rparen,
+				)
+			}
+			location = location.Join(rparen.Location())
+		}
+	}
+
+	lastLocation, body, multiline := p.statementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = location.Join(lastLocation)
+	}
+
+	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
+		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
+		if ok {
+			location = location.Join(endTok.Location())
+		}
+	}
+
+	if !allowed {
+		p.errorMessageLocation(
+			"macro definitions cannot appear in expressions",
+			location,
+		)
+	}
+
+	return ast.NewMacroDefinitionNode(
+		location,
+		"",
+		false,
+		macroNameTok.FetchValue(),
+		params,
+		body,
+	)
 }
 
 // methodDefinition = "def" ["*"] methodName ["(" methodParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
@@ -5048,6 +5131,12 @@ func (p *Parser) sealedModifier(allowed bool) ast.ExpressionNode {
 			p.errorMessageLocation("the sealed modifier cannot be attached to abstract classes", sealedTok.Location())
 		}
 		n.Sealed = true
+		n.SetLocation(sealedTok.Location().Join(n.Location()))
+	case *ast.MacroDefinitionNode:
+		if n.IsSealed() {
+			p.errorMessageLocation("the sealed modifier can only be attached once", sealedTok.Location())
+		}
+		n.SetSealed()
 		n.SetLocation(sealedTok.Location().Join(n.Location()))
 	case *ast.MethodDefinitionNode:
 		if n.IsSealed() {

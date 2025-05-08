@@ -1,0 +1,28 @@
+module Std::Elk::AST
+  ##[
+    Represents a macro definition eg. `macro foo(a: Elk::AST::StringLiteralNode); a; end`
+  ]##
+  sealed primitive class MacroDefinitionNode
+    include ExpressionNode
+
+    init(
+      name: String,
+      parameters: ArrayTuple[ParameterNode] = loop; end,
+      body: ArrayTuple[StatementNode] = loop; end,
+      is_sealed: bool = false,
+      doc_comment: String = "",
+      location: FS::Location = loop; end,
+    ); end
+
+    def doc_comment: String; end
+    def name: String; end
+    def parameters: ArrayTuple[ParameterNode]; end
+    def body: ArrayTuple[StatementNode]; end
+    def location: FS::Location; end
+
+    ##[
+      Whether the method is sealed eg. `sealed def foo; end`
+    ]##
+    def is_sealed: bool; end
+  end
+end

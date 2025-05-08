@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"strings"
 	"unicode/utf8"
 
@@ -159,8 +158,6 @@ func (left *Location) JoinSpan(right *Span) *Location {
 //
 // Reads the content of the file using the OS.
 func (l *Location) HumanString(style bool, colorizer colorizer.Colorizer, accentColor *color.Color) (string, error) {
-	fmt.Printf("PIPA!!!")
-	debug.PrintStack()
 	source, err := os.ReadFile(l.FilePath)
 	if err != nil {
 		return "", err
