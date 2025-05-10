@@ -25,6 +25,20 @@ func (n *NewExpressionNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
+func (n *NewExpressionNode) Traverse(yield func(Node) bool) bool {
+	for _, arg := range n.PositionalArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *NewExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NewExpressionNode)
 	if !ok {
@@ -171,6 +185,29 @@ func (n *GenericConstructorCallNode) Splice(loc *position.Location, args *[]Node
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
+}
+
+func (n *GenericConstructorCallNode) Traverse(yield func(Node) bool) bool {
+	if !n.ClassNode.Traverse(yield) {
+		return false
+	}
+
+	for _, arg := range n.TypeArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.PositionalArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 // Equal checks if the given GenericConstructorCallNode is equal to another value.
@@ -353,6 +390,24 @@ func (n *ConstructorCallNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *ConstructorCallNode) Traverse(yield func(Node) bool) bool {
+	if !n.ClassNode.Traverse(yield) {
+		return false
+	}
+
+	for _, arg := range n.PositionalArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *ConstructorCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ConstructorCallNode)
@@ -505,6 +560,13 @@ func (n *AttributeAccessNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *AttributeAccessNode) Traverse(yield func(Node) bool) bool {
+	if !n.Receiver.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (*AttributeAccessNode) IsStatic() bool {
 	return false
 }
@@ -592,6 +654,16 @@ func (n *SubscriptExpressionNode) Splice(loc *position.Location, args *[]Node, u
 		Key:           key,
 		static:        receiver.IsStatic() && key.IsStatic(),
 	}
+}
+
+func (n *SubscriptExpressionNode) Traverse(yield func(Node) bool) bool {
+	if !n.Receiver.Traverse(yield) {
+		return false
+	}
+	if !n.Key.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 func (n *SubscriptExpressionNode) Equal(other value.Value) bool {
@@ -686,6 +758,16 @@ func (n *NilSafeSubscriptExpressionNode) Splice(loc *position.Location, args *[]
 	}
 }
 
+func (n *NilSafeSubscriptExpressionNode) Traverse(yield func(Node) bool) bool {
+	if !n.Receiver.Traverse(yield) {
+		return false
+	}
+	if !n.Key.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *NilSafeSubscriptExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NilSafeSubscriptExpressionNode)
 	if !ok {
@@ -775,6 +857,23 @@ func (n *CallNode) Splice(loc *position.Location, args *[]Node, unquote bool) No
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
+}
+
+func (n *CallNode) Traverse(yield func(Node) bool) bool {
+	if !n.Receiver.Traverse(yield) {
+		return false
+	}
+	for _, arg := range n.PositionalArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *CallNode) Equal(other value.Value) bool {
@@ -945,6 +1044,28 @@ func (n *GenericMethodCallNode) Splice(loc *position.Location, args *[]Node, unq
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 		TailCall:            n.TailCall,
 	}
+}
+
+func (n *GenericMethodCallNode) Traverse(yield func(Node) bool) bool {
+	if !n.Receiver.Traverse(yield) {
+		return false
+	}
+	for _, arg := range n.TypeArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.PositionalArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 // Equal checks if the given GenericMethodCallNode is equal to another value.
@@ -1146,6 +1267,23 @@ func (n *MethodCallNode) Splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
+func (n *MethodCallNode) Traverse(yield func(Node) bool) bool {
+	if !n.Receiver.Traverse(yield) {
+		return false
+	}
+	for _, arg := range n.PositionalArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *MethodCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodCallNode)
 	if !ok {
@@ -1308,6 +1446,20 @@ func (n *ReceiverlessMethodCallNode) Splice(loc *position.Location, args *[]Node
 	}
 }
 
+func (n *ReceiverlessMethodCallNode) Traverse(yield func(Node) bool) bool {
+	for _, arg := range n.PositionalArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *ReceiverlessMethodCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ReceiverlessMethodCallNode)
 	if !ok {
@@ -1459,6 +1611,25 @@ func (n *GenericReceiverlessMethodCallNode) Splice(loc *position.Location, args 
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 		TailCall:            n.TailCall,
 	}
+}
+
+func (n *GenericReceiverlessMethodCallNode) Traverse(yield func(Node) bool) bool {
+	for _, arg := range n.TypeArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.PositionalArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 // Equal checks if the given GenericReceiverlessMethodCallNode is equal to another value.

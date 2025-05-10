@@ -35,6 +35,13 @@ func (n *NamedCallArgumentNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *NamedCallArgumentNode) Traverse(yield func(Node) bool) bool {
+	if !n.Value.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *NamedCallArgumentNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NamedCallArgumentNode)
 	if !ok {

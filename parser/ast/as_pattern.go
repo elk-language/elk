@@ -24,6 +24,16 @@ func (n *AsPatternNode) Splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
+func (n *AsPatternNode) Traverse(yield func(Node) bool) bool {
+	if !n.Name.Traverse(yield) {
+		return false
+	}
+	if !n.Pattern.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (*AsPatternNode) IsStatic() bool {
 	return false
 }

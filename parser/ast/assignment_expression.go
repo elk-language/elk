@@ -27,6 +27,16 @@ func (n *AssignmentExpressionNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
+func (n *AssignmentExpressionNode) Traverse(yield func(Node) bool) bool {
+	if !n.Right.Traverse(yield) {
+		return false
+	}
+	if !n.Left.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (*AssignmentExpressionNode) IsStatic() bool {
 	return false
 }
