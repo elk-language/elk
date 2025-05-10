@@ -1629,7 +1629,7 @@ func (vm *VM) self() {
 
 func (vm *VM) opDefNamespace() {
 	typ := vm.readByte()
-	name := vm.popGet().AsSymbol()
+	name := vm.popGet().AsInlineSymbol()
 	parentNamespace := vm.popGet()
 
 	var parentConstantContainer value.ConstantContainer
@@ -1802,7 +1802,7 @@ func (vm *VM) callSetterMethod(method *SetterMethod) value.Value {
 
 // Set the value of an instance variable
 func (vm *VM) opSetIvar(nameIndex int) (err value.Value) {
-	name := vm.bytecode.Values[nameIndex].AsSymbol()
+	name := vm.bytecode.Values[nameIndex].AsInlineSymbol()
 	val := vm.popGet()
 
 	self := vm.selfValue()
@@ -1817,7 +1817,7 @@ func (vm *VM) opSetIvar(nameIndex int) (err value.Value) {
 
 // Get the value of an instance variable
 func (vm *VM) opGetIvar(nameIndex int) (err value.Value) {
-	name := vm.bytecode.Values[nameIndex].AsSymbol()
+	name := vm.bytecode.Values[nameIndex].AsInlineSymbol()
 
 	self := vm.selfValue()
 	ivars := self.InstanceVariables()
@@ -2140,8 +2140,8 @@ func (vm *VM) opInclude() (err value.Value) {
 
 // Define a new method alias
 func (vm *VM) opDefMethodAlias() {
-	newName := vm.popGet().AsSymbol()
-	oldName := vm.popGet().AsSymbol()
+	newName := vm.popGet().AsInlineSymbol()
+	oldName := vm.popGet().AsInlineSymbol()
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {
@@ -2154,7 +2154,7 @@ func (vm *VM) opDefMethodAlias() {
 
 // Define a new method
 func (vm *VM) opDefMethod() {
-	name := vm.popGet().AsSymbol()
+	name := vm.popGet().AsInlineSymbol()
 	body := vm.popGet().AsReference().(*BytecodeFunction)
 	methodContainer := vm.peek()
 
@@ -2181,7 +2181,7 @@ func (vm *VM) opExec() {
 
 // Define a getter method
 func (vm *VM) opDefGetter() {
-	name := vm.popGet().AsSymbol()
+	name := vm.popGet().AsInlineSymbol()
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {
@@ -2194,7 +2194,7 @@ func (vm *VM) opDefGetter() {
 
 // Define a setter method
 func (vm *VM) opDefSetter() {
-	name := vm.popGet().AsSymbol()
+	name := vm.popGet().AsInlineSymbol()
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {
@@ -2323,7 +2323,7 @@ func (vm *VM) opSetSuperclass() {
 
 // Look for a constant with the given name.
 func (vm *VM) opGetConst(nameIndex int) (err value.Value) {
-	symbol := vm.bytecode.Values[nameIndex].AsSymbol()
+	symbol := vm.bytecode.Values[nameIndex].AsInlineSymbol()
 
 	val := value.RootModule.Constants.Get(symbol)
 	if val.IsUndefined() {
@@ -2350,7 +2350,7 @@ func (vm *VM) opNext(callInfoIndex int) value.Value {
 
 	method := vm.lookupMethod(iterator.DirectClass(), callInfo, callInfoIndex)
 	result, err := vm.CallMethod(method, iterator)
-	if err.IsSymbol() && err.AsSymbol() == stopIterationSymbol {
+	if err.IsInlineSymbol() && err.AsInlineSymbol() == stopIterationSymbol {
 		vm.replace(value.Undefined)
 		return value.Undefined
 	}
@@ -2433,7 +2433,7 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 			element := elementVal.AsChar()
 			buffer.WriteRune(rune(element))
 		case value.FLOAT64_FLAG:
-			element := elementVal.AsFloat64()
+			element := elementVal.AsInlineFloat64()
 			buffer.WriteString(string(element.ToString()))
 		case value.FLOAT32_FLAG:
 			element := elementVal.AsFloat32()
@@ -2445,7 +2445,7 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 			element := elementVal.AsSmallInt()
 			buffer.WriteString(string(element.ToString()))
 		case value.INT64_FLAG:
-			element := elementVal.AsInt64()
+			element := elementVal.AsInlineInt64()
 			buffer.WriteString(string(element.ToString()))
 		case value.INT32_FLAG:
 			element := elementVal.AsInt32()
@@ -2457,7 +2457,7 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 			element := elementVal.AsInt8()
 			buffer.WriteString(string(element.ToString()))
 		case value.UINT64_FLAG:
-			element := elementVal.AsUInt64()
+			element := elementVal.AsInlineUInt64()
 			buffer.WriteString(string(element.ToString()))
 		case value.UINT32_FLAG:
 			element := elementVal.AsInt32()
@@ -2470,7 +2470,7 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 			buffer.WriteString(string(element.ToString()))
 		case value.NIL_FLAG:
 		case value.SYMBOL_FLAG:
-			element := elementVal.AsSymbol()
+			element := elementVal.AsInlineSymbol()
 			buffer.WriteString(string(element.ToString()))
 		default:
 			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
@@ -2534,7 +2534,7 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 			element := elementVal.AsChar()
 			buffer.WriteRune(rune(element))
 		case value.FLOAT64_FLAG:
-			element := elementVal.AsFloat64()
+			element := elementVal.AsInlineFloat64()
 			buffer.WriteString(string(element.ToString()))
 		case value.FLOAT32_FLAG:
 			element := elementVal.AsFloat32()
@@ -2546,7 +2546,7 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 			element := elementVal.AsSmallInt()
 			buffer.WriteString(string(element.ToString()))
 		case value.INT64_FLAG:
-			element := elementVal.AsInt64()
+			element := elementVal.AsInlineInt64()
 			buffer.WriteString(string(element.ToString()))
 		case value.INT32_FLAG:
 			element := elementVal.AsInt32()
@@ -2558,7 +2558,7 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 			element := elementVal.AsInt8()
 			buffer.WriteString(string(element.ToString()))
 		case value.UINT64_FLAG:
-			element := elementVal.AsUInt64()
+			element := elementVal.AsInlineUInt64()
 			buffer.WriteString(string(element.ToString()))
 		case value.UINT32_FLAG:
 			element := elementVal.AsUInt32()
@@ -2571,7 +2571,7 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 			buffer.WriteString(string(element.ToString()))
 		case value.NIL_FLAG:
 		case value.SYMBOL_FLAG:
-			element := elementVal.AsSymbol()
+			element := elementVal.AsInlineSymbol()
 			buffer.WriteString(string(element.ToString()))
 		default:
 			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
@@ -2636,7 +2636,7 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 			element := elementVal.AsChar()
 			buffer.WriteRune(rune(element))
 		case value.FLOAT64_FLAG:
-			element := elementVal.AsFloat64()
+			element := elementVal.AsInlineFloat64()
 			buffer.WriteString(string(element.ToString()))
 		case value.FLOAT32_FLAG:
 			element := elementVal.AsFloat32()
@@ -2648,7 +2648,7 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 			element := elementVal.AsSmallInt()
 			buffer.WriteString(string(element.ToString()))
 		case value.INT64_FLAG:
-			element := elementVal.AsInt64()
+			element := elementVal.AsInlineInt64()
 			buffer.WriteString(string(element.ToString()))
 		case value.INT32_FLAG:
 			element := elementVal.AsInt32()
@@ -2660,7 +2660,7 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 			element := elementVal.AsInt8()
 			buffer.WriteString(string(element.ToString()))
 		case value.UINT64_FLAG:
-			element := elementVal.AsUInt64()
+			element := elementVal.AsInlineUInt64()
 			buffer.WriteString(string(element.ToString()))
 		case value.UINT32_FLAG:
 			element := elementVal.AsUInt32()
@@ -2673,7 +2673,7 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 			buffer.WriteString(string(element.ToString()))
 		case value.NIL_FLAG:
 		case value.SYMBOL_FLAG:
-			element := elementVal.AsSymbol()
+			element := elementVal.AsInlineSymbol()
 			buffer.WriteString(string(element.ToString()))
 		default:
 			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
@@ -2940,7 +2940,7 @@ func (vm *VM) opNewArrayTuple(dynamicElements int) {
 // Define a new constant
 func (vm *VM) opDefConst() {
 	constVal := vm.popGet()
-	constName := vm.popGet().AsSymbol()
+	constName := vm.popGet().AsInlineSymbol()
 	namespace := vm.popGet()
 	var constants value.ConstantContainer
 

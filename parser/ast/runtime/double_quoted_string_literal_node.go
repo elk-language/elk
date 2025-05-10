@@ -72,4 +72,18 @@ func initDoubleQuotedStringLiteralNode() {
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
 	)
+
+	c = &value.StringClass.MethodContainer
+	vm.Def(
+		c,
+		"to_ast_node",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.String)
+			node := ast.NewDoubleQuotedStringLiteralNode(position.ZeroLocation, string(self))
+			return value.Ref(node), value.Undefined
+		},
+	)
+	vm.Alias(c, "to_ast_expr_node", "to_ast_node")
+	vm.Alias(c, "to_ast_pattern_node", "to_ast_node")
+	vm.Alias(c, "to_ast_type_node", "to_ast_node")
 }

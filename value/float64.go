@@ -92,66 +92,66 @@ func (f Float64) IsInf(sign int) bool {
 }
 
 func (f Float64) Add(other Value) (Float64, Value) {
-	if !other.IsFloat64() {
+	if !other.IsInlineFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat64()
+	o := other.AsInlineFloat64()
 	return f + o, Undefined
 }
 
 // ExponentiateVal by the right value.
 func (f Float64) ExponentiateVal(other Value) (Float64, Value) {
-	if !other.IsFloat64() {
+	if !other.IsInlineFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat64()
+	o := other.AsInlineFloat64()
 	return Float64(math.Pow(float64(f), float64(o))), Undefined
 }
 
 func (f Float64) Subtract(other Value) (Float64, Value) {
-	if !other.IsFloat64() {
+	if !other.IsInlineFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat64()
+	o := other.AsInlineFloat64()
 	return f - o, Undefined
 }
 
 func (f Float64) Multiply(other Value) (Float64, Value) {
-	if !other.IsFloat64() {
+	if !other.IsInlineFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat64()
+	o := other.AsInlineFloat64()
 	return f * o, Undefined
 }
 
 func (f Float64) ModuloVal(other Value) (Float64, Value) {
-	if !other.IsFloat64() {
+	if !other.IsInlineFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat64()
+	o := other.AsInlineFloat64()
 	return Float64(math.Mod(float64(f), float64(o))), Undefined
 }
 
 func (f Float64) Divide(other Value) (Float64, Value) {
-	if !other.IsFloat64() {
+	if !other.IsInlineFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat64()
+	o := other.AsInlineFloat64()
 	return f / o, Undefined
 }
 
 func (f Float64) CompareVal(other Value) (Value, Value) {
-	if !other.IsFloat64() {
+	if !other.IsInlineFloat64() {
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat64()
+	o := other.AsInlineFloat64()
 	if math.IsNaN(float64(f)) || math.IsNaN(float64(o)) {
 		return Nil, Undefined
 	}
@@ -171,11 +171,11 @@ func (f Float64) GreaterThanVal(other Value) (Value, Value) {
 }
 
 func (f Float64) GreaterThan(other Value) (bool, Value) {
-	if !other.IsFloat64() {
+	if !other.IsInlineFloat64() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat64()
+	o := other.AsInlineFloat64()
 	return f > o, Undefined
 }
 
@@ -185,11 +185,11 @@ func (f Float64) GreaterThanEqualVal(other Value) (Value, Value) {
 }
 
 func (f Float64) GreaterThanEqual(other Value) (bool, Value) {
-	if !other.IsFloat64() {
+	if !other.IsInlineFloat64() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat64()
+	o := other.AsInlineFloat64()
 	return f >= o, Undefined
 }
 
@@ -199,11 +199,11 @@ func (f Float64) LessThanVal(other Value) (Value, Value) {
 }
 
 func (f Float64) LessThan(other Value) (bool, Value) {
-	if !other.IsFloat64() {
+	if !other.IsInlineFloat64() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat64()
+	o := other.AsInlineFloat64()
 	return f < o, Undefined
 }
 
@@ -213,11 +213,11 @@ func (f Float64) LessThanEqualVal(other Value) (Value, Value) {
 }
 
 func (f Float64) LessThanEqual(other Value) (bool, Value) {
-	if !other.IsFloat64() {
+	if !other.IsInlineFloat64() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat64()
+	o := other.AsInlineFloat64()
 	return f <= o, Undefined
 }
 
@@ -226,11 +226,11 @@ func (f Float64) EqualVal(other Value) Value {
 }
 
 func (f Float64) Equal(other Value) bool {
-	if !other.IsFloat64() {
+	if !other.IsInlineFloat64() {
 		return false
 	}
 
-	o := other.AsFloat64()
+	o := other.AsInlineFloat64()
 	return f == o
 }
 

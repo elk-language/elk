@@ -98,4 +98,12 @@ sealed noinit primitive class ::Std::Nil < Value
 		Always returns `0.0bf`.
 	]##
 	def to_big_float: BigFloat; end
+
+	##[
+		Returns the AST Node that represents the same value.
+	]##
+	def to_ast_node: Elk::AST::NilLiteralNode; end
+	alias to_ast_expr_node to_ast_node,
+			  to_ast_pattern_node to_ast_node,
+				to_ast_type_node to_ast_node
 end

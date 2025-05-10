@@ -72,4 +72,22 @@ func initIntLiteralNode() {
 		},
 	)
 
+	c = &value.IntClass.MethodContainer
+	vm.Def(
+		c,
+		"to_ast_node",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			var content string
+			if args[0].IsSmallInt() {
+				content = string(args[0].AsSmallInt().ToString())
+			} else {
+				content = string((*value.BigInt)(args[0].Pointer()).ToString())
+			}
+			node := ast.NewIntLiteralNode(position.ZeroLocation, content)
+			return value.Ref(node), value.Undefined
+		},
+	)
+	vm.Alias(c, "to_ast_expr_node", "to_ast_node")
+	vm.Alias(c, "to_ast_pattern_node", "to_ast_node")
+	vm.Alias(c, "to_ast_type_node", "to_ast_node")
 }

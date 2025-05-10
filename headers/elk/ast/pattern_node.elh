@@ -5,5 +5,15 @@ module ::Std::Elk::AST
 	]##
 	mixin PatternNode
 		include Node
+
+		##[
+			Represents a value that can be converted to an Elk AST Pattern Node.
+		]##
+		interface Convertible
+			##[
+				Converts the value to an Elk AST Pattern Node.
+			]##
+			def to_ast_pattern_node: PatternNode; end
+		end
 	end
 end

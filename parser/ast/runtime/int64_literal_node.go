@@ -7,8 +7,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func initInt32LiteralNode() {
-	c := &value.Int32LiteralNodeClass.MethodContainer
+func initInt64LiteralNode() {
+	c := &value.Int64LiteralNodeClass.MethodContainer
 	vm.Def(
 		c,
 		"#init",
@@ -21,7 +21,7 @@ func initInt32LiteralNode() {
 			} else {
 				argLoc = (*position.Location)(args[2].Pointer())
 			}
-			self := ast.NewInt32LiteralNode(
+			self := ast.NewInt64LiteralNode(
 				argLoc,
 				argValue,
 			)
@@ -35,7 +35,7 @@ func initInt32LiteralNode() {
 		c,
 		"value",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Int32LiteralNode)
+			self := args[0].MustReference().(*ast.Int64LiteralNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
 
@@ -46,7 +46,7 @@ func initInt32LiteralNode() {
 		c,
 		"location",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Int32LiteralNode)
+			self := args[0].MustReference().(*ast.Int64LiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
 
@@ -56,7 +56,7 @@ func initInt32LiteralNode() {
 		c,
 		"==",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Int32LiteralNode)
+			self := args[0].MustReference().(*ast.Int64LiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
 		},
@@ -67,9 +67,22 @@ func initInt32LiteralNode() {
 		c,
 		"to_string",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Int32LiteralNode)
+			self := args[0].MustReference().(*ast.Int64LiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
 	)
 
+	c = &value.Int64Class.MethodContainer
+	vm.Def(
+		c,
+		"to_ast_node",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsInt64()
+			node := ast.NewInt64LiteralNode(position.ZeroLocation, string(self.ToString()))
+			return value.Ref(node), value.Undefined
+		},
+	)
+	vm.Alias(c, "to_ast_expr_node", "to_ast_node")
+	vm.Alias(c, "to_ast_pattern_node", "to_ast_node")
+	vm.Alias(c, "to_ast_type_node", "to_ast_node")
 }

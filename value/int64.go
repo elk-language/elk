@@ -110,60 +110,60 @@ func (i Int64) Hash() UInt64 {
 }
 
 func (i Int64) Add(other Value) (Int64, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	return i + o, Undefined
 }
 
 // Perform a bitwise AND.
 func (i Int64) BitwiseAnd(other Value) (Int64, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	return i & o, Undefined
 }
 
 // Perform a bitwise AND NOT.
 func (i Int64) BitwiseAndNot(other Value) (Int64, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	return i &^ o, Undefined
 }
 
 // Perform a bitwise OR.
 func (i Int64) BitwiseOr(other Value) (Int64, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	return i | o, Undefined
 }
 
 // Perform a bitwise XOR.
 func (i Int64) BitwiseXor(other Value) (Int64, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	return i ^ o, Undefined
 }
 
 func (i Int64) ExponentiateVal(other Value) (Int64, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	if o <= 0 {
 		return 1, Undefined
 	}
@@ -176,29 +176,29 @@ func (i Int64) ExponentiateVal(other Value) (Int64, Value) {
 }
 
 func (i Int64) Subtract(other Value) (Int64, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	return i - o, Undefined
 }
 
 func (i Int64) Multiply(other Value) (Int64, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	return i * o, Undefined
 }
 
 func (i Int64) ModuloVal(other Value) (Int64, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	if o == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
@@ -206,10 +206,10 @@ func (i Int64) ModuloVal(other Value) (Int64, Value) {
 }
 
 func (i Int64) Divide(other Value) (Int64, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	if o == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
@@ -217,10 +217,10 @@ func (i Int64) Divide(other Value) (Int64, Value) {
 }
 
 func (i Int64) CompareVal(other Value) (Value, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 
 	if i > o {
 		return SmallInt(1).ToValue(), Undefined
@@ -237,11 +237,11 @@ func (i Int64) GreaterThanVal(other Value) (Value, Value) {
 }
 
 func (i Int64) GreaterThan(other Value) (bool, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	return i > o, Undefined
 }
 
@@ -251,11 +251,11 @@ func (i Int64) GreaterThanEqualVal(other Value) (Value, Value) {
 }
 
 func (i Int64) GreaterThanEqual(other Value) (bool, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	return i >= o, Undefined
 }
 
@@ -265,11 +265,11 @@ func (i Int64) LessThanVal(other Value) (Value, Value) {
 }
 
 func (i Int64) LessThan(other Value) (bool, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	return i < o, Undefined
 }
 
@@ -279,11 +279,11 @@ func (i Int64) LessThanEqualVal(other Value) (Value, Value) {
 }
 
 func (i Int64) LessThanEqual(other Value) (bool, Value) {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	return i <= o, Undefined
 }
 
@@ -292,11 +292,11 @@ func (i Int64) EqualVal(other Value) Value {
 }
 
 func (i Int64) Equal(other Value) bool {
-	if !other.IsInt64() {
+	if !other.IsInlineInt64() {
 		return false
 	}
 
-	o := other.AsInt64()
+	o := other.AsInlineInt64()
 	return i == o
 }
 

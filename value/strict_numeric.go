@@ -88,7 +88,7 @@ func StrictIntLogicalLeftBitshift[T StrictInt](left T, right Value, shiftFunc lo
 		}
 		return left << r, Undefined
 	case INT64_FLAG:
-		r := right.AsInt64()
+		r := right.AsInlineInt64()
 		if r < 0 {
 			return shiftFunc(left, uint64(-r)), Undefined
 		}
@@ -112,7 +112,7 @@ func StrictIntLogicalLeftBitshift[T StrictInt](left T, right Value, shiftFunc lo
 		}
 		return left << r, Undefined
 	case UINT64_FLAG:
-		r := right.AsUInt64()
+		r := right.AsInlineUInt64()
 		return left << r, Undefined
 	case UINT32_FLAG:
 		r := right.AsUInt32()
@@ -162,7 +162,7 @@ func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value, shiftFunc l
 		}
 		return shiftFunc(left, uint64(r)), Undefined
 	case INT64_FLAG:
-		r := right.AsInt64()
+		r := right.AsInlineInt64()
 		if r < 0 {
 			return left << -r, Undefined
 		}
@@ -186,7 +186,7 @@ func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value, shiftFunc l
 		}
 		return shiftFunc(left, uint64(r)), Undefined
 	case UINT64_FLAG:
-		r := right.AsUInt64()
+		r := right.AsInlineUInt64()
 		return shiftFunc(left, uint64(r)), Undefined
 	case UINT32_FLAG:
 		r := right.AsUInt32()
@@ -236,7 +236,7 @@ func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, Value) {
 		}
 		return left >> r, Undefined
 	case INT64_FLAG:
-		r := right.AsInt64()
+		r := right.AsInlineInt64()
 		if r < 0 {
 			return left << -r, Undefined
 		}
@@ -260,7 +260,7 @@ func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, Value) {
 		}
 		return left >> r, Undefined
 	case UINT64_FLAG:
-		r := right.AsUInt64()
+		r := right.AsInlineUInt64()
 		return left >> r, Undefined
 	case UINT32_FLAG:
 		r := right.AsUInt32()
@@ -310,7 +310,7 @@ func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, Value) {
 		}
 		return left << r, Undefined
 	case INT64_FLAG:
-		r := right.AsInt64()
+		r := right.AsInlineInt64()
 		if r < 0 {
 			return left >> -r, Undefined
 		}
@@ -334,7 +334,7 @@ func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, Value) {
 		}
 		return left << r, Undefined
 	case UINT64_FLAG:
-		r := right.AsUInt64()
+		r := right.AsInlineUInt64()
 		return left << r, Undefined
 	case UINT32_FLAG:
 		r := right.AsUInt32()
@@ -381,7 +381,7 @@ func StrictFloatLaxEqual[T StrictFloat](left T, right Value) Value {
 		r := right.AsFloat()
 		return ToElkBool(float64(left) == float64(r))
 	case INT64_FLAG:
-		r := right.AsInt64()
+		r := right.AsInlineInt64()
 		return ToElkBool(T(left) == T(r))
 	case INT32_FLAG:
 		r := right.AsInt32()
@@ -393,7 +393,7 @@ func StrictFloatLaxEqual[T StrictFloat](left T, right Value) Value {
 		r := right.AsInt8()
 		return ToElkBool(T(left) == T(r))
 	case UINT64_FLAG:
-		r := right.AsUInt64()
+		r := right.AsInlineUInt64()
 		return ToElkBool(T(left) == T(r))
 	case UINT32_FLAG:
 		r := right.AsUInt32()
@@ -405,7 +405,7 @@ func StrictFloatLaxEqual[T StrictFloat](left T, right Value) Value {
 		r := right.AsUInt8()
 		return ToElkBool(T(left) == T(r))
 	case FLOAT64_FLAG:
-		r := right.AsFloat64()
+		r := right.AsInlineFloat64()
 		return ToElkBool(float64(left) == float64(r))
 	case FLOAT32_FLAG:
 		r := right.AsFloat32()
@@ -450,7 +450,7 @@ func StrictSignedIntLaxEqual[T StrictSignedInt](left T, right Value) Value {
 		r := right.AsFloat()
 		return ToElkBool(float64(left) == float64(r))
 	case INT64_FLAG:
-		r := right.AsInt64()
+		r := right.AsInlineInt64()
 		return ToElkBool(int64(left) == int64(r))
 	case INT32_FLAG:
 		r := right.AsInt32()
@@ -462,7 +462,7 @@ func StrictSignedIntLaxEqual[T StrictSignedInt](left T, right Value) Value {
 		r := right.AsInt8()
 		return ToElkBool(left == T(r))
 	case UINT64_FLAG:
-		r := right.AsUInt64()
+		r := right.AsInlineUInt64()
 		if r > math.MaxInt64 {
 			return False
 		}
@@ -477,7 +477,7 @@ func StrictSignedIntLaxEqual[T StrictSignedInt](left T, right Value) Value {
 		r := right.AsUInt8()
 		return ToElkBool(int64(left) == int64(r))
 	case FLOAT64_FLAG:
-		r := right.AsFloat64()
+		r := right.AsInlineFloat64()
 		return ToElkBool(float64(left) == float64(r))
 	case FLOAT32_FLAG:
 		r := right.AsFloat32()
@@ -525,7 +525,7 @@ func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) Value {
 		r := right.AsFloat()
 		return ToElkBool(float64(left) == float64(r))
 	case INT64_FLAG:
-		r := right.AsInt64()
+		r := right.AsInlineInt64()
 		if uint64(left) > math.MaxInt64 {
 			return False
 		}
@@ -549,7 +549,7 @@ func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) Value {
 		}
 		return ToElkBool(int64(left) == int64(r))
 	case UINT64_FLAG:
-		r := right.AsUInt64()
+		r := right.AsInlineUInt64()
 		return ToElkBool(uint64(left) == uint64(r))
 	case UINT32_FLAG:
 		r := right.AsUInt32()
@@ -561,7 +561,7 @@ func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) Value {
 		r := right.AsUInt8()
 		return ToElkBool(left == T(r))
 	case FLOAT64_FLAG:
-		r := right.AsFloat64()
+		r := right.AsInlineFloat64()
 		return ToElkBool(float64(left) == float64(r))
 	case FLOAT32_FLAG:
 		r := right.AsFloat32()

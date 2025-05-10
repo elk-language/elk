@@ -1105,7 +1105,7 @@ func (f *BigFloat) LaxEqualBool(other Value) bool {
 			return false
 		}
 
-		oBigFloat := (&BigFloat{}).SetInt64(other.AsInt64())
+		oBigFloat := (&BigFloat{}).SetInt64(other.AsInlineInt64())
 		return f.Cmp(oBigFloat) == 0
 	case INT32_FLAG:
 		if f.IsNaN() {
@@ -1133,7 +1133,7 @@ func (f *BigFloat) LaxEqualBool(other Value) bool {
 			return false
 		}
 
-		oBigFloat := (&BigFloat{}).SetUInt64(other.AsUInt64())
+		oBigFloat := (&BigFloat{}).SetUInt64(other.AsInlineUInt64())
 		return f.Cmp(oBigFloat) == 0
 	case UINT32_FLAG:
 		if f.IsNaN() {
@@ -1157,7 +1157,7 @@ func (f *BigFloat) LaxEqualBool(other Value) bool {
 		oBigFloat := (&BigFloat{}).SetUInt64(UInt64(other.AsUInt8()))
 		return f.Cmp(oBigFloat) == 0
 	case FLOAT64_FLAG:
-		o := other.AsFloat64()
+		o := other.AsInlineFloat64()
 		if f.IsNaN() || o.IsNaN() {
 			return false
 		}

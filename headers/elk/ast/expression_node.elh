@@ -5,5 +5,15 @@ module ::Std::Elk::AST
 	]##
 	mixin ExpressionNode
 		include Node
+
+		##[
+			Represents a value that can be converted to an Elk AST Expression Node.
+		]##
+		interface Convertible
+			##[
+				Converts the value to an Elk AST Expression Node.
+			]##
+			def to_ast_expr_node: ExpressionNode; end
+		end
 	end
 end

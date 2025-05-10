@@ -430,7 +430,7 @@ func TestHashMapContains(t *testing.T) {
 				2,
 				value.Pair{
 					Key:   value.Ref(value.String("foo")),
-					Value: value.Ref(value.Float(2.6).ToValue().AsDuration()),
+					Value: value.Ref(value.Float(2.6).ToValue().AsInlineDuration()),
 				},
 				value.Pair{
 					Key:   value.ToSymbol("foo").ToValue(),
@@ -1333,7 +1333,7 @@ func TestHashMapGet(t *testing.T) {
 			)
 
 			result, err := vm.HashMapGet(nil, hmap, value.Ref(value.String("foo")))
-			if !result.IsInt64() || result.AsInt64() != value.Int64(3) {
+			if !result.IsInlineInt64() || result.AsInlineInt64() != value.Int64(3) {
 				t.Fatalf("result should be 3i64, got: %#v", result)
 			}
 			if !err.IsUndefined() {

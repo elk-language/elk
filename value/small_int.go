@@ -609,7 +609,7 @@ func (i SmallInt) LaxEqualVal(other Value) Value {
 	case FLOAT_FLAG:
 		return ToElkBool(Float(i) == other.AsFloat())
 	case INT64_FLAG:
-		return ToElkBool(i == SmallInt(other.AsInt64()))
+		return ToElkBool(i == SmallInt(other.AsInlineInt64()))
 	case INT32_FLAG:
 		return ToElkBool(i == SmallInt(other.AsInt32()))
 	case INT16_FLAG:
@@ -617,7 +617,7 @@ func (i SmallInt) LaxEqualVal(other Value) Value {
 	case INT8_FLAG:
 		return ToElkBool(i == SmallInt(other.AsInt8()))
 	case UINT64_FLAG:
-		o := other.AsUInt64()
+		o := other.AsInlineUInt64()
 		if o > MaxSmallInt {
 			return False
 		}
@@ -629,7 +629,7 @@ func (i SmallInt) LaxEqualVal(other Value) Value {
 	case UINT8_FLAG:
 		return ToElkBool(i == SmallInt(other.AsUInt8()))
 	case FLOAT64_FLAG:
-		return ToElkBool(Float64(i) == other.AsFloat64())
+		return ToElkBool(Float64(i) == other.AsInlineFloat64())
 	case FLOAT32_FLAG:
 		return ToElkBool(Float32(i) == other.AsFloat32())
 	default:
@@ -741,7 +741,7 @@ func (i SmallInt) LeftBitshiftVal(other Value) (Value, Value) {
 		}
 		return leftBitshiftSmallInt(i, o), Undefined
 	case INT64_FLAG:
-		o := other.AsInt64()
+		o := other.AsInlineInt64()
 		if o < 0 {
 			return rightBitshiftSmallInt(i, -o), Undefined
 		}
@@ -765,7 +765,7 @@ func (i SmallInt) LeftBitshiftVal(other Value) (Value, Value) {
 		}
 		return leftBitshiftSmallInt(i, o), Undefined
 	case UINT64_FLAG:
-		o := other.AsUInt64()
+		o := other.AsInlineUInt64()
 		return leftBitshiftSmallInt(i, o), Undefined
 	case UINT32_FLAG:
 		o := other.AsUInt32()
@@ -815,7 +815,7 @@ func (i SmallInt) RightBitshiftVal(other Value) (Value, Value) {
 		}
 		return (i >> o).ToValue(), Undefined
 	case INT64_FLAG:
-		o := other.AsInt64()
+		o := other.AsInlineInt64()
 		if o < 0 {
 			return leftBitshiftSmallInt(i, -o), Undefined
 		}
@@ -839,7 +839,7 @@ func (i SmallInt) RightBitshiftVal(other Value) (Value, Value) {
 		}
 		return (i >> o).ToValue(), Undefined
 	case UINT64_FLAG:
-		o := other.AsUInt64()
+		o := other.AsInlineUInt64()
 		return (i >> o).ToValue(), Undefined
 	case UINT32_FLAG:
 		o := other.AsUInt32()

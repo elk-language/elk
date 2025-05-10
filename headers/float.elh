@@ -213,6 +213,14 @@ sealed noinit primitive class ::Std::Float < Value
 	alias year years
 
 	##[
+		Returns the AST Node that represents the same value.
+	]##
+	def to_ast_node: Elk::AST::FloatLiteralNode; end
+	alias to_ast_expr_node to_ast_node,
+			  to_ast_pattern_node to_ast_node,
+				to_ast_type_node to_ast_node
+
+	##[
 		Values that conform to this interface
 		can be converted to a float.
 	]##

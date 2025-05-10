@@ -104,4 +104,13 @@ sealed noinit primitive class ::Std::Char < Value
 		Calculates a hash of the char.
 	]##
 	def hash: UInt64; end
+
+
+	##[
+		Returns the AST Node that represents the same value.
+	]##
+	def to_ast_node: Elk::AST::CharLiteralNode; end
+	alias to_ast_expr_node to_ast_node,
+			  to_ast_pattern_node to_ast_node,
+				to_ast_type_node to_ast_node
 end

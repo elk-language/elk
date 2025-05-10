@@ -1,30 +1,32 @@
-##[
-	A base for all Elk AST (Abstract Syntax Tree) nodes.
-]##
-mixin ::Std::Elk::AST::Node
+module ::Std::Elk::AST
 	##[
-		Returns the span that represents
-		the position of this node in a source file/string.
+		A base for all Elk AST (Abstract Syntax Tree) nodes.
 	]##
-	def location: FS::Location; end
-
-	##[
-		Convert the AST back to a `String` of source code.
-	]##
-	def to_string: String; end
-
-	##[
-		Returns self.
-	]##
-	def to_ast: self; end
-
-	##[
-		Represents an object that can be converted to an Elk AST Node.
-	]##
-	interface Convertible
+	mixin ::Node
 		##[
-			Converts the object to an Elk AST Node.
+			Returns the span that represents
+			the position of this node in a source file/string.
 		]##
-		def to_ast: Elk::AST::Node; end
+		def location: FS::Location; end
+
+		##[
+			Convert the AST back to a `String` of source code.
+		]##
+		def to_string: String; end
+
+		##[
+			Returns self.
+		]##
+		def to_ast: self; end
+
+		##[
+			Represents a value that can be converted to an Elk AST Node.
+		]##
+		interface Convertible
+			##[
+				Converts the value to an Elk AST Node.
+			]##
+			def to_ast_node: Node; end
+		end
 	end
 end

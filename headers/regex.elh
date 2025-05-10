@@ -27,4 +27,12 @@ sealed primitive class ::Std::Regex
 		Creates a new string with this character.
 	]##
 	def to_string: String; end
+
+
+	##[
+		Returns the AST Node that represents the same value.
+	]##
+	def to_ast_node: Elk::AST::UninterpolatedRegexLiteralNode; end
+	alias to_ast_expr_node to_ast_node,
+			  to_ast_pattern_node to_ast_node
 end

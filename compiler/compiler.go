@@ -6223,9 +6223,9 @@ func (c *Compiler) emitValue(val value.Value, location *position.Location) {
 	case value.SMALL_INT_FLAG:
 		c.emitSmallInt(val.AsSmallInt(), location)
 	case value.INT64_FLAG:
-		emitSignedInt(c, val, val.AsInt64(), bytecode.LOAD_INT64_8, location)
+		emitSignedInt(c, val, val.AsInlineInt64(), bytecode.LOAD_INT64_8, location)
 	case value.UINT64_FLAG:
-		emitUnsignedInt(c, val, val.AsUInt64(), bytecode.LOAD_UINT64_8, location)
+		emitUnsignedInt(c, val, val.AsInlineUInt64(), bytecode.LOAD_UINT64_8, location)
 	case value.INT32_FLAG:
 		emitSignedInt(c, val, val.AsInt32(), bytecode.LOAD_INT32_8, location)
 	case value.UINT32_FLAG:

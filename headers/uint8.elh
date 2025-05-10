@@ -200,4 +200,23 @@ sealed noinit primitive class ::Std::UInt8 < Value
 	]##
 	def to_uint8: UInt8; end
 
+	##[
+		Returns the AST Node that represents the same value.
+	]##
+	def to_ast_node: Elk::AST::UInt8LiteralNode; end
+	alias to_ast_expr_node to_ast_node,
+			  to_ast_pattern_node to_ast_node,
+				to_ast_type_node to_ast_node
+
+	##[
+		Values that conform to this interface
+		can be converted to a uint8.
+	]##
+	interface Convertible
+		##[
+			Convert the value to a uint8.
+		]##
+		def to_uint8: UInt8; end
+	end
+
 end

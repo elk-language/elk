@@ -48,7 +48,7 @@ func initTime() {
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Time)
-			dur := args[1].MustDuration()
+			dur := args[1].MustInlineDuration()
 			return value.Ref(self.Subtract(dur)), value.Undefined
 		},
 		DefWithParameters(1),
@@ -58,7 +58,7 @@ func initTime() {
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Time)
-			dur := args[1].MustDuration()
+			dur := args[1].MustInlineDuration()
 			return value.Ref(self.Add(dur)), value.Undefined
 		},
 		DefWithParameters(1),

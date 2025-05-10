@@ -60,4 +60,16 @@ func initTrueLiteralNode() {
 		},
 	)
 
+	c = &value.TrueClass.MethodContainer
+	vm.Def(
+		c,
+		"to_ast_node",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			node := ast.NewTrueLiteralNode(position.ZeroLocation)
+			return value.Ref(node), value.Undefined
+		},
+	)
+	vm.Alias(c, "to_ast_expr_node", "to_ast_node")
+	vm.Alias(c, "to_ast_pattern_node", "to_ast_node")
+	vm.Alias(c, "to_ast_type_node", "to_ast_node")
 }

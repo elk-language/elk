@@ -2,7 +2,7 @@ module Std::Elk::AST
   ##[
     UInt16 literal eg. `5u16`, `1_20u16`, `0xffu16`
   ]##
-  sealed primitive class UInt16LiteralNod
+  sealed primitive class UInt16LiteralNode
     include ExpressionNode,
             TypeNode,
             PatternNode

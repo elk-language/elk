@@ -150,6 +150,14 @@ sealed noinit primitive class ::Std::Float64 < Value
 	def hash: UInt64; end
 
 	##[
+		Returns the AST Node that represents the same value.
+	]##
+	def to_ast_node: Elk::AST::Float64LiteralNode; end
+	alias to_ast_expr_node to_ast_node,
+			  to_ast_pattern_node to_ast_node,
+				to_ast_type_node to_ast_node
+
+	##[
 		Values that conform to this interface
 		can be converted to a float64.
 	]##

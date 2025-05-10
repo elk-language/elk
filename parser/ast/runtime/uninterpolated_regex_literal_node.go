@@ -153,4 +153,16 @@ func initUninterpolatedRegexLiteralNode() {
 		},
 	)
 
+	c = &value.RegexClass.MethodContainer
+	vm.Def(
+		c,
+		"to_ast_node",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.Regex)(args[0].Pointer())
+			node := ast.NewUninterpolatedRegexLiteralNode(position.ZeroLocation, self.Source, self.Flags)
+			return value.Ref(node), value.Undefined
+		},
+	)
+	vm.Alias(c, "to_ast_expr_node", "to_ast_node")
+	vm.Alias(c, "to_ast_pattern_node", "to_ast_node")
 }

@@ -63,7 +63,7 @@ func initKernel() {
 			if durationVal.IsReference() {
 				duration = durationVal.AsReference().(value.Duration)
 			} else {
-				duration = durationVal.AsDuration()
+				duration = durationVal.AsInlineDuration()
 			}
 
 			time.Sleep(duration.Go())
@@ -82,7 +82,7 @@ func initKernel() {
 			if durationVal.IsReference() {
 				duration = durationVal.AsReference().(value.Duration)
 			} else {
-				duration = durationVal.AsDuration()
+				duration = durationVal.AsInlineDuration()
 			}
 
 			p := NewNativePromise(vm.threadPool)

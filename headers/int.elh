@@ -262,6 +262,14 @@ sealed noinit primitive class ::Std::Int < Value
 	alias year years
 
 	##[
+		Returns the AST Node that represents the same value.
+	]##
+	def to_ast_node: Elk::AST::IntLiteralNode; end
+	alias to_ast_expr_node to_ast_node,
+			  to_ast_pattern_node to_ast_node,
+				to_ast_type_node to_ast_node
+
+	##[
 		Returns an iterator that
 		iterates over every integer from `0` to `self`.
 	]##

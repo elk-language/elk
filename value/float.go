@@ -573,7 +573,7 @@ func (f Float) LaxEqualVal(other Value) Value {
 	case FLOAT_FLAG:
 		return ToElkBool(f == other.AsFloat())
 	case INT64_FLAG:
-		return ToElkBool(f == Float(other.AsInt64()))
+		return ToElkBool(f == Float(other.AsInlineInt64()))
 	case INT32_FLAG:
 		return ToElkBool(f == Float(other.AsInt32()))
 	case INT16_FLAG:
@@ -581,7 +581,7 @@ func (f Float) LaxEqualVal(other Value) Value {
 	case INT8_FLAG:
 		return ToElkBool(f == Float(other.AsInt8()))
 	case UINT64_FLAG:
-		return ToElkBool(f == Float(other.AsUInt64()))
+		return ToElkBool(f == Float(other.AsInlineUInt64()))
 	case UINT32_FLAG:
 		return ToElkBool(f == Float(other.AsUInt32()))
 	case UINT16_FLAG:
@@ -589,7 +589,7 @@ func (f Float) LaxEqualVal(other Value) Value {
 	case UINT8_FLAG:
 		return ToElkBool(f == Float(other.AsUInt8()))
 	case FLOAT64_FLAG:
-		return ToElkBool(float64(f) == float64(other.AsFloat64()))
+		return ToElkBool(float64(f) == float64(other.AsInlineFloat64()))
 	case FLOAT32_FLAG:
 		return ToElkBool(Float(f) == Float(other.AsFloat32()))
 	default:

@@ -13,7 +13,7 @@ func initSymbol() {
 		c,
 		"==",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustSymbol()
+			self := args[0].MustInlineSymbol()
 			other := args[1]
 			return self.EqualVal(other), value.Undefined
 		},
@@ -30,7 +30,7 @@ func initSymbol() {
 		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustSymbol()
+			self := args[0].MustInlineSymbol()
 			return value.Ref(self.ToString()), value.Undefined
 		},
 	)
@@ -40,7 +40,7 @@ func initSymbol() {
 		c,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustSymbol()
+			self := args[0].MustInlineSymbol()
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
 	)

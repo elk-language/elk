@@ -603,7 +603,7 @@ func (i *BigInt) LaxEqualVal(other Value) Value {
 	case FLOAT_FLAG:
 		return ToElkBool(i.ToFloat() == other.AsFloat())
 	case INT64_FLAG:
-		oBigInt := NewBigInt(int64(other.AsInt64()))
+		oBigInt := NewBigInt(int64(other.AsInlineInt64()))
 		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case INT32_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInt32()))
@@ -615,7 +615,7 @@ func (i *BigInt) LaxEqualVal(other Value) Value {
 		oBigInt := NewBigInt(int64(other.AsInt8()))
 		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case UINT64_FLAG:
-		oBigInt := NewBigInt(int64(other.AsUInt64()))
+		oBigInt := NewBigInt(int64(other.AsInlineUInt64()))
 		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case UINT32_FLAG:
 		oBigInt := NewBigInt(int64(other.AsUInt32()))
@@ -627,7 +627,7 @@ func (i *BigInt) LaxEqualVal(other Value) Value {
 		oBigInt := NewBigInt(int64(other.AsUInt8()))
 		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case FLOAT64_FLAG:
-		return ToElkBool(i.ToFloat() == Float(other.AsFloat64()))
+		return ToElkBool(i.ToFloat() == Float(other.AsInlineFloat64()))
 	case FLOAT32_FLAG:
 		return ToElkBool(i.ToFloat() == Float(other.AsFloat32()))
 	default:
@@ -709,7 +709,7 @@ func (i *BigInt) RightBitshiftVal(other Value) (Value, Value) {
 		}
 		return rightBitshiftBigInt(i, o), Undefined
 	case INT64_FLAG:
-		o := other.AsInt64()
+		o := other.AsInlineInt64()
 		if o < 0 {
 			return leftBitshiftBigInt(i, -o), Undefined
 		}
@@ -733,7 +733,7 @@ func (i *BigInt) RightBitshiftVal(other Value) (Value, Value) {
 		}
 		return rightBitshiftBigInt(i, o), Undefined
 	case UINT64_FLAG:
-		o := other.AsUInt64()
+		o := other.AsInlineUInt64()
 		return rightBitshiftBigInt(i, o), Undefined
 	case UINT32_FLAG:
 		o := other.AsUInt32()
@@ -781,7 +781,7 @@ func (i *BigInt) LeftBitshiftVal(other Value) (Value, Value) {
 		o := other.AsSmallInt()
 		return leftBitshiftBigInt(i, o), Undefined
 	case INT64_FLAG:
-		o := other.AsInt64()
+		o := other.AsInlineInt64()
 		return leftBitshiftBigInt(i, o), Undefined
 	case INT32_FLAG:
 		o := other.AsInt32()
@@ -793,7 +793,7 @@ func (i *BigInt) LeftBitshiftVal(other Value) (Value, Value) {
 		o := other.AsInt8()
 		return leftBitshiftBigInt(i, o), Undefined
 	case UINT64_FLAG:
-		o := other.AsUInt64()
+		o := other.AsInlineUInt64()
 		return leftBitshiftBigInt(i, o), Undefined
 	case UINT32_FLAG:
 		o := other.AsUInt32()

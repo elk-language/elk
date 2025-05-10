@@ -105,8 +105,8 @@ func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
 				return r, value.Undefined
 			}
 		}
-		if dynamicResult.IsUInt64() {
-			return dynamicResult.AsUInt64(), value.Undefined
+		if dynamicResult.IsInlineUInt64() {
+			return dynamicResult.AsInlineUInt64(), value.Undefined
 		}
 		return 0, value.Ref(value.NewCoerceError(
 			value.UInt64Class,

@@ -136,8 +136,8 @@ func (s Symbol) InstanceVariables() SymbolMap {
 
 // Check whether s is equal to other
 func (s Symbol) EqualVal(other Value) Value {
-	if other.IsSymbol() {
-		return ToElkBool(s == other.AsSymbol())
+	if other.IsInlineSymbol() {
+		return ToElkBool(s == other.AsInlineSymbol())
 	}
 
 	return False
@@ -145,8 +145,8 @@ func (s Symbol) EqualVal(other Value) Value {
 
 // Check whether s is equal to other
 func (s Symbol) Equal(other Value) bool {
-	if other.IsSymbol() {
-		return s == other.AsSymbol()
+	if other.IsInlineSymbol() {
+		return s == other.AsInlineSymbol()
 	}
 
 	return false

@@ -7,8 +7,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func initInt8LiteralNode() {
-	c := &value.Int8LiteralNodeClass.MethodContainer
+func initInt32LiteralNode() {
+	c := &value.Int32LiteralNodeClass.MethodContainer
 	vm.Def(
 		c,
 		"#init",
@@ -21,7 +21,7 @@ func initInt8LiteralNode() {
 			} else {
 				argLoc = (*position.Location)(args[2].Pointer())
 			}
-			self := ast.NewInt8LiteralNode(
+			self := ast.NewInt32LiteralNode(
 				argLoc,
 				argValue,
 			)
@@ -35,7 +35,7 @@ func initInt8LiteralNode() {
 		c,
 		"value",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Int8LiteralNode)
+			self := args[0].MustReference().(*ast.Int32LiteralNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
 
@@ -46,7 +46,7 @@ func initInt8LiteralNode() {
 		c,
 		"location",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Int8LiteralNode)
+			self := args[0].MustReference().(*ast.Int32LiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
 
@@ -56,7 +56,7 @@ func initInt8LiteralNode() {
 		c,
 		"==",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Int8LiteralNode)
+			self := args[0].MustReference().(*ast.Int32LiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
 		},
@@ -67,9 +67,22 @@ func initInt8LiteralNode() {
 		c,
 		"to_string",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Int8LiteralNode)
+			self := args[0].MustReference().(*ast.Int32LiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
 	)
 
+	c = &value.Int32Class.MethodContainer
+	vm.Def(
+		c,
+		"to_ast_node",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsInt32()
+			node := ast.NewInt32LiteralNode(position.ZeroLocation, string(self.ToString()))
+			return value.Ref(node), value.Undefined
+		},
+	)
+	vm.Alias(c, "to_ast_expr_node", "to_ast_node")
+	vm.Alias(c, "to_ast_pattern_node", "to_ast_node")
+	vm.Alias(c, "to_ast_type_node", "to_ast_node")
 }
