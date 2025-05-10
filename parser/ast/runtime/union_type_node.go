@@ -54,10 +54,10 @@ func initUnionTypeNode() {
 
 	vm.Def(
 		c,
-		"span",
+		"location",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnionTypeNode)
-			result := value.Ref((*value.Span)(self.Span()))
+			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
 
 		},
