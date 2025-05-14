@@ -22,6 +22,15 @@ func (n *MapPatternNode) Splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
+func (n *MapPatternNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *MapPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MapPatternNode)
 	if !ok {

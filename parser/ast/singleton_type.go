@@ -22,6 +22,13 @@ func (n *SingletonTypeNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
+func (n *SingletonTypeNode) Traverse(yield func(Node) bool) bool {
+	if n.TypeNode.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *SingletonTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SingletonTypeNode)
 	if !ok {

@@ -38,6 +38,25 @@ func (n *ClosureTypeNode) Splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
+func (n *ClosureTypeNode) Traverse(yield func(Node) bool) bool {
+	for _, param := range n.Parameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	if n.ReturnType != nil {
+		if !n.ReturnType.Traverse(yield) {
+			return false
+		}
+	}
+	if n.ThrowType != nil {
+		if !n.ThrowType.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *ClosureTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ClosureTypeNode)

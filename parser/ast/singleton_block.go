@@ -28,6 +28,15 @@ func (n *SingletonBlockExpressionNode) Splice(loc *position.Location, args *[]No
 	}
 }
 
+func (n *SingletonBlockExpressionNode) Traverse(yield func(Node) bool) bool {
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *SingletonBlockExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SingletonBlockExpressionNode)
 	if !ok {

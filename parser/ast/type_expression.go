@@ -22,6 +22,13 @@ func (n *TypeExpressionNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *TypeExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.TypeNode.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *TypeExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*TypeExpressionNode)
 	if !ok {

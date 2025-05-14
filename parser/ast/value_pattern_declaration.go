@@ -24,6 +24,20 @@ func (n *ValuePatternDeclarationNode) Splice(loc *position.Location, args *[]Nod
 	}
 }
 
+func (n *ValuePatternDeclarationNode) Traverse(yield func(Node) bool) bool {
+	if n.Pattern != nil {
+		if n.Pattern.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Initialiser != nil {
+		if n.Initialiser.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *ValuePatternDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ValuePatternDeclarationNode)
 	if !ok {

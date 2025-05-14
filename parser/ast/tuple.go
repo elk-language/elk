@@ -26,6 +26,15 @@ func (n *ArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *ArrayTupleLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (t *ArrayTupleLiteralNode) IsStatic() bool {
 	return t.static
 }
@@ -149,6 +158,15 @@ func (n *WordArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node,
 	}
 }
 
+func (n *WordArrayTupleLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *WordArrayTupleLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WordArrayTupleLiteralNode)
 	if !ok {
@@ -256,6 +274,15 @@ func (n *SymbolArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Nod
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
+}
+
+func (n *SymbolArrayTupleLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 // Check if this node equals another node.
@@ -369,6 +396,15 @@ func (n *HexArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
+func (n *HexArrayTupleLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *HexArrayTupleLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HexArrayTupleLiteralNode)
@@ -477,6 +513,15 @@ func (n *BinArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, 
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
+}
+
+func (n *BinArrayTupleLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *BinArrayTupleLiteralNode) Equal(other value.Value) bool {
@@ -591,6 +636,15 @@ func (n *TuplePatternNode) Splice(loc *position.Location, args *[]Node, unquote 
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
+}
+
+func (n *TuplePatternNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *TuplePatternNode) Equal(other value.Value) bool {

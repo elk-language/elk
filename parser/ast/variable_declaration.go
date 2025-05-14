@@ -38,6 +38,20 @@ func (n *VariableDeclarationNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
+func (n *VariableDeclarationNode) Traverse(yield func(Node) bool) bool {
+	if n.TypeNode != nil {
+		if n.TypeNode.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Initialiser != nil {
+		if n.Initialiser.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *VariableDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VariableDeclarationNode)
 	if !ok {

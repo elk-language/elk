@@ -22,6 +22,13 @@ func (n *InstanceOfTypeNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *InstanceOfTypeNode) Traverse(yield func(Node) bool) bool {
+	if !n.TypeNode.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 // Equal checks if this node equals the other node.
 func (n *InstanceOfTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InstanceOfTypeNode)

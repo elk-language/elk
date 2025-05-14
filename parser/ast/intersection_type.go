@@ -22,6 +22,15 @@ func (n *IntersectionTypeNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *IntersectionTypeNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *IntersectionTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*IntersectionTypeNode)
 	if !ok {

@@ -26,6 +26,21 @@ func (n *ForInExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *ForInExpressionNode) Traverse(yield func(Node) bool) bool {
+	if !n.Pattern.Traverse(yield) {
+		return false
+	}
+	if !n.InExpression.Traverse(yield) {
+		return false
+	}
+	for _, stmt := range n.ThenBody {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *ForInExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ForInExpressionNode)
 	if !ok {

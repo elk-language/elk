@@ -29,6 +29,16 @@ func (n *KeyValueExpressionNode) Splice(loc *position.Location, args *[]Node, un
 	}
 }
 
+func (n *KeyValueExpressionNode) Traverse(yield func(Node) bool) bool {
+	if !n.Key.Traverse(yield) {
+		return false
+	}
+	if !n.Value.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *KeyValueExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*KeyValueExpressionNode)
 	if !ok {
@@ -105,6 +115,13 @@ func (n *SymbolKeyValueExpressionNode) Splice(loc *position.Location, args *[]No
 		Key:      n.Key,
 		Value:    n.Value.Splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *SymbolKeyValueExpressionNode) Traverse(yield func(Node) bool) bool {
+	if !n.Value.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 func (n *SymbolKeyValueExpressionNode) Equal(other value.Value) bool {
@@ -184,6 +201,13 @@ func (n *SymbolKeyValuePatternNode) Splice(loc *position.Location, args *[]Node,
 	}
 }
 
+func (n *SymbolKeyValuePatternNode) Traverse(yield func(Node) bool) bool {
+	if !n.Value.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *SymbolKeyValuePatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolKeyValuePatternNode)
 	if !ok {
@@ -259,6 +283,16 @@ func (n *KeyValuePatternNode) Splice(loc *position.Location, args *[]Node, unquo
 		Key:      n.Key.Splice(loc, args, unquote).(PatternExpressionNode),
 		Value:    n.Value.Splice(loc, args, unquote).(PatternNode),
 	}
+}
+
+func (n *KeyValuePatternNode) Traverse(yield func(Node) bool) bool {
+	if !n.Key.Traverse(yield) {
+		return false
+	}
+	if !n.Value.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 func (n *KeyValuePatternNode) Equal(other value.Value) bool {

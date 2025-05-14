@@ -36,6 +36,13 @@ func (n *ExpressionStatementNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
+func (n *ExpressionStatementNode) Traverse(yield func(Node) bool) bool {
+	if n.Expression.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (e *ExpressionStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ExpressionStatementNode)
 	if !ok {
@@ -107,6 +114,10 @@ func (n *EmptyStatementNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *EmptyStatementNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *EmptyStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*EmptyStatementNode)
@@ -162,6 +173,13 @@ func (n *ImportStatementNode) Splice(loc *position.Location, args *[]Node, unquo
 		Path:     n.Path,
 		FsPaths:  n.FsPaths,
 	}
+}
+
+func (n *ImportStatementNode) Traverse(yield func(Node) bool) bool {
+	if n.Path.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 // Check if this node equals another node.
@@ -223,6 +241,13 @@ func (n *ParameterStatementNode) Splice(loc *position.Location, args *[]Node, un
 		NodeBase:  NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Parameter: n.Parameter.Splice(loc, args, unquote).(ParameterNode),
 	}
+}
+
+func (n *ParameterStatementNode) Traverse(yield func(Node) bool) bool {
+	if n.Parameter.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 func (n *ParameterStatementNode) Equal(other value.Value) bool {

@@ -17,6 +17,15 @@ type InstanceVariableDeclarationNode struct {
 	TypeNode TypeNode // type of the variable
 }
 
+func (n *InstanceVariableDeclarationNode) Traverse(yield func(Node) bool) bool {
+	if n.TypeNode != nil {
+		if !n.TypeNode.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *InstanceVariableDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var typeNode ComplexConstantNode
 	if n.TypeNode != nil {

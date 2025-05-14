@@ -22,6 +22,15 @@ func (n *UnionTypeNode) Splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
+func (n *UnionTypeNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *UnionTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnionTypeNode)
 	if !ok {

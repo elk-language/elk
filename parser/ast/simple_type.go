@@ -19,6 +19,10 @@ func (n *BoolLiteralNode) Splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
+func (n *BoolLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *BoolLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BoolLiteralNode)
 	if !ok {
@@ -74,6 +78,10 @@ func (n *VoidTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool
 	}
 }
 
+func (n *VoidTypeNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *VoidTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VoidTypeNode)
 	if !ok {
@@ -122,6 +130,10 @@ func (n *NeverTypeNode) Splice(loc *position.Location, args *[]Node, unquote boo
 	return &NeverTypeNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
+}
+
+func (n *NeverTypeNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
 }
 
 func (n *NeverTypeNode) Equal(other value.Value) bool {
@@ -176,6 +188,10 @@ func (n *AnyTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool)
 	return &AnyTypeNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
+}
+
+func (n *AnyTypeNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
 }
 
 func (n *AnyTypeNode) Equal(other value.Value) bool {

@@ -22,6 +22,13 @@ func (n *NotTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool)
 	}
 }
 
+func (n *NotTypeNode) Traverse(yield func(Node) bool) bool {
+	if n.TypeNode.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *NotTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NotTypeNode)
 	if !ok {

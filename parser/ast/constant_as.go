@@ -25,6 +25,13 @@ func (n *ConstantAsNode) Splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
+func (n *ConstantAsNode) Traverse(yield func(Node) bool) bool {
+	if !n.Constant.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *ConstantAsNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ConstantAsNode)

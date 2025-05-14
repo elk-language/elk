@@ -33,6 +33,20 @@ func (n *MacroDefinitionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *MacroDefinitionNode) Traverse(yield func(Node) bool) bool {
+	for _, param := range n.Parameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this method definition is equal to another value.
 func (n *MacroDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MacroDefinitionNode)
@@ -191,6 +205,23 @@ func (n *MacroCallNode) Splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
+func (n *MacroCallNode) Traverse(yield func(Node) bool) bool {
+	if n.Receiver.Traverse(yield) {
+		return false
+	}
+	for _, arg := range n.PositionalArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *MacroCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MacroCallNode)
 	if !ok {
@@ -344,6 +375,20 @@ func (n *ReceiverlessMacroCallNode) Splice(loc *position.Location, args *[]Node,
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
+}
+
+func (n *ReceiverlessMacroCallNode) Traverse(yield func(Node) bool) bool {
+	for _, arg := range n.PositionalArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.NamedArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *ReceiverlessMacroCallNode) Equal(other value.Value) bool {

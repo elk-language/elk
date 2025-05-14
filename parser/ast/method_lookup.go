@@ -24,6 +24,13 @@ func (n *MethodLookupNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
+func (n *MethodLookupNode) Traverse(yield func(Node) bool) bool {
+	if n.Receiver.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *MethodLookupNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodLookupNode)
 	if !ok {
@@ -109,6 +116,13 @@ func (n *MethodLookupAsNode) Splice(loc *position.Location, args *[]Node, unquot
 		MethodLookup: n.MethodLookup.Splice(loc, args, unquote).(*MethodLookupNode),
 		AsName:       n.AsName,
 	}
+}
+
+func (n *MethodLookupAsNode) Traverse(yield func(Node) bool) bool {
+	if n.MethodLookup.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 // Check if this method lookup as node is equal to another value.

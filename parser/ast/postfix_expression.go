@@ -25,6 +25,13 @@ func (n *PostfixExpressionNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *PostfixExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Expression.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *PostfixExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*PostfixExpressionNode)
 	if !ok {

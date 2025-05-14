@@ -31,8 +31,10 @@ func (n *BreakExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 }
 
 func (n *BreakExpressionNode) Traverse(yield func(Node) bool) bool {
-	if !n.Value.Traverse(yield) {
-		return false
+	if n.Value != nil {
+		if !n.Value.Traverse(yield) {
+			return false
+		}
 	}
 	return yield(n)
 }

@@ -22,6 +22,15 @@ func (n *IncludeExpressionNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *IncludeExpressionNode) Traverse(yield func(Node) bool) bool {
+	for _, constant := range n.Constants {
+		if !constant.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *IncludeExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*IncludeExpressionNode)

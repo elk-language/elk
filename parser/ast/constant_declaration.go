@@ -40,6 +40,23 @@ func (n *ConstantDeclarationNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
+func (n *ConstantDeclarationNode) Traverse(yield func(Node) bool) bool {
+	if !n.Constant.Traverse(yield) {
+		return false
+	}
+	if n.TypeNode != nil {
+		if !n.TypeNode.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Initialiser != nil {
+		if !n.Initialiser.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *ConstantDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ConstantDeclarationNode)

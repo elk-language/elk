@@ -22,6 +22,13 @@ func (n *DoubleSplatExpressionNode) Splice(loc *position.Location, args *[]Node,
 	}
 }
 
+func (n *DoubleSplatExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Value.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *DoubleSplatExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*DoubleSplatExpressionNode)
@@ -99,6 +106,13 @@ func (n *SplatExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value.Splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *SplatExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Value.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 func (n *SplatExpressionNode) Equal(other value.Value) bool {

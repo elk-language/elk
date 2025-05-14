@@ -37,6 +37,20 @@ func (n *ArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *ArrayListLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Capacity != nil {
+		if !n.Capacity.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (l *ArrayListLiteralNode) IsStatic() bool {
 	return l.static
 }
@@ -209,6 +223,18 @@ func (n *WordArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
+func (n *WordArrayListLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	if !n.Capacity.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *WordArrayListLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WordArrayListLiteralNode)
 	if !ok {
@@ -366,6 +392,20 @@ func (n *SymbolArrayListLiteralNode) Splice(loc *position.Location, args *[]Node
 	}
 }
 
+func (n *SymbolArrayListLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Capacity != nil {
+		if n.Capacity.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *SymbolArrayListLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolArrayListLiteralNode)
 	if !ok {
@@ -520,6 +560,20 @@ func (n *HexArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, u
 		Capacity:      capacity,
 		static:        static,
 	}
+}
+
+func (n *HexArrayListLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Capacity != nil {
+		if n.Capacity.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 // Check if this node equals another node.
@@ -680,6 +734,20 @@ func (n *BinArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
+func (n *BinArrayListLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Capacity != nil {
+		if n.Capacity.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (b *BinArrayListLiteralNode) IsStatic() bool {
 	return b.static
 }
@@ -826,6 +894,15 @@ func (n *ListPatternNode) Splice(loc *position.Location, args *[]Node, unquote b
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
+}
+
+func (n *ListPatternNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *ListPatternNode) Equal(other value.Value) bool {

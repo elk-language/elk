@@ -26,6 +26,23 @@ func (n *UnlessExpressionNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *UnlessExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Condition.Traverse(yield) {
+		return false
+	}
+	for _, stmt := range n.ThenBody {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	for _, stmt := range n.ElseBody {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *UnlessExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnlessExpressionNode)
 	if !ok {

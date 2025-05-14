@@ -36,6 +36,10 @@ func (n *SimpleSymbolLiteralNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
+func (n *SimpleSymbolLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *SimpleSymbolLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SimpleSymbolLiteralNode)
 	if !ok {
@@ -93,6 +97,13 @@ func (n *InterpolatedSymbolLiteralNode) Splice(loc *position.Location, args *[]N
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Content:  n.Content.Splice(loc, args, unquote).(*InterpolatedStringLiteralNode),
 	}
+}
+
+func (n *InterpolatedSymbolLiteralNode) Traverse(yield func(Node) bool) bool {
+	if n.Content.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 func (n *InterpolatedSymbolLiteralNode) Equal(other value.Value) bool {

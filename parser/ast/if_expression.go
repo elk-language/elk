@@ -26,6 +26,23 @@ func (n *IfExpressionNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
+func (n *IfExpressionNode) Traverse(yield func(Node) bool) bool {
+	if !n.Condition.Traverse(yield) {
+		return false
+	}
+	for _, arg := range n.ThenBody {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	for _, arg := range n.ElseBody {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *IfExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*IfExpressionNode)

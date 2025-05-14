@@ -42,6 +42,30 @@ func (n *ClosureLiteralNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *ClosureLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, param := range n.Parameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	if n.ReturnType != nil {
+		if !n.ReturnType.Traverse(yield) {
+			return false
+		}
+	}
+	if n.ThrowType != nil {
+		if !n.ThrowType.Traverse(yield) {
+			return false
+		}
+	}
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *ClosureLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ClosureLiteralNode)
 	if !ok {

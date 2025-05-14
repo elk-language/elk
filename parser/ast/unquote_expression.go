@@ -15,6 +15,13 @@ type UnquoteExpressionNode struct {
 	Expression ExpressionNode
 }
 
+func (n *UnquoteExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Expression.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *UnquoteExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	if args == nil || len(*args) == 0 {
 		panic("too few arguments for splicing AST nodes")

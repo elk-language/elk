@@ -35,6 +35,20 @@ func (n *ModuleDeclarationNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *ModuleDeclarationNode) Traverse(yield func(Node) bool) bool {
+	if n.Constant != nil {
+		if n.Constant.Traverse(yield) {
+			return false
+		}
+	}
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *ModuleDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ModuleDeclarationNode)
 	if !ok {

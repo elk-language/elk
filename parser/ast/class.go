@@ -53,6 +53,30 @@ func (n *ClassDeclarationNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *ClassDeclarationNode) Traverse(yield func(Node) bool) bool {
+	if n.Constant != nil {
+		if !n.Constant.Traverse(yield) {
+			return false
+		}
+	}
+	for _, param := range n.TypeParameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Superclass != nil {
+		if !n.Superclass.Traverse(yield) {
+			return false
+		}
+	}
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *ClassDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ClassDeclarationNode)
 	if !ok {

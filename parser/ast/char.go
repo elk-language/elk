@@ -20,6 +20,10 @@ func (n *CharLiteralNode) Splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
+func (n *CharLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *CharLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*CharLiteralNode)
 	if !ok {
@@ -76,6 +80,10 @@ func (n *RawCharLiteralNode) Splice(loc *position.Location, args *[]Node, unquot
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *RawCharLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
 }
 
 func (n *RawCharLiteralNode) Equal(other value.Value) bool {

@@ -20,6 +20,10 @@ func (n *FloatLiteralNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
+func (n *FloatLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *FloatLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*FloatLiteralNode)
 	if !ok {
@@ -77,6 +81,10 @@ func (n *BigFloatLiteralNode) Splice(loc *position.Location, args *[]Node, unquo
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *BigFloatLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
 }
 
 func (n *BigFloatLiteralNode) Equal(other value.Value) bool {
@@ -138,6 +146,10 @@ func (n *Float64LiteralNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *Float64LiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *Float64LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Float64LiteralNode)
 	if !ok {
@@ -195,6 +207,10 @@ func (n *Float32LiteralNode) Splice(loc *position.Location, args *[]Node, unquot
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *Float32LiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
 }
 
 func (n *Float32LiteralNode) Equal(other value.Value) bool {

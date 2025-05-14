@@ -30,6 +30,25 @@ func (n *DoExpressionNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
+func (n *DoExpressionNode) Traverse(yield func(Node) bool) bool {
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	for _, catch := range n.Catches {
+		if !catch.Traverse(yield) {
+			return false
+		}
+	}
+	for _, finallyStmt := range n.Finally {
+		if !finallyStmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *DoExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*DoExpressionNode)
@@ -188,6 +207,21 @@ func (n *CatchNode) Splice(loc *position.Location, args *[]Node, unquote bool) N
 		StackTraceVar: stackTraceVar,
 		Body:          body,
 	}
+}
+
+func (n *CatchNode) Traverse(yield func(Node) bool) bool {
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	if !n.Pattern.Traverse(yield) {
+		return false
+	}
+	if !n.StackTraceVar.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 func (n *CatchNode) Equal(other value.Value) bool {
