@@ -22,6 +22,13 @@ func (n *RestPatternNode) Splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
+func (n *RestPatternNode) Traverse(yield func(Node) bool) bool {
+	if n.Identifier.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *RestPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RestPatternNode)
 	if !ok {

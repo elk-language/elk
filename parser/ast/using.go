@@ -55,6 +55,13 @@ func (n *UsingAllEntryNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
+func (n *UsingAllEntryNode) Traverse(yield func(Node) bool) bool {
+	if n.Namespace.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *UsingAllEntryNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UsingAllEntryNode)
 	if !ok {
@@ -124,6 +131,18 @@ func (n *UsingEntryWithSubentriesNode) Splice(loc *position.Location, args *[]No
 		Namespace:  n.Namespace.Splice(loc, args, unquote).(UsingEntryNode),
 		Subentries: SpliceSlice(n.Subentries, loc, args, unquote),
 	}
+}
+
+func (n *UsingEntryWithSubentriesNode) Traverse(yield func(Node) bool) bool {
+	if n.Namespace.Traverse(yield) {
+		return false
+	}
+	for _, entry := range n.Subentries {
+		if !entry.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *UsingEntryWithSubentriesNode) Equal(other value.Value) bool {
@@ -223,6 +242,15 @@ func (n *UsingExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Entries:       SpliceSlice(n.Entries, loc, args, unquote),
 	}
+}
+
+func (n *UsingExpressionNode) Traverse(yield func(Node) bool) bool {
+	for _, entry := range n.Entries {
+		if !entry.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *UsingExpressionNode) Equal(other value.Value) bool {

@@ -27,6 +27,16 @@ func (n *ModifierNode) Splice(loc *position.Location, args *[]Node, unquote bool
 	}
 }
 
+func (n *ModifierNode) Traverse(yield func(Node) bool) bool {
+	if n.Left.Traverse(yield) {
+		return false
+	}
+	if n.Right.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *ModifierNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ModifierNode)
 	if !ok {
@@ -130,6 +140,19 @@ func (n *ModifierIfElseNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *ModifierIfElseNode) Traverse(yield func(Node) bool) bool {
+	if n.ThenExpression.Traverse(yield) {
+		return false
+	}
+	if n.Condition.Traverse(yield) {
+		return false
+	}
+	if n.ElseExpression.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *ModifierIfElseNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ModifierIfElseNode)
 	if !ok {
@@ -230,6 +253,19 @@ func (n *ModifierForInNode) Splice(loc *position.Location, args *[]Node, unquote
 		Pattern:        n.Pattern.Splice(loc, args, unquote).(PatternNode),
 		InExpression:   n.InExpression.Splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *ModifierForInNode) Traverse(yield func(Node) bool) bool {
+	if n.ThenExpression.Traverse(yield) {
+		return false
+	}
+	if n.Pattern.Traverse(yield) {
+		return false
+	}
+	if n.InExpression.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 func (n *ModifierForInNode) Equal(other value.Value) bool {

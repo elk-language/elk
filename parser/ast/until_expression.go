@@ -24,6 +24,18 @@ func (n *UntilExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *UntilExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Condition.Traverse(yield) {
+		return false
+	}
+	for _, stmt := range n.ThenBody {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *UntilExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UntilExpressionNode)
 	if !ok {

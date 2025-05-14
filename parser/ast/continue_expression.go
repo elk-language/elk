@@ -27,6 +27,15 @@ func (n *ContinueExpressionNode) Splice(loc *position.Location, args *[]Node, un
 	}
 }
 
+func (n *ContinueExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Value != nil {
+		if !n.Value.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *ContinueExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ContinueExpressionNode)

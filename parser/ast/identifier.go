@@ -34,6 +34,10 @@ func (n *PublicIdentifierNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *PublicIdentifierNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *PublicIdentifierNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*PublicIdentifierNode)
 	if !ok {
@@ -91,6 +95,10 @@ func (n *PrivateIdentifierNode) Splice(loc *position.Location, args *[]Node, unq
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *PrivateIdentifierNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
 }
 
 func (n *PrivateIdentifierNode) Equal(other value.Value) bool {
@@ -153,6 +161,13 @@ func (n *PublicIdentifierAsNode) Splice(loc *position.Location, args *[]Node, un
 		Target:   n.Target.Splice(loc, args, unquote).(*PublicIdentifierNode),
 		AsName:   n.AsName,
 	}
+}
+
+func (n *PublicIdentifierAsNode) Traverse(yield func(Node) bool) bool {
+	if !n.Target.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 func (n *PublicIdentifierAsNode) Equal(other value.Value) bool {

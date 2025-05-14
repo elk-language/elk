@@ -28,6 +28,16 @@ func (n *LogicalExpressionNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *LogicalExpressionNode) Traverse(yield func(Node) bool) bool {
+	if !n.Left.Traverse(yield) {
+		return false
+	}
+	if !n.Right.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *LogicalExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*LogicalExpressionNode)
 	if !ok {

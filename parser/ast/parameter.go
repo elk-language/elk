@@ -89,6 +89,20 @@ func (n *FormalParameterNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *FormalParameterNode) Traverse(yield func(Node) bool) bool {
+	if n.TypeNode != nil {
+		if n.TypeNode.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Initialiser != nil {
+		if n.Initialiser.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Equal checks if the given FormalParameterNode is equal to another value.
 func (n *FormalParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*FormalParameterNode)
@@ -226,6 +240,20 @@ func (n *MethodParameterNode) Splice(loc *position.Location, args *[]Node, unquo
 		SetInstanceVariable: n.SetInstanceVariable,
 		Kind:                n.Kind,
 	}
+}
+
+func (n *MethodParameterNode) Traverse(yield func(Node) bool) bool {
+	if n.TypeNode != nil {
+		if n.TypeNode.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Initialiser != nil {
+		if n.Initialiser.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *MethodParameterNode) Equal(other value.Value) bool {
@@ -369,6 +397,15 @@ func (n *SignatureParameterNode) Splice(loc *position.Location, args *[]Node, un
 	}
 }
 
+func (n *SignatureParameterNode) Traverse(yield func(Node) bool) bool {
+	if n.TypeNode != nil {
+		if n.TypeNode.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *SignatureParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SignatureParameterNode)
 	if !ok {
@@ -486,6 +523,20 @@ func (n *AttributeParameterNode) Splice(loc *position.Location, args *[]Node, un
 		TypeNode:      typeNode,
 		Initialiser:   init,
 	}
+}
+
+func (n *AttributeParameterNode) Traverse(yield func(Node) bool) bool {
+	if n.TypeNode != nil {
+		if n.TypeNode.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Initialiser != nil {
+		if n.Initialiser.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (*AttributeParameterNode) IsStatic() bool {

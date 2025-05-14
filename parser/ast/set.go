@@ -37,6 +37,20 @@ func (n *HashSetLiteralNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *HashSetLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Capacity != nil {
+		if n.Capacity.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *HashSetLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HashSetLiteralNode)
@@ -206,6 +220,21 @@ func (n *WordHashSetLiteralNode) Splice(loc *position.Location, args *[]Node, un
 	}
 }
 
+func (n *WordHashSetLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+
+	if n.Capacity != nil {
+		if n.Capacity.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *WordHashSetLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WordHashSetLiteralNode)
 	if !ok {
@@ -363,6 +392,20 @@ func (n *SymbolHashSetLiteralNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
+func (n *SymbolHashSetLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Capacity != nil {
+		if n.Capacity.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *SymbolHashSetLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolHashSetLiteralNode)
 	if !ok {
@@ -517,6 +560,20 @@ func (n *HexHashSetLiteralNode) Splice(loc *position.Location, args *[]Node, unq
 		Capacity:      capacity,
 		static:        static,
 	}
+}
+
+func (n *HexHashSetLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Capacity != nil {
+		if n.Capacity.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (h *HexHashSetLiteralNode) IsStatic() bool {
@@ -676,6 +733,20 @@ func (n *BinHashSetLiteralNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *BinHashSetLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Capacity != nil {
+		if n.Capacity.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *BinHashSetLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BinHashSetLiteralNode)
 	if !ok {
@@ -822,6 +893,15 @@ func (n *SetPatternNode) Splice(loc *position.Location, args *[]Node, unquote bo
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
+}
+
+func (n *SetPatternNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *SetPatternNode) Equal(other value.Value) bool {

@@ -25,6 +25,14 @@ func (n *UnaryExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *UnaryExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Right.Traverse(yield) {
+		return false
+	}
+
+	return yield(n)
+}
+
 func (n *UnaryExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnaryExpressionNode)
 	if !ok {

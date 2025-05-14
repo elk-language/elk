@@ -40,6 +40,15 @@ func (n *ProgramNode) Splice(loc *position.Location, args *[]Node, unquote bool)
 	}
 }
 
+func (n *ProgramNode) Traverse(yield func(Node) bool) bool {
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *ProgramNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ProgramNode)
 	if !ok {

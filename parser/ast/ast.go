@@ -263,6 +263,7 @@ type Node interface {
 	Equal(value.Value) bool
 	String() string
 	Splice(loc *position.Location, args *[]Node, unquote bool) Node // Create a copy of AST replacing consecutive unquote nodes with the given arguments
+	Traverse(yield func(Node) bool) bool
 }
 
 func SpliceSlice[N Node](slice []N, loc *position.Location, args *[]Node, unquote bool) []N {

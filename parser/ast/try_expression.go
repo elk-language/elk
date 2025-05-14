@@ -22,6 +22,15 @@ func (n *TryExpressionNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
+func (n *TryExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Value != nil {
+		if n.Value.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *TryExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*TryExpressionNode)
 	if !ok {

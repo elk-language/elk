@@ -25,6 +25,14 @@ func (n *UnaryTypeNode) Splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
+func (n *UnaryTypeNode) Traverse(yield func(Node) bool) bool {
+	if n.TypeNode.Traverse(yield) {
+		return false
+	}
+
+	return yield(n)
+}
+
 func (n *UnaryTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnaryTypeNode)
 	if !ok {

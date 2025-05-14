@@ -28,6 +28,15 @@ func (n *ReturnExpressionNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *ReturnExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Value != nil {
+		if n.Value.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *ReturnExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ReturnExpressionNode)
 	if !ok {

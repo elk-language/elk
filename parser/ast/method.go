@@ -65,6 +65,35 @@ func (n *MethodDefinitionNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *MethodDefinitionNode) Traverse(yield func(Node) bool) bool {
+	for _, param := range n.TypeParameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	for _, param := range n.Parameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	if n.ReturnType != nil {
+		if n.ReturnType.Traverse(yield) {
+			return false
+		}
+	}
+	if n.ThrowType != nil {
+		if n.ThrowType.Traverse(yield) {
+			return false
+		}
+	}
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this method definition is equal to another value.
 func (n *MethodDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodDefinitionNode)
@@ -360,6 +389,23 @@ func (n *InitDefinitionNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *InitDefinitionNode) Traverse(yield func(Node) bool) bool {
+	for _, param := range n.Parameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	if n.ThrowType.Traverse(yield) {
+		return false
+	}
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *InitDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InitDefinitionNode)
@@ -536,6 +582,30 @@ func (n *MethodSignatureDefinitionNode) Splice(loc *position.Location, args *[]N
 		ReturnType:             returnType,
 		ThrowType:              throwType,
 	}
+}
+
+func (n *MethodSignatureDefinitionNode) Traverse(yield func(Node) bool) bool {
+	for _, param := range n.TypeParameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	for _, param := range n.Parameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	if n.ReturnType != nil {
+		if n.ReturnType.Traverse(yield) {
+			return false
+		}
+	}
+	if n.ThrowType != nil {
+		if n.ThrowType.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *MethodSignatureDefinitionNode) Equal(other value.Value) bool {
@@ -723,6 +793,10 @@ func (n *AliasDeclarationEntry) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *AliasDeclarationEntry) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (*AliasDeclarationEntry) IsStatic() bool {
 	return false
 }
@@ -797,6 +871,15 @@ func (n *AliasDeclarationNode) Splice(loc *position.Location, args *[]Node, unqu
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Entries:       SpliceSlice(n.Entries, loc, args, unquote),
 	}
+}
+
+func (n *AliasDeclarationNode) Traverse(yield func(Node) bool) bool {
+	for _, entry := range n.Entries {
+		if !entry.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *AliasDeclarationNode) String() string {
@@ -893,6 +976,15 @@ func (n *GetterDeclarationNode) Splice(loc *position.Location, args *[]Node, unq
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Entries:                SpliceSlice(n.Entries, loc, args, unquote),
 	}
+}
+
+func (n *GetterDeclarationNode) Traverse(yield func(Node) bool) bool {
+	for _, entry := range n.Entries {
+		if !entry.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 // Equal checks if this node equals the other node.
@@ -1007,6 +1099,15 @@ func (n *SetterDeclarationNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *SetterDeclarationNode) Traverse(yield func(Node) bool) bool {
+	for _, entry := range n.Entries {
+		if !entry.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *SetterDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SetterDeclarationNode)
 	if !ok {
@@ -1110,6 +1211,15 @@ func (n *AttrDeclarationNode) Splice(loc *position.Location, args *[]Node, unquo
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Entries:                SpliceSlice(n.Entries, loc, args, unquote),
 	}
+}
+
+func (n *AttrDeclarationNode) Traverse(yield func(Node) bool) bool {
+	for _, entry := range n.Entries {
+		if !entry.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (*AttrDeclarationNode) IsStatic() bool {

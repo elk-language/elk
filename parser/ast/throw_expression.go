@@ -30,6 +30,15 @@ func (n *ThrowExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *ThrowExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Value != nil {
+		if n.Value.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *ThrowExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ThrowExpressionNode)
 	if !ok {

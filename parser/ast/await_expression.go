@@ -22,6 +22,13 @@ func (n *AwaitExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *AwaitExpressionNode) Traverse(yield func(Node) bool) bool {
+	if !n.Value.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (*AwaitExpressionNode) IsStatic() bool {
 	return false
 }

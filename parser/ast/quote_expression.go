@@ -22,6 +22,15 @@ func (n *QuoteExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *QuoteExpressionNode) Traverse(yield func(Node) bool) bool {
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *QuoteExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*QuoteExpressionNode)

@@ -24,6 +24,18 @@ func (n *ObjectPatternNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
+func (n *ObjectPatternNode) Traverse(yield func(Node) bool) bool {
+	if n.ObjectType.Traverse(yield) {
+		return false
+	}
+	for _, attr := range n.Attributes {
+		if !attr.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *ObjectPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ObjectPatternNode)
 	if !ok {

@@ -51,6 +51,10 @@ func (n *UninterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]
 	}
 }
 
+func (n *UninterpolatedRegexLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *UninterpolatedRegexLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UninterpolatedRegexLiteralNode)
 	if !ok {
@@ -196,6 +200,10 @@ func (n *RegexLiteralContentSectionNode) Splice(loc *position.Location, args *[]
 	}
 }
 
+func (n *RegexLiteralContentSectionNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *RegexLiteralContentSectionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RegexLiteralContentSectionNode)
 	if !ok {
@@ -253,6 +261,13 @@ func (n *RegexInterpolationNode) Splice(loc *position.Location, args *[]Node, un
 		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Expression: n.Expression.Splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *RegexInterpolationNode) Traverse(yield func(Node) bool) bool {
+	if n.Expression.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 func (n *RegexInterpolationNode) Equal(other value.Value) bool {
@@ -325,6 +340,15 @@ func (n *InterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]No
 		Content:  SpliceSlice(n.Content, loc, args, unquote),
 		Flags:    n.Flags,
 	}
+}
+
+func (n *InterpolatedRegexLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, content := range n.Content {
+		if !content.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *InterpolatedRegexLiteralNode) Equal(other value.Value) bool {

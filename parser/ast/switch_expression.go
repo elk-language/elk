@@ -35,6 +35,23 @@ func (n *SwitchExpressionNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *SwitchExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Value.Traverse(yield) {
+		return false
+	}
+	for _, caseNode := range n.Cases {
+		if !caseNode.Traverse(yield) {
+			return false
+		}
+	}
+	for _, stmt := range n.ElseBody {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *SwitchExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SwitchExpressionNode)
 	if !ok {
@@ -158,6 +175,18 @@ func (n *CaseNode) Splice(loc *position.Location, args *[]Node, unquote bool) No
 		Pattern:  n.Pattern.Splice(loc, args, unquote).(PatternNode),
 		Body:     SpliceSlice(n.Body, loc, args, unquote),
 	}
+}
+
+func (n *CaseNode) Traverse(yield func(Node) bool) bool {
+	if n.Pattern.Traverse(yield) {
+		return false
+	}
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *CaseNode) Equal(other value.Value) bool {

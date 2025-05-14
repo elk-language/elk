@@ -43,6 +43,25 @@ func (n *MixinDeclarationNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *MixinDeclarationNode) Traverse(yield func(Node) bool) bool {
+	if n.Constant != nil {
+		if n.Constant.Traverse(yield) {
+			return false
+		}
+	}
+	for _, param := range n.TypeParameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *MixinDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MixinDeclarationNode)
 	if !ok {

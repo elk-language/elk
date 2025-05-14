@@ -27,6 +27,16 @@ func (n *BinaryPatternNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
+func (n *BinaryPatternNode) Traverse(yield func(Node) bool) bool {
+	if !n.Left.Traverse(yield) {
+		return false
+	}
+	if !n.Right.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *BinaryPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BinaryPatternNode)
 	if !ok {

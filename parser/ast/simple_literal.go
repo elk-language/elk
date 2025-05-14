@@ -19,6 +19,10 @@ func (n *TrueLiteralNode) Splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
+func (n *TrueLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *TrueLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*TrueLiteralNode)
 	if !ok {
@@ -72,6 +76,10 @@ func (n *FalseLiteralNode) Splice(loc *position.Location, args *[]Node, unquote 
 	return &FalseLiteralNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
+}
+
+func (n *FalseLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
 }
 
 func (n *FalseLiteralNode) Equal(other value.Value) bool {
@@ -129,6 +137,10 @@ func (n *SelfLiteralNode) Splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
+func (n *SelfLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *SelfLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SelfLiteralNode)
 	if !ok {
@@ -178,6 +190,10 @@ func (n *NilLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bo
 	return &NilLiteralNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
+}
+
+func (n *NilLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
 }
 
 func (n *NilLiteralNode) Equal(other value.Value) bool {
@@ -235,6 +251,10 @@ func (n *UndefinedLiteralNode) Splice(loc *position.Location, args *[]Node, unqu
 	return &UndefinedLiteralNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
+}
+
+func (n *UndefinedLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
 }
 
 func (n *UndefinedLiteralNode) Equal(other value.Value) bool {

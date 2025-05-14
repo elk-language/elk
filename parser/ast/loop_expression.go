@@ -22,6 +22,15 @@ func (n *LoopExpressionNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *LoopExpressionNode) Traverse(yield func(Node) bool) bool {
+	for _, stmt := range n.ThenBody {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *LoopExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*LoopExpressionNode)
 	if !ok {

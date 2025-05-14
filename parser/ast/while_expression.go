@@ -24,6 +24,20 @@ func (n *WhileExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *WhileExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Condition != nil {
+		if n.Condition.Traverse(yield) {
+			return false
+		}
+	}
+	for _, stmt := range n.ThenBody {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *WhileExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WhileExpressionNode)
 	if !ok {

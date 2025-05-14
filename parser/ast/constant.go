@@ -76,6 +76,10 @@ func (n *PublicConstantNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *PublicConstantNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *PublicConstantNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*PublicConstantNode)
 	if !ok {
@@ -133,6 +137,10 @@ func (n *PrivateConstantNode) Splice(loc *position.Location, args *[]Node, unquo
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *PrivateConstantNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
 }
 
 func (n *PrivateConstantNode) Equal(other value.Value) bool {
@@ -195,6 +203,14 @@ func (n *PublicConstantAsNode) Splice(loc *position.Location, args *[]Node, unqu
 		Target:   n.Target.Splice(loc, args, unquote).(*PublicConstantNode),
 		AsName:   n.AsName,
 	}
+}
+
+func (n *PublicConstantAsNode) Traverse(yield func(Node) bool) bool {
+	if !n.Target.Traverse(yield) {
+		return false
+	}
+
+	return yield(n)
 }
 
 func (n *PublicConstantAsNode) Equal(other value.Value) bool {
@@ -272,6 +288,18 @@ func (n *ConstantLookupNode) Splice(loc *position.Location, args *[]Node, unquot
 		Left:          left,
 		Right:         right,
 	}
+}
+
+func (n *ConstantLookupNode) Traverse(yield func(Node) bool) bool {
+	if n.Left != nil {
+		if !n.Left.Traverse(yield) {
+			return false
+		}
+	}
+	if !n.Right.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 // Check if this node equals another node.
@@ -363,6 +391,18 @@ func (n *GenericConstantNode) Splice(loc *position.Location, args *[]Node, unquo
 		Constant:      n.Constant.Splice(loc, args, unquote).(ComplexConstantNode),
 		TypeArguments: SpliceSlice(n.TypeArguments, loc, args, unquote),
 	}
+}
+
+func (n *GenericConstantNode) Traverse(yield func(Node) bool) bool {
+	if !n.Constant.Traverse(yield) {
+		return false
+	}
+	for _, arg := range n.TypeArguments {
+		if !arg.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 // Equal checks if the given GenericConstantNode is equal to another value.

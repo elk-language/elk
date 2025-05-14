@@ -20,6 +20,10 @@ func (n *InstanceVariableNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *InstanceVariableNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *InstanceVariableNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InstanceVariableNode)
 	if !ok {

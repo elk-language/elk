@@ -55,6 +55,20 @@ func (n *RangeLiteralNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
+func (n *RangeLiteralNode) Traverse(yield func(Node) bool) bool {
+	if n.Start != nil {
+		if n.Start.Traverse(yield) {
+			return false
+		}
+	}
+	if n.End != nil {
+		if n.End.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *RangeLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RangeLiteralNode)
 	if !ok {

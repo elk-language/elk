@@ -37,6 +37,20 @@ func (n *HashMapLiteralNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *HashMapLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Capacity != nil {
+		if n.Capacity.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Check if this node equals another node.
 func (n *HashMapLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HashMapLiteralNode)
@@ -196,6 +210,15 @@ func (n *HashRecordLiteralNode) Splice(loc *position.Location, args *[]Node, unq
 		Elements:      elements,
 		static:        static,
 	}
+}
+
+func (n *HashRecordLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, elem := range n.Elements {
+		if !elem.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 // Check if this node equals another node.

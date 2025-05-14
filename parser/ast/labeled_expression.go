@@ -25,6 +25,13 @@ func (n *LabeledExpressionNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *LabeledExpressionNode) Traverse(yield func(Node) bool) bool {
+	if !n.Expression.Traverse(yield) {
+		return false
+	}
+	return yield(n)
+}
+
 func (n *LabeledExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*LabeledExpressionNode)
 	if !ok {

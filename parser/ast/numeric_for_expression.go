@@ -45,6 +45,30 @@ func (n *NumericForExpressionNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
+func (n *NumericForExpressionNode) Traverse(yield func(Node) bool) bool {
+	if n.Initialiser != nil {
+		if n.Initialiser.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Condition != nil {
+		if n.Condition.Traverse(yield) {
+			return false
+		}
+	}
+	if n.Increment != nil {
+		if n.Increment.Traverse(yield) {
+			return false
+		}
+	}
+	for _, stmt := range n.ThenBody {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *NumericForExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NumericForExpressionNode)
 	if !ok {

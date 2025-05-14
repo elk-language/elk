@@ -41,6 +41,25 @@ func (n *InterfaceDeclarationNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
+func (n *InterfaceDeclarationNode) Traverse(yield func(Node) bool) bool {
+	if n.Constant != nil {
+		if !n.Constant.Traverse(yield) {
+			return false
+		}
+	}
+	for _, param := range n.TypeParameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *InterfaceDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InterfaceDeclarationNode)
 	if !ok {

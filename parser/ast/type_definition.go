@@ -28,6 +28,23 @@ func (n *GenericTypeDefinitionNode) Splice(loc *position.Location, args *[]Node,
 	}
 }
 
+func (n *GenericTypeDefinitionNode) Traverse(yield func(Node) bool) bool {
+	if n.Constant.Traverse(yield) {
+		return false
+	}
+	for _, param := range n.TypeParameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	if n.TypeNode != nil {
+		if n.TypeNode.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 // Equal compares this node to another value for equality.
 func (n *GenericTypeDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*GenericTypeDefinitionNode)
@@ -155,6 +172,18 @@ func (n *TypeDefinitionNode) Splice(loc *position.Location, args *[]Node, unquot
 		Constant:               n.Constant.Splice(loc, args, unquote).(ComplexConstantNode),
 		TypeNode:               n.TypeNode.Splice(loc, args, unquote).(TypeNode),
 	}
+}
+
+func (n *TypeDefinitionNode) Traverse(yield func(Node) bool) bool {
+	if n.Constant.Traverse(yield) {
+		return false
+	}
+	if n.TypeNode != nil {
+		if n.TypeNode.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *TypeDefinitionNode) Equal(other value.Value) bool {

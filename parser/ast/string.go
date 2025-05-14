@@ -64,6 +64,10 @@ func (n *RawStringLiteralNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *RawStringLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *RawStringLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RawStringLiteralNode)
 	if !ok {
@@ -123,6 +127,10 @@ func (n *StringLiteralContentSectionNode) Splice(loc *position.Location, args *[
 	}
 }
 
+func (n *StringLiteralContentSectionNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
+}
+
 func (n *StringLiteralContentSectionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*StringLiteralContentSectionNode)
 	if !ok {
@@ -180,6 +188,13 @@ func (n *StringInspectInterpolationNode) Splice(loc *position.Location, args *[]
 		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Expression: n.Expression.Splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *StringInspectInterpolationNode) Traverse(yield func(Node) bool) bool {
+	if n.Expression.Traverse(yield) {
+		return false
+	}
+	return yield(n)
 }
 
 func (n *StringInspectInterpolationNode) Equal(other value.Value) bool {
@@ -252,6 +267,14 @@ func (n *StringInterpolationNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
+func (n *StringInterpolationNode) Traverse(yield func(Node) bool) bool {
+	if n.Expression.Traverse(yield) {
+		return false
+	}
+
+	return yield(n)
+}
+
 func (n *StringInterpolationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*StringInterpolationNode)
 	if !ok {
@@ -320,6 +343,15 @@ func (n *InterpolatedStringLiteralNode) Splice(loc *position.Location, args *[]N
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Content:  SpliceSlice(n.Content, loc, args, unquote),
 	}
+}
+
+func (n *InterpolatedStringLiteralNode) Traverse(yield func(Node) bool) bool {
+	for _, content := range n.Content {
+		if !content.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
 }
 
 func (n *InterpolatedStringLiteralNode) Equal(other value.Value) bool {
@@ -412,6 +444,10 @@ func (n *DoubleQuotedStringLiteralNode) Splice(loc *position.Location, args *[]N
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *DoubleQuotedStringLiteralNode) Traverse(yield func(Node) bool) bool {
+	return yield(n)
 }
 
 // Check if this node equals another node.
