@@ -7,6 +7,7 @@ package ast
 
 import (
 	"fmt"
+	"iter"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
@@ -264,6 +265,12 @@ type Node interface {
 	String() string
 	Splice(loc *position.Location, args *[]Node, unquote bool) Node // Create a copy of AST replacing consecutive unquote nodes with the given arguments
 	Traverse(yield func(Node) bool) bool
+}
+
+func Traverse(node Node) iter.Seq[Node] {
+	return func(yield func(Node) bool) {
+		node.Traverse(yield)
+	}
 }
 
 func SpliceSlice[N Node](slice []N, loc *position.Location, args *[]Node, unquote bool) []N {

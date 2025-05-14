@@ -20,6 +20,16 @@ module ::Std::Elk::AST
 		def to_ast: self; end
 
 		##[
+			Visit all nodes of this AST
+			passing them as arguments to the given closure.
+
+			The closure should return `true` to continue
+			traversing the tree, `false` will be treated as a `break` and will
+			stop the traversal.
+		]##
+		def traverse(fn: |node: Node|: bool): bool; end
+
+		##[
 			Represents a value that can be converted to an Elk AST Node.
 		]##
 		interface Convertible

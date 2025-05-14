@@ -642,6 +642,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.DefineMethod("Returns the span that represents\nthe position of this node in a source file/string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 			namespace.DefineMethod("Returns self.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast"), nil, nil, Self{}, Never{})
 			namespace.DefineMethod("Convert the AST back to a `String` of source code.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+			namespace.DefineMethod("Visit all nodes of this AST\npassing them as arguments to the given closure.\n\nThe closure should return `true` to continue\ntraversing the tree, `false` will be treated as a `break` and will\nstop the traversal.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("traverse"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewClosureWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NameToType("Node", env), NormalParameterKind, false)}, Bool{}, Never{}), NormalParameterKind, false)}, Bool{}, Never{})
 
 			// Define constants
 

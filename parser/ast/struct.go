@@ -47,6 +47,25 @@ func (n *StructDeclarationNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *StructDeclarationNode) Traverse(yield func(Node) bool) bool {
+	if n.Constant != nil {
+		if n.Constant.Traverse(yield) {
+			return false
+		}
+	}
+	for _, param := range n.TypeParameters {
+		if !param.Traverse(yield) {
+			return false
+		}
+	}
+	for _, stmt := range n.Body {
+		if !stmt.Traverse(yield) {
+			return false
+		}
+	}
+	return yield(n)
+}
+
 func (n *StructDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*StructDeclarationNode)
 	if !ok {
