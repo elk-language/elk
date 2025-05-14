@@ -527,7 +527,7 @@ func inspectMethod(namespace Namespace, methodName value.Symbol) string {
 	case *MixinWithWhere:
 		return inspectMethod(scope.Namespace, methodName)
 	default:
-		panic(fmt.Sprintf("method with invalid DefinedUnder: %#v", namespace))
+		panic(fmt.Sprintf("method with invalid DefinedUnder: %#v, name: %s", namespace, methodName.String()))
 	}
 }
 

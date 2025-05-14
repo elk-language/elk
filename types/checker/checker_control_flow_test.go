@@ -954,6 +954,18 @@ func TestYieldExpression(t *testing.T) {
 				diagnostic.NewWarning(L("<main>", P(25, 3, 12), P(25, 3, 12)), "values yielded in void context will be ignored"),
 			},
 		},
+		"cannot yield in closures in generators": {
+			input: `
+				def* iter: String
+					|str: String| -> yield "foo"
+
+					"bar"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(45, 3, 23), P(55, 3, 33)), "yield cannot be used outside of generators"),
+			},
+		},
 		"accept matching yield type": {
 			input: `
 				def *foo: String

@@ -37,7 +37,7 @@ func (n *ExpressionStatementNode) Splice(loc *position.Location, args *[]Node, u
 }
 
 func (n *ExpressionStatementNode) Traverse(yield func(Node) bool) bool {
-	if n.Expression.Traverse(yield) {
+	if !n.Expression.Traverse(yield) {
 		return false
 	}
 	return yield(n)

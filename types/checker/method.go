@@ -604,6 +604,8 @@ func (c *Checker) checkMethod(
 		}
 		if checkedMethod.IsGenerator() {
 			c.setGenerator(true)
+		} else {
+			c.setGenerator(false)
 		}
 		if checkedMethod.IsInit() {
 			c.mode = initMode

@@ -43,6 +43,7 @@ func (c *Closure) Copy() *Closure {
 func (c *Closure) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Closure {
 	newClosure := c.Copy()
 	newClosure.Body = c.Body.DeepCopyEnv(oldEnv, newEnv)
+	c.Body.DefinedUnder = newClosure
 
 	return newClosure
 }
