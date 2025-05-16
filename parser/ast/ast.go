@@ -273,6 +273,15 @@ func Traverse(node Node) iter.Seq[Node] {
 	}
 }
 
+func NewNodeIterator(node Node) *value.ArrayTupleIterator {
+	var tuple value.ArrayTuple
+	for n := range Traverse(node) {
+		tuple = append(tuple, value.Ref(n))
+	}
+
+	return value.NewArrayTupleIterator(&tuple)
+}
+
 func SpliceSlice[N Node](slice []N, loc *position.Location, args *[]Node, unquote bool) []N {
 	result := make([]N, len(slice))
 	for i, n := range slice {

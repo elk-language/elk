@@ -50,4 +50,13 @@ func initNode() {
 		},
 		vm.DefWithParameters(1),
 	)
+	vm.Def(
+		c,
+		"iter",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(ast.Node)
+			iterator := ast.NewNodeIterator(self)
+			return value.Ref(iterator), value.Undefined
+		},
+	)
 }
