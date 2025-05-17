@@ -502,7 +502,7 @@ func (l *Lexer) swallowNewLines() {
 
 // Assumes that `##[` has already been consumed.
 // Builds the doc comment token.
-func (l *Lexer) docComment() *token.Token {
+func (l *Lexer) hashDocComment() *token.Token {
 	nestCounter := 1
 	docStrLines := make([]string, 0, 3)
 	var lineBuffer strings.Builder
@@ -586,8 +586,94 @@ charLoop:
 	return l.tokenWithValue(token.DOC_COMMENT, strings.TrimRight(resultBuffer.String(), "\t\n "))
 }
 
-// Assumes that "#" has already been consumed.
-// Skips over a single line comment "#" ...
+// Assumes that `/**` has already been consumed.
+// Builds the doc comment token.
+func (l *Lexer) slashDocComment() *token.Token {
+	nestCounter := 1
+	docStrLines := make([]string, 0, 3)
+	var lineBuffer strings.Builder
+
+	leastIndented := math.MaxInt
+	indent := 0
+	nonIndentChars := false
+	l.swallowNewLines()
+charLoop:
+	for {
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError(fmt.Sprintf("unbalanced doc comments, expected %d more doc comment ending(s) `**/`", nestCounter))
+		}
+
+	charSwitch:
+		switch char {
+		case '/':
+			nonIndentChars = true
+			if l.matchChar('*') {
+				if l.matchChar('*') {
+					lineBuffer.WriteString("/**")
+					nestCounter += 1
+					break charSwitch
+				}
+				lineBuffer.WriteString("/*")
+				break charSwitch
+			}
+			lineBuffer.WriteString("/")
+		case '*':
+			nonIndentChars = true
+			if l.matchChar('*') {
+				if l.matchChar('/') {
+					nestCounter -= 1
+					if nestCounter == 0 {
+						docStrLines = append(docStrLines, lineBuffer.String())
+						lineBuffer.Reset()
+						break charLoop
+					}
+					lineBuffer.WriteString("**/")
+					break charSwitch
+				}
+				lineBuffer.WriteString("**")
+				break charSwitch
+			}
+			lineBuffer.WriteString("*")
+		default:
+			lineBuffer.WriteRune(char)
+		}
+
+		if !nonIndentChars && char == ' ' || char == '\t' {
+			indent += 1
+		} else if l.isNewLine(char) {
+			l.incrementLine()
+			docStrLines = append(docStrLines, lineBuffer.String())
+			lineBuffer.Reset()
+			if nonIndentChars && indent < leastIndented {
+				leastIndented = indent
+			}
+			indent = 0
+			nonIndentChars = false
+		} else {
+			nonIndentChars = true
+		}
+	}
+
+	if leastIndented == math.MaxInt {
+		leastIndented = indent
+	}
+	var resultBuffer strings.Builder
+	for _, line := range docStrLines {
+		// add 1 because of the trailing newline
+		if len(line) < leastIndented+1 {
+			resultBuffer.WriteRune('\n')
+			continue
+		}
+
+		resultBuffer.WriteString(line[leastIndented:])
+	}
+
+	return l.tokenWithValue(token.DOC_COMMENT, strings.TrimRight(resultBuffer.String(), "\t\n "))
+}
+
+// Assumes that "#" or "//" has already been consumed.
+// Skips over a single line comment "#", "//" ...
 func (l *Lexer) swallowSingleLineComment() {
 	for {
 		if l.peekChar() == '\n' {
@@ -602,7 +688,7 @@ func (l *Lexer) swallowSingleLineComment() {
 
 // Assumes that "#[" has already been consumed.
 // Skips over a block comment "#[" ... "]#".
-func (l *Lexer) swallowBlockComments() *token.Token {
+func (l *Lexer) swallowHashBlockComments() *token.Token {
 	nestCounter := 1
 charLoop:
 	for {
@@ -618,6 +704,40 @@ charLoop:
 			}
 		case ']':
 			if l.matchChar('#') {
+				nestCounter -= 1
+				if nestCounter == 0 {
+					break charLoop
+				}
+			}
+		default:
+			if l.isNewLine(char) {
+				l.incrementLine()
+			}
+		}
+	}
+
+	l.skipToken()
+	return nil
+}
+
+// Assumes that "/*" has already been consumed.
+// Skips over a block comment "/*" ... "*/".
+func (l *Lexer) swallowSlashBlockComments() *token.Token {
+	nestCounter := 1
+charLoop:
+	for {
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError(fmt.Sprintf("unbalanced block comments, expected %d more block comment ending(s) `*/`", nestCounter))
+		}
+
+		switch char {
+		case '/':
+			if l.matchChar('*') {
+				nestCounter += 1
+			}
+		case '*':
+			if l.matchChar('/') {
 				nestCounter -= 1
 				if nestCounter == 0 {
 					break charLoop
@@ -1646,10 +1766,20 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			}
 			return l.token(token.STAR)
 		case '/':
-			if l.matchChar('=') {
+			if l.matchChar('/') {
+				l.swallowSingleLineComment()
+			} else if l.matchChar('*') {
+				if l.matchChar('*') {
+					return l.slashDocComment()
+				}
+				if tok := l.swallowSlashBlockComments(); tok != nil {
+					return tok
+				}
+			} else if l.matchChar('=') {
 				return l.token(token.SLASH_EQUAL)
+			} else {
+				return l.token(token.SLASH)
 			}
-			return l.token(token.SLASH)
 		case '=':
 			if l.matchChar('=') {
 				if l.matchChar('=') {
@@ -1892,12 +2022,13 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 		case ' ', '\t':
 			l.skipByte()
 		case '#':
-			if l.matchChar('#') && l.matchChar('[') {
-				return l.docComment()
+			if l.acceptChar('#') && l.acceptNextChar('[') {
+				l.advanceChars(2)
+				return l.hashDocComment()
 			}
 
 			if l.matchChar('[') {
-				if tok := l.swallowBlockComments(); tok != nil {
+				if tok := l.swallowHashBlockComments(); tok != nil {
 					return tok
 				}
 			} else {

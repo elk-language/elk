@@ -401,7 +401,106 @@ nil
 	}
 }
 
-func TestDocComment(t *testing.T) {
+func TestSlashDocComment(t *testing.T) {
+	tests := testTable{
+		"cannot omit the argument": {
+			input: "/**foo**/",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 1, 9))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(9, 1, 10), P(8, 1, 9))),
+						ast.NewInvalidNode(
+							L(S(P(9, 1, 10), P(8, 1, 9))),
+							T(L(S(P(9, 1, 10), P(8, 1, 9))), token.END_OF_FILE),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(9, 1, 10), P(8, 1, 9))), "unexpected END_OF_FILE, expected an expression"),
+				diagnostic.NewFailure(L(S(P(9, 1, 10), P(8, 1, 9))), "doc comments cannot be attached to this expression"),
+			},
+		},
+		"cannot be nested": {
+			input: "/**foo**/ /**bar**/ 1",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(20, 1, 21))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(20, 1, 21), P(20, 1, 21))),
+						ast.NewIntLiteralNode(L(S(P(20, 1, 21), P(20, 1, 21))), "1"),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(10, 1, 11), P(18, 1, 19))), "doc comments cannot document one another"),
+				diagnostic.NewFailure(L(S(P(20, 1, 21), P(20, 1, 21))), "doc comments cannot be attached to this expression"),
+			},
+		},
+		"can be empty": {
+			input: "/****/ def foo; end",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(18, 1, 19))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(7, 1, 8), P(18, 1, 19))),
+						ast.NewMethodDefinitionNode(
+							L(S(P(7, 1, 8), P(18, 1, 19))),
+							"",
+							0,
+							"foo",
+							nil,
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can span multiple lines": {
+			input: `
+				/**
+					foo
+					bar
+				**/
+				def foo; end
+			`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(51, 6, 17))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(
+						L(S(P(0, 1, 1), P(0, 1, 1))),
+					),
+					ast.NewExpressionStatementNode(
+						L(S(P(39, 6, 5), P(51, 6, 17))),
+						ast.NewMethodDefinitionNode(
+							L(S(P(39, 6, 5), P(50, 6, 16))),
+							"foo\nbar",
+							0,
+							"foo",
+							nil,
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestHashDocComment(t *testing.T) {
 	tests := testTable{
 		"cannot omit the argument": {
 			input: "##[foo]##",
