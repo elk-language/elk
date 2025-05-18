@@ -35,7 +35,7 @@ func TestSplice(t *testing.T) {
 		unquote bool
 		want    Node
 	}{
-		"replace nested unquote with the argument": {
+		"replace unquote with the argument": {
 			node: NewBinaryExpressionNode(
 				L("main", S(P(0, 1, 1), P(15, 1, 16))),
 				T(L("main", S(P(0, 1, 1), P(15, 1, 16))), token.PLUS),
@@ -88,6 +88,136 @@ func TestSplice(t *testing.T) {
 					),
 					NewRawCharLiteralNode(
 						L("baz", S(P(135, 41, 46), P(145, 75, 2))),
+						'r',
+					),
+				),
+				NewIntLiteralNode(
+					LP(
+						"bar", S(P(92, 7, 10), P(115, 5, 32)),
+						L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+					),
+					"20",
+				),
+			),
+		},
+		"replace unquote with the argument with zero location": {
+			node: NewBinaryExpressionNode(
+				L("main", S(P(0, 1, 1), P(15, 1, 16))),
+				T(L("main", S(P(0, 1, 1), P(15, 1, 16))), token.PLUS),
+				NewUnaryExpressionNode(
+					L("foo", S(P(5, 5, 2), P(15, 5, 6))),
+					T(L("main", S(P(0, 1, 1), P(15, 1, 16))), token.MINUS),
+					NewUnquoteExpressionNode(
+						L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+						NewPublicIdentifierNode(
+							L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+							"x",
+						),
+					),
+				),
+				NewIntLiteralNode(
+					L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+					"20",
+				),
+			),
+			loc: L("bar", S(P(92, 7, 10), P(115, 5, 32))),
+			args: &[]Node{
+				NewRawCharLiteralNode(
+					position.ZeroLocation,
+					'r',
+				),
+			},
+			want: NewBinaryExpressionNode(
+				LP(
+					"bar", S(P(92, 7, 10), P(115, 5, 32)),
+					L("main", S(P(0, 1, 1), P(15, 1, 16))),
+				),
+				T(
+					LP(
+						"bar", S(P(92, 7, 10), P(115, 5, 32)),
+						L("main", S(P(0, 1, 1), P(15, 1, 16))),
+					),
+					token.PLUS,
+				),
+				NewUnaryExpressionNode(
+					LP(
+						"bar", S(P(92, 7, 10), P(115, 5, 32)),
+						L("foo", S(P(5, 5, 2), P(15, 5, 6))),
+					),
+					T(
+						LP(
+							"bar", S(P(92, 7, 10), P(115, 5, 32)),
+							L("main", S(P(0, 1, 1), P(15, 1, 16))),
+						),
+						token.MINUS,
+					),
+					NewRawCharLiteralNode(
+						L("bar", S(P(92, 7, 10), P(115, 5, 32))),
+						'r',
+					),
+				),
+				NewIntLiteralNode(
+					LP(
+						"bar", S(P(92, 7, 10), P(115, 5, 32)),
+						L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+					),
+					"20",
+				),
+			),
+		},
+		"replace unquote with the argument with nil location": {
+			node: NewBinaryExpressionNode(
+				L("main", S(P(0, 1, 1), P(15, 1, 16))),
+				T(L("main", S(P(0, 1, 1), P(15, 1, 16))), token.PLUS),
+				NewUnaryExpressionNode(
+					L("foo", S(P(5, 5, 2), P(15, 5, 6))),
+					T(L("main", S(P(0, 1, 1), P(15, 1, 16))), token.MINUS),
+					NewUnquoteExpressionNode(
+						L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+						NewPublicIdentifierNode(
+							L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+							"x",
+						),
+					),
+				),
+				NewIntLiteralNode(
+					L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+					"20",
+				),
+			),
+			loc: L("bar", S(P(92, 7, 10), P(115, 5, 32))),
+			args: &[]Node{
+				NewRawCharLiteralNode(
+					nil,
+					'r',
+				),
+			},
+			want: NewBinaryExpressionNode(
+				LP(
+					"bar", S(P(92, 7, 10), P(115, 5, 32)),
+					L("main", S(P(0, 1, 1), P(15, 1, 16))),
+				),
+				T(
+					LP(
+						"bar", S(P(92, 7, 10), P(115, 5, 32)),
+						L("main", S(P(0, 1, 1), P(15, 1, 16))),
+					),
+					token.PLUS,
+				),
+				NewUnaryExpressionNode(
+					LP(
+						"bar", S(P(92, 7, 10), P(115, 5, 32)),
+						L("foo", S(P(5, 5, 2), P(15, 5, 6))),
+					),
+					T(
+						LP(
+							"bar", S(P(92, 7, 10), P(115, 5, 32)),
+							L("main", S(P(0, 1, 1), P(15, 1, 16))),
+						),
+						token.MINUS,
+					),
+					NewRawCharLiteralNode(
+						L("bar", S(P(92, 7, 10), P(115, 5, 32))),
 						'r',
 					),
 				),

@@ -835,6 +835,15 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 			node.SetType(types.Untyped{})
 		}
 		return n
+	case *ast.QuoteExpressionNode:
+		return c.checkQuoteExpressionNode(n)
+	case *ast.UnquoteExpressionNode:
+		c.addFailure(
+			"unquote expressions cannot appear in this context",
+			n.Location(),
+		)
+		node.SetType(types.Untyped{})
+		return n
 	case *ast.SelfLiteralNode:
 		return c.checkSelfLiteralNode(n)
 	case *ast.IncludeExpressionNode:
@@ -1109,6 +1118,35 @@ func (c *Checker) Std(name value.Symbol) types.Type {
 
 func (c *Checker) StdPrimitiveIterable() *types.Interface {
 	return c.env.StdSubtype(symbol.PrimitiveIterable).(*types.Interface)
+}
+
+func (c *Checker) StdElk() *types.Module {
+	return c.env.StdSubtype(symbol.Elk).(*types.Module)
+}
+
+func (c *Checker) StdAST() *types.Module {
+	constant, _ := c.StdElk().Subtype(symbol.AST)
+	return constant.Type.(*types.Module)
+}
+
+func (c *Checker) StdNode() *types.Mixin {
+	constant, _ := c.StdAST().Subtype(symbol.Node)
+	return constant.Type.(*types.Mixin)
+}
+
+func (c *Checker) StdExpressionNode() *types.Mixin {
+	constant, _ := c.StdAST().Subtype(symbol.ExpressionNode)
+	return constant.Type.(*types.Mixin)
+}
+
+func (c *Checker) StdNodeConvertible() *types.Interface {
+	constant, _ := c.StdNode().Subtype(symbol.Convertible)
+	return constant.Type.(*types.Interface)
+}
+
+func (c *Checker) StdExpressionNodeConvertible() *types.Interface {
+	constant, _ := c.StdExpressionNode().Subtype(symbol.Convertible)
+	return constant.Type.(*types.Interface)
 }
 
 func (c *Checker) StdString() *types.Class {
@@ -3689,6 +3727,30 @@ func (c *Checker) findParentOfMixinProxy(mixin types.Namespace) types.Namespace 
 	}
 
 	return nil
+}
+
+func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.QuoteExpressionNode {
+	nodeConvertible := c.StdExpressionNodeConvertible()
+
+	ast.Traverse(
+		node,
+		func(node, parent ast.Node) ast.TraverseOption {
+			switch node := node.(type) {
+			case *ast.UnquoteExpressionNode:
+				node.Expression = c.checkExpression(node.Expression)
+				unquoteType := c.typeOfGuardVoid(node.Expression)
+				c.checkCanAssign(unquoteType, nodeConvertible, node.Location())
+				return ast.TraverseSkip
+			}
+
+			return ast.TraverseContinue
+		},
+		nil,
+	)
+
+	node.SetType(c.StdExpressionNode())
+
+	return node
 }
 
 func (c *Checker) checkSelfLiteralNode(node *ast.SelfLiteralNode) *ast.SelfLiteralNode {

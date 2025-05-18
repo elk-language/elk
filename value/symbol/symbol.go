@@ -75,6 +75,9 @@ var (
 	Key                  = value.ToSymbol("Key")
 	Elk                  = value.ToSymbol("Elk")
 	Token                = value.ToSymbol("Token")
+	Node                 = value.ToSymbol("Node")
+	ExpressionNode       = value.ToSymbol("ExpressionNode")
+	AST                  = value.ToSymbol("AST")
 )
 
 // lowercase symbols

@@ -39,8 +39,8 @@ func (n *UnquoteExpressionNode) Splice(loc *position.Location, args *[]Node, unq
 	*args = (*args)[1:]
 
 	var targetLoc *position.Location
-	if loc != nil {
-		targetLoc := loc.Copy()
+	if loc != nil && loc != position.ZeroLocation {
+		targetLoc = loc.Copy()
 		targetLoc.Parent = n.loc
 	}
 

@@ -278,7 +278,15 @@ type Node interface {
 	traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption
 }
 
+func noopTraverse(node, parent Node) TraverseOption { return TraverseContinue }
+
 func Traverse(node Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) {
+	if enter == nil {
+		enter = noopTraverse
+	}
+	if leave == nil {
+		leave = noopTraverse
+	}
 	node.traverse(nil, enter, leave)
 }
 

@@ -20,7 +20,7 @@ func SpliceLocation(target, current *Location, unqoute bool) *Location {
 }
 
 func spliceLocationUnquote(target, current *Location) *Location {
-	if current != nil {
+	if current != nil && current != ZeroLocation {
 		return current
 	}
 
@@ -28,10 +28,10 @@ func spliceLocationUnquote(target, current *Location) *Location {
 }
 
 func spliceLocation(target, current *Location) *Location {
-	if target == nil {
+	if target == nil || target == ZeroLocation {
 		return current
 	}
-	if current == nil {
+	if current == nil || current == ZeroLocation {
 		return target
 	}
 
@@ -107,8 +107,12 @@ func (l *Location) Equal(other *Location) bool {
 	if l == other {
 		return true
 	}
-	return l.Span.Equal(other.Span) &&
-		l.FilePath == other.FilePath
+	if l == nil || other == nil {
+		return false
+	}
+
+	return l.FilePath == other.FilePath &&
+		l.Span.Equal(other.Span)
 }
 
 // String representation of the location.
