@@ -24,14 +24,22 @@ func (n *AsExpressionNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *AsExpressionNode) Traverse(yield func(Node) bool) bool {
-	if !n.Value.Traverse(yield) {
-		return false
+func (n *AsExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	if !n.RuntimeType.Traverse(yield) {
-		return false
+
+	if n.Value.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	return yield(n)
+	if n.RuntimeType.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (*AsExpressionNode) IsStatic() bool {

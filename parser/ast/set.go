@@ -37,18 +37,27 @@ func (n *HashSetLiteralNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *HashSetLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *HashSetLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Capacity != nil {
-		if n.Capacity.Traverse(yield) {
-			return false
+		if n.Capacity.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.
@@ -220,19 +229,27 @@ func (n *WordHashSetLiteralNode) Splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *WordHashSetLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *WordHashSetLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
 
 	if n.Capacity != nil {
-		if n.Capacity.Traverse(yield) {
-			return false
+		if n.Capacity.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *WordHashSetLiteralNode) Equal(other value.Value) bool {
@@ -392,18 +409,27 @@ func (n *SymbolHashSetLiteralNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
-func (n *SymbolHashSetLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *SymbolHashSetLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Capacity != nil {
-		if n.Capacity.Traverse(yield) {
-			return false
+		if n.Capacity.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *SymbolHashSetLiteralNode) Equal(other value.Value) bool {
@@ -562,18 +588,27 @@ func (n *HexHashSetLiteralNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *HexHashSetLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *HexHashSetLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Capacity != nil {
-		if n.Capacity.Traverse(yield) {
-			return false
+		if n.Capacity.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (h *HexHashSetLiteralNode) IsStatic() bool {
@@ -733,18 +768,27 @@ func (n *BinHashSetLiteralNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *BinHashSetLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *BinHashSetLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Capacity != nil {
-		if n.Capacity.Traverse(yield) {
-			return false
+		if n.Capacity.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *BinHashSetLiteralNode) Equal(other value.Value) bool {
@@ -895,13 +939,21 @@ func (n *SetPatternNode) Splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *SetPatternNode) Traverse(yield func(Node) bool) bool {
+func (n *SetPatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *SetPatternNode) Equal(other value.Value) bool {

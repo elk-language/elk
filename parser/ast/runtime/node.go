@@ -25,7 +25,7 @@ func initNode() {
 
 			switch f := fn.SafeAsReference().(type) {
 			case *vm.Closure:
-				for node := range ast.Traverse(self) {
+				for node := range ast.Iter(self) {
 					ok, err := v.CallClosure(f, value.Ref(node))
 					if !err.IsUndefined() {
 						return value.Undefined, err
@@ -35,7 +35,7 @@ func initNode() {
 					}
 				}
 			default:
-				for node := range ast.Traverse(self) {
+				for node := range ast.Iter(self) {
 					ok, err := v.CallMethodByName(symbol.L_call, fn, value.Ref(node))
 					if !err.IsUndefined() {
 						return value.Undefined, err

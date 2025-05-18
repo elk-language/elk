@@ -41,23 +41,33 @@ func (n *InterfaceDeclarationNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
-func (n *InterfaceDeclarationNode) Traverse(yield func(Node) bool) bool {
+func (n *InterfaceDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	if n.Constant != nil {
-		if !n.Constant.Traverse(yield) {
-			return false
+		if n.Constant.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, param := range n.TypeParameters {
-		if !param.Traverse(yield) {
-			return false
+		if param.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, stmt := range n.Body {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *InterfaceDeclarationNode) Equal(other value.Value) bool {

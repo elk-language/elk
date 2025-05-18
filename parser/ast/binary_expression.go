@@ -32,14 +32,22 @@ func (n *BinaryExpressionNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *BinaryExpressionNode) Traverse(yield func(Node) bool) bool {
-	if !n.Left.Traverse(yield) {
-		return false
+func (n *BinaryExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	if !n.Right.Traverse(yield) {
-		return false
+
+	if n.Left.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	return yield(n)
+	if n.Right.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *BinaryExpressionNode) Equal(other value.Value) bool {

@@ -22,11 +22,19 @@ func (n *NilableTypeNode) Splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
-func (n *NilableTypeNode) Traverse(yield func(Node) bool) bool {
-	if n.TypeNode.Traverse(yield) {
-		return false
+func (n *NilableTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.TypeNode.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *NilableTypeNode) Equal(other value.Value) bool {

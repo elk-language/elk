@@ -37,18 +37,27 @@ func (n *ArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *ArrayListLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *ArrayListLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Capacity != nil {
-		if !n.Capacity.Traverse(yield) {
-			return false
+		if n.Capacity.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (l *ArrayListLiteralNode) IsStatic() bool {
@@ -223,16 +232,27 @@ func (n *WordArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
-func (n *WordArrayListLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *WordArrayListLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	if !n.Capacity.Traverse(yield) {
-		return false
+
+	if n.Capacity != nil {
+		if n.Capacity.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *WordArrayListLiteralNode) Equal(other value.Value) bool {
@@ -392,18 +412,27 @@ func (n *SymbolArrayListLiteralNode) Splice(loc *position.Location, args *[]Node
 	}
 }
 
-func (n *SymbolArrayListLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *SymbolArrayListLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Capacity != nil {
-		if n.Capacity.Traverse(yield) {
-			return false
+		if n.Capacity.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *SymbolArrayListLiteralNode) Equal(other value.Value) bool {
@@ -562,18 +591,27 @@ func (n *HexArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
-func (n *HexArrayListLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *HexArrayListLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Capacity != nil {
-		if n.Capacity.Traverse(yield) {
-			return false
+		if n.Capacity.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.
@@ -734,18 +772,27 @@ func (n *BinArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
-func (n *BinArrayListLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *BinArrayListLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Capacity != nil {
-		if n.Capacity.Traverse(yield) {
-			return false
+		if n.Capacity.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (b *BinArrayListLiteralNode) IsStatic() bool {
@@ -896,13 +943,21 @@ func (n *ListPatternNode) Splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
-func (n *ListPatternNode) Traverse(yield func(Node) bool) bool {
+func (n *ListPatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *ListPatternNode) Equal(other value.Value) bool {

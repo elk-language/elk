@@ -37,18 +37,27 @@ func (n *HashMapLiteralNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *HashMapLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *HashMapLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Capacity != nil {
-		if n.Capacity.Traverse(yield) {
-			return false
+		if n.Capacity.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.
@@ -212,13 +221,21 @@ func (n *HashRecordLiteralNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *HashRecordLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *HashRecordLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.

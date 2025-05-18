@@ -36,11 +36,19 @@ func (n *ExpressionStatementNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
-func (n *ExpressionStatementNode) Traverse(yield func(Node) bool) bool {
-	if !n.Expression.Traverse(yield) {
-		return false
+func (n *ExpressionStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Expression.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (e *ExpressionStatementNode) Equal(other value.Value) bool {
@@ -114,8 +122,13 @@ func (n *EmptyStatementNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *EmptyStatementNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *EmptyStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.
@@ -175,11 +188,19 @@ func (n *ImportStatementNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *ImportStatementNode) Traverse(yield func(Node) bool) bool {
-	if n.Path.Traverse(yield) {
-		return false
+func (n *ImportStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Path.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.
@@ -243,11 +264,19 @@ func (n *ParameterStatementNode) Splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *ParameterStatementNode) Traverse(yield func(Node) bool) bool {
-	if n.Parameter.Traverse(yield) {
-		return false
+func (n *ParameterStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Parameter.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *ParameterStatementNode) Equal(other value.Value) bool {

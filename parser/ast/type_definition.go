@@ -28,21 +28,31 @@ func (n *GenericTypeDefinitionNode) Splice(loc *position.Location, args *[]Node,
 	}
 }
 
-func (n *GenericTypeDefinitionNode) Traverse(yield func(Node) bool) bool {
-	if n.Constant.Traverse(yield) {
-		return false
+func (n *GenericTypeDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
+
+	if n.Constant.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	for _, param := range n.TypeParameters {
-		if !param.Traverse(yield) {
-			return false
+		if param.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.TypeNode != nil {
-		if n.TypeNode.Traverse(yield) {
-			return false
+		if n.TypeNode.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Equal compares this node to another value for equality.
@@ -174,16 +184,25 @@ func (n *TypeDefinitionNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *TypeDefinitionNode) Traverse(yield func(Node) bool) bool {
-	if n.Constant.Traverse(yield) {
-		return false
+func (n *TypeDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
+
+	if n.Constant.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	if n.TypeNode != nil {
-		if n.TypeNode.Traverse(yield) {
-			return false
+		if n.TypeNode.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *TypeDefinitionNode) Equal(other value.Value) bool {

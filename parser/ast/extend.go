@@ -28,18 +28,27 @@ func (n *ExtendWhereBlockExpressionNode) Splice(loc *position.Location, args *[]
 	}
 }
 
-func (n *ExtendWhereBlockExpressionNode) Traverse(yield func(Node) bool) bool {
+func (n *ExtendWhereBlockExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, where := range n.Where {
-		if !where.Traverse(yield) {
-			return false
+		if where.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, stmt := range n.Body {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.

@@ -20,8 +20,15 @@ func (n *IntLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *IntLiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *IntLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *IntLiteralNode) Equal(other value.Value) bool {
@@ -82,8 +89,15 @@ func (n *Int64LiteralNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *Int64LiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *Int64LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *Int64LiteralNode) Equal(other value.Value) bool {
@@ -145,8 +159,15 @@ func (n *UInt64LiteralNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *UInt64LiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *UInt64LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *UInt64LiteralNode) Equal(other value.Value) bool {
@@ -208,8 +229,15 @@ func (n *Int32LiteralNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *Int32LiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *Int32LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *Int32LiteralNode) Equal(other value.Value) bool {
@@ -267,8 +295,15 @@ func (n *UInt32LiteralNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *UInt32LiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *UInt32LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *UInt32LiteralNode) Equal(other value.Value) bool {
@@ -330,8 +365,15 @@ func (n *Int16LiteralNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *Int16LiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *Int16LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *Int16LiteralNode) Equal(other value.Value) bool {
@@ -393,8 +435,15 @@ func (n *UInt16LiteralNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *UInt16LiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *UInt16LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *UInt16LiteralNode) Equal(other value.Value) bool {
@@ -456,8 +505,15 @@ func (n *Int8LiteralNode) Splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
-func (n *Int8LiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *Int8LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *Int8LiteralNode) Equal(other value.Value) bool {
@@ -519,8 +575,15 @@ func (n *UInt8LiteralNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *UInt8LiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *UInt8LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *UInt8LiteralNode) Equal(other value.Value) bool {

@@ -25,11 +25,19 @@ func (n *LabeledExpressionNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *LabeledExpressionNode) Traverse(yield func(Node) bool) bool {
-	if !n.Expression.Traverse(yield) {
-		return false
+func (n *LabeledExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Expression.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *LabeledExpressionNode) Equal(other value.Value) bool {

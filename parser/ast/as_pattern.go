@@ -24,14 +24,22 @@ func (n *AsPatternNode) Splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
-func (n *AsPatternNode) Traverse(yield func(Node) bool) bool {
-	if !n.Name.Traverse(yield) {
-		return false
+func (n *AsPatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	if !n.Pattern.Traverse(yield) {
-		return false
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	return yield(n)
+	if n.Pattern.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (*AsPatternNode) IsStatic() bool {

@@ -26,21 +26,31 @@ func (n *IfExpressionNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *IfExpressionNode) Traverse(yield func(Node) bool) bool {
-	if !n.Condition.Traverse(yield) {
-		return false
+func (n *IfExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	for _, arg := range n.ThenBody {
-		if !arg.Traverse(yield) {
-			return false
+
+	if n.Condition.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	for _, stmt := range n.ThenBody {
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	for _, arg := range n.ElseBody {
-		if !arg.Traverse(yield) {
-			return false
+
+	for _, stmt := range n.ElseBody {
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.

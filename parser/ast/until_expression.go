@@ -24,16 +24,25 @@ func (n *UntilExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *UntilExpressionNode) Traverse(yield func(Node) bool) bool {
-	if n.Condition.Traverse(yield) {
-		return false
+func (n *UntilExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
+
+	if n.Condition.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	for _, stmt := range n.ThenBody {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *UntilExpressionNode) Equal(other value.Value) bool {

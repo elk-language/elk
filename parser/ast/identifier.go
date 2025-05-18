@@ -34,8 +34,15 @@ func (n *PublicIdentifierNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *PublicIdentifierNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *PublicIdentifierNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *PublicIdentifierNode) Equal(other value.Value) bool {
@@ -97,8 +104,15 @@ func (n *PrivateIdentifierNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *PrivateIdentifierNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *PrivateIdentifierNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *PrivateIdentifierNode) Equal(other value.Value) bool {
@@ -163,11 +177,19 @@ func (n *PublicIdentifierAsNode) Splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *PublicIdentifierAsNode) Traverse(yield func(Node) bool) bool {
-	if !n.Target.Traverse(yield) {
-		return false
+func (n *PublicIdentifierAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Target.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *PublicIdentifierAsNode) Equal(other value.Value) bool {

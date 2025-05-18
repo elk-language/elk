@@ -19,8 +19,15 @@ func (n *BoolLiteralNode) Splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
-func (n *BoolLiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *BoolLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *BoolLiteralNode) Equal(other value.Value) bool {
@@ -78,8 +85,15 @@ func (n *VoidTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool
 	}
 }
 
-func (n *VoidTypeNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *VoidTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *VoidTypeNode) Equal(other value.Value) bool {
@@ -132,8 +146,15 @@ func (n *NeverTypeNode) Splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
-func (n *NeverTypeNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *NeverTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *NeverTypeNode) Equal(other value.Value) bool {
@@ -190,8 +211,15 @@ func (n *AnyTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool)
 	}
 }
 
-func (n *AnyTypeNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *AnyTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *AnyTypeNode) Equal(other value.Value) bool {

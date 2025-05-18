@@ -55,11 +55,19 @@ func (n *UsingAllEntryNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *UsingAllEntryNode) Traverse(yield func(Node) bool) bool {
-	if n.Namespace.Traverse(yield) {
-		return false
+func (n *UsingAllEntryNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Namespace.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *UsingAllEntryNode) Equal(other value.Value) bool {
@@ -133,16 +141,25 @@ func (n *UsingEntryWithSubentriesNode) Splice(loc *position.Location, args *[]No
 	}
 }
 
-func (n *UsingEntryWithSubentriesNode) Traverse(yield func(Node) bool) bool {
-	if n.Namespace.Traverse(yield) {
-		return false
+func (n *UsingEntryWithSubentriesNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
+
+	if n.Namespace.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	for _, entry := range n.Subentries {
-		if !entry.Traverse(yield) {
-			return false
+		if entry.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *UsingEntryWithSubentriesNode) Equal(other value.Value) bool {
@@ -244,13 +261,21 @@ func (n *UsingExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *UsingExpressionNode) Traverse(yield func(Node) bool) bool {
+func (n *UsingExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, entry := range n.Entries {
-		if !entry.Traverse(yield) {
-			return false
+		if entry.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *UsingExpressionNode) Equal(other value.Value) bool {

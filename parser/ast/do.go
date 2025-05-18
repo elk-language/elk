@@ -30,23 +30,33 @@ func (n *DoExpressionNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *DoExpressionNode) Traverse(yield func(Node) bool) bool {
+func (n *DoExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, stmt := range n.Body {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, catch := range n.Catches {
-		if !catch.Traverse(yield) {
-			return false
+		if catch.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	for _, finallyStmt := range n.Finally {
-		if !finallyStmt.Traverse(yield) {
-			return false
+
+	for _, stmt := range n.Finally {
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.
@@ -209,19 +219,31 @@ func (n *CatchNode) Splice(loc *position.Location, args *[]Node, unquote bool) N
 	}
 }
 
-func (n *CatchNode) Traverse(yield func(Node) bool) bool {
+func (n *CatchNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, stmt := range n.Body {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	if !n.Pattern.Traverse(yield) {
-		return false
+
+	if n.Pattern.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	if !n.StackTraceVar.Traverse(yield) {
-		return false
+
+	if n.StackTraceVar != nil {
+		if n.StackTraceVar.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *CatchNode) Equal(other value.Value) bool {

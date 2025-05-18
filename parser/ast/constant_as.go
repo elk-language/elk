@@ -25,11 +25,19 @@ func (n *ConstantAsNode) Splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *ConstantAsNode) Traverse(yield func(Node) bool) bool {
-	if !n.Constant.Traverse(yield) {
-		return false
+func (n *ConstantAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Constant.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.

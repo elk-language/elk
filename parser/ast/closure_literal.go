@@ -42,28 +42,39 @@ func (n *ClosureLiteralNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *ClosureLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *ClosureLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, param := range n.Parameters {
-		if !param.Traverse(yield) {
-			return false
+		if param.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.ReturnType != nil {
-		if !n.ReturnType.Traverse(yield) {
-			return false
+		if n.ReturnType.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.ThrowType != nil {
-		if !n.ThrowType.Traverse(yield) {
-			return false
+		if n.ThrowType.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, stmt := range n.Body {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *ClosureLiteralNode) Equal(other value.Value) bool {

@@ -36,8 +36,13 @@ func (n *SimpleSymbolLiteralNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
-func (n *SimpleSymbolLiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *SimpleSymbolLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *SimpleSymbolLiteralNode) Equal(other value.Value) bool {
@@ -99,11 +104,19 @@ func (n *InterpolatedSymbolLiteralNode) Splice(loc *position.Location, args *[]N
 	}
 }
 
-func (n *InterpolatedSymbolLiteralNode) Traverse(yield func(Node) bool) bool {
-	if n.Content.Traverse(yield) {
-		return false
+func (n *InterpolatedSymbolLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Content.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *InterpolatedSymbolLiteralNode) Equal(other value.Value) bool {

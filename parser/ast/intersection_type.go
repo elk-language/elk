@@ -22,13 +22,21 @@ func (n *IntersectionTypeNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *IntersectionTypeNode) Traverse(yield func(Node) bool) bool {
+func (n *IntersectionTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *IntersectionTypeNode) Equal(other value.Value) bool {

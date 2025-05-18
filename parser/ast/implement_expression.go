@@ -22,13 +22,21 @@ func (n *ImplementExpressionNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
-func (n *ImplementExpressionNode) Traverse(yield func(Node) bool) bool {
+func (n *ImplementExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, constant := range n.Constants {
-		if !constant.Traverse(yield) {
-			return false
+		if constant.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.

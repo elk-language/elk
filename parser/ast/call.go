@@ -25,18 +25,27 @@ func (n *NewExpressionNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *NewExpressionNode) Traverse(yield func(Node) bool) bool {
+func (n *NewExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, arg := range n.PositionalArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.NamedArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *NewExpressionNode) Equal(other value.Value) bool {
@@ -187,27 +196,37 @@ func (n *GenericConstructorCallNode) Splice(loc *position.Location, args *[]Node
 	}
 }
 
-func (n *GenericConstructorCallNode) Traverse(yield func(Node) bool) bool {
-	if !n.ClassNode.Traverse(yield) {
-		return false
+func (n *GenericConstructorCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	if n.ClassNode.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	for _, arg := range n.TypeArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.PositionalArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.NamedArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Equal checks if the given GenericConstructorCallNode is equal to another value.
@@ -390,22 +409,31 @@ func (n *ConstructorCallNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *ConstructorCallNode) Traverse(yield func(Node) bool) bool {
-	if !n.ClassNode.Traverse(yield) {
-		return false
+func (n *ConstructorCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	if n.ClassNode.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	for _, arg := range n.PositionalArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.NamedArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.
@@ -560,11 +588,19 @@ func (n *AttributeAccessNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *AttributeAccessNode) Traverse(yield func(Node) bool) bool {
-	if !n.Receiver.Traverse(yield) {
-		return false
+func (n *AttributeAccessNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (*AttributeAccessNode) IsStatic() bool {
@@ -656,14 +692,23 @@ func (n *SubscriptExpressionNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
-func (n *SubscriptExpressionNode) Traverse(yield func(Node) bool) bool {
-	if !n.Receiver.Traverse(yield) {
-		return false
+func (n *SubscriptExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	if !n.Key.Traverse(yield) {
-		return false
+
+	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	return yield(n)
+
+	if n.Key.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *SubscriptExpressionNode) Equal(other value.Value) bool {
@@ -758,14 +803,23 @@ func (n *NilSafeSubscriptExpressionNode) Splice(loc *position.Location, args *[]
 	}
 }
 
-func (n *NilSafeSubscriptExpressionNode) Traverse(yield func(Node) bool) bool {
-	if !n.Receiver.Traverse(yield) {
-		return false
+func (n *NilSafeSubscriptExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	if !n.Key.Traverse(yield) {
-		return false
+
+	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	return yield(n)
+
+	if n.Key.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *NilSafeSubscriptExpressionNode) Equal(other value.Value) bool {
@@ -859,21 +913,31 @@ func (n *CallNode) Splice(loc *position.Location, args *[]Node, unquote bool) No
 	}
 }
 
-func (n *CallNode) Traverse(yield func(Node) bool) bool {
-	if !n.Receiver.Traverse(yield) {
-		return false
+func (n *CallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
+
+	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	for _, arg := range n.PositionalArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.NamedArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *CallNode) Equal(other value.Value) bool {
@@ -1046,26 +1110,37 @@ func (n *GenericMethodCallNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *GenericMethodCallNode) Traverse(yield func(Node) bool) bool {
-	if !n.Receiver.Traverse(yield) {
-		return false
+func (n *GenericMethodCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
+
+	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	for _, arg := range n.TypeArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.PositionalArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.NamedArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Equal checks if the given GenericMethodCallNode is equal to another value.
@@ -1267,21 +1342,31 @@ func (n *MethodCallNode) Splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *MethodCallNode) Traverse(yield func(Node) bool) bool {
-	if !n.Receiver.Traverse(yield) {
-		return false
+func (n *MethodCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
+
+	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	for _, arg := range n.PositionalArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.NamedArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *MethodCallNode) Equal(other value.Value) bool {
@@ -1446,18 +1531,27 @@ func (n *ReceiverlessMethodCallNode) Splice(loc *position.Location, args *[]Node
 	}
 }
 
-func (n *ReceiverlessMethodCallNode) Traverse(yield func(Node) bool) bool {
+func (n *ReceiverlessMethodCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, arg := range n.PositionalArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.NamedArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *ReceiverlessMethodCallNode) Equal(other value.Value) bool {
@@ -1613,23 +1707,33 @@ func (n *GenericReceiverlessMethodCallNode) Splice(loc *position.Location, args 
 	}
 }
 
-func (n *GenericReceiverlessMethodCallNode) Traverse(yield func(Node) bool) bool {
+func (n *GenericReceiverlessMethodCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, arg := range n.TypeArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.PositionalArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.NamedArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Equal checks if the given GenericReceiverlessMethodCallNode is equal to another value.

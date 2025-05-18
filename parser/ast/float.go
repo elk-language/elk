@@ -20,8 +20,15 @@ func (n *FloatLiteralNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *FloatLiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *FloatLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *FloatLiteralNode) Equal(other value.Value) bool {
@@ -83,8 +90,15 @@ func (n *BigFloatLiteralNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *BigFloatLiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *BigFloatLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *BigFloatLiteralNode) Equal(other value.Value) bool {
@@ -146,8 +160,15 @@ func (n *Float64LiteralNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *Float64LiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *Float64LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *Float64LiteralNode) Equal(other value.Value) bool {
@@ -209,8 +230,15 @@ func (n *Float32LiteralNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *Float32LiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *Float32LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *Float32LiteralNode) Equal(other value.Value) bool {

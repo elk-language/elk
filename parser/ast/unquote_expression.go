@@ -15,11 +15,19 @@ type UnquoteExpressionNode struct {
 	Expression ExpressionNode
 }
 
-func (n *UnquoteExpressionNode) Traverse(yield func(Node) bool) bool {
-	if n.Expression.Traverse(yield) {
-		return false
+func (n *UnquoteExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Expression.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *UnquoteExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -30,8 +38,11 @@ func (n *UnquoteExpressionNode) Splice(loc *position.Location, args *[]Node, unq
 	arg := (*args)[0]
 	*args = (*args)[1:]
 
-	targetLoc := loc.Copy()
-	targetLoc.Parent = n.loc
+	var targetLoc *position.Location
+	if loc != nil {
+		targetLoc := loc.Copy()
+		targetLoc.Parent = n.loc
+	}
 
 	return arg.Splice(targetLoc, nil, true)
 }

@@ -27,14 +27,23 @@ func (n *ModifierNode) Splice(loc *position.Location, args *[]Node, unquote bool
 	}
 }
 
-func (n *ModifierNode) Traverse(yield func(Node) bool) bool {
-	if n.Left.Traverse(yield) {
-		return false
+func (n *ModifierNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	if n.Right.Traverse(yield) {
-		return false
+
+	if n.Left.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	return yield(n)
+
+	if n.Right.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *ModifierNode) Equal(other value.Value) bool {
@@ -140,17 +149,27 @@ func (n *ModifierIfElseNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *ModifierIfElseNode) Traverse(yield func(Node) bool) bool {
-	if n.ThenExpression.Traverse(yield) {
-		return false
+func (n *ModifierIfElseNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	if n.Condition.Traverse(yield) {
-		return false
+
+	if n.ThenExpression.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	if n.ElseExpression.Traverse(yield) {
-		return false
+
+	if n.Condition.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	return yield(n)
+
+	if n.ElseExpression.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *ModifierIfElseNode) Equal(other value.Value) bool {
@@ -255,17 +274,27 @@ func (n *ModifierForInNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *ModifierForInNode) Traverse(yield func(Node) bool) bool {
-	if n.ThenExpression.Traverse(yield) {
-		return false
+func (n *ModifierForInNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	if n.Pattern.Traverse(yield) {
-		return false
+
+	if n.ThenExpression.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	if n.InExpression.Traverse(yield) {
-		return false
+
+	if n.Pattern.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	return yield(n)
+
+	if n.InExpression.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *ModifierForInNode) Equal(other value.Value) bool {

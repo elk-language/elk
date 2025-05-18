@@ -26,13 +26,21 @@ func (n *ArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *ArrayTupleLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *ArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (t *ArrayTupleLiteralNode) IsStatic() bool {
@@ -158,13 +166,21 @@ func (n *WordArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node,
 	}
 }
 
-func (n *WordArrayTupleLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *WordArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *WordArrayTupleLiteralNode) Equal(other value.Value) bool {
@@ -276,13 +292,21 @@ func (n *SymbolArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Nod
 	}
 }
 
-func (n *SymbolArrayTupleLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *SymbolArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.
@@ -396,13 +420,21 @@ func (n *HexArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
-func (n *HexArrayTupleLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *HexArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.
@@ -515,13 +547,21 @@ func (n *BinArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
-func (n *BinArrayTupleLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *BinArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *BinArrayTupleLiteralNode) Equal(other value.Value) bool {
@@ -638,13 +678,21 @@ func (n *TuplePatternNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *TuplePatternNode) Traverse(yield func(Node) bool) bool {
+func (n *TuplePatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, elem := range n.Elements {
-		if !elem.Traverse(yield) {
-			return false
+		if elem.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *TuplePatternNode) Equal(other value.Value) bool {

@@ -55,18 +55,27 @@ func (n *RangeLiteralNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *RangeLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *RangeLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	if n.Start != nil {
-		if n.Start.Traverse(yield) {
-			return false
+		if n.Start.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.End != nil {
-		if n.End.Traverse(yield) {
-			return false
+		if n.End.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *RangeLiteralNode) Equal(other value.Value) bool {

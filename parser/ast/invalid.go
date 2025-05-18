@@ -22,8 +22,15 @@ func (n *InvalidNode) Splice(loc *position.Location, args *[]Node, unquote bool)
 	}
 }
 
-func (n *InvalidNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *InvalidNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *InvalidNode) Equal(other value.Value) bool {

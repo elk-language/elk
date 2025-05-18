@@ -20,8 +20,15 @@ func (n *InstanceVariableNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *InstanceVariableNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *InstanceVariableNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *InstanceVariableNode) Equal(other value.Value) bool {

@@ -27,13 +27,21 @@ func (n *ContinueExpressionNode) Splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *ContinueExpressionNode) Traverse(yield func(Node) bool) bool {
+func (n *ContinueExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	if n.Value != nil {
-		if !n.Value.Traverse(yield) {
-			return false
+		if n.Value.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.

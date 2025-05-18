@@ -28,13 +28,21 @@ func (n *SingletonBlockExpressionNode) Splice(loc *position.Location, args *[]No
 	}
 }
 
-func (n *SingletonBlockExpressionNode) Traverse(yield func(Node) bool) bool {
+func (n *SingletonBlockExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, stmt := range n.Body {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *SingletonBlockExpressionNode) Equal(other value.Value) bool {

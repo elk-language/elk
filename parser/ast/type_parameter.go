@@ -63,24 +63,33 @@ func (n *VariantTypeParameterNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
-func (n *VariantTypeParameterNode) Traverse(yield func(Node) bool) bool {
+func (n *VariantTypeParameterNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	if n.LowerBound != nil {
-		if n.LowerBound.Traverse(yield) {
-			return false
-		}
-	}
-	if n.UpperBound != nil {
-		if n.UpperBound.Traverse(yield) {
-			return false
-		}
-	}
-	if n.Default != nil {
-		if n.Default.Traverse(yield) {
-			return false
+		if n.LowerBound.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
 
-	return yield(n)
+	if n.UpperBound != nil {
+		if n.UpperBound.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
+	}
+
+	if n.Default != nil {
+		if n.Default.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
+	}
+
+	return leave(n, parent)
 }
 
 func (n *VariantTypeParameterNode) Equal(other value.Value) bool {

@@ -76,8 +76,15 @@ func (n *PublicConstantNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *PublicConstantNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *PublicConstantNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *PublicConstantNode) Equal(other value.Value) bool {
@@ -139,8 +146,15 @@ func (n *PrivateConstantNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *PrivateConstantNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *PrivateConstantNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (n *PrivateConstantNode) Equal(other value.Value) bool {
@@ -205,12 +219,19 @@ func (n *PublicConstantAsNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *PublicConstantAsNode) Traverse(yield func(Node) bool) bool {
-	if !n.Target.Traverse(yield) {
-		return false
+func (n *PublicConstantAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
 
-	return yield(n)
+	if n.Target.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *PublicConstantAsNode) Equal(other value.Value) bool {
@@ -290,16 +311,25 @@ func (n *ConstantLookupNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *ConstantLookupNode) Traverse(yield func(Node) bool) bool {
+func (n *ConstantLookupNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	if n.Left != nil {
-		if !n.Left.Traverse(yield) {
-			return false
+		if n.Left.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	if !n.Right.Traverse(yield) {
-		return false
+
+	if n.Right.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.
@@ -393,16 +423,25 @@ func (n *GenericConstantNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *GenericConstantNode) Traverse(yield func(Node) bool) bool {
-	if !n.Constant.Traverse(yield) {
-		return false
+func (n *GenericConstantNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
+
+	if n.Constant.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	for _, arg := range n.TypeArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Equal checks if the given GenericConstantNode is equal to another value.

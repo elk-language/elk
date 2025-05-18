@@ -24,11 +24,19 @@ func (n *MethodLookupNode) Splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *MethodLookupNode) Traverse(yield func(Node) bool) bool {
-	if n.Receiver.Traverse(yield) {
-		return false
+func (n *MethodLookupNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *MethodLookupNode) Equal(other value.Value) bool {
@@ -118,11 +126,19 @@ func (n *MethodLookupAsNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *MethodLookupAsNode) Traverse(yield func(Node) bool) bool {
-	if n.MethodLookup.Traverse(yield) {
-		return false
+func (n *MethodLookupAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.MethodLookup.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 // Check if this method lookup as node is equal to another value.

@@ -64,8 +64,13 @@ func (n *RawStringLiteralNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *RawStringLiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *RawStringLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *RawStringLiteralNode) Equal(other value.Value) bool {
@@ -127,8 +132,13 @@ func (n *StringLiteralContentSectionNode) Splice(loc *position.Location, args *[
 	}
 }
 
-func (n *StringLiteralContentSectionNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *StringLiteralContentSectionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *StringLiteralContentSectionNode) Equal(other value.Value) bool {
@@ -190,11 +200,19 @@ func (n *StringInspectInterpolationNode) Splice(loc *position.Location, args *[]
 	}
 }
 
-func (n *StringInspectInterpolationNode) Traverse(yield func(Node) bool) bool {
-	if n.Expression.Traverse(yield) {
-		return false
+func (n *StringInspectInterpolationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Expression.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *StringInspectInterpolationNode) Equal(other value.Value) bool {
@@ -267,12 +285,19 @@ func (n *StringInterpolationNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
-func (n *StringInterpolationNode) Traverse(yield func(Node) bool) bool {
-	if n.Expression.Traverse(yield) {
-		return false
+func (n *StringInterpolationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
 
-	return yield(n)
+	if n.Expression.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *StringInterpolationNode) Equal(other value.Value) bool {
@@ -345,13 +370,21 @@ func (n *InterpolatedStringLiteralNode) Splice(loc *position.Location, args *[]N
 	}
 }
 
-func (n *InterpolatedStringLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *InterpolatedStringLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, content := range n.Content {
-		if !content.Traverse(yield) {
-			return false
+		if content.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *InterpolatedStringLiteralNode) Equal(other value.Value) bool {
@@ -446,8 +479,13 @@ func (n *DoubleQuotedStringLiteralNode) Splice(loc *position.Location, args *[]N
 	}
 }
 
-func (n *DoubleQuotedStringLiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *DoubleQuotedStringLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.

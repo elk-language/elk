@@ -33,18 +33,27 @@ func (n *MacroDefinitionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *MacroDefinitionNode) Traverse(yield func(Node) bool) bool {
+func (n *MacroDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, param := range n.Parameters {
-		if !param.Traverse(yield) {
-			return false
+		if param.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, stmt := range n.Body {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this method definition is equal to another value.
@@ -205,21 +214,31 @@ func (n *MacroCallNode) Splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
-func (n *MacroCallNode) Traverse(yield func(Node) bool) bool {
-	if n.Receiver.Traverse(yield) {
-		return false
+func (n *MacroCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
+
+	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	for _, arg := range n.PositionalArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.NamedArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *MacroCallNode) Equal(other value.Value) bool {
@@ -377,18 +396,27 @@ func (n *ReceiverlessMacroCallNode) Splice(loc *position.Location, args *[]Node,
 	}
 }
 
-func (n *ReceiverlessMacroCallNode) Traverse(yield func(Node) bool) bool {
+func (n *ReceiverlessMacroCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, arg := range n.PositionalArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, arg := range n.NamedArguments {
-		if !arg.Traverse(yield) {
-			return false
+		if arg.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *ReceiverlessMacroCallNode) Equal(other value.Value) bool {

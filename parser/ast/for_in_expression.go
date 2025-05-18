@@ -26,19 +26,29 @@ func (n *ForInExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *ForInExpressionNode) Traverse(yield func(Node) bool) bool {
-	if !n.Pattern.Traverse(yield) {
-		return false
+func (n *ForInExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	if !n.InExpression.Traverse(yield) {
-		return false
+
+	if n.Pattern.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
+
+	if n.InExpression.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	for _, stmt := range n.ThenBody {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *ForInExpressionNode) Equal(other value.Value) bool {

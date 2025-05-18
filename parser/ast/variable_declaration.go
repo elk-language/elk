@@ -38,18 +38,27 @@ func (n *VariableDeclarationNode) Splice(loc *position.Location, args *[]Node, u
 	}
 }
 
-func (n *VariableDeclarationNode) Traverse(yield func(Node) bool) bool {
+func (n *VariableDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	if n.TypeNode != nil {
-		if n.TypeNode.Traverse(yield) {
-			return false
+		if n.TypeNode.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Initialiser != nil {
-		if n.Initialiser.Traverse(yield) {
-			return false
+		if n.Initialiser.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *VariableDeclarationNode) Equal(other value.Value) bool {

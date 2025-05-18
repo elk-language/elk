@@ -89,18 +89,27 @@ func (n *FormalParameterNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *FormalParameterNode) Traverse(yield func(Node) bool) bool {
+func (n *FormalParameterNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	if n.TypeNode != nil {
-		if n.TypeNode.Traverse(yield) {
-			return false
+		if n.TypeNode.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Initialiser != nil {
-		if n.Initialiser.Traverse(yield) {
-			return false
+		if n.Initialiser.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Equal checks if the given FormalParameterNode is equal to another value.
@@ -242,18 +251,27 @@ func (n *MethodParameterNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *MethodParameterNode) Traverse(yield func(Node) bool) bool {
+func (n *MethodParameterNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	if n.TypeNode != nil {
-		if n.TypeNode.Traverse(yield) {
-			return false
+		if n.TypeNode.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Initialiser != nil {
-		if n.Initialiser.Traverse(yield) {
-			return false
+		if n.Initialiser.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *MethodParameterNode) Equal(other value.Value) bool {
@@ -397,13 +415,21 @@ func (n *SignatureParameterNode) Splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *SignatureParameterNode) Traverse(yield func(Node) bool) bool {
+func (n *SignatureParameterNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	if n.TypeNode != nil {
-		if n.TypeNode.Traverse(yield) {
-			return false
+		if n.TypeNode.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *SignatureParameterNode) Equal(other value.Value) bool {
@@ -525,18 +551,27 @@ func (n *AttributeParameterNode) Splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *AttributeParameterNode) Traverse(yield func(Node) bool) bool {
+func (n *AttributeParameterNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	if n.TypeNode != nil {
-		if n.TypeNode.Traverse(yield) {
-			return false
+		if n.TypeNode.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Initialiser != nil {
-		if n.Initialiser.Traverse(yield) {
-			return false
+		if n.Initialiser.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (*AttributeParameterNode) IsStatic() bool {

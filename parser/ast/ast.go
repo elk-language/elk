@@ -253,6 +253,17 @@ func PatternPrecedence(expr PatternNode) uint8 {
 	return 255
 }
 
+// Value used to decide what whether to skip the children of the node,
+// break the traversal or continue in the AST Traverse method.
+// The zero value continues the traversal.
+type TraverseOption uint8
+
+const (
+	TraverseContinue TraverseOption = iota
+	TraverseSkip
+	TraverseBreak
+)
+
 // Every node type implements this interface.
 type Node interface {
 	position.LocationInterface
@@ -264,18 +275,31 @@ type Node interface {
 	Equal(value.Value) bool
 	String() string
 	Splice(loc *position.Location, args *[]Node, unquote bool) Node // Create a copy of AST replacing consecutive unquote nodes with the given arguments
-	Traverse(yield func(Node) bool) bool
+	traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption
 }
 
-func Traverse(node Node) iter.Seq[Node] {
+func Traverse(node Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) {
+	node.traverse(nil, enter, leave)
+}
+
+func Iter(node Node) iter.Seq[Node] {
 	return func(yield func(Node) bool) {
-		node.Traverse(yield)
+		Traverse(
+			node,
+			func(node, parent Node) TraverseOption {
+				if !yield(node) {
+					return TraverseBreak
+				}
+				return TraverseContinue
+			},
+			nil,
+		)
 	}
 }
 
 func NewNodeIterator(node Node) *value.ArrayTupleIterator {
 	var tuple value.ArrayTuple
-	for n := range Traverse(node) {
+	for n := range Iter(node) {
 		tuple = append(tuple, value.Ref(n))
 	}
 

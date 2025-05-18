@@ -29,14 +29,23 @@ func (n *KeyValueExpressionNode) Splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *KeyValueExpressionNode) Traverse(yield func(Node) bool) bool {
-	if !n.Key.Traverse(yield) {
-		return false
+func (n *KeyValueExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	if !n.Value.Traverse(yield) {
-		return false
+
+	if n.Key.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	return yield(n)
+
+	if n.Value.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *KeyValueExpressionNode) Equal(other value.Value) bool {
@@ -117,11 +126,19 @@ func (n *SymbolKeyValueExpressionNode) Splice(loc *position.Location, args *[]No
 	}
 }
 
-func (n *SymbolKeyValueExpressionNode) Traverse(yield func(Node) bool) bool {
-	if !n.Value.Traverse(yield) {
-		return false
+func (n *SymbolKeyValueExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Value.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *SymbolKeyValueExpressionNode) Equal(other value.Value) bool {
@@ -201,11 +218,19 @@ func (n *SymbolKeyValuePatternNode) Splice(loc *position.Location, args *[]Node,
 	}
 }
 
-func (n *SymbolKeyValuePatternNode) Traverse(yield func(Node) bool) bool {
-	if !n.Value.Traverse(yield) {
-		return false
+func (n *SymbolKeyValuePatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Value.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *SymbolKeyValuePatternNode) Equal(other value.Value) bool {
@@ -285,14 +310,23 @@ func (n *KeyValuePatternNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *KeyValuePatternNode) Traverse(yield func(Node) bool) bool {
-	if !n.Key.Traverse(yield) {
-		return false
+func (n *KeyValuePatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	if !n.Value.Traverse(yield) {
-		return false
+
+	if n.Key.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
-	return yield(n)
+
+	if n.Value.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *KeyValuePatternNode) Equal(other value.Value) bool {

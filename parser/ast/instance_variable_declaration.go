@@ -17,13 +17,21 @@ type InstanceVariableDeclarationNode struct {
 	TypeNode TypeNode // type of the variable
 }
 
-func (n *InstanceVariableDeclarationNode) Traverse(yield func(Node) bool) bool {
+func (n *InstanceVariableDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	if n.TypeNode != nil {
-		if !n.TypeNode.Traverse(yield) {
-			return false
+		if n.TypeNode.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *InstanceVariableDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {

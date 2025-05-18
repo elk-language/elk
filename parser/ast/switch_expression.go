@@ -35,21 +35,31 @@ func (n *SwitchExpressionNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *SwitchExpressionNode) Traverse(yield func(Node) bool) bool {
-	if n.Value.Traverse(yield) {
-		return false
+func (n *SwitchExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
+
+	if n.Value.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	for _, caseNode := range n.Cases {
-		if !caseNode.Traverse(yield) {
-			return false
+		if caseNode.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, stmt := range n.ElseBody {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *SwitchExpressionNode) Equal(other value.Value) bool {
@@ -177,16 +187,25 @@ func (n *CaseNode) Splice(loc *position.Location, args *[]Node, unquote bool) No
 	}
 }
 
-func (n *CaseNode) Traverse(yield func(Node) bool) bool {
-	if n.Pattern.Traverse(yield) {
-		return false
+func (n *CaseNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
+
+	if n.Pattern.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	for _, stmt := range n.Body {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *CaseNode) Equal(other value.Value) bool {

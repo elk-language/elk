@@ -24,16 +24,25 @@ func (n *ObjectPatternNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *ObjectPatternNode) Traverse(yield func(Node) bool) bool {
-	if n.ObjectType.Traverse(yield) {
-		return false
+func (n *ObjectPatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
+
+	if n.ObjectType.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	for _, attr := range n.Attributes {
-		if !attr.Traverse(yield) {
-			return false
+		if attr.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *ObjectPatternNode) Equal(other value.Value) bool {

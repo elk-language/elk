@@ -22,11 +22,19 @@ func (n *DoubleSplatExpressionNode) Splice(loc *position.Location, args *[]Node,
 	}
 }
 
-func (n *DoubleSplatExpressionNode) Traverse(yield func(Node) bool) bool {
-	if n.Value.Traverse(yield) {
-		return false
+func (n *DoubleSplatExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Value.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.
@@ -108,11 +116,19 @@ func (n *SplatExpressionNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *SplatExpressionNode) Traverse(yield func(Node) bool) bool {
-	if n.Value.Traverse(yield) {
-		return false
+func (n *SplatExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Value.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *SplatExpressionNode) Equal(other value.Value) bool {

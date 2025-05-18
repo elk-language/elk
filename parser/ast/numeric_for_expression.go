@@ -45,28 +45,39 @@ func (n *NumericForExpressionNode) Splice(loc *position.Location, args *[]Node, 
 	}
 }
 
-func (n *NumericForExpressionNode) Traverse(yield func(Node) bool) bool {
+func (n *NumericForExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	if n.Initialiser != nil {
-		if n.Initialiser.Traverse(yield) {
-			return false
+		if n.Initialiser.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Condition != nil {
-		if n.Condition.Traverse(yield) {
-			return false
+		if n.Condition.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.Increment != nil {
-		if n.Increment.Traverse(yield) {
-			return false
+		if n.Increment.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, stmt := range n.ThenBody {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *NumericForExpressionNode) Equal(other value.Value) bool {

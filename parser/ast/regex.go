@@ -51,8 +51,13 @@ func (n *UninterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]
 	}
 }
 
-func (n *UninterpolatedRegexLiteralNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *UninterpolatedRegexLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *UninterpolatedRegexLiteralNode) Equal(other value.Value) bool {
@@ -199,9 +204,13 @@ func (n *RegexLiteralContentSectionNode) Splice(loc *position.Location, args *[]
 		Value:    n.Value,
 	}
 }
+func (n *RegexLiteralContentSectionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	}
 
-func (n *RegexLiteralContentSectionNode) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+	return leave(n, parent)
 }
 
 func (n *RegexLiteralContentSectionNode) Equal(other value.Value) bool {
@@ -263,11 +272,19 @@ func (n *RegexInterpolationNode) Splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *RegexInterpolationNode) Traverse(yield func(Node) bool) bool {
-	if n.Expression.Traverse(yield) {
-		return false
+func (n *RegexInterpolationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Expression.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *RegexInterpolationNode) Equal(other value.Value) bool {
@@ -342,13 +359,21 @@ func (n *InterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]No
 	}
 }
 
-func (n *InterpolatedRegexLiteralNode) Traverse(yield func(Node) bool) bool {
+func (n *InterpolatedRegexLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, content := range n.Content {
-		if !content.Traverse(yield) {
-			return false
+		if content.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *InterpolatedRegexLiteralNode) Equal(other value.Value) bool {

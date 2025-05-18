@@ -22,11 +22,19 @@ func (n *RestPatternNode) Splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
-func (n *RestPatternNode) Traverse(yield func(Node) bool) bool {
-	if n.Identifier.Traverse(yield) {
-		return false
+func (n *RestPatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
 	}
-	return yield(n)
+
+	if n.Identifier.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
 }
 
 func (n *RestPatternNode) Equal(other value.Value) bool {

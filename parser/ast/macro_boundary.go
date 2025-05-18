@@ -24,13 +24,21 @@ func (n *MacroBoundaryNode) Splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *MacroBoundaryNode) Traverse(yield func(Node) bool) bool {
+func (n *MacroBoundaryNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, stmt := range n.Body {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.

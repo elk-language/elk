@@ -65,33 +65,45 @@ func (n *MethodDefinitionNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *MethodDefinitionNode) Traverse(yield func(Node) bool) bool {
+func (n *MethodDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, param := range n.TypeParameters {
-		if !param.Traverse(yield) {
-			return false
+		if param.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, param := range n.Parameters {
-		if !param.Traverse(yield) {
-			return false
+		if param.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.ReturnType != nil {
-		if n.ReturnType.Traverse(yield) {
-			return false
+		if n.ReturnType.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.ThrowType != nil {
-		if n.ThrowType.Traverse(yield) {
-			return false
+		if n.ThrowType.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, stmt := range n.Body {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this method definition is equal to another value.
@@ -389,21 +401,33 @@ func (n *InitDefinitionNode) Splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *InitDefinitionNode) Traverse(yield func(Node) bool) bool {
+func (n *InitDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, param := range n.Parameters {
-		if !param.Traverse(yield) {
-			return false
+		if param.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	if n.ThrowType.Traverse(yield) {
-		return false
+
+	if n.ThrowType != nil {
+		if n.ThrowType.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
 	}
+
 	for _, stmt := range n.Body {
-		if !stmt.Traverse(yield) {
-			return false
+		if stmt.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Check if this node equals another node.
@@ -584,28 +608,39 @@ func (n *MethodSignatureDefinitionNode) Splice(loc *position.Location, args *[]N
 	}
 }
 
-func (n *MethodSignatureDefinitionNode) Traverse(yield func(Node) bool) bool {
+func (n *MethodSignatureDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, param := range n.TypeParameters {
-		if !param.Traverse(yield) {
-			return false
+		if param.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	for _, param := range n.Parameters {
-		if !param.Traverse(yield) {
-			return false
+		if param.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.ReturnType != nil {
-		if n.ReturnType.Traverse(yield) {
-			return false
+		if n.ReturnType.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
+
 	if n.ThrowType != nil {
-		if n.ThrowType.Traverse(yield) {
-			return false
+		if n.ThrowType.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *MethodSignatureDefinitionNode) Equal(other value.Value) bool {
@@ -793,8 +828,15 @@ func (n *AliasDeclarationEntry) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *AliasDeclarationEntry) Traverse(yield func(Node) bool) bool {
-	return yield(n)
+func (n *AliasDeclarationEntry) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
 }
 
 func (*AliasDeclarationEntry) IsStatic() bool {
@@ -873,13 +915,21 @@ func (n *AliasDeclarationNode) Splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *AliasDeclarationNode) Traverse(yield func(Node) bool) bool {
+func (n *AliasDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, entry := range n.Entries {
-		if !entry.Traverse(yield) {
-			return false
+		if entry.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *AliasDeclarationNode) String() string {
@@ -978,13 +1028,21 @@ func (n *GetterDeclarationNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *GetterDeclarationNode) Traverse(yield func(Node) bool) bool {
+func (n *GetterDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, entry := range n.Entries {
-		if !entry.Traverse(yield) {
-			return false
+		if entry.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 // Equal checks if this node equals the other node.
@@ -1099,13 +1157,21 @@ func (n *SetterDeclarationNode) Splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *SetterDeclarationNode) Traverse(yield func(Node) bool) bool {
+func (n *SetterDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, entry := range n.Entries {
-		if !entry.Traverse(yield) {
-			return false
+		if entry.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (n *SetterDeclarationNode) Equal(other value.Value) bool {
@@ -1213,13 +1279,21 @@ func (n *AttrDeclarationNode) Splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *AttrDeclarationNode) Traverse(yield func(Node) bool) bool {
+func (n *AttrDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
 	for _, entry := range n.Entries {
-		if !entry.Traverse(yield) {
-			return false
+		if entry.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
 		}
 	}
-	return yield(n)
+
+	return leave(n, parent)
 }
 
 func (*AttrDeclarationNode) IsStatic() bool {
