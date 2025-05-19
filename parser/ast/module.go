@@ -18,10 +18,10 @@ type ModuleDeclarationNode struct {
 	Bytecode value.Method
 }
 
-func (n *ModuleDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ModuleDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var constant ExpressionNode
 	if n.Constant != nil {
-		constant = n.Constant.Splice(loc, args, unquote).(ExpressionNode)
+		constant = n.Constant.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	body := SpliceSlice(n.Body, loc, args, unquote)

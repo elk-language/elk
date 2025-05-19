@@ -17,11 +17,11 @@ type UnaryTypeNode struct {
 	TypeNode TypeNode     // right hand side
 }
 
-func (n *UnaryTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *UnaryTypeNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UnaryTypeNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Op:            n.Op.Splice(loc, unquote),
-		TypeNode:      n.TypeNode.Splice(loc, args, unquote).(TypeNode),
+		TypeNode:      n.TypeNode.splice(loc, args, unquote).(TypeNode),
 	}
 }
 

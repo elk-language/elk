@@ -13,7 +13,7 @@ type FloatLiteralNode struct {
 	Value string
 }
 
-func (n *FloatLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *FloatLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &FloatLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
@@ -83,7 +83,7 @@ type BigFloatLiteralNode struct {
 	Value string
 }
 
-func (n *BigFloatLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *BigFloatLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &BigFloatLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
@@ -153,7 +153,7 @@ type Float64LiteralNode struct {
 	Value string
 }
 
-func (n *Float64LiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *Float64LiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &Float64LiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
@@ -223,7 +223,7 @@ type Float32LiteralNode struct {
 	Value string
 }
 
-func (n *Float32LiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *Float32LiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &Float32LiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,

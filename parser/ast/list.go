@@ -17,13 +17,13 @@ type ArrayListLiteralNode struct {
 	static   bool
 }
 
-func (n *ArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ArrayListLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
 	var static bool
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.Splice(loc, args, unquote).(ExpressionNode)
+		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
 		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
 	} else {
 		static = isExpressionSliceStatic(elements)
@@ -214,13 +214,13 @@ type WordArrayListLiteralNode struct {
 	static   bool
 }
 
-func (n *WordArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *WordArrayListLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
 	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.Splice(loc, args, unquote).(ExpressionNode)
+		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
 		static = capacity.IsStatic()
 	}
 
@@ -394,13 +394,13 @@ type SymbolArrayListLiteralNode struct {
 	static   bool
 }
 
-func (n *SymbolArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *SymbolArrayListLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
 	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.Splice(loc, args, unquote).(ExpressionNode)
+		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
 		static = capacity.IsStatic()
 	}
 
@@ -573,13 +573,13 @@ type HexArrayListLiteralNode struct {
 	static   bool
 }
 
-func (n *HexArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *HexArrayListLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
 	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.Splice(loc, args, unquote).(ExpressionNode)
+		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
 		static = capacity.IsStatic()
 	}
 
@@ -754,13 +754,13 @@ type BinArrayListLiteralNode struct {
 	static   bool
 }
 
-func (n *BinArrayListLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *BinArrayListLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
 	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.Splice(loc, args, unquote).(ExpressionNode)
+		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
 		static = capacity.IsStatic()
 	}
 
@@ -936,7 +936,7 @@ type ListPatternNode struct {
 	Elements []PatternNode
 }
 
-func (n *ListPatternNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ListPatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ListPatternNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),

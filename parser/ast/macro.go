@@ -19,7 +19,7 @@ type MacroDefinitionNode struct {
 	Body       []StatementNode // body of the method
 }
 
-func (n *MacroDefinitionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *MacroDefinitionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	params := SpliceSlice(n.Parameters, loc, args, unquote)
 	body := SpliceSlice(n.Body, loc, args, unquote)
 
@@ -204,10 +204,10 @@ type MacroCallNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
-func (n *MacroCallNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *MacroCallNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MacroCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Receiver:            n.Receiver.Splice(loc, args, unquote).(ExpressionNode),
+		Receiver:            n.Receiver.splice(loc, args, unquote).(ExpressionNode),
 		MacroName:           n.MacroName,
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
@@ -387,7 +387,7 @@ type ReceiverlessMacroCallNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
-func (n *ReceiverlessMacroCallNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ReceiverlessMacroCallNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ReceiverlessMacroCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		MacroName:           n.MacroName,

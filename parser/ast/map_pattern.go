@@ -15,7 +15,7 @@ type MapPatternNode struct {
 	Elements []PatternNode
 }
 
-func (n *MapPatternNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *MapPatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MapPatternNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),

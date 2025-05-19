@@ -17,10 +17,10 @@ type UnlessExpressionNode struct {
 	ElseBody  []StatementNode // else expression body
 }
 
-func (n *UnlessExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *UnlessExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UnlessExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Condition:     n.Condition.Splice(loc, args, unquote).(ExpressionNode),
+		Condition:     n.Condition.splice(loc, args, unquote).(ExpressionNode),
 		ThenBody:      SpliceSlice(n.ThenBody, loc, args, unquote),
 		ElseBody:      SpliceSlice(n.ElseBody, loc, args, unquote),
 	}

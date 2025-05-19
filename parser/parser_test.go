@@ -3,13 +3,12 @@ package parser
 import (
 	"testing"
 
-	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/k0kubun/pp/v3"
 )
 
@@ -46,39 +45,7 @@ func parserTest(tc testCase, t *testing.T) {
 	t.Helper()
 	got, err := Parse("<main>", tc.input)
 
-	opts := []cmp.Option{
-		cmp.AllowUnexported(
-			ast.NodeBase{},
-			ast.TypedNodeBase{},
-			token.Token{},
-			ast.MacroDefinitionNode{},
-			ast.DocCommentableNodeBase{},
-			ast.BinaryExpressionNode{},
-			ast.LogicalExpressionNode{},
-			ast.KeyValueExpressionNode{},
-			ast.ArrayListLiteralNode{},
-			ast.ArrayTupleLiteralNode{},
-			ast.HashSetLiteralNode{},
-			ast.HashMapLiteralNode{},
-			ast.HashRecordLiteralNode{},
-			ast.RangeLiteralNode{},
-			ast.SubscriptExpressionNode{},
-			ast.NilSafeSubscriptExpressionNode{},
-			ast.WordArrayListLiteralNode{},
-			ast.WordHashSetLiteralNode{},
-			ast.SymbolArrayListLiteralNode{},
-			ast.SymbolHashSetLiteralNode{},
-			ast.BinArrayListLiteralNode{},
-			ast.BinHashSetLiteralNode{},
-			ast.HexArrayListLiteralNode{},
-			ast.HexHashSetLiteralNode{},
-			ast.UninterpolatedRegexLiteralNode{},
-			bitfield.BitField8{},
-		),
-		cmpopts.IgnoreFields(
-			ast.TypedNodeBase{}, "typ",
-		),
-	}
+	opts := comparer.Options()
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 		t.Log(pp.Sprint(got))
 		t.Log(diff)

@@ -16,10 +16,10 @@ type ReturnExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (n *ReturnExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ReturnExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var val ExpressionNode
 	if n.Value != nil {
-		val = n.Value.Splice(loc, args, unquote).(ExpressionNode)
+		val = n.Value.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	return &ReturnExpressionNode{

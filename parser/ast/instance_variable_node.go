@@ -13,7 +13,7 @@ type InstanceVariableNode struct {
 	Value string
 }
 
-func (n *InstanceVariableNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *InstanceVariableNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &InstanceVariableNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,

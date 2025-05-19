@@ -15,10 +15,10 @@ type AwaitExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (n *AwaitExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *AwaitExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AwaitExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Value:         n.Value.Splice(loc, args, unquote).(ExpressionNode),
+		Value:         n.Value.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 

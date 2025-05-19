@@ -13,7 +13,7 @@ type CharLiteralNode struct {
 	Value rune // value of the string literal
 }
 
-func (n *CharLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *CharLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &CharLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
@@ -82,7 +82,7 @@ type RawCharLiteralNode struct {
 	Value rune // value of the char literal
 }
 
-func (n *RawCharLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *RawCharLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &RawCharLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,

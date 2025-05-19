@@ -29,10 +29,10 @@ type ExpressionStatementNode struct {
 	Expression ExpressionNode
 }
 
-func (n *ExpressionStatementNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ExpressionStatementNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ExpressionStatementNode{
 		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Expression: n.Expression.Splice(loc, args, unquote).(ExpressionNode),
+		Expression: n.Expression.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 
@@ -116,7 +116,7 @@ type EmptyStatementNode struct {
 	NodeBase
 }
 
-func (n *EmptyStatementNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *EmptyStatementNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &EmptyStatementNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
@@ -180,7 +180,7 @@ type ImportStatementNode struct {
 	FsPaths []string // resolved file system paths
 }
 
-func (n *ImportStatementNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ImportStatementNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ImportStatementNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Path:     n.Path,
@@ -257,10 +257,10 @@ type ParameterStatementNode struct {
 	Parameter ParameterNode
 }
 
-func (n *ParameterStatementNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ParameterStatementNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ParameterStatementNode{
 		NodeBase:  NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Parameter: n.Parameter.Splice(loc, args, unquote).(ParameterNode),
+		Parameter: n.Parameter.splice(loc, args, unquote).(ParameterNode),
 	}
 }
 

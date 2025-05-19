@@ -17,9 +17,9 @@ type KeyValueExpressionNode struct {
 	static bool
 }
 
-func (n *KeyValueExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
-	key := n.Key.Splice(loc, args, unquote).(ExpressionNode)
-	val := n.Value.Splice(loc, args, unquote).(ExpressionNode)
+func (n *KeyValueExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	key := n.Key.splice(loc, args, unquote).(ExpressionNode)
+	val := n.Value.splice(loc, args, unquote).(ExpressionNode)
 
 	return &KeyValueExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
@@ -118,11 +118,11 @@ type SymbolKeyValueExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (n *SymbolKeyValueExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *SymbolKeyValueExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SymbolKeyValueExpressionNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Key:      n.Key,
-		Value:    n.Value.Splice(loc, args, unquote).(ExpressionNode),
+		Value:    n.Value.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 
@@ -210,11 +210,11 @@ type SymbolKeyValuePatternNode struct {
 	Value PatternNode
 }
 
-func (n *SymbolKeyValuePatternNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *SymbolKeyValuePatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SymbolKeyValuePatternNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Key:      n.Key,
-		Value:    n.Value.Splice(loc, args, unquote).(PatternNode),
+		Value:    n.Value.splice(loc, args, unquote).(PatternNode),
 	}
 }
 
@@ -302,11 +302,11 @@ type KeyValuePatternNode struct {
 	Value PatternNode
 }
 
-func (n *KeyValuePatternNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *KeyValuePatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &KeyValuePatternNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Key:      n.Key.Splice(loc, args, unquote).(PatternExpressionNode),
-		Value:    n.Value.Splice(loc, args, unquote).(PatternNode),
+		Key:      n.Key.splice(loc, args, unquote).(PatternExpressionNode),
+		Value:    n.Value.splice(loc, args, unquote).(PatternNode),
 	}
 }
 

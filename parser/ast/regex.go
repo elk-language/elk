@@ -43,7 +43,7 @@ type UninterpolatedRegexLiteralNode struct {
 	Flags   bitfield.BitField8
 }
 
-func (n *UninterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *UninterpolatedRegexLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UninterpolatedRegexLiteralNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Content:  n.Content,
@@ -198,7 +198,7 @@ type RegexLiteralContentSectionNode struct {
 	Value string
 }
 
-func (n *RegexLiteralContentSectionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *RegexLiteralContentSectionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &RegexLiteralContentSectionNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Value:    n.Value,
@@ -265,10 +265,10 @@ type RegexInterpolationNode struct {
 	Expression ExpressionNode
 }
 
-func (n *RegexInterpolationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *RegexInterpolationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &RegexInterpolationNode{
 		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Expression: n.Expression.Splice(loc, args, unquote).(ExpressionNode),
+		Expression: n.Expression.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 
@@ -351,7 +351,7 @@ type InterpolatedRegexLiteralNode struct {
 	Flags   bitfield.BitField8
 }
 
-func (n *InterpolatedRegexLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *InterpolatedRegexLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &InterpolatedRegexLiteralNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Content:  SpliceSlice(n.Content, loc, args, unquote),

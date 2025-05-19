@@ -17,11 +17,11 @@ type UnaryExpressionNode struct {
 	Right ExpressionNode // right hand side
 }
 
-func (n *UnaryExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *UnaryExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UnaryExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Op:            n.Op.Splice(loc, unquote),
-		Right:         n.Right.Splice(loc, args, unquote).(ExpressionNode),
+		Right:         n.Right.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 

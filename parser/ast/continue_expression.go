@@ -17,8 +17,8 @@ type ContinueExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (n *ContinueExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
-	val := n.Value.Splice(loc, args, unquote).(ExpressionNode)
+func (n *ContinueExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	val := n.Value.splice(loc, args, unquote).(ExpressionNode)
 
 	return &ContinueExpressionNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},

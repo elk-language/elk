@@ -17,11 +17,11 @@ type LabeledExpressionNode struct {
 	Expression ExpressionNode
 }
 
-func (n *LabeledExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *LabeledExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &LabeledExpressionNode{
 		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Label:      n.Label,
-		Expression: n.Expression.Splice(loc, args, unquote).(ExpressionNode),
+		Expression: n.Expression.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 

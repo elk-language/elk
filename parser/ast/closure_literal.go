@@ -18,17 +18,17 @@ type ClosureLiteralNode struct {
 	Body       []StatementNode // body of the closure
 }
 
-func (n *ClosureLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ClosureLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	params := SpliceSlice(n.Parameters, loc, args, unquote)
 
 	var returnType TypeNode
 	if n.ReturnType != nil {
-		returnType = n.ReturnType.Splice(loc, args, unquote).(TypeNode)
+		returnType = n.ReturnType.splice(loc, args, unquote).(TypeNode)
 	}
 
 	var throwType TypeNode
 	if n.ThrowType != nil {
-		throwType = n.ThrowType.Splice(loc, args, unquote).(TypeNode)
+		throwType = n.ThrowType.splice(loc, args, unquote).(TypeNode)
 	}
 
 	body := SpliceSlice(n.Body, loc, args, unquote)

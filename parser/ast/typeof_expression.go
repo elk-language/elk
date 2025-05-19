@@ -15,10 +15,10 @@ type TypeofExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (n *TypeofExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *TypeofExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &TypeofExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Value:         n.Value.Splice(loc, args, unquote).(ExpressionNode),
+		Value:         n.Value.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 

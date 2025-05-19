@@ -16,11 +16,11 @@ type AsPatternNode struct {
 	Name    IdentifierNode
 }
 
-func (n *AsPatternNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *AsPatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AsPatternNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Pattern:  n.Pattern.Splice(loc, args, unquote).(PatternNode),
-		Name:     n.Name.Splice(loc, args, unquote).(IdentifierNode),
+		Pattern:  n.Pattern.splice(loc, args, unquote).(PatternNode),
+		Name:     n.Name.splice(loc, args, unquote).(IdentifierNode),
 	}
 }
 

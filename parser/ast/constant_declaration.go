@@ -18,17 +18,17 @@ type ConstantDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the constant
 }
 
-func (n *ConstantDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
-	constant := n.Constant.Splice(loc, args, unquote).(ExpressionNode)
+func (n *ConstantDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	constant := n.Constant.splice(loc, args, unquote).(ExpressionNode)
 
 	var typeNode TypeNode
 	if n.TypeNode != nil {
-		typeNode = n.TypeNode.Splice(loc, args, unquote).(TypeNode)
+		typeNode = n.TypeNode.splice(loc, args, unquote).(TypeNode)
 	}
 
 	var init ExpressionNode
 	if n.Initialiser != nil {
-		init = n.Initialiser.Splice(loc, args, unquote).(ExpressionNode)
+		init = n.Initialiser.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	return &ConstantDeclarationNode{

@@ -18,12 +18,12 @@ type ModifierNode struct {
 	Right    ExpressionNode // right hand side
 }
 
-func (n *ModifierNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ModifierNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ModifierNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Modifier:      n.Modifier.Splice(loc, unquote),
-		Left:          n.Left.Splice(loc, args, unquote).(ExpressionNode),
-		Right:         n.Right.Splice(loc, args, unquote).(ExpressionNode),
+		Left:          n.Left.splice(loc, args, unquote).(ExpressionNode),
+		Right:         n.Right.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 
@@ -140,12 +140,12 @@ type ModifierIfElseNode struct {
 	ElseExpression ExpressionNode // else expression body
 }
 
-func (n *ModifierIfElseNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ModifierIfElseNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ModifierIfElseNode{
 		TypedNodeBase:  TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		ThenExpression: n.ThenExpression.Splice(loc, args, unquote).(ExpressionNode),
-		Condition:      n.Condition.Splice(loc, args, unquote).(ExpressionNode),
-		ElseExpression: n.ElseExpression.Splice(loc, args, unquote).(ExpressionNode),
+		ThenExpression: n.ThenExpression.splice(loc, args, unquote).(ExpressionNode),
+		Condition:      n.Condition.splice(loc, args, unquote).(ExpressionNode),
+		ElseExpression: n.ElseExpression.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 
@@ -265,12 +265,12 @@ type ModifierForInNode struct {
 	InExpression   ExpressionNode // expression that will be iterated through
 }
 
-func (n *ModifierForInNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ModifierForInNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ModifierForInNode{
 		TypedNodeBase:  TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		ThenExpression: n.ThenExpression.Splice(loc, args, unquote).(ExpressionNode),
-		Pattern:        n.Pattern.Splice(loc, args, unquote).(PatternNode),
-		InExpression:   n.InExpression.Splice(loc, args, unquote).(ExpressionNode),
+		ThenExpression: n.ThenExpression.splice(loc, args, unquote).(ExpressionNode),
+		Pattern:        n.Pattern.splice(loc, args, unquote).(PatternNode),
+		InExpression:   n.InExpression.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 

@@ -17,13 +17,13 @@ type HashSetLiteralNode struct {
 	static   bool
 }
 
-func (n *HashSetLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *HashSetLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 	var capacity ExpressionNode
 	var static bool
 
 	if n.Capacity != nil {
-		capacity = n.Capacity.Splice(loc, args, unquote).(ExpressionNode)
+		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
 		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
 	} else {
 		static = isExpressionSliceStatic(elements)
@@ -211,13 +211,13 @@ type WordHashSetLiteralNode struct {
 	static   bool
 }
 
-func (n *WordHashSetLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *WordHashSetLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
 	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.Splice(loc, args, unquote).(ExpressionNode)
+		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
 		static = capacity.IsStatic()
 	}
 
@@ -391,13 +391,13 @@ type SymbolHashSetLiteralNode struct {
 	static   bool
 }
 
-func (n *SymbolHashSetLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *SymbolHashSetLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
 	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.Splice(loc, args, unquote).(ExpressionNode)
+		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
 		static = capacity.IsStatic()
 	}
 
@@ -570,13 +570,13 @@ type HexHashSetLiteralNode struct {
 	static   bool
 }
 
-func (n *HexHashSetLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *HexHashSetLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
 	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.Splice(loc, args, unquote).(ExpressionNode)
+		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
 		static = capacity.IsStatic()
 	}
 
@@ -750,13 +750,13 @@ type BinHashSetLiteralNode struct {
 	static   bool
 }
 
-func (n *BinHashSetLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *BinHashSetLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
 	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.Splice(loc, args, unquote).(ExpressionNode)
+		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
 		static = capacity.IsStatic()
 	}
 
@@ -932,7 +932,7 @@ type SetPatternNode struct {
 	Elements []PatternNode
 }
 
-func (n *SetPatternNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *SetPatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SetPatternNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),

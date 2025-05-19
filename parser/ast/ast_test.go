@@ -267,7 +267,7 @@ func TestSplice(t *testing.T) {
 				),
 			}
 
-			got := tc.node.Splice(tc.loc, tc.args, tc.unquote)
+			got := tc.node.splice(tc.loc, tc.args, tc.unquote)
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Log(pp.Sprint(got))
 				t.Log(diff)

@@ -31,7 +31,7 @@ type ProgramNode struct {
 	State       ProgramState
 }
 
-func (n *ProgramNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ProgramNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ProgramNode{
 		NodeBase:    NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Body:        SpliceSlice(n.Body, loc, args, unquote),

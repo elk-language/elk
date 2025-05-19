@@ -37,20 +37,20 @@ type VariantTypeParameterNode struct {
 	Default    TypeNode
 }
 
-func (n *VariantTypeParameterNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *VariantTypeParameterNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var lowerBound TypeNode
 	if n.LowerBound != nil {
-		lowerBound = n.LowerBound.Splice(loc, args, unquote).(TypeNode)
+		lowerBound = n.LowerBound.splice(loc, args, unquote).(TypeNode)
 	}
 
 	var upperBound TypeNode
 	if n.UpperBound != nil {
-		upperBound = n.UpperBound.Splice(loc, args, unquote).(TypeNode)
+		upperBound = n.UpperBound.splice(loc, args, unquote).(TypeNode)
 	}
 
 	var def TypeNode
 	if n.Default != nil {
-		def = n.Default.Splice(loc, args, unquote).(TypeNode)
+		def = n.Default.splice(loc, args, unquote).(TypeNode)
 	}
 
 	return &VariantTypeParameterNode{

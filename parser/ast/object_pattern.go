@@ -16,10 +16,10 @@ type ObjectPatternNode struct {
 	Attributes []PatternNode
 }
 
-func (n *ObjectPatternNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ObjectPatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ObjectPatternNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		ObjectType:    n.ObjectType.Splice(loc, args, unquote).(ComplexConstantNode),
+		ObjectType:    n.ObjectType.splice(loc, args, unquote).(ComplexConstantNode),
 		Attributes:    SpliceSlice(n.Attributes, loc, args, unquote),
 	}
 }

@@ -15,7 +15,7 @@ type QuoteExpressionNode struct {
 	Body []StatementNode
 }
 
-func (n *QuoteExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *QuoteExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &QuoteExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Body:          SpliceSlice(n.Body, loc, args, unquote),

@@ -16,7 +16,7 @@ type ArrayTupleLiteralNode struct {
 	static   bool
 }
 
-func (n *ArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ArrayTupleLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
 	return &ArrayTupleLiteralNode{
@@ -159,7 +159,7 @@ type WordArrayTupleLiteralNode struct {
 	Elements []WordCollectionContentNode
 }
 
-func (n *WordArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *WordArrayTupleLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &WordArrayTupleLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
@@ -285,7 +285,7 @@ type SymbolArrayTupleLiteralNode struct {
 	Elements []SymbolCollectionContentNode
 }
 
-func (n *SymbolArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *SymbolArrayTupleLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SymbolArrayTupleLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
@@ -413,7 +413,7 @@ type HexArrayTupleLiteralNode struct {
 	Elements []IntCollectionContentNode
 }
 
-func (n *HexArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *HexArrayTupleLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &HexArrayTupleLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
@@ -540,7 +540,7 @@ type BinArrayTupleLiteralNode struct {
 	Elements []IntCollectionContentNode
 }
 
-func (n *BinArrayTupleLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *BinArrayTupleLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &BinArrayTupleLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
@@ -671,7 +671,7 @@ type TuplePatternNode struct {
 	Elements []PatternNode
 }
 
-func (n *TuplePatternNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *TuplePatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &TuplePatternNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),

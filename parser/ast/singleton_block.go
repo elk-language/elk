@@ -20,7 +20,7 @@ type SingletonBlockExpressionNode struct {
 	Bytecode value.Method
 }
 
-func (n *SingletonBlockExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *SingletonBlockExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SingletonBlockExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Body:          SpliceSlice(n.Body, loc, args, unquote),

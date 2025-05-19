@@ -15,7 +15,7 @@ type LoopExpressionNode struct {
 	ThenBody []StatementNode // then expression body
 }
 
-func (n *LoopExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *LoopExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &LoopExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		ThenBody:      SpliceSlice(n.ThenBody, loc, args, unquote),

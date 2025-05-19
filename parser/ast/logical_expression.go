@@ -19,12 +19,12 @@ type LogicalExpressionNode struct {
 	static bool
 }
 
-func (n *LogicalExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *LogicalExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &LogicalExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Op:            n.Op.Splice(loc, unquote),
-		Left:          n.Left.Splice(loc, args, unquote).(ComplexConstantNode),
-		Right:         n.Right.Splice(loc, args, unquote).(ComplexConstantNode),
+		Left:          n.Left.splice(loc, args, unquote).(ComplexConstantNode),
+		Right:         n.Right.splice(loc, args, unquote).(ComplexConstantNode),
 	}
 }
 

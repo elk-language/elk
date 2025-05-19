@@ -16,11 +16,11 @@ type VariablePatternDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
-func (n *VariablePatternDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *VariablePatternDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &VariablePatternDeclarationNode{
 		NodeBase:    NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Pattern:     n.Pattern.Splice(loc, args, unquote).(PatternNode),
-		Initialiser: n.Initialiser.Splice(loc, args, unquote).(ExpressionNode),
+		Pattern:     n.Pattern.splice(loc, args, unquote).(PatternNode),
+		Initialiser: n.Initialiser.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 

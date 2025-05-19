@@ -16,10 +16,10 @@ type YieldExpressionNode struct {
 	Forward bool
 }
 
-func (n *YieldExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *YieldExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var val ExpressionNode
 	if n.Value != nil {
-		val = n.Value.Splice(loc, args, unquote).(ExpressionNode)
+		val = n.Value.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	return &YieldExpressionNode{

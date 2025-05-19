@@ -27,11 +27,11 @@ type NamedCallArgumentNode struct {
 	Value ExpressionNode
 }
 
-func (n *NamedCallArgumentNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *NamedCallArgumentNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &NamedCallArgumentNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Name:     n.Name,
-		Value:    n.Value.Splice(loc, args, unquote).(ExpressionNode),
+		Value:    n.Value.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 

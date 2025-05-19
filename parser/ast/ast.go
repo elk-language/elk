@@ -274,8 +274,13 @@ type Node interface {
 	SkipTypechecking() bool
 	Equal(value.Value) bool
 	String() string
-	Splice(loc *position.Location, args *[]Node, unquote bool) Node // Create a copy of AST replacing consecutive unquote nodes with the given arguments
+	splice(loc *position.Location, args *[]Node, unquote bool) Node
 	traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption
+}
+
+// Create a copy of AST replacing consecutive unquote nodes with the given arguments
+func Splice(node Node, loc *position.Location, args *[]Node) Node {
+	return node.splice(loc, args, false)
 }
 
 func noopTraverse(node, parent Node) TraverseOption { return TraverseContinue }
@@ -317,7 +322,7 @@ func NewNodeIterator(node Node) *value.ArrayTupleIterator {
 func SpliceSlice[N Node](slice []N, loc *position.Location, args *[]Node, unquote bool) []N {
 	result := make([]N, len(slice))
 	for i, n := range slice {
-		result[i] = n.Splice(loc, args, unquote).(N)
+		result[i] = n.splice(loc, args, unquote).(N)
 	}
 
 	return result

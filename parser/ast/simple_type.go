@@ -13,7 +13,7 @@ type BoolLiteralNode struct {
 	NodeBase
 }
 
-func (n *BoolLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *BoolLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &BoolLiteralNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
@@ -79,7 +79,7 @@ type VoidTypeNode struct {
 	NodeBase
 }
 
-func (n *VoidTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *VoidTypeNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &VoidTypeNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
@@ -140,7 +140,7 @@ type NeverTypeNode struct {
 	NodeBase
 }
 
-func (n *NeverTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *NeverTypeNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &NeverTypeNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
@@ -205,7 +205,7 @@ type AnyTypeNode struct {
 	NodeBase
 }
 
-func (n *AnyTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *AnyTypeNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AnyTypeNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}

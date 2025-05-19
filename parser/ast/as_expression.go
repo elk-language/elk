@@ -16,11 +16,11 @@ type AsExpressionNode struct {
 	RuntimeType ComplexConstantNode
 }
 
-func (n *AsExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *AsExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AsExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Value:         n.Value.Splice(loc, args, unquote).(ExpressionNode),
-		RuntimeType:   n.RuntimeType.Splice(loc, args, unquote).(ComplexConstantNode),
+		Value:         n.Value.splice(loc, args, unquote).(ExpressionNode),
+		RuntimeType:   n.RuntimeType.splice(loc, args, unquote).(ComplexConstantNode),
 	}
 }
 

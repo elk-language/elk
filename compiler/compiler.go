@@ -1070,7 +1070,9 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		}
 		c.emitValue(value.Float32(f).ToValue(), node.Location())
 	case *ast.QuoteExpressionNode:
-		// TODO: Implement quote compilation
+		c.compileQuoteExpressionNode(node)
+	case *ast.UnquoteExpressionNode:
+		c.compileUnquoteExpressionNode(node)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
@@ -1079,6 +1081,59 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	}
 
 	return expressionCompiled
+}
+
+func (c *Compiler) compileUnquoteExpressionNode(node *ast.UnquoteExpressionNode) {
+	c.compileNodeWithResult(node.Expression)
+	c.emitCallMethod(
+		value.NewCallSiteInfo(
+			symbol.L_to_ast_expr_node,
+			0,
+		),
+		node.Location(),
+		false,
+	)
+}
+
+func (c *Compiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) {
+	location := node.Location()
+	newNode := ast.NewMacroBoundaryNode(location, node.Body, "")
+	c.emitGetConst(value.ToSymbol("Std::Kernel"), location)
+	c.emitValue(value.Ref(newNode), location)
+
+	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
+
+	var unquoteCount int
+	ast.Traverse(
+		node,
+		func(node, parent ast.Node) ast.TraverseOption {
+			switch node := node.(type) {
+			case *ast.UnquoteExpressionNode:
+				unquoteCount++
+				c.compileNodeWithResult(node)
+
+				return ast.TraverseSkip
+			}
+
+			return ast.TraverseContinue
+		},
+		nil,
+	)
+	if unquoteCount != 0 {
+		c.emitNewArrayTuple(unquoteCount, location)
+	}
+
+	// location
+	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
+
+	c.emitCallMethod(
+		value.NewCallSiteInfo(
+			symbol.S_splice,
+			3,
+		),
+		location,
+		false,
+	)
 }
 
 func (c *Compiler) compileTypeofExpressionNode(node *ast.TypeofExpressionNode, valueIsIgnored bool) expressionResult {

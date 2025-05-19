@@ -21,7 +21,7 @@ type DoExpressionNode struct {
 	Finally []StatementNode
 }
 
-func (n *DoExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *DoExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &DoExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Body:          SpliceSlice(n.Body, loc, args, unquote),
@@ -201,12 +201,12 @@ type CatchNode struct {
 	Body          []StatementNode // do expression body
 }
 
-func (n *CatchNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
-	pattern := n.Pattern.Splice(loc, args, unquote).(PatternNode)
+func (n *CatchNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	pattern := n.Pattern.splice(loc, args, unquote).(PatternNode)
 
 	var stackTraceVar IdentifierNode
 	if n.StackTraceVar != nil {
-		stackTraceVar = n.StackTraceVar.Splice(loc, args, unquote).(IdentifierNode)
+		stackTraceVar = n.StackTraceVar.splice(loc, args, unquote).(IdentifierNode)
 	}
 
 	body := SpliceSlice(n.Body, loc, args, unquote)

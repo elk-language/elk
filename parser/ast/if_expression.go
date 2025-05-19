@@ -17,10 +17,10 @@ type IfExpressionNode struct {
 	ElseBody  []StatementNode // else expression body
 }
 
-func (n *IfExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *IfExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &IfExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Condition:     n.Condition.Splice(loc, args, unquote).(ComplexConstantNode),
+		Condition:     n.Condition.splice(loc, args, unquote).(ComplexConstantNode),
 		ThenBody:      SpliceSlice(n.ThenBody, loc, args, unquote),
 		ElseBody:      SpliceSlice(n.ElseBody, loc, args, unquote),
 	}

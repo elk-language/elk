@@ -4,6 +4,8 @@ package comparer
 
 import (
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/parser/ast"
+	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
@@ -72,5 +74,36 @@ func init() {
 		vm.NewHashSetComparer(Comparer),
 		vm.NewHashMapComparer(Comparer),
 		vm.NewHashRecordComparer(Comparer),
+		cmp.AllowUnexported(
+			ast.NodeBase{},
+			ast.TypedNodeBase{},
+			token.Token{},
+			ast.MacroDefinitionNode{},
+			ast.DocCommentableNodeBase{},
+			ast.BinaryExpressionNode{},
+			ast.LogicalExpressionNode{},
+			ast.KeyValueExpressionNode{},
+			ast.ArrayListLiteralNode{},
+			ast.ArrayTupleLiteralNode{},
+			ast.HashSetLiteralNode{},
+			ast.HashMapLiteralNode{},
+			ast.HashRecordLiteralNode{},
+			ast.RangeLiteralNode{},
+			ast.SubscriptExpressionNode{},
+			ast.NilSafeSubscriptExpressionNode{},
+			ast.WordArrayListLiteralNode{},
+			ast.WordHashSetLiteralNode{},
+			ast.SymbolArrayListLiteralNode{},
+			ast.SymbolHashSetLiteralNode{},
+			ast.BinArrayListLiteralNode{},
+			ast.BinHashSetLiteralNode{},
+			ast.HexArrayListLiteralNode{},
+			ast.HexHashSetLiteralNode{},
+			ast.UninterpolatedRegexLiteralNode{},
+			bitfield.BitField8{},
+		),
+		cmpopts.IgnoreFields(
+			ast.TypedNodeBase{}, "typ",
+		),
 	)
 }

@@ -24,17 +24,17 @@ type ClassDeclarationNode struct {
 	Bytecode       value.Method
 }
 
-func (n *ClassDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ClassDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var constant ExpressionNode
 	if n.Constant != nil {
-		constant = n.Constant.Splice(loc, args, unquote).(ExpressionNode)
+		constant = n.Constant.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	typeParams := SpliceSlice(n.TypeParameters, loc, args, unquote)
 
 	var superclass ExpressionNode
 	if n.Superclass != nil {
-		superclass = n.Superclass.Splice(loc, args, unquote).(ExpressionNode)
+		superclass = n.Superclass.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	body := SpliceSlice(n.Body, loc, args, unquote)

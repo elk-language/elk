@@ -20,7 +20,7 @@ type ExtendWhereBlockExpressionNode struct {
 	Where []TypeParameterNode
 }
 
-func (n *ExtendWhereBlockExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ExtendWhereBlockExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ExtendWhereBlockExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Body:          SpliceSlice(n.Body, loc, args, unquote),

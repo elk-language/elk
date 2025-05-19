@@ -15,7 +15,7 @@ type UnionTypeNode struct {
 	Elements []TypeNode
 }
 
-func (n *UnionTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *UnionTypeNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UnionTypeNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),

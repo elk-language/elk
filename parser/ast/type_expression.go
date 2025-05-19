@@ -15,10 +15,10 @@ type TypeExpressionNode struct {
 	TypeNode TypeNode
 }
 
-func (n *TypeExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *TypeExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &TypeExpressionNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		TypeNode: n.TypeNode.Splice(loc, args, unquote).(TypeNode),
+		TypeNode: n.TypeNode.splice(loc, args, unquote).(TypeNode),
 	}
 }
 

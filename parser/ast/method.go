@@ -36,18 +36,18 @@ type MethodDefinitionNode struct {
 	Flags          bitfield.BitField8
 }
 
-func (n *MethodDefinitionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *MethodDefinitionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	typeParams := SpliceSlice(n.TypeParameters, loc, args, unquote)
 	params := SpliceSlice(n.Parameters, loc, args, unquote)
 
 	var returnType TypeNode
 	if n.ReturnType != nil {
-		returnType = n.ReturnType.Splice(loc, args, unquote).(TypeNode)
+		returnType = n.ReturnType.splice(loc, args, unquote).(TypeNode)
 	}
 
 	var throwType TypeNode
 	if n.ThrowType != nil {
-		throwType = n.ThrowType.Splice(loc, args, unquote).(TypeNode)
+		throwType = n.ThrowType.splice(loc, args, unquote).(TypeNode)
 	}
 
 	body := SpliceSlice(n.Body, loc, args, unquote)
@@ -382,12 +382,12 @@ type InitDefinitionNode struct {
 	Body       []StatementNode // body of the method
 }
 
-func (n *InitDefinitionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *InitDefinitionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	params := SpliceSlice(n.Parameters, loc, args, unquote)
 
 	var throwType TypeNode
 	if n.ThrowType != nil {
-		throwType = n.ThrowType.Splice(loc, args, unquote).(TypeNode)
+		throwType = n.ThrowType.splice(loc, args, unquote).(TypeNode)
 	}
 
 	body := SpliceSlice(n.Body, loc, args, unquote)
@@ -583,18 +583,18 @@ type MethodSignatureDefinitionNode struct {
 	ThrowType      TypeNode
 }
 
-func (n *MethodSignatureDefinitionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *MethodSignatureDefinitionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	typeParams := SpliceSlice(n.TypeParameters, loc, args, unquote)
 	params := SpliceSlice(n.Parameters, loc, args, unquote)
 
 	var returnType TypeNode
 	if n.ReturnType != nil {
-		returnType = n.ReturnType.Splice(loc, args, unquote).(TypeNode)
+		returnType = n.ReturnType.splice(loc, args, unquote).(TypeNode)
 	}
 
 	var throwType TypeNode
 	if n.ThrowType != nil {
-		throwType = n.ThrowType.Splice(loc, args, unquote).(TypeNode)
+		throwType = n.ThrowType.splice(loc, args, unquote).(TypeNode)
 	}
 
 	return &MethodSignatureDefinitionNode{
@@ -820,7 +820,7 @@ type AliasDeclarationEntry struct {
 	OldName string
 }
 
-func (n *AliasDeclarationEntry) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *AliasDeclarationEntry) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AliasDeclarationEntry{
 		NodeBase: n.NodeBase,
 		NewName:  n.NewName,
@@ -908,7 +908,7 @@ type AliasDeclarationNode struct {
 	Entries []*AliasDeclarationEntry
 }
 
-func (n *AliasDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *AliasDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AliasDeclarationNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Entries:       SpliceSlice(n.Entries, loc, args, unquote),
@@ -1020,7 +1020,7 @@ type GetterDeclarationNode struct {
 	Entries []ParameterNode
 }
 
-func (n *GetterDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *GetterDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &GetterDeclarationNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
@@ -1149,7 +1149,7 @@ type SetterDeclarationNode struct {
 	Entries []ParameterNode
 }
 
-func (n *SetterDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *SetterDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SetterDeclarationNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
@@ -1271,7 +1271,7 @@ type AttrDeclarationNode struct {
 	Entries []ParameterNode
 }
 
-func (n *AttrDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *AttrDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AttrDeclarationNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,

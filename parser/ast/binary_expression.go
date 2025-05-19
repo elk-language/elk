@@ -19,9 +19,9 @@ type BinaryExpressionNode struct {
 	static bool
 }
 
-func (n *BinaryExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
-	left := n.Left.Splice(loc, args, unquote).(ExpressionNode)
-	right := n.Right.Splice(loc, args, unquote).(ExpressionNode)
+func (n *BinaryExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	left := n.Left.splice(loc, args, unquote).(ExpressionNode)
+	right := n.Right.splice(loc, args, unquote).(ExpressionNode)
 
 	return &BinaryExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},

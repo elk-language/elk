@@ -35,15 +35,15 @@ type RangeLiteralNode struct {
 	static bool
 }
 
-func (n *RangeLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *RangeLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var start ExpressionNode
 	if n.Start != nil {
-		start = n.Start.Splice(loc, args, unquote).(ExpressionNode)
+		start = n.Start.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	var end ExpressionNode
 	if n.End != nil {
-		end = n.End.Splice(loc, args, unquote).(ExpressionNode)
+		end = n.End.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	return &RangeLiteralNode{

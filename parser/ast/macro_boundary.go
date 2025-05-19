@@ -16,7 +16,7 @@ type MacroBoundaryNode struct {
 	Body []StatementNode
 }
 
-func (n *MacroBoundaryNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *MacroBoundaryNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MacroBoundaryNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Name:          n.Name,

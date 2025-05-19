@@ -15,10 +15,10 @@ type DoubleSplatExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (n *DoubleSplatExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *DoubleSplatExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &DoubleSplatExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Value:         n.Value.Splice(loc, args, unquote).(ExpressionNode),
+		Value:         n.Value.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 
@@ -109,10 +109,10 @@ type SplatExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (n *SplatExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *SplatExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SplatExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Value:         n.Value.Splice(loc, args, unquote).(ExpressionNode),
+		Value:         n.Value.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 

@@ -29,10 +29,10 @@ type StructDeclarationNode struct {
 	Body           []StructBodyStatementNode // body of the struct
 }
 
-func (n *StructDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *StructDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var constant ExpressionNode
 	if n.Constant != nil {
-		constant = n.Constant.Splice(loc, args, unquote).(ExpressionNode)
+		constant = n.Constant.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	typeParams := SpliceSlice(n.TypeParameters, loc, args, unquote)

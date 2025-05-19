@@ -17,10 +17,10 @@ type BreakExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (n *BreakExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *BreakExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var val ExpressionNode
 	if n.Value != nil {
-		val = n.Value.Splice(loc, args, unquote).(ExpressionNode)
+		val = n.Value.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	return &BreakExpressionNode{

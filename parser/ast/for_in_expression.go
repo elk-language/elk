@@ -17,11 +17,11 @@ type ForInExpressionNode struct {
 	ThenBody     []StatementNode // then expression body
 }
 
-func (n *ForInExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ForInExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ForInExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Pattern:       n.Pattern.Splice(loc, args, unquote).(PatternNode),
-		InExpression:  n.InExpression.Splice(loc, args, unquote).(ExpressionNode),
+		Pattern:       n.Pattern.splice(loc, args, unquote).(PatternNode),
+		InExpression:  n.InExpression.splice(loc, args, unquote).(ExpressionNode),
 		ThenBody:      SpliceSlice(n.ThenBody, loc, args, unquote),
 	}
 }

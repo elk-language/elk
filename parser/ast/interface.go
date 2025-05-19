@@ -20,10 +20,10 @@ type InterfaceDeclarationNode struct {
 	Bytecode       value.Method
 }
 
-func (n *InterfaceDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *InterfaceDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var constant ExpressionNode
 	if n.Constant != nil {
-		constant = n.Constant.Splice(loc, args, unquote).(ExpressionNode)
+		constant = n.Constant.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	typeParams := SpliceSlice(n.TypeParameters, loc, args, unquote)

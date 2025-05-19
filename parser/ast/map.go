@@ -17,13 +17,13 @@ type HashMapLiteralNode struct {
 	static   bool
 }
 
-func (n *HashMapLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *HashMapLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 	var capacity ExpressionNode
 	var static bool
 
 	if n.Capacity != nil {
-		capacity = n.Capacity.Splice(loc, args, unquote).(ExpressionNode)
+		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
 		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
 	} else {
 		static = isExpressionSliceStatic(elements)
@@ -210,7 +210,7 @@ type HashRecordLiteralNode struct {
 	static   bool
 }
 
-func (n *HashRecordLiteralNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *HashRecordLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 	static := isExpressionSliceStatic(elements)
 

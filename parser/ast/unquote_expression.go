@@ -30,7 +30,7 @@ func (n *UnquoteExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *UnquoteExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *UnquoteExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	if args == nil || len(*args) == 0 {
 		panic("too few arguments for splicing AST nodes")
 	}
@@ -44,7 +44,7 @@ func (n *UnquoteExpressionNode) Splice(loc *position.Location, args *[]Node, unq
 		targetLoc.Parent = n.loc
 	}
 
-	return arg.Splice(targetLoc, nil, true)
+	return arg.splice(targetLoc, nil, true)
 }
 
 // Check if this node equals another node.

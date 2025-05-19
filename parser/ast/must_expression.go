@@ -15,7 +15,7 @@ type MustExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (n *MustExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *MustExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MustExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,

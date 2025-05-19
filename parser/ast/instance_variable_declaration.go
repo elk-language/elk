@@ -34,10 +34,10 @@ func (n *InstanceVariableDeclarationNode) traverse(parent Node, enter func(node,
 	return leave(n, parent)
 }
 
-func (n *InstanceVariableDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *InstanceVariableDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var typeNode ComplexConstantNode
 	if n.TypeNode != nil {
-		typeNode = n.TypeNode.Splice(loc, args, unquote).(ComplexConstantNode)
+		typeNode = n.TypeNode.splice(loc, args, unquote).(ComplexConstantNode)
 	}
 
 	return &InstanceVariableDeclarationNode{

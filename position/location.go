@@ -20,11 +20,18 @@ func SpliceLocation(target, current *Location, unqoute bool) *Location {
 }
 
 func spliceLocationUnquote(target, current *Location) *Location {
+	var result *Location
 	if current != nil && current != ZeroLocation {
-		return current
+		result = current
+	} else {
+		result = target
 	}
 
-	return target
+	if result == nil {
+		result = ZeroLocation
+	}
+
+	return result
 }
 
 func spliceLocation(target, current *Location) *Location {

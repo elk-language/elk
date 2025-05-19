@@ -69,15 +69,15 @@ type FormalParameterNode struct {
 	Kind        ParameterKind
 }
 
-func (n *FormalParameterNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *FormalParameterNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var typeNode TypeNode
 	if n.TypeNode != nil {
-		typeNode = n.TypeNode.Splice(loc, args, unquote).(TypeNode)
+		typeNode = n.TypeNode.splice(loc, args, unquote).(TypeNode)
 	}
 
 	var init ExpressionNode
 	if n.Initialiser != nil {
-		init = n.Initialiser.Splice(loc, args, unquote).(ExpressionNode)
+		init = n.Initialiser.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	return &FormalParameterNode{
@@ -230,15 +230,15 @@ type MethodParameterNode struct {
 	Kind                ParameterKind
 }
 
-func (n *MethodParameterNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *MethodParameterNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var typeNode TypeNode
 	if n.TypeNode != nil {
-		typeNode = n.TypeNode.Splice(loc, args, unquote).(TypeNode)
+		typeNode = n.TypeNode.splice(loc, args, unquote).(TypeNode)
 	}
 
 	var init ExpressionNode
 	if n.Initialiser != nil {
-		init = n.Initialiser.Splice(loc, args, unquote).(ExpressionNode)
+		init = n.Initialiser.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	return &MethodParameterNode{
@@ -400,10 +400,10 @@ type SignatureParameterNode struct {
 	Kind     ParameterKind
 }
 
-func (n *SignatureParameterNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *SignatureParameterNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var typeNode TypeNode
 	if n.TypeNode != nil {
-		typeNode = n.TypeNode.Splice(loc, args, unquote).(TypeNode)
+		typeNode = n.TypeNode.splice(loc, args, unquote).(TypeNode)
 	}
 
 	return &SignatureParameterNode{
@@ -532,15 +532,15 @@ type AttributeParameterNode struct {
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
-func (n *AttributeParameterNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *AttributeParameterNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var typeNode TypeNode
 	if n.TypeNode != nil {
-		typeNode = n.TypeNode.Splice(loc, args, unquote).(TypeNode)
+		typeNode = n.TypeNode.splice(loc, args, unquote).(TypeNode)
 	}
 
 	var init ExpressionNode
 	if n.Initialiser != nil {
-		init = n.Initialiser.Splice(loc, args, unquote).(ExpressionNode)
+		init = n.Initialiser.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	return &AttributeParameterNode{

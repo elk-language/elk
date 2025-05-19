@@ -17,11 +17,11 @@ type PostfixExpressionNode struct {
 	Expression ExpressionNode
 }
 
-func (n *PostfixExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *PostfixExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &PostfixExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Op:            n.Op.Splice(loc, unquote),
-		Expression:    n.Expression.Splice(loc, args, unquote).(ExpressionNode),
+		Expression:    n.Expression.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
 

@@ -15,7 +15,7 @@ type IncludeExpressionNode struct {
 	Constants []ComplexConstantNode
 }
 
-func (n *IncludeExpressionNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *IncludeExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &IncludeExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Constants:     SpliceSlice(n.Constants, loc, args, unquote),

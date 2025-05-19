@@ -15,7 +15,7 @@ type IntersectionTypeNode struct {
 	Elements []TypeNode
 }
 
-func (n *IntersectionTypeNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *IntersectionTypeNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &IntersectionTypeNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),

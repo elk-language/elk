@@ -21,10 +21,10 @@ type MixinDeclarationNode struct {
 	Bytecode              value.Method
 }
 
-func (n *MixinDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *MixinDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var constant ExpressionNode
 	if n.Constant != nil {
-		constant = n.Constant.Splice(loc, args, unquote).(ExpressionNode)
+		constant = n.Constant.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	typeParams := SpliceSlice(n.TypeParameters, loc, args, unquote)

@@ -17,15 +17,15 @@ type ValueDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the value
 }
 
-func (n *ValueDeclarationNode) Splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *ValueDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	var typeNode TypeNode
 	if n.TypeNode != nil {
-		typeNode = n.TypeNode.Splice(loc, args, unquote).(TypeNode)
+		typeNode = n.TypeNode.splice(loc, args, unquote).(TypeNode)
 	}
 
 	var init ExpressionNode
 	if n.Initialiser != nil {
-		init = n.Initialiser.Splice(loc, args, unquote).(ExpressionNode)
+		init = n.Initialiser.splice(loc, args, unquote).(ExpressionNode)
 	}
 
 	return &ValueDeclarationNode{
