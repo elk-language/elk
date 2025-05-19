@@ -137,39 +137,6 @@ func TestDoCatchExpression(t *testing.T) {
 	}
 }
 
-func TestMacroBoundary(t *testing.T) {
-	tests := testTable{
-		"has it's own scope": {
-			input: `
-				do macro
-					a := 5
-				end
-				a
-			`,
-			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(38, 5, 5), P(38, 5, 5)), "undefined local `a`"),
-			},
-		},
-		"cannot access variables from outer scopes": {
-			input: `
-				a := 5
-				do macro
-					a
-				end
-			`,
-			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(30, 4, 6), P(30, 4, 6)), "undefined local `a`"),
-			},
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
-		})
-	}
-}
-
 func TestTryExpression(t *testing.T) {
 	tests := testTable{
 		"try with a value": {

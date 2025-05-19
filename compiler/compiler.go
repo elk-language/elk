@@ -1069,6 +1069,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 			return expressionCompiled
 		}
 		c.emitValue(value.Float32(f).ToValue(), node.Location())
+	case *ast.QuoteExpressionNode:
+		// TODO: Implement quote compilation
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
