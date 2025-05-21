@@ -2101,7 +2101,7 @@ func TestStringGraphemeIterator_Next(t *testing.T) {
 			after: value.NewStringGraphemeIteratorWithRestAndState(
 				value.String("ab"),
 				"b",
-				0,
+				16,
 			),
 			want: value.Ref(value.String("a")),
 		},
@@ -2156,7 +2156,7 @@ func TestStringGraphemeIterator_Next(t *testing.T) {
 			after: value.NewStringGraphemeIteratorWithRestAndState(
 				value.String("ab"),
 				"b",
-				0,
+				16,
 			),
 			want: value.Ref(value.String("a")),
 		},
