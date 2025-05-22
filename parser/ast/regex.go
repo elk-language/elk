@@ -51,6 +51,10 @@ func (n *UninterpolatedRegexLiteralNode) splice(loc *position.Location, args *[]
 	}
 }
 
+func (n *UninterpolatedRegexLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UninterpolatedRegexLiteralNode", env)
+}
+
 func (n *UninterpolatedRegexLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -204,6 +208,11 @@ func (n *RegexLiteralContentSectionNode) splice(loc *position.Location, args *[]
 		Value:    n.Value,
 	}
 }
+
+func (n *RegexLiteralContentSectionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::RegexLiteralContentSectionNode", env)
+}
+
 func (n *RegexLiteralContentSectionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -270,6 +279,10 @@ func (n *RegexInterpolationNode) splice(loc *position.Location, args *[]Node, un
 		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Expression: n.Expression.splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *RegexInterpolationNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::RegexInterpolationNode", env)
 }
 
 func (n *RegexInterpolationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -357,6 +370,10 @@ func (n *InterpolatedRegexLiteralNode) splice(loc *position.Location, args *[]No
 		Content:  SpliceSlice(n.Content, loc, args, unquote),
 		Flags:    n.Flags,
 	}
+}
+
+func (n *InterpolatedRegexLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::InterpolatedRegexLiteralNode", env)
 }
 
 func (n *InterpolatedRegexLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

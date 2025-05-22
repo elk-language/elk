@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -20,6 +21,10 @@ func (n *UnionTypeNode) splice(loc *position.Location, args *[]Node, unquote boo
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
+}
+
+func (n *UnionTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UnionTypeNode", env)
 }
 
 func (n *UnionTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

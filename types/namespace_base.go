@@ -128,7 +128,11 @@ func (c *NamespaceBase) SubtypeString(name string) (Constant, bool) {
 	return c.Subtype(value.ToSymbol(name))
 }
 
-func (c *NamespaceBase) MustSubtype(name string) Type {
+func (c *NamespaceBase) MustSubtype(name value.Symbol) Type {
+	return c.subtypes[name].Type
+}
+
+func (c *NamespaceBase) MustSubtypeString(name string) Type {
 	return c.subtypes[value.ToSymbol(name)].Type
 }
 

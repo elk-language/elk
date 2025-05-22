@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -20,6 +21,10 @@ func (n *GoExpressionNode) splice(loc *position.Location, args *[]Node, unquote 
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Body:          SpliceSlice(n.Body, loc, args, unquote),
 	}
+}
+
+func (n *GoExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::GoExpressionNode", env)
 }
 
 func (n *GoExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

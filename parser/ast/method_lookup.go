@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -22,6 +23,10 @@ func (n *MethodLookupNode) splice(loc *position.Location, args *[]Node, unquote 
 		Receiver:      n.Receiver.splice(loc, args, unquote).(ExpressionNode),
 		Name:          n.Name,
 	}
+}
+
+func (n *MethodLookupNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::MethodLookupNode", env)
 }
 
 func (n *MethodLookupNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -124,6 +129,10 @@ func (n *MethodLookupAsNode) splice(loc *position.Location, args *[]Node, unquot
 		MethodLookup: n.MethodLookup.splice(loc, args, unquote).(*MethodLookupNode),
 		AsName:       n.AsName,
 	}
+}
+
+func (n *MethodLookupAsNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::MethodLookupAsNode", env)
 }
 
 func (n *MethodLookupAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

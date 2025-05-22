@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -41,6 +42,10 @@ func (n *MixinDeclarationNode) splice(loc *position.Location, args *[]Node, unqu
 		IncludesAndImplements:  includes,
 		Bytecode:               n.Bytecode,
 	}
+}
+
+func (n *MixinDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::MixinDeclarationNode", env)
 }
 
 func (n *MixinDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

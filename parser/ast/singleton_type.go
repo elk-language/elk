@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -20,6 +21,10 @@ func (n *SingletonTypeNode) splice(loc *position.Location, args *[]Node, unquote
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		TypeNode:      n.TypeNode.splice(loc, args, unquote).(TypeNode),
 	}
+}
+
+func (n *SingletonTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::SingletonTypeNode", env)
 }
 
 func (n *SingletonTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

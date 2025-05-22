@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -61,6 +62,10 @@ func (n *VariantTypeParameterNode) splice(loc *position.Location, args *[]Node, 
 		UpperBound:    upperBound,
 		Default:       def,
 	}
+}
+
+func (n *VariantTypeParameterNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::VariantTypeParameterNode", env)
 }
 
 func (n *VariantTypeParameterNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

@@ -28,6 +28,10 @@ func (n *ReturnExpressionNode) splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *ReturnExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ReturnExpressionNode", env)
+}
+
 func (n *ReturnExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:

@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -53,6 +54,10 @@ func (n *UsingAllEntryNode) splice(loc *position.Location, args *[]Node, unquote
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Namespace:     n.Namespace.splice(loc, args, unquote).(UsingEntryNode),
 	}
+}
+
+func (n *UsingAllEntryNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UsingAllEntryNode", env)
 }
 
 func (n *UsingAllEntryNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -139,6 +144,10 @@ func (n *UsingEntryWithSubentriesNode) splice(loc *position.Location, args *[]No
 		Namespace:  n.Namespace.splice(loc, args, unquote).(UsingEntryNode),
 		Subentries: SpliceSlice(n.Subentries, loc, args, unquote),
 	}
+}
+
+func (n *UsingEntryWithSubentriesNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UsingEntryWithSubentriesNode", env)
 }
 
 func (n *UsingEntryWithSubentriesNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -259,6 +268,10 @@ func (n *UsingExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Entries:       SpliceSlice(n.Entries, loc, args, unquote),
 	}
+}
+
+func (n *UsingExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UsingExpressionNode", env)
 }
 
 func (n *UsingExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

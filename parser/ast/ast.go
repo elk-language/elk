@@ -269,11 +269,16 @@ type Node interface {
 	position.LocationInterface
 	value.Reference
 	IsStatic() bool // Value is known at compile-time
+	// Return the static type of the value represented
+	// by the AST node
 	Type(*types.GlobalEnvironment) types.Type
 	SetType(types.Type)
 	SkipTypechecking() bool
 	Equal(value.Value) bool
 	String() string
+	// Return the type of the AST node object
+	// for use in macros
+	MacroType(*types.GlobalEnvironment) types.Type
 	splice(loc *position.Location, args *[]Node, unquote bool) Node
 	traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption
 }

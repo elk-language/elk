@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -28,6 +29,10 @@ func (n *DoExpressionNode) splice(loc *position.Location, args *[]Node, unquote 
 		Catches:       SpliceSlice(n.Catches, loc, args, unquote),
 		Finally:       SpliceSlice(n.Finally, loc, args, unquote),
 	}
+}
+
+func (n *DoExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::DoExpressionNode", env)
 }
 
 func (n *DoExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -217,6 +222,10 @@ func (n *CatchNode) splice(loc *position.Location, args *[]Node, unquote bool) N
 		StackTraceVar: stackTraceVar,
 		Body:          body,
 	}
+}
+
+func (n *CatchNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::CatchNode", env)
 }
 
 func (n *CatchNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

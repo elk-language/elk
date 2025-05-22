@@ -36,6 +36,10 @@ func (n *SimpleSymbolLiteralNode) splice(loc *position.Location, args *[]Node, u
 	}
 }
 
+func (n *SimpleSymbolLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::SimpleSymbolLiteralNode", env)
+}
+
 func (n *SimpleSymbolLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -102,6 +106,10 @@ func (n *InterpolatedSymbolLiteralNode) splice(loc *position.Location, args *[]N
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Content:  n.Content.splice(loc, args, unquote).(*InterpolatedStringLiteralNode),
 	}
+}
+
+func (n *InterpolatedSymbolLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::InterpolatedSymbolLiteralNode", env)
 }
 
 func (n *InterpolatedSymbolLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

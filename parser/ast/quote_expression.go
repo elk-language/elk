@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -21,6 +22,11 @@ func (n *QuoteExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 		Body:          SpliceSlice(n.Body, loc, args, unquote),
 	}
 }
+
+func (n *QuoteExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::QuoteExpressionNode", env)
+}
+
 func (n *QuoteExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:

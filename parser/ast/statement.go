@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -34,6 +35,10 @@ func (n *ExpressionStatementNode) splice(loc *position.Location, args *[]Node, u
 		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Expression: n.Expression.splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *ExpressionStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ExpressionStatementNode", env)
 }
 
 func (n *ExpressionStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -122,6 +127,10 @@ func (n *EmptyStatementNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *EmptyStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::EmptyStatementNode", env)
+}
+
 func (n *EmptyStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -186,6 +195,10 @@ func (n *ImportStatementNode) splice(loc *position.Location, args *[]Node, unquo
 		Path:     n.Path,
 		FsPaths:  n.FsPaths,
 	}
+}
+
+func (n *ImportStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ImportStatementNode", env)
 }
 
 func (n *ImportStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -262,6 +275,10 @@ func (n *ParameterStatementNode) splice(loc *position.Location, args *[]Node, un
 		NodeBase:  NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Parameter: n.Parameter.splice(loc, args, unquote).(ParameterNode),
 	}
+}
+
+func (n *ParameterStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ParameterStatementNode", env)
 }
 
 func (n *ParameterStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

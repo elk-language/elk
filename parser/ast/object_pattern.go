@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -22,6 +23,10 @@ func (n *ObjectPatternNode) splice(loc *position.Location, args *[]Node, unquote
 		ObjectType:    n.ObjectType.splice(loc, args, unquote).(ComplexConstantNode),
 		Attributes:    SpliceSlice(n.Attributes, loc, args, unquote),
 	}
+}
+
+func (n *ObjectPatternNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ObjectPatternNode", env)
 }
 
 func (n *ObjectPatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

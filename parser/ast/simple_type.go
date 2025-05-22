@@ -19,6 +19,10 @@ func (n *BoolLiteralNode) splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
+func (n *BoolLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::BoolLiteralNode", env)
+}
+
 func (n *BoolLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -85,6 +89,10 @@ func (n *VoidTypeNode) splice(loc *position.Location, args *[]Node, unquote bool
 	}
 }
 
+func (n *VoidTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::VoidTypeNode", env)
+}
+
 func (n *VoidTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -144,6 +152,10 @@ func (n *NeverTypeNode) splice(loc *position.Location, args *[]Node, unquote boo
 	return &NeverTypeNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
+}
+
+func (n *NeverTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::NeverTypeNode", env)
 }
 
 func (n *NeverTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -209,6 +221,10 @@ func (n *AnyTypeNode) splice(loc *position.Location, args *[]Node, unquote bool)
 	return &AnyTypeNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
+}
+
+func (n *AnyTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::AnyTypeNode", env)
 }
 
 func (n *AnyTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

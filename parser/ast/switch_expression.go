@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -33,6 +34,10 @@ func (n *SwitchExpressionNode) splice(loc *position.Location, args *[]Node, unqu
 		Cases:         SpliceSlice(n.Cases, loc, args, unquote),
 		ElseBody:      SpliceSlice(n.ElseBody, loc, args, unquote),
 	}
+}
+
+func (n *SwitchExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::SwitchExpressionNode", env)
 }
 
 func (n *SwitchExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -185,6 +190,10 @@ func (n *CaseNode) splice(loc *position.Location, args *[]Node, unquote bool) No
 		Pattern:  n.Pattern.splice(loc, args, unquote).(PatternNode),
 		Body:     SpliceSlice(n.Body, loc, args, unquote),
 	}
+}
+
+func (n *CaseNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::CaseNode", env)
 }
 
 func (n *CaseNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

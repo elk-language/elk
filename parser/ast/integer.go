@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -18,6 +19,10 @@ func (n *IntLiteralNode) splice(loc *position.Location, args *[]Node, unquote bo
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *IntLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::IntLiteralNode", env)
 }
 
 func (n *IntLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -89,6 +94,10 @@ func (n *Int64LiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
+func (n *Int64LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::Int64LiteralNode", env)
+}
+
 func (n *Int64LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -150,6 +159,10 @@ func NewInt64LiteralNode(loc *position.Location, val string) *Int64LiteralNode {
 type UInt64LiteralNode struct {
 	TypedNodeBase
 	Value string
+}
+
+func (n *UInt64LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UInt64LiteralNode", env)
 }
 
 func (n *UInt64LiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -229,6 +242,10 @@ func (n *Int32LiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
+func (n *Int32LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::Int32LiteralNode", env)
+}
+
 func (n *Int32LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -293,6 +310,10 @@ func (n *UInt32LiteralNode) splice(loc *position.Location, args *[]Node, unquote
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *UInt32LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UInt32LiteralNode", env)
 }
 
 func (n *UInt32LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -365,6 +386,10 @@ func (n *Int16LiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
+func (n *Int16LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::Int16LiteralNode", env)
+}
+
 func (n *Int16LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -433,6 +458,10 @@ func (n *UInt16LiteralNode) splice(loc *position.Location, args *[]Node, unquote
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *UInt16LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UInt16LiteralNode", env)
 }
 
 func (n *UInt16LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -505,6 +534,10 @@ func (n *Int8LiteralNode) splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
+func (n *Int8LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::Int8LiteralNode", env)
+}
+
 func (n *Int8LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -573,6 +606,10 @@ func (n *UInt8LiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *UInt8LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UInt8LiteralNode", env)
 }
 
 func (n *UInt8LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

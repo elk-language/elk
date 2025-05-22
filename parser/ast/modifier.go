@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -25,6 +26,10 @@ func (n *ModifierNode) splice(loc *position.Location, args *[]Node, unquote bool
 		Left:          n.Left.splice(loc, args, unquote).(ExpressionNode),
 		Right:         n.Right.splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *ModifierNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ModifierNode", env)
 }
 
 func (n *ModifierNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -147,6 +152,10 @@ func (n *ModifierIfElseNode) splice(loc *position.Location, args *[]Node, unquot
 		Condition:      n.Condition.splice(loc, args, unquote).(ExpressionNode),
 		ElseExpression: n.ElseExpression.splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *ModifierIfElseNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ModifierIfElseNode", env)
 }
 
 func (n *ModifierIfElseNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -272,6 +281,10 @@ func (n *ModifierForInNode) splice(loc *position.Location, args *[]Node, unquote
 		Pattern:        n.Pattern.splice(loc, args, unquote).(PatternNode),
 		InExpression:   n.InExpression.splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *ModifierForInNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ModifierForInNode", env)
 }
 
 func (n *ModifierForInNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -46,6 +47,10 @@ func (n *InstanceVariableDeclarationNode) splice(loc *position.Location, args *[
 		Name:                   n.Name,
 		TypeNode:               typeNode,
 	}
+}
+
+func (n *InstanceVariableDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::InstanceVariableDeclarationNode", env)
 }
 
 func (n *InstanceVariableDeclarationNode) Equal(other value.Value) bool {

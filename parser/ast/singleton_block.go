@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -26,6 +27,10 @@ func (n *SingletonBlockExpressionNode) splice(loc *position.Location, args *[]No
 		Body:          SpliceSlice(n.Body, loc, args, unquote),
 		Bytecode:      n.Bytecode,
 	}
+}
+
+func (n *SingletonBlockExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::SingletonBlockExpressionNode", env)
 }
 
 func (n *SingletonBlockExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

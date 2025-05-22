@@ -64,6 +64,10 @@ func (n *RawStringLiteralNode) splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
+func (n *RawStringLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::RawStringLiteralNode", env)
+}
+
 func (n *RawStringLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -132,6 +136,10 @@ func (n *StringLiteralContentSectionNode) splice(loc *position.Location, args *[
 	}
 }
 
+func (n *StringLiteralContentSectionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::StringLiteralContentSectionNode", env)
+}
+
 func (n *StringLiteralContentSectionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -198,6 +206,10 @@ func (n *StringInspectInterpolationNode) splice(loc *position.Location, args *[]
 		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Expression: n.Expression.splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *StringInspectInterpolationNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::StringInspectInterpolationNode", env)
 }
 
 func (n *StringInspectInterpolationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -285,6 +297,10 @@ func (n *StringInterpolationNode) splice(loc *position.Location, args *[]Node, u
 	}
 }
 
+func (n *StringInterpolationNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::StringInterpolationNode", env)
+}
+
 func (n *StringInterpolationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -368,6 +384,10 @@ func (n *InterpolatedStringLiteralNode) splice(loc *position.Location, args *[]N
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Content:  SpliceSlice(n.Content, loc, args, unquote),
 	}
+}
+
+func (n *InterpolatedStringLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::InterpolatedStringLiteralNode", env)
 }
 
 func (n *InterpolatedStringLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -477,6 +497,10 @@ func (n *DoubleQuotedStringLiteralNode) splice(loc *position.Location, args *[]N
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *DoubleQuotedStringLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::DoubleQuotedStringLiteralNode", env)
 }
 
 func (n *DoubleQuotedStringLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

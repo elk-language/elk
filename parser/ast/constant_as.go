@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -23,6 +24,10 @@ func (n *ConstantAsNode) splice(loc *position.Location, args *[]Node, unquote bo
 		Constant: n.Constant.splice(loc, args, unquote).(ComplexConstantNode),
 		AsName:   n.AsName,
 	}
+}
+
+func (n *ConstantAsNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ConstantAsNode", env)
 }
 
 func (n *ConstantAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

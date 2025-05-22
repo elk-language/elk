@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -28,6 +29,10 @@ func (n *UnquoteExpressionNode) traverse(parent Node, enter func(node, parent No
 	}
 
 	return leave(n, parent)
+}
+
+func (n *UnquoteExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UnquoteExpressionNode", env)
 }
 
 func (n *UnquoteExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {

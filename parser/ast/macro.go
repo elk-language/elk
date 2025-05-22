@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -31,6 +32,10 @@ func (n *MacroDefinitionNode) splice(loc *position.Location, args *[]Node, unquo
 		Body:                   body,
 		sealed:                 n.sealed,
 	}
+}
+
+func (n *MacroDefinitionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::MacroDefinitionNode", env)
 }
 
 func (n *MacroDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -214,6 +219,10 @@ func (n *MacroCallNode) splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
+func (n *MacroCallNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::MacroCallNode", env)
+}
+
 func (n *MacroCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -394,6 +403,10 @@ func (n *ReceiverlessMacroCallNode) splice(loc *position.Location, args *[]Node,
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
+}
+
+func (n *ReceiverlessMacroCallNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ReceiverlessMacroCallNode", env)
 }
 
 func (n *ReceiverlessMacroCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

@@ -632,7 +632,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		// Define instance variables
 
 		{
-			namespace := namespace.MustSubtype("Std").(*Module)
+			namespace := namespace.MustSubtypeString("Std").(*Module)
 
 			namespace.Name() // noop - avoid unused variable error
 
@@ -645,7 +645,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			// Define instance variables
 
 			{
-				namespace := namespace.MustSubtype("ArrayList").(*Class)
+				namespace := namespace.MustSubtypeString("ArrayList").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -689,7 +689,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -718,7 +718,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("ArrayTuple").(*Class)
+				namespace := namespace.MustSubtypeString("ArrayTuple").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -751,7 +751,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -780,7 +780,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("BeginlessClosedRange").(*Class)
+				namespace := namespace.MustSubtypeString("BeginlessClosedRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -810,7 +810,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("BeginlessOpenRange").(*Class)
+				namespace := namespace.MustSubtypeString("BeginlessOpenRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -840,7 +840,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("BigFloat").(*Class)
+				namespace := namespace.MustSubtypeString("BigFloat").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -889,7 +889,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Bool").(*Class)
+				namespace := namespace.MustSubtypeString("Bool").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -903,7 +903,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Box").(*Class)
+				namespace := namespace.MustSubtypeString("Box").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -930,7 +930,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("CallFrame").(*Class)
+				namespace := namespace.MustSubtypeString("CallFrame").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -948,7 +948,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Channel").(*Class)
+				namespace := namespace.MustSubtypeString("Channel").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -998,7 +998,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Char").(*Class)
+				namespace := namespace.MustSubtypeString("Char").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1041,7 +1041,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Class").(*Class)
+				namespace := namespace.MustSubtypeString("Class").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1056,7 +1056,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Closable").(*Interface)
+				namespace := namespace.MustSubtypeString("Closable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1070,7 +1070,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("ClosedRange").(*Class)
+				namespace := namespace.MustSubtypeString("ClosedRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1113,7 +1113,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -1143,7 +1143,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Collection").(*Interface)
+				namespace := namespace.MustSubtypeString("Collection").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1176,7 +1176,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Base").(*Mixin)
+					namespace := namespace.MustSubtypeString("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -1207,7 +1207,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Colorizer").(*Interface)
+				namespace := namespace.MustSubtypeString("Colorizer").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1221,7 +1221,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Comparable").(*Interface)
+				namespace := namespace.MustSubtypeString("Comparable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1250,7 +1250,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Container").(*Interface)
+				namespace := namespace.MustSubtypeString("Container").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1275,7 +1275,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Debug").(*Module)
+				namespace := namespace.MustSubtypeString("Debug").(*Module)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1293,7 +1293,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Decrementable").(*Interface)
+				namespace := namespace.MustSubtypeString("Decrementable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1318,7 +1318,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Diagnostic").(*Class)
+				namespace := namespace.MustSubtypeString("Diagnostic").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1341,7 +1341,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("DiagnosticList").(*Class)
+				namespace := namespace.MustSubtypeString("DiagnosticList").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1376,7 +1376,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -1394,7 +1394,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Duration").(*Class)
+				namespace := namespace.MustSubtypeString("Duration").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -1448,7 +1448,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Elk").(*Module)
+				namespace := namespace.MustSubtypeString("Elk").(*Module)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -1461,7 +1461,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("AST").(*Module)
+					namespace := namespace.MustSubtypeString("AST").(*Module)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -1474,7 +1474,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 
 					{
-						namespace := namespace.MustSubtype("AliasDeclarationEntry").(*Class)
+						namespace := namespace.MustSubtypeString("AliasDeclarationEntry").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1492,7 +1492,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("AliasDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("AliasDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1509,7 +1509,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("AnyTypeNode").(*Class)
+						namespace := namespace.MustSubtypeString("AnyTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1525,7 +1525,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ArrayListLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("ArrayListLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1543,7 +1543,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ArrayTupleLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("ArrayTupleLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1560,7 +1560,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("AsExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("AsExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1578,7 +1578,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("AsPatternNode").(*Class)
+						namespace := namespace.MustSubtypeString("AsPatternNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1596,7 +1596,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("AssignmentExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("AssignmentExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1615,7 +1615,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("AttrDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("AttrDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1633,7 +1633,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("AttributeAccessNode").(*Class)
+						namespace := namespace.MustSubtypeString("AttributeAccessNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1651,7 +1651,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("AttributeParameterNode").(*Class)
+						namespace := namespace.MustSubtypeString("AttributeParameterNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1674,7 +1674,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("AwaitExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("AwaitExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1691,7 +1691,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("BigFloatLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("BigFloatLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1710,7 +1710,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("BinArrayListLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("BinArrayListLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1729,7 +1729,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("BinArrayTupleLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("BinArrayTupleLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1747,7 +1747,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("BinHashSetLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("BinHashSetLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1766,7 +1766,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("BinaryExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("BinaryExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1785,7 +1785,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("BinaryPatternNode").(*Class)
+						namespace := namespace.MustSubtypeString("BinaryPatternNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1804,7 +1804,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("BinaryTypeNode").(*Class)
+						namespace := namespace.MustSubtypeString("BinaryTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1823,7 +1823,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("BoolLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("BoolLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1839,7 +1839,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("BreakExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("BreakExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1857,7 +1857,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("CallNode").(*Class)
+						namespace := namespace.MustSubtypeString("CallNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1877,7 +1877,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("CaseNode").(*Class)
+						namespace := namespace.MustSubtypeString("CaseNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1894,7 +1894,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("CatchNode").(*Class)
+						namespace := namespace.MustSubtypeString("CatchNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1912,7 +1912,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("CharLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("CharLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1931,7 +1931,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ClassDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("ClassDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1956,7 +1956,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ClosureLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("ClosureLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1976,7 +1976,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ClosureTypeNode").(*Class)
+						namespace := namespace.MustSubtypeString("ClosureTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -1995,7 +1995,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ComplexConstantNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("ComplexConstantNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2012,7 +2012,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ConstantAsNode").(*Class)
+						namespace := namespace.MustSubtypeString("ConstantAsNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2031,7 +2031,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ConstantDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("ConstantDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2051,7 +2051,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ConstantLookupNode").(*Class)
+						namespace := namespace.MustSubtypeString("ConstantLookupNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2073,7 +2073,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ConstantNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("ConstantNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2090,7 +2090,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ConstructorCallNode").(*Class)
+						namespace := namespace.MustSubtypeString("ConstructorCallNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2109,7 +2109,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ContinueExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("ContinueExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2127,7 +2127,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("DoExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("DoExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2146,7 +2146,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("DoubleQuotedStringLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("DoubleQuotedStringLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2167,7 +2167,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("DoubleSplatExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("DoubleSplatExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2185,7 +2185,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("EmptyStatementNode").(*Class)
+						namespace := namespace.MustSubtypeString("EmptyStatementNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2202,7 +2202,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ExpressionNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("ExpressionNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2216,7 +2216,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 
 						{
-							namespace := namespace.MustSubtype("Convertible").(*Interface)
+							namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 							namespace.Name() // noop - avoid unused variable error
 
@@ -2231,7 +2231,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						}
 					}
 					{
-						namespace := namespace.MustSubtype("ExpressionStatementNode").(*Class)
+						namespace := namespace.MustSubtypeString("ExpressionStatementNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2248,7 +2248,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ExtendWhereBlockExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("ExtendWhereBlockExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2266,7 +2266,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("FalseLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("FalseLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2284,7 +2284,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("Float32LiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("Float32LiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2303,7 +2303,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("Float64LiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("Float64LiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2322,7 +2322,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("FloatLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("FloatLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2341,7 +2341,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ForInExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("ForInExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2360,7 +2360,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("FormalParameterNode").(*Class)
+						namespace := namespace.MustSubtypeString("FormalParameterNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2384,7 +2384,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("GenericConstantNode").(*Class)
+						namespace := namespace.MustSubtypeString("GenericConstantNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2406,7 +2406,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("GenericConstructorCallNode").(*Class)
+						namespace := namespace.MustSubtypeString("GenericConstructorCallNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2426,7 +2426,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("GenericMethodCallNode").(*Class)
+						namespace := namespace.MustSubtypeString("GenericMethodCallNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2448,7 +2448,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("GenericReceiverlessMethodCallNode").(*Class)
+						namespace := namespace.MustSubtypeString("GenericReceiverlessMethodCallNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2468,7 +2468,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("GenericTypeDefinitionNode").(*Class)
+						namespace := namespace.MustSubtypeString("GenericTypeDefinitionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2488,7 +2488,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("GetterDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("GetterDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2505,7 +2505,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("GoExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("GoExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2522,7 +2522,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("HashMapLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("HashMapLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2540,7 +2540,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("HashRecordLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("HashRecordLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2557,7 +2557,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("HashSetLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("HashSetLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2575,7 +2575,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("HexArrayListLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("HexArrayListLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2594,7 +2594,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("HexArrayTupleLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("HexArrayTupleLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2612,7 +2612,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("HexHashSetLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("HexHashSetLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2631,7 +2631,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("IdentifierNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("IdentifierNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2646,7 +2646,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("IfExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("IfExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2665,7 +2665,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ImplementExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("ImplementExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2682,7 +2682,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ImportStatementNode").(*Class)
+						namespace := namespace.MustSubtypeString("ImportStatementNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2699,7 +2699,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("IncludeExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("IncludeExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2716,7 +2716,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("InitDefinitionNode").(*Class)
+						namespace := namespace.MustSubtypeString("InitDefinitionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2735,7 +2735,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("InstanceOfTypeNode").(*Class)
+						namespace := namespace.MustSubtypeString("InstanceOfTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2752,7 +2752,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("InstanceVariableDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("InstanceVariableDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2771,7 +2771,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("InstanceVariableNode").(*Class)
+						namespace := namespace.MustSubtypeString("InstanceVariableNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2788,7 +2788,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("Int16LiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("Int16LiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2807,7 +2807,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("Int32LiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("Int32LiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2826,7 +2826,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("Int64LiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("Int64LiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2845,7 +2845,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("Int8LiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("Int8LiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2864,7 +2864,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("IntCollectionContentNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("IntCollectionContentNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2878,7 +2878,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("IntLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("IntLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2898,7 +2898,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("InterfaceDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("InterfaceDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2918,7 +2918,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("InterpolatedRegexLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("InterpolatedRegexLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2944,7 +2944,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("InterpolatedStringLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("InterpolatedStringLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2964,7 +2964,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("InterpolatedSymbolLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("InterpolatedSymbolLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -2984,7 +2984,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("IntersectionTypeNode").(*Class)
+						namespace := namespace.MustSubtypeString("IntersectionTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3001,7 +3001,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("InvalidNode").(*Class)
+						namespace := namespace.MustSubtypeString("InvalidNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3043,7 +3043,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("KeyValueExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("KeyValueExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3061,7 +3061,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("KeyValuePatternNode").(*Class)
+						namespace := namespace.MustSubtypeString("KeyValuePatternNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3079,7 +3079,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("LabeledExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("LabeledExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3097,7 +3097,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ListPatternNode").(*Class)
+						namespace := namespace.MustSubtypeString("ListPatternNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3114,7 +3114,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("LogicalExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("LogicalExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3133,7 +3133,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("LoopExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("LoopExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3150,7 +3150,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("MacroBoundaryNode").(*Class)
+						namespace := namespace.MustSubtypeString("MacroBoundaryNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3168,7 +3168,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("MacroCallNode").(*Class)
+						namespace := namespace.MustSubtypeString("MacroCallNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3188,7 +3188,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("MacroDefinitionNode").(*Class)
+						namespace := namespace.MustSubtypeString("MacroDefinitionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3209,7 +3209,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("MapPatternNode").(*Class)
+						namespace := namespace.MustSubtypeString("MapPatternNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3226,7 +3226,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("MethodCallNode").(*Class)
+						namespace := namespace.MustSubtypeString("MethodCallNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3247,7 +3247,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("MethodDefinitionNode").(*Class)
+						namespace := namespace.MustSubtypeString("MethodDefinitionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3279,7 +3279,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("MethodLookupAsNode").(*Class)
+						namespace := namespace.MustSubtypeString("MethodLookupAsNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3298,7 +3298,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("MethodLookupNode").(*Class)
+						namespace := namespace.MustSubtypeString("MethodLookupNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3317,7 +3317,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("MethodParameterNode").(*Class)
+						namespace := namespace.MustSubtypeString("MethodParameterNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3342,7 +3342,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("MethodSignatureDefinitionNode").(*Class)
+						namespace := namespace.MustSubtypeString("MethodSignatureDefinitionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3364,7 +3364,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("MixinDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("MixinDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3384,7 +3384,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ModifierForInNode").(*Class)
+						namespace := namespace.MustSubtypeString("ModifierForInNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3403,7 +3403,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ModifierIfElseNode").(*Class)
+						namespace := namespace.MustSubtypeString("ModifierIfElseNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3422,7 +3422,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ModifierNode").(*Class)
+						namespace := namespace.MustSubtypeString("ModifierNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3441,7 +3441,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ModuleDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("ModuleDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3460,7 +3460,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("MustExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("MustExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3477,7 +3477,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("NamedArgumentNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("NamedArgumentNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3491,7 +3491,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("NamedCallArgumentNode").(*Class)
+						namespace := namespace.MustSubtypeString("NamedCallArgumentNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3509,7 +3509,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("NeverTypeNode").(*Class)
+						namespace := namespace.MustSubtypeString("NeverTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3525,7 +3525,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("NewExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("NewExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3543,7 +3543,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("NilLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("NilLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3563,7 +3563,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("NilSafeSubscriptExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("NilSafeSubscriptExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3581,7 +3581,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("NilableTypeNode").(*Class)
+						namespace := namespace.MustSubtypeString("NilableTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3598,7 +3598,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("Node").(*Mixin)
+						namespace := namespace.MustSubtypeString("Node").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3617,7 +3617,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 
 						{
-							namespace := namespace.MustSubtype("Convertible").(*Interface)
+							namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 							namespace.Name() // noop - avoid unused variable error
 
@@ -3632,7 +3632,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						}
 					}
 					{
-						namespace := namespace.MustSubtype("NotTypeNode").(*Class)
+						namespace := namespace.MustSubtypeString("NotTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3649,7 +3649,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("NumericForExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("NumericForExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3669,7 +3669,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ObjectPatternNode").(*Class)
+						namespace := namespace.MustSubtypeString("ObjectPatternNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3687,7 +3687,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ParameterNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("ParameterNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3708,7 +3708,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ParameterStatementNode").(*Class)
+						namespace := namespace.MustSubtypeString("ParameterStatementNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3725,7 +3725,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("PatternExpressionNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("PatternExpressionNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3740,7 +3740,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("PatternNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("PatternNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3754,7 +3754,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 
 						{
-							namespace := namespace.MustSubtype("Convertible").(*Interface)
+							namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 							namespace.Name() // noop - avoid unused variable error
 
@@ -3769,7 +3769,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						}
 					}
 					{
-						namespace := namespace.MustSubtype("PostfixExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("PostfixExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3787,7 +3787,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("PrivateConstantNode").(*Class)
+						namespace := namespace.MustSubtypeString("PrivateConstantNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3809,7 +3809,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("PrivateIdentifierNode").(*Class)
+						namespace := namespace.MustSubtypeString("PrivateIdentifierNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3828,7 +3828,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ProgramNode").(*Class)
+						namespace := namespace.MustSubtypeString("ProgramNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3845,7 +3845,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("PublicConstantAsNode").(*Class)
+						namespace := namespace.MustSubtypeString("PublicConstantAsNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3864,7 +3864,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("PublicConstantNode").(*Class)
+						namespace := namespace.MustSubtypeString("PublicConstantNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3887,7 +3887,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("PublicIdentifierAsNode").(*Class)
+						namespace := namespace.MustSubtypeString("PublicIdentifierAsNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3906,7 +3906,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("PublicIdentifierNode").(*Class)
+						namespace := namespace.MustSubtypeString("PublicIdentifierNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3926,7 +3926,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("QuoteExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("QuoteExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3943,7 +3943,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("RangeLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("RangeLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3963,7 +3963,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("RawCharLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("RawCharLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -3982,7 +3982,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("RawStringLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("RawStringLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4004,7 +4004,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ReceiverlessMacroCallNode").(*Class)
+						namespace := namespace.MustSubtypeString("ReceiverlessMacroCallNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4023,7 +4023,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ReceiverlessMethodCallNode").(*Class)
+						namespace := namespace.MustSubtypeString("ReceiverlessMethodCallNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4042,7 +4042,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("RecordPatternNode").(*Class)
+						namespace := namespace.MustSubtypeString("RecordPatternNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4059,7 +4059,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("RegexInterpolationNode").(*Class)
+						namespace := namespace.MustSubtypeString("RegexInterpolationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4077,7 +4077,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("RegexLiteralContentNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("RegexLiteralContentNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4091,7 +4091,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("RegexLiteralContentSectionNode").(*Class)
+						namespace := namespace.MustSubtypeString("RegexLiteralContentSectionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4109,7 +4109,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("RegexLiteralNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("RegexLiteralNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4130,7 +4130,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("RestPatternNode").(*Class)
+						namespace := namespace.MustSubtypeString("RestPatternNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4147,7 +4147,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ReturnExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("ReturnExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4164,7 +4164,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SelfLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("SelfLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4181,7 +4181,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SetPatternNode").(*Class)
+						namespace := namespace.MustSubtypeString("SetPatternNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4198,7 +4198,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SetterDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("SetterDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4216,7 +4216,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SignatureParameterNode").(*Class)
+						namespace := namespace.MustSubtypeString("SignatureParameterNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4239,7 +4239,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SimpleStringLiteralNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("SimpleStringLiteralNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4253,7 +4253,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SimpleSymbolLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("SimpleSymbolLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4274,7 +4274,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SingletonBlockExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("SingletonBlockExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4293,7 +4293,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SingletonTypeNode").(*Class)
+						namespace := namespace.MustSubtypeString("SingletonTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4310,7 +4310,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SplatExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("SplatExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4327,7 +4327,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("StatementNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("StatementNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4341,25 +4341,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("StringInspectInterpolationNode").(*Class)
-
-						namespace.Name() // noop - avoid unused variable error
-
-						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralContentNode", env).(*Mixin))
-
-						// Define methods
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
-
-						// Define constants
-
-						// Define instance variables
-					}
-					{
-						namespace := namespace.MustSubtype("StringInterpolationNode").(*Class)
+						namespace := namespace.MustSubtypeString("StringInspectInterpolationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4377,7 +4359,25 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("StringLiteralContentNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("StringInterpolationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::Node", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralContentNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("StringLiteralContentNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4391,7 +4391,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("StringLiteralContentSectionNode").(*Class)
+						namespace := namespace.MustSubtypeString("StringLiteralContentSectionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4409,7 +4409,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("StringLiteralNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("StringLiteralNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4424,7 +4424,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("StructBodyStatementNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("StructBodyStatementNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4438,7 +4438,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("StructDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("StructDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4458,7 +4458,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SubscriptExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("SubscriptExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4476,7 +4476,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SwitchExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("SwitchExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4495,7 +4495,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SymbolArrayListLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("SymbolArrayListLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4514,7 +4514,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SymbolArrayTupleLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("SymbolArrayTupleLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4532,7 +4532,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SymbolCollectionContentNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("SymbolCollectionContentNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4546,7 +4546,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SymbolHashSetLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("SymbolHashSetLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4565,7 +4565,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SymbolKeyValueExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("SymbolKeyValueExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4583,7 +4583,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SymbolKeyValuePatternNode").(*Class)
+						namespace := namespace.MustSubtypeString("SymbolKeyValuePatternNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4601,7 +4601,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("SymbolLiteralNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("SymbolLiteralNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4615,7 +4615,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ThrowExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("ThrowExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4633,7 +4633,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("TrueLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("TrueLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4651,7 +4651,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("TryExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("TryExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4668,7 +4668,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("TuplePatternNode").(*Class)
+						namespace := namespace.MustSubtypeString("TuplePatternNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4685,7 +4685,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("TypeDefinitionNode").(*Class)
+						namespace := namespace.MustSubtypeString("TypeDefinitionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4704,7 +4704,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("TypeExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("TypeExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4721,7 +4721,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("TypeNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("TypeNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4735,7 +4735,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 
 						{
-							namespace := namespace.MustSubtype("Convertible").(*Interface)
+							namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 							namespace.Name() // noop - avoid unused variable error
 
@@ -4750,7 +4750,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						}
 					}
 					{
-						namespace := namespace.MustSubtype("TypeParameterNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("TypeParameterNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4767,7 +4767,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("TypeofExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("TypeofExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4784,7 +4784,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UInt16LiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("UInt16LiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4803,7 +4803,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UInt32LiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("UInt32LiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4822,7 +4822,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UInt64LiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("UInt64LiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4841,7 +4841,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UInt8LiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("UInt8LiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4860,7 +4860,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UnaryExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("UnaryExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4879,7 +4879,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UnaryTypeNode").(*Class)
+						namespace := namespace.MustSubtypeString("UnaryTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4897,7 +4897,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UndefinedLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("UndefinedLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4913,7 +4913,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UninterpolatedRegexLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("UninterpolatedRegexLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4939,7 +4939,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UnionTypeNode").(*Class)
+						namespace := namespace.MustSubtypeString("UnionTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4956,7 +4956,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UnlessExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("UnlessExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4975,7 +4975,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UnquoteExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("UnquoteExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -4992,7 +4992,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UntilExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("UntilExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5010,7 +5010,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UsingAllEntryNode").(*Class)
+						namespace := namespace.MustSubtypeString("UsingAllEntryNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5028,7 +5028,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UsingEntryNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("UsingEntryNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5042,7 +5042,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UsingEntryWithSubentriesNode").(*Class)
+						namespace := namespace.MustSubtypeString("UsingEntryWithSubentriesNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5061,7 +5061,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UsingExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("UsingExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5078,7 +5078,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("UsingSubentryNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("UsingSubentryNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5092,7 +5092,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ValueDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("ValueDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5111,7 +5111,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("ValuePatternDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("ValuePatternDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5129,7 +5129,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("VariableDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("VariableDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5149,7 +5149,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("VariablePatternDeclarationNode").(*Class)
+						namespace := namespace.MustSubtypeString("VariablePatternDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5167,7 +5167,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("VariantTypeParameterNode").(*Class)
+						namespace := namespace.MustSubtypeString("VariantTypeParameterNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5191,7 +5191,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("VoidTypeNode").(*Class)
+						namespace := namespace.MustSubtypeString("VoidTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5207,7 +5207,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("WhileExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("WhileExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5225,7 +5225,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("WordArrayListLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("WordArrayListLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5244,7 +5244,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("WordArrayTupleLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("WordArrayTupleLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5262,7 +5262,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("WordCollectionContentNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("WordCollectionContentNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5276,7 +5276,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("WordHashSetLiteralNode").(*Class)
+						namespace := namespace.MustSubtypeString("WordHashSetLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5295,7 +5295,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("YieldExpressionNode").(*Class)
+						namespace := namespace.MustSubtypeString("YieldExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5314,7 +5314,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					}
 				}
 				{
-					namespace := namespace.MustSubtype("Lexer").(*Class)
+					namespace := namespace.MustSubtypeString("Lexer").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -5345,7 +5345,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					}
 				}
 				{
-					namespace := namespace.MustSubtype("Parser").(*Class)
+					namespace := namespace.MustSubtypeString("Parser").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -5372,7 +5372,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("Result").(*Class)
+						namespace := namespace.MustSubtypeString("Result").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -5388,7 +5388,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					}
 				}
 				{
-					namespace := namespace.MustSubtype("Token").(*Class)
+					namespace := namespace.MustSubtypeString("Token").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -5425,7 +5425,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("EndlessClosedRange").(*Class)
+				namespace := namespace.MustSubtypeString("EndlessClosedRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -5467,7 +5467,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -5497,7 +5497,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("EndlessOpenRange").(*Class)
+				namespace := namespace.MustSubtypeString("EndlessOpenRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -5539,7 +5539,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -5569,7 +5569,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("FS").(*Module)
+				namespace := namespace.MustSubtypeString("FS").(*Module)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -5582,7 +5582,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Location").(*Class)
+					namespace := namespace.MustSubtypeString("Location").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -5598,7 +5598,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("Path").(*Class)
+					namespace := namespace.MustSubtypeString("Path").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -5641,7 +5641,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtype("Error").(*Class)
+						namespace := namespace.MustSubtypeString("Error").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 						namespace.SetParent(NameToNamespace("Std::Error", env))
@@ -5657,7 +5657,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("False").(*Class)
+				namespace := namespace.MustSubtypeString("False").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Bool", env))
@@ -5677,7 +5677,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("FileSystemError").(*Class)
+				namespace := namespace.MustSubtypeString("FileSystemError").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Error", env))
@@ -5691,7 +5691,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Float").(*Class)
+				namespace := namespace.MustSubtypeString("Float").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -5760,7 +5760,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -5775,7 +5775,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Float32").(*Class)
+				namespace := namespace.MustSubtypeString("Float32").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -5823,7 +5823,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -5838,7 +5838,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Float64").(*Class)
+				namespace := namespace.MustSubtypeString("Float64").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -5886,7 +5886,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -5901,7 +5901,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("FormatError").(*Class)
+				namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Error", env))
@@ -5915,7 +5915,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Generator").(*Class)
+				namespace := namespace.MustSubtypeString("Generator").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -5948,7 +5948,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("GlobError").(*Class)
+				namespace := namespace.MustSubtypeString("GlobError").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Error", env))
@@ -5962,7 +5962,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("HashMap").(*Class)
+				namespace := namespace.MustSubtypeString("HashMap").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -6009,7 +6009,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -6043,7 +6043,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("HashRecord").(*Class)
+				namespace := namespace.MustSubtypeString("HashRecord").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -6085,7 +6085,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -6119,7 +6119,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("HashSet").(*Class)
+				namespace := namespace.MustSubtypeString("HashSet").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -6161,7 +6161,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -6190,7 +6190,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Hashable").(*Interface)
+				namespace := namespace.MustSubtypeString("Hashable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -6204,7 +6204,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("ImmutableCollection").(*Interface)
+				namespace := namespace.MustSubtypeString("ImmutableCollection").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -6231,7 +6231,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Base").(*Mixin)
+					namespace := namespace.MustSubtypeString("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -6259,7 +6259,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("ImmutableSet").(*Mixin)
+				namespace := namespace.MustSubtypeString("ImmutableSet").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -6288,7 +6288,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Incrementable").(*Interface)
+				namespace := namespace.MustSubtypeString("Incrementable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -6313,7 +6313,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Inspectable").(*Interface)
+				namespace := namespace.MustSubtypeString("Inspectable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -6327,7 +6327,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Int").(*Class)
+				namespace := namespace.MustSubtypeString("Int").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -6403,7 +6403,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -6417,7 +6417,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -6433,7 +6433,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Int16").(*Class)
+				namespace := namespace.MustSubtypeString("Int16").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -6491,7 +6491,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -6506,7 +6506,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Int32").(*Class)
+				namespace := namespace.MustSubtypeString("Int32").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -6564,7 +6564,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -6579,7 +6579,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Int64").(*Class)
+				namespace := namespace.MustSubtypeString("Int64").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -6637,7 +6637,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -6652,7 +6652,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Int8").(*Class)
+				namespace := namespace.MustSubtypeString("Int8").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -6710,7 +6710,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -6725,7 +6725,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Interface").(*Class)
+				namespace := namespace.MustSubtypeString("Interface").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -6739,7 +6739,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Iterable").(*Interface)
+				namespace := namespace.MustSubtypeString("Iterable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -6799,7 +6799,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Base").(*Mixin)
+					namespace := namespace.MustSubtypeString("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -6831,7 +6831,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("FiniteBase").(*Mixin)
+					namespace := namespace.MustSubtypeString("FiniteBase").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -6889,7 +6889,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("NotFoundError").(*Class)
+					namespace := namespace.MustSubtypeString("NotFoundError").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 					namespace.SetParent(NameToNamespace("Std::Error", env))
@@ -6904,7 +6904,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("IterableRange").(*Interface)
+				namespace := namespace.MustSubtypeString("IterableRange").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -6937,7 +6937,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Iterator").(*Interface)
+				namespace := namespace.MustSubtypeString("Iterator").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -6970,7 +6970,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Base").(*Mixin)
+					namespace := namespace.MustSubtypeString("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7004,7 +7004,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Kernel").(*Module)
+				namespace := namespace.MustSubtypeString("Kernel").(*Module)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7022,7 +7022,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("LeftOpenRange").(*Class)
+				namespace := namespace.MustSubtypeString("LeftOpenRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7065,7 +7065,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7095,7 +7095,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("List").(*Mixin)
+				namespace := namespace.MustSubtypeString("List").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7125,7 +7125,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Lockable").(*Interface)
+				namespace := namespace.MustSubtypeString("Lockable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7140,7 +7140,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Map").(*Mixin)
+				namespace := namespace.MustSubtypeString("Map").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7174,7 +7174,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Mixin").(*Class)
+				namespace := namespace.MustSubtypeString("Mixin").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7188,7 +7188,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Module").(*Class)
+				namespace := namespace.MustSubtypeString("Module").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7202,7 +7202,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Nil").(*Class)
+				namespace := namespace.MustSubtypeString("Nil").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -7237,7 +7237,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Object").(*Class)
+				namespace := namespace.MustSubtypeString("Object").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -7251,7 +7251,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("OpenRange").(*Class)
+				namespace := namespace.MustSubtypeString("OpenRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7294,7 +7294,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7324,7 +7324,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("OutOfRangeError").(*Class)
+				namespace := namespace.MustSubtypeString("OutOfRangeError").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Error", env))
@@ -7338,7 +7338,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Pair").(*Class)
+				namespace := namespace.MustSubtypeString("Pair").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7375,7 +7375,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7409,7 +7409,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("PrimitiveIterable").(*Interface)
+				namespace := namespace.MustSubtypeString("PrimitiveIterable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7440,7 +7440,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Promise").(*Class)
+				namespace := namespace.MustSubtypeString("Promise").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7489,7 +7489,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Range").(*Mixin)
+				namespace := namespace.MustSubtypeString("Range").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7521,7 +7521,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Record").(*Mixin)
+				namespace := namespace.MustSubtypeString("Record").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7561,7 +7561,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Regex").(*Class)
+				namespace := namespace.MustSubtypeString("Regex").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7581,7 +7581,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("ResettableIterator").(*Interface)
+				namespace := namespace.MustSubtypeString("ResettableIterator").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7613,7 +7613,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Base").(*Mixin)
+					namespace := namespace.MustSubtypeString("Base").(*Mixin)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7646,7 +7646,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("RightOpenRange").(*Class)
+				namespace := namespace.MustSubtypeString("RightOpenRange").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7689,7 +7689,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7719,7 +7719,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Set").(*Mixin)
+				namespace := namespace.MustSubtypeString("Set").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7753,7 +7753,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("StackTrace").(*Class)
+				namespace := namespace.MustSubtypeString("StackTrace").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7771,7 +7771,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Iterator").(*Class)
+					namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7789,7 +7789,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("String").(*Class)
+				namespace := namespace.MustSubtypeString("String").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7838,7 +7838,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("ByteIterator").(*Class)
+					namespace := namespace.MustSubtypeString("ByteIterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7856,7 +7856,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("CharIterator").(*Class)
+					namespace := namespace.MustSubtypeString("CharIterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7874,7 +7874,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7888,7 +7888,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("GraphemeIterator").(*Class)
+					namespace := namespace.MustSubtypeString("GraphemeIterator").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7906,7 +7906,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("Position").(*Class)
+					namespace := namespace.MustSubtypeString("Position").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7923,7 +7923,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("Span").(*Class)
+					namespace := namespace.MustSubtypeString("Span").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -7940,7 +7940,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Symbol").(*Class)
+				namespace := namespace.MustSubtypeString("Symbol").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -7965,7 +7965,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Sync").(*Module)
+				namespace := namespace.MustSubtypeString("Sync").(*Module)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -7978,7 +7978,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("DiagnosticList").(*Class)
+					namespace := namespace.MustSubtypeString("DiagnosticList").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -8014,7 +8014,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 
 					{
-						namespace := namespace.MustSubtype("Iterator").(*Class)
+						namespace := namespace.MustSubtypeString("Iterator").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
@@ -8032,7 +8032,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					}
 				}
 				{
-					namespace := namespace.MustSubtype("Mutex").(*Class)
+					namespace := namespace.MustSubtypeString("Mutex").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -8047,7 +8047,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("Once").(*Class)
+					namespace := namespace.MustSubtypeString("Once").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -8061,7 +8061,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("ROMutex").(*Class)
+					namespace := namespace.MustSubtypeString("ROMutex").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -8078,7 +8078,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("RWMutex").(*Class)
+					namespace := namespace.MustSubtypeString("RWMutex").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -8096,7 +8096,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define instance variables
 				}
 				{
-					namespace := namespace.MustSubtype("WaitGroup").(*Class)
+					namespace := namespace.MustSubtypeString("WaitGroup").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -8116,7 +8116,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Thread").(*Class)
+				namespace := namespace.MustSubtypeString("Thread").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -8130,7 +8130,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("ThreadPool").(*Class)
+				namespace := namespace.MustSubtypeString("ThreadPool").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -8146,7 +8146,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Time").(*Class)
+				namespace := namespace.MustSubtypeString("Time").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -8244,7 +8244,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Timezone").(*Class)
+				namespace := namespace.MustSubtypeString("Timezone").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -8278,7 +8278,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("True").(*Class)
+				namespace := namespace.MustSubtypeString("True").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Bool", env))
@@ -8298,7 +8298,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("Tuple").(*Mixin)
+				namespace := namespace.MustSubtypeString("Tuple").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
 
@@ -8328,7 +8328,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
-				namespace := namespace.MustSubtype("UInt16").(*Class)
+				namespace := namespace.MustSubtypeString("UInt16").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -8386,7 +8386,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -8401,7 +8401,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("UInt32").(*Class)
+				namespace := namespace.MustSubtypeString("UInt32").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -8459,7 +8459,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -8474,7 +8474,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("UInt64").(*Class)
+				namespace := namespace.MustSubtypeString("UInt64").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -8532,7 +8532,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -8547,7 +8547,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("UInt8").(*Class)
+				namespace := namespace.MustSubtypeString("UInt8").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
@@ -8605,7 +8605,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 
 				{
-					namespace := namespace.MustSubtype("Convertible").(*Interface)
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 					namespace.Name() // noop - avoid unused variable error
 
@@ -8620,7 +8620,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtype("Value").(*Class)
+				namespace := namespace.MustSubtypeString("Value").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
 

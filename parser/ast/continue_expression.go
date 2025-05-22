@@ -27,6 +27,10 @@ func (n *ContinueExpressionNode) splice(loc *position.Location, args *[]Node, un
 	}
 }
 
+func (n *ContinueExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ContinueExpressionNode", env)
+}
+
 func (n *ContinueExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:

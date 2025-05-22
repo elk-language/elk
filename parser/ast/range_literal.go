@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -53,6 +54,10 @@ func (n *RangeLiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 		Op:            n.Op.Splice(loc, unquote),
 		static:        areExpressionsStatic(start, end),
 	}
+}
+
+func (n *RangeLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::RangeLiteralNode", env)
 }
 
 func (n *RangeLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

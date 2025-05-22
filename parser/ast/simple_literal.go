@@ -19,6 +19,10 @@ func (n *TrueLiteralNode) splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
+func (n *TrueLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::TrueLiteralNode", env)
+}
+
 func (n *TrueLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -83,6 +87,10 @@ func (n *FalseLiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 	return &FalseLiteralNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
+}
+
+func (n *FalseLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::FalseLiteralNode", env)
 }
 
 func (n *FalseLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -151,6 +159,10 @@ func (n *SelfLiteralNode) splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
+func (n *SelfLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::SelfLiteralNode", env)
+}
+
 func (n *SelfLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -211,6 +223,10 @@ func (n *NilLiteralNode) splice(loc *position.Location, args *[]Node, unquote bo
 	return &NilLiteralNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
+}
+
+func (n *NilLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::NilLiteralNode", env)
 }
 
 func (n *NilLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -279,6 +295,10 @@ func (n *UndefinedLiteralNode) splice(loc *position.Location, args *[]Node, unqu
 	return &UndefinedLiteralNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 	}
+}
+
+func (n *UndefinedLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UndefinedLiteralNode", env)
 }
 
 func (n *UndefinedLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

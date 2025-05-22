@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -36,6 +37,10 @@ func (n *VariableDeclarationNode) splice(loc *position.Location, args *[]Node, u
 		TypeNode:               typeNode,
 		Initialiser:            init,
 	}
+}
+
+func (n *VariableDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::VariableDeclarationNode", env)
 }
 
 func (n *VariableDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

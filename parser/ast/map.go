@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -35,6 +36,10 @@ func (n *HashMapLiteralNode) splice(loc *position.Location, args *[]Node, unquot
 		Capacity:      capacity,
 		static:        static,
 	}
+}
+
+func (n *HashMapLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::HashMapLiteralNode", env)
 }
 
 func (n *HashMapLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -219,6 +224,10 @@ func (n *HashRecordLiteralNode) splice(loc *position.Location, args *[]Node, unq
 		Elements:      elements,
 		static:        static,
 	}
+}
+
+func (n *HashRecordLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::HashRecordLiteralNode", env)
 }
 
 func (n *HashRecordLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

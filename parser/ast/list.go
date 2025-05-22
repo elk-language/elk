@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -35,6 +36,10 @@ func (n *ArrayListLiteralNode) splice(loc *position.Location, args *[]Node, unqu
 		Capacity:      capacity,
 		static:        static,
 	}
+}
+
+func (n *ArrayListLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ArrayListLiteralNode", env)
 }
 
 func (n *ArrayListLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -232,6 +237,10 @@ func (n *WordArrayListLiteralNode) splice(loc *position.Location, args *[]Node, 
 	}
 }
 
+func (n *WordArrayListLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::WordArrayListLiteralNode", env)
+}
+
 func (n *WordArrayListLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -412,6 +421,10 @@ func (n *SymbolArrayListLiteralNode) splice(loc *position.Location, args *[]Node
 	}
 }
 
+func (n *SymbolArrayListLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::SymbolArrayListLiteralNode", env)
+}
+
 func (n *SymbolArrayListLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -589,6 +602,10 @@ func (n *HexArrayListLiteralNode) splice(loc *position.Location, args *[]Node, u
 		Capacity:      capacity,
 		static:        static,
 	}
+}
+
+func (n *HexArrayListLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::HexArrayListLiteralNode", env)
 }
 
 func (n *HexArrayListLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -772,6 +789,10 @@ func (n *BinArrayListLiteralNode) splice(loc *position.Location, args *[]Node, u
 	}
 }
 
+func (n *BinArrayListLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::BinArrayListLiteralNode", env)
+}
+
 func (n *BinArrayListLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -941,6 +962,10 @@ func (n *ListPatternNode) splice(loc *position.Location, args *[]Node, unquote b
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
 	}
+}
+
+func (n *ListPatternNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ListPatternNode", env)
 }
 
 func (n *ListPatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

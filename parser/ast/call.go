@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -23,6 +24,10 @@ func (n *NewExpressionNode) splice(loc *position.Location, args *[]Node, unquote
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
+}
+
+func (n *NewExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::NewExpressionNode", env)
 }
 
 func (n *NewExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -194,6 +199,10 @@ func (n *GenericConstructorCallNode) splice(loc *position.Location, args *[]Node
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
+}
+
+func (n *GenericConstructorCallNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::GenericConstructorCallNode", env)
 }
 
 func (n *GenericConstructorCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -409,6 +418,10 @@ func (n *ConstructorCallNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *ConstructorCallNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ConstructorCallNode", env)
+}
+
 func (n *ConstructorCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -588,6 +601,10 @@ func (n *AttributeAccessNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
+func (n *AttributeAccessNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::AttributeAccessNode", env)
+}
+
 func (n *AttributeAccessNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -690,6 +707,10 @@ func (n *SubscriptExpressionNode) splice(loc *position.Location, args *[]Node, u
 		Key:           key,
 		static:        receiver.IsStatic() && key.IsStatic(),
 	}
+}
+
+func (n *SubscriptExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::SubscriptExpressionNode", env)
 }
 
 func (n *SubscriptExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -803,6 +824,10 @@ func (n *NilSafeSubscriptExpressionNode) splice(loc *position.Location, args *[]
 	}
 }
 
+func (n *NilSafeSubscriptExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::NilSafeSubscriptExpressionNode", env)
+}
+
 func (n *NilSafeSubscriptExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -911,6 +936,10 @@ func (n *CallNode) splice(loc *position.Location, args *[]Node, unquote bool) No
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
+}
+
+func (n *CallNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::CallNode", env)
 }
 
 func (n *CallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -1108,6 +1137,10 @@ func (n *GenericMethodCallNode) splice(loc *position.Location, args *[]Node, unq
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 		TailCall:            n.TailCall,
 	}
+}
+
+func (n *GenericMethodCallNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::GenericMethodCallNode", env)
 }
 
 func (n *GenericMethodCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -1342,6 +1375,10 @@ func (n *MethodCallNode) splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
+func (n *MethodCallNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::MethodCallNode", env)
+}
+
 func (n *MethodCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -1531,6 +1568,10 @@ func (n *ReceiverlessMethodCallNode) splice(loc *position.Location, args *[]Node
 	}
 }
 
+func (n *ReceiverlessMethodCallNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::ReceiverlessMethodCallNode", env)
+}
+
 func (n *ReceiverlessMethodCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -1705,6 +1746,10 @@ func (n *GenericReceiverlessMethodCallNode) splice(loc *position.Location, args 
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 		TailCall:            n.TailCall,
 	}
+}
+
+func (n *GenericReceiverlessMethodCallNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::GenericReceiverlessMethodCallNode", env)
 }
 
 func (n *GenericReceiverlessMethodCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

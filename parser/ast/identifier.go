@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -32,6 +33,10 @@ func (n *PublicIdentifierNode) splice(loc *position.Location, args *[]Node, unqu
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *PublicIdentifierNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::PublicIdentifierNode", env)
 }
 
 func (n *PublicIdentifierNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -102,6 +107,10 @@ func (n *PrivateIdentifierNode) splice(loc *position.Location, args *[]Node, unq
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
+}
+
+func (n *PrivateIdentifierNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::PrivateIdentifierNode", env)
 }
 
 func (n *PrivateIdentifierNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -175,6 +184,10 @@ func (n *PublicIdentifierAsNode) splice(loc *position.Location, args *[]Node, un
 		Target:   n.Target.splice(loc, args, unquote).(*PublicIdentifierNode),
 		AsName:   n.AsName,
 	}
+}
+
+func (n *PublicIdentifierAsNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::PublicIdentifierAsNode", env)
 }
 
 func (n *PublicIdentifierAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

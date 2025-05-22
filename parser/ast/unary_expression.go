@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -23,6 +24,10 @@ func (n *UnaryExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 		Op:            n.Op.Splice(loc, unquote),
 		Right:         n.Right.splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *UnaryExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UnaryExpressionNode", env)
 }
 
 func (n *UnaryExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

@@ -9,6 +9,7 @@ import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -63,6 +64,10 @@ func (n *MethodDefinitionNode) splice(loc *position.Location, args *[]Node, unqu
 		Body:                   body,
 		Flags:                  n.Flags,
 	}
+}
+
+func (n *MethodDefinitionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::MethodDefinitionNode", env)
 }
 
 func (n *MethodDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -401,6 +406,10 @@ func (n *InitDefinitionNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
+func (n *InitDefinitionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::InitDefinitionNode", env)
+}
+
 func (n *InitDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -606,6 +615,10 @@ func (n *MethodSignatureDefinitionNode) splice(loc *position.Location, args *[]N
 		ReturnType:             returnType,
 		ThrowType:              throwType,
 	}
+}
+
+func (n *MethodSignatureDefinitionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::MethodSignatureDefinitionNode", env)
 }
 
 func (n *MethodSignatureDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -828,6 +841,10 @@ func (n *AliasDeclarationEntry) splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *AliasDeclarationEntry) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::AliasDeclarationEntry", env)
+}
+
 func (n *AliasDeclarationEntry) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -913,6 +930,10 @@ func (n *AliasDeclarationNode) splice(loc *position.Location, args *[]Node, unqu
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Entries:       SpliceSlice(n.Entries, loc, args, unquote),
 	}
+}
+
+func (n *AliasDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::AliasDeclarationNode", env)
 }
 
 func (n *AliasDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -1026,6 +1047,10 @@ func (n *GetterDeclarationNode) splice(loc *position.Location, args *[]Node, unq
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Entries:                SpliceSlice(n.Entries, loc, args, unquote),
 	}
+}
+
+func (n *GetterDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::GetterDeclarationNode", env)
 }
 
 func (n *GetterDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -1157,6 +1182,10 @@ func (n *SetterDeclarationNode) splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
+func (n *SetterDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::SetterDeclarationNode", env)
+}
+
 func (n *SetterDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
@@ -1277,6 +1306,10 @@ func (n *AttrDeclarationNode) splice(loc *position.Location, args *[]Node, unquo
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Entries:                SpliceSlice(n.Entries, loc, args, unquote),
 	}
+}
+
+func (n *AttrDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::AttrDeclarationNode", env)
 }
 
 func (n *AttrDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

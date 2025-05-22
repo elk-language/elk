@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -45,6 +46,10 @@ func (n *StructDeclarationNode) splice(loc *position.Location, args *[]Node, unq
 		TypeParameters:         typeParams,
 		Body:                   body,
 	}
+}
+
+func (n *StructDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::StructDeclarationNode", env)
 }
 
 func (n *StructDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

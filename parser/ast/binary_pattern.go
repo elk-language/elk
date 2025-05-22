@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -25,6 +26,10 @@ func (n *BinaryPatternNode) splice(loc *position.Location, args *[]Node, unquote
 		Left:          n.Left.splice(loc, args, unquote).(PatternNode),
 		Right:         n.Right.splice(loc, args, unquote).(PatternNode),
 	}
+}
+
+func (n *BinaryPatternNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::BinaryPatternNode", env)
 }
 
 func (n *BinaryPatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

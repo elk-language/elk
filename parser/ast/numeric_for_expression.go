@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -43,6 +44,10 @@ func (n *NumericForExpressionNode) splice(loc *position.Location, args *[]Node, 
 		Increment:     increment,
 		ThenBody:      thenBody,
 	}
+}
+
+func (n *NumericForExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::NumericForExpressionNode", env)
 }
 
 func (n *NumericForExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

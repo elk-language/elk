@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -24,6 +25,10 @@ func (n *UnlessExpressionNode) splice(loc *position.Location, args *[]Node, unqu
 		ThenBody:      SpliceSlice(n.ThenBody, loc, args, unquote),
 		ElseBody:      SpliceSlice(n.ElseBody, loc, args, unquote),
 	}
+}
+
+func (n *UnlessExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UnlessExpressionNode", env)
 }
 
 func (n *UnlessExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

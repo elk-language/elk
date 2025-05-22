@@ -145,7 +145,11 @@ func (c *Closure) SubtypeString(name string) (Constant, bool) {
 	return Constant{}, false
 }
 
-func (c *Closure) MustSubtype(name string) Type {
+func (c *Closure) MustSubtypeString(name string) Type {
+	return nil
+}
+
+func (c *Closure) MustSubtype(name value.Symbol) Type {
 	return nil
 }
 

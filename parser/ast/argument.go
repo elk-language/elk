@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -33,6 +34,10 @@ func (n *NamedCallArgumentNode) splice(loc *position.Location, args *[]Node, unq
 		Name:     n.Name,
 		Value:    n.Value.splice(loc, args, unquote).(ExpressionNode),
 	}
+}
+
+func (n *NamedCallArgumentNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::NamedCallArgumentNode", env)
 }
 
 func (n *NamedCallArgumentNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

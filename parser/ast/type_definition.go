@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 )
 
@@ -26,6 +27,10 @@ func (n *GenericTypeDefinitionNode) splice(loc *position.Location, args *[]Node,
 		Constant:               n.Constant.splice(loc, args, unquote).(ComplexConstantNode),
 		TypeNode:               n.TypeNode.splice(loc, args, unquote).(TypeNode),
 	}
+}
+
+func (n *GenericTypeDefinitionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::GenericTypeDefinitionNode", env)
 }
 
 func (n *GenericTypeDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -182,6 +187,10 @@ func (n *TypeDefinitionNode) splice(loc *position.Location, args *[]Node, unquot
 		Constant:               n.Constant.splice(loc, args, unquote).(ComplexConstantNode),
 		TypeNode:               n.TypeNode.splice(loc, args, unquote).(TypeNode),
 	}
+}
+
+func (n *TypeDefinitionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::TypeDefinitionNode", env)
 }
 
 func (n *TypeDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
