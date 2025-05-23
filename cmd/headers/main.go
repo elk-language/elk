@@ -104,7 +104,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 			buffer,
 			`
 				{
-					namespace := namespace.MustSubtype(%q).(*%s)
+					namespace := namespace.MustSubtypeString(%q).(*%s)
 			`,
 			types.GetConstantName(namespace.Name()),
 			namespaceType,

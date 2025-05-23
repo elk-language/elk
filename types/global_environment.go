@@ -398,10 +398,13 @@ func (g *GlobalEnvironment) DeepCopyEnv() *GlobalEnvironment {
 		NamespaceBase: MakeNamespaceBase("", "Root"),
 		defined:       true,
 	}
+	newRoot.DefineSubtype(symbol.Root, newRoot)
+
 	newEnv := &GlobalEnvironment{
 		Init: g.Init,
 		Root: newRoot,
 	}
 	newRoot.deepCopyInPlace(g.Root, g, newEnv)
+
 	return newEnv
 }

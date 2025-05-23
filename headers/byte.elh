@@ -1,1 +1,1 @@
-typedef Byte = UInt8
+typedef Std::Byte = UInt8

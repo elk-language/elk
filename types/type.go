@@ -23,6 +23,9 @@ func DeepCopyNamespacePath(constantPath []string, oldEnv, newEnv *GlobalEnvironm
 	for _, subtypeName := range constantPath {
 		oldSubtype, _ := oldNamespace.SubtypeString(subtypeName)
 		oldCurrentType = oldSubtype.Type
+		if oldCurrentType == nil {
+			panic(fmt.Sprintf("Subtype %s is nil under %s", subtypeName, oldNamespace.Name()))
+		}
 		oldNamespace = ToNamespaceInterface(oldCurrentType.(Namespace))
 
 		newSubtype, ok := newNamespace.SubtypeString(subtypeName)
