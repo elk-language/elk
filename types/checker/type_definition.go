@@ -16,8 +16,11 @@ type typedefState uint8
 
 const (
 	NEW_TYPEDEF typedefState = iota
+	CHECKING_MACRO_TYPEDEF
+	CHECKED_MACRO_TYPEDEF
 	CHECKING_TYPEDEF
 	CHECKED_TYPEDEF
+	ERROR_TYPEDEF
 )
 
 type typeDefinitionChecks struct {
@@ -244,12 +247,64 @@ func (c *Checker) checkTypeDefinitions() {
 	c.typeDefinitionChecks = newTypeDefinitionChecks()
 }
 
+func (c *Checker) checkTypeDefinitionsForMacros() {
+	for _, typeName := range c.typeDefinitionChecks.order {
+		typedefCheck := c.typeDefinitionChecks.m[typeName]
+		c.checkTypeDefinitionForMacros(typedefCheck, nil)
+	}
+}
+
+func (c *Checker) checkTypeDefinitionForMacros(typedefCheck *typeDefinitionCheck, location *position.Location) bool {
+	if typedefCheck.state == ERROR_TYPEDEF {
+		return false
+	}
+
+	if typedefCheck.state == CHECKING_MACRO_TYPEDEF {
+		c.addFailure(
+			fmt.Sprintf("type `%s` circularly references itself", types.InspectWithColor(typedefCheck.typ)),
+			location,
+		)
+		typedefCheck.state = ERROR_TYPEDEF
+		return false
+	}
+	if typedefCheck.state == CHECKED_MACRO_TYPEDEF {
+		return true
+	}
+
+	typedefCheck.state = CHECKING_MACRO_TYPEDEF
+
+	oldFilename := c.Filename
+	oldConstantScopes := c.constantScopes
+	for _, entry := range typedefCheck.entries {
+		c.Filename = entry.filename
+		c.constantScopes = entry.constantScopes
+		switch n := entry.node.(type) {
+		case *ast.IncludeExpressionNode:
+			for _, constant := range n.Constants {
+				c.includeMixinForMacro(constant)
+			}
+		case *ast.ClassDeclarationNode:
+			c.checkSuperclassForMacro(n)
+		}
+	}
+	c.Filename = oldFilename
+	c.constantScopes = oldConstantScopes
+
+	typedefCheck.state = CHECKED_MACRO_TYPEDEF
+	return true
+}
+
 func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, location *position.Location) bool {
+	if typedefCheck.state == ERROR_TYPEDEF {
+		return false
+	}
+
 	if typedefCheck.state == CHECKING_TYPEDEF {
 		c.addFailure(
 			fmt.Sprintf("type `%s` circularly references itself", types.InspectWithColor(typedefCheck.typ)),
 			location,
 		)
+		typedefCheck.state = ERROR_TYPEDEF
 		return false
 	}
 	if typedefCheck.state == CHECKED_TYPEDEF {
@@ -293,6 +348,43 @@ func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, locatio
 
 	typedefCheck.state = CHECKED_TYPEDEF
 	return true
+}
+
+func (c *Checker) includeMixinForMacro(node ast.ComplexConstantNode) {
+	prevMode := c.mode
+	c.mode = inheritanceMode
+
+	constantType := c.getComplexConstantTypeForMacro(node)
+
+	c.mode = prevMode
+
+	if types.IsUntyped(constantType) || constantType == nil {
+		return
+	}
+	target := c.currentConstScope().container
+
+	var mixin *types.Mixin
+	switch con := constantType.(type) {
+	case *types.Mixin:
+		mixin = con
+	case *types.Generic:
+		var ok bool
+		mixin, ok = con.Namespace.(*types.Mixin)
+		if !ok {
+			return
+		}
+	default:
+		return
+	}
+
+	if c.isSubtypeOfMixin(target, mixin) {
+		return
+	}
+
+	switch t := target.(type) {
+	case *types.Class, *types.SingletonClass, *types.Mixin:
+		types.IncludeMixinForMacro(t, mixin)
+	}
 }
 
 func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
@@ -348,8 +440,14 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	}
 	node.SetType(constantNamespace)
 
-	if c.isSubtypeOfMixin(target, mixin) {
-		return
+	var tempParent *types.TemporaryParent
+	if ok, alreadyIncludedNamespace := c.includesMixin(target, mixin); ok {
+		switch n := alreadyIncludedNamespace.(type) {
+		case *types.TemporaryParent:
+			tempParent = n
+		default:
+			return
+		}
 	}
 
 	if target.IsPrimitive() && types.NamespaceDeclaresInstanceVariables(constantNamespace) {
@@ -364,12 +462,8 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	}
 
 	switch t := target.(type) {
-	case *types.Class:
-		types.IncludeMixin(t, constantNamespace)
-	case *types.SingletonClass:
-		types.IncludeMixin(t, constantNamespace)
-	case *types.Mixin:
-		types.IncludeMixin(t, constantNamespace)
+	case *types.Class, *types.SingletonClass, *types.Mixin:
+		types.IncludeMixinWithTemporaryParent(t, constantNamespace, tempParent)
 	default:
 		c.addFailure(
 			fmt.Sprintf(
@@ -572,6 +666,52 @@ func (c *Checker) checkNamespaceTypeParameters(
 	}
 
 	return nil
+}
+
+func (c *Checker) checkSuperclassForMacro(node *ast.ClassDeclarationNode) {
+	class, ok := c.TypeOf(node).(*types.Class)
+	if !ok {
+		return
+	}
+	c.pushConstScope(makeLocalConstantScope(class))
+	defer c.popConstScope()
+
+	var superclassType types.Type
+	var superclass types.Namespace
+
+superclassSwitch:
+	switch node.Superclass.(type) {
+	case *ast.NilLiteralNode:
+	case nil:
+		superclass = c.env.StdSubtypeClass(symbol.Object)
+		superclassType = superclass
+	default:
+		prevMode := c.mode
+		c.mode = inheritanceMode
+
+		superclassType = c.getComplexConstantTypeForMacro(node.Superclass)
+
+		c.mode = prevMode
+
+		switch s := superclassType.(type) {
+		case *types.Class:
+			superclass = s
+		case *types.Generic:
+			superclass = s
+			if _, ok := s.Namespace.(*types.Class); !ok {
+				break superclassSwitch
+			}
+		default:
+			break superclassSwitch
+		}
+	}
+
+	if superclass == nil {
+		return
+	}
+
+	temp := types.NewTemporaryParent(superclass, class)
+	class.SetParent(temp)
 }
 
 func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {

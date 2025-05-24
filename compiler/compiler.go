@@ -537,6 +537,53 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.
 	return methodCompiler.Bytecode
 }
 
+func (c *Compiler) CompileMacroBody(node *ast.MacroDefinitionNode, name value.Symbol) *vm.BytecodeFunction {
+	methodCompiler := New(name.String(), methodMode, node.Location(), c.checker)
+	methodCompiler.Errors = c.Errors
+	methodCompiler.compileMacroBody(node.Location(), node.Parameters, node.Body)
+
+	return methodCompiler.Bytecode
+}
+
+// Entry point for compiling the body of a macro.
+func (c *Compiler) compileMacroBody(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
+	paramCount := len(parameters)
+	c.defineLocal("_location", location)
+	paramCount++
+	c.predefinedLocals++
+
+	for _, param := range parameters {
+		p := param.(*ast.FormalParameterNode)
+		pSpan := p.Location()
+
+		local := c.defineLocal(p.Name, pSpan)
+		if local == nil {
+			return
+		}
+		c.predefinedLocals++
+
+		if p.Initialiser != nil {
+			c.Bytecode.IncrementOptionalParameterCount()
+
+			c.emitGetLocal(location.StartPos.Line, local.index)
+			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
+
+			c.compileNode(p.Initialiser, false)
+			c.emitSetLocalPop(pSpan.StartPos.Line, local.index)
+
+			c.patchJump(jump, pSpan)
+		}
+	}
+
+	c.Bytecode.SetParameterCount(paramCount)
+
+	c.compileStatements(body, location, false)
+
+	c.emitReturn(location, nil)
+	c.emitFinalReturn(location, nil)
+	c.prepLocals()
+}
+
 // Entry point for compiling the body of a method.
 func (c *Compiler) compileMethodBody(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
 	for _, param := range parameters {
