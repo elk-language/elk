@@ -5,12 +5,10 @@ package types
 // are known.
 type TemporaryParent struct {
 	Namespace
-	Child Namespace
 }
 
-func NewTemporaryParent(namespace, child Namespace) *TemporaryParent {
+func NewTemporaryParent(namespace Namespace) *TemporaryParent {
 	return &TemporaryParent{
 		Namespace: namespace,
-		Child:     child,
 	}
 }

@@ -204,30 +204,10 @@ func IncludeMixin(target, includedNamespace Namespace) {
 	}
 }
 
-func IncludeMixinWithTemporaryParent(target, includedNamespace Namespace, tempParent *TemporaryParent) {
-	if tempParent == nil {
-		IncludeMixin(target, includedNamespace)
-		return
-	}
-
-	switch included := includedNamespace.(type) {
-	case *Mixin:
-		proxy := NewMixinProxy(included, tempParent.Parent())
-		tempParent.Child.SetParent(proxy)
-	case *Generic:
-		includedMixin := included.Namespace.(*Mixin)
-		proxy := NewMixinProxy(includedMixin, tempParent.Parent())
-		generic := NewGeneric(proxy, included.TypeArguments)
-		tempParent.Child.SetParent(generic)
-	default:
-		panic(fmt.Sprintf("wrong mixin type: %T", includedNamespace))
-	}
-}
-
 // Includes a mixin temporarily in the macro expansion stage
 func IncludeMixinForMacro(target Namespace, mixin *Mixin) {
 	proxy := NewMixinProxy(mixin, target.Parent())
-	temp := NewTemporaryParent(target, proxy)
+	temp := NewTemporaryParent(proxy)
 	target.SetParent(temp)
 }
 
@@ -394,6 +374,21 @@ func SimpleParents(namespace Namespace) iter.Seq[Namespace] {
 	}
 }
 
+func InspectInheritance(namespace Namespace) string {
+	var buff strings.Builder
+
+	i := 0
+	for parent := range Parents(namespace) {
+		if i > 0 {
+			buff.WriteString(" > ")
+		}
+		fmt.Fprintf(&buff, "%s: %T", InspectWithColor(parent), parent)
+		i++
+	}
+
+	return buff.String()
+}
+
 // Iterate over every parent of the given namespace (including itself).
 func Parents(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(parent Namespace) bool) {
@@ -467,6 +462,20 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 						}
 
 						currentParent = g.Interface.parent
+						continue parentLoop
+					}
+				case *TemporaryParent:
+					switch t := cn.Namespace.(type) {
+					case *MixinProxy:
+						mixinParent := t.Parent()
+						if mixinParent != nil {
+							namespaces = append(namespaces, mixinParent)
+						}
+						if !yield(currentParent) {
+							return
+						}
+
+						currentParent = t.Mixin.parent
 						continue parentLoop
 					}
 				}

@@ -120,6 +120,10 @@ func (m *Module) Copy() *Module {
 	}
 }
 
+func (m *Module) RemoveTemporaryParents() {
+	m.parent = nil
+}
+
 func (m *Module) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Module {
 	moduleConstantPath := GetConstantPath(m.name)
 	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)

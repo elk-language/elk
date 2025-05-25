@@ -98,19 +98,28 @@ func (c *Class) SetSingleton(singleton *SingletonClass) {
 	c.singleton = singleton
 }
 
+func getClass(namespace Namespace) Namespace {
+	switch namespace := namespace.(type) {
+	case *Class:
+		return namespace
+	case *Generic:
+		if _, ok := namespace.Namespace.(*Class); ok {
+			return namespace
+		}
+	case *TemporaryParent:
+		return getClass(namespace.Namespace)
+	}
+	return nil
+}
+
 func (c *Class) Superclass() Namespace {
 	var currentParent Namespace = c.parent
 	for {
 		if currentParent == nil {
 			return nil
 		}
-		switch narrowedParent := currentParent.(type) {
-		case *Class:
-			return narrowedParent
-		case *Generic:
-			if _, ok := narrowedParent.Namespace.(*Class); ok {
-				return narrowedParent
-			}
+		if class := getClass(currentParent); class != nil {
+			return class
 		}
 
 		currentParent = currentParent.Parent()
@@ -123,6 +132,11 @@ func (c *Class) SetParent(parent Namespace) {
 	if superclass != nil && c.singleton != nil {
 		c.singleton.parent = superclass.Singleton()
 	}
+}
+
+func (c *Class) RemoveTemporaryParents(env *GlobalEnvironment) {
+	c.parent = nil
+	c.singleton.parent = env.StdSubtypeClass(symbol.Class)
 }
 
 func NewClass(
