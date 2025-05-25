@@ -2015,7 +2015,7 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 	case *SetterMethod:
 		return vm.callSetterMethod(m)
 	default:
-		panic(fmt.Sprintf("tried to call an invalid method: %T of class: %s", method, class.Name))
+		panic(fmt.Sprintf("tried to call an invalid method: %T (%s) of class: %s", method, callInfo.Name, class.Name))
 	}
 }
 

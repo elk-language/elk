@@ -11,6 +11,7 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+// Checks whether all constants specified in `using` statements have been defined
 func (c *Checker) checkConstantPlaceholders() {
 	for _, placeholder := range c.constantPlaceholders {
 		if placeholder.Checked || placeholder.Sibling != nil && placeholder.Sibling.Checked {
@@ -160,6 +161,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 	c.replaceConstantPlaceholder(constant, declaredType)
 }
 
+// Check constant definitions
 func (c *Checker) checkConstants() {
 	prevFilename := c.Filename
 	prevConstScopes := c.constantScopes

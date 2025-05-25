@@ -522,6 +522,8 @@ func inspectMethod(namespace Namespace, methodName value.Symbol) string {
 		return fmt.Sprintf("%s.:%s", scope.Name(), methodName.String())
 	case *Module:
 		return fmt.Sprintf("%s::%s", scope.Name(), methodName.String())
+	case *SingletonClass:
+		return fmt.Sprintf("%s::%s", scope.AttachedObject.Name(), methodName.String())
 	case *Closure:
 		return "call"
 	case *MixinWithWhere:

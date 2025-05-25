@@ -17,7 +17,7 @@ module ::Std::Elk::AST
 		##[
 			Returns self.
 		]##
-		def to_ast: self; end
+		def to_ast_node: self; end
 
 		def inspect: String; end
 

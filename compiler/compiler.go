@@ -65,6 +65,7 @@ const (
 	topLevelMode mode = iota
 	namespaceMode
 	methodMode
+	macroMode
 	setterMethodMode
 	initMethodMode
 	valuePatternDeclarationNode
@@ -184,7 +185,7 @@ func New(name string, mode mode, loc *position.Location, checker types.Checker) 
 	c.defineLocal("$self", position.DefaultLocation)
 	switch mode {
 	case topLevelMode, namespaceMode,
-		methodMode, setterMethodMode, initMethodMode:
+		methodMode, setterMethodMode, initMethodMode, macroMode:
 		c.predefinedLocals = 1
 	}
 	return c
@@ -538,17 +539,19 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.
 }
 
 func (c *Compiler) CompileMacroBody(node *ast.MacroDefinitionNode, name value.Symbol) *vm.BytecodeFunction {
-	methodCompiler := New(name.String(), methodMode, node.Location(), c.checker)
+	methodCompiler := New(name.String(), macroMode, node.Location(), c.checker)
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMacroBody(node.Location(), node.Parameters, node.Body)
 
 	return methodCompiler.Bytecode
 }
 
+const macroLocationParamName = "_location"
+
 // Entry point for compiling the body of a macro.
 func (c *Compiler) compileMacroBody(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
 	paramCount := len(parameters)
-	c.defineLocal("_location", location)
+	c.defineLocal(macroLocationParamName, location)
 	paramCount++
 	c.predefinedLocals++
 
@@ -789,7 +792,8 @@ func (c *Compiler) nodeIsCompilable(node ast.Node) bool {
 		*ast.StructDeclarationNode, *ast.GenericReceiverlessMethodCallNode,
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
-		*ast.InstanceVariableDeclarationNode:
+		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
+		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode:
 		return false
 	case *ast.ExpressionStatementNode:
 		return c.nodeIsCompilable(node.Expression)
@@ -846,7 +850,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		*ast.StructDeclarationNode, *ast.GenericReceiverlessMethodCallNode,
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
-		*ast.InstanceVariableDeclarationNode:
+		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
+		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode:
 		return expressionIgnored
 	case *ast.ProgramNode:
 		return c.compileStatements(node.Body, node.Location(), valueIsIgnored)
@@ -1171,7 +1176,16 @@ func (c *Compiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) {
 	}
 
 	// location
-	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
+	if c.mode == macroMode {
+		locationLocal, ok := c.resolveLocal(macroLocationParamName)
+		if !ok {
+			panic(fmt.Sprintf("undefined local %s in macro quote compilation", macroLocationParamName))
+		}
+
+		c.emitGetLocal(location.StartPos.Line, locationLocal.index)
+	} else {
+		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
+	}
 
 	c.emitCallMethod(
 		value.NewCallSiteInfo(

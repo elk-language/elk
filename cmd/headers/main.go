@@ -22,7 +22,7 @@ func main() {
 		panic(err)
 	}
 	pathToMainFile := filepath.Join(workingDir, "headers", "main.elh")
-	_, errList := checker.CheckFile(pathToMainFile, env, true)
+	_, errList := checker.CheckFile(pathToMainFile, env, true, nil)
 	if len(errList) > 0 {
 		fmt.Println(errList.HumanString(true, lexer.Colorizer{}))
 		os.Exit(1)

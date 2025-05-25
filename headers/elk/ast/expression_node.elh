@@ -6,6 +6,9 @@ module ::Std::Elk::AST
 	mixin ExpressionNode
 		include Node
 
+		def to_ast_node: self; end
+		alias to_ast_expr_node to_ast_node
+
 		##[
 			Represents a value that can be converted to an Elk AST Expression Node.
 		]##

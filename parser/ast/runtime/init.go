@@ -2,6 +2,7 @@ package runtime
 
 func InitGlobalEnvironment() {
 	initNode()
+	initExpressionNode()
 	initAliasDeclarationEntry()
 	initAliasDeclarationNode()
 	initAnyTypeNode()

@@ -14,7 +14,7 @@ func initNode() {
 	c := &value.NodeMixin.MethodContainer
 	vm.Def(
 		c,
-		"to_ast",
+		"to_ast_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},

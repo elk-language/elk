@@ -29,6 +29,20 @@ func newPromise(threadPool *ThreadPool, generator *Generator) *Promise {
 	return p
 }
 
+// Create a new promise executed by the VM
+func NewPromiseForBytecode(threadPool *ThreadPool, bytecode *BytecodeFunction, args ...value.Value) *Promise {
+	generator := NewGeneratorForBytecode(bytecode, args...)
+
+	p := &Promise{
+		ThreadPool: threadPool,
+		Generator:  generator,
+	}
+	p.wg.Add(1)
+
+	threadPool.AddTask(p)
+	return p
+}
+
 // Returns a new native promise handled by Go code instead of the VM
 func NewNativePromise(threadPool *ThreadPool) *Promise {
 	p := &Promise{
@@ -90,6 +104,7 @@ func (p *Promise) IsResolved() bool {
 	return p.ThreadPool == nil
 }
 
+// Wait for the result of the promise
 func (p *Promise) AwaitSync() (value.Value, value.Value) {
 	p.wg.Wait()
 	return p.result, p.err

@@ -29,25 +29,25 @@ import (
 )
 
 // Check the types of Elk source code.
-func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, headerMode bool, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
 	}
 
-	return CheckAST(sourceName, ast, globalEnv, headerMode)
+	return CheckAST(sourceName, ast, globalEnv, headerMode, threadPool)
 }
 
 // Check the types of an Elk AST.
-func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
-	checker := newChecker(sourceName, globalEnv, headerMode)
+func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	checker := newChecker(sourceName, globalEnv, headerMode, threadPool)
 	bytecode := checker.checkProgram(ast)
 	return bytecode, checker.Errors.DiagnosticList
 }
 
 // Check the types of an Elk file.
-func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
-	checker := newChecker(fileName, globalEnv, headerMode)
+func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, headerMode bool, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	checker := newChecker(fileName, globalEnv, headerMode, threadPool)
 	bytecode := checker.checkFile(fileName)
 	return bytecode, checker.Errors.DiagnosticList
 }
@@ -131,10 +131,11 @@ type Checker struct {
 	method                  *types.Method
 	classesWithIvars        []*ast.ClassDeclarationNode // classes that declare instance variables
 	compiler                *compiler.Compiler
+	threadPool              *vm.ThreadPool
 }
 
 // Instantiate a new Checker instance.
-func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode bool) *Checker {
+func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode bool, threadPool *vm.ThreadPool) *Checker {
 	c := &Checker{
 		Filename:   filename,
 		returnType: types.Void{},
@@ -148,6 +149,10 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		constantChecks:       newConstantDefinitionChecks(),
 		astCache:             concurrent.NewMap[string, *ast.ProgramNode](),
 		methodCache:          concurrent.NewSlice[*types.Method](),
+		threadPool:           threadPool,
+	}
+	if threadPool == nil {
+		c.threadPool = vm.DefaultThreadPool
 	}
 	if headerMode {
 		c.SetHeader(headerMode)
@@ -162,12 +167,12 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 
 // Instantiate a new Checker instance.
 func New() *Checker {
-	return newChecker("", nil, false)
+	return newChecker("", nil, false, vm.DefaultThreadPool)
 }
 
 // Instantiate a new Checker instance.
 func NewWithEnv(env *types.GlobalEnvironment) *Checker {
-	return newChecker("", env, false)
+	return newChecker("", env, false, vm.DefaultThreadPool)
 }
 
 func (c *Checker) IsHeader() bool {
@@ -291,6 +296,9 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.checkMacros()
 	c.checkTypeDefinitionsForMacros()
 
+	// expand top-level macros
+	c.expandTopLevelMacrosInFile(c.Filename, node)
+
 	c.checkNamespacePlaceholders()
 	c.initGlobalEnvCompiler(node.Location())
 	c.checkTypeDefinitions()
@@ -315,7 +323,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	return c.compiler.Bytecode
 }
 
-// Create a new compiler that will define all methods
+// Compile method definitions
 func (c *Checker) compileMethods(methodCompiler *compiler.Compiler, offset int, location *position.Location) {
 	if methodCompiler == nil {
 		return
@@ -323,6 +331,7 @@ func (c *Checker) compileMethods(methodCompiler *compiler.Compiler, offset int, 
 	methodCompiler.CompileMethods(location, offset)
 }
 
+// Whether the typechecker should compile the checked code
 func (c *Checker) shouldCompile() bool {
 	return c.compiler != nil && !c.Errors.IsFailure()
 }
@@ -372,6 +381,7 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 	c.compiler = mainCompiler.InitGlobalEnv()
 }
 
+// Check if instance variable definitions in classes are valid
 func (c *Checker) checkClassesWithIvars() {
 	for _, classNode := range c.classesWithIvars {
 		class := c.TypeOf(classNode).(*types.Class)
@@ -402,6 +412,10 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 	return c.checkProgram(ast)
 }
 
+// Scans the AST of the project registering all namespaces, types and macro definitions.
+// Type definitions that require other types (like classes with superclasses or mixins)
+// are collected to a buffer and will be typechecked in a separate stage once all
+// types of the project have been registered.
 func (c *Checker) hoistNamespaceDefinitionsAndMacrosInFile(filename string, node *ast.ProgramNode) {
 	node.State = ast.CHECKING_NAMESPACES
 	for _, importPath := range node.ImportPaths {
@@ -423,6 +437,9 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacrosInFile(filename string, node
 	node.State = ast.CHECKED_NAMESPACES
 }
 
+// Traverse the AST of the project registering all methods and constructors.
+// Method definitions are collected in a buffer and their bodies
+// will be checked in a later stage once all methods have been registered.
 func (c *Checker) hoistMethodDefinitionsInFile(filename string, node *ast.ProgramNode) {
 	node.State = ast.CHECKING_METHODS
 	for _, importPath := range node.ImportPaths {
@@ -444,6 +461,7 @@ func (c *Checker) hoistMethodDefinitionsInFile(filename string, node *ast.Progra
 	node.State = ast.CHECKED_METHODS
 }
 
+// Check top level code in a file
 func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode) {
 	node.State = ast.CHECKING_EXPRESSIONS
 
@@ -783,7 +801,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 
 	switch n := node.(type) {
 	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
-		*ast.ConstantDeclarationNode, *ast.UninterpolatedRegexLiteralNode:
+		*ast.ConstantDeclarationNode, *ast.UninterpolatedRegexLiteralNode,
+		*ast.MacroCallNode, *ast.ReceiverlessMacroCallNode:
 		return n
 	case *ast.ExtendWhereBlockExpressionNode:
 		if c.TypeOf(node) == nil {
@@ -841,7 +860,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return n
 	case *ast.MethodDefinitionNode, *ast.InitDefinitionNode,
 		*ast.MethodSignatureDefinitionNode, *ast.SetterDeclarationNode,
-		*ast.GetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode:
+		*ast.GetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode,
+		*ast.MacroDefinitionNode:
 		if c.TypeOf(node) == nil {
 			c.addFailure(
 				"method definitions cannot appear in this context",
@@ -4010,11 +4030,20 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 	}
 }
 
+// Returns the type of the value represented by the AST node
 func (c *Checker) TypeOf(node ast.Node) types.Type {
 	if node == nil {
 		return types.Void{}
 	}
 	return node.Type(c.env)
+}
+
+// Returns the type of the AST node, for use in macros
+func (c *Checker) MacroTypeOf(node ast.Node) types.Type {
+	if node == nil {
+		return types.Void{}
+	}
+	return node.MacroType(c.env)
 }
 
 func (c *Checker) typeGuardVoid(typ types.Type, location *position.Location) types.Type {
@@ -4083,7 +4112,12 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		}
 	}
 
-	typedPositionalArguments := c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Location())
+	typedPositionalArguments := c.checkNonGenericMethodArguments(
+		method,
+		node.PositionalArguments,
+		node.NamedArguments,
+		node.Location(),
+	)
 	newNode := ast.NewMethodCallNode(
 		node.Location(),
 		receiver,
@@ -4135,7 +4169,12 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap, true)
 		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap, true)
 	} else {
-		typedPositionalArguments = c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Location())
+		typedPositionalArguments = c.checkNonGenericMethodArguments(
+			method,
+			node.PositionalArguments,
+			node.NamedArguments,
+			node.Location(),
+		)
 	}
 
 	var receiver ast.ExpressionNode
@@ -4357,7 +4396,12 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 		)
 	}
 
-	typedPositionalArguments := c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Location())
+	typedPositionalArguments := c.checkNonGenericMethodArguments(
+		method,
+		node.PositionalArguments,
+		node.NamedArguments,
+		node.Location(),
+	)
 
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
@@ -4435,7 +4479,12 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 		)
 	}
 
-	typedPositionalArguments := c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Location())
+	typedPositionalArguments := c.checkNonGenericMethodArguments(
+		method,
+		node.PositionalArguments,
+		node.NamedArguments,
+		node.Location(),
+	)
 
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
@@ -4507,7 +4556,12 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			c.addToMethodCache(method)
 		}
 
-		typedPositionalArguments := c.checkNonGenericMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Location())
+		typedPositionalArguments := c.checkNonGenericMethodArguments(
+			method,
+			node.PositionalArguments,
+			node.NamedArguments,
+			node.Location(),
+		)
 
 		node.PositionalArguments = typedPositionalArguments
 		node.NamedArguments = nil
@@ -5422,8 +5476,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, location *positi
 
 // Get the type with the given name
 func (c *Checker) resolveType(name string, location *position.Location) (types.Type, string) {
-	for i := range len(c.constantScopes) {
-		constScope := c.constantScopes[len(c.constantScopes)-i-1]
+	for constScope := range ds.ReverseSlice(c.constantScopes) {
 		constant, ok := constScope.container.SubtypeString(name)
 		if !ok {
 			continue

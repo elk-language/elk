@@ -2,6 +2,7 @@ package vm
 
 import (
 	"fmt"
+	"unsafe"
 
 	"github.com/elk-language/elk/value"
 )
@@ -23,6 +24,16 @@ func newGenerator(bytecode *BytecodeFunction, upvalues []*Upvalue, stack []value
 		stack:    stack,
 		ip:       ip,
 	}
+}
+
+// Create a new generator that executes the given piece of bytecode.
+func NewGeneratorForBytecode(bytecode *BytecodeFunction, args ...value.Value) *Generator {
+	return newGenerator(
+		bytecode,
+		nil,
+		args,
+		uintptr(unsafe.Pointer(&bytecode.Instructions[0])),
+	)
 }
 
 func (*Generator) Class() *value.Class {

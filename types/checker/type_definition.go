@@ -239,6 +239,8 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 	return true
 }
 
+// Check type definitions fully with error reporting
+// after top level macros have been expanded.
 func (c *Checker) checkTypeDefinitions() {
 	for _, typeName := range c.typeDefinitionChecks.order {
 		typedefCheck := c.typeDefinitionChecks.m[typeName]

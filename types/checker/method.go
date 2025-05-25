@@ -17,6 +17,7 @@ import (
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
 )
 
 // Gathers all declarations of methods, constants and instance variables
@@ -431,6 +432,7 @@ func (c *Checker) newMethodChecker(
 	returnType,
 	throwType types.Type,
 	isInit bool,
+	threadPool *vm.ThreadPool,
 ) *Checker {
 	checker := &Checker{
 		env:            c.env,
@@ -450,6 +452,7 @@ func (c *Checker) newMethodChecker(
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		compiler:             c.compiler,
+		threadPool:           threadPool,
 	}
 	if isInit {
 		checker.mode = initMode
@@ -457,6 +460,7 @@ func (c *Checker) newMethodChecker(
 	return checker
 }
 
+// Checks whether all methods specified in `using` statements have been defined
 func (c *Checker) checkMethodPlaceholders() {
 	for _, placeholder := range c.methodPlaceholders {
 		if placeholder.IsChecked() {
@@ -508,6 +512,7 @@ func (c *Checker) checkMethods() {
 				method.ReturnType,
 				method.ThrowType,
 				method.IsInit(),
+				c.threadPool,
 			)
 			methodChecker.checkMethodDefinition(node, method)
 
@@ -524,6 +529,15 @@ func (c *Checker) checkMethods() {
 	c.methodChecks = nil
 }
 
+// Check whether method calls in constant definitions are valid.
+// This lets the typechecker detect situations like circular references
+// where a constant definition contains a call to a method
+// that uses the constant that is being defined.
+//
+//			const FOO: Int = bar()
+//	    def bar: Int
+//	      FOO * 5
+//	    end
 func (c *Checker) checkMethodsInConstants() {
 	for _, method := range c.methodCache.Slice {
 		c.checkMethodInConstant(method, method.UsedInConstants)
@@ -704,7 +718,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 
 func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, location *position.Location) {
 	c.addFailure(
-		fmt.Sprintf("expected %s arguments in call to `%s`, got %d", method.ExpectedParamCountString(), lexer.Colorize(method.Name.String()), got),
+		fmt.Sprintf("expected %s arguments in call to `%s`, got %d", method.ExpectedParamCountString(), types.InspectWithColor(method), got),
 		location,
 	)
 }
@@ -1329,7 +1343,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 					types.InspectWithColor(param.Type),
 					param.Name.String(),
-					lexer.Colorize(method.Name.String()),
+					types.InspectWithColor(method),
 					types.InspectWithColor(posArgType),
 				),
 				posArg.Location(),
@@ -1343,7 +1357,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				fmt.Sprintf(
 					"expected %d... positional arguments in call to `%s`, got %d",
 					requiredPosParamCount,
-					lexer.Colorize(method.Name.String()),
+					types.InspectWithColor(method),
 					len(positionalArguments),
 				),
 				location,
@@ -1375,7 +1389,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(posRestParam.Type),
 						posRestParam.Name.String(),
-						lexer.Colorize(method.Name.String()),
+						types.InspectWithColor(method),
 						types.InspectWithColor(posArgType),
 					),
 					posArg.Location(),
@@ -1415,7 +1429,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
 						param.Name.String(),
-						lexer.Colorize(method.Name.String()),
+						types.InspectWithColor(method),
 						types.InspectWithColor(posArgType),
 					),
 					posArg.Location(),
@@ -1432,7 +1446,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	firstNamedParamIndex := currentParamIndex
 	definedNamedArgumentsSlice := make([]bool, len(namedArguments))
 
-	for i := 0; i < len(method.Params); i++ {
+	for i := range method.Params {
 		param := method.Params[i]
 		switch param.Kind {
 		case types.PositionalRestParameterKind, types.NamedRestParameterKind:
@@ -1460,7 +1474,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					fmt.Sprintf(
 						"duplicated argument `%s` in call to `%s`",
 						paramName,
-						lexer.Colorize(method.Name.String()),
+						types.InspectWithColor(method),
 					),
 					namedArg.Location(),
 				)
@@ -1483,7 +1497,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
 						param.Name.String(),
-						lexer.Colorize(method.Name.String()),
+						types.InspectWithColor(method),
 						types.InspectWithColor(namedArgType),
 					),
 					namedArg.Location(),
@@ -1505,7 +1519,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				fmt.Sprintf(
 					"argument `%s` is missing in call to `%s`",
 					paramName,
-					lexer.Colorize(method.Name.String()),
+					types.InspectWithColor(method),
 				),
 				location,
 			)
@@ -1590,7 +1604,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					fmt.Sprintf(
 						"nonexistent parameter `%s` given in call to `%s`",
 						namedArg.Name,
-						lexer.Colorize(method.Name.String()),
+						types.InspectWithColor(method),
 					),
 					namedArg.Location(),
 				)
@@ -1624,7 +1638,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					fmt.Sprintf(
 						"cannot infer type argument for `%s` in call to `%s`",
 						types.InspectWithColor(typeParam),
-						lexer.Colorize(method.Name.String()),
+						types.InspectWithColor(method),
 					),
 					location,
 				)
@@ -1680,7 +1694,12 @@ func (c *Checker) checkNamedRestArgumentType(methodName string, argType types.Ty
 	)
 }
 
-func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, location *position.Location) []ast.ExpressionNode {
+func (c *Checker) checkNonGenericMethodArguments(
+	method *types.Method,
+	positionalArguments []ast.ExpressionNode,
+	namedArguments []ast.NamedArgumentNode,
+	location *position.Location,
+) []ast.ExpressionNode {
 	posArgs, _ := c.checkMethodArgumentsAndInferTypeArguments(method, positionalArguments, namedArguments, nil, location)
 	return posArgs
 }
@@ -1715,7 +1734,12 @@ func (c *Checker) checkMethodArguments(
 		}
 
 		method = c.replaceTypeParametersInMethodCopy(method, typeArgs.ArgumentMap, true)
-		typedPositionalArguments = c.checkNonGenericMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, location)
+		typedPositionalArguments = c.checkNonGenericMethodArguments(
+			method,
+			positionalArgumentNodes,
+			namedArgumentNodes,
+			location,
+		)
 		return method, typedPositionalArguments
 	}
 
@@ -1737,7 +1761,12 @@ func (c *Checker) checkMethodArguments(
 		return method, typedPositionalArguments
 	}
 
-	typedPositionalArguments = c.checkNonGenericMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, location)
+	typedPositionalArguments = c.checkNonGenericMethodArguments(
+		method,
+		positionalArgumentNodes,
+		namedArgumentNodes,
+		location,
+	)
 	return method, typedPositionalArguments
 }
 

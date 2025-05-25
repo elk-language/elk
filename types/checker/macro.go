@@ -4,11 +4,453 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/concurrent"
+	"github.com/elk-language/elk/ds"
+	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 )
+
+// Expand top level macros
+func (c *Checker) expandTopLevelMacrosInFile(filename string, node *ast.ProgramNode) {
+	node.State = ast.EXPANDING_TOP_LEVEL_MACROS
+	for _, importPath := range node.ImportPaths {
+		importedAst, ok := c.astCache.GetUnsafe(importPath)
+		if !ok {
+			continue
+		}
+		switch importedAst.State {
+		case ast.EXPANDED_TOP_LEVEL_MACROS, ast.EXPANDING_TOP_LEVEL_MACROS:
+			continue
+		}
+		c.expandTopLevelMacrosInFile(importPath, importedAst)
+	}
+
+	prevFilename := c.Filename
+	c.Filename = filename
+	c.expandTopLevelMacros(node.Body)
+	c.Filename = prevFilename
+	node.State = ast.EXPANDED_TOP_LEVEL_MACROS
+}
+
+func (c *Checker) expandTopLevelMacros(statements []ast.StatementNode) {
+	for _, statement := range statements {
+		switch stmt := statement.(type) {
+		case *ast.ExpressionStatementNode:
+			expression := stmt.Expression
+
+			var result ast.ExpressionNode
+			switch expr := expression.(type) {
+			case *ast.MacroBoundaryNode:
+				c.expandTopLevelMacros(expr.Body)
+			case *ast.ModuleDeclarationNode:
+				c.expandTopLevelMacros(expr.Body)
+			case *ast.ClassDeclarationNode:
+				c.expandTopLevelMacros(expr.Body)
+			case *ast.MixinDeclarationNode:
+				c.expandTopLevelMacros(expr.Body)
+			case *ast.InterfaceDeclarationNode:
+				c.expandTopLevelMacros(expr.Body)
+			case *ast.SingletonBlockExpressionNode:
+				c.expandTopLevelMacros(expr.Body)
+			case *ast.ExtendWhereBlockExpressionNode:
+				c.expandTopLevelMacros(expr.Body)
+			case *ast.MacroCallNode:
+				posArgs := []ast.ExpressionNode{expr.Receiver}
+
+				result = c.expandMacro(
+					expr.MacroName,
+					append(posArgs, expr.PositionalArguments...),
+					expr.NamedArguments,
+					expr.Location(),
+				)
+			case *ast.ReceiverlessMacroCallNode:
+				result = c.expandMacro(
+					expr.MacroName,
+					expr.PositionalArguments,
+					expr.NamedArguments,
+					expr.Location(),
+				)
+			}
+
+			if result != nil {
+				stmt.Expression = result
+			}
+		}
+	}
+}
+
+func (c *Checker) resolveMacro(name value.Symbol) *types.Method {
+	for methodScope := range ds.ReverseSlice(c.methodScopes) {
+		var namespace types.Namespace
+		switch n := methodScope.container.(type) {
+		case *types.Class:
+			namespace = n.Singleton()
+		case *types.Mixin:
+			namespace = n.Singleton()
+		case *types.Module:
+			namespace = n
+		case *types.SingletonClass:
+			namespace = n
+		default:
+			continue
+		}
+
+		macro := namespace.Method(name)
+		if macro != nil {
+			return macro
+		}
+	}
+
+	return nil
+}
+
+func (c *Checker) getMacro(name value.Symbol, loc *position.Location) *types.Method {
+	macro := c.resolveMacro(name)
+	if macro == nil {
+		c.addFailure(
+			fmt.Sprintf(
+				"undefined macro `%s`",
+				name.String(),
+			),
+			loc,
+		)
+	}
+
+	return macro
+}
+
+func (c *Checker) expandMacro(name string, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.ExpressionNode {
+	macroName := value.ToSymbol(name + "!")
+	macro := c.getMacro(macroName, loc)
+	if macro == nil {
+		return nil
+	}
+
+	checkedArgs := c.checkMacroArguments(macro, posArgs, namedArgs, loc)
+	if c.Errors.IsFailure() {
+		return nil
+	}
+
+	runtimeArgs := make([]value.Value, 0, len(checkedArgs)+2)
+	runtimeArgs = append(
+		runtimeArgs,
+		value.Ref(value.GlobalObject),
+		value.Ref((*value.Location)(loc)),
+	)
+
+	for _, arg := range checkedArgs {
+		runtimeArgs = append(runtimeArgs, value.Ref(arg))
+	}
+
+	promise := vm.NewPromiseForBytecode(vm.DefaultThreadPool, macro.Bytecode, runtimeArgs...)
+	result, err := promise.AwaitSync()
+	if !err.IsUndefined() {
+		c.addFailure(
+			fmt.Sprintf(
+				"error while executing macro `%s`: %s",
+				types.InspectWithColor(macro),
+				lexer.Colorize(err.Inspect()),
+			),
+			loc,
+		)
+		return nil
+	}
+
+	return result.AsReference().(ast.ExpressionNode)
+}
+
+func (c *Checker) checkMacroArguments(
+	method *types.Method,
+	positionalArguments []ast.ExpressionNode,
+	namedArguments []ast.NamedArgumentNode,
+	location *position.Location,
+) (
+	_posArgs []ast.ExpressionNode,
+) {
+	reqParamCount := method.RequiredParamCount()
+	requiredPosParamCount := len(method.Params) - method.OptionalParamCount
+	if method.PostParamCount != -1 {
+		requiredPosParamCount -= method.PostParamCount + 1
+	}
+	if method.HasNamedRestParam() {
+		requiredPosParamCount--
+	}
+	argCount := len(positionalArguments) + len(namedArguments)
+	positionalRestParamIndex := method.PositionalRestParamIndex()
+	var checkedPositionalArguments []ast.ExpressionNode
+
+	// push `undefined` for every missing optional positional argument
+	// before the rest parameter
+	for range positionalRestParamIndex - len(positionalArguments) {
+		checkedPositionalArguments = append(
+			checkedPositionalArguments,
+			ast.NewUndefinedLiteralNode(location),
+		)
+	}
+
+	var currentParamIndex int
+	// check all positional arguments before the rest parameter
+	for ; currentParamIndex < len(positionalArguments); currentParamIndex++ {
+		posArg := positionalArguments[currentParamIndex]
+		if currentParamIndex == positionalRestParamIndex {
+			break
+		}
+		if currentParamIndex >= len(method.Params) {
+			c.addWrongArgumentCountError(
+				len(positionalArguments)+len(namedArguments),
+				method,
+				location,
+			)
+			break
+		}
+		param := method.Params[currentParamIndex]
+
+		posArgType := c.MacroTypeOf(posArg)
+		checkedPositionalArguments = append(checkedPositionalArguments, posArg)
+
+		if !c.isSubtype(posArgType, param.Type, posArg.Location()) {
+			c.addFailure(
+				fmt.Sprintf(
+					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
+					types.InspectWithColor(param.Type),
+					param.Name.String(),
+					types.InspectWithColor(method),
+					types.InspectWithColor(posArgType),
+				),
+				posArg.Location(),
+			)
+		}
+	}
+
+	if method.HasPositionalRestParam() {
+		if len(positionalArguments) < requiredPosParamCount {
+			c.addFailure(
+				fmt.Sprintf(
+					"expected %d... positional arguments in call to `%s`, got %d",
+					requiredPosParamCount,
+					types.InspectWithColor(method),
+					len(positionalArguments),
+				),
+				location,
+			)
+			return nil
+		}
+		restPositionalArguments := ast.NewArrayTupleLiteralNode(
+			location,
+			nil,
+		)
+		posRestParam := method.Params[positionalRestParamIndex]
+
+		currentArgIndex := currentParamIndex
+		// check rest arguments
+		for ; currentArgIndex < min(argCount-method.PostParamCount, len(positionalArguments)); currentArgIndex++ {
+			posArg := positionalArguments[currentArgIndex]
+			posArgType := c.MacroTypeOf(posArg)
+			restPositionalArguments.Elements = append(restPositionalArguments.Elements, posArg)
+			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Location()) {
+				c.addFailure(
+					fmt.Sprintf(
+						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
+						types.InspectWithColor(posRestParam.Type),
+						posRestParam.Name.String(),
+						types.InspectWithColor(method),
+						types.InspectWithColor(posArgType),
+					),
+					posArg.Location(),
+				)
+			}
+		}
+		checkedPositionalArguments = append(checkedPositionalArguments, restPositionalArguments)
+
+		currentParamIndex = positionalRestParamIndex
+		// check post arguments
+		for ; currentArgIndex < len(positionalArguments); currentArgIndex++ {
+			posArg := positionalArguments[currentArgIndex]
+			currentParamIndex++
+			param := method.Params[currentParamIndex]
+
+			posArgType := c.MacroTypeOf(posArg)
+			checkedPositionalArguments = append(checkedPositionalArguments, posArg)
+			if !c.isSubtype(posArgType, param.Type, posArg.Location()) {
+				c.addFailure(
+					fmt.Sprintf(
+						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
+						types.InspectWithColor(param.Type),
+						param.Name.String(),
+						types.InspectWithColor(method),
+						types.InspectWithColor(posArgType),
+					),
+					posArg.Location(),
+				)
+			}
+		}
+		currentParamIndex++
+
+		if method.PostParamCount > 0 {
+			reqParamCount++
+		}
+	}
+
+	firstNamedParamIndex := currentParamIndex
+	definedNamedArgumentsSlice := make([]bool, len(namedArguments))
+
+	for i := range method.Params {
+		param := method.Params[i]
+		switch param.Kind {
+		case types.PositionalRestParameterKind, types.NamedRestParameterKind:
+			continue
+		}
+		paramName := param.Name.String()
+		var found bool
+
+		for namedArgIndex, namedArgI := range namedArguments {
+			var namedArg *ast.NamedCallArgumentNode
+			switch n := namedArgI.(type) {
+			case *ast.NamedCallArgumentNode:
+				namedArg = n
+			case *ast.DoubleSplatExpressionNode:
+				continue
+			default:
+				panic(fmt.Sprintf("invalid named argument node: %T", namedArgI))
+			}
+
+			if namedArg.Name != paramName {
+				continue
+			}
+			if found || i < firstNamedParamIndex {
+				c.addFailure(
+					fmt.Sprintf(
+						"duplicated argument `%s` in call to `%s`",
+						paramName,
+						types.InspectWithColor(method),
+					),
+					namedArg.Location(),
+				)
+			}
+			found = true
+			definedNamedArgumentsSlice[namedArgIndex] = true
+
+			namedArgType := c.MacroTypeOf(namedArg.Value)
+			checkedPositionalArguments = append(checkedPositionalArguments, namedArg.Value)
+			if !c.isSubtype(namedArgType, param.Type, namedArg.Location()) {
+				c.addFailure(
+					fmt.Sprintf(
+						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
+						types.InspectWithColor(param.Type),
+						param.Name.String(),
+						types.InspectWithColor(method),
+						types.InspectWithColor(namedArgType),
+					),
+					namedArg.Location(),
+				)
+			}
+		}
+
+		if i < firstNamedParamIndex {
+			continue
+		}
+		if found {
+			continue
+		}
+
+		if i < reqParamCount {
+			// the parameter is required
+			// but is not present in the call
+			c.addFailure(
+				fmt.Sprintf(
+					"argument `%s` is missing in call to `%s`",
+					paramName,
+					types.InspectWithColor(method),
+				),
+				location,
+			)
+		} else {
+			// the parameter is missing and is optional
+			// we push undefined as its value
+			checkedPositionalArguments = append(
+				checkedPositionalArguments,
+				ast.NewUndefinedLiteralNode(location),
+			)
+		}
+	}
+
+	if method.HasNamedRestParam() {
+		namedRestArgs := ast.NewHashRecordLiteralNode(
+			location,
+			nil,
+		)
+		namedRestParam := method.Params[len(method.Params)-1]
+		for i, defined := range definedNamedArgumentsSlice {
+			if defined {
+				continue
+			}
+
+			namedArgI := namedArguments[i]
+			switch namedArg := namedArgI.(type) {
+			case *ast.NamedCallArgumentNode:
+				namedRestArgs.Elements = append(
+					namedRestArgs.Elements,
+					ast.NewSymbolKeyValueExpressionNode(
+						namedArg.Location(),
+						namedArg.Name,
+						namedArg.Value,
+					),
+				)
+				namedArgType := c.MacroTypeOf(namedArg.Value)
+				c.checkNamedRestArgumentType(
+					method.Name.String(),
+					namedArgType,
+					namedRestParam,
+					namedArg.Location(),
+				)
+			case *ast.DoubleSplatExpressionNode:
+				c.addFailure(
+					fmt.Sprintf(
+						"double splat arguments cannot be used in macro call `%s`",
+						types.InspectWithColor(method),
+					),
+					namedArg.Location(),
+				)
+			default:
+				panic(fmt.Sprintf("invalid named argument node: %T", namedArgI))
+			}
+		}
+
+		checkedPositionalArguments = append(checkedPositionalArguments, namedRestArgs)
+	} else {
+		for i, defined := range definedNamedArgumentsSlice {
+			if defined {
+				continue
+			}
+
+			namedArgI := namedArguments[i]
+			switch namedArg := namedArgI.(type) {
+			case *ast.NamedCallArgumentNode:
+				c.addFailure(
+					fmt.Sprintf(
+						"nonexistent parameter `%s` given in call to `%s`",
+						namedArg.Name,
+						types.InspectWithColor(method),
+					),
+					namedArg.Location(),
+				)
+			case *ast.DoubleSplatExpressionNode:
+				c.addFailure(
+					fmt.Sprintf(
+						"double splat arguments cannot be used in macro call `%s`",
+						types.InspectWithColor(method),
+					),
+					namedArg.Location(),
+				)
+			}
+		}
+	}
+
+	return checkedPositionalArguments
+}
 
 func (c *Checker) hoistMacroDefinition(node *ast.MacroDefinitionNode) {
 	definedUnder := c.currentMethodScope().container
@@ -54,6 +496,7 @@ func (c *Checker) registerMacroCheck(macro *types.Method, node *ast.MacroDefinit
 	})
 }
 
+// Check macro definition bodies
 func (c *Checker) checkMacros() {
 	concurrent.Foreach(
 		concurrencyLimit,
@@ -69,6 +512,7 @@ func (c *Checker) checkMacros() {
 				macro.ReturnType,
 				macro.ThrowType,
 				false,
+				c.threadPool,
 			)
 			macroChecker.checkMacroDefinition(node, macro)
 		},
