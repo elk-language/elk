@@ -271,10 +271,7 @@ func (l *Location) HumanStringWithSource(source string, style bool, colorizer co
 		startOffset += utf8.RuneCountInString(s)
 	}
 
-	exampleEnd := l.EndPos.ByteOffset
-	if lineEndIndex < exampleEnd {
-		exampleEnd = lineEndIndex
-	}
+	exampleEnd := min(lineEndIndex, l.EndPos.ByteOffset)
 	for i := range source[l.StartPos.ByteOffset : exampleEnd+1] {
 		if currentSourceLength >= maxSourceExampleLength {
 			if i < lineEndIndex-1 {

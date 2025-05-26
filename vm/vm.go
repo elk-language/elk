@@ -1727,7 +1727,7 @@ func (vm *VM) opCallSelfTCO(callInfoIndex int) (err value.Value) {
 	class := self.DirectClass()
 
 	// shift all arguments one slot forward to make room for self
-	for i := 0; i < callInfo.ArgumentCount; i++ {
+	for i := range callInfo.ArgumentCount {
 		*vm.spAdd(-i) = *vm.spAdd(-i - 1)
 	}
 	*vm.spAdd(-callInfo.ArgumentCount) = self
@@ -1746,7 +1746,14 @@ func (vm *VM) opCallSelfTCO(callInfoIndex int) (err value.Value) {
 		return vm.callSetterMethod(m)
 	}
 
-	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+	panic(
+		fmt.Sprintf(
+			"tried to call a method that is neither bytecode nor native: %#v, %s in %s",
+			method,
+			callInfo.Name,
+			class.Name,
+		),
+	)
 }
 
 // Call a method with an implicit receiver
@@ -1757,7 +1764,7 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 	class := self.DirectClass()
 
 	// shift all arguments one slot forward to make room for self
-	for i := 0; i < callInfo.ArgumentCount; i++ {
+	for i := range callInfo.ArgumentCount {
 		*vm.spAdd(-i) = *vm.spAdd(-i - 1)
 	}
 	*vm.spAdd(-callInfo.ArgumentCount) = self
@@ -1776,7 +1783,14 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 		return vm.callSetterMethod(m)
 	}
 
-	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+	panic(
+		fmt.Sprintf(
+			"tried to call a method that is neither bytecode nor native: %#v, %s in %s",
+			method,
+			callInfo.Name,
+			class.Name,
+		),
+	)
 }
 
 func (vm *VM) callGetterMethod(method *GetterMethod) value.Value {

@@ -1,6 +1,8 @@
 package runtime
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
@@ -10,7 +12,7 @@ import (
 )
 
 func initNode() {
-	// Std::Node
+	// Std::Elk::AST::Node
 	c := &value.NodeMixin.MethodContainer
 	vm.Def(
 		c,
@@ -61,6 +63,35 @@ func initNode() {
 			iterator := ast.NewNodeIterator(self)
 			return value.Ref(iterator), value.Undefined
 		},
+	)
+
+	// &Std::Elk::AST::Node
+	c = &value.NodeMixin.SingletonClass().MethodContainer
+	vm.Def(
+		c,
+		"expr",
+		func(vm *vm.VM, args []value.Value) (value.Value, value.Value) {
+			node := args[1].AsReference()
+			var expr ast.ExpressionNode
+
+			switch node := node.(type) {
+			case ast.StatementNode:
+				expr = ast.NewDoExpressionNode(node.Location(), []ast.StatementNode{node}, nil, nil)
+			case *value.ArrayTuple:
+				body := ds.MapSlice(
+					*node,
+					func(v value.Value) ast.StatementNode {
+						return v.MustReference().(ast.StatementNode)
+					},
+				)
+				expr = ast.NewDoExpressionNode(position.ZeroLocation, body, nil, nil)
+			default:
+				panic(fmt.Sprintf("invalid node argument to expr: %T", node))
+			}
+
+			return value.Ref(expr), value.Undefined
+		},
+		vm.DefWithParameters(1),
 	)
 
 	// Std::Kernel

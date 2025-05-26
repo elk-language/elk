@@ -3619,6 +3619,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 
 						{
+							namespace := namespace.Singleton()
+
+							namespace.Name() // noop - avoid unused variable error
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+							namespace.DefineMethod("Convert the given AST Node, or collection of nodes into\nan expression.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expr"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NewUnion(NameToType("Std::Elk::AST::StatementNode", env), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")}))), NormalParameterKind, false)}, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+
+							// Define constants
+
+							// Define instance variables
+						}
+						{
 							namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 							namespace.Name() // noop - avoid unused variable error

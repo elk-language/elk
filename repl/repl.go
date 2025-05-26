@@ -39,22 +39,42 @@ type evaluator struct {
 	typechecker  *checker.Checker
 	vm           *vm.VM
 	inspectStack bool
+	sourceMap    map[string]string
+	inputIndex   int
 }
 
-const replName = "<repl>"
+func (e *evaluator) sourceName() string {
+	return fmt.Sprintf("<repl:%d>", e.inputIndex)
+}
+
+func (e *evaluator) deleteSource(sourceName string) {
+	if e.typechecker == nil && !e.typechecker.DefinedMacros() {
+		delete(e.sourceMap, sourceName)
+	}
+}
+
+func (e *evaluator) addSource(input string) string {
+	sourceName := e.sourceName()
+	e.inputIndex++
+	e.sourceMap[sourceName] = input
+	return sourceName
+}
 
 func (e *evaluator) evaluate(input string) {
+	sourceName := e.addSource(input)
+	defer e.deleteSource(sourceName)
+
 	if e.typechecker == nil {
 		e.typechecker = checker.New()
 		e.vm = vm.New()
 	}
-	fn, dl := e.typechecker.CheckSource(replName, input)
+
+	fn, dl := e.typechecker.CheckSource(sourceName, input)
 
 	if dl != nil {
 		fmt.Println()
 
-		sourceMap := map[string]string{replName: input}
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
 		if err != nil {
 			panic(err)
 		}
@@ -81,13 +101,15 @@ func (e *evaluator) evaluate(input string) {
 
 // parses the input and prints it to the output
 func (e *evaluator) parse(input string) {
-	ast, dl := parser.Parse(replName, input)
+	sourceName := e.addSource(input)
+	defer e.deleteSource(sourceName)
+
+	ast, dl := parser.Parse(sourceName, input)
 
 	if dl != nil {
 		fmt.Println()
 
-		sourceMap := map[string]string{replName: input}
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
 		if err != nil {
 			panic(err)
 		}
@@ -102,16 +124,18 @@ func (e *evaluator) parse(input string) {
 
 // compiles the input to bytecode and dumps it to the output
 func (e *evaluator) disassemble(input string) {
+	sourceName := e.addSource(input)
+	defer e.deleteSource(sourceName)
+
 	if e.typechecker == nil {
 		e.typechecker = checker.New()
 	}
-	fn, dl := e.typechecker.CheckSource(replName, input)
+	fn, dl := e.typechecker.CheckSource(sourceName, input)
 
 	if dl != nil {
 		fmt.Println()
 
-		sourceMap := map[string]string{replName: input}
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
 		if err != nil {
 			panic(err)
 		}
@@ -129,16 +153,18 @@ func (e *evaluator) disassemble(input string) {
 
 // parsers, typechecks the input and prints it to the output
 func (e *evaluator) typecheck(input string) {
+	sourceName := e.addSource(input)
+	defer e.deleteSource(sourceName)
+
 	if e.typechecker == nil {
 		e.typechecker = checker.New()
 	}
-	_, dl := e.typechecker.CheckSource(replName, input)
+	_, dl := e.typechecker.CheckSource(sourceName, input)
 
 	if dl != nil {
 		fmt.Println()
 
-		sourceMap := map[string]string{replName: input}
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
 		if err != nil {
 			panic(err)
 		}
@@ -213,10 +239,7 @@ func executeOnEnter(pr *prompt.Prompt, indentSize int) (indent int, execute bool
 		var indentDiff int
 		var nextIndentDiff int
 
-		indentDiff = indentSize - (baseIndent % indentSize)
-		if indentDiff > baseIndent {
-			indentDiff = baseIndent
-		}
+		indentDiff = min(indentSize-(baseIndent%indentSize), baseIndent)
 		if isBlockEnd {
 			nextIndentDiff = indentDiff
 		}
@@ -257,6 +280,7 @@ const (
 func executor(disassemble, inspectStack, parse, lex, typecheck bool) prompt.Executor {
 	eval := &evaluator{
 		inspectStack: inspectStack,
+		sourceMap:    make(map[string]string),
 	}
 	if lex {
 		return eval.lex

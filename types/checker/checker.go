@@ -90,6 +90,7 @@ const (
 	inferClosureReturnTypeFlag
 	inferClosureThrowTypeFlag
 	generatorFlag
+	definedMacrosFlag // indicates that the typechecker has defined some macros
 )
 
 type phase uint8
@@ -199,6 +200,18 @@ func (c *Checker) setGenerator(val bool) {
 	}
 }
 
+func (c *Checker) DefinedMacros() bool {
+	return c.flags.HasFlag(definedMacrosFlag)
+}
+
+func (c *Checker) setDefinedMacros(val bool) {
+	if val {
+		c.flags.SetFlag(definedMacrosFlag)
+	} else {
+		c.flags.UnsetFlag(definedMacrosFlag)
+	}
+}
+
 func (c *Checker) shouldInferClosureReturnType() bool {
 	return c.flags.HasFlag(inferClosureReturnTypeFlag)
 }
@@ -241,6 +254,8 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 
 	c.Filename = sourceName
 	c.methodChecks = nil
+	c.macroChecks = nil
+	c.setDefinedMacros(false)
 	bytecodeFunc := c.checkProgram(ast)
 
 	if c.Errors.IsFailure() {

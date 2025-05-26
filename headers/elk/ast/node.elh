@@ -3,6 +3,14 @@ module ::Std::Elk::AST
 		A base for all Elk AST (Abstract Syntax Tree) nodes.
 	]##
 	mixin Node
+		singleton
+			##[
+				Convert the given AST Node, or collection of nodes into
+				an expression.
+			]##
+			def expr(node: StatementNode | ArrayTuple[StatementNode]): ExpressionNode; end
+		end
+
 		##[
 			Returns the span that represents
 			the position of this node in a source file/string.

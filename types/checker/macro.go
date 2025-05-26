@@ -137,7 +137,7 @@ func (c *Checker) expandMacro(name string, posArgs []ast.ExpressionNode, namedAr
 	runtimeArgs := make([]value.Value, 0, len(checkedArgs)+2)
 	runtimeArgs = append(
 		runtimeArgs,
-		value.Ref(value.GlobalObject),
+		value.Ref(value.NodeMixin),
 		value.Ref((*value.Location)(loc)),
 	)
 
@@ -453,6 +453,7 @@ func (c *Checker) checkMacroArguments(
 }
 
 func (c *Checker) hoistMacroDefinition(node *ast.MacroDefinitionNode) {
+	c.setDefinedMacros(true)
 	definedUnder := c.currentMethodScope().container
 	switch d := definedUnder.(type) {
 	case *types.Module:
@@ -508,7 +509,7 @@ func (c *Checker) checkMacros() {
 				node.Location().FilePath,
 				macroCheck.constantScopes,
 				macroCheck.methodScopes,
-				macro.DefinedUnder,
+				c.StdNode().Singleton(),
 				macro.ReturnType,
 				macro.ThrowType,
 				false,
