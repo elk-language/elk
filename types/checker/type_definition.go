@@ -688,7 +688,7 @@ func (c *Checker) checkNamespaceTypeParameters(
 
 func (c *Checker) checkSuperclassForMacro(node *ast.ClassDeclarationNode) {
 	class, ok := c.TypeOf(node).(*types.Class)
-	if !ok {
+	if !ok || class.Checked {
 		return
 	}
 	c.pushConstScope(makeLocalConstantScope(class))
@@ -818,7 +818,6 @@ superclassSwitch:
 		if previousSuperclass == nil {
 			previousSuperclass = types.Nil{}
 		}
-
 		c.addFailure(
 			fmt.Sprintf(
 				"superclass mismatch in `%s`, got `%s`, expected `%s`",

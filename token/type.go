@@ -515,6 +515,7 @@ const (
 	UNQUOTE           // Keyword `unquote`
 	UNQUOTE_PATTERN   // Keyword `unquote_pattern`
 	UNQUOTE_TYPE      // Keyword `unquote_type`
+	UNDEFINED         // Keyword `undefined`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -603,6 +604,7 @@ var Keywords = map[string]Type{
 	"unquote":         UNQUOTE,
 	"unquote_pattern": UNQUOTE_PATTERN,
 	"unquote_type":    UNQUOTE_TYPE,
+	"undefined":       UNDEFINED,
 }
 
 var tokenNames = [...]string{
@@ -855,4 +857,5 @@ var tokenNames = [...]string{
 	UNQUOTE:         "unquote",
 	UNQUOTE_PATTERN: "unquote_pattern",
 	UNQUOTE_TYPE:    "unquote_type",
+	UNDEFINED:       "undefined",
 }

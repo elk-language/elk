@@ -135,6 +135,10 @@ func (c *Class) SetParent(parent Namespace) {
 }
 
 func (c *Class) RemoveTemporaryParents(env *GlobalEnvironment) {
+	if _, ok := c.parent.(*TemporaryParent); !ok {
+		return
+	}
+
 	c.parent = nil
 	c.singleton.parent = env.StdSubtypeClass(symbol.Class)
 }

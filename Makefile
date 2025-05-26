@@ -35,5 +35,8 @@ lex: fmt
 parse: fmt
 	go run ./cmd/elk repl --parse
 
+expand: fmt
+	go run ./cmd/elk repl --expand
+
 inspect: fmt
 	go run ./cmd/elk repl --inspect-stack

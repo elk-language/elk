@@ -104,8 +104,9 @@ const (
 
 // Holds the state of the type checking process
 type Checker struct {
-	Filename                string                         // name of the current source file
-	Errors                  *diagnostic.SyncDiagnosticList // list of typechecking errors
+	Filename                string                                    // name of the current source file
+	Errors                  *diagnostic.SyncDiagnosticList            // list of typechecking errors
+	ASTCache                *concurrent.Map[string, *ast.ProgramNode] // stores the ASTs of parsed source code files
 	env                     *types.GlobalEnvironment
 	flags                   bitfield.BitField8
 	phase                   phase
@@ -127,8 +128,7 @@ type Checker struct {
 	methodChecks            []methodCheckEntry            // list of methods whose bodies have to be checked
 	constantChecks          *constantDefinitionChecks
 	typeDefinitionChecks    *typeDefinitionChecks
-	astCache                *concurrent.Map[string, *ast.ProgramNode] // stores the ASTs of parsed source code files
-	methodCache             *concurrent.Slice[*types.Method]          // used in constant definition checks, the list of methods used in the current constant declaration
+	methodCache             *concurrent.Slice[*types.Method] // used in constant definition checks, the list of methods used in the current constant declaration
 	method                  *types.Method
 	classesWithIvars        []*ast.ClassDeclarationNode // classes that declare instance variables
 	compiler                *compiler.Compiler
@@ -148,7 +148,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		constantChecks:       newConstantDefinitionChecks(),
-		astCache:             concurrent.NewMap[string, *ast.ProgramNode](),
+		ASTCache:             concurrent.NewMap[string, *ast.ProgramNode](),
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		threadPool:           threadPool,
 	}
@@ -434,7 +434,7 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 func (c *Checker) hoistNamespaceDefinitionsAndMacrosInFile(filename string, node *ast.ProgramNode) {
 	node.State = ast.CHECKING_NAMESPACES
 	for _, importPath := range node.ImportPaths {
-		importedAst, ok := c.astCache.GetUnsafe(importPath)
+		importedAst, ok := c.ASTCache.GetUnsafe(importPath)
 		if !ok {
 			continue
 		}
@@ -458,7 +458,7 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacrosInFile(filename string, node
 func (c *Checker) hoistMethodDefinitionsInFile(filename string, node *ast.ProgramNode) {
 	node.State = ast.CHECKING_METHODS
 	for _, importPath := range node.ImportPaths {
-		importedAst, ok := c.astCache.GetUnsafe(importPath)
+		importedAst, ok := c.ASTCache.GetUnsafe(importPath)
 		if !ok {
 			continue
 		}
@@ -481,7 +481,7 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 	node.State = ast.CHECKING_EXPRESSIONS
 
 	for _, importPath := range node.ImportPaths {
-		importedAst, ok := c.astCache.GetUnsafe(importPath)
+		importedAst, ok := c.ASTCache.GetUnsafe(importPath)
 		if !ok {
 			continue
 		}
@@ -510,7 +510,7 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 }
 
 func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg *sync.WaitGroup) {
-	c.astCache.Set(fileName, ast)
+	c.ASTCache.Set(fileName, ast)
 
 	imports := c.hoistImports(ast.Body)
 	for _, importStmt := range imports {
@@ -519,7 +519,7 @@ func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg 
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				_, ok := c.astCache.Get(importPath)
+				_, ok := c.ASTCache.Get(importPath)
 				if ok {
 					return
 				}

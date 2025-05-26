@@ -75,6 +75,10 @@ func (m *Mixin) SetParent(parent Namespace) {
 }
 
 func (m *Mixin) RemoveTemporaryParents(env *GlobalEnvironment) {
+	if _, ok := m.parent.(*TemporaryParent); !ok {
+		return
+	}
+
 	m.parent = nil
 	m.singleton.parent = env.StdSubtypeClass(symbol.Mixin)
 }

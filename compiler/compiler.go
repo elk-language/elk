@@ -551,9 +551,6 @@ const macroLocationParamName = "_location"
 // Entry point for compiling the body of a macro.
 func (c *Compiler) compileMacroBody(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
 	paramCount := len(parameters)
-	c.defineLocal(macroLocationParamName, location)
-	paramCount++
-	c.predefinedLocals++
 
 	for _, param := range parameters {
 		p := param.(*ast.FormalParameterNode)
@@ -1149,10 +1146,20 @@ func (c *Compiler) compileUnquoteExpressionNode(node *ast.UnquoteExpressionNode)
 
 func (c *Compiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) {
 	location := node.Location()
-	newNode := ast.NewMacroBoundaryNode(location, node.Body, "")
+
+	var newNode ast.ExpressionNode
+	if len(node.Body) != 1 {
+		newNode = ast.NewMacroBoundaryNode(location, node.Body, "")
+	} else if stmt, ok := node.Body[0].(*ast.ExpressionStatementNode); ok {
+		newNode = stmt.Expression
+	} else {
+		newNode = ast.NewMacroBoundaryNode(location, node.Body, "")
+	}
+
 	c.emitGetConst(value.ToSymbol("Std::Kernel"), location)
 	c.emitValue(value.Ref(newNode), location)
 
+	// ArrayTuple base
 	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 
 	var unquoteCount int
@@ -1175,22 +1182,10 @@ func (c *Compiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) {
 		c.emitNewArrayTuple(unquoteCount, location)
 	}
 
-	// location
-	if c.mode == macroMode {
-		locationLocal, ok := c.resolveLocal(macroLocationParamName)
-		if !ok {
-			panic(fmt.Sprintf("undefined local %s in macro quote compilation", macroLocationParamName))
-		}
-
-		c.emitGetLocal(location.StartPos.Line, locationLocal.index)
-	} else {
-		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
-	}
-
 	c.emitCallMethod(
 		value.NewCallSiteInfo(
 			symbol.S_splice,
-			3,
+			2,
 		),
 		location,
 		false,

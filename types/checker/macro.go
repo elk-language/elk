@@ -17,7 +17,7 @@ import (
 func (c *Checker) expandTopLevelMacrosInFile(filename string, node *ast.ProgramNode) {
 	node.State = ast.EXPANDING_TOP_LEVEL_MACROS
 	for _, importPath := range node.ImportPaths {
-		importedAst, ok := c.astCache.GetUnsafe(importPath)
+		importedAst, ok := c.ASTCache.GetUnsafe(importPath)
 		if !ok {
 			continue
 		}
@@ -39,47 +39,79 @@ func (c *Checker) expandTopLevelMacros(statements []ast.StatementNode) {
 	for _, statement := range statements {
 		switch stmt := statement.(type) {
 		case *ast.ExpressionStatementNode:
-			expression := stmt.Expression
-
-			var result ast.ExpressionNode
-			switch expr := expression.(type) {
-			case *ast.MacroBoundaryNode:
-				c.expandTopLevelMacros(expr.Body)
-			case *ast.ModuleDeclarationNode:
-				c.expandTopLevelMacros(expr.Body)
-			case *ast.ClassDeclarationNode:
-				c.expandTopLevelMacros(expr.Body)
-			case *ast.MixinDeclarationNode:
-				c.expandTopLevelMacros(expr.Body)
-			case *ast.InterfaceDeclarationNode:
-				c.expandTopLevelMacros(expr.Body)
-			case *ast.SingletonBlockExpressionNode:
-				c.expandTopLevelMacros(expr.Body)
-			case *ast.ExtendWhereBlockExpressionNode:
-				c.expandTopLevelMacros(expr.Body)
-			case *ast.MacroCallNode:
-				posArgs := []ast.ExpressionNode{expr.Receiver}
-
-				result = c.expandMacro(
-					expr.MacroName,
-					append(posArgs, expr.PositionalArguments...),
-					expr.NamedArguments,
-					expr.Location(),
-				)
-			case *ast.ReceiverlessMacroCallNode:
-				result = c.expandMacro(
-					expr.MacroName,
-					expr.PositionalArguments,
-					expr.NamedArguments,
-					expr.Location(),
-				)
-			}
-
-			if result != nil {
-				stmt.Expression = result
-			}
+			stmt.Expression = c.expandTopLevelMacrosInExpression(stmt.Expression)
 		}
 	}
+}
+
+func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.ExpressionNode {
+	switch expr := expr.(type) {
+	case *ast.MacroBoundaryNode:
+		c.expandTopLevelMacros(expr.Body)
+	case *ast.ModuleDeclarationNode:
+		typ := c.TypeOf(expr).(*types.Module)
+		c.pushMethodScope(makeLocalMethodScope(typ))
+
+		c.expandTopLevelMacros(expr.Body)
+
+		c.popMethodScope()
+	case *ast.ClassDeclarationNode:
+		typ := c.TypeOf(expr).(*types.Class)
+		c.pushMethodScope(makeLocalMethodScope(typ))
+
+		c.expandTopLevelMacros(expr.Body)
+
+		c.popMethodScope()
+	case *ast.MixinDeclarationNode:
+		typ := c.TypeOf(expr).(*types.Mixin)
+		c.pushMethodScope(makeLocalMethodScope(typ))
+
+		c.expandTopLevelMacros(expr.Body)
+
+		c.popMethodScope()
+	case *ast.InterfaceDeclarationNode:
+		typ := c.TypeOf(expr).(*types.Interface)
+		c.pushMethodScope(makeLocalMethodScope(typ))
+
+		c.expandTopLevelMacros(expr.Body)
+
+		c.popMethodScope()
+	case *ast.SingletonBlockExpressionNode:
+		typ := c.TypeOf(expr).(*types.SingletonClass)
+		c.pushMethodScope(makeLocalMethodScope(typ))
+
+		c.expandTopLevelMacros(expr.Body)
+
+		c.popMethodScope()
+	case *ast.ExtendWhereBlockExpressionNode:
+		c.expandTopLevelMacros(expr.Body)
+	case *ast.MacroCallNode:
+		posArgs := []ast.ExpressionNode{expr.Receiver}
+
+		result := c.expandMacroByName(
+			expr.MacroName,
+			append(posArgs, expr.PositionalArguments...),
+			expr.NamedArguments,
+			expr.Location(),
+		)
+		if result == nil {
+			return expr
+		}
+		return c.expandTopLevelMacrosInExpression(result)
+	case *ast.ReceiverlessMacroCallNode:
+		result := c.expandMacroByName(
+			expr.MacroName,
+			expr.PositionalArguments,
+			expr.NamedArguments,
+			expr.Location(),
+		)
+		if result == nil {
+			return expr
+		}
+		return c.expandTopLevelMacrosInExpression(result)
+	}
+
+	return expr
 }
 
 func (c *Checker) resolveMacro(name value.Symbol) *types.Method {
@@ -98,9 +130,11 @@ func (c *Checker) resolveMacro(name value.Symbol) *types.Method {
 			continue
 		}
 
-		macro := namespace.Method(name)
-		if macro != nil {
-			return macro
+		for parent := range types.Parents(namespace) {
+			macro := parent.Method(name)
+			if macro != nil {
+				return macro
+			}
 		}
 	}
 
@@ -122,30 +156,33 @@ func (c *Checker) getMacro(name value.Symbol, loc *position.Location) *types.Met
 	return macro
 }
 
-func (c *Checker) expandMacro(name string, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.ExpressionNode {
+func (c *Checker) expandMacroByName(name string, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.ExpressionNode {
 	macroName := value.ToSymbol(name + "!")
 	macro := c.getMacro(macroName, loc)
 	if macro == nil {
 		return nil
 	}
 
+	return c.expandMacro(macro, posArgs, namedArgs, loc)
+}
+
+func (c *Checker) expandMacro(macro *types.Method, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.ExpressionNode {
 	checkedArgs := c.checkMacroArguments(macro, posArgs, namedArgs, loc)
 	if c.Errors.IsFailure() {
 		return nil
 	}
 
-	runtimeArgs := make([]value.Value, 0, len(checkedArgs)+2)
+	runtimeArgs := make([]value.Value, 0, len(checkedArgs)+1)
 	runtimeArgs = append(
 		runtimeArgs,
 		value.Ref(value.NodeMixin),
-		value.Ref((*value.Location)(loc)),
 	)
 
 	for _, arg := range checkedArgs {
 		runtimeArgs = append(runtimeArgs, value.Ref(arg))
 	}
 
-	promise := vm.NewPromiseForBytecode(vm.DefaultThreadPool, macro.Bytecode, runtimeArgs...)
+	promise := vm.NewPromiseForBytecode(c.threadPool, macro.Bytecode, runtimeArgs...)
 	result, err := promise.AwaitSync()
 	if !err.IsUndefined() {
 		c.addFailure(
@@ -159,7 +196,26 @@ func (c *Checker) expandMacro(name string, posArgs []ast.ExpressionNode, namedAr
 		return nil
 	}
 
-	return result.AsReference().(ast.ExpressionNode)
+	resultNode := result.AsReference().(ast.ExpressionNode)
+	// wrap in a macro boundary to make it hygienic
+	resultBoundary, ok := resultNode.(*ast.MacroBoundaryNode)
+	if ok && resultBoundary.Name == "" {
+		resultNode = ast.NewMacroBoundaryNode(
+			resultNode.Location(),
+			resultBoundary.Body,
+			types.Inspect(macro),
+		)
+	} else {
+		resultNode = ast.NewMacroBoundaryNode(
+			resultNode.Location(),
+			ast.ExpressionToStatements(resultNode),
+			types.Inspect(macro),
+		)
+	}
+	// update location
+	resultNode = ast.Splice(resultNode, loc, nil).(ast.ExpressionNode)
+
+	return resultNode
 }
 
 func (c *Checker) checkMacroArguments(

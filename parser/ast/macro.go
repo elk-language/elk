@@ -281,7 +281,16 @@ func (n *MacroCallNode) Equal(other value.Value) bool {
 func (n *MacroCallNode) String() string {
 	var buff strings.Builder
 
+	receiverParen := ExpressionPrecedence(n) > ExpressionPrecedence(n.Receiver)
+
+	if receiverParen {
+		buff.WriteRune('(')
+	}
 	buff.WriteString(n.Receiver.String())
+	if receiverParen {
+		buff.WriteRune(')')
+	}
+
 	buff.WriteRune('.')
 	buff.WriteString(n.MacroName)
 	buff.WriteString("!(")

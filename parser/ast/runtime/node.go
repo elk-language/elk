@@ -101,23 +101,22 @@ func initNode() {
 		"#splice",
 		func(vm *vm.VM, args []value.Value) (value.Value, value.Value) {
 			baseNode := args[1].AsReference().(ast.Node)
-			replacementNodes := (*value.ArrayTuple)(args[2].Pointer())
 
-			var location *position.Location
-			if !args[3].IsUndefined() {
-				location = (*position.Location)(args[3].Pointer())
+			var replacementNodes value.ArrayTuple
+			if !args[2].IsUndefined() {
+				replacementNodes = *(*value.ArrayTuple)(args[2].Pointer())
 			}
 
 			r := ds.MapSlice(
-				*replacementNodes,
+				replacementNodes,
 				func(v value.Value) ast.Node {
 					return v.AsReference().(ast.Node)
 				},
 			)
-			result := ast.Splice(baseNode, location, &r)
+			result := ast.Splice(baseNode, nil, &r)
 
 			return value.Ref(result), value.Undefined
 		},
-		vm.DefWithParameters(3),
+		vm.DefWithParameters(2),
 	)
 }

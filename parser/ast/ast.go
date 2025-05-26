@@ -161,7 +161,8 @@ func ExpressionPrecedence(expr ExpressionNode) uint8 {
 	case *GenericReceiverlessMethodCallNode,
 		*ReceiverlessMethodCallNode, *NilSafeSubscriptExpressionNode,
 		*SubscriptExpressionNode, *CallNode, *AttributeAccessNode,
-		*GenericMethodCallNode, *MethodCallNode, *AwaitExpressionNode:
+		*GenericMethodCallNode, *MethodCallNode, *AwaitExpressionNode,
+		*MacroCallNode, *ReceiverlessMacroCallNode:
 		return 210
 	case *ConstructorCallNode, *GenericConstructorCallNode:
 		return 220

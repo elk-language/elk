@@ -1006,7 +1006,15 @@ func (n *CallNode) Equal(other value.Value) bool {
 func (n *CallNode) String() string {
 	var buff strings.Builder
 
+	receiverParen := ExpressionPrecedence(n) > ExpressionPrecedence(n.Receiver)
+
+	if receiverParen {
+		buff.WriteRune('(')
+	}
 	buff.WriteString(n.Receiver.String())
+	if receiverParen {
+		buff.WriteRune(')')
+	}
 
 	if n.NilSafe {
 		buff.WriteRune('?')
@@ -1221,7 +1229,16 @@ func (n *GenericMethodCallNode) Equal(other value.Value) bool {
 func (n *GenericMethodCallNode) String() string {
 	var buff strings.Builder
 
+	receiverParen := ExpressionPrecedence(n) > ExpressionPrecedence(n.Receiver)
+
+	if receiverParen {
+		buff.WriteRune('(')
+	}
 	buff.WriteString(n.Receiver.String())
+	if receiverParen {
+		buff.WriteRune(')')
+	}
+
 	buff.WriteString(n.Op.String())
 	buff.WriteString(n.MethodName)
 	buff.WriteString("::[")
@@ -1438,7 +1455,16 @@ func (n *MethodCallNode) Equal(other value.Value) bool {
 func (n *MethodCallNode) String() string {
 	var buff strings.Builder
 
+	receiverParen := ExpressionPrecedence(n) > ExpressionPrecedence(n.Receiver)
+
+	if receiverParen {
+		buff.WriteRune('(')
+	}
 	buff.WriteString(n.Receiver.String())
+	if receiverParen {
+		buff.WriteRune(')')
+	}
+
 	buff.WriteString(n.Op.String())
 	buff.WriteString(n.MethodName)
 	buff.WriteString("(")

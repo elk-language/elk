@@ -180,6 +180,40 @@ func (e *evaluator) typecheck(input string) {
 	fmt.Println("OK")
 }
 
+// parsers, typechecks, expands macros and prints the AST to the output
+func (e *evaluator) expand(input string) {
+	sourceName := e.addSource(input)
+	defer e.deleteSource(sourceName)
+
+	if e.typechecker == nil {
+		e.typechecker = checker.New()
+	}
+	_, dl := e.typechecker.CheckSource(sourceName, input)
+
+	if dl != nil {
+		fmt.Println()
+
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(str)
+		isFailure := dl.IsFailure()
+		e.typechecker.ClearErrors()
+		if isFailure {
+			return
+		}
+	}
+
+	ast, ok := e.typechecker.ASTCache.GetUnsafe(sourceName)
+	if !ok {
+		panic(fmt.Sprintf("cannot get AST of %s in REPL", sourceName))
+	}
+
+	fmt.Println(lexer.Colorize(ast.String()))
+}
+
 // lexes the input and prints it to the output
 func (e *evaluator) lex(input string) {
 	tokens := lexer.Lex(input)
@@ -187,9 +221,9 @@ func (e *evaluator) lex(input string) {
 }
 
 // Start the REPL.
-func Run(disassemble, inspectStack, parse, lex, typecheck bool) {
+func Run(disassemble, inspectStack, parse, lex, typecheck, expand bool) {
 	p := prompt.New(
-		executor(disassemble, inspectStack, parse, lex, typecheck),
+		executor(disassemble, inspectStack, parse, lex, typecheck, expand),
 		prompt.WithLexer(&Lexer{}),
 		prompt.WithExecuteOnEnterCallback(executeOnEnter),
 		prompt.WithPrefix(">> "),
@@ -277,7 +311,7 @@ const (
 	sourceName = "REPL"
 )
 
-func executor(disassemble, inspectStack, parse, lex, typecheck bool) prompt.Executor {
+func executor(disassemble, inspectStack, parse, lex, typecheck, expand bool) prompt.Executor {
 	eval := &evaluator{
 		inspectStack: inspectStack,
 		sourceMap:    make(map[string]string),
@@ -293,6 +327,9 @@ func executor(disassemble, inspectStack, parse, lex, typecheck bool) prompt.Exec
 	}
 	if typecheck {
 		return eval.typecheck
+	}
+	if expand {
+		return eval.expand
 	}
 
 	return eval.evaluate
