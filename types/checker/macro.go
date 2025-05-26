@@ -49,35 +49,50 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 	case *ast.MacroBoundaryNode:
 		c.expandTopLevelMacros(expr.Body)
 	case *ast.ModuleDeclarationNode:
-		typ := c.TypeOf(expr).(*types.Module)
+		typ, ok := c.TypeOf(expr).(*types.Module)
+		if !ok {
+			return expr
+		}
 		c.pushMethodScope(makeLocalMethodScope(typ))
 
 		c.expandTopLevelMacros(expr.Body)
 
 		c.popMethodScope()
 	case *ast.ClassDeclarationNode:
-		typ := c.TypeOf(expr).(*types.Class)
+		typ, ok := c.TypeOf(expr).(*types.Class)
+		if !ok {
+			return expr
+		}
 		c.pushMethodScope(makeLocalMethodScope(typ))
 
 		c.expandTopLevelMacros(expr.Body)
 
 		c.popMethodScope()
 	case *ast.MixinDeclarationNode:
-		typ := c.TypeOf(expr).(*types.Mixin)
+		typ, ok := c.TypeOf(expr).(*types.Mixin)
+		if !ok {
+			return expr
+		}
 		c.pushMethodScope(makeLocalMethodScope(typ))
 
 		c.expandTopLevelMacros(expr.Body)
 
 		c.popMethodScope()
 	case *ast.InterfaceDeclarationNode:
-		typ := c.TypeOf(expr).(*types.Interface)
+		typ, ok := c.TypeOf(expr).(*types.Interface)
+		if !ok {
+			return expr
+		}
 		c.pushMethodScope(makeLocalMethodScope(typ))
 
 		c.expandTopLevelMacros(expr.Body)
 
 		c.popMethodScope()
 	case *ast.SingletonBlockExpressionNode:
-		typ := c.TypeOf(expr).(*types.SingletonClass)
+		typ, ok := c.TypeOf(expr).(*types.SingletonClass)
+		if !ok {
+			return expr
+		}
 		c.pushMethodScope(makeLocalMethodScope(typ))
 
 		c.expandTopLevelMacros(expr.Body)
