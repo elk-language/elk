@@ -1,5 +1,7 @@
 package ast
 
+import "slices"
+
 // All nodes that should be valid in pattern matching should
 // implement this interface
 type PatternNode interface {
@@ -64,14 +66,10 @@ func (*Float64LiteralNode) patternNode()             {}
 func (*BigFloatLiteralNode) patternNode()            {}
 func (*UninterpolatedRegexLiteralNode) patternNode() {}
 func (*InterpolatedRegexLiteralNode) patternNode()   {}
+func (*UnquoteNode) patternNode()                    {}
 
 func anyPatternDeclaresVariables(patterns []PatternNode) bool {
-	for _, pat := range patterns {
-		if PatternDeclaresVariables(pat) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(patterns, PatternDeclaresVariables)
 }
 
 func PatternDeclaresVariables(pattern PatternNode) bool {

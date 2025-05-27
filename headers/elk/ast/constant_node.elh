@@ -9,5 +9,10 @@ module ::Std::Elk::AST
 						UsingEntryNode,
 						ComplexConstantNode
 
+		def to_ast_const_node: ConstantNode; end
+
+		interface Convertible
+			sig to_ast_const_node: ConstantNode
+		end
 	end
 end

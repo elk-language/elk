@@ -7,38 +7,54 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func initUnquoteExpressionNode() {
-	c := &value.UnquoteExpressionNodeClass.MethodContainer
+func initUnquoteNode() {
+	c := &value.UnquoteNodeClass.MethodContainer
 	vm.Def(
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argExpression := args[1].MustReference().(ast.ExpressionNode)
+			argExprNode := args[1].MustReference().(ast.ExpressionNode)
+
+			var argKind ast.UnquoteKind
+			if !args[2].IsUndefined() {
+				argKind = ast.UnquoteKind(args[2].AsUInt8())
+			}
 
 			var argLoc *position.Location
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[2].Pointer())
+				argLoc = (*position.Location)(args[3].Pointer())
 			}
-			self := ast.NewUnquoteExpressionNode(
+
+			self := ast.NewUnquoteNode(
 				argLoc,
-				argExpression,
+				argKind,
+				argExprNode,
 			)
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(2),
+		vm.DefWithParameters(3),
 	)
 
 	vm.Def(
 		c,
-		"condition",
+		"expression",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.UnquoteExpressionNode)
+			self := args[0].MustReference().(*ast.UnquoteNode)
 			result := value.Ref(self.Expression)
 			return result, value.Undefined
+		},
+	)
 
+	vm.Def(
+		c,
+		"kind",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.UnquoteNode)
+			result := value.UInt8(self.Kind)
+			return result.ToValue(), value.Undefined
 		},
 	)
 
@@ -46,7 +62,7 @@ func initUnquoteExpressionNode() {
 		c,
 		"location",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.UnquoteExpressionNode)
+			self := args[0].MustReference().(*ast.UnquoteNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
 		},
@@ -56,7 +72,7 @@ func initUnquoteExpressionNode() {
 		c,
 		"==",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.UnquoteExpressionNode)
+			self := args[0].MustReference().(*ast.UnquoteNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
 		},
@@ -67,7 +83,7 @@ func initUnquoteExpressionNode() {
 		c,
 		"to_string",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.UnquoteExpressionNode)
+			self := args[0].MustReference().(*ast.UnquoteNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
 	)

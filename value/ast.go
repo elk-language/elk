@@ -97,7 +97,7 @@ var AsExpressionNodeClass *Class                  // Std::Elk::AST::AsExpression
 var DoExpressionNodeClass *Class                  // Std::Elk::AST::DoExpressionNode
 var MacroBoundaryNodeClass *Class                 // Std::Elk::AST::MacroBoundaryNode
 var QuoteExpressionNodeClass *Class               // Std::Elk::AST::QuoteExpressionNode
-var UnquoteExpressionNodeClass *Class             // Std::Elk::AST::UnquoteExpressionNode
+var UnquoteNodeClass *Class                       // Std::Elk::AST::UnquoteNode
 var SingletonBlockExpressionNodeClass *Class      // Std::Elk::AST::SingletonBlockExpressionNode
 var SwitchExpressionNodeClass *Class              // Std::Elk::AST::SwitchExpressionNode
 var IfExpressionNodeClass *Class                  // Std::Elk::AST::IfExpressionNode
@@ -709,9 +709,13 @@ func initElkAST() {
 	QuoteExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("QuoteExpressionNode", Ref(QuoteExpressionNodeClass))
 
-	UnquoteExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	UnquoteExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
-	ElkASTModule.AddConstantString("UnquoteExpressionNode", Ref(UnquoteExpressionNodeClass))
+	UnquoteNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	UnquoteNodeClass.IncludeMixin(ExpressionNodeMixin)
+	UnquoteNodeClass.IncludeMixin(PatternNodeMixin)
+	UnquoteNodeClass.IncludeMixin(TypeNodeMixin)
+	UnquoteNodeClass.IncludeMixin(ConstantNodeMixin)
+	UnquoteNodeClass.IncludeMixin(IdentifierNodeMixin)
+	ElkASTModule.AddConstantString("UnquoteNode", Ref(UnquoteNodeClass))
 
 	SingletonBlockExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	SingletonBlockExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)

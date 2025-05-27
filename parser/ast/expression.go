@@ -61,7 +61,7 @@ func (*SelfLiteralNode) expressionNode()                   {}
 func (*DoExpressionNode) expressionNode()                  {}
 func (*MacroBoundaryNode) expressionNode()                 {}
 func (*QuoteExpressionNode) expressionNode()               {}
-func (*UnquoteExpressionNode) expressionNode()             {}
+func (*UnquoteNode) expressionNode()                       {}
 func (*SingletonBlockExpressionNode) expressionNode()      {}
 func (*SwitchExpressionNode) expressionNode()              {}
 func (*IfExpressionNode) expressionNode()                  {}

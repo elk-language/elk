@@ -99,7 +99,7 @@ func TestQuote(t *testing.T) {
 										L(P(16, 3, 6), P(29, 3, 19)),
 										T(L(P(18, 3, 8), P(18, 3, 8)), token.PLUS),
 										ast.NewIntLiteralNode(L(P(16, 3, 6), P(16, 3, 6)), "1"),
-										ast.NewUnquoteExpressionNode(
+										ast.NewUnquoteNode(
 											L(P(20, 3, 10), P(29, 3, 19)),
 											ast.NewIntLiteralNode(L(P(28, 3, 18), P(28, 3, 18)), "2"),
 										),

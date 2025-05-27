@@ -2054,7 +2054,7 @@ func (p *Parser) privateConstant() *ast.PrivateConstantNode {
 	)
 }
 
-// constant = privateConstant | publicConstant
+// constant = privateConstant | publicConstant | unquoteConstant
 func (p *Parser) constant() ast.ConstantNode {
 	if p.accept(token.PRIVATE_CONSTANT) {
 		return p.privateConstant()
@@ -2062,6 +2062,10 @@ func (p *Parser) constant() ast.ConstantNode {
 
 	if p.accept(token.PUBLIC_CONSTANT) {
 		return p.publicConstant()
+	}
+
+	if p.accept(token.UNQUOTE) {
+		return p.unquoteConstant()
 	}
 
 	p.errorExpected("a constant")
@@ -3854,10 +3858,12 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 	if !p.accept(token.LESS, token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
 		constant = p.constantLookup()
 
-		switch constant.(type) {
+		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
+		case *ast.UnquoteNode:
+			c.Kind = ast.UNQUOTE_CONSTANT_KIND
 		default:
 			p.errorMessageLocation("invalid class name, expected a constant", constant.Location())
 		}
@@ -3938,10 +3944,12 @@ func (p *Parser) moduleDeclaration(allowed bool) ast.ExpressionNode {
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
 		constant = p.constantLookup()
 
-		switch constant.(type) {
+		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
+		case *ast.UnquoteNode:
+			c.Kind = ast.UNQUOTE_CONSTANT_KIND
 		default:
 			p.errorMessageLocation("invalid module name, expected a constant", constant.Location())
 		}
@@ -4017,10 +4025,12 @@ func (p *Parser) mixinDeclaration(allowed bool) ast.ExpressionNode {
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
 		constant = p.constantLookup()
 
-		switch constant.(type) {
+		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
+		case *ast.UnquoteNode:
+			c.Kind = ast.UNQUOTE_CONSTANT_KIND
 		default:
 			p.errorMessageLocation("invalid mixin name, expected a constant", constant.Location())
 		}
@@ -4094,10 +4104,12 @@ func (p *Parser) interfaceDeclaration(allowed bool) ast.ExpressionNode {
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
 		constant = p.constantLookup()
 
-		switch constant.(type) {
+		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
+		case *ast.UnquoteNode:
+			c.Kind = ast.UNQUOTE_CONSTANT_KIND
 		default:
 			p.errorMessageLocation("invalid interface name, expected a constant", constant.Location())
 		}
@@ -4170,10 +4182,12 @@ func (p *Parser) structDeclaration(allowed bool) ast.ExpressionNode {
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
 		constant = p.constantLookup()
 
-		switch constant.(type) {
+		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
+		case *ast.UnquoteNode:
+			c.Kind = ast.UNQUOTE_CONSTANT_KIND
 		default:
 			p.errorMessageLocation("invalid struct name, expected a constant", constant.Location())
 		}
@@ -4378,10 +4392,12 @@ func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 	var typ ast.TypeNode
 
 	constant := p.constantLookup()
-	switch constant.(type) {
+	switch c := constant.(type) {
 	case *ast.PublicConstantNode,
 		*ast.PrivateConstantNode,
 		*ast.ConstantLookupNode:
+	case *ast.UnquoteNode:
+		c.Kind = ast.UNQUOTE_CONSTANT_KIND
 	default:
 		p.errorMessageLocation("invalid constant name", constant.Location())
 	}
@@ -4537,6 +4553,8 @@ func (p *Parser) primaryType() ast.TypeNode {
 	}
 
 	switch p.lookahead.Type {
+	case token.UNQUOTE:
+		return p.unquoteType()
 	case token.BOOL:
 		tok := p.advance()
 		return ast.NewBoolLiteralNode(tok.Location())
@@ -4806,24 +4824,55 @@ func (p *Parser) mustExpression() *ast.MustExpressionNode {
 
 // unquoteExpression = "unquote" "(" expressionWithoutModifier ")"
 func (p *Parser) unquoteExpression() ast.ExpressionNode {
+	return p.unquote(ast.UNQUOTE_EXPRESSION_KIND)
+}
+
+// unquotePatternExpression = "unquote" "(" expressionWithoutModifier ")"
+func (p *Parser) unquotePattern() ast.PatternNode {
+	return p.unquote(ast.UNQUOTE_PATTERN_KIND)
+}
+
+// unquotePattern = "unquote" "(" expressionWithoutModifier ")"
+func (p *Parser) unquotePatternExpression() ast.PatternExpressionNode {
+	return p.unquote(ast.UNQUOTE_PATTERN_EXPRESSION_KIND)
+}
+
+// unquoteConstant = "unquote" "(" expressionWithoutModifier ")"
+func (p *Parser) unquoteConstant() ast.ConstantNode {
+	return p.unquote(ast.UNQUOTE_CONSTANT_KIND)
+}
+
+// unquoteType = "unquote" "(" expressionWithoutModifier ")"
+func (p *Parser) unquoteType() ast.TypeNode {
+	return p.unquote(ast.UNQUOTE_TYPE_KIND)
+}
+
+// unquoteIdentifier = "unquote" "(" expressionWithoutModifier ")"
+func (p *Parser) unquoteIdentifier() ast.IdentifierNode {
+	return p.unquote(ast.UNQUOTE_IDENTIFIER_KIND)
+}
+
+// unquote = "unquote" "(" expressionWithoutModifier ")"
+func (p *Parser) unquote(kind ast.UnquoteKind) ast.UnquoteOrInvalidNode {
 	unquoteTok := p.advance()
 
 	lparen, ok := p.consume(token.LPAREN)
 	if !ok {
-		return ast.NewInvalidExpressionNode(lparen.Location(), lparen)
+		return ast.NewInvalidNode(lparen.Location(), lparen)
 	}
 
 	expr := p.expressionWithoutModifier()
 
 	rparen, ok := p.consume(token.RPAREN)
 	if !ok {
-		return ast.NewInvalidExpressionNode(rparen.Location(), rparen)
+		return ast.NewInvalidNode(rparen.Location(), rparen)
 	}
 
 	location := unquoteTok.Location().Join(rparen.Location())
 
-	return ast.NewUnquoteExpressionNode(
+	return ast.NewUnquoteNode(
 		location,
+		kind,
 		expr,
 	)
 }
@@ -6020,7 +6069,7 @@ func (p *Parser) setPatternElement() ast.PatternNode {
 }
 
 // literalPattern = ["-" | "+"] innerLiteralPattern
-func (p *Parser) literalPattern() ast.PatternExpressionNode {
+func (p *Parser) literalPattern() ast.PatternNode {
 	operator, ok := p.matchOk(token.MINUS, token.PLUS)
 	val := p.innerLiteralPattern()
 	if !ok {
@@ -6038,6 +6087,8 @@ func (p *Parser) innerLiteralPattern() ast.PatternExpressionNode {
 	switch p.lookahead.Type {
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.SCOPE_RES_OP:
 		return p.strictConstantLookup()
+	case token.UNQUOTE:
+		return p.unquotePatternExpression()
 	case token.TRUE:
 		return p.trueLiteral()
 	case token.FALSE:
@@ -6385,6 +6436,8 @@ func (p *Parser) innerPrimaryPattern() ast.PatternNode {
 		pattern := p.pattern()
 		p.consume(token.RPAREN)
 		return pattern
+	case token.UNQUOTE:
+		return p.unquotePattern()
 	default:
 		return p.simplePattern()
 	}
@@ -6933,13 +6986,16 @@ func (p *Parser) privateIdentifier() *ast.PrivateIdentifierNode {
 	)
 }
 
-// identifier = PUBLIC_IDENTIFIER | PRIVATE_IDENTIFIER
+// identifier = PUBLIC_IDENTIFIER | PRIVATE_IDENTIFIER | unquote
 func (p *Parser) identifier() ast.IdentifierNode {
 	if p.accept(token.PUBLIC_IDENTIFIER) {
 		return p.publicIdentifier()
 	}
 	if p.accept(token.PRIVATE_IDENTIFIER) {
 		return p.privateIdentifier()
+	}
+	if p.accept(token.UNQUOTE) {
+		return p.unquoteIdentifier()
 	}
 
 	p.errorExpected("an identifier")

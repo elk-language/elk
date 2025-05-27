@@ -48,6 +48,7 @@ func (*PrivateConstantNode) complexConstantNode() {}
 func (*ConstantLookupNode) complexConstantNode()  {}
 func (*GenericConstantNode) complexConstantNode() {}
 func (*NilLiteralNode) complexConstantNode()      {}
+func (*UnquoteNode) complexConstantNode()         {}
 
 // All nodes that should be valid constants
 // should implement this interface.
@@ -63,6 +64,7 @@ type ConstantNode interface {
 func (*InvalidNode) constantNode()         {}
 func (*PublicConstantNode) constantNode()  {}
 func (*PrivateConstantNode) constantNode() {}
+func (*UnquoteNode) constantNode()         {}
 
 // Represents a public constant eg. `Foo`.
 type PublicConstantNode struct {

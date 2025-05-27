@@ -21,7 +21,7 @@ type IfExpressionNode struct {
 func (n *IfExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &IfExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Condition:     n.Condition.splice(loc, args, unquote).(ComplexConstantNode),
+		Condition:     n.Condition.splice(loc, args, unquote).(ExpressionNode),
 		ThenBody:      SpliceSlice(n.ThenBody, loc, args, unquote),
 		ElseBody:      SpliceSlice(n.ElseBody, loc, args, unquote),
 	}

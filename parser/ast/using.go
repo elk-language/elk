@@ -28,6 +28,7 @@ func (*ConstantAsNode) usingEntryNode()               {}
 func (*MethodLookupAsNode) usingEntryNode()           {}
 func (*GenericConstantNode) usingEntryNode()          {}
 func (*NilLiteralNode) usingEntryNode()               {}
+func (*UnquoteNode) usingEntryNode()                  {}
 
 // Represents all nodes that are valid in using subentries
 // in `UsingEntryWithSubentriesNode`

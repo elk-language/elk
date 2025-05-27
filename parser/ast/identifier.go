@@ -21,6 +21,7 @@ type IdentifierNode interface {
 func (*InvalidNode) identifierNode()           {}
 func (*PublicIdentifierNode) identifierNode()  {}
 func (*PrivateIdentifierNode) identifierNode() {}
+func (*UnquoteNode) identifierNode()           {}
 
 // Represents a public identifier eg. `foo`.
 type PublicIdentifierNode struct {

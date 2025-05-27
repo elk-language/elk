@@ -887,7 +887,7 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return n
 	case *ast.QuoteExpressionNode:
 		return c.checkQuoteExpressionNode(n)
-	case *ast.UnquoteExpressionNode:
+	case *ast.UnquoteNode:
 		c.addFailure(
 			"unquote expressions cannot appear in this context",
 			n.Location(),
@@ -1189,6 +1189,31 @@ func (c *Checker) StdExpressionNode() *types.Mixin {
 	return constant.Type.(*types.Mixin)
 }
 
+func (c *Checker) StdConstantNode() *types.Mixin {
+	constant, _ := c.StdAST().Subtype(symbol.ConstantNode)
+	return constant.Type.(*types.Mixin)
+}
+
+func (c *Checker) StdPatternNode() *types.Mixin {
+	constant, _ := c.StdAST().Subtype(symbol.PatternNode)
+	return constant.Type.(*types.Mixin)
+}
+
+func (c *Checker) StdPatternExpressionNode() *types.Mixin {
+	constant, _ := c.StdAST().Subtype(symbol.PatternExpressionNode)
+	return constant.Type.(*types.Mixin)
+}
+
+func (c *Checker) StdTypeNode() *types.Mixin {
+	constant, _ := c.StdAST().Subtype(symbol.TypeNode)
+	return constant.Type.(*types.Mixin)
+}
+
+func (c *Checker) StdIdentifierNode() *types.Mixin {
+	constant, _ := c.StdAST().Subtype(symbol.IdentifierNode)
+	return constant.Type.(*types.Mixin)
+}
+
 func (c *Checker) StdNodeConvertible() *types.Interface {
 	constant, _ := c.StdNode().Subtype(symbol.Convertible)
 	return constant.Type.(*types.Interface)
@@ -1196,6 +1221,31 @@ func (c *Checker) StdNodeConvertible() *types.Interface {
 
 func (c *Checker) StdExpressionNodeConvertible() *types.Interface {
 	constant, _ := c.StdExpressionNode().Subtype(symbol.Convertible)
+	return constant.Type.(*types.Interface)
+}
+
+func (c *Checker) StdConstantNodeConvertible() *types.Interface {
+	constant, _ := c.StdConstantNode().Subtype(symbol.Convertible)
+	return constant.Type.(*types.Interface)
+}
+
+func (c *Checker) StdPatternNodeConvertible() *types.Interface {
+	constant, _ := c.StdPatternNode().Subtype(symbol.Convertible)
+	return constant.Type.(*types.Interface)
+}
+
+func (c *Checker) StdPatternExpressionNodeConvertible() *types.Interface {
+	constant, _ := c.StdPatternExpressionNode().Subtype(symbol.Convertible)
+	return constant.Type.(*types.Interface)
+}
+
+func (c *Checker) StdTypeNodeConvertible() *types.Interface {
+	constant, _ := c.StdTypeNode().Subtype(symbol.Convertible)
+	return constant.Type.(*types.Interface)
+}
+
+func (c *Checker) StdIdentifierNodeConvertible() *types.Interface {
+	constant, _ := c.StdIdentifierNode().Subtype(symbol.Convertible)
 	return constant.Type.(*types.Interface)
 }
 
@@ -3780,16 +3830,40 @@ func (c *Checker) findParentOfMixinProxy(mixin types.Namespace) types.Namespace 
 }
 
 func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.QuoteExpressionNode {
-	nodeConvertible := c.StdExpressionNodeConvertible()
+	exprConvertible := c.StdExpressionNodeConvertible()
+	constConvertible := c.StdConstantNodeConvertible()
+	patternConvertible := c.StdPatternNodeConvertible()
+	patternExprConvertible := c.StdPatternExpressionNodeConvertible()
+	typeConvertible := c.StdTypeNodeConvertible()
+	identConvertible := c.StdIdentifierNodeConvertible()
 
 	ast.Traverse(
 		node,
 		func(node, parent ast.Node) ast.TraverseOption {
 			switch node := node.(type) {
-			case *ast.UnquoteExpressionNode:
+			case *ast.UnquoteNode:
 				node.Expression = c.checkExpression(node.Expression)
 				unquoteType := c.typeOfGuardVoid(node.Expression)
-				c.checkCanAssign(unquoteType, nodeConvertible, node.Location())
+
+				var iface *types.Interface
+				switch node.Kind {
+				case ast.UNQUOTE_EXPRESSION_KIND:
+					iface = exprConvertible
+				case ast.UNQUOTE_CONSTANT_KIND:
+					iface = constConvertible
+				case ast.UNQUOTE_PATTERN_KIND:
+					iface = patternConvertible
+				case ast.UNQUOTE_PATTERN_EXPRESSION_KIND:
+					iface = patternExprConvertible
+				case ast.UNQUOTE_TYPE_KIND:
+					iface = typeConvertible
+				case ast.UNQUOTE_IDENTIFIER_KIND:
+					iface = identConvertible
+				default:
+					fmt.Printf("invalid unquote kind: %d", node.Kind)
+				}
+
+				c.checkCanAssign(unquoteType, iface, node.Location())
 				return ast.TraverseSkip
 			}
 
@@ -7321,7 +7395,6 @@ func (c *Checker) hoistSingletonDeclarationWithFunc(node *ast.SingletonBlockExpr
 		currentNamespace := c.currentConstScope().container
 		singleton = currentNamespace.Singleton()
 		node.SetType(singleton)
-		node.Hoisted = true
 	}
 
 	prevMode := c.mode

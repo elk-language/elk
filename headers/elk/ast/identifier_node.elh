@@ -6,5 +6,12 @@ module ::Std::Elk::AST
 	mixin IdentifierNode
 		include ExpressionNode,
 						PatternNode
+
+
+		def to_ast_ident_node: IdentifierNode; end
+
+		interface Convertible
+			sig to_ast_ident_node: IdentifierNode
+		end
 	end
 end

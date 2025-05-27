@@ -1120,8 +1120,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		c.emitValue(value.Float32(f).ToValue(), node.Location())
 	case *ast.QuoteExpressionNode:
 		c.compileQuoteExpressionNode(node)
-	case *ast.UnquoteExpressionNode:
-		c.compileUnquoteExpressionNode(node)
+	case *ast.UnquoteNode:
+		c.compileUnquoteNode(node)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
@@ -1132,7 +1132,7 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	return expressionCompiled
 }
 
-func (c *Compiler) compileUnquoteExpressionNode(node *ast.UnquoteExpressionNode) {
+func (c *Compiler) compileUnquoteNode(node *ast.UnquoteNode) {
 	c.compileNodeWithResult(node.Expression)
 	c.emitCallMethod(
 		value.NewCallSiteInfo(
@@ -1167,7 +1167,7 @@ func (c *Compiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) {
 		node,
 		func(node, parent ast.Node) ast.TraverseOption {
 			switch node := node.(type) {
-			case *ast.UnquoteExpressionNode:
+			case *ast.UnquoteNode:
 				unquoteCount++
 				c.compileNodeWithResult(node)
 
