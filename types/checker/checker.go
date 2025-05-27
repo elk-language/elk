@@ -7013,6 +7013,11 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		return structNode
 	}
 
+	_, ok := c.TypeOf(structNode).(*types.Class)
+	if ok {
+		return structNode
+	}
+
 	container, constant, fullConstantName := c.resolveConstantForDeclaration(structNode.Constant)
 	constantName := value.ToSymbol(extractConstantName(structNode.Constant))
 	class := c.declareClass(
@@ -7105,6 +7110,12 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 }
 
 func (c *Checker) hoistModuleDeclaration(node *ast.ModuleDeclarationNode) {
+	c.hoistModuleDeclarationWithFunc(node, func(body []ast.StatementNode) {
+		c.hoistNamespaceDefinitionsAndMacros(body)
+	})
+}
+
+func (c *Checker) hoistModuleDeclarationWithFunc(node *ast.ModuleDeclarationNode, fn func([]ast.StatementNode)) {
 	switch c.mode {
 	case topLevelMode, classMode, interfaceMode,
 		moduleMode, mixinMode:
@@ -7112,25 +7123,28 @@ func (c *Checker) hoistModuleDeclaration(node *ast.ModuleDeclarationNode) {
 		return
 	}
 
-	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
-	constantName := value.ToSymbol(extractConstantName(node.Constant))
-	module := c.declareModule(
-		node.DocComment(),
-		container,
-		constant,
-		fullConstantName,
-		constantName,
-		node.Location(),
-	)
-	node.SetType(module)
-	node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
+	module, ok := c.TypeOf(node).(*types.Module)
+	if !ok {
+		container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+		constantName := value.ToSymbol(extractConstantName(node.Constant))
+		module = c.declareModule(
+			node.DocComment(),
+			container,
+			constant,
+			fullConstantName,
+			constantName,
+			node.Location(),
+		)
+		node.SetType(module)
+		node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
+	}
 
 	prevMode := c.mode
 	c.mode = moduleMode
 	c.pushConstScope(makeLocalConstantScope(module))
 	c.pushMethodScope(makeLocalMethodScope(module))
 
-	c.hoistNamespaceDefinitionsAndMacros(node.Body)
+	fn(node.Body)
 
 	c.popLocalConstScope()
 	c.popMethodScope()
@@ -7138,6 +7152,12 @@ func (c *Checker) hoistModuleDeclaration(node *ast.ModuleDeclarationNode) {
 }
 
 func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
+	c.hoistClassDeclarationWithFunc(node, func(body []ast.StatementNode) {
+		c.hoistNamespaceDefinitionsAndMacros(body)
+	})
+}
+
+func (c *Checker) hoistClassDeclarationWithFunc(node *ast.ClassDeclarationNode, fn func([]ast.StatementNode)) {
 	switch c.mode {
 	case topLevelMode, classMode, interfaceMode,
 		moduleMode, mixinMode:
@@ -7145,30 +7165,33 @@ func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
 		return
 	}
 
-	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
-	constantName := value.ToSymbol(extractConstantName(node.Constant))
-	class := c.declareClass(
-		node.DocComment(),
-		node.Abstract,
-		node.Sealed,
-		node.Primitive,
-		node.NoInit,
-		container,
-		constant,
-		fullConstantName,
-		constantName,
-		node.Location(),
-	)
-	node.SetType(class)
-	c.registerNamespaceDeclarationCheck(fullConstantName, node, class)
-	node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
+	class, ok := c.TypeOf(node).(*types.Class)
+	if !ok {
+		container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+		constantName := value.ToSymbol(extractConstantName(node.Constant))
+		class = c.declareClass(
+			node.DocComment(),
+			node.Abstract,
+			node.Sealed,
+			node.Primitive,
+			node.NoInit,
+			container,
+			constant,
+			fullConstantName,
+			constantName,
+			node.Location(),
+		)
+		node.SetType(class)
+		c.registerNamespaceDeclarationCheck(fullConstantName, node, class)
+		node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
+	}
 
 	prevMode := c.mode
 	c.mode = classMode
 	c.pushConstScope(makeLocalConstantScope(class))
 	c.pushMethodScope(makeLocalMethodScope(class))
 
-	c.hoistNamespaceDefinitionsAndMacros(node.Body)
+	fn(node.Body)
 
 	c.popLocalConstScope()
 	c.popMethodScope()
@@ -7176,6 +7199,12 @@ func (c *Checker) hoistClassDeclaration(node *ast.ClassDeclarationNode) {
 }
 
 func (c *Checker) hoistMixinDeclaration(node *ast.MixinDeclarationNode) {
+	c.hoistMixinDeclarationWithFunc(node, func(body []ast.StatementNode) {
+		c.hoistNamespaceDefinitionsAndMacros(body)
+	})
+}
+
+func (c *Checker) hoistMixinDeclarationWithFunc(node *ast.MixinDeclarationNode, fn func([]ast.StatementNode)) {
 	switch c.mode {
 	case topLevelMode, classMode, interfaceMode,
 		moduleMode, mixinMode:
@@ -7183,27 +7212,30 @@ func (c *Checker) hoistMixinDeclaration(node *ast.MixinDeclarationNode) {
 		return
 	}
 
-	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
-	constantName := value.ToSymbol(extractConstantName(node.Constant))
-	mixin := c.declareMixin(
-		node.DocComment(),
-		node.Abstract,
-		container,
-		constant,
-		fullConstantName,
-		constantName,
-		node.Location(),
-	)
-	node.SetType(mixin)
-	c.registerNamespaceDeclarationCheck(fullConstantName, node, mixin)
-	node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
+	mixin, ok := c.TypeOf(node).(*types.Mixin)
+	if !ok {
+		container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+		constantName := value.ToSymbol(extractConstantName(node.Constant))
+		mixin = c.declareMixin(
+			node.DocComment(),
+			node.Abstract,
+			container,
+			constant,
+			fullConstantName,
+			constantName,
+			node.Location(),
+		)
+		node.SetType(mixin)
+		c.registerNamespaceDeclarationCheck(fullConstantName, node, mixin)
+		node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
+	}
 
 	prevMode := c.mode
 	c.mode = mixinMode
 	c.pushConstScope(makeLocalConstantScope(mixin))
 	c.pushMethodScope(makeLocalMethodScope(mixin))
 
-	c.hoistNamespaceDefinitionsAndMacros(node.Body)
+	fn(node.Body)
 
 	c.popLocalConstScope()
 	c.popMethodScope()
@@ -7211,6 +7243,12 @@ func (c *Checker) hoistMixinDeclaration(node *ast.MixinDeclarationNode) {
 }
 
 func (c *Checker) hoistInterfaceDeclaration(node *ast.InterfaceDeclarationNode) {
+	c.hoistInterfaceDeclarationWithFunc(node, func(body []ast.StatementNode) {
+		c.hoistNamespaceDefinitionsAndMacros(body)
+	})
+}
+
+func (c *Checker) hoistInterfaceDeclarationWithFunc(node *ast.InterfaceDeclarationNode, fn func([]ast.StatementNode)) {
 	switch c.mode {
 	case topLevelMode, classMode, interfaceMode,
 		moduleMode, mixinMode:
@@ -7218,26 +7256,29 @@ func (c *Checker) hoistInterfaceDeclaration(node *ast.InterfaceDeclarationNode) 
 		return
 	}
 
-	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
-	constantName := value.ToSymbol(extractConstantName(node.Constant))
-	iface := c.declareInterface(
-		node.DocComment(),
-		container,
-		constant,
-		fullConstantName,
-		constantName,
-		node.Location(),
-	)
-	node.SetType(iface)
-	c.registerNamespaceDeclarationCheck(fullConstantName, node, iface)
-	node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
+	iface, ok := c.TypeOf(node).(*types.Interface)
+	if !ok {
+		container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+		constantName := value.ToSymbol(extractConstantName(node.Constant))
+		iface = c.declareInterface(
+			node.DocComment(),
+			container,
+			constant,
+			fullConstantName,
+			constantName,
+			node.Location(),
+		)
+		node.SetType(iface)
+		c.registerNamespaceDeclarationCheck(fullConstantName, node, iface)
+		node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
+	}
 
 	prevMode := c.mode
 	c.mode = interfaceMode
 	c.pushConstScope(makeLocalConstantScope(iface))
 	c.pushMethodScope(makeLocalMethodScope(iface))
 
-	c.hoistNamespaceDefinitionsAndMacros(node.Body)
+	fn(node.Body)
 
 	c.popLocalConstScope()
 	c.popMethodScope()
@@ -7263,15 +7304,25 @@ func (c *Checker) hoistExtendWhereDeclaration(node *ast.ExtendWhereBlockExpressi
 }
 
 func (c *Checker) hoistSingletonDeclaration(node *ast.SingletonBlockExpressionNode) {
+	c.hoistSingletonDeclarationWithFunc(node, func(body []ast.StatementNode) {
+		c.hoistNamespaceDefinitionsAndMacros(body)
+	})
+}
+
+func (c *Checker) hoistSingletonDeclarationWithFunc(node *ast.SingletonBlockExpressionNode, fn func([]ast.StatementNode)) {
 	switch c.mode {
 	case classMode, mixinMode, interfaceMode:
 	default:
 		return
 	}
 
-	currentNamespace := c.currentConstScope().container
-	singleton := currentNamespace.Singleton()
-	node.SetType(singleton)
+	singleton, ok := c.TypeOf(node).(*types.SingletonClass)
+	if !ok {
+		currentNamespace := c.currentConstScope().container
+		singleton = currentNamespace.Singleton()
+		node.SetType(singleton)
+		node.Hoisted = true
+	}
 
 	prevMode := c.mode
 	c.mode = singletonMode
