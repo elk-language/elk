@@ -8,7 +8,7 @@ module Std::Elk::AST
     init(
       receiver: ExpressionNode,
       op: Elk::Token,
-      method_name: String,
+      method_name: IdentifierNode,
       positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
       named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
       location: FS::Location = loop; end,
@@ -16,7 +16,7 @@ module Std::Elk::AST
 
     def receiver: ExpressionNode; end
     def op: Elk::Token; end
-    def method_name: String; end
+    def method_name: IdentifierNode; end
     def positional_arguments: ArrayTuple[ExpressionNode]; end
     def named_arguments: ArrayTuple[NamedArgumentNode]; end
     def location: FS::Location; end

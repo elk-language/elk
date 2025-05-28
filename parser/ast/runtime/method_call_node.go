@@ -16,7 +16,7 @@ func initMethodCallNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
 			argOp := args[2].MustReference().(*token.Token)
-			argMethodName := (string)(args[3].MustReference().(value.String))
+			argMethodName := args[3].MustReference().(ast.IdentifierNode)
 
 			var argPositionalArguments []ast.ExpressionNode
 			if !args[4].IsUndefined() {
@@ -83,7 +83,7 @@ func initMethodCallNode() {
 		"method_name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodCallNode)
-			result := value.Ref(value.String(self.MethodName))
+			result := value.Ref(self.MethodName)
 			return result, value.Undefined
 
 		},

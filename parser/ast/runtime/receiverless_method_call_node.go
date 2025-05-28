@@ -13,7 +13,7 @@ func initReceiverlessMethodCallNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argMethodName := (string)(args[1].MustReference().(value.String))
+			argMethodName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argPositionalArguments []ast.ExpressionNode
 			if !args[2].IsUndefined() {
@@ -56,7 +56,7 @@ func initReceiverlessMethodCallNode() {
 		"method_name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMethodCallNode)
-			result := value.Ref(value.String(self.MethodName))
+			result := value.Ref(self.MethodName)
 			return result, value.Undefined
 
 		},

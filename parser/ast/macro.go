@@ -208,7 +208,7 @@ func NewMacroDefinitionNode(
 type MacroCallNode struct {
 	TypedNodeBase
 	Receiver            ExpressionNode
-	MacroName           string
+	MacroName           IdentifierNode
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 }
@@ -217,7 +217,7 @@ func (n *MacroCallNode) splice(loc *position.Location, args *[]Node, unquote boo
 	return &MacroCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:            n.Receiver.splice(loc, args, unquote).(ExpressionNode),
-		MacroName:           n.MacroName,
+		MacroName:           n.MacroName.splice(loc, args, unquote).(IdentifierNode),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
@@ -233,6 +233,10 @@ func (n *MacroCallNode) traverse(parent Node, enter func(node, parent Node) Trav
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.MacroName.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
@@ -279,7 +283,7 @@ func (n *MacroCallNode) Equal(other value.Value) bool {
 
 	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
-		n.MacroName != o.MacroName
+		n.MacroName.Equal(value.Ref(o.MacroName))
 }
 
 func (n *MacroCallNode) String() string {
@@ -296,7 +300,7 @@ func (n *MacroCallNode) String() string {
 	}
 
 	buff.WriteRune('.')
-	buff.WriteString(n.MacroName)
+	buff.WriteString(n.MacroName.String())
 	buff.WriteString("!(")
 
 	var hasMultilineArgs bool
@@ -361,7 +365,7 @@ func (n *MacroCallNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	buff.WriteString(",\n  macro_name: ")
-	indent.IndentStringFromSecondLine(&buff, value.String(n.MacroName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.MacroName.Inspect(), 1)
 
 	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
@@ -391,7 +395,7 @@ func (n *MacroCallNode) Error() string {
 }
 
 // Create a macro call node eg. `'123'.to_int!()`
-func NewMacroCallNode(loc *position.Location, recv ExpressionNode, macroName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MacroCallNode {
+func NewMacroCallNode(loc *position.Location, recv ExpressionNode, macroName IdentifierNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MacroCallNode {
 	return &MacroCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: loc},
 		Receiver:            recv,
@@ -404,7 +408,7 @@ func NewMacroCallNode(loc *position.Location, recv ExpressionNode, macroName str
 // Represents a function-like macro call eg. `foo!(123)`
 type ReceiverlessMacroCallNode struct {
 	TypedNodeBase
-	MacroName           string
+	MacroName           IdentifierNode
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 }
@@ -412,7 +416,7 @@ type ReceiverlessMacroCallNode struct {
 func (n *ReceiverlessMacroCallNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ReceiverlessMacroCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		MacroName:           n.MacroName,
+		MacroName:           n.MacroName.splice(loc, args, unquote).(IdentifierNode),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 	}
@@ -476,7 +480,7 @@ func (n *ReceiverlessMacroCallNode) Equal(other value.Value) bool {
 func (n *ReceiverlessMacroCallNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString(n.MacroName)
+	buff.WriteString(n.MacroName.String())
 	buff.WriteString("!(")
 
 	var hasMultilineArgs bool
@@ -538,7 +542,7 @@ func (n *ReceiverlessMacroCallNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ReceiverlessMacroCallNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  macro_name: ")
-	indent.IndentStringFromSecondLine(&buff, value.String(n.MacroName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.MacroName.Inspect(), 1)
 
 	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
@@ -568,7 +572,7 @@ func (n *ReceiverlessMacroCallNode) Error() string {
 }
 
 // Create a function call node eg. `to_string(123)`
-func NewReceiverlessMacroCallNode(loc *position.Location, macroName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ReceiverlessMacroCallNode {
+func NewReceiverlessMacroCallNode(loc *position.Location, macroName IdentifierNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ReceiverlessMacroCallNode {
 	return &ReceiverlessMacroCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: loc},
 		MacroName:           macroName,

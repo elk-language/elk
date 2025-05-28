@@ -13,7 +13,7 @@ func initGenericReceiverlessMethodCallNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[1].MustReference().(value.String))
+			argName := args[1].MustReference().(ast.IdentifierNode)
 
 			argTypeArgsTuple := args[2].MustReference().(*value.ArrayTuple)
 			argTypeArgs := make([]ast.TypeNode, argTypeArgsTuple.Length())
@@ -63,7 +63,7 @@ func initGenericReceiverlessMethodCallNode() {
 		"method_name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
-			result := value.Ref(value.String(self.MethodName))
+			result := value.Ref(self.MethodName)
 			return result, value.Undefined
 
 		},
