@@ -73,14 +73,14 @@ func TestClosureType(t *testing.T) {
 								[]ast.ParameterNode{
 									ast.NewSignatureParameterNode(
 										L(S(P(6, 1, 7), P(14, 1, 15))),
-										"a",
+										ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(6, 1, 7))), "a"),
 										ast.NewPublicConstantNode(L(S(P(9, 1, 10), P(14, 1, 15))), "String"),
 										false,
 										ast.NormalParameterKind,
 									),
 									ast.NewSignatureParameterNode(
 										L(S(P(17, 1, 18), P(23, 1, 24))),
-										"b",
+										ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "b"),
 										ast.NewPublicConstantNode(L(S(P(21, 1, 22), P(23, 1, 24))), "Int"),
 										true,
 										ast.NormalParameterKind,

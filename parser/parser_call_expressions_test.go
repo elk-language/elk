@@ -1162,7 +1162,13 @@ func TestMethodCall(t *testing.T) {
 								ast.NewClosureLiteralNode(
 									L(S(P(6, 1, 7), P(17, 1, 18))),
 									[]ast.ParameterNode{
-										ast.NewFormalParameterNode(L(S(P(7, 1, 8), P(7, 1, 8))), "i", nil, nil, ast.NormalParameterKind),
+										ast.NewFormalParameterNode(
+											L(S(P(7, 1, 8), P(7, 1, 8))),
+											ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(7, 1, 8))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
 									},
 									nil,
 									nil,
@@ -1271,7 +1277,13 @@ func TestMethodCall(t *testing.T) {
 								ast.NewClosureLiteralNode(
 									L(S(P(10, 1, 11), P(21, 1, 22))),
 									[]ast.ParameterNode{
-										ast.NewFormalParameterNode(L(S(P(11, 1, 12), P(11, 1, 12))), "i", nil, nil, ast.NormalParameterKind),
+										ast.NewFormalParameterNode(
+											L(S(P(11, 1, 12), P(11, 1, 12))),
+											ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(11, 1, 12))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
 									},
 									nil,
 									nil,
@@ -1317,7 +1329,13 @@ func TestMethodCall(t *testing.T) {
 									ast.NewClosureLiteralNode(
 										L(S(P(10, 1, 11), P(21, 1, 22))),
 										[]ast.ParameterNode{
-											ast.NewFormalParameterNode(L(S(P(11, 1, 12), P(11, 1, 12))), "i", nil, nil, ast.NormalParameterKind),
+											ast.NewFormalParameterNode(
+												L(S(P(11, 1, 12), P(11, 1, 12))),
+												ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(11, 1, 12))), "i"),
+												nil,
+												nil,
+												ast.NormalParameterKind,
+											),
 										},
 										nil,
 										nil,
@@ -1517,7 +1535,13 @@ func TestMethodCall(t *testing.T) {
 								ast.NewClosureLiteralNode(
 									L(S(P(10, 1, 11), P(21, 1, 22))),
 									[]ast.ParameterNode{
-										ast.NewFormalParameterNode(L(S(P(11, 1, 12), P(11, 1, 12))), "i", nil, nil, ast.NormalParameterKind),
+										ast.NewFormalParameterNode(
+											L(S(P(11, 1, 12), P(11, 1, 12))),
+											ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(11, 1, 12))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
 									},
 									nil,
 									nil,
@@ -1558,7 +1582,13 @@ func TestMethodCall(t *testing.T) {
 								ast.NewClosureLiteralNode(
 									L(S(P(14, 1, 15), P(25, 1, 26))),
 									[]ast.ParameterNode{
-										ast.NewFormalParameterNode(L(S(P(15, 1, 16), P(15, 1, 16))), "i", nil, nil, ast.NormalParameterKind),
+										ast.NewFormalParameterNode(
+											L(S(P(15, 1, 16), P(15, 1, 16))),
+											ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(15, 1, 16))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
 									},
 									nil,
 									nil,
@@ -1606,7 +1636,13 @@ func TestMethodCall(t *testing.T) {
 									ast.NewClosureLiteralNode(
 										L(S(P(14, 1, 15), P(25, 1, 26))),
 										[]ast.ParameterNode{
-											ast.NewFormalParameterNode(L(S(P(15, 1, 16), P(15, 1, 16))), "i", nil, nil, ast.NormalParameterKind),
+											ast.NewFormalParameterNode(
+												L(S(P(15, 1, 16), P(15, 1, 16))),
+												ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(15, 1, 16))), "i"),
+												nil,
+												nil,
+												ast.NormalParameterKind,
+											),
 										},
 										nil,
 										nil,
