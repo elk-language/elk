@@ -23,6 +23,17 @@ func (*PublicIdentifierNode) identifierNode()  {}
 func (*PrivateIdentifierNode) identifierNode() {}
 func (*UnquoteNode) identifierNode()           {}
 
+func IdentifierToString(ident IdentifierNode) string {
+	switch ident := ident.(type) {
+	case *PublicIdentifierNode:
+		return ident.Value
+	case *PrivateIdentifierNode:
+		return ident.Value
+	}
+
+	return ""
+}
+
 // Represents a public identifier eg. `foo`.
 type PublicIdentifierNode struct {
 	TypedNodeBase

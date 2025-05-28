@@ -15,7 +15,7 @@ type MacroDefinitionNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
 	sealed     bool
-	Name       string
+	Name       IdentifierNode
 	Parameters []ParameterNode // formal parameters
 	Body       []StatementNode // body of the method
 }
@@ -27,7 +27,7 @@ func (n *MacroDefinitionNode) splice(loc *position.Location, args *[]Node, unquo
 	return &MacroDefinitionNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Name:                   n.Name,
+		Name:                   n.Name.splice(loc, args, unquote).(IdentifierNode),
 		Parameters:             params,
 		Body:                   body,
 		sealed:                 n.sealed,
@@ -44,6 +44,10 @@ func (n *MacroDefinitionNode) traverse(parent Node, enter func(node, parent Node
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	for _, param := range n.Parameters {
@@ -86,7 +90,7 @@ func (n *MacroDefinitionNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc) &&
-		n.Name == o.Name &&
+		n.Name.Equal(value.Ref(o.Name)) &&
 		n.sealed == o.sealed
 }
 
@@ -98,7 +102,7 @@ func (n *MacroDefinitionNode) String() string {
 		buff.WriteString("sealed ")
 	}
 	buff.WriteString("macro ")
-	buff.WriteString(n.Name)
+	buff.WriteString(n.Name.String())
 
 	buff.WriteString("(")
 	for i, param := range n.Parameters {
@@ -150,7 +154,7 @@ func (n *MacroDefinitionNode) Inspect() string {
 	fmt.Fprintf(&buff, ",\n  sealed: %t", n.IsSealed())
 
 	buff.WriteString(",\n  name: ")
-	buff.WriteString(n.Name)
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
 
 	buff.WriteString(",\n  parameters: %[\n")
 	for i, element := range n.Parameters {
@@ -184,7 +188,7 @@ func NewMacroDefinitionNode(
 	loc *position.Location,
 	docComment string,
 	sealed bool,
-	name string,
+	name IdentifierNode,
 	params []ParameterNode,
 	body []StatementNode,
 ) *MacroDefinitionNode {

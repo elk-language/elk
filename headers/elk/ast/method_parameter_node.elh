@@ -6,7 +6,7 @@ module Std::Elk::AST
     include ParameterNode
 
     init(
-      name: String,
+      name: IdentifierNode,
       type_node: TypeNode,
       initialiser: ExpressionNode? = nil,
       set_instance_variable: bool = false,
@@ -14,7 +14,7 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def name: String; end
+    def name: IdentifierNode; end
     def type_node: TypeNode?; end
     def initialiser: ExpressionNode?; end
     def set_instance_variable: bool; end

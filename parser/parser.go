@@ -8,7 +8,6 @@ package parser
 import (
 	"fmt"
 	"slices"
-	"unicode"
 	"unicode/utf8"
 
 	"github.com/elk-language/elk/bitfield"
@@ -873,7 +872,7 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	var paramName *token.Token
+	var name ast.IdentifierNode
 	var kind ast.ParameterKind
 	var location *position.Location
 
@@ -889,20 +888,25 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 	}
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		paramName = p.advance()
+	case token.PUBLIC_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
+	case token.PRIVATE_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
-		p.errorExpected("a lowercase identifier as the name of the declared formalParameter")
-		paramName = p.advance()
+		p.errorExpected("a lowercase identifier as the name of the declared signature parameter")
+		tok := p.advance()
+		name = ast.NewInvalidNode(tok.Location(), tok)
 	default:
-		p.errorExpected("an identifier as the name of the declared formalParameter")
+		p.errorExpected("an identifier as the name of the declared signature parameter")
 		tok := p.advance()
 		return ast.NewInvalidNode(
 			tok.Location(),
 			tok,
 		)
 	}
-	location = location.Join(paramName.Location())
+	location = location.Join(name.Location())
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotationWithoutUnionAndVoid()
@@ -919,7 +923,7 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 
 	return ast.NewFormalParameterNode(
 		location,
-		paramName.Value,
+		name,
 		typ,
 		init,
 		kind,
@@ -931,7 +935,7 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	var paramName *token.Token
+	var name ast.IdentifierNode
 	var setIvar bool
 	var kind ast.ParameterKind
 	var location *position.Location
@@ -948,14 +952,20 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 	}
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		paramName = p.advance()
+	case token.PUBLIC_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
+	case token.PRIVATE_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
 	case token.INSTANCE_VARIABLE:
-		paramName = p.advance()
+		tok := p.advance()
 		setIvar = true
+		name = ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
 		p.errorExpected("a lowercase identifier as the name of the declared formalParameter")
-		paramName = p.advance()
+		tok := p.advance()
+		name = ast.NewInvalidNode(tok.Location(), tok)
 	default:
 		p.errorExpected("an identifier as the name of the declared formalParameter")
 		tok := p.advance()
@@ -964,7 +974,7 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 			tok,
 		)
 	}
-	location = location.Join(paramName.Location())
+	location = location.Join(name.Location())
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotationWithoutVoid()
@@ -981,7 +991,7 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 
 	return ast.NewMethodParameterNode(
 		location,
-		paramName.Value,
+		name,
 		setIvar,
 		typ,
 		init,
@@ -1082,7 +1092,7 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 	var typ ast.TypeNode
 	var opt bool
 
-	var paramName *token.Token
+	var name ast.IdentifierNode
 	var kind ast.ParameterKind
 	var location *position.Location
 
@@ -1098,20 +1108,25 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 	}
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		paramName = p.advance()
+	case token.PUBLIC_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
+	case token.PRIVATE_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
-		p.errorExpected("a lowercase identifier as the name of the declared signatureParameter")
-		paramName = p.advance()
+		p.errorExpected("a lowercase identifier as the name of the declared signature parameter")
+		tok := p.advance()
+		name = ast.NewInvalidNode(tok.Location(), tok)
 	default:
-		p.errorExpected("an identifier as the name of the declared signatureParameter")
+		p.errorExpected("an identifier as the name of the declared signature parameter")
 		tok := p.advance()
 		return ast.NewInvalidNode(
 			tok.Location(),
 			tok,
 		)
 	}
-	location = location.Join(paramName.Location())
+	location = location.Join(name.Location())
 
 	if questionTok, ok := p.matchOk(token.QUESTION); ok {
 		opt = true
@@ -1128,7 +1143,7 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 
 	return ast.NewSignatureParameterNode(
 		location,
-		paramName.Value,
+		name,
 		typ,
 		opt,
 		kind,
@@ -2950,8 +2965,8 @@ func (p *Parser) methodSignatureDefinition(allowed bool) ast.ExpressionNode {
 	sigTok := p.advance()
 	location = sigTok.Location()
 
-	methodName, mSpan := p.methodName()
-	location = location.Join(mSpan)
+	methodName := p.methodName()
+	location = location.Join(methodName.Location())
 
 	var typeParams []ast.TypeParameterNode
 	if p.match(token.LBRACKET) {
@@ -3020,12 +3035,12 @@ func (p *Parser) methodSignatureDefinition(allowed bool) ast.ExpressionNode {
 
 // aliasEntry = identifier identifier
 func (p *Parser) aliasEntry() *ast.AliasDeclarationEntry {
-	newName, newNameSpan := p.methodName()
+	newName := p.methodName()
 	p.swallowNewlines()
-	oldName, oldNameSpan := p.methodName()
+	oldName := p.methodName()
 
 	return ast.NewAliasDeclarationEntry(
-		newNameSpan.Join(oldNameSpan),
+		newName.Location().Join(oldName.Location()),
 		newName,
 		oldName,
 	)
@@ -3121,19 +3136,23 @@ func (p *Parser) typeDefinition(allowed bool) ast.ExpressionNode {
 	)
 }
 
-func (p *Parser) macroName() (*token.Token, bool) {
+func (p *Parser) macroName() (ast.IdentifierNode, bool) {
 	if p.lookahead.IsValidMacroName() {
 		macroNameTok := p.advance()
-		return macroNameTok, true
+		if macroNameTok.Type == token.PRIVATE_IDENTIFIER {
+			return ast.NewPrivateIdentifierNode(macroNameTok.Location(), macroNameTok.FetchValue()), true
+		}
+
+		return ast.NewPublicIdentifierNode(macroNameTok.Location(), macroNameTok.FetchValue()), true
 	} else {
 		p.errorExpected("a macro name (public identifier, keyword)")
 		p.updateErrorMode(true)
 		tok := p.advance()
-		return tok, false
+		return ast.NewInvalidNode(tok.Location(), tok), false
 	}
 }
 
-func (p *Parser) methodName() (string, *position.Location) {
+func (p *Parser) methodName() ast.IdentifierNode {
 	var methodName string
 	var location *position.Location
 
@@ -3144,6 +3163,9 @@ func (p *Parser) methodName() (string, *position.Location) {
 		if tok, ok := p.matchOk(token.EQUAL_OP); ok {
 			methodName += "="
 			location = location.Join(tok.Location())
+		}
+		if methodNameTok.Type == token.PRIVATE_IDENTIFIER {
+			return ast.NewPrivateIdentifierNode(location, methodName)
 		}
 	} else if p.accept(token.LBRACKET) && p.acceptSecond(token.RBRACKET) {
 		// [
@@ -3164,11 +3186,11 @@ func (p *Parser) methodName() (string, *position.Location) {
 			p.errorExpected("a method name (identifier, overridable operator)")
 		}
 		tok := p.advance()
-		methodName = tok.FetchValue()
 		location = tok.Location()
+		return ast.NewInvalidNode(location, tok)
 	}
 
-	return methodName, location
+	return ast.NewPublicIdentifierNode(location, methodName)
 }
 
 // macroDefinition = "macro" macroName ["(" formalParameterList ")"] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
@@ -3181,9 +3203,9 @@ func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
 	location = macroTok.Location()
 
 	p.swallowNewlines()
-	macroNameTok, ok := p.macroName()
+	macroName, ok := p.macroName()
 	if !ok {
-		return ast.NewInvalidNode(macroNameTok.Location(), macroNameTok)
+		return macroName
 	}
 
 	if p.match(token.LPAREN) {
@@ -3232,7 +3254,7 @@ func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
 		location,
 		"",
 		false,
-		macroNameTok.FetchValue(),
+		macroName,
 		params,
 		body,
 	)
@@ -3254,19 +3276,9 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		isGenerator = true
 	}
 	p.swallowNewlines()
-	methodName, methodNameSpan := p.methodName()
-	var isSetter bool
-	var isSubscriptSetter bool
-
-	if methodName == "[]=" {
-		isSubscriptSetter = true
-	} else if len(methodName) > 0 {
-		firstChar, _ := utf8.DecodeRuneInString(methodName)
-		lastChar := methodName[len(methodName)-1]
-		if (unicode.IsLetter(firstChar) || firstChar == '_') && lastChar == '=' {
-			isSetter = true
-		}
-	}
+	methodNameNode := p.methodName()
+	isSetter := ast.MethodNameIsSetter(methodNameNode)
+	isSubscriptSetter := ast.MethodNameIsSubscriptSetter(methodNameNode)
 
 	var typeParams []ast.TypeParameterNode
 	if p.match(token.LBRACKET) {
@@ -3306,7 +3318,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 	if isSubscriptSetter {
 		var location *position.Location
 		if len(params) == 0 {
-			location = methodNameSpan
+			location = methodNameNode.Location()
 		} else {
 			location = position.JoinLocationOfCollection(params)
 		}
@@ -3316,7 +3328,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		}
 	} else if isSetter {
 		if len(params) == 0 {
-			p.errorMessageLocation("setter methods must have a single parameter, got: 0", methodNameSpan)
+			p.errorMessageLocation("setter methods must have a single parameter, got: 0", methodNameNode.Location())
 		} else if len(params) > 1 {
 			p.errorMessageLocation(fmt.Sprintf("setter methods must have a single parameter, got: %d", len(params)), position.JoinLocationOfCollection(params[1:]))
 		}
@@ -3370,7 +3382,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		location,
 		"",
 		flags,
-		methodName,
+		methodNameNode,
 		typeParams,
 		params,
 		returnType,
@@ -3536,15 +3548,20 @@ func (p *Parser) attributeParameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	var paramName *token.Token
+	var name ast.IdentifierNode
 	var location *position.Location
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		paramName = p.advance()
+	case token.PUBLIC_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
+	case token.PRIVATE_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
 		p.errorExpected("a lowercase identifier as the name of the declared attribute")
-		paramName = p.advance()
+		tok := p.advance()
+		name = ast.NewInvalidNode(tok.Location(), tok)
 	default:
 		p.errorExpected("an identifier as the name of the declared attribute")
 		tok := p.advance()
@@ -3553,7 +3570,7 @@ func (p *Parser) attributeParameter() ast.ParameterNode {
 			tok,
 		)
 	}
-	location = location.Join(paramName.Location())
+	location = location.Join(name.Location())
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotation()
@@ -3567,7 +3584,7 @@ func (p *Parser) attributeParameter() ast.ParameterNode {
 
 	return ast.NewAttributeParameterNode(
 		location,
-		paramName.Value,
+		name,
 		typ,
 		init,
 	)
@@ -3578,15 +3595,20 @@ func (p *Parser) setterParameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	var paramName *token.Token
+	var name ast.IdentifierNode
 	var location *position.Location
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		paramName = p.advance()
+	case token.PUBLIC_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
+	case token.PRIVATE_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
 		p.errorExpected("a lowercase identifier as the name of the declared attribute")
-		paramName = p.advance()
+		tok := p.advance()
+		name = ast.NewInvalidNode(tok.Location(), tok)
 	default:
 		p.errorExpected("an identifier as the name of the declared attribute")
 		tok := p.advance()
@@ -3595,7 +3617,7 @@ func (p *Parser) setterParameter() ast.ParameterNode {
 			tok,
 		)
 	}
-	location = location.Join(paramName.Location())
+	location = location.Join(name.Location())
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotation()
@@ -3610,7 +3632,7 @@ func (p *Parser) setterParameter() ast.ParameterNode {
 
 	return ast.NewAttributeParameterNode(
 		location,
-		paramName.Value,
+		name,
 		typ,
 		init,
 	)
@@ -6911,12 +6933,13 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 func (p *Parser) identifierOrFunction() ast.ExpressionNode {
 	if p.secondLookahead.Type == token.THIN_ARROW {
 		ident := p.advance()
+
 		return p.closureAfterArrow(
 			ident.Location(),
 			[]ast.ParameterNode{
 				ast.NewFormalParameterNode(
 					ident.Location(),
-					ident.Value,
+					tokenToIdentifier(ident),
 					nil,
 					nil,
 					ast.NormalParameterKind,
@@ -6928,6 +6951,17 @@ func (p *Parser) identifierOrFunction() ast.ExpressionNode {
 	}
 
 	return p.identifier()
+}
+
+func tokenToIdentifier(tok *token.Token) ast.IdentifierNode {
+	switch tok.Type {
+	case token.PRIVATE_IDENTIFIER:
+		return ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
+	case token.PUBLIC_IDENTIFIER:
+		return ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
+	default:
+		return ast.NewInvalidNode(tok.Location(), tok)
+	}
 }
 
 // instanceVariable = INSTANCE_VARIABLE

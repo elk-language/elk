@@ -28,7 +28,7 @@ func IsValidPipeExpressionTarget(node Node) bool {
 type MethodDefinitionNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	Name           string
+	Name           IdentifierNode
 	TypeParameters []TypeParameterNode
 	Parameters     []ParameterNode // formal parameters
 	ReturnType     TypeNode
@@ -56,7 +56,7 @@ func (n *MethodDefinitionNode) splice(loc *position.Location, args *[]Node, unqu
 	return &MethodDefinitionNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Name:                   n.Name,
+		Name:                   n.Name.splice(loc, args, unquote).(IdentifierNode),
 		TypeParameters:         typeParams,
 		Parameters:             params,
 		ReturnType:             returnType,
@@ -76,6 +76,10 @@ func (n *MethodDefinitionNode) traverse(parent Node, enter func(node, parent Nod
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	for _, param := range n.TypeParameters {
@@ -158,7 +162,7 @@ func (n *MethodDefinitionNode) Equal(other value.Value) bool {
 
 	return n.Flags == o.Flags &&
 		n.loc.Equal(o.loc) &&
-		n.Name == o.Name
+		n.Name.Equal(value.Ref(o.Name))
 }
 
 // Return a string representation of this method definition.
@@ -179,7 +183,7 @@ func (n *MethodDefinitionNode) String() string {
 	}
 
 	buff.WriteString("def ")
-	buff.WriteString(n.Name)
+	buff.WriteString(n.Name.String())
 
 	if len(n.TypeParameters) > 0 {
 		buff.WriteString("[")
@@ -227,15 +231,47 @@ func (*MethodDefinitionNode) IsStatic() bool {
 
 // Whether the method is a setter.
 func (m *MethodDefinitionNode) IsSetter() bool {
-	if len(m.Name) > 0 {
-		firstChar, _ := utf8.DecodeRuneInString(m.Name)
-		lastChar := m.Name[len(m.Name)-1]
+	return MethodNameIsSetter(m.Name)
+}
+
+// Whether the method is a setter.
+func MethodNameIsSetter(methodNameNode IdentifierNode) bool {
+	var name string
+
+	switch n := methodNameNode.(type) {
+	case *PublicIdentifierNode:
+		name = n.Value
+	case *PrivateIdentifierNode:
+		name = n.Value
+	default:
+		return false
+	}
+
+	if len(name) > 0 {
+		firstChar, _ := utf8.DecodeRuneInString(name)
+		lastChar := name[len(name)-1]
 		if (unicode.IsLetter(firstChar) || firstChar == '_') && lastChar == '=' {
 			return true
 		}
 	}
 
 	return false
+}
+
+// Whether the method is a setter.
+func MethodNameIsSubscriptSetter(methodNameNode IdentifierNode) bool {
+	var name string
+
+	switch n := methodNameNode.(type) {
+	case *PublicIdentifierNode:
+		name = n.Value
+	case *PrivateIdentifierNode:
+		name = n.Value
+	default:
+		return false
+	}
+
+	return name == "[]="
 }
 
 func (m *MethodDefinitionNode) IsAbstract() bool {
@@ -299,7 +335,7 @@ func (n *MethodDefinitionNode) Inspect() string {
 	fmt.Fprintf(&buff, ",\n  async: %t", n.IsAsync())
 
 	buff.WriteString(",\n  name: ")
-	buff.WriteString(n.Name)
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
 
 	buff.WriteString(",\n  return_type: ")
 	if n.ReturnType == nil {
@@ -356,7 +392,7 @@ func NewMethodDefinitionNode(
 	loc *position.Location,
 	docComment string,
 	flags bitfield.BitFlag8,
-	name string,
+	name IdentifierNode,
 	typeParams []TypeParameterNode,
 	params []ParameterNode,
 	returnType,
@@ -585,7 +621,7 @@ func NewInitDefinitionNode(loc *position.Location, params []ParameterNode, throw
 type MethodSignatureDefinitionNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	Name           string
+	Name           IdentifierNode
 	TypeParameters []TypeParameterNode
 	Parameters     []ParameterNode // formal parameters
 	ReturnType     TypeNode
@@ -609,7 +645,7 @@ func (n *MethodSignatureDefinitionNode) splice(loc *position.Location, args *[]N
 	return &MethodSignatureDefinitionNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Name:                   n.Name,
+		Name:                   n.Name.splice(loc, args, unquote).(IdentifierNode),
 		TypeParameters:         typeParams,
 		Parameters:             params,
 		ReturnType:             returnType,
@@ -627,6 +663,10 @@ func (n *MethodSignatureDefinitionNode) traverse(parent Node, enter func(node, p
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	for _, param := range n.TypeParameters {
@@ -662,7 +702,7 @@ func (n *MethodSignatureDefinitionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if n.Name != o.Name ||
+	if !n.Name.Equal(value.Ref(o.Name)) ||
 		!n.loc.Equal(o.loc) ||
 		n.comment != o.comment {
 		return false
@@ -713,7 +753,7 @@ func (n *MethodSignatureDefinitionNode) String() string {
 	}
 
 	buff.WriteString("sig ")
-	buff.WriteString(n.Name)
+	buff.WriteString(n.Name.String())
 
 	if len(n.TypeParameters) > 0 {
 		buff.WriteRune('[')
@@ -767,6 +807,9 @@ func (n *MethodSignatureDefinitionNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::MethodSignatureDefinitionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
+	buff.WriteString(",\n  name: ")
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
+
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
@@ -812,7 +855,7 @@ func (n *MethodSignatureDefinitionNode) Error() string {
 }
 
 // Create a method signature node eg. `sig to_string(val: Int): String`
-func NewMethodSignatureDefinitionNode(loc *position.Location, docComment, name string, typeParams []TypeParameterNode, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
+func NewMethodSignatureDefinitionNode(loc *position.Location, docComment string, name IdentifierNode, typeParams []TypeParameterNode, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
 	return &MethodSignatureDefinitionNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
@@ -829,15 +872,15 @@ func NewMethodSignatureDefinitionNode(loc *position.Location, docComment, name s
 // A single alias entry eg. `new_name old_name`
 type AliasDeclarationEntry struct {
 	NodeBase
-	NewName string
-	OldName string
+	NewName IdentifierNode
+	OldName IdentifierNode
 }
 
 func (n *AliasDeclarationEntry) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AliasDeclarationEntry{
 		NodeBase: n.NodeBase,
-		NewName:  n.NewName,
-		OldName:  n.OldName,
+		NewName:  n.NewName.splice(loc, args, unquote).(IdentifierNode),
+		OldName:  n.OldName.splice(loc, args, unquote).(IdentifierNode),
 	}
 }
 
@@ -851,6 +894,14 @@ func (n *AliasDeclarationEntry) traverse(parent Node, enter func(node, parent No
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.OldName.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	if n.NewName.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	return leave(n, parent)
@@ -873,9 +924,14 @@ func (n *AliasDeclarationEntry) Inspect() string {
 
 	buff.WriteString("Std::Elk::AST::AliasDeclarationEntry{\n")
 
-	fmt.Fprintf(&buff, "  location: %s,\n", (*value.Location)(n.loc).Inspect())
-	fmt.Fprintf(&buff, "  new_name: %s,\n", n.NewName)
-	fmt.Fprintf(&buff, "  old_name: %s,\n", n.OldName)
+	fmt.Fprintf(&buff, "  location: %s", (*value.Location)(n.loc).Inspect())
+
+	buff.WriteString(",\n  new_name: %s")
+	indent.IndentStringFromSecondLine(&buff, n.NewName.Inspect(), 1)
+
+	buff.WriteString(",\n  old_name: %s")
+	indent.IndentStringFromSecondLine(&buff, n.OldName.Inspect(), 1)
+
 	buff.WriteRune('}')
 
 	return buff.String()
@@ -892,16 +948,16 @@ func (n *AliasDeclarationEntry) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc) &&
-		n.NewName == o.NewName &&
-		n.OldName == o.OldName
+		n.NewName.Equal(value.Ref(o.NewName)) &&
+		n.OldName.Equal(value.Ref(o.OldName))
 }
 
 func (n *AliasDeclarationEntry) String() string {
 	var buff strings.Builder
 
-	buff.WriteString(n.NewName)
+	buff.WriteString(n.NewName.String())
 	buff.WriteRune(' ')
-	buff.WriteString(n.OldName)
+	buff.WriteString(n.OldName.String())
 
 	return buff.String()
 }
@@ -911,7 +967,7 @@ func (n *AliasDeclarationEntry) Error() string {
 }
 
 // Create an alias alias entry eg. `new_name old_name`
-func NewAliasDeclarationEntry(loc *position.Location, newName, oldName string) *AliasDeclarationEntry {
+func NewAliasDeclarationEntry(loc *position.Location, newName, oldName IdentifierNode) *AliasDeclarationEntry {
 	return &AliasDeclarationEntry{
 		NodeBase: NodeBase{loc: loc},
 		NewName:  newName,
