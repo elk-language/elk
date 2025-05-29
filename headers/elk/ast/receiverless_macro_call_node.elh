@@ -6,13 +6,13 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      macro_name: String,
+      macro_name: IdentifierNode,
       positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
       named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
       location: FS::Location = loop; end
     ); end
 
-    def macro_name: String; end
+    def macro_name: IdentifierNode; end
     def positional_arguments: ArrayTuple[ExpressionNode]; end
     def named_arguments: ArrayTuple[NamedArgumentNode]; end
     def location: FS::Location; end

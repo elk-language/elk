@@ -4658,7 +4658,7 @@ func TestHashMapLiteral(t *testing.T) {
 										L(S(P(74, 1, 75), P(86, 1, 87))),
 										ast.NewPublicIdentifierNode(L(S(P(74, 1, 75), P(74, 1, 75))), "n"),
 										T(L(S(P(75, 1, 76), P(75, 1, 76))), token.DOT),
-										"to_string",
+										ast.NewPublicIdentifierNode(L(S(P(76, 1, 77), P(84, 1, 85))), "to_string"),
 										nil,
 										nil,
 									),
@@ -4738,7 +4738,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(18, 1, 19), P(27, 1, 28))),
 											ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(27, 1, 28))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(33, 1, 34), P(35, 1, 36))), "baz"),
@@ -4775,7 +4775,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(18, 1, 19), P(27, 1, 28))),
 											ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(27, 1, 28))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "baz"),
@@ -4811,7 +4811,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(18, 1, 19), P(27, 1, 28))),
 											ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(27, 1, 28))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "baz"),
@@ -4846,7 +4846,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(15, 1, 16), P(24, 1, 25))),
 											ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(27, 1, 28))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(29, 1, 30), P(31, 1, 32))), "baz"),
@@ -4881,7 +4881,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(14, 1, 15), P(23, 1, 24))),
 											ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(16, 1, 17))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(27, 1, 28))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(28, 1, 29), P(30, 1, 31))), "baz"),
@@ -4920,7 +4920,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(19, 5, 1), P(28, 5, 10))),
 											ast.NewPublicIdentifierNode(L(S(P(19, 5, 1), P(21, 5, 3))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(27, 1, 28))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(33, 6, 1), P(35, 6, 3))), "baz"),
@@ -4956,7 +4956,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(19, 5, 1), P(28, 5, 10))),
 											ast.NewPublicIdentifierNode(L(S(P(19, 5, 1), P(21, 5, 3))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(27, 1, 28))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(33, 6, 1), P(35, 6, 3))), "baz"),
@@ -5100,7 +5100,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										L(S(P(75, 1, 76), P(87, 1, 88))),
 										ast.NewPublicIdentifierNode(L(S(P(75, 1, 76), P(75, 1, 76))), "n"),
 										T(L(S(P(76, 1, 77), P(76, 1, 77))), token.DOT),
-										"to_string",
+										ast.NewPublicIdentifierNode(L(S(P(77, 1, 78), P(85, 1, 86))), "to_string"),
 										nil,
 										nil,
 									),
@@ -5156,7 +5156,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(19, 1, 20), P(28, 1, 29))),
 											ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(34, 1, 35), P(36, 1, 37))), "baz"),
@@ -5192,7 +5192,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(19, 1, 20), P(28, 1, 29))),
 											ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(33, 1, 34), P(35, 1, 36))), "baz"),
@@ -5227,7 +5227,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(19, 1, 20), P(28, 1, 29))),
 											ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(33, 1, 34), P(35, 1, 36))), "baz"),
@@ -5261,7 +5261,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(16, 1, 17), P(25, 1, 26))),
 											ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(18, 1, 19))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(18, 1, 19))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(30, 1, 31), P(32, 1, 33))), "baz"),
@@ -5295,7 +5295,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(15, 1, 16), P(24, 1, 25))),
 											ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(29, 1, 30), P(31, 1, 32))), "baz"),
@@ -5333,7 +5333,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(20, 5, 1), P(29, 5, 10))),
 											ast.NewPublicIdentifierNode(L(S(P(20, 5, 1), P(22, 5, 3))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(20, 5, 1), P(22, 5, 3))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(34, 6, 1), P(36, 6, 3))), "baz"),
@@ -5368,7 +5368,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(20, 5, 1), P(29, 5, 10))),
 											ast.NewPublicIdentifierNode(L(S(P(20, 5, 1), P(22, 5, 3))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(20, 5, 1), P(22, 5, 3))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(34, 6, 1), P(36, 6, 3))), "baz"),

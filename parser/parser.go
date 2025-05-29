@@ -1548,7 +1548,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 
 		receiver = ast.NewReceiverlessMacroCallNode(
 			location,
-			macroName.Value,
+			tokenToIdentifier(macroName),
 			posArgs,
 			namedArgs,
 		)
@@ -1604,7 +1604,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 		if len(typeArgs) > 0 {
 			receiver = ast.NewGenericReceiverlessMethodCallNode(
 				location,
-				methodName.Value,
+				tokenToIdentifier(methodName),
 				typeArgs,
 				posArgs,
 				namedArgs,
@@ -1612,7 +1612,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 		} else {
 			receiver = ast.NewReceiverlessMethodCallNode(
 				location,
-				methodName.Value,
+				tokenToIdentifier(methodName),
 				posArgs,
 				namedArgs,
 			)
@@ -1719,7 +1719,6 @@ methodCallLoop:
 		}
 
 		methodNameTok := p.advance()
-		methodName := methodNameTok.FetchValue()
 		location := receiver.Location().Join(methodNameTok.Location())
 
 		switch methodNameTok.Type {
@@ -1797,7 +1796,7 @@ methodCallLoop:
 			receiver = ast.NewAttributeAccessNode(
 				location,
 				receiver,
-				methodName,
+				tokenToIdentifier(methodNameTok),
 			)
 			continue
 		}
@@ -1819,7 +1818,7 @@ methodCallLoop:
 			receiver = ast.NewMacroCallNode(
 				location,
 				receiver,
-				methodName,
+				tokenToIdentifier(methodNameTok),
 				posArgs,
 				namedArgs,
 			)
@@ -1828,7 +1827,7 @@ methodCallLoop:
 				location,
 				receiver,
 				opToken,
-				methodName,
+				tokenToIdentifier(methodNameTok),
 				typeArgs,
 				posArgs,
 				namedArgs,
@@ -1838,7 +1837,7 @@ methodCallLoop:
 				location,
 				receiver,
 				opToken,
-				methodName,
+				tokenToIdentifier(methodNameTok),
 				posArgs,
 				namedArgs,
 			)

@@ -1469,7 +1469,7 @@ func TestMacroCall(t *testing.T) {
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							ast.NewReceiverlessMacroCallNode(
 								L(S(P(6, 1, 7), P(11, 1, 12))),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
 								nil,
 								nil,
 							),
@@ -1487,7 +1487,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(5, 1, 6))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(5, 1, 6))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							nil,
 						),
@@ -1504,7 +1504,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(3, 1, 4))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(2, 1, 3))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							nil,
 						),
@@ -1521,7 +1521,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(2, 1, 3))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(2, 1, 3))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							nil,
 						),
@@ -1541,7 +1541,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(18, 1, 19))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(18, 1, 19))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewClosureLiteralNode(
 									L(S(P(7, 1, 8), P(18, 1, 19))),
@@ -1584,7 +1584,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(14, 1, 15))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(14, 1, 15))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewClosureLiteralNode(
 									L(S(P(7, 1, 8), P(14, 1, 15))),
@@ -1619,7 +1619,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(17, 1, 18))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(17, 1, 18))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewClosureLiteralNode(
 									L(S(P(7, 1, 8), P(17, 1, 18))),
@@ -1654,7 +1654,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(22, 1, 23))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(22, 1, 23))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewIntLiteralNode(L(S(P(5, 1, 6), P(5, 1, 6))), "1"),
 								ast.NewIntLiteralNode(L(S(P(8, 1, 9), P(8, 1, 9))), "5"),
@@ -1699,7 +1699,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(22, 1, 23))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(22, 1, 23))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
@@ -1751,7 +1751,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(6, 1, 7))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(6, 1, 7))),
-							"_foo",
+							ast.NewPrivateIdentifierNode(L(S(P(0, 1, 1), P(4, 1, 5))), "_foo"),
 							nil,
 							nil,
 						),
@@ -1769,7 +1769,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(9, 1, 10))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							nil,
 							nil,
 						),
@@ -1787,7 +1787,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(19, 1, 20))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							nil,
 							nil,
 						),
@@ -1811,7 +1811,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(18, 1, 19))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							[]ast.ExpressionNode{
 								ast.NewClosureLiteralNode(
 									L(S(P(11, 1, 12), P(18, 1, 19))),
@@ -1847,7 +1847,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(21, 1, 22))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							[]ast.ExpressionNode{
 								ast.NewClosureLiteralNode(
 									L(S(P(11, 1, 12), P(21, 1, 22))),
@@ -1883,7 +1883,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(22, 1, 23))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							[]ast.ExpressionNode{
 								ast.NewClosureLiteralNode(
 									L(S(P(11, 1, 12), P(22, 1, 23))),
@@ -1927,7 +1927,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(26, 1, 27))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							[]ast.ExpressionNode{
 								ast.NewIntLiteralNode(L(S(P(9, 1, 10), P(9, 1, 10))), "1"),
 								ast.NewIntLiteralNode(L(S(P(12, 1, 13), P(12, 1, 13))), "5"),
@@ -1973,7 +1973,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(26, 1, 27))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							nil,
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
@@ -2026,7 +2026,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(9, 1, 10))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							[]ast.ExpressionNode{
 								ast.NewIntLiteralNode(L(S(P(9, 1, 10), P(9, 1, 10))), "1"),
 							},
@@ -2046,7 +2046,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(8, 1, 9))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							nil,
 							nil,
 						),
@@ -2070,7 +2070,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(8, 1, 9))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							nil,
 							nil,
 						),
@@ -2094,7 +2094,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(9, 1, 10))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							nil,
 							nil,
 						),
@@ -2120,11 +2120,11 @@ func TestMacroCall(t *testing.T) {
 							ast.NewMacroCallNode(
 								L(S(P(0, 1, 1), P(9, 1, 10))),
 								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 								nil,
 								nil,
 							),
-							"baz",
+							ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(13, 1, 14))), "baz"),
 							nil,
 							nil,
 						),
@@ -2147,7 +2147,7 @@ func TestMacroCall(t *testing.T) {
 								ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
 								ast.NewIntLiteralNode(L(S(P(7, 1, 8), P(7, 1, 8))), "2"),
 							),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(11, 1, 12))), "bar"),
 							nil,
 							nil,
 						),
@@ -2165,7 +2165,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(10, 1, 11))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"_bar",
+							ast.NewPrivateIdentifierNode(L(S(P(4, 1, 5), P(7, 1, 8))), "_bar"),
 							nil,
 							nil,
 						),
@@ -2187,7 +2187,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(7, 1, 8))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"+",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "+"),
 							nil,
 							nil,
 						),
@@ -2208,7 +2208,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(8, 1, 9))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"&&",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(5, 1, 6))), "&&"),
 							nil,
 							nil,
 						),
@@ -2230,7 +2230,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(11, 1, 12))),
 							ast.NewSelfLiteralNode(L(S(P(0, 1, 1), P(3, 1, 4)))),
-							"_foo",
+							ast.NewPrivateIdentifierNode(L(S(P(5, 1, 6), P(8, 1, 9))), "_foo"),
 							nil,
 							nil,
 						),
@@ -2250,7 +2250,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(20, 1, 21))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(20, 1, 21))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(9, 1, 10), P(13, 1, 14))), "foo"),
@@ -2271,7 +2271,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(22, 1, 23))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(22, 1, 23))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewSplatExpressionNode(
 									L(S(P(5, 1, 6), P(8, 1, 9))),
@@ -2304,7 +2304,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(21, 1, 22))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(21, 1, 22))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(9, 1, 10), P(13, 1, 14))), "foo"),
@@ -2325,7 +2325,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(25, 1, 26))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(25, 1, 26))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
@@ -2353,7 +2353,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(40, 1, 41))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(40, 1, 41))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							[]ast.NamedArgumentNode{
 								ast.NewDoubleSplatExpressionNode(
@@ -2369,7 +2369,7 @@ func TestMacroCall(t *testing.T) {
 									L(S(P(21, 1, 22), P(28, 1, 29))),
 									ast.NewReceiverlessMethodCallNode(
 										L(S(P(23, 1, 24), P(28, 1, 29))),
-										"dupa",
+										ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(28, 1, 29))), "dupa"),
 										nil,
 										nil,
 									),
@@ -2394,7 +2394,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(42, 1, 43))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(42, 1, 43))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(9, 1, 10), P(13, 1, 14))), "foo"),
@@ -2426,7 +2426,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(42, 4, 10))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(42, 4, 10))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(9, 2, 1), P(13, 2, 5))), "foo"),
@@ -2458,7 +2458,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(44, 3, 1))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(44, 3, 1))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(6, 2, 1), P(7, 2, 2))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(10, 2, 5), P(14, 2, 9))), "foo"),
@@ -2490,7 +2490,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(4, 1, 5))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(2, 1, 3))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							nil,
 						),
@@ -2514,7 +2514,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(19, 1, 20))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(19, 1, 20))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(9, 1, 10), P(13, 1, 14))), "foo"),
@@ -2535,7 +2535,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(24, 1, 25))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(24, 1, 25))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
@@ -2563,7 +2563,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(41, 1, 42))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(41, 1, 42))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(9, 1, 10), P(13, 1, 14))), "foo"),
@@ -2595,7 +2595,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(41, 4, 9))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(41, 4, 9))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(9, 2, 1), P(13, 2, 5))), "foo"),
@@ -2627,7 +2627,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(4, 1, 5))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(2, 1, 3))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							nil,
 						),

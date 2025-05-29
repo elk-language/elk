@@ -590,14 +590,14 @@ func NewConstructorCallNode(loc *position.Location, class ComplexConstantNode, p
 type AttributeAccessNode struct {
 	TypedNodeBase
 	Receiver      ExpressionNode
-	AttributeName string
+	AttributeName IdentifierNode
 }
 
 func (n *AttributeAccessNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AttributeAccessNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:      n.Receiver.splice(loc, args, unquote).(ExpressionNode),
-		AttributeName: n.AttributeName,
+		AttributeName: n.AttributeName.splice(loc, args, unquote).(IdentifierNode),
 	}
 }
 
@@ -640,7 +640,7 @@ func (n *AttributeAccessNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	buff.WriteString(",\n  attribute_name: ")
-	indent.IndentStringFromSecondLine(&buff, value.String(n.AttributeName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.AttributeName.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -671,7 +671,7 @@ func (n *AttributeAccessNode) String() string {
 	}
 
 	buff.WriteString(".")
-	buff.WriteString(n.AttributeName)
+	buff.WriteString(n.AttributeName.String())
 
 	return buff.String()
 }
@@ -681,7 +681,7 @@ func (n *AttributeAccessNode) Error() string {
 }
 
 // Create an attribute access node eg. `foo.bar`
-func NewAttributeAccessNode(loc *position.Location, recv ExpressionNode, attrName string) *AttributeAccessNode {
+func NewAttributeAccessNode(loc *position.Location, recv ExpressionNode, attrName IdentifierNode) *AttributeAccessNode {
 	return &AttributeAccessNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Receiver:      recv,

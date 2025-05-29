@@ -1900,7 +1900,7 @@ func TestValueDeclaration(t *testing.T) {
 							),
 							ast.NewReceiverlessMethodCallNode(
 								L(S(P(23, 1, 24), P(27, 1, 28))),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(27, 1, 28))), "bar"),
 								nil,
 								nil,
 							),
@@ -1927,7 +1927,7 @@ func TestValueDeclaration(t *testing.T) {
 							),
 							ast.NewReceiverlessMethodCallNode(
 								L(S(P(13, 1, 14), P(17, 1, 18))),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(17, 1, 18))), "bar"),
 								nil,
 								nil,
 							),
@@ -2498,7 +2498,7 @@ func TestVariableDeclaration(t *testing.T) {
 							),
 							ast.NewReceiverlessMethodCallNode(
 								L(S(P(23, 1, 24), P(27, 1, 28))),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(27, 1, 28))), "bar"),
 								nil,
 								nil,
 							),
@@ -2525,7 +2525,7 @@ func TestVariableDeclaration(t *testing.T) {
 							),
 							ast.NewReceiverlessMethodCallNode(
 								L(S(P(13, 1, 14), P(17, 1, 18))),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(17, 1, 18))), "bar"),
 								nil,
 								nil,
 							),
