@@ -43,6 +43,7 @@ func L(span *position.Span) *position.Location {
 // Inspects if the produced AST matches the expected one.
 func parserTest(tc testCase, t *testing.T) {
 	t.Helper()
+	pp.ColoringEnabled = false
 	got, err := Parse("<main>", tc.input)
 
 	opts := comparer.Options()

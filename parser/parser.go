@@ -140,7 +140,7 @@ func (p *Parser) errorMessage(message string) {
 	p.errorMessageLocation(message, p.lookahead.Location())
 }
 
-// Same as [errorMessage] but let's you pass a Span.
+// Same as [errorMessage] but let's you pass a Location.
 func (p *Parser) errorMessageLocation(message string, loc *position.Location) {
 	if p.mode == panicMode {
 		return
@@ -3183,10 +3183,13 @@ func (p *Parser) methodName() ast.IdentifierNode {
 	} else {
 		if !p.lookahead.IsOverridableOperator() {
 			p.errorExpected("a method name (identifier, overridable operator)")
+			tok := p.advance()
+			return ast.NewInvalidNode(tok.Location(), tok)
 		}
-		tok := p.advance()
-		location = tok.Location()
-		return ast.NewInvalidNode(location, tok)
+
+		methodNameTok := p.advance()
+		location = methodNameTok.Location()
+		methodName = methodNameTok.FetchValue()
 	}
 
 	return ast.NewPublicIdentifierNode(location, methodName)
@@ -6958,9 +6961,13 @@ func tokenToIdentifier(tok *token.Token) ast.IdentifierNode {
 		return ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
 	case token.PUBLIC_IDENTIFIER:
 		return ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
-	default:
-		return ast.NewInvalidNode(tok.Location(), tok)
 	}
+
+	if tok.IsOverridableOperator() || tok.IsKeyword() {
+		return ast.NewPublicIdentifierNode(tok.Location(), tok.FetchValue())
+	}
+
+	return ast.NewInvalidNode(tok.Location(), tok)
 }
 
 // instanceVariable = INSTANCE_VARIABLE

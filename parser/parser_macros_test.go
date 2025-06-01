@@ -25,7 +25,7 @@ func TestMacroDefinition(t *testing.T) {
 								L(S(P(6, 1, 7), P(19, 1, 20))),
 								"",
 								false,
-								ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(13, 1, 14))), "foo"),
+								ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "foo"),
 								nil,
 								nil,
 							),
@@ -48,7 +48,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(13, 1, 14))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(13, 1, 14))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							nil,
 							nil,
 						),
@@ -93,7 +93,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(16, 1, 17))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(16, 1, 17))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -126,7 +126,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(20, 1, 21))),
 							"",
 							true,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(20, 1, 21))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(15, 1, 16))), "foo"),
 							nil,
 							nil,
 						),
@@ -145,7 +145,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(27, 1, 28))),
 							"",
 							true,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(27, 1, 28))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(20, 1, 21), P(22, 1, 23))), "foo"),
 							nil,
 							nil,
 						),
@@ -167,7 +167,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(6, 1, 7), P(19, 1, 20))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(19, 1, 20))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "foo"),
 							nil,
 							nil,
 						),
@@ -179,20 +179,17 @@ func TestMacroDefinition(t *testing.T) {
 			},
 		},
 		"cannot repeat async": {
-			input: "async async def foo; end",
+			input: "async async macro foo; end",
 			want: ast.NewProgramNode(
-				L(S(P(0, 1, 1), P(23, 1, 24))),
+				L(S(P(0, 1, 1), P(25, 1, 26))),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						L(S(P(0, 1, 1), P(23, 1, 24))),
-						ast.NewMethodDefinitionNode(
-							L(S(P(0, 1, 1), P(23, 1, 24))),
+						L(S(P(12, 1, 13), P(25, 1, 26))),
+						ast.NewMacroDefinitionNode(
+							L(S(P(12, 1, 13), P(25, 1, 26))),
 							"",
-							ast.METHOD_ASYNC_FLAG,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(23, 1, 24))), "foo"),
-							nil,
-							nil,
-							nil,
+							false,
+							ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "foo"),
 							nil,
 							nil,
 						),
@@ -200,7 +197,8 @@ func TestMacroDefinition(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(0, 1, 1), P(4, 1, 5))), "the async modifier can only be attached once"),
+				diagnostic.NewFailure(L(S(P(12, 1, 13), P(25, 1, 26))), "the async modifier can only be attached to methods"),
+				diagnostic.NewFailure(L(S(P(12, 1, 13), P(25, 1, 26))), "the async modifier can only be attached to methods"),
 			},
 		},
 		"cannot be abstract": {
@@ -214,7 +212,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(9, 1, 10), P(22, 1, 23))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(22, 1, 23))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "foo"),
 							nil,
 							nil,
 						),
@@ -236,7 +234,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(17, 1, 18))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(9, 1, 10))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -293,7 +291,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(15, 1, 16))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(15, 1, 16))), "class"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(10, 1, 11))), "class"),
 							nil,
 							nil,
 						),
@@ -442,7 +440,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(15, 1, 16))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(15, 1, 16))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							nil,
 							nil,
 						),
@@ -461,7 +459,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(22, 1, 23))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(22, 1, 23))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -492,7 +490,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(40, 1, 41))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(40, 1, 41))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -528,7 +526,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(19, 1, 20))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(19, 1, 20))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -562,7 +560,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(20, 1, 21))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(20, 1, 21))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -596,7 +594,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(21, 4, 6))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(21, 4, 6))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(11, 2, 1), P(11, 2, 1))),
@@ -630,7 +628,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(22, 4, 6))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(22, 4, 6))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(11, 2, 1), P(11, 2, 1))),
@@ -664,7 +662,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(23, 1, 24))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(23, 1, 24))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -682,7 +680,7 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(16, 1, 17), P(17, 1, 18))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(17, 1, 18))), "c"),
+									ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "c"),
 									nil,
 									nil,
 									ast.PositionalRestParameterKind,
@@ -705,7 +703,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(27, 1, 28))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(27, 1, 28))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -723,7 +721,7 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(16, 1, 17), P(21, 1, 22))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(21, 1, 22))), "c"),
+									ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "c"),
 									nil,
 									ast.NewIntLiteralNode(L(S(P(21, 1, 22), P(21, 1, 22))), "3"),
 									ast.PositionalRestParameterKind,
@@ -749,7 +747,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(26, 1, 27))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(26, 1, 27))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -767,7 +765,7 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(16, 1, 17), P(17, 1, 18))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(17, 1, 18))), "c"),
+									ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "c"),
 									nil,
 									nil,
 									ast.PositionalRestParameterKind,
@@ -797,7 +795,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(30, 1, 31))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(30, 1, 31))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -815,14 +813,14 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(16, 1, 17), P(17, 1, 18))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(17, 1, 18))), "c"),
+									ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "c"),
 									nil,
 									nil,
 									ast.PositionalRestParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(20, 1, 21), P(24, 1, 25))),
-									ast.NewPublicIdentifierNode(L(S(P(20, 1, 21), P(24, 1, 25))), "d"),
+									ast.NewPublicIdentifierNode(L(S(P(20, 1, 21), P(20, 1, 21))), "d"),
 									nil,
 									ast.NewIntLiteralNode(L(S(P(24, 1, 25), P(24, 1, 25))), "3"),
 									ast.NormalParameterKind,
@@ -848,7 +846,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(27, 1, 28))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(27, 1, 28))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -866,14 +864,14 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(16, 1, 17), P(17, 1, 18))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(17, 1, 18))), "c"),
+									ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "c"),
 									nil,
 									nil,
 									ast.PositionalRestParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(20, 1, 21), P(21, 1, 22))),
-									ast.NewPublicIdentifierNode(L(S(P(20, 1, 21), P(21, 1, 22))), "d"),
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(21, 1, 22))), "d"),
 									nil,
 									nil,
 									ast.PositionalRestParameterKind,
@@ -899,7 +897,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(31, 1, 32))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -917,7 +915,7 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(16, 1, 17), P(25, 1, 26))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(25, 1, 26))), "c"),
+									ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "c"),
 									ast.NewPublicConstantNode(L(S(P(20, 1, 21), P(25, 1, 26))), "String"),
 									nil,
 									ast.PositionalRestParameterKind,
@@ -940,7 +938,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(24, 1, 25))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(24, 1, 25))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -958,7 +956,7 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(16, 1, 17), P(18, 1, 19))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(18, 1, 19))), "c"),
+									ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(18, 1, 19))), "c"),
 									nil,
 									nil,
 									ast.NamedRestParameterKind,
@@ -981,7 +979,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(28, 1, 29))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(28, 1, 29))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -999,7 +997,7 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(16, 1, 17), P(22, 1, 23))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(22, 1, 23))), "c"),
+									ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(18, 1, 19))), "c"),
 									nil,
 									ast.NewIntLiteralNode(L(S(P(22, 1, 23), P(22, 1, 23))), "3"),
 									ast.NamedRestParameterKind,
@@ -1025,7 +1023,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(32, 1, 33))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -1043,7 +1041,7 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(16, 1, 17), P(26, 1, 27))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(26, 1, 27))), "c"),
+									ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(18, 1, 19))), "c"),
 									ast.NewPublicConstantNode(L(S(P(21, 1, 22), P(26, 1, 27))), "String"),
 									nil,
 									ast.NamedRestParameterKind,
@@ -1066,7 +1064,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(27, 1, 28))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(7, 1, 8))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -1084,7 +1082,7 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(16, 1, 17), P(18, 1, 19))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(18, 1, 19))), "c"),
+									ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(18, 1, 19))), "c"),
 									nil,
 									nil,
 									ast.NamedRestParameterKind,
@@ -1117,7 +1115,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(28, 1, 29))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -1135,14 +1133,14 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(16, 1, 17), P(17, 1, 18))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(17, 1, 18))), "c"),
+									ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "c"),
 									nil,
 									nil,
 									ast.PositionalRestParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(20, 1, 21), P(22, 1, 23))),
-									ast.NewPublicIdentifierNode(L(S(P(20, 1, 21), P(22, 1, 23))), "d"),
+									ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(22, 1, 23))), "d"),
 									nil,
 									nil,
 									ast.NamedRestParameterKind,
@@ -1165,7 +1163,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(31, 1, 32))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -1183,7 +1181,7 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(16, 1, 17), P(17, 1, 18))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(17, 1, 18))), "c"),
+									ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "c"),
 									nil,
 									nil,
 									ast.PositionalRestParameterKind,
@@ -1197,7 +1195,7 @@ func TestMacroDefinition(t *testing.T) {
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(23, 1, 24), P(25, 1, 26))),
-									ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(25, 1, 26))), "e"),
+									ast.NewPublicIdentifierNode(L(S(P(25, 1, 26), P(25, 1, 26))), "e"),
 									nil,
 									nil,
 									ast.NamedRestParameterKind,
@@ -1223,7 +1221,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(33, 1, 34))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(15, 1, 16))),
@@ -1260,7 +1258,7 @@ func TestMacroDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(40, 1, 41))),
 							"",
 							false,
-							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(10, 1, 11), P(15, 1, 16))),
@@ -1305,68 +1303,61 @@ func TestMacroDefinition(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(10, 1, 11), P(11, 1, 12))), "unexpected INSTANCE_VARIABLE, expected an identifier as the name of the declared formalParameter"),
+				diagnostic.NewFailure(L(S(P(10, 1, 11), P(11, 1, 12))), "unexpected INSTANCE_VARIABLE, expected an identifier as the name of the declared signature parameter"),
 				diagnostic.NewFailure(L(S(P(13, 1, 14), P(13, 1, 14))), "unexpected =, expected )"),
 				diagnostic.NewFailure(L(S(P(40, 1, 41), P(42, 1, 43))), "unexpected end, expected an expression"),
 			},
 		},
 		"cannot have required arguments after optional ones": {
-			input: "def foo(a = 32, b: String, c = true, d); end",
+			input: "macro foo(a = 32, b: String, c = true, d); end",
 			want: ast.NewProgramNode(
-				L(S(P(0, 1, 1), P(43, 1, 44))),
+				L(S(P(0, 1, 1), P(45, 1, 46))),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						L(S(P(0, 1, 1), P(43, 1, 44))),
-						ast.NewMethodDefinitionNode(
-							L(S(P(0, 1, 1), P(43, 1, 44))),
+						L(S(P(0, 1, 1), P(45, 1, 46))),
+						ast.NewMacroDefinitionNode(
+							L(S(P(0, 1, 1), P(45, 1, 46))),
 							"",
-							0,
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(43, 1, 44))), "foo"),
-							nil,
+							false,
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							[]ast.ParameterNode{
-								ast.NewMethodParameterNode(
-									L(S(P(8, 1, 9), P(13, 1, 14))),
-									ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(8, 1, 9))), "a"),
-									false,
+								ast.NewFormalParameterNode(
+									L(S(P(10, 1, 11), P(15, 1, 16))),
+									ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(10, 1, 11))), "a"),
 									nil,
-									ast.NewIntLiteralNode(L(S(P(12, 1, 13), P(13, 1, 14))), "32"),
+									ast.NewIntLiteralNode(L(S(P(14, 1, 15), P(15, 1, 16))), "32"),
 									ast.NormalParameterKind,
 								),
-								ast.NewMethodParameterNode(
-									L(S(P(16, 1, 17), P(24, 1, 25))),
-									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(16, 1, 17))), "b"),
-									false,
-									ast.NewPublicConstantNode(L(S(P(19, 1, 20), P(24, 1, 25))), "String"),
+								ast.NewFormalParameterNode(
+									L(S(P(18, 1, 19), P(26, 1, 27))),
+									ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(18, 1, 19))), "b"),
+									ast.NewPublicConstantNode(L(S(P(21, 1, 22), P(26, 1, 27))), "String"),
 									nil,
 									ast.NormalParameterKind,
 								),
-								ast.NewMethodParameterNode(
-									L(S(P(27, 1, 28), P(34, 1, 35))),
-									ast.NewPublicIdentifierNode(L(S(P(27, 1, 28), P(27, 1, 28))), "c"),
-									false,
+								ast.NewFormalParameterNode(
+									L(S(P(29, 1, 30), P(36, 1, 37))),
+									ast.NewPublicIdentifierNode(L(S(P(29, 1, 30), P(29, 1, 30))), "c"),
 									nil,
-									ast.NewTrueLiteralNode(L(S(P(31, 1, 32), P(34, 1, 35)))),
+									ast.NewTrueLiteralNode(L(S(P(33, 1, 34), P(36, 1, 37)))),
 									ast.NormalParameterKind,
 								),
-								ast.NewMethodParameterNode(
-									L(S(P(37, 1, 38), P(37, 1, 38))),
-									ast.NewPublicIdentifierNode(L(S(P(37, 1, 38), P(37, 1, 38))), "d"),
-									false,
+								ast.NewFormalParameterNode(
+									L(S(P(39, 1, 40), P(39, 1, 40))),
+									ast.NewPublicIdentifierNode(L(S(P(39, 1, 40), P(39, 1, 40))), "d"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 							},
 							nil,
-							nil,
-							nil,
 						),
 					),
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(16, 1, 17), P(24, 1, 25))), "required parameters cannot appear after optional parameters"),
-				diagnostic.NewFailure(L(S(P(37, 1, 38), P(37, 1, 38))), "required parameters cannot appear after optional parameters"),
+				diagnostic.NewFailure(L(S(P(18, 1, 19), P(26, 1, 27))), "required parameters cannot appear after optional parameters"),
+				diagnostic.NewFailure(L(S(P(39, 1, 40), P(39, 1, 40))), "required parameters cannot appear after optional parameters"),
 			},
 		},
 		"can have a multiline body": {
@@ -1751,7 +1742,7 @@ func TestMacroCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(6, 1, 7))),
 						ast.NewReceiverlessMacroCallNode(
 							L(S(P(0, 1, 1), P(6, 1, 7))),
-							ast.NewPrivateIdentifierNode(L(S(P(0, 1, 1), P(4, 1, 5))), "_foo"),
+							ast.NewPrivateIdentifierNode(L(S(P(0, 1, 1), P(3, 1, 4))), "_foo"),
 							nil,
 							nil,
 						),
@@ -2046,7 +2037,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(8, 1, 9))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
 							nil,
 							nil,
 						),
@@ -2070,7 +2061,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(8, 1, 9))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
 							nil,
 							nil,
 						),
@@ -2094,7 +2085,7 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(9, 1, 10))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
 							nil,
 							nil,
 						),
@@ -2147,7 +2138,7 @@ func TestMacroCall(t *testing.T) {
 								ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
 								ast.NewIntLiteralNode(L(S(P(7, 1, 8), P(7, 1, 8))), "2"),
 							),
-							ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(11, 1, 12))), "bar"),
+							ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "bar"),
 							nil,
 							nil,
 						),
@@ -2208,7 +2199,10 @@ func TestMacroCall(t *testing.T) {
 						ast.NewMacroCallNode(
 							L(S(P(0, 1, 1), P(8, 1, 9))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(5, 1, 6))), "&&"),
+							ast.NewInvalidNode(
+								L(S(P(4, 1, 5), P(5, 1, 6))),
+								T(L(S(P(4, 1, 5), P(5, 1, 6))), token.AND_AND),
+							),
 							nil,
 							nil,
 						),
@@ -2369,7 +2363,7 @@ func TestMacroCall(t *testing.T) {
 									L(S(P(21, 1, 22), P(28, 1, 29))),
 									ast.NewReceiverlessMethodCallNode(
 										L(S(P(23, 1, 24), P(28, 1, 29))),
-										ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(28, 1, 29))), "dupa"),
+										ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(26, 1, 27))), "dupa"),
 										nil,
 										nil,
 									),
