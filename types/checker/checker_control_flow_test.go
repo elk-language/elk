@@ -18,7 +18,7 @@ func TestGoExpression(t *testing.T) {
 				b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `\"foo\"`"),
 				diagnostic.NewFailure(L("<main>", P(58, 7, 5), P(58, 7, 5)), "undefined local `b`"),
 			},
 		},
@@ -54,8 +54,8 @@ func TestDoCatchExpression(t *testing.T) {
 				b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(67, 7, 10), P(71, 7, 14)), "expected type `Std::Int` for parameter `other` in call to `-`, got type `\"bar\"`"),
-				diagnostic.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(67, 7, 10), P(71, 7, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:-`, got type `\"bar\"`"),
+				diagnostic.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `\"foo\"`"),
 				diagnostic.NewFailure(L("<main>", P(99, 10, 5), P(99, 10, 5)), "undefined local `b`"),
 			},
 		},
@@ -75,9 +75,9 @@ func TestDoCatchExpression(t *testing.T) {
 				b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(74, 7, 10), P(78, 7, 14)), "expected type `Std::Int` for parameter `other` in call to `-`, got type `\"bar\"`"),
-				diagnostic.NewFailure(L("<main>", P(120, 10, 10), P(124, 10, 14)), "expected type `Std::Int` for parameter `other` in call to `*`, got type `\"bar\"`"),
-				diagnostic.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(74, 7, 10), P(78, 7, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:-`, got type `\"bar\"`"),
+				diagnostic.NewFailure(L("<main>", P(120, 10, 10), P(124, 10, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:*`, got type `\"bar\"`"),
+				diagnostic.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `\"foo\"`"),
 				diagnostic.NewFailure(L("<main>", P(152, 13, 5), P(152, 13, 5)), "undefined local `b`"),
 			},
 		},

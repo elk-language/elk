@@ -99,7 +99,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		initNode.Location(),
 		initNode.DocComment(),
 		0,
-		"#init",
+		ast.NewPublicIdentifierNode(initNode.Location(), "#init"),
 		nil,
 		initNode.Parameters,
 		nil,
@@ -123,13 +123,14 @@ func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
 }
 
 func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace types.Namespace) {
-	oldName := value.ToSymbol(node.OldName)
-	aliasedMethod := namespace.Method(oldName)
+	oldName := c.identifierToName(node.OldName)
+	oldNameSymbol := value.ToSymbol(oldName)
+	aliasedMethod := namespace.Method(oldNameSymbol)
 	if aliasedMethod == nil {
-		c.addMissingMethodError(namespace, node.OldName, node.Location())
+		c.addMissingMethodError(namespace, oldName, node.Location())
 		return
 	}
-	newName := value.ToSymbol(node.NewName)
+	newName := value.ToSymbol(c.identifierToName(node.NewName))
 	oldMethod := c.resolveMethodInNamespace(namespace, newName)
 	c.checkMethodOverrideWithPlaceholder(aliasedMethod, oldMethod, node.Location())
 	c.checkSpecialMethods(newName, aliasedMethod, nil, node.Location())
@@ -386,7 +387,7 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 		false,
 		node.IsGenerator(),
 		node.IsAsync(),
-		value.ToSymbol(node.Name),
+		value.ToSymbol(c.identifierToName(node.Name)),
 		node.TypeParameters,
 		node.Parameters,
 		node.ReturnType,
@@ -411,7 +412,7 @@ func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefini
 		false,
 		false,
 		false,
-		value.ToSymbol(node.Name),
+		value.ToSymbol(c.identifierToName(node.Name)),
 		node.TypeParameters,
 		node.Parameters,
 		node.ReturnType,
@@ -564,6 +565,7 @@ func (c *Checker) checkMethodInConstant(method *types.Method, usedInConstants ds
 }
 
 func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docComment string) {
+	name := c.identifierToName(node.Name)
 	method, mod := c.declareMethod(
 		nil,
 		c.currentMethodScope().container,
@@ -573,7 +575,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		false,
 		false,
 		false,
-		value.ToSymbol(node.Name),
+		value.ToSymbol(name),
 		nil,
 		nil,
 		node.TypeNode,
@@ -587,14 +589,14 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 
 	if init == nil {
 		body = ast.ExpressionToStatements(
-			ast.NewInstanceVariableNode(node.Location(), node.Name),
+			ast.NewInstanceVariableNode(node.Location(), name),
 		)
 	} else {
 		body = ast.ExpressionToStatements(
 			ast.NewAssignmentExpressionNode(
 				node.Location(),
 				token.New(init.Location(), token.QUESTION_QUESTION_EQUAL),
-				ast.NewInstanceVariableNode(node.Location(), node.Name),
+				ast.NewInstanceVariableNode(node.Location(), name),
 				init,
 			),
 		)
@@ -658,7 +660,7 @@ func (c *Checker) deepCopyMethod(method *types.Method) *types.Method {
 }
 
 func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docComment string) {
-	setterName := node.Name + "="
+	setterName := c.identifierToName(node.Name) + "="
 
 	methodScope := c.currentMethodScope()
 	var paramSpan *position.Location
@@ -699,7 +701,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		node.Location(),
 		docComment,
 		0,
-		setterName,
+		ast.NewPublicIdentifierNode(node.Name.Location(), setterName),
 		nil,
 		params,
 		nil,
@@ -927,8 +929,9 @@ func (c *Checker) checkMethod(
 		case *ast.MethodParameterNode:
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
+			pName := c.identifierToName(p.Name)
 			if p.SetInstanceVariable {
-				c.registerInitialisedInstanceVariable(value.ToSymbol(p.Name))
+				c.registerInitialisedInstanceVariable(value.ToSymbol(pName))
 			}
 			declaredType = c.TypeOf(p).(*types.Parameter).Type
 			if p.TypeNode != nil {
@@ -946,12 +949,13 @@ func (c *Checker) checkMethod(
 				initType := c.TypeOf(initNode)
 				c.checkCanAssign(initType, declaredType, initNode.Location())
 			}
-			c.addLocal(p.Name, newLocal(declaredType, true, checkedMethod.IsGenerator()))
+			c.addLocal(pName, newLocal(declaredType, true, checkedMethod.IsGenerator()))
 			p.Initialiser = initNode
 			p.TypeNode = declaredTypeNode
 		case *ast.FormalParameterNode:
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
+			pName := c.identifierToName(p.Name)
 			declaredType = c.TypeOf(p).(*types.Parameter).Type
 			if p.TypeNode != nil {
 				declaredTypeNode = p.TypeNode
@@ -968,7 +972,7 @@ func (c *Checker) checkMethod(
 				initType := c.TypeOf(initNode)
 				c.checkCanAssign(initType, declaredType, initNode.Location())
 			}
-			c.addLocal(p.Name, newLocal(declaredType, true, false))
+			c.addLocal(pName, newLocal(declaredType, true, false))
 			p.Initialiser = initNode
 			p.TypeNode = declaredTypeNode
 		default:
@@ -2008,6 +2012,7 @@ func (c *Checker) declareMethod(
 	for i, paramNode := range paramNodes {
 		switch p := paramNode.(type) {
 		case *ast.FormalParameterNode:
+			pName := c.identifierToName(p.Name)
 			var declaredType types.Type
 			if p.TypeNode != nil {
 				p.TypeNode = c.checkTypeNode(p.TypeNode)
@@ -2016,7 +2021,7 @@ func (c *Checker) declareMethod(
 				declaredType = baseMethod.Params[i].Type
 			} else {
 				c.addFailure(
-					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
+					fmt.Sprintf("cannot declare parameter `%s` without a type", pName),
 					paramNode.Location(),
 				)
 			}
@@ -2033,7 +2038,7 @@ func (c *Checker) declareMethod(
 			if p.Initialiser != nil {
 				kind = types.DefaultValueParameterKind
 			}
-			name := value.ToSymbol(p.Name)
+			name := value.ToSymbol(pName)
 			paramType := types.NewParameter(
 				name,
 				declaredType,
@@ -2043,15 +2048,16 @@ func (c *Checker) declareMethod(
 			p.SetType(paramType)
 			params = append(params, paramType)
 		case *ast.MethodParameterNode:
+			pName := c.identifierToName(p.Name)
 			var declaredType types.Type
 			if p.SetInstanceVariable {
-				currentIvar, _ := c.getInstanceVariableIn(value.ToSymbol(p.Name), methodNamespace)
+				currentIvar, _ := c.getInstanceVariableIn(value.ToSymbol(pName), methodNamespace)
 				if p.TypeNode == nil {
 					if currentIvar == nil {
 						c.addFailure(
 							fmt.Sprintf(
 								"cannot infer the type of instance variable `%s`",
-								p.Name,
+								pName,
 							),
 							p.Location(),
 						)
@@ -2062,9 +2068,9 @@ func (c *Checker) declareMethod(
 					p.TypeNode = c.checkTypeNode(p.TypeNode)
 					declaredType = c.TypeOf(p.TypeNode)
 					if currentIvar != nil {
-						c.checkCanAssignInstanceVariable(p.Name, declaredType, currentIvar, p.TypeNode.Location())
+						c.checkCanAssignInstanceVariable(pName, declaredType, currentIvar, p.TypeNode.Location())
 					} else {
-						c.declareInstanceVariable(value.ToSymbol(p.Name), declaredType, p.Location())
+						c.declareInstanceVariable(value.ToSymbol(pName), declaredType, p.Location())
 					}
 				}
 			} else if p.TypeNode != nil {
@@ -2074,7 +2080,7 @@ func (c *Checker) declareMethod(
 				declaredType = baseMethod.Params[i].Type
 			} else {
 				c.addFailure(
-					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
+					fmt.Sprintf("cannot declare parameter `%s` without a type", pName),
 					paramNode.Location(),
 				)
 			}
@@ -2091,7 +2097,7 @@ func (c *Checker) declareMethod(
 			if p.Initialiser != nil {
 				kind = types.DefaultValueParameterKind
 			}
-			name := value.ToSymbol(p.Name)
+			name := value.ToSymbol(pName)
 			paramType := types.NewParameter(
 				name,
 				declaredType,
@@ -2101,6 +2107,7 @@ func (c *Checker) declareMethod(
 			p.SetType(paramType)
 			params = append(params, paramType)
 		case *ast.SignatureParameterNode:
+			pName := c.identifierToName(p.Name)
 			var declaredType types.Type
 			if p.TypeNode != nil {
 				p.TypeNode = c.checkTypeNode(p.TypeNode)
@@ -2109,7 +2116,7 @@ func (c *Checker) declareMethod(
 				declaredType = baseMethod.Params[i].Type
 			} else {
 				c.addFailure(
-					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
+					fmt.Sprintf("cannot declare parameter `%s` without a type", pName),
 					paramNode.Location(),
 				)
 			}
@@ -2126,7 +2133,7 @@ func (c *Checker) declareMethod(
 			if p.Optional {
 				kind = types.DefaultValueParameterKind
 			}
-			name := value.ToSymbol(p.Name)
+			name := value.ToSymbol(pName)
 			paramType := types.NewParameter(
 				name,
 				declaredType,

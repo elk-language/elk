@@ -96,7 +96,7 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 		posArgs := []ast.ExpressionNode{expr.Receiver}
 
 		result := c.expandMacroByName(
-			expr.MacroName,
+			c.identifierToName(expr.MacroName),
 			append(posArgs, expr.PositionalArguments...),
 			expr.NamedArguments,
 			expr.Location(),
@@ -107,7 +107,7 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 		return c.expandTopLevelMacrosInExpression(result)
 	case *ast.ReceiverlessMacroCallNode:
 		result := c.expandMacroByName(
-			expr.MacroName,
+			c.identifierToName(expr.MacroName),
 			expr.PositionalArguments,
 			expr.NamedArguments,
 			expr.Location(),
@@ -535,7 +535,7 @@ func (c *Checker) hoistMacroDefinition(node *ast.MacroDefinitionNode) {
 	macro := c.declareMacro(
 		definedUnder,
 		node.DocComment(),
-		value.ToSymbol(node.Name+"!"),
+		value.ToSymbol(c.identifierToName(node.Name)+"!"),
 		node.Parameters,
 		node.Location(),
 	)
@@ -653,7 +653,7 @@ func (c *Checker) declareMacro(
 				)
 			}
 
-			name := value.ToSymbol(p.Name)
+			name := value.ToSymbol(c.identifierToName(p.Name))
 			paramType := types.NewParameter(
 				name,
 				declaredType,

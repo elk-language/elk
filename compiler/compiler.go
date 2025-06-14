@@ -325,6 +325,17 @@ func (c *Compiler) compileProgram(node ast.Node) {
 	c.prepLocals()
 }
 
+func (c *Compiler) identifierToName(node ast.IdentifierNode) string {
+	switch node := node.(type) {
+	case *ast.PrivateIdentifierNode:
+		return node.Value
+	case *ast.PublicIdentifierNode:
+		return node.Value
+	default:
+		return ""
+	}
+}
+
 // Entry point for compiling the body of a function.
 func (c *Compiler) compileFunction(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
 	c.Bytecode.SetParameterCount(len(parameters))
@@ -333,7 +344,8 @@ func (c *Compiler) compileFunction(location *position.Location, parameters []ast
 		p := param.(*ast.FormalParameterNode)
 		pSpan := p.Location()
 
-		local := c.defineLocal(p.Name, pSpan)
+		pName := c.identifierToName(p.Name)
+		local := c.defineLocal(pName, pSpan)
 		if local == nil {
 			return
 		}
@@ -523,7 +535,7 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.
 	var mode mode
 	if node.IsSetter() {
 		mode = setterMethodMode
-	} else if node.Name == "#init" {
+	} else if c.identifierToName(node.Name) == "#init" {
 		mode = initMethodMode
 	} else {
 		mode = methodMode
@@ -556,7 +568,8 @@ func (c *Compiler) compileMacroBody(location *position.Location, parameters []as
 		p := param.(*ast.FormalParameterNode)
 		pSpan := p.Location()
 
-		local := c.defineLocal(p.Name, pSpan)
+		pName := c.identifierToName(p.Name)
+		local := c.defineLocal(pName, pSpan)
 		if local == nil {
 			return
 		}
@@ -590,7 +603,8 @@ func (c *Compiler) compileMethodBody(location *position.Location, parameters []a
 		p := param.(*ast.MethodParameterNode)
 		pSpan := p.Location()
 
-		local := c.defineLocal(p.Name, pSpan)
+		pName := c.identifierToName(p.Name)
+		local := c.defineLocal(pName, pSpan)
 		if local == nil {
 			return
 		}
@@ -610,7 +624,7 @@ func (c *Compiler) compileMethodBody(location *position.Location, parameters []a
 
 		if p.SetInstanceVariable {
 			c.emitGetLocal(location.StartPos.Line, local.index)
-			c.emitSetInstanceVariableNoPop(value.ToSymbol(p.Name), pSpan)
+			c.emitSetInstanceVariableNoPop(value.ToSymbol(pName), pSpan)
 			// pop the value after setting it
 			c.emit(pSpan.StartPos.Line, bytecode.POP)
 		}
@@ -1975,7 +1989,7 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 		location,
 		ast.NewPublicIdentifierNode(inExpression.Location(), rangeVarName),
 		token.New(location, token.DOT),
-		"start",
+		ast.NewPublicIdentifierNode(inExpression.Location(), "start"),
 		nil,
 		nil,
 	)
@@ -1994,7 +2008,7 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 			location,
 			initVal,
 			token.New(location, token.DOT),
-			"++",
+			ast.NewPublicIdentifierNode(location, "++"),
 			nil,
 			nil,
 		)
@@ -2004,7 +2018,7 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 			location,
 			initVal,
 			token.New(location, token.DOT),
-			"++",
+			ast.NewPublicIdentifierNode(location, "++"),
 			nil,
 			nil,
 		)
@@ -2013,7 +2027,7 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 			location,
 			initVal,
 			token.New(location, token.DOT),
-			"++",
+			ast.NewPublicIdentifierNode(location, "++"),
 			nil,
 			nil,
 		)
@@ -2128,7 +2142,7 @@ func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *a
 			inRange.Location(),
 			inRange.Start,
 			token.New(inRange.Op.Location(), token.DOT),
-			"++",
+			ast.NewPublicIdentifierNode(location, "++"),
 			nil,
 			nil,
 		)
@@ -2138,7 +2152,7 @@ func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *a
 			inRange.Location(),
 			inRange.Start,
 			token.New(inRange.Op.Location(), token.DOT),
-			"++",
+			ast.NewPublicIdentifierNode(location, "++"),
 			nil,
 			nil,
 		)
@@ -2485,8 +2499,9 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 	case *ast.AttributeAccessNode:
 		// get value
 		c.compileNodeWithResult(n.Receiver)
-		name := value.ToSymbol(n.AttributeName)
-		callInfo := value.NewCallSiteInfo(name, 0)
+		name := c.identifierToName(n.AttributeName)
+		nameSymbol := value.ToSymbol(name)
+		callInfo := value.NewCallSiteInfo(nameSymbol, 0)
 		c.emitCallMethod(callInfo, node.Location(), false)
 
 		switch node.Op.Type {
@@ -2499,7 +2514,7 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 		}
 
 		// set attribute
-		c.emitSetterCall(n.AttributeName, node.Location())
+		c.emitSetterCall(name, node.Location())
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Expression),
@@ -2516,42 +2531,45 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 	case token.EQUAL_OP:
 		c.compileNodeWithResult(attr.Receiver)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(attr.AttributeName, node.Location())
+		c.emitSetterCall(c.identifierToName(attr.AttributeName), node.Location())
 	case token.OR_OR_EQUAL:
+		name := c.identifierToName(attr.AttributeName)
 		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(attr.Receiver)
-		c.emitGetterCall(attr.AttributeName, location)
+		c.emitGetterCall(name, location)
 
 		jump := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF_NP)
 
 		// if falsy
 		c.emit(location.StartPos.Line, bytecode.POP)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(attr.AttributeName, location)
+		c.emitSetterCall(name, location)
 
 		// if truthy
 		c.patchJump(jump, location)
 	case token.AND_AND_EQUAL:
+		name := c.identifierToName(attr.AttributeName)
 		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(attr.Receiver)
-		c.emitGetterCall(attr.AttributeName, location)
+		c.emitGetterCall(name, location)
 
 		jump := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 
 		// if truthy
 		c.emit(location.StartPos.Line, bytecode.POP)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(attr.AttributeName, location)
+		c.emitSetterCall(name, location)
 
 		// if falsy
 		c.patchJump(jump, location)
 	case token.QUESTION_QUESTION_EQUAL:
+		name := c.identifierToName(attr.AttributeName)
 		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(attr.Receiver)
-		c.emitGetterCall(attr.AttributeName, location)
+		c.emitGetterCall(name, location)
 
 		nilJump := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 		nonNilJump := c.emitJump(location.StartPos.Line, bytecode.JUMP)
@@ -2560,7 +2578,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 		c.patchJump(nilJump, location)
 		c.emit(location.StartPos.Line, bytecode.POP)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(attr.AttributeName, location)
+		c.emitSetterCall(name, location)
 
 		// if not nil
 		c.patchJump(nonNilJump, location)
@@ -4131,9 +4149,10 @@ func (c *Compiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressionN
 func (c *Compiler) compileAttributeAccessNode(node *ast.AttributeAccessNode) {
 	c.compileNodeWithResult(node.Receiver)
 
-	name := value.ToSymbol(node.AttributeName)
-	callInfo := value.NewCallSiteInfo(name, 0)
-	if node.AttributeName == "call" {
+	name := c.identifierToName(node.AttributeName)
+	nameSymbol := value.ToSymbol(name)
+	callInfo := value.NewCallSiteInfo(nameSymbol, 0)
+	if name == "call" {
 		c.emitCall(callInfo, node.Location())
 	} else {
 		c.emitCallMethod(callInfo, node.Location(), false)
@@ -4200,8 +4219,9 @@ func (c *Compiler) compileGenericMethodCallNode(node *ast.GenericMethodCallNode)
 	)
 }
 
-func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, name string, args []ast.ExpressionNode, tailCall bool, location *position.Location) {
+func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, nameNode ast.IdentifierNode, args []ast.ExpressionNode, tailCall bool, location *position.Location) {
 	_, onSelf := receiver.(*ast.SelfLiteralNode)
+	name := c.identifierToName(nameNode)
 
 	switch op.Type {
 	case token.QUESTION_DOT:

@@ -1530,7 +1530,7 @@ func (c *Checker) checkPostfixExpression(node *ast.PostfixExpressionNode, method
 				node.Location(),
 				node.Expression,
 				token.New(node.Op.Location(), token.DOT),
-				methodName,
+				ast.NewPublicIdentifierNode(node.Op.Location(), methodName),
 				nil,
 				nil,
 			),
@@ -4157,8 +4157,24 @@ func (c *Checker) typeOfGuardVoid(node ast.Node) types.Type {
 	return typ
 }
 
+func (c *Checker) identifierToName(node ast.IdentifierNode) string {
+	switch node := node.(type) {
+	case *ast.PrivateIdentifierNode:
+		return node.Value
+	case *ast.PublicIdentifierNode:
+		return node.Value
+	default:
+		c.addFailure(
+			"invalid identifier",
+			node.Location(),
+		)
+		return ""
+	}
+}
+
 func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
-	method, fromLocal := c.getReceiverlessMethod(value.ToSymbol(node.MethodName), node.Location())
+	name := c.identifierToName(node.MethodName)
+	method, fromLocal := c.getReceiverlessMethod(value.ToSymbol(name), node.Location())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -4185,7 +4201,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 
 	var receiver ast.ExpressionNode
 	if fromLocal {
-		receiver = ast.NewPublicIdentifierNode(node.Location(), node.MethodName)
+		receiver = ast.NewPublicIdentifierNode(node.Location(), name)
 	} else {
 		switch under := method.DefinedUnder.(type) {
 		case *types.Module:
@@ -4211,7 +4227,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		node.Location(),
 		receiver,
 		token.New(node.Location(), token.DOT),
-		method.Name.String(),
+		node.MethodName,
 		typedPositionalArguments,
 		nil,
 	)
@@ -4225,8 +4241,9 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 }
 
 func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
-	methodName := value.ToSymbol(node.MethodName)
-	method, fromLocal := c.getReceiverlessMethod(methodName, node.Location())
+	methodName := c.identifierToName(node.MethodName)
+	methodNameSymbol := value.ToSymbol(methodName)
+	method, fromLocal := c.getReceiverlessMethod(methodNameSymbol, node.Location())
 	if method == nil || method.IsPlaceholder() {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -4268,7 +4285,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 
 	var receiver ast.ExpressionNode
 	if fromLocal {
-		receiver = ast.NewPublicIdentifierNode(node.Location(), node.MethodName)
+		receiver = ast.NewPublicIdentifierNode(node.Location(), methodName)
 	} else {
 		switch under := method.DefinedUnder.(type) {
 		case *types.Module:
@@ -4298,7 +4315,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		node.Location(),
 		receiver,
 		token.New(node.Location(), token.DOT),
-		method.Name.String(),
+		node.MethodName,
 		typedPositionalArguments,
 		nil,
 	)
@@ -4744,7 +4761,7 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, tailPosition boo
 	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
 		node.Op.Type,
-		value.ToSymbol(node.MethodName),
+		value.ToSymbol(c.identifierToName(node.MethodName)),
 		nil,
 		node.PositionalArguments,
 		node.NamedArguments,
@@ -4762,7 +4779,7 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, ta
 	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
 		node.Op.Type,
-		value.ToSymbol(node.MethodName),
+		value.ToSymbol(c.identifierToName(node.MethodName)),
 		node.TypeArguments,
 		node.PositionalArguments,
 		node.NamedArguments,
@@ -5009,7 +5026,7 @@ func (c *Checker) checkAttributeAssignment(attributeNode *ast.AttributeAccessNod
 	receiver, args, _ := c.checkSimpleMethodCall(
 		attributeNode.Receiver,
 		token.DOT,
-		value.ToSymbol(attributeNode.AttributeName+"="),
+		value.ToSymbol(c.identifierToName(attributeNode.AttributeName)+"="),
 		nil,
 		[]ast.ExpressionNode{assignmentNode.Right},
 		nil,
@@ -6456,7 +6473,7 @@ func (c *Checker) hoistGetterDeclaration(node *ast.GetterDeclarationNode) {
 		}
 
 		c.declareMethodForGetter(attribute, node.DocComment())
-		c.declareInstanceVariableForAttribute(value.ToSymbol(attribute.Name), c.TypeOf(attribute.TypeNode), attribute.Location())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), attribute.Location())
 	}
 }
 
@@ -6469,7 +6486,7 @@ func (c *Checker) hoistSetterDeclaration(node *ast.SetterDeclarationNode) {
 		}
 
 		c.declareMethodForSetter(attribute, node.DocComment())
-		c.declareInstanceVariableForAttribute(value.ToSymbol(attribute.Name), c.TypeOf(attribute.TypeNode), attribute.Location())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), attribute.Location())
 	}
 }
 
@@ -6483,7 +6500,7 @@ func (c *Checker) hoistAttrDeclaration(node *ast.AttrDeclarationNode) {
 
 		c.declareMethodForSetter(attribute, node.DocComment())
 		c.declareMethodForGetter(attribute, node.DocComment())
-		c.declareInstanceVariableForAttribute(value.ToSymbol(attribute.Name), c.TypeOf(attribute.TypeNode), attribute.Location())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), attribute.Location())
 	}
 }
 

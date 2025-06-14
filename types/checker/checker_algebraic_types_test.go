@@ -165,7 +165,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo(5, 2.5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(189, 9, 5), P(201, 9, 17)), "expected 1 arguments in call to `foo`, got 2"),
+				diagnostic.NewFailure(L("<main>", P(189, 9, 5), P(201, 9, 17)), "expected 1 arguments in call to `Foo.:foo`, got 2"),
 			},
 		},
 		"method with additional rest param": {
@@ -616,7 +616,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo(5, 2.5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(272, 12, 5), P(284, 12, 17)), "expected 1 arguments in call to `foo`, got 2"),
+				diagnostic.NewFailure(L("<main>", P(272, 12, 5), P(284, 12, 17)), "expected 1 arguments in call to `Foo.:foo`, got 2"),
 			},
 		},
 		"method with additional rest param": {
