@@ -24,14 +24,14 @@ func (*DoubleSplatExpressionNode) namedArgumentNode() {}
 // Represents a named argument in a function call eg. `foo: 123`
 type NamedCallArgumentNode struct {
 	NodeBase
-	Name  string
+	Name  IdentifierNode
 	Value ExpressionNode
 }
 
 func (n *NamedCallArgumentNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &NamedCallArgumentNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Name:     n.Name,
+		Name:     n.Name.splice(loc, args, unquote).(IdentifierNode),
 		Value:    n.Value.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
@@ -69,7 +69,7 @@ func (n *NamedCallArgumentNode) Equal(other value.Value) bool {
 func (n *NamedCallArgumentNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString(n.Name)
+	buff.WriteString(n.Name.String())
 	buff.WriteString(": ")
 	buff.WriteString(n.Value.String())
 
@@ -94,7 +94,7 @@ func (n *NamedCallArgumentNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::NamedCallArgumentNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
-	indent.IndentStringFromSecondLine(&buff, value.String(n.Name).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
@@ -109,7 +109,7 @@ func (n *NamedCallArgumentNode) Error() string {
 }
 
 // Create a named argument node eg. `foo: 123`
-func NewNamedCallArgumentNode(loc *position.Location, name string, val ExpressionNode) *NamedCallArgumentNode {
+func NewNamedCallArgumentNode(loc *position.Location, name IdentifierNode, val ExpressionNode) *NamedCallArgumentNode {
 	return &NamedCallArgumentNode{
 		NodeBase: NodeBase{loc: loc},
 		Name:     name,

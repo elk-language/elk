@@ -119,14 +119,14 @@ func (n *KeyValueExpressionNode) Error() string {
 // Represents a symbol value expression eg. `foo: bar`
 type SymbolKeyValueExpressionNode struct {
 	NodeBase
-	Key   string
+	Key   IdentifierNode
 	Value ExpressionNode
 }
 
 func (n *SymbolKeyValueExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SymbolKeyValueExpressionNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Key:      n.Key,
+		Key:      n.Key.splice(loc, args, unquote).(IdentifierNode),
 		Value:    n.Value.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
@@ -164,7 +164,7 @@ func (n *SymbolKeyValueExpressionNode) Equal(other value.Value) bool {
 func (n *SymbolKeyValueExpressionNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString(n.Key)
+	buff.WriteString(n.Key.String())
 	buff.WriteString(": ")
 	buff.WriteString(n.Value.String())
 
@@ -176,7 +176,7 @@ func (s *SymbolKeyValueExpressionNode) IsStatic() bool {
 }
 
 // Create a symbol key value node eg. `foo: bar`
-func NewSymbolKeyValueExpressionNode(loc *position.Location, key string, val ExpressionNode) *SymbolKeyValueExpressionNode {
+func NewSymbolKeyValueExpressionNode(loc *position.Location, key IdentifierNode, val ExpressionNode) *SymbolKeyValueExpressionNode {
 	return &SymbolKeyValueExpressionNode{
 		NodeBase: NodeBase{loc: loc},
 		Key:      key,
@@ -198,7 +198,7 @@ func (n *SymbolKeyValueExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValueExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  key: ")
-	indent.IndentStringFromSecondLine(&buff, value.String(n.Key).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

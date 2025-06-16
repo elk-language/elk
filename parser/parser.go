@@ -1483,7 +1483,7 @@ func (p *Parser) namedArgument() ast.NamedArgumentNode {
 
 	return ast.NewNamedCallArgumentNode(
 		ident.Location().Join(val.Location()),
-		ident.Value,
+		tokenToIdentifier(ident),
 		val,
 	)
 }
@@ -1538,7 +1538,11 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			if len(namedArgs) > 0 {
 				namedArgs = append(
 					namedArgs,
-					ast.NewNamedCallArgumentNode(function.Location(), "func", function),
+					ast.NewNamedCallArgumentNode(
+						function.Location(),
+						ast.NewPublicIdentifierNode(function.Location(), "func"),
+						function,
+					),
 				)
 			} else {
 				posArgs = append(posArgs, function)
@@ -1593,7 +1597,11 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			if len(namedArgs) > 0 {
 				namedArgs = append(
 					namedArgs,
-					ast.NewNamedCallArgumentNode(function.Location(), "func", function),
+					ast.NewNamedCallArgumentNode(
+						function.Location(),
+						ast.NewPublicIdentifierNode(function.Location(), "func"),
+						function,
+					),
 				)
 			} else {
 				posArgs = append(posArgs, function)
@@ -1683,7 +1691,11 @@ methodCallLoop:
 				if len(namedArgs) > 0 {
 					namedArgs = append(
 						namedArgs,
-						ast.NewNamedCallArgumentNode(function.Location(), "func", function),
+						ast.NewNamedCallArgumentNode(
+							function.Location(),
+							ast.NewPublicIdentifierNode(function.Location(), "func"),
+							function,
+						),
 					)
 				} else {
 					posArgs = append(posArgs, function)
@@ -1806,7 +1818,11 @@ methodCallLoop:
 			if len(namedArgs) > 0 {
 				namedArgs = append(
 					namedArgs,
-					ast.NewNamedCallArgumentNode(function.Location(), "func", function),
+					ast.NewNamedCallArgumentNode(
+						function.Location(),
+						ast.NewPublicIdentifierNode(function.Location(), "func"),
+						function,
+					),
 				)
 			} else {
 				posArgs = append(posArgs, function)
@@ -2808,7 +2824,7 @@ func (p *Parser) keyValueMapExpression() ast.ExpressionNode {
 		val := p.expressionWithoutModifier()
 		return ast.NewSymbolKeyValueExpressionNode(
 			key.Location().Join(val.Location()),
-			key.Value,
+			tokenToIdentifier(key),
 			val,
 		)
 	}

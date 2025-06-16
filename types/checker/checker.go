@@ -2519,7 +2519,7 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 		then.Value = c.checkExpression(then.Value)
 		valueType = c.typeOfGuardVoid(then.Value)
 	case *ast.SymbolKeyValueExpressionNode:
-		keyType = types.NewSymbolLiteral(then.Key)
+		keyType = types.NewSymbolLiteral(c.identifierToName(then.Key))
 
 		then.Value = c.checkExpression(then.Value)
 		valueType = c.typeOfGuardVoid(then.Value)

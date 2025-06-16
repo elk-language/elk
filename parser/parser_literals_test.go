@@ -4683,7 +4683,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(1, 1, 2), P(9, 1, 10))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(6, 1, 7), P(9, 1, 10))), "bar"),
 								),
 							},
@@ -4705,7 +4705,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(1, 1, 2), P(9, 1, 10))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(6, 1, 7), P(9, 1, 10))), "bar"),
 								),
 							},
@@ -4727,7 +4727,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(1, 1, 2), P(8, 1, 9))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
 								),
 								ast.NewModifierForInNode(
@@ -4763,7 +4763,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(1, 1, 2), P(8, 1, 9))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -4799,7 +4799,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(1, 1, 2), P(8, 1, 9))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -4908,7 +4908,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(2, 2, 1), P(9, 3, 3))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(2, 2, 1), P(4, 2, 3))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(7, 3, 1), P(9, 3, 3))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -4944,7 +4944,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(2, 2, 1), P(9, 3, 3))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(2, 2, 1), P(4, 2, 3))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(7, 3, 1), P(9, 3, 3))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -5124,7 +5124,7 @@ func TestHashRecordLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(2, 1, 3), P(10, 1, 11))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(2, 1, 3), P(4, 1, 5))), "foo"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(7, 1, 8), P(10, 1, 11))), "bar"),
 								),
 							},
@@ -5145,7 +5145,7 @@ func TestHashRecordLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(2, 1, 3), P(9, 1, 10))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(2, 1, 3), P(4, 1, 5))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "bar"),
 								),
 								ast.NewModifierForInNode(
@@ -5180,7 +5180,7 @@ func TestHashRecordLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(2, 1, 3), P(9, 1, 10))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(2, 1, 3), P(4, 1, 5))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -5215,7 +5215,7 @@ func TestHashRecordLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(2, 1, 3), P(9, 1, 10))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(2, 1, 3), P(4, 1, 5))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -5321,7 +5321,7 @@ func TestHashRecordLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(3, 2, 1), P(10, 3, 3))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(3, 2, 1), P(5, 2, 3))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(8, 3, 1), P(10, 3, 3))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -5356,7 +5356,7 @@ func TestHashRecordLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(3, 2, 1), P(10, 3, 3))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(3, 2, 1), P(5, 2, 3))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(8, 3, 1), P(10, 3, 3))), "bar"),
 								),
 								ast.NewModifierNode(

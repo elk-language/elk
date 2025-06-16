@@ -1470,7 +1470,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				panic(fmt.Sprintf("invalid named argument node: %T", namedArgI))
 			}
 
-			if namedArg.Name != paramName {
+			if c.identifierToName(namedArg.Name) != paramName {
 				continue
 			}
 			if found || i < firstNamedParamIndex {

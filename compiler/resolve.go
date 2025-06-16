@@ -228,7 +228,7 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 	for _, elementNode := range node.Elements {
 		switch element := elementNode.(type) {
 		case *ast.SymbolKeyValueExpressionNode:
-			key := value.ToSymbol(element.Key).ToValue()
+			key := value.ToSymbol(identifierToName(element.Key)).ToValue()
 			val := resolve(element.Value)
 			if val.IsUndefined() {
 				return value.Undefined
@@ -272,7 +272,7 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 	for _, elementNode := range node.Elements {
 		switch element := elementNode.(type) {
 		case *ast.SymbolKeyValueExpressionNode:
-			key := value.ToSymbol(element.Key).ToValue()
+			key := value.ToSymbol(identifierToName(element.Key)).ToValue()
 			val := resolve(element.Value)
 			if val.IsUndefined() {
 				return value.Undefined

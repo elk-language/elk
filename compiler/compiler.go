@@ -325,7 +325,7 @@ func (c *Compiler) compileProgram(node ast.Node) {
 	c.prepLocals()
 }
 
-func (c *Compiler) identifierToName(node ast.IdentifierNode) string {
+func identifierToName(node ast.IdentifierNode) string {
 	switch node := node.(type) {
 	case *ast.PrivateIdentifierNode:
 		return node.Value
@@ -344,7 +344,7 @@ func (c *Compiler) compileFunction(location *position.Location, parameters []ast
 		p := param.(*ast.FormalParameterNode)
 		pSpan := p.Location()
 
-		pName := c.identifierToName(p.Name)
+		pName := identifierToName(p.Name)
 		local := c.defineLocal(pName, pSpan)
 		if local == nil {
 			return
@@ -535,7 +535,7 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.
 	var mode mode
 	if node.IsSetter() {
 		mode = setterMethodMode
-	} else if c.identifierToName(node.Name) == "#init" {
+	} else if identifierToName(node.Name) == "#init" {
 		mode = initMethodMode
 	} else {
 		mode = methodMode
@@ -568,7 +568,7 @@ func (c *Compiler) compileMacroBody(location *position.Location, parameters []as
 		p := param.(*ast.FormalParameterNode)
 		pSpan := p.Location()
 
-		pName := c.identifierToName(p.Name)
+		pName := identifierToName(p.Name)
 		local := c.defineLocal(pName, pSpan)
 		if local == nil {
 			return
@@ -603,7 +603,7 @@ func (c *Compiler) compileMethodBody(location *position.Location, parameters []a
 		p := param.(*ast.MethodParameterNode)
 		pSpan := p.Location()
 
-		pName := c.identifierToName(p.Name)
+		pName := identifierToName(p.Name)
 		local := c.defineLocal(pName, pSpan)
 		if local == nil {
 			return
@@ -2499,7 +2499,7 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 	case *ast.AttributeAccessNode:
 		// get value
 		c.compileNodeWithResult(n.Receiver)
-		name := c.identifierToName(n.AttributeName)
+		name := identifierToName(n.AttributeName)
 		nameSymbol := value.ToSymbol(name)
 		callInfo := value.NewCallSiteInfo(nameSymbol, 0)
 		c.emitCallMethod(callInfo, node.Location(), false)
@@ -2531,9 +2531,9 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 	case token.EQUAL_OP:
 		c.compileNodeWithResult(attr.Receiver)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(c.identifierToName(attr.AttributeName), node.Location())
+		c.emitSetterCall(identifierToName(attr.AttributeName), node.Location())
 	case token.OR_OR_EQUAL:
-		name := c.identifierToName(attr.AttributeName)
+		name := identifierToName(attr.AttributeName)
 		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(attr.Receiver)
@@ -2549,7 +2549,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 		// if truthy
 		c.patchJump(jump, location)
 	case token.AND_AND_EQUAL:
-		name := c.identifierToName(attr.AttributeName)
+		name := identifierToName(attr.AttributeName)
 		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(attr.Receiver)
@@ -2565,7 +2565,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 		// if falsy
 		c.patchJump(jump, location)
 	case token.QUESTION_QUESTION_EQUAL:
-		name := c.identifierToName(attr.AttributeName)
+		name := identifierToName(attr.AttributeName)
 		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(attr.Receiver)
@@ -4149,7 +4149,7 @@ func (c *Compiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressionN
 func (c *Compiler) compileAttributeAccessNode(node *ast.AttributeAccessNode) {
 	c.compileNodeWithResult(node.Receiver)
 
-	name := c.identifierToName(node.AttributeName)
+	name := identifierToName(node.AttributeName)
 	nameSymbol := value.ToSymbol(name)
 	callInfo := value.NewCallSiteInfo(nameSymbol, 0)
 	if name == "call" {
@@ -4221,7 +4221,7 @@ func (c *Compiler) compileGenericMethodCallNode(node *ast.GenericMethodCallNode)
 
 func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, nameNode ast.IdentifierNode, args []ast.ExpressionNode, tailCall bool, location *position.Location) {
 	_, onSelf := receiver.(*ast.SelfLiteralNode)
-	name := c.identifierToName(nameNode)
+	name := identifierToName(nameNode)
 
 	switch op.Type {
 	case token.QUESTION_DOT:
@@ -4877,7 +4877,7 @@ elementLoop:
 			if !e.IsStatic() {
 				break elementSwitch
 			}
-			key := value.ToSymbol(e.Key)
+			key := value.ToSymbol(identifierToName(e.Key))
 			val := resolve(e.Value)
 			if val.IsUndefined() || value.IsMutableCollection(val) {
 				break elementSwitch
@@ -4926,7 +4926,7 @@ elementLoop:
 				c.compileNodeWithResult(element.Key)
 				c.compileNodeWithResult(element.Value)
 			case *ast.SymbolKeyValueExpressionNode:
-				c.emitValue(value.ToSymbol(element.Key).ToValue(), element.Location())
+				c.emitValue(value.ToSymbol(identifierToName(element.Key)).ToValue(), element.Location())
 				c.compileNodeWithResult(element.Value)
 			case *ast.PublicIdentifierNode:
 				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Location())
@@ -4949,7 +4949,7 @@ elementLoop:
 				c.compileNodeWithResult(e.Value)
 				c.emit(e.Location().StartPos.Line, bytecode.MAP_SET)
 			case *ast.SymbolKeyValueExpressionNode:
-				c.emitValue(value.ToSymbol(e.Key).ToValue(), e.Location())
+				c.emitValue(value.ToSymbol(identifierToName(e.Key)).ToValue(), e.Location())
 				c.compileNodeWithResult(e.Value)
 				c.emit(e.Location().StartPos.Line, bytecode.MAP_SET)
 			case *ast.ModifierNode:
@@ -4973,7 +4973,7 @@ elementLoop:
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
+							c.emitValue(value.ToSymbol(identifierToName(then.Key)).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						default:
@@ -4995,7 +4995,7 @@ elementLoop:
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
+							c.emitValue(value.ToSymbol(identifierToName(then.Key)).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						default:
@@ -5009,7 +5009,7 @@ elementLoop:
 							c.compileNodeWithResult(els.Value)
 							c.emit(els.Location().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(els.Key).ToValue(), els.Location())
+							c.emitValue(value.ToSymbol(identifierToName(els.Key)).ToValue(), els.Location())
 							c.compileNodeWithResult(els.Value)
 							c.emit(els.Location().EndPos.Line, bytecode.MAP_SET)
 						default:
@@ -5031,7 +5031,7 @@ elementLoop:
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
+							c.emitValue(value.ToSymbol(identifierToName(then.Key)).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().EndPos.Line, bytecode.MAP_SET)
 						default:
@@ -5081,7 +5081,7 @@ elementLoop:
 			if !e.IsStatic() {
 				break elementSwitch
 			}
-			key := value.ToSymbol(e.Key)
+			key := value.ToSymbol(identifierToName(e.Key))
 			val := resolve(e.Value)
 			if val.IsUndefined() || value.IsMutableCollection(val) {
 				break elementSwitch
@@ -5117,7 +5117,7 @@ elementLoop:
 				c.compileNodeWithResult(element.Key)
 				c.compileNodeWithResult(element.Value)
 			case *ast.SymbolKeyValueExpressionNode:
-				c.emitValue(value.ToSymbol(element.Key).ToValue(), element.Location())
+				c.emitValue(value.ToSymbol(identifierToName(element.Key)).ToValue(), element.Location())
 				c.compileNodeWithResult(element.Value)
 			case *ast.PublicIdentifierNode:
 				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Location())
@@ -5140,7 +5140,7 @@ elementLoop:
 				c.compileNodeWithResult(e.Value)
 				c.emit(e.Location().StartPos.Line, bytecode.MAP_SET)
 			case *ast.SymbolKeyValueExpressionNode:
-				c.emitValue(value.ToSymbol(e.Key).ToValue(), e.Location())
+				c.emitValue(value.ToSymbol(identifierToName(e.Key)).ToValue(), e.Location())
 				c.compileNodeWithResult(e.Value)
 				c.emit(e.Location().StartPos.Line, bytecode.MAP_SET)
 			case *ast.ModifierNode:
@@ -5164,7 +5164,7 @@ elementLoop:
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
+							c.emitValue(value.ToSymbol(identifierToName(then.Key)).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						default:
@@ -5186,7 +5186,7 @@ elementLoop:
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
+							c.emitValue(value.ToSymbol(identifierToName(then.Key)).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						default:
@@ -5200,7 +5200,7 @@ elementLoop:
 							c.compileNodeWithResult(els.Value)
 							c.emit(els.Location().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(els.Key).ToValue(), els.Location())
+							c.emitValue(value.ToSymbol(identifierToName(els.Key)).ToValue(), els.Location())
 							c.compileNodeWithResult(els.Value)
 							c.emit(els.Location().EndPos.Line, bytecode.MAP_SET)
 						default:
@@ -5222,7 +5222,7 @@ elementLoop:
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
+							c.emitValue(value.ToSymbol(identifierToName(then.Key)).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().EndPos.Line, bytecode.MAP_SET)
 						default:

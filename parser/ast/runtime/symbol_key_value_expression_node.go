@@ -13,7 +13,7 @@ func initSymbolKeyValueExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argKey := (string)(args[1].MustReference().(value.String))
+			argKey := args[1].MustReference().(ast.IdentifierNode)
 			argValue := args[2].MustReference().(ast.ExpressionNode)
 
 			var argLoc *position.Location
@@ -38,7 +38,7 @@ func initSymbolKeyValueExpressionNode() {
 		"key",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolKeyValueExpressionNode)
-			result := value.Ref(value.String(self.Key))
+			result := value.Ref(self.Key)
 			return result, value.Undefined
 
 		},

@@ -473,12 +473,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(12, 1, 13))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(9, 1, 10), P(12, 1, 13))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(23, 1, 24))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24)))),
 								),
 							},
@@ -505,12 +505,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 1, 22), P(29, 1, 30))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 1, 33), P(40, 1, 41))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 1, 38), P(40, 1, 41)))),
 								),
 							},
@@ -537,12 +537,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 3, 7), P(29, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 3, 7), P(23, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 3, 12), P(29, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 4, 1), P(40, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 4, 1), P(34, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 4, 6), P(40, 4, 9)))),
 								),
 							},
@@ -569,12 +569,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(22, 2, 18), P(30, 2, 26))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(22, 2, 18), P(24, 2, 20))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(27, 2, 23), P(30, 2, 26))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(33, 2, 29), P(41, 2, 37))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(33, 2, 29), P(35, 2, 31))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(38, 2, 34), P(41, 2, 37)))),
 								),
 							},
@@ -637,12 +637,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(12, 1, 13))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(9, 1, 10), P(12, 1, 13))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(23, 1, 24))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24)))),
 								),
 							},
@@ -669,12 +669,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 1, 22), P(29, 1, 30))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 1, 33), P(40, 1, 41))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 1, 38), P(40, 1, 41)))),
 								),
 							},
@@ -701,12 +701,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 3, 7), P(29, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 3, 7), P(23, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 3, 12), P(29, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 4, 1), P(40, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 4, 1), P(34, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 4, 6), P(40, 4, 9)))),
 								),
 							},
@@ -835,12 +835,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(12, 1, 13))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(9, 1, 10), P(12, 1, 13))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(23, 1, 24))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24)))),
 								),
 							},
@@ -866,12 +866,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 1, 22), P(29, 1, 30))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 1, 33), P(40, 1, 41))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 1, 38), P(40, 1, 41)))),
 								),
 							},
@@ -897,12 +897,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 3, 7), P(29, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 3, 7), P(23, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 3, 12), P(29, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 4, 1), P(40, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 4, 1), P(34, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 4, 6), P(40, 4, 9)))),
 								),
 							},
@@ -928,12 +928,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(22, 2, 18), P(30, 2, 26))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(22, 2, 18), P(24, 2, 20))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(27, 2, 23), P(30, 2, 26))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(33, 2, 29), P(41, 2, 37))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(33, 2, 29), P(35, 2, 31))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(38, 2, 34), P(41, 2, 37)))),
 								),
 							},
@@ -975,12 +975,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(12, 1, 13))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(9, 1, 10), P(12, 1, 13))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(23, 1, 24))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24)))),
 								),
 							},
@@ -1006,12 +1006,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 1, 22), P(29, 1, 30))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 1, 33), P(40, 1, 41))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 1, 38), P(40, 1, 41)))),
 								),
 							},
@@ -1037,12 +1037,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 3, 7), P(29, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 3, 7), P(23, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 3, 12), P(29, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 4, 1), P(40, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 4, 1), P(34, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 4, 6), P(40, 4, 9)))),
 								),
 							},
@@ -1320,12 +1320,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(7, 1, 8))),
-									"f",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "f"),
 									ast.NewIntLiteralNode(L(S(P(7, 1, 8), P(7, 1, 8))), "5"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(10, 1, 11), P(21, 1, 22))),
-									"func",
+									ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(21, 1, 22))), "func"),
 									ast.NewClosureLiteralNode(
 										L(S(P(10, 1, 11), P(21, 1, 22))),
 										[]ast.ParameterNode{
@@ -1627,12 +1627,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(8, 1, 9), P(11, 1, 12))),
-									"f",
+									ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(8, 1, 9))), "f"),
 									ast.NewIntLiteralNode(L(S(P(11, 1, 12), P(11, 1, 12))), "5"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(14, 1, 15), P(25, 1, 26))),
-									"func",
+									ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(25, 1, 26))), "func"),
 									ast.NewClosureLiteralNode(
 										L(S(P(14, 1, 15), P(25, 1, 26))),
 										[]ast.ParameterNode{
@@ -1967,12 +1967,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(12, 1, 13))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(9, 1, 10), P(12, 1, 13))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(23, 1, 24))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24)))),
 								),
 							},
@@ -1999,7 +1999,7 @@ func TestMethodCall(t *testing.T) {
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(9, 1, 10), P(17, 1, 18))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(11, 1, 12))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(14, 1, 15), P(17, 1, 18))), "baz"),
 								),
 								ast.NewDoubleSplatExpressionNode(
@@ -2013,7 +2013,7 @@ func TestMethodCall(t *testing.T) {
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(30, 1, 31), P(38, 1, 39))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(30, 1, 31), P(32, 1, 33))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(35, 1, 36), P(38, 1, 39)))),
 								),
 							},
@@ -2040,12 +2040,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 1, 22), P(29, 1, 30))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 1, 33), P(40, 1, 41))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 1, 38), P(40, 1, 41)))),
 								),
 							},
@@ -2072,12 +2072,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 3, 7), P(29, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 3, 7), P(23, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 3, 12), P(29, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 4, 1), P(40, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 4, 1), P(34, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 4, 6), P(40, 4, 9)))),
 								),
 							},
@@ -2104,12 +2104,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(22, 2, 18), P(30, 2, 26))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(22, 2, 18), P(24, 2, 20))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(27, 2, 23), P(30, 2, 26))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(33, 2, 29), P(41, 2, 37))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(33, 2, 29), P(35, 2, 31))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(38, 2, 34), P(41, 2, 37)))),
 								),
 							},
@@ -2172,12 +2172,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(12, 1, 13))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(9, 1, 10), P(12, 1, 13))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(23, 1, 24))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24)))),
 								),
 							},
@@ -2204,12 +2204,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 1, 22), P(29, 1, 30))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 1, 33), P(40, 1, 41))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 1, 38), P(40, 1, 41)))),
 								),
 							},
@@ -2236,12 +2236,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 3, 7), P(29, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 3, 7), P(23, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 3, 12), P(29, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 4, 1), P(40, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 4, 1), P(34, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 4, 6), P(40, 4, 9)))),
 								),
 							},
@@ -2445,12 +2445,12 @@ func TestCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(23, 1, 24), P(31, 1, 32))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(25, 1, 26))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(28, 1, 29), P(31, 1, 32))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(34, 1, 35), P(42, 1, 43))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(34, 1, 35), P(36, 1, 37))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(39, 1, 40), P(42, 1, 43)))),
 								),
 							},

@@ -1695,12 +1695,12 @@ func TestMacroCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(5, 1, 6), P(8, 1, 9))),
-									"f",
+									ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(5, 1, 6))), "f"),
 									ast.NewIntLiteralNode(L(S(P(8, 1, 9), P(8, 1, 9))), "5"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(11, 1, 12), P(22, 1, 23))),
-									"func",
+									ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(22, 1, 23))), "func"),
 									ast.NewClosureLiteralNode(
 										L(S(P(11, 1, 12), P(22, 1, 23))),
 										[]ast.ParameterNode{
@@ -1969,12 +1969,12 @@ func TestMacroCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(9, 1, 10), P(12, 1, 13))),
-									"f",
+									ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(9, 1, 10))), "f"),
 									ast.NewIntLiteralNode(L(S(P(12, 1, 13), P(12, 1, 13))), "5"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(26, 1, 27))),
-									"func",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(26, 1, 27))), "func"),
 									ast.NewClosureLiteralNode(
 										L(S(P(15, 1, 16), P(26, 1, 27))),
 										[]ast.ParameterNode{
@@ -2324,12 +2324,12 @@ func TestMacroCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(5, 1, 6), P(13, 1, 14))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(10, 1, 11), P(13, 1, 14))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(16, 1, 17), P(24, 1, 25))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(18, 1, 19))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(21, 1, 22), P(24, 1, 25)))),
 								),
 							},
@@ -2356,7 +2356,7 @@ func TestMacroCall(t *testing.T) {
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(10, 1, 11), P(18, 1, 19))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(15, 1, 16), P(18, 1, 19))), "baz"),
 								),
 								ast.NewDoubleSplatExpressionNode(
@@ -2370,7 +2370,7 @@ func TestMacroCall(t *testing.T) {
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(31, 1, 32), P(39, 1, 40))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(31, 1, 32), P(33, 1, 34))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(36, 1, 37), P(39, 1, 40)))),
 								),
 							},
@@ -2397,12 +2397,12 @@ func TestMacroCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(22, 1, 23), P(30, 1, 31))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(24, 1, 25))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(27, 1, 28), P(30, 1, 31))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(33, 1, 34), P(41, 1, 42))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(33, 1, 34), P(35, 1, 36))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(38, 1, 39), P(41, 1, 42)))),
 								),
 							},
@@ -2429,12 +2429,12 @@ func TestMacroCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(22, 3, 7), P(30, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(22, 3, 7), P(24, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(27, 3, 12), P(30, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(33, 4, 1), P(41, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(33, 4, 1), P(35, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(38, 4, 6), P(41, 4, 9)))),
 								),
 							},
@@ -2461,12 +2461,12 @@ func TestMacroCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(23, 2, 18), P(31, 2, 26))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(23, 2, 18), P(25, 2, 20))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(28, 2, 23), P(31, 2, 26))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(34, 2, 29), P(42, 2, 37))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(34, 2, 29), P(36, 2, 31))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(39, 2, 34), P(42, 2, 37)))),
 								),
 							},
@@ -2534,12 +2534,12 @@ func TestMacroCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(5, 1, 6), P(13, 1, 14))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(10, 1, 11), P(13, 1, 14))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(16, 1, 17), P(24, 1, 25))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(18, 1, 19))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(21, 1, 22), P(24, 1, 25)))),
 								),
 							},
@@ -2566,12 +2566,12 @@ func TestMacroCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(22, 1, 23), P(30, 1, 31))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(24, 1, 25))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(27, 1, 28), P(30, 1, 31))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(33, 1, 34), P(41, 1, 42))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(33, 1, 34), P(35, 1, 36))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(38, 1, 39), P(41, 1, 42)))),
 								),
 							},
@@ -2598,12 +2598,12 @@ func TestMacroCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(22, 3, 7), P(30, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(22, 3, 7), P(24, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(27, 3, 12), P(30, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(33, 4, 1), P(41, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(33, 4, 1), P(35, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(38, 4, 6), P(41, 4, 9)))),
 								),
 							},
