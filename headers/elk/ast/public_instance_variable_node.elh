@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents an instance variable eg. `@foo`
+  ]##
+  sealed primitive class PublicInstanceVariableNode
+    include ExpressionNode
+
+    init(value: String, location: FS::Location = loop; end); end
+    def value: String; end
+    def location: FS::Location; end
+  end
+end

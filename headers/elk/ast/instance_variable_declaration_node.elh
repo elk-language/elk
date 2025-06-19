@@ -6,14 +6,14 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      name: String,
+      name: InstanceVariableNode,
       type_node: TypeNode,
       doc_comment: String = "",
       location: FS::Location = loop; end,
     ); end
 
     def doc_comment: String; end
-    def name: String; end
+    def name: InstanceVariableNode; end
     def type_node: TypeNode?; end
     def location: FS::Location; end
   end

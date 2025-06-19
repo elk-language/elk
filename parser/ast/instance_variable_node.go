@@ -8,24 +8,36 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+// All nodes that should be valid instance variables
+// should implement this interface.
+type InstanceVariableNode interface {
+	Node
+	ExpressionNode
+	ivarNode()
+}
+
+func (*InvalidNode) ivarNode()                {}
+func (*PublicInstanceVariableNode) ivarNode() {}
+func (*UnquoteNode) ivarNode()                {}
+
 // Represents an instance variable eg. `@foo`
-type InstanceVariableNode struct {
+type PublicInstanceVariableNode struct {
 	TypedNodeBase
 	Value string
 }
 
-func (n *InstanceVariableNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
-	return &InstanceVariableNode{
+func (n *PublicInstanceVariableNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	return &PublicInstanceVariableNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Value:         n.Value,
 	}
 }
 
-func (n *InstanceVariableNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::InstanceVariableNode", env)
+func (n *PublicInstanceVariableNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::PublicInstanceVariableNode", env)
 }
 
-func (n *InstanceVariableNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+func (n *PublicInstanceVariableNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
 		return TraverseBreak
@@ -36,8 +48,8 @@ func (n *InstanceVariableNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
-func (n *InstanceVariableNode) Equal(other value.Value) bool {
-	o, ok := other.SafeAsReference().(*InstanceVariableNode)
+func (n *PublicInstanceVariableNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PublicInstanceVariableNode)
 	if !ok {
 		return false
 	}
@@ -46,38 +58,38 @@ func (n *InstanceVariableNode) Equal(other value.Value) bool {
 		!n.loc.Equal(o.loc)
 }
 
-func (n *InstanceVariableNode) String() string {
+func (n *PublicInstanceVariableNode) String() string {
 	return fmt.Sprintf("@%s", n.Value)
 }
 
-func (*InstanceVariableNode) IsStatic() bool {
+func (*PublicInstanceVariableNode) IsStatic() bool {
 	return false
 }
 
 // Create an instance variable node eg. `@foo`.
-func NewInstanceVariableNode(loc *position.Location, val string) *InstanceVariableNode {
-	return &InstanceVariableNode{
+func NewInstanceVariableNode(loc *position.Location, val string) *PublicInstanceVariableNode {
+	return &PublicInstanceVariableNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
 	}
 }
 
-func (*InstanceVariableNode) Class() *value.Class {
-	return value.InstanceVariableNodeClass
+func (*PublicInstanceVariableNode) Class() *value.Class {
+	return value.PublicInstanceVariableNodeClass
 }
 
-func (*InstanceVariableNode) DirectClass() *value.Class {
-	return value.InstanceVariableNodeClass
+func (*PublicInstanceVariableNode) DirectClass() *value.Class {
+	return value.PublicInstanceVariableNodeClass
 }
 
-func (i *InstanceVariableNode) Inspect() string {
+func (i *PublicInstanceVariableNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::InstanceVariableNode{location: %s, value: %s}",
+		"Std::Elk::AST::PublicInstanceVariableNode{location: %s, value: %s}",
 		(*value.Location)(i.loc).Inspect(),
 		value.String(i.Value).Inspect(),
 	)
 }
 
-func (p *InstanceVariableNode) Error() string {
+func (p *PublicInstanceVariableNode) Error() string {
 	return p.Inspect()
 }

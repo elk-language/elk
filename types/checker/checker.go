@@ -982,7 +982,7 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 	case *ast.PrivateIdentifierNode:
 		c.checkPrivateIdentifierNode(n)
 		return n
-	case *ast.InstanceVariableNode:
+	case *ast.PublicInstanceVariableNode:
 		c.checkInstanceVariableNode(n)
 		return n
 	case *ast.PublicConstantNode:
@@ -4172,6 +4172,19 @@ func (c *Checker) identifierToName(node ast.IdentifierNode) string {
 	}
 }
 
+func (c *Checker) instanceVariableToName(node ast.InstanceVariableNode) string {
+	switch node := node.(type) {
+	case *ast.PublicInstanceVariableNode:
+		return node.Value
+	default:
+		c.addFailure(
+			"invalid instance variable",
+			node.Location(),
+		)
+		return ""
+	}
+}
+
 func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	name := c.identifierToName(node.MethodName)
 	method, fromLocal := c.getReceiverlessMethod(value.ToSymbol(name), node.Location())
@@ -4991,7 +5004,7 @@ func (c *Checker) checkAssignment(node *ast.AssignmentExpressionNode) ast.Expres
 		return c.checkLocalVariableAssignment(n.Value, node)
 	case *ast.SubscriptExpressionNode:
 		return c.checkSubscriptAssignment(n, node)
-	case *ast.InstanceVariableNode:
+	case *ast.PublicInstanceVariableNode:
 		return c.checkInstanceVariableAssignment(n.Value, node)
 	case *ast.AttributeAccessNode:
 		return c.checkAttributeAssignment(n, node)
@@ -6423,7 +6436,7 @@ func (c *Checker) checkInstanceVariable(name string, location *position.Location
 	return typ
 }
 
-func (c *Checker) checkInstanceVariableNode(node *ast.InstanceVariableNode) {
+func (c *Checker) checkInstanceVariableNode(node *ast.PublicInstanceVariableNode) {
 	c.checkNonNilableInstanceVariablesForSelf(node.Location())
 	typ := c.checkInstanceVariable(node.Value, node.Location())
 	node.SetType(typ)
@@ -6506,14 +6519,15 @@ func (c *Checker) hoistAttrDeclaration(node *ast.AttrDeclarationNode) {
 
 func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
 	methodNamespace := c.currentMethodScope().container
-	ivar, ivarNamespace := c.getInstanceVariableIn(value.ToSymbol(node.Name), methodNamespace)
+	name := c.instanceVariableToName(node.Name)
+	ivar, ivarNamespace := c.getInstanceVariableIn(value.ToSymbol(name), methodNamespace)
 	var declaredType types.Type
 
 	if node.TypeNode == nil {
 		c.addFailure(
 			fmt.Sprintf(
 				"cannot declare instance variable `%s` without a type",
-				types.InspectInstanceVariableWithColor(node.Name),
+				types.InspectInstanceVariableWithColor(name),
 			),
 			node.Location(),
 		)
@@ -6533,7 +6547,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
-					types.InspectInstanceVariableWithColor(node.Name),
+					types.InspectInstanceVariableWithColor(name),
 					types.InspectWithColor(declaredType),
 					types.InspectWithColor(ivar),
 					types.InspectWithColor(ivarNamespace),
@@ -6552,7 +6566,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 			c.addFailure(
 				fmt.Sprintf(
 					"instance variable `%s` must be declared as nilable",
-					types.InspectInstanceVariableWithColor(node.Name),
+					types.InspectInstanceVariableWithColor(name),
 				),
 				node.Location(),
 			)
@@ -6561,7 +6575,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 		c.addFailure(
 			fmt.Sprintf(
 				"cannot declare instance variable `%s` in this context",
-				types.InspectInstanceVariableWithColor(node.Name),
+				types.InspectInstanceVariableWithColor(name),
 			),
 			node.Location(),
 		)
@@ -6570,7 +6584,7 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 	}
 
 	node.SetType(declaredType)
-	c.declareInstanceVariable(value.ToSymbol(node.Name), declaredType, node.Location())
+	c.declareInstanceVariable(value.ToSymbol(name), declaredType, node.Location())
 }
 
 func (c *Checker) checkVariableDeclaration(
@@ -6811,14 +6825,15 @@ func (c *Checker) extractCollectionElementFromType(collectionMixin *types.Mixin,
 }
 
 func (c *Checker) checkVariableDeclarationNode(node *ast.VariableDeclarationNode) {
-	init, typeNode, typ := c.checkVariableDeclaration(node.Name, node.Initialiser, node.TypeNode, node.Location())
+	init, typeNode, typ := c.checkVariableDeclaration(c.identifierToName(node.Name), node.Initialiser, node.TypeNode, node.Location())
 	node.Initialiser = init
 	node.TypeNode = typeNode
 	node.SetType(typ)
 }
 
 func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
-	if variable := c.getLocal(node.Name); variable != nil {
+	name := c.identifierToName(node.Name)
+	if variable := c.getLocal(name); variable != nil {
 		c.addFailure(
 			fmt.Sprintf("cannot redeclare local `%s`", node.Name),
 			node.Location(),
@@ -6830,7 +6845,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 				fmt.Sprintf("cannot declare a value without a type `%s`", node.Name),
 				node.Location(),
 			)
-			c.addLocal(node.Name, newLocal(types.Untyped{}, false, true))
+			c.addLocal(name, newLocal(types.Untyped{}, false, true))
 			node.SetType(types.Untyped{})
 			return
 		}
@@ -6838,7 +6853,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(node.TypeNode)
 		declaredType := c.TypeOf(declaredTypeNode)
-		c.addLocal(node.Name, newLocal(declaredType, false, true))
+		c.addLocal(name, newLocal(declaredType, false, true))
 		node.TypeNode = declaredTypeNode
 		node.SetType(types.Void{})
 		return
@@ -6849,7 +6864,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
 		actualType := c.typeOfGuardVoid(init)
-		c.addLocal(node.Name, newLocal(actualType, true, true))
+		c.addLocal(name, newLocal(actualType, true, true))
 		node.Initialiser = init
 		node.SetType(actualType)
 		return
@@ -6861,7 +6876,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 	declaredType := c.TypeOf(declaredTypeNode)
 	init := c.checkExpressionWithType(node.Initialiser, declaredType)
 	actualType := c.typeOfGuardVoid(init)
-	c.addLocal(node.Name, newLocal(declaredType, true, true))
+	c.addLocal(name, newLocal(declaredType, true, true))
 	c.checkCanAssign(actualType, declaredType, init.Location())
 
 	node.TypeNode = declaredTypeNode

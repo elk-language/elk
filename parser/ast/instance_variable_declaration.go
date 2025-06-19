@@ -14,8 +14,8 @@ import (
 type InstanceVariableDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	Name     string   // name of the variable
-	TypeNode TypeNode // type of the variable
+	Name     InstanceVariableNode // name of the variable
+	TypeNode TypeNode             // type of the variable
 }
 
 func (n *InstanceVariableDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -24,6 +24,10 @@ func (n *InstanceVariableDeclarationNode) traverse(parent Node, enter func(node,
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	if n.TypeNode != nil {
@@ -36,6 +40,8 @@ func (n *InstanceVariableDeclarationNode) traverse(parent Node, enter func(node,
 }
 
 func (n *InstanceVariableDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	name := n.Name.splice(loc, args, unquote).(InstanceVariableNode)
+
 	var typeNode ComplexConstantNode
 	if n.TypeNode != nil {
 		typeNode = n.TypeNode.splice(loc, args, unquote).(ComplexConstantNode)
@@ -44,7 +50,7 @@ func (n *InstanceVariableDeclarationNode) splice(loc *position.Location, args *[
 	return &InstanceVariableDeclarationNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Name:                   n.Name,
+		Name:                   name,
 		TypeNode:               typeNode,
 	}
 }
@@ -60,7 +66,7 @@ func (n *InstanceVariableDeclarationNode) Equal(other value.Value) bool {
 	}
 
 	if n.comment != o.comment ||
-		n.Name != o.Name ||
+		!n.Name.Equal(value.Ref(o.Name)) ||
 		!n.loc.Equal(o.loc) {
 		return false
 	}
@@ -85,8 +91,8 @@ func (n *InstanceVariableDeclarationNode) String() string {
 		buff.WriteString("\n]##\n")
 	}
 
-	buff.WriteString("var @")
-	buff.WriteString(n.Name)
+	buff.WriteString("var ")
+	buff.WriteString(n.Name.String())
 
 	if n.TypeNode != nil {
 		buff.WriteString(": ")
@@ -114,7 +120,7 @@ func (n *InstanceVariableDeclarationNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::InstanceVariableDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
-	buff.WriteString(n.Name)
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
 
 	buff.WriteString(",\n  type_node: ")
 	if n.TypeNode == nil {
@@ -133,7 +139,7 @@ func (p *InstanceVariableDeclarationNode) Error() string {
 }
 
 // Create a new instance variable declaration node eg. `var @foo: String`
-func NewInstanceVariableDeclarationNode(loc *position.Location, docComment string, name string, typ TypeNode) *InstanceVariableDeclarationNode {
+func NewInstanceVariableDeclarationNode(loc *position.Location, docComment string, name InstanceVariableNode, typ TypeNode) *InstanceVariableDeclarationNode {
 	return &InstanceVariableDeclarationNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{

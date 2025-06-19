@@ -23,7 +23,7 @@ func (*TrueLiteralNode) expressionNode()                   {}
 func (*FalseLiteralNode) expressionNode()                  {}
 func (*NilLiteralNode) expressionNode()                    {}
 func (*UndefinedLiteralNode) expressionNode()              {}
-func (*InstanceVariableNode) expressionNode()              {}
+func (*PublicInstanceVariableNode) expressionNode()        {}
 func (*SimpleSymbolLiteralNode) expressionNode()           {}
 func (*InterpolatedSymbolLiteralNode) expressionNode()     {}
 func (*IntLiteralNode) expressionNode()                    {}

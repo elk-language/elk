@@ -54,9 +54,9 @@ func (c *Checker) narrowToType(node ast.ExpressionNode, typ types.Type) {
 	case *ast.PrivateIdentifierNode:
 		c.narrowLocalToType(n.Value, c.TypeOf(n), typ)
 	case *ast.VariableDeclarationNode:
-		c.narrowLocalToType(n.Name, c.TypeOf(n), typ)
+		c.narrowLocalToType(c.identifierToName(n.Name), c.TypeOf(n), typ)
 	case *ast.ValueDeclarationNode:
-		c.narrowLocalToType(n.Name, c.TypeOf(n), typ)
+		c.narrowLocalToType(c.identifierToName(n.Name), c.TypeOf(n), typ)
 	case *ast.AssignmentExpressionNode:
 		c.narrowAssignmentToType(n, typ)
 	}
@@ -106,9 +106,9 @@ func (c *Checker) narrowCondition(node ast.ExpressionNode, assume assumption) {
 	case *ast.PrivateIdentifierNode:
 		c.narrowLocal(n.Value, c.TypeOf(n), assume)
 	case *ast.VariableDeclarationNode:
-		c.narrowLocal(n.Name, c.TypeOf(n), assume)
+		c.narrowLocal(c.identifierToName(n.Name), c.TypeOf(n), assume)
 	case *ast.ValueDeclarationNode:
-		c.narrowLocal(n.Name, c.TypeOf(n), assume)
+		c.narrowLocal(c.identifierToName(n.Name), c.TypeOf(n), assume)
 	case *ast.AssignmentExpressionNode:
 		c.narrowAssignment(n, assume)
 	}

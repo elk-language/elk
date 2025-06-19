@@ -7,8 +7,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func initInstanceVariableNode() {
-	c := &value.InstanceVariableNodeClass.MethodContainer
+func initPublicInstanceVariableNode() {
+	c := &value.PublicInstanceVariableNodeClass.MethodContainer
 	vm.Def(
 		c,
 		"#init",
@@ -35,7 +35,7 @@ func initInstanceVariableNode() {
 		c,
 		"value",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.InstanceVariableNode)
+			self := args[0].MustReference().(*ast.PublicInstanceVariableNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
 
@@ -46,7 +46,7 @@ func initInstanceVariableNode() {
 		c,
 		"location",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.InstanceVariableNode)
+			self := args[0].MustReference().(*ast.PublicInstanceVariableNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
 
@@ -56,7 +56,7 @@ func initInstanceVariableNode() {
 		c,
 		"==",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.InstanceVariableNode)
+			self := args[0].MustReference().(*ast.PublicInstanceVariableNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
 		},
@@ -67,7 +67,7 @@ func initInstanceVariableNode() {
 		c,
 		"to_string",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.InstanceVariableNode)
+			self := args[0].MustReference().(*ast.PublicInstanceVariableNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
 	)

@@ -938,7 +938,7 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		c.compileLocalVariableAccess(node.Value, node.Location())
 	case *ast.PrivateIdentifierNode:
 		c.compileLocalVariableAccess(node.Value, node.Location())
-	case *ast.InstanceVariableNode:
+	case *ast.PublicInstanceVariableNode:
 		c.compileInstanceVariableAccess(node.Value, node.Location())
 	case *ast.BinaryExpressionNode:
 		c.compileBinaryExpressionNode(node)
@@ -1937,7 +1937,7 @@ func (c *Compiler) compileForInIntAsNumericFor(label string, inExpression ast.Ex
 	init := ast.NewVariableDeclarationNode(
 		paramExpr.Location(),
 		"",
-		paramName,
+		ast.NewPublicIdentifierNode(paramExpr.Location(), paramName),
 		nil,
 		ast.NewIntLiteralNode(location, "0"),
 	)
@@ -2048,7 +2048,7 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 	init := ast.NewVariableDeclarationNode(
 		paramExpr.Location(),
 		"",
-		paramName,
+		ast.NewPublicIdentifierNode(paramExpr.Location(), paramName),
 		nil,
 		initVal,
 	)
@@ -2088,7 +2088,7 @@ func (c *Compiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast.I
 	init := ast.NewVariableDeclarationNode(
 		paramExpr.Location(),
 		"",
-		paramName,
+		ast.NewPublicIdentifierNode(paramExpr.Location(), paramName),
 		nil,
 		ast.NewIntLiteralNode(paramExpr.Location(), "0"),
 	)
@@ -2163,7 +2163,7 @@ func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *a
 	init := ast.NewVariableDeclarationNode(
 		paramExpr.Location(),
 		"",
-		paramName,
+		ast.NewPublicIdentifierNode(paramExpr.Location(), paramName),
 		nil,
 		initVal,
 	)
@@ -2472,7 +2472,7 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 
 		// set value
 		c.compileSubscriptSet(receiverType, node.Location())
-	case *ast.InstanceVariableNode:
+	case *ast.PublicInstanceVariableNode:
 		switch c.mode {
 		case topLevelMode:
 			c.Errors.AddFailure(
@@ -2587,7 +2587,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 	}
 }
 
-func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode, ivar *ast.InstanceVariableNode, valueIsIgnored bool) expressionResult {
+func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode, ivar *ast.PublicInstanceVariableNode, valueIsIgnored bool) expressionResult {
 	switch c.mode {
 	case topLevelMode:
 		c.Errors.AddFailure(
@@ -2794,7 +2794,7 @@ func (c *Compiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressio
 		return c.localVariableAssignment(n.Value, node.Op, node.Right, node.Location(), valueIsIgnored)
 	case *ast.SubscriptExpressionNode:
 		return c.subscriptAssignment(node, n, valueIsIgnored)
-	case *ast.InstanceVariableNode:
+	case *ast.PublicInstanceVariableNode:
 		return c.instanceVariableAssignment(node, n, valueIsIgnored)
 	case *ast.AttributeAccessNode:
 		c.attributeAssignment(node, n)
@@ -3380,7 +3380,7 @@ func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode, v
 	if initialised {
 		c.compileNodeWithResult(node.Initialiser)
 	}
-	local := c.defineLocal(node.Name, node.Location())
+	local := c.defineLocal(identifierToName(node.Name), node.Location())
 	if local == nil {
 		return valueIgnoredToResult(valueIsIgnored)
 	}
@@ -4595,7 +4595,7 @@ func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationN
 	if initialised {
 		c.compileNodeWithResult(node.Initialiser)
 	}
-	local := c.defineLocal(node.Name, node.Location())
+	local := c.defineLocal(identifierToName(node.Name), node.Location())
 	if local == nil {
 		return valueIgnoredToResult(valueIsIgnored)
 	}

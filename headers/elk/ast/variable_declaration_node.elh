@@ -6,7 +6,7 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      name: String,
+      name: IdentifierNode,
       type_node: TypeNode? = nil,
       initialiser: ExpressionNode? = nil,
       doc_comment: String = "",
@@ -14,7 +14,7 @@ module Std::Elk::AST
     ); end
 
     def doc_comment: String; end
-    def name: String; end
+    def name: IdentifierNode; end
     def type_node: TypeNode?; end
     def initialiser: ExpressionNode?; end
     def location: FS::Location; end

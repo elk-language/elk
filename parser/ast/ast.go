@@ -488,7 +488,7 @@ func IsValidDeclarationTarget(node Node) bool {
 func IsValidAssignmentTarget(node Node) bool {
 	switch node.(type) {
 	case *PrivateIdentifierNode, *PublicIdentifierNode,
-		*AttributeAccessNode, *InstanceVariableNode, *SubscriptExpressionNode:
+		*AttributeAccessNode, *PublicInstanceVariableNode, *SubscriptExpressionNode:
 		return true
 	default:
 		return false

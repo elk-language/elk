@@ -30,6 +30,7 @@ var StringLiteralNodeMixin *Mixin           // Std::Elk::AST::StringLiteralNode
 var SimpleStringLiteralNodeMixin *Mixin     // Std::Elk::AST::SimpleStringLiteralNode
 var TypeParameterNodeMixin *Mixin           // Std::Elk::AST::TypeParameterNode
 var PatternExpressionNodeMixin *Mixin       // Std::Elk::AST::PatternExpressionNode
+var InstanceVariableNodeMixin *Mixin        // Std::Elk::AST::InstanceVariableNode
 
 var ExpressionStatementNodeClass *Class // Std::Elk::AST::ExpressionStatementNode
 var EmptyStatementNodeClass *Class      // Std::Elk::AST::EmptyStatementNode
@@ -57,7 +58,7 @@ var FalseLiteralNodeClass *Class                  // Std::Elk::AST::FalseLiteral
 var NilLiteralNodeClass *Class                    // Std::Elk::AST::NilLiteralNode
 var UndefinedLiteralNodeClass *Class              // Std::Elk::AST::UndefinedLiteralNode
 var SelfLiteralNodeClass *Class                   // Std::Elk::AST::SelfLiteralNode
-var InstanceVariableNodeClass *Class              // Std::Elk::AST::InstanceVariableNode
+var PublicInstanceVariableNodeClass *Class        // Std::Elk::AST::PublicInstanceVariableNode
 var SimpleSymbolLiteralNodeClass *Class           // Std::Elk::AST::SimpleSymbolLiteralNode
 var IntLiteralNodeClass *Class                    // Std::Elk::AST::IntLiteralNode
 var Int64LiteralNodeClass *Class                  // Std::Elk::AST::Int64LiteralNode
@@ -341,6 +342,10 @@ func initElkAST() {
 	PatternExpressionNodeMixin.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("PatternExpressionNode", Ref(PatternExpressionNodeMixin))
 
+	InstanceVariableNodeMixin = NewMixin()
+	InstanceVariableNodeMixin.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("InstanceVariableNode", Ref(InstanceVariableNodeMixin))
+
 	ComplexConstantNodeMixin = NewMixin()
 	ComplexConstantNodeMixin.IncludeMixin(ExpressionNodeMixin)
 	ComplexConstantNodeMixin.IncludeMixin(TypeNodeMixin)
@@ -466,9 +471,9 @@ func initElkAST() {
 	SelfLiteralNodeClass.IncludeMixin(TypeNodeMixin)
 	ElkASTModule.AddConstantString("SelfLiteralNode", Ref(SelfLiteralNodeClass))
 
-	InstanceVariableNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	InstanceVariableNodeClass.IncludeMixin(ExpressionNodeMixin)
-	ElkASTModule.AddConstantString("InstanceVariableNode", Ref(InstanceVariableNodeClass))
+	PublicInstanceVariableNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	PublicInstanceVariableNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("PublicInstanceVariableNode", Ref(PublicInstanceVariableNodeClass))
 
 	SimpleSymbolLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	SimpleSymbolLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)

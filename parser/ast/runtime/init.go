@@ -76,7 +76,7 @@ func InitGlobalEnvironment() {
 	initInitDefinitionNode()
 	initInstanceOfTypeNode()
 	initInstanceVariableDeclarationNode()
-	initInstanceVariableNode()
+	initPublicInstanceVariableNode()
 	initInt8LiteralNode()
 	initInt16LiteralNode()
 	initInt32LiteralNode()

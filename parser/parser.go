@@ -2098,7 +2098,7 @@ func (p *Parser) constant() ast.ConstantNode {
 		return p.publicConstant()
 	}
 
-	if p.accept(token.UNQUOTE) {
+	if p.accept(token.UNQUOTE, token.UNQUOTE_CONST) {
 		return p.unquoteConstant()
 	}
 
@@ -2259,6 +2259,12 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.quoteExpression()
 	case token.UNQUOTE:
 		return p.unquoteExpression()
+	case token.UNQUOTE_IDENT:
+		return p.unquoteIdentifier()
+	case token.UNQUOTE_CONST:
+		return p.unquoteConstant()
+	case token.UNQUOTE_IVAR:
+		return p.unquoteInstanceVariable()
 	case token.DO:
 		return p.doExpressionOrMacroBoundary()
 	case token.UNLESS:
@@ -4306,8 +4312,9 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 	varTok := p.advance()
 	var init ast.ExpressionNode
 
-	if varName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
-		token.INSTANCE_VARIABLE); ok {
+	switch p.lookahead.Type {
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		varName := p.identifier()
 		var typ ast.TypeNode
 		lastLocation := varName.Location()
 
@@ -4320,39 +4327,52 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 			p.swallowNewlines()
 			init = p.expressionWithoutModifier()
 			lastLocation = init.Location()
-			if varName.Type == token.INSTANCE_VARIABLE {
-				p.errorMessageLocation("instance variables cannot be initialised when declared", lastLocation)
-			}
 		}
 
 		location := varTok.Location().Join(lastLocation)
-		if varName.Type == token.INSTANCE_VARIABLE {
-			if !instanceVariableAllowed {
-				p.errorMessageLocation(
-					"instance variable declarations cannot appear in expressions",
-					location,
-				)
-			}
-			if typ == nil {
-				p.errorMessageLocation(
-					"instance variable declarations must have an explicit type",
-					location,
-				)
-			}
-			return ast.NewInstanceVariableDeclarationNode(
-				location,
-				"",
-				varName.Value,
-				typ,
-			)
-		}
 
 		return ast.NewVariableDeclarationNode(
 			location,
 			"",
-			varName.Value,
+			varName,
 			typ,
 			init,
+		)
+	case token.INSTANCE_VARIABLE, token.UNQUOTE_IVAR:
+		varName := p.instanceVariable()
+		var typ ast.TypeNode
+		lastLocation := varName.Location()
+
+		if p.match(token.COLON) {
+			typ = p.typeAnnotationWithoutVoid()
+			lastLocation = typ.Location()
+		}
+
+		if p.match(token.EQUAL_OP) {
+			p.swallowNewlines()
+			init = p.expressionWithoutModifier()
+			lastLocation = init.Location()
+			p.errorMessageLocation("instance variables cannot be initialised when declared", lastLocation)
+		}
+
+		location := varTok.Location().Join(lastLocation)
+		if !instanceVariableAllowed {
+			p.errorMessageLocation(
+				"instance variable declarations cannot appear in expressions",
+				location,
+			)
+		}
+		if typ == nil {
+			p.errorMessageLocation(
+				"instance variable declarations must have an explicit type",
+				location,
+			)
+		}
+		return ast.NewInstanceVariableDeclarationNode(
+			location,
+			"",
+			varName,
+			typ,
 		)
 	}
 
@@ -4383,15 +4403,11 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	valTok := p.advance()
 	var init ast.ExpressionNode
 
-	if valName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
-		token.INSTANCE_VARIABLE); ok {
+	switch p.lookahead.Type {
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		valName := p.identifier()
 		var typ ast.TypeNode
 		lastLocation := valName.Location()
-
-		switch valName.Type {
-		case token.INSTANCE_VARIABLE:
-			p.errorMessageLocation("instance variables cannot be declared using `val`", valName.Location())
-		}
 
 		if p.match(token.COLON) {
 			typ = p.typeAnnotationWithoutVoid()
@@ -4406,7 +4422,31 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 
 		return ast.NewValueDeclarationNode(
 			valTok.Location().Join(lastLocation),
-			valName.Value,
+			valName,
+			typ,
+			init,
+		)
+	case token.INSTANCE_VARIABLE:
+		nameTok := p.advance()
+		valName := ast.NewInvalidNode(nameTok.Location(), nameTok)
+		var typ ast.TypeNode
+		lastLocation := valName.Location()
+		p.errorMessageLocation("instance variables cannot be declared using `val`", valName.Location())
+
+		if p.match(token.COLON) {
+			typ = p.typeAnnotationWithoutVoid()
+			lastLocation = typ.Location()
+		}
+
+		if p.match(token.EQUAL_OP) {
+			p.swallowNewlines()
+			init = p.expressionWithoutModifier()
+			lastLocation = init.Location()
+		}
+
+		return ast.NewValueDeclarationNode(
+			valTok.Location().Join(lastLocation),
+			valName,
 			typ,
 			init,
 		)
@@ -4897,6 +4937,11 @@ func (p *Parser) unquoteType() ast.TypeNode {
 
 // unquoteIdentifier = "unquote" "(" expressionWithoutModifier ")"
 func (p *Parser) unquoteIdentifier() ast.IdentifierNode {
+	return p.unquote(ast.UNQUOTE_IDENTIFIER_KIND)
+}
+
+// unquoteInstanceVariable = "unquote" "(" expressionWithoutModifier ")"
+func (p *Parser) unquoteInstanceVariable() ast.InstanceVariableNode {
 	return p.unquote(ast.UNQUOTE_IDENTIFIER_KIND)
 }
 
@@ -6994,8 +7039,12 @@ func tokenToIdentifier(tok *token.Token) ast.IdentifierNode {
 	return ast.NewInvalidNode(tok.Location(), tok)
 }
 
-// instanceVariable = INSTANCE_VARIABLE
-func (p *Parser) instanceVariable() ast.ExpressionNode {
+// instanceVariable = INSTANCE_VARIABLE | unquoteInstanceVariable
+func (p *Parser) instanceVariable() ast.InstanceVariableNode {
+	if p.accept(token.UNQUOTE_IVAR) {
+		return p.unquoteInstanceVariable()
+	}
+
 	token, ok := p.consume(token.INSTANCE_VARIABLE)
 	if !ok {
 		return ast.NewInvalidNode(token.Location(), token)
@@ -7058,7 +7107,7 @@ func (p *Parser) identifier() ast.IdentifierNode {
 	if p.accept(token.PRIVATE_IDENTIFIER) {
 		return p.privateIdentifier()
 	}
-	if p.accept(token.UNQUOTE) {
+	if p.accept(token.UNQUOTE, token.UNQUOTE_IDENT) {
 		return p.unquoteIdentifier()
 	}
 
@@ -7074,7 +7123,7 @@ func (p *Parser) methodCallIdentifier() ast.IdentifierNode {
 	if p.accept(token.PRIVATE_IDENTIFIER) {
 		return p.privateIdentifier()
 	}
-	if p.accept(token.UNQUOTE) {
+	if p.accept(token.UNQUOTE, token.UNQUOTE_IDENT) {
 		return p.unquoteIdentifier()
 	}
 

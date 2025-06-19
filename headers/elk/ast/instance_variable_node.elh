@@ -1,12 +1,22 @@
-module Std::Elk::AST
-  ##[
-    Represents an instance variable eg. `@foo`
-  ]##
-  sealed primitive class InstanceVariableNode
-    include ExpressionNode
+module ::Std::Elk::AST
+	##[
+		A mixin included in all Elk AST nodes
+		that can be treated as instance variables.
+	]##
+	mixin InstanceVariableNode
+		include Node
 
-    init(value: String, location: FS::Location = loop; end); end
-    def value: String; end
-    def location: FS::Location; end
-  end
+		def to_ast_node: self; end
+		alias to_ast_ivar_node to_ast_node
+
+		##[
+			Represents a value that can be converted to an Elk AST Instance Variable Node.
+		]##
+		interface Convertible
+			##[
+				Converts the value to an Elk AST Expression Node.
+			]##
+			def to_ast_ivar_node: ExpressionNode; end
+		end
+	end
 end

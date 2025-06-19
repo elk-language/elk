@@ -43,6 +43,11 @@ module Std::Elk::AST
     ]##
     const UNQUOTE_IDENTIFIER_KIND: UInt8
 
+    ##[
+      Unquote kind for instance variable nodes
+    ]##
+    const UNQUOTE_INSTANCE_VARIABLE_KIND: UInt8
+
     init(
       expression: ExpressionNode,
       kind: UInt8 = loop; end,
