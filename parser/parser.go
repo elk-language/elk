@@ -1730,31 +1730,33 @@ methodCallLoop:
 			)
 		}
 
-		methodNameTok := p.advance()
-		location := receiver.Location().Join(methodNameTok.Location())
-
-		switch methodNameTok.Type {
+		switch p.lookahead.Type {
 		case token.AWAIT:
 			if opToken.Type != token.DOT {
 				p.errorMessageLocation("invalid await operator", opToken.Location())
 			}
+			nameTok := p.advance()
+			location := receiver.Location().Join(nameTok.Location())
 			receiver = ast.NewAwaitExpressionNode(
 				location,
 				receiver,
 			)
 			continue
 		case token.MUST:
-			if methodNameTok.Type == token.MUST {
-				if opToken.Type != token.DOT {
-					p.errorMessageLocation("invalid must operator", opToken.Location())
-				}
-				receiver = ast.NewMustExpressionNode(
-					location,
-					receiver,
-				)
-				continue
+			if opToken.Type != token.DOT {
+				p.errorMessageLocation("invalid must operator", opToken.Location())
 			}
+			nameTok := p.advance()
+			location := receiver.Location().Join(nameTok.Location())
+			receiver = ast.NewMustExpressionNode(
+				location,
+				receiver,
+			)
+			continue
 		}
+
+		methodName := p.methodCallIdentifier()
+		location := receiver.Location().Join(methodName.Location())
 
 		var isMacro bool
 		if tok, ok := p.matchOk(token.BANG); ok {
@@ -1763,8 +1765,10 @@ methodCallLoop:
 			if opToken.Type != token.DOT {
 				p.errorMessageLocation("invalid macro call operator", opToken.Location())
 			}
-			if methodNameTok.Type != token.PUBLIC_IDENTIFIER && !methodNameTok.IsKeyword() {
-				p.errorMessageLocation("invalid macro name", methodNameTok.Location())
+			switch methodName.(type) {
+			case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
+			default:
+				p.errorMessageLocation("invalid macro name", methodName.Location())
 			}
 		}
 
@@ -1808,7 +1812,7 @@ methodCallLoop:
 			receiver = ast.NewAttributeAccessNode(
 				location,
 				receiver,
-				tokenToIdentifier(methodNameTok),
+				methodName,
 			)
 			continue
 		}
@@ -1834,7 +1838,7 @@ methodCallLoop:
 			receiver = ast.NewMacroCallNode(
 				location,
 				receiver,
-				tokenToIdentifier(methodNameTok),
+				methodName,
 				posArgs,
 				namedArgs,
 			)
@@ -1843,7 +1847,7 @@ methodCallLoop:
 				location,
 				receiver,
 				opToken,
-				tokenToIdentifier(methodNameTok),
+				methodName,
 				typeArgs,
 				posArgs,
 				namedArgs,
@@ -1853,7 +1857,7 @@ methodCallLoop:
 				location,
 				receiver,
 				opToken,
-				tokenToIdentifier(methodNameTok),
+				methodName,
 				posArgs,
 				namedArgs,
 			)
@@ -3170,6 +3174,10 @@ func (p *Parser) macroName() (ast.IdentifierNode, bool) {
 func (p *Parser) methodName() ast.IdentifierNode {
 	var methodName string
 	var location *position.Location
+
+	if p.accept(token.UNQUOTE) {
+		return p.unquoteIdentifier()
+	}
 
 	if p.lookahead.IsValidRegularMethodName() {
 		methodNameTok := p.advance()
@@ -7055,6 +7063,26 @@ func (p *Parser) identifier() ast.IdentifierNode {
 	}
 
 	p.errorExpected("an identifier")
+	errTok := p.advance()
+	return ast.NewInvalidNode(errTok.Location(), errTok)
+}
+
+func (p *Parser) methodCallIdentifier() ast.IdentifierNode {
+	if p.accept(token.PUBLIC_IDENTIFIER) {
+		return p.publicIdentifier()
+	}
+	if p.accept(token.PRIVATE_IDENTIFIER) {
+		return p.privateIdentifier()
+	}
+	if p.accept(token.UNQUOTE) {
+		return p.unquoteIdentifier()
+	}
+
+	if p.lookahead.IsOverridableOperator() || p.lookahead.IsKeyword() {
+		tok := p.advance()
+		return ast.NewPublicIdentifierNode(tok.Location(), tok.FetchValue())
+	}
+
 	errTok := p.advance()
 	return ast.NewInvalidNode(errTok.Location(), errTok)
 }

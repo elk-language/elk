@@ -2165,28 +2165,6 @@ func TestMacroCall(t *testing.T) {
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L(S(P(4, 1, 5), P(7, 1, 8))), "unexpected PRIVATE_IDENTIFIER, expected a public method name (public identifier, keyword or overridable operator)"),
-				diagnostic.NewFailure(L(S(P(4, 1, 5), P(7, 1, 8))), "invalid macro name"),
-			},
-		},
-		"cannot have an overridable operator as the macro name": {
-			input: "foo.+!()",
-			want: ast.NewProgramNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						L(S(P(0, 1, 1), P(7, 1, 8))),
-						ast.NewMacroCallNode(
-							L(S(P(0, 1, 1), P(7, 1, 8))),
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "+"),
-							nil,
-							nil,
-						),
-					),
-				},
-			),
-			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(4, 1, 5), P(4, 1, 5))), "invalid macro name"),
 			},
 		},
 		"cannot have a non overridable operator as the macro name": {
@@ -2212,27 +2190,6 @@ func TestMacroCall(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L(S(P(4, 1, 5), P(5, 1, 6))), "unexpected &&, expected a public method name (public identifier, keyword or overridable operator)"),
 				diagnostic.NewFailure(L(S(P(4, 1, 5), P(5, 1, 6))), "invalid macro name"),
-			},
-		},
-		"cannot call a private macro on self": {
-			input: "self._foo!()",
-			want: ast.NewProgramNode(
-				L(S(P(0, 1, 1), P(11, 1, 12))),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						L(S(P(0, 1, 1), P(11, 1, 12))),
-						ast.NewMacroCallNode(
-							L(S(P(0, 1, 1), P(11, 1, 12))),
-							ast.NewSelfLiteralNode(L(S(P(0, 1, 1), P(3, 1, 4)))),
-							ast.NewPrivateIdentifierNode(L(S(P(5, 1, 6), P(8, 1, 9))), "_foo"),
-							nil,
-							nil,
-						),
-					),
-				},
-			),
-			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(5, 1, 6), P(8, 1, 9))), "invalid macro name"),
 			},
 		},
 		"can have positional arguments": {

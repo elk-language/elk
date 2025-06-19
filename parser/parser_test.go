@@ -930,6 +930,35 @@ func TestPostfixExpressions(t *testing.T) {
 
 func TestConstantLookup(t *testing.T) {
 	tests := testTable{
+		"can contain unquote": {
+			input: "Foo::unquote(baz * 2)::Baz",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(25, 1, 26))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(25, 1, 26))),
+						ast.NewConstantLookupNode(
+							L(S(P(0, 1, 1), P(25, 1, 26))),
+							ast.NewConstantLookupNode(
+								L(S(P(0, 1, 1), P(20, 1, 21))),
+								ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+								ast.NewUnquoteNode(
+									L(S(P(5, 1, 6), P(20, 1, 21))),
+									ast.UNQUOTE_CONSTANT_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(13, 1, 14), P(19, 1, 20))),
+										T(L(S(P(17, 1, 18), P(17, 1, 18))), token.STAR),
+										ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(15, 1, 16))), "baz"),
+										ast.NewIntLiteralNode(L(S(P(19, 1, 20), P(19, 1, 20))), "2"),
+									),
+								),
+							),
+							ast.NewPublicConstantNode(L(S(P(23, 1, 24), P(25, 1, 26))), "Baz"),
+						),
+					),
+				},
+			),
+		},
 		"is executed from left to right": {
 			input: "Foo::Bar::Baz",
 			want: ast.NewProgramNode(

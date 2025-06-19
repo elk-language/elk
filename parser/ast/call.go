@@ -617,6 +617,10 @@ func (n *AttributeAccessNode) traverse(parent Node, enter func(node, parent Node
 		return TraverseBreak
 	}
 
+	if n.AttributeName.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	return leave(n, parent)
 }
 
@@ -655,7 +659,7 @@ func (n *AttributeAccessNode) Equal(other value.Value) bool {
 
 	return n.Span().Equal(o.Span()) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
-		n.AttributeName == o.AttributeName
+		n.AttributeName.Equal(value.Ref(o.AttributeName))
 }
 
 func (n *AttributeAccessNode) String() string {

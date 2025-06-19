@@ -48,7 +48,7 @@ func (e *evaluator) sourceName() string {
 }
 
 func (e *evaluator) deleteSource(sourceName string) {
-	if e.typechecker == nil && !e.typechecker.DefinedMacros() {
+	if e.typechecker != nil && !e.typechecker.DefinedMacros() {
 		delete(e.sourceMap, sourceName)
 	}
 }

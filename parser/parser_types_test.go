@@ -551,6 +551,33 @@ func TestNotType(t *testing.T) {
 
 func TestNilableType(t *testing.T) {
 	tests := testTable{
+		"can have unquote": {
+			input: "type unquote(foo + 2)?",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(21, 1, 22))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(21, 1, 22))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(21, 1, 22))),
+							ast.NewNilableTypeNode(
+								L(S(P(5, 1, 6), P(21, 1, 22))),
+								ast.NewUnquoteNode(
+									L(S(P(5, 1, 6), P(20, 1, 21))),
+									ast.UNQUOTE_TYPE_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(13, 1, 14), P(19, 1, 20))),
+										T(L(S(P(17, 1, 18), P(17, 1, 18))), token.PLUS),
+										ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(15, 1, 16))), "foo"),
+										ast.NewIntLiteralNode(L(S(P(19, 1, 20), P(19, 1, 20))), "2"),
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
 		"type can be a nilable type with a constant": {
 			input: "type String?",
 			want: ast.NewProgramNode(

@@ -3694,6 +3694,45 @@ func TestAliasDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"can have unquote as names": {
+			input: "alias unquote(foo / 2) unquote(10 * Bar)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(39, 1, 40))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(39, 1, 40))),
+						ast.NewAliasDeclarationNode(
+							L(S(P(0, 1, 1), P(39, 1, 40))),
+							[]*ast.AliasDeclarationEntry{
+								ast.NewAliasDeclarationEntry(
+									L(S(P(6, 1, 7), P(39, 1, 40))),
+									ast.NewUnquoteNode(
+										L(S(P(6, 1, 7), P(21, 1, 22))),
+										ast.UNQUOTE_IDENTIFIER_KIND,
+										ast.NewBinaryExpressionNode(
+											L(S(P(14, 1, 15), P(20, 1, 21))),
+											T(L(S(P(18, 1, 19), P(18, 1, 19))), token.SLASH),
+											ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(16, 1, 17))), "foo"),
+											ast.NewIntLiteralNode(L(S(P(20, 1, 21), P(20, 1, 21))), "2"),
+										),
+									),
+									ast.NewUnquoteNode(
+										L(S(P(23, 1, 24), P(39, 1, 40))),
+										ast.UNQUOTE_IDENTIFIER_KIND,
+										ast.NewBinaryExpressionNode(
+											L(S(P(31, 1, 32), P(38, 1, 39))),
+											T(L(S(P(34, 1, 35), P(34, 1, 35))), token.STAR),
+											ast.NewIntLiteralNode(L(S(P(31, 1, 32), P(32, 1, 33))), "10"),
+											ast.NewPublicConstantNode(L(S(P(36, 1, 37), P(38, 1, 39))), "Bar"),
+										),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can have public identifiers as names": {
 			input: "alias foo bar",
 			want: ast.NewProgramNode(
@@ -6331,6 +6370,46 @@ func TestMethodDefinition(t *testing.T) {
 				diagnostic.NewFailure(L(S(P(0, 1, 1), P(7, 1, 8))), "the abstract modifier cannot be attached to sealed methods"),
 			},
 		},
+		"can have unquote as a name": {
+			input: "def unquote(foo + 1)(v); end",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(27, 1, 28))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(27, 1, 28))),
+						ast.NewMethodDefinitionNode(
+							L(S(P(0, 1, 1), P(27, 1, 28))),
+							"",
+							0,
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(19, 1, 20))),
+								5,
+								ast.NewBinaryExpressionNode(
+									L(S(P(12, 1, 13), P(18, 1, 19))),
+									T(L(S(P(16, 1, 17), P(16, 1, 17))), token.PLUS),
+									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "1"),
+								),
+							),
+							nil,
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									L(S(P(21, 1, 22), P(21, 1, 22))),
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(21, 1, 22))), "v"),
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have a setter as a name": {
 			input: "def foo=(v); end",
 			want: ast.NewProgramNode(
@@ -8944,6 +9023,35 @@ func TestMethodSignatureDefinition(t *testing.T) {
 							L(S(P(0, 1, 1), P(4, 1, 5))),
 							"",
 							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "+"),
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have unquote as a name": {
+			input: "sig unquote(foo * 2)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(19, 1, 20))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(19, 1, 20))),
+						ast.NewMethodSignatureDefinitionNode(
+							L(S(P(0, 1, 1), P(19, 1, 20))),
+							"",
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(19, 1, 20))),
+								5,
+								ast.NewBinaryExpressionNode(
+									L(S(P(12, 1, 13), P(18, 1, 19))),
+									T(L(S(P(16, 1, 17), P(16, 1, 17))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "2"),
+								),
+							),
 							nil,
 							nil,
 							nil,

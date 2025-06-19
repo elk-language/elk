@@ -1375,6 +1375,34 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
+		"can have unquote as the name": {
+			input: "foo.unquote(bar * 2)()",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(21, 1, 22))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(21, 1, 22))),
+						ast.NewMethodCallNode(
+							L(S(P(0, 1, 1), P(21, 1, 22))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(19, 1, 20))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(12, 1, 13), P(18, 1, 19))),
+									T(L(S(P(16, 1, 17), P(16, 1, 17))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "bar"),
+									ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "2"),
+								),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have an explicit receiver": {
 			input: "foo.bar()",
 			want: ast.NewProgramNode(
@@ -2291,6 +2319,31 @@ func TestAttributeAccess(t *testing.T) {
 							L(S(P(0, 1, 1), P(7, 1, 8))),
 							ast.NewSelfLiteralNode(L(S(P(0, 1, 1), P(3, 1, 4)))),
 							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
+						),
+					),
+				},
+			),
+		},
+		"can have unquote as the name": {
+			input: "foo.unquote(foo + 1)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(19, 1, 20))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(19, 1, 20))),
+						ast.NewAttributeAccessNode(
+							L(S(P(0, 1, 1), P(19, 1, 20))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(19, 1, 20))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(12, 1, 13), P(18, 1, 19))),
+									T(L(S(P(16, 1, 17), P(16, 1, 17))), token.PLUS),
+									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "1"),
+								),
+							),
 						),
 					),
 				},

@@ -48,6 +48,10 @@ func (n *NamedCallArgumentNode) traverse(parent Node, enter func(node, parent No
 		return leave(n, parent)
 	}
 
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	if n.Value.traverse(n, enter, leave) == TraverseBreak {
 		return TraverseBreak
 	}
@@ -62,7 +66,7 @@ func (n *NamedCallArgumentNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc) &&
-		n.Name == o.Name &&
+		n.Name.Equal(value.Ref(o.Name)) &&
 		n.Value.Equal(value.Ref(o.Value))
 }
 
