@@ -4313,7 +4313,7 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 	var init ast.ExpressionNode
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER, token.UNQUOTE:
 		varName := p.identifier()
 		var typ ast.TypeNode
 		lastLocation := varName.Location()
@@ -4404,7 +4404,7 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	var init ast.ExpressionNode
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER, token.UNQUOTE:
 		valName := p.identifier()
 		var typ ast.TypeNode
 		lastLocation := valName.Location()
@@ -4942,7 +4942,7 @@ func (p *Parser) unquoteIdentifier() ast.IdentifierNode {
 
 // unquoteInstanceVariable = "unquote" "(" expressionWithoutModifier ")"
 func (p *Parser) unquoteInstanceVariable() ast.InstanceVariableNode {
-	return p.unquote(ast.UNQUOTE_IDENTIFIER_KIND)
+	return p.unquote(ast.UNQUOTE_INSTANCE_VARIABLE_KIND)
 }
 
 // unquote = "unquote" "(" expressionWithoutModifier ")"

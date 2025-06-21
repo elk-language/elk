@@ -1501,6 +1501,32 @@ func TestImplementExpression(t *testing.T) {
 
 func TestValueDeclaration(t *testing.T) {
 	tests := testTable{
+		"can have unquote as the name": {
+			input: "val unquote(foo + 2)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(19, 1, 20))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(19, 1, 20))),
+						ast.NewValueDeclarationNode(
+							L(S(P(0, 1, 1), P(19, 1, 20))),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(19, 1, 20))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(12, 1, 13), P(18, 1, 19))),
+									T(L(S(P(16, 1, 17), P(16, 1, 17))), token.PLUS),
+									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "2"),
+								),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"is valid without a type or initialiser": {
 			input: "val foo",
 			want: ast.NewProgramNode(
@@ -1953,6 +1979,33 @@ func TestValueDeclaration(t *testing.T) {
 
 func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
+		"can have unquote as the name": {
+			input: "var unquote(foo + 2)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(19, 1, 20))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(19, 1, 20))),
+						ast.NewVariableDeclarationNode(
+							L(S(P(0, 1, 1), P(19, 1, 20))),
+							"",
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(19, 1, 20))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(12, 1, 13), P(18, 1, 19))),
+									T(L(S(P(16, 1, 17), P(16, 1, 17))), token.PLUS),
+									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "2"),
+								),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"is valid without a type or initialiser": {
 			input: "var foo",
 			want: ast.NewProgramNode(
@@ -2025,6 +2078,35 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewInstanceVariableNode(L(S(P(4, 1, 5), P(7, 1, 8))), "foo"),
 							ast.NewPublicConstantNode(
 								L(S(P(10, 1, 11), P(14, 1, 15))),
+								"Float",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have unquote_ivar as the name": {
+			input: "var unquote_ivar(bar * foo): Float",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(33, 1, 34))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(33, 1, 34))),
+						ast.NewInstanceVariableDeclarationNode(
+							L(S(P(0, 1, 1), P(33, 1, 34))),
+							"",
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(26, 1, 27))),
+								ast.UNQUOTE_INSTANCE_VARIABLE_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(17, 1, 18), P(25, 1, 26))),
+									T(L(S(P(21, 1, 22), P(21, 1, 22))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(19, 1, 20))), "bar"),
+									ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(25, 1, 26))), "foo"),
+								),
+							),
+							ast.NewPublicConstantNode(
+								L(S(P(29, 1, 30), P(33, 1, 34))),
 								"Float",
 							),
 						),
