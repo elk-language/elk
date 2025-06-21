@@ -1404,7 +1404,7 @@ func TestMethodCall(t *testing.T) {
 			),
 		},
 		"can have short unquote as the name": {
-			input: "foo.${bar * 2}()",
+			input: "foo.!{bar * 2}()",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(15, 1, 16))),
 				[]ast.StatementNode{
@@ -2378,7 +2378,7 @@ func TestAttributeAccess(t *testing.T) {
 			),
 		},
 		"can have short unquote as the name": {
-			input: "foo.${foo + 1}",
+			input: "foo.!{foo + 1}",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(13, 1, 14))),
 				[]ast.StatementNode{

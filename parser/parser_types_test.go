@@ -579,7 +579,7 @@ func TestNilableType(t *testing.T) {
 			),
 		},
 		"can have short unquote": {
-			input: "type ${foo / 2}?",
+			input: "type !{foo / 2}?",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(15, 1, 16))),
 				[]ast.StatementNode{

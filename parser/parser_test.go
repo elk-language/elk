@@ -931,7 +931,7 @@ func TestPostfixExpressions(t *testing.T) {
 func TestConstantLookup(t *testing.T) {
 	tests := testTable{
 		"can contain short unquote": {
-			input: "Foo::${baz * 2}::Baz",
+			input: "Foo::!{baz * 2}::Baz",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(19, 1, 20))),
 				[]ast.StatementNode{

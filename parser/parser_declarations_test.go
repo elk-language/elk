@@ -1502,7 +1502,7 @@ func TestImplementExpression(t *testing.T) {
 func TestValueDeclaration(t *testing.T) {
 	tests := testTable{
 		"can have short unquote as the name": {
-			input: "val ${foo + 2}",
+			input: "val !{foo + 2}",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(13, 1, 14))),
 				[]ast.StatementNode{
@@ -2036,7 +2036,7 @@ func TestValueDeclaration(t *testing.T) {
 func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
 		"can have short unquote as the name": {
-			input: "var ${foo + 2}",
+			input: "var !{foo + 2}",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(13, 1, 14))),
 				[]ast.StatementNode{
@@ -3932,7 +3932,7 @@ func TestAliasDeclaration(t *testing.T) {
 			),
 		},
 		"can have short unquote as names": {
-			input: "alias ${foo / 2} ${10 * Bar}",
+			input: "alias !{foo / 2} !{10 * Bar}",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(27, 1, 28))),
 				[]ast.StatementNode{
@@ -6648,7 +6648,7 @@ func TestMethodDefinition(t *testing.T) {
 			),
 		},
 		"can have short unquote as a name": {
-			input: "def ${foo + 1}(v); end",
+			input: "def !{foo + 1}(v); end",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(21, 1, 22))),
 				[]ast.StatementNode{
@@ -9339,7 +9339,7 @@ func TestMethodSignatureDefinition(t *testing.T) {
 			),
 		},
 		"can have short unquote as a name": {
-			input: "sig ${foo * 2}",
+			input: "sig !{foo * 2}",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(13, 1, 14))),
 				[]ast.StatementNode{

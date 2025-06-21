@@ -265,7 +265,7 @@ const (
 	COLON_EQUAL             // Colon equal `:=`
 	LABEL_ASSIGN_OP_END     // Assignment operators end here
 
-	SHORT_UNQUOTE_BEG      // Short unquote beginning `${`
+	SHORT_UNQUOTE_BEG      // Short unquote beginning `!{`
 	LPAREN                 // Left parenthesis `(`
 	RPAREN                 // Right parenthesis `)`
 	LBRACE                 // Left brace `{`
@@ -620,7 +620,7 @@ var tokenNames = [...]string{
 	THICK_ARROW:          "=>",
 	THIN_ARROW:           "->",
 	WIGGLY_ARROW:         "~>",
-	SHORT_UNQUOTE_BEG:    "${",
+	SHORT_UNQUOTE_BEG:    "!{",
 	LPAREN:               "(",
 	RPAREN:               ")",
 	LBRACE:               "{",
