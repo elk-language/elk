@@ -377,7 +377,7 @@ func (c *Checker) initMacroCompiler(location *position.Location) {
 		return
 	}
 
-	c.compiler = compiler.CreateMainCompiler(c, location, c.Errors)
+	c.compiler = compiler.CreateCompiler(c.compiler, c, location, c.Errors)
 }
 
 // Create a new compiler and emit bytecode
@@ -387,11 +387,12 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 		return
 	}
 
+	parent := c.compiler.Parent
 	var mainCompiler *compiler.Compiler
-	if c.compiler != nil {
-		mainCompiler = c.compiler.CreateMainCompiler(c, location, c.Errors)
+	if parent != nil {
+		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors)
 	} else {
-		mainCompiler = compiler.CreateMainCompiler(c, location, c.Errors)
+		mainCompiler = compiler.CreateCompiler(parent, c, location, c.Errors)
 	}
 	c.compiler = mainCompiler.InitGlobalEnv()
 }
@@ -4328,7 +4329,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		node.Location(),
 		receiver,
 		token.New(node.Location(), token.DOT),
-		node.MethodName,
+		ast.NewPublicIdentifierNode(node.Location(), method.Name.String()),
 		typedPositionalArguments,
 		nil,
 	)
@@ -6835,14 +6836,14 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 	name := c.identifierToName(node.Name)
 	if variable := c.getLocal(name); variable != nil {
 		c.addFailure(
-			fmt.Sprintf("cannot redeclare local `%s`", node.Name),
+			fmt.Sprintf("cannot redeclare local `%s`", name),
 			node.Location(),
 		)
 	}
 	if node.Initialiser == nil {
 		if node.TypeNode == nil {
 			c.addFailure(
-				fmt.Sprintf("cannot declare a value without a type `%s`", node.Name),
+				fmt.Sprintf("cannot declare a value without a type `%s`", name),
 				node.Location(),
 			)
 			c.addLocal(name, newLocal(types.Untyped{}, false, true))

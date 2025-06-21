@@ -1607,7 +1607,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				c.addFailure(
 					fmt.Sprintf(
 						"nonexistent parameter `%s` given in call to `%s`",
-						namedArg.Name,
+						namedArg.Name.String(),
 						types.InspectWithColor(method),
 					),
 					namedArg.Location(),

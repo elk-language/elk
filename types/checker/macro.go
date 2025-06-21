@@ -495,7 +495,7 @@ func (c *Checker) checkMacroArguments(
 				c.addFailure(
 					fmt.Sprintf(
 						"nonexistent parameter `%s` given in call to `%s`",
-						namedArg.Name,
+						namedArg.Name.String(),
 						types.InspectWithColor(method),
 					),
 					namedArg.Location(),
@@ -583,7 +583,6 @@ func (c *Checker) checkMacros() {
 	)
 
 	c.macroChecks = nil
-	c.compiler = nil
 }
 
 func (c *Checker) checkMacroDefinition(node *ast.MacroDefinitionNode, macro *types.Method) {

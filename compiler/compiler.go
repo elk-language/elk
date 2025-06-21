@@ -26,9 +26,10 @@ import (
 
 const MainName = "<main>"
 
-func CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *Compiler {
+func CreateCompiler(parent *Compiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *Compiler {
 	compiler := New(loc.FilePath, topLevelMode, loc, checker)
 	compiler.Errors = errors
+	compiler.Parent = parent
 	return compiler
 }
 

@@ -3554,7 +3554,7 @@ func TestInstantiate(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(
 					L(P(83, 5, 27), P(86, 5, 30)),
-					"duplicated argument `b` in call to `#init`",
+					"duplicated argument `b` in call to `Foo.:#init`",
 				),
 			},
 		},
@@ -5537,7 +5537,7 @@ func TestCallMethod(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(
 					L(P(89, 5, 29), P(92, 5, 32)),
-					"duplicated argument `b` in call to `foo`",
+					"duplicated argument `b` in call to `Foo::foo`",
 				),
 			},
 		},
@@ -6301,7 +6301,7 @@ func TestCallFunction(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(
 					L(P(61, 3, 25), P(64, 3, 28)),
-					"duplicated argument `b` in call to `foo`",
+					"duplicated argument `b` in call to `Std::Kernel::foo`",
 				),
 			},
 		},
