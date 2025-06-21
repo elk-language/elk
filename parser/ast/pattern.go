@@ -93,6 +93,8 @@ func PatternDeclaresVariables(pattern PatternNode) bool {
 		return anyPatternDeclaresVariables(pat.Elements)
 	case *TuplePatternNode:
 		return anyPatternDeclaresVariables(pat.Elements)
+	case *UnquoteNode:
+		return true
 	case *RestPatternNode:
 		switch pat.Identifier.(type) {
 		case *PrivateIdentifierNode, *PublicIdentifierNode:

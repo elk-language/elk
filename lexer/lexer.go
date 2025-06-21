@@ -2063,6 +2063,9 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 		case '@':
 			return l.instanceVariable()
 		case '$':
+			if l.matchChar('{') {
+				return l.token(token.SHORT_UNQUOTE_BEG)
+			}
 			return l.specialIdentifier()
 		default:
 			if isDigit(char) {

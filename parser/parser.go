@@ -1716,7 +1716,7 @@ methodCallLoop:
 		_, selfReceiver := receiver.(*ast.SelfLiteralNode)
 		p.swallowNewlines()
 
-		if (!selfReceiver && p.accept(token.PRIVATE_IDENTIFIER)) || p.lookahead.IsNonOverridableOperator() {
+		if (!selfReceiver && p.accept(token.PRIVATE_IDENTIFIER)) || p.lookahead.IsNonOverridableOperator() && p.lookahead.Type != token.SHORT_UNQUOTE_BEG {
 			p.errorExpected(expectedPublicMethodMessage)
 		} else if !p.lookahead.IsValidMethodName() {
 			p.errorExpected(expectedPublicMethodMessage)
@@ -2101,6 +2101,9 @@ func (p *Parser) constant() ast.ConstantNode {
 	if p.accept(token.UNQUOTE, token.UNQUOTE_CONST) {
 		return p.unquoteConstant()
 	}
+	if p.accept(token.SHORT_UNQUOTE_BEG) {
+		return p.shortUnquoteConstant()
+	}
 
 	p.errorExpected("a constant")
 	tok := p.advance()
@@ -2257,6 +2260,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.ifExpression()
 	case token.QUOTE:
 		return p.quoteExpression()
+	case token.SHORT_UNQUOTE_BEG:
+		return p.shortUnquoteExpression()
 	case token.UNQUOTE:
 		return p.unquoteExpression()
 	case token.UNQUOTE_IDENT:
@@ -3183,6 +3188,9 @@ func (p *Parser) methodName() ast.IdentifierNode {
 
 	if p.accept(token.UNQUOTE) {
 		return p.unquoteIdentifier()
+	}
+	if p.accept(token.SHORT_UNQUOTE_BEG) {
+		return p.shortUnquoteIdentifier()
 	}
 
 	if p.lookahead.IsValidRegularMethodName() {
@@ -4313,7 +4321,7 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 	var init ast.ExpressionNode
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER, token.UNQUOTE:
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER, token.UNQUOTE, token.SHORT_UNQUOTE_BEG:
 		varName := p.identifier()
 		var typ ast.TypeNode
 		lastLocation := varName.Location()
@@ -4404,7 +4412,7 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	var init ast.ExpressionNode
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER, token.UNQUOTE:
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER, token.UNQUOTE, token.SHORT_UNQUOTE_BEG:
 		valName := p.identifier()
 		var typ ast.TypeNode
 		lastLocation := valName.Location()
@@ -4643,6 +4651,8 @@ func (p *Parser) primaryType() ast.TypeNode {
 	switch p.lookahead.Type {
 	case token.UNQUOTE:
 		return p.unquoteType()
+	case token.SHORT_UNQUOTE_BEG:
+		return p.shortUnquoteType()
 	case token.BOOL:
 		tok := p.advance()
 		return ast.NewBoolLiteralNode(tok.Location())
@@ -4915,12 +4925,12 @@ func (p *Parser) unquoteExpression() ast.ExpressionNode {
 	return p.unquote(ast.UNQUOTE_EXPRESSION_KIND)
 }
 
-// unquotePatternExpression = "unquote" "(" expressionWithoutModifier ")"
+// unquotePattern = "unquote" "(" expressionWithoutModifier ")"
 func (p *Parser) unquotePattern() ast.PatternNode {
 	return p.unquote(ast.UNQUOTE_PATTERN_KIND)
 }
 
-// unquotePattern = "unquote" "(" expressionWithoutModifier ")"
+// unquotePatternExpression = "unquote" "(" expressionWithoutModifier ")"
 func (p *Parser) unquotePatternExpression() ast.PatternExpressionNode {
 	return p.unquote(ast.UNQUOTE_PATTERN_EXPRESSION_KIND)
 }
@@ -4962,6 +4972,56 @@ func (p *Parser) unquote(kind ast.UnquoteKind) ast.UnquoteOrInvalidNode {
 	}
 
 	location := unquoteTok.Location().Join(rparen.Location())
+
+	return ast.NewUnquoteNode(
+		location,
+		kind,
+		expr,
+	)
+}
+
+// shortUnquoteExpression = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquoteExpression() ast.ExpressionNode {
+	return p.shortUnquote(ast.UNQUOTE_EXPRESSION_KIND)
+}
+
+// shortUnquotePattern = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquotePattern() ast.PatternNode {
+	return p.shortUnquote(ast.UNQUOTE_PATTERN_KIND)
+}
+
+// shortUnquotePatternExpression = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquotePatternExpression() ast.PatternExpressionNode {
+	return p.shortUnquote(ast.UNQUOTE_PATTERN_EXPRESSION_KIND)
+}
+
+// shortUnquoteConstant = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquoteConstant() ast.ConstantNode {
+	return p.shortUnquote(ast.UNQUOTE_CONSTANT_KIND)
+}
+
+// shortUnquoteType = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquoteType() ast.TypeNode {
+	return p.shortUnquote(ast.UNQUOTE_TYPE_KIND)
+}
+
+// shortUnquoteIdentifier = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquoteIdentifier() ast.IdentifierNode {
+	return p.shortUnquote(ast.UNQUOTE_IDENTIFIER_KIND)
+}
+
+// shortUnquote = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquote(kind ast.UnquoteKind) ast.UnquoteOrInvalidNode {
+	begTok := p.advance()
+
+	expr := p.expressionWithoutModifier()
+
+	rparen, ok := p.consume(token.RBRACE)
+	if !ok {
+		return ast.NewInvalidNode(rparen.Location(), rparen)
+	}
+
+	location := begTok.Location().Join(rparen.Location())
 
 	return ast.NewUnquoteNode(
 		location,
@@ -6182,6 +6242,8 @@ func (p *Parser) innerLiteralPattern() ast.PatternExpressionNode {
 		return p.strictConstantLookup()
 	case token.UNQUOTE:
 		return p.unquotePatternExpression()
+	case token.SHORT_UNQUOTE_BEG:
+		return p.shortUnquotePatternExpression()
 	case token.TRUE:
 		return p.trueLiteral()
 	case token.FALSE:
@@ -6529,8 +6591,10 @@ func (p *Parser) innerPrimaryPattern() ast.PatternNode {
 		pattern := p.pattern()
 		p.consume(token.RPAREN)
 		return pattern
-	case token.UNQUOTE:
+	case token.UNQUOTE, token.UNQUOTE_PATTERN:
 		return p.unquotePattern()
+	case token.SHORT_UNQUOTE_BEG:
+		return p.shortUnquotePattern()
 	default:
 		return p.simplePattern()
 	}
@@ -7110,6 +7174,9 @@ func (p *Parser) identifier() ast.IdentifierNode {
 	if p.accept(token.UNQUOTE, token.UNQUOTE_IDENT) {
 		return p.unquoteIdentifier()
 	}
+	if p.accept(token.SHORT_UNQUOTE_BEG) {
+		return p.shortUnquoteIdentifier()
+	}
 
 	p.errorExpected("an identifier")
 	errTok := p.advance()
@@ -7125,6 +7192,9 @@ func (p *Parser) methodCallIdentifier() ast.IdentifierNode {
 	}
 	if p.accept(token.UNQUOTE, token.UNQUOTE_IDENT) {
 		return p.unquoteIdentifier()
+	}
+	if p.accept(token.SHORT_UNQUOTE_BEG) {
+		return p.shortUnquoteIdentifier()
 	}
 
 	if p.lookahead.IsOverridableOperator() || p.lookahead.IsKeyword() {

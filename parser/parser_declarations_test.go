@@ -1501,6 +1501,32 @@ func TestImplementExpression(t *testing.T) {
 
 func TestValueDeclaration(t *testing.T) {
 	tests := testTable{
+		"can have short unquote as the name": {
+			input: "val ${foo + 2}",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(13, 1, 14))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(13, 1, 14))),
+						ast.NewValueDeclarationNode(
+							L(S(P(0, 1, 1), P(13, 1, 14))),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(13, 1, 14))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(6, 1, 7), P(12, 1, 13))),
+									T(L(S(P(10, 1, 11), P(10, 1, 11))), token.PLUS),
+									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(12, 1, 13), P(12, 1, 13))), "2"),
+								),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have unquote as the name": {
 			input: "val unquote(foo + 2)",
 			want: ast.NewProgramNode(
@@ -1938,6 +1964,36 @@ func TestValueDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"can have a pattern unquote": {
+			input: "val unquote_pattern(foo + 2) = bar()",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(35, 1, 36))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(35, 1, 36))),
+						ast.NewValuePatternDeclarationNode(
+							L(S(P(0, 1, 1), P(35, 1, 36))),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(27, 1, 28))),
+								ast.UNQUOTE_PATTERN_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(20, 1, 21), P(26, 1, 27))),
+									T(L(S(P(24, 1, 25), P(24, 1, 25))), token.PLUS),
+									ast.NewPublicIdentifierNode(L(S(P(20, 1, 21), P(22, 1, 23))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(26, 1, 27), P(26, 1, 27))), "2"),
+								),
+							),
+							ast.NewReceiverlessMethodCallNode(
+								L(S(P(31, 1, 32), P(35, 1, 36))),
+								ast.NewPublicIdentifierNode(L(S(P(31, 1, 32), P(33, 1, 34))), "bar"),
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
 		"cannot have a pattern without variables": {
 			input: "val [1, 2] = bar()",
 			want: ast.NewProgramNode(
@@ -1979,6 +2035,33 @@ func TestValueDeclaration(t *testing.T) {
 
 func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
+		"can have short unquote as the name": {
+			input: "var ${foo + 2}",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(13, 1, 14))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(13, 1, 14))),
+						ast.NewVariableDeclarationNode(
+							L(S(P(0, 1, 1), P(13, 1, 14))),
+							"",
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(13, 1, 14))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(6, 1, 7), P(12, 1, 13))),
+									T(L(S(P(10, 1, 11), P(10, 1, 11))), token.PLUS),
+									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(12, 1, 13), P(12, 1, 13))), "2"),
+								),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have unquote as the name": {
 			input: "var unquote(foo + 2)",
 			want: ast.NewProgramNode(
@@ -2584,6 +2667,36 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewReceiverlessMethodCallNode(
 								L(S(P(23, 1, 24), P(27, 1, 28))),
 								ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(25, 1, 26))), "bar"),
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a pattern unquote": {
+			input: "var unquote_pattern(foo * baz) = bar()",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(37, 1, 38))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(37, 1, 38))),
+						ast.NewVariablePatternDeclarationNode(
+							L(S(P(0, 1, 1), P(37, 1, 38))),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(29, 1, 30))),
+								ast.UNQUOTE_PATTERN_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(20, 1, 21), P(28, 1, 29))),
+									T(L(S(P(24, 1, 25), P(24, 1, 25))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(20, 1, 21), P(22, 1, 23))), "foo"),
+									ast.NewPublicIdentifierNode(L(S(P(26, 1, 27), P(28, 1, 29))), "baz"),
+								),
+							),
+							ast.NewReceiverlessMethodCallNode(
+								L(S(P(33, 1, 34), P(37, 1, 38))),
+								ast.NewPublicIdentifierNode(L(S(P(33, 1, 34), P(35, 1, 36))), "bar"),
 								nil,
 								nil,
 							),
@@ -3809,6 +3922,45 @@ func TestAliasDeclaration(t *testing.T) {
 											T(L(S(P(34, 1, 35), P(34, 1, 35))), token.STAR),
 											ast.NewIntLiteralNode(L(S(P(31, 1, 32), P(32, 1, 33))), "10"),
 											ast.NewPublicConstantNode(L(S(P(36, 1, 37), P(38, 1, 39))), "Bar"),
+										),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have short unquote as names": {
+			input: "alias ${foo / 2} ${10 * Bar}",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(27, 1, 28))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(27, 1, 28))),
+						ast.NewAliasDeclarationNode(
+							L(S(P(0, 1, 1), P(27, 1, 28))),
+							[]*ast.AliasDeclarationEntry{
+								ast.NewAliasDeclarationEntry(
+									L(S(P(6, 1, 7), P(27, 1, 28))),
+									ast.NewUnquoteNode(
+										L(S(P(6, 1, 7), P(15, 1, 16))),
+										ast.UNQUOTE_IDENTIFIER_KIND,
+										ast.NewBinaryExpressionNode(
+											L(S(P(8, 1, 9), P(14, 1, 15))),
+											T(L(S(P(12, 1, 13), P(12, 1, 13))), token.SLASH),
+											ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(10, 1, 11))), "foo"),
+											ast.NewIntLiteralNode(L(S(P(14, 1, 15), P(14, 1, 15))), "2"),
+										),
+									),
+									ast.NewUnquoteNode(
+										L(S(P(17, 1, 18), P(27, 1, 28))),
+										ast.UNQUOTE_IDENTIFIER_KIND,
+										ast.NewBinaryExpressionNode(
+											L(S(P(19, 1, 20), P(26, 1, 27))),
+											T(L(S(P(22, 1, 23), P(22, 1, 23))), token.STAR),
+											ast.NewIntLiteralNode(L(S(P(19, 1, 20), P(20, 1, 21))), "10"),
+											ast.NewPublicConstantNode(L(S(P(24, 1, 25), P(26, 1, 27))), "Bar"),
 										),
 									),
 								),
@@ -6495,6 +6647,46 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
+		"can have short unquote as a name": {
+			input: "def ${foo + 1}(v); end",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(21, 1, 22))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(21, 1, 22))),
+						ast.NewMethodDefinitionNode(
+							L(S(P(0, 1, 1), P(21, 1, 22))),
+							"",
+							0,
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(13, 1, 14))),
+								5,
+								ast.NewBinaryExpressionNode(
+									L(S(P(6, 1, 7), P(12, 1, 13))),
+									T(L(S(P(10, 1, 11), P(10, 1, 11))), token.PLUS),
+									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(12, 1, 13), P(12, 1, 13))), "1"),
+								),
+							),
+							nil,
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									L(S(P(15, 1, 16), P(15, 1, 16))),
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(15, 1, 16))), "v"),
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have a setter as a name": {
 			input: "def foo=(v); end",
 			want: ast.NewProgramNode(
@@ -9135,6 +9327,35 @@ func TestMethodSignatureDefinition(t *testing.T) {
 									T(L(S(P(16, 1, 17), P(16, 1, 17))), token.STAR),
 									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "foo"),
 									ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "2"),
+								),
+							),
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have short unquote as a name": {
+			input: "sig ${foo * 2}",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(13, 1, 14))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(13, 1, 14))),
+						ast.NewMethodSignatureDefinitionNode(
+							L(S(P(0, 1, 1), P(13, 1, 14))),
+							"",
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(13, 1, 14))),
+								5,
+								ast.NewBinaryExpressionNode(
+									L(S(P(6, 1, 7), P(12, 1, 13))),
+									T(L(S(P(10, 1, 11), P(10, 1, 11))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(12, 1, 13), P(12, 1, 13))), "2"),
 								),
 							),
 							nil,
