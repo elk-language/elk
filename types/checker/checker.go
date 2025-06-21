@@ -1215,6 +1215,11 @@ func (c *Checker) StdIdentifierNode() *types.Mixin {
 	return constant.Type.(*types.Mixin)
 }
 
+func (c *Checker) StdInstanceVariableNode() *types.Mixin {
+	constant, _ := c.StdAST().Subtype(symbol.InstanceVariableNode)
+	return constant.Type.(*types.Mixin)
+}
+
 func (c *Checker) StdNodeConvertible() *types.Interface {
 	constant, _ := c.StdNode().Subtype(symbol.Convertible)
 	return constant.Type.(*types.Interface)
@@ -1246,6 +1251,11 @@ func (c *Checker) StdTypeNodeConvertible() *types.Interface {
 }
 
 func (c *Checker) StdIdentifierNodeConvertible() *types.Interface {
+	constant, _ := c.StdIdentifierNode().Subtype(symbol.Convertible)
+	return constant.Type.(*types.Interface)
+}
+
+func (c *Checker) StdInstanceVariableNodeConvertible() *types.Interface {
 	constant, _ := c.StdIdentifierNode().Subtype(symbol.Convertible)
 	return constant.Type.(*types.Interface)
 }
@@ -3837,6 +3847,7 @@ func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.Q
 	patternExprConvertible := c.StdPatternExpressionNodeConvertible()
 	typeConvertible := c.StdTypeNodeConvertible()
 	identConvertible := c.StdIdentifierNodeConvertible()
+	ivarConvertible := c.StdInstanceVariableNodeConvertible()
 
 	ast.Traverse(
 		node,
@@ -3860,6 +3871,8 @@ func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.Q
 					iface = typeConvertible
 				case ast.UNQUOTE_IDENTIFIER_KIND:
 					iface = identConvertible
+				case ast.UNQUOTE_INSTANCE_VARIABLE_KIND:
+					iface = ivarConvertible
 				default:
 					fmt.Printf("invalid unquote kind: %d", node.Kind)
 				}

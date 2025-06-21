@@ -1149,9 +1149,28 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 
 func (c *Compiler) compileUnquoteNode(node *ast.UnquoteNode) {
 	c.compileNodeWithResult(node.Expression)
+	var methodName value.Symbol
+
+	switch node.Kind {
+	case ast.UNQUOTE_EXPRESSION_KIND:
+		methodName = symbol.L_to_ast_expr_node
+	case ast.UNQUOTE_CONSTANT_KIND:
+		methodName = symbol.L_to_ast_const_node
+	case ast.UNQUOTE_PATTERN_KIND:
+		methodName = symbol.L_to_ast_pattern_node
+	case ast.UNQUOTE_PATTERN_EXPRESSION_KIND:
+		methodName = symbol.L_to_ast_pattern_expr_node
+	case ast.UNQUOTE_TYPE_KIND:
+		methodName = symbol.L_to_ast_type_node
+	case ast.UNQUOTE_IDENTIFIER_KIND:
+		methodName = symbol.L_to_ast_ident_node
+	case ast.UNQUOTE_INSTANCE_VARIABLE_KIND:
+		methodName = symbol.L_to_ast_ivar_node
+	}
+
 	c.emitCallMethod(
 		value.NewCallSiteInfo(
-			symbol.L_to_ast_expr_node,
+			methodName,
 			0,
 		),
 		node.Location(),
