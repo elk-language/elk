@@ -589,14 +589,14 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 
 	if init == nil {
 		body = ast.ExpressionToStatements(
-			ast.NewInstanceVariableNode(node.Location(), name),
+			ast.NewPublicInstanceVariableNode(node.Location(), name),
 		)
 	} else {
 		body = ast.ExpressionToStatements(
 			ast.NewAssignmentExpressionNode(
 				node.Location(),
 				token.New(init.Location(), token.QUESTION_QUESTION_EQUAL),
-				ast.NewInstanceVariableNode(node.Location(), name),
+				ast.NewPublicInstanceVariableNode(node.Location(), name),
 				init,
 			),
 		)

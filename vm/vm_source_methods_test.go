@@ -136,7 +136,7 @@ func TestVMSource_Instantiate(t *testing.T) {
 				::Foo(2)
 			`,
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(25, 4, 5), P(32, 4, 12)), "expected 0 arguments in call to `#init`, got 1"),
+				diagnostic.NewFailure(L(P(25, 4, 5), P(32, 4, 12)), "expected 0 arguments in call to `Foo.:#init`, got 1"),
 			},
 		},
 		"instantiate a class with an initialiser without arguments": {
@@ -148,7 +148,7 @@ func TestVMSource_Instantiate(t *testing.T) {
 				::Foo()
 			`,
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(54, 6, 5), P(60, 6, 11)), "argument `a` is missing in call to `#init`"),
+				diagnostic.NewFailure(L(P(54, 6, 5), P(60, 6, 11)), "argument `a` is missing in call to `Foo.:#init`"),
 			},
 		},
 		"instantiate a class with an initialiser with arguments": {
@@ -573,12 +573,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 				add(5)
 			`,
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(58, 6, 5), P(63, 6, 10)), "argument `b` is missing in call to `add`"),
+				diagnostic.NewFailure(L(P(58, 6, 5), P(63, 6, 10)), "argument `b` is missing in call to `Std::Kernel::add`"),
 			},
-			wantRuntimeErr: value.Ref(value.NewError(
-				value.ArgumentErrorClass,
-				"`add` wrong number of arguments, given: 1, expected: 2..2",
-			)),
 		},
 		"call a method without optional arguments": {
 			source: `
@@ -1005,7 +1001,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				foo(b: 1, a: 2)
 			`,
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(99, 6, 5), P(113, 6, 19)), "expected 2... positional arguments in call to `foo`, got 0"),
+				diagnostic.NewFailure(L(P(99, 6, 5), P(113, 6, 19)), "expected 2... positional arguments in call to `Std::Kernel::foo`, got 0"),
 			},
 		},
 		"call a method with rest parameters and no optional arguments": {
@@ -1107,7 +1103,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				foo("a", e: "e")
 			`,
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(182, 6, 5), P(197, 6, 20)), "argument `b` is missing in call to `foo`"),
+				diagnostic.NewFailure(L(P(182, 6, 5), P(197, 6, 20)), "argument `b` is missing in call to `Std::Kernel::foo`"),
 			},
 		},
 		"call a method with duplicated arguments": {
@@ -1119,7 +1115,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				foo("a", b: "b", a: "a2")
 			`,
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(97, 6, 22), P(103, 6, 28)), "duplicated argument `a` in call to `foo`"),
+				diagnostic.NewFailure(L(P(97, 6, 22), P(103, 6, 28)), "duplicated argument `a` in call to `Std::Kernel::foo`"),
 			},
 		},
 		"call a method with unknown named arguments": {
@@ -1131,8 +1127,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 				foo("a", unknown: "lala", moo: "meow", b: "b")
 			`,
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(89, 6, 14), P(103, 6, 28)), "nonexistent parameter `unknown` given in call to `foo`"),
-				diagnostic.NewFailure(L(P(106, 6, 31), P(116, 6, 41)), "nonexistent parameter `moo` given in call to `foo`"),
+				diagnostic.NewFailure(L(P(89, 6, 14), P(103, 6, 28)), "nonexistent parameter `unknown` given in call to `Std::Kernel::foo`"),
+				diagnostic.NewFailure(L(P(106, 6, 31), P(116, 6, 41)), "nonexistent parameter `moo` given in call to `Std::Kernel::foo`"),
 			},
 		},
 		"call a module method without arguments": {

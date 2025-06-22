@@ -7114,7 +7114,7 @@ func (p *Parser) instanceVariable() ast.InstanceVariableNode {
 		return ast.NewInvalidNode(token.Location(), token)
 	}
 
-	return ast.NewInstanceVariableNode(
+	return ast.NewPublicInstanceVariableNode(
 		token.Location(),
 		token.Value,
 	)

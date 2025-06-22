@@ -304,7 +304,7 @@ func TestInstanceVariables(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						L(S(P(0, 1, 1), P(3, 1, 4))),
-						ast.NewInstanceVariableNode(
+						ast.NewPublicInstanceVariableNode(
 							L(S(P(0, 1, 1), P(3, 1, 4))),
 							"foo",
 						),

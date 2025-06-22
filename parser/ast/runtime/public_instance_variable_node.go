@@ -21,7 +21,7 @@ func initPublicInstanceVariableNode() {
 			} else {
 				argLoc = (*position.Location)(args[2].Pointer())
 			}
-			self := ast.NewInstanceVariableNode(
+			self := ast.NewPublicInstanceVariableNode(
 				argLoc,
 				argValue,
 			)

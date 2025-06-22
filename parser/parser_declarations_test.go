@@ -2158,7 +2158,7 @@ func TestVariableDeclaration(t *testing.T) {
 						ast.NewInstanceVariableDeclarationNode(
 							L(S(P(0, 1, 1), P(14, 1, 15))),
 							"",
-							ast.NewInstanceVariableNode(L(S(P(4, 1, 5), P(7, 1, 8))), "foo"),
+							ast.NewPublicInstanceVariableNode(L(S(P(4, 1, 5), P(7, 1, 8))), "foo"),
 							ast.NewPublicConstantNode(
 								L(S(P(10, 1, 11), P(14, 1, 15))),
 								"Float",
@@ -2214,7 +2214,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewInstanceVariableDeclarationNode(
 								L(S(P(4, 1, 5), P(11, 1, 12))),
 								"",
-								ast.NewInstanceVariableNode(L(S(P(8, 1, 9), P(11, 1, 12))), "foo"),
+								ast.NewPublicInstanceVariableNode(L(S(P(8, 1, 9), P(11, 1, 12))), "foo"),
 								nil,
 							),
 						),
@@ -2236,7 +2236,7 @@ func TestVariableDeclaration(t *testing.T) {
 						ast.NewInstanceVariableDeclarationNode(
 							L(S(P(0, 1, 1), P(11, 1, 12))),
 							"",
-							ast.NewInstanceVariableNode(L(S(P(4, 1, 5), P(7, 1, 8))), "foo"),
+							ast.NewPublicInstanceVariableNode(L(S(P(4, 1, 5), P(7, 1, 8))), "foo"),
 							nil,
 						),
 					),
@@ -2851,7 +2851,7 @@ func TestConstantDeclaration(t *testing.T) {
 						ast.NewConstantDeclarationNode(
 							L(S(P(0, 1, 1), P(25, 1, 26))),
 							"",
-							ast.NewInstanceVariableNode(
+							ast.NewPublicInstanceVariableNode(
 								L(S(P(6, 1, 7), P(9, 1, 10))),
 								"foo",
 							),

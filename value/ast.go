@@ -240,10 +240,12 @@ func initElkAST() {
 
 	PatternNodeMixin = NewMixin()
 	PatternNodeMixin.IncludeMixin(NodeMixin)
+	PatternNodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
 	ElkASTModule.AddConstantString("PatternNode", Ref(PatternNodeMixin))
 
 	TypeNodeMixin = NewMixin()
 	TypeNodeMixin.IncludeMixin(NodeMixin)
+	TypeNodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
 	ElkASTModule.AddConstantString("TypeNode", Ref(TypeNodeMixin))
 
 	ExpressionStatementNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
@@ -269,6 +271,7 @@ func initElkAST() {
 
 	ExpressionNodeMixin = NewMixin()
 	ExpressionNodeMixin.IncludeMixin(NodeMixin)
+	ExpressionNodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
 	ElkASTModule.AddConstantString("ExpressionNode", Ref(ExpressionNodeMixin))
 
 	SymbolLiteralNodeMixin = NewMixin()
@@ -302,6 +305,7 @@ func initElkAST() {
 	IdentifierNodeMixin = NewMixin()
 	IdentifierNodeMixin.IncludeMixin(ExpressionNodeMixin)
 	IdentifierNodeMixin.IncludeMixin(PatternNodeMixin)
+	IdentifierNodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
 	ElkASTModule.AddConstantString("IdentifierNode", Ref(IdentifierNodeMixin))
 
 	RegexLiteralContentNodeMixin = NewMixin()
@@ -340,6 +344,7 @@ func initElkAST() {
 	PatternExpressionNodeMixin = NewMixin()
 	PatternExpressionNodeMixin.IncludeMixin(ExpressionNodeMixin)
 	PatternExpressionNodeMixin.IncludeMixin(PatternNodeMixin)
+	PatternExpressionNodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
 	ElkASTModule.AddConstantString("PatternExpressionNode", Ref(PatternExpressionNodeMixin))
 
 	InstanceVariableNodeMixin = NewMixin()
@@ -358,6 +363,7 @@ func initElkAST() {
 	ConstantNodeMixin.IncludeMixin(TypeNodeMixin)
 	ConstantNodeMixin.IncludeMixin(ComplexConstantNodeMixin)
 	ConstantNodeMixin.IncludeMixin(UsingEntryNodeMixin)
+	ConstantNodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
 	ElkASTModule.AddConstantString("ConstantNode", Ref(ConstantNodeMixin))
 
 	InvalidNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))

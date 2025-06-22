@@ -3,7 +3,8 @@ module Std::Elk::AST
     Represents an instance variable eg. `@foo`
   ]##
   sealed primitive class PublicInstanceVariableNode
-    include ExpressionNode
+    include ExpressionNode,
+            InstanceVariableNode
 
     init(value: String, location: FS::Location = loop; end); end
     def value: String; end

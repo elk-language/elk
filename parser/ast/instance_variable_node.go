@@ -67,7 +67,7 @@ func (*PublicInstanceVariableNode) IsStatic() bool {
 }
 
 // Create an instance variable node eg. `@foo`.
-func NewInstanceVariableNode(loc *position.Location, val string) *PublicInstanceVariableNode {
+func NewPublicInstanceVariableNode(loc *position.Location, val string) *PublicInstanceVariableNode {
 	return &PublicInstanceVariableNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
