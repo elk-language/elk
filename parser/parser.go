@@ -2174,18 +2174,6 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.typeofExpression()
 	case token.REGEX_BEG:
 		return p.regexLiteral()
-	case token.SPECIAL_IDENTIFIER:
-		if p.acceptSecond(token.COLON) {
-			label := p.advance()
-			p.advance() // colon
-			expr := p.expressionWithModifier()
-
-			return ast.NewLabeledExpressionNode(
-				label.Location().Join(expr.Location()),
-				label.Value,
-				expr,
-			)
-		}
 	case token.LPAREN:
 		p.advance()
 		if p.mode == withoutBitwiseOrMode {
@@ -5128,16 +5116,21 @@ func (p *Parser) typeofExpression() *ast.TypeofExpressionNode {
 	)
 }
 
-// breakExpression = "break" [SPECIAL_IDENTIFIER] [expressionWithoutModifier]
-func (p *Parser) breakExpression() *ast.BreakExpressionNode {
+// breakExpression = "break" ["[" identifier "]"] [expressionWithoutModifier]
+func (p *Parser) breakExpression() ast.ExpressionNode {
 	breakTok := p.advance()
 	location := breakTok.Location()
-	var label string
-	if p.lookahead.Type == token.SPECIAL_IDENTIFIER {
-		labelTok := p.advance()
-		label = labelTok.Value
-		location = location.Join(labelTok.Location())
+
+	var label ast.IdentifierNode
+	if p.lookahead.Type == token.LBRACKET {
+		p.advance() // [
+		label = p.identifier()
+		location = location.Join(label.Location())
+		if tok, ok := p.consume(token.RBRACKET); !ok { // ]
+			return ast.NewInvalidNode(tok.Location(), tok)
+		}
 	}
+
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewBreakExpressionNode(
 			location,
@@ -5155,16 +5148,21 @@ func (p *Parser) breakExpression() *ast.BreakExpressionNode {
 	)
 }
 
-// continueExpression = "continue" [SPECIAL_IDENTIFIER] [expressionWithoutModifier]
-func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
+// continueExpression = "continue" ["[" identifier "]"] [expressionWithoutModifier]
+func (p *Parser) continueExpression() ast.ExpressionNode {
 	continueTok := p.advance()
 	location := continueTok.Location()
-	var label string
-	if p.lookahead.Type == token.SPECIAL_IDENTIFIER {
-		labelTok := p.advance()
-		label = labelTok.Value
-		location = location.Join(labelTok.Location())
+
+	var label ast.IdentifierNode
+	if p.lookahead.Type == token.LBRACKET {
+		p.advance() // [
+		label = p.identifier()
+		location = location.Join(label.Location())
+		if tok, ok := p.consume(token.RBRACKET); !ok { // ]
+			return ast.NewInvalidNode(tok.Location(), tok)
+		}
 	}
+
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewContinueExpressionNode(
 			location,
@@ -7082,6 +7080,18 @@ func (p *Parser) identifierOrFunction() ast.ExpressionNode {
 			},
 			nil,
 			nil,
+		)
+	}
+
+	if p.secondLookahead.Type == token.COLON {
+		label := p.advance()
+		p.advance() // colon
+		expr := p.expressionWithModifier()
+
+		return ast.NewLabeledExpressionNode(
+			label.Location().Join(expr.Location()),
+			label.Value,
+			expr,
 		)
 	}
 

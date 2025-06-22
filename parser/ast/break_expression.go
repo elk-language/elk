@@ -13,11 +13,15 @@ import (
 // Represents a `break` expression eg. `break`, `break false`
 type BreakExpressionNode struct {
 	NodeBase
-	Label string
+	Label IdentifierNode
 	Value ExpressionNode
 }
 
 func (n *BreakExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	var label IdentifierNode
+	if n.Label != nil {
+		label = n.Label.splice(loc, args, unquote).(IdentifierNode)
+	}
 	var val ExpressionNode
 	if n.Value != nil {
 		val = n.Value.splice(loc, args, unquote).(ExpressionNode)
@@ -25,7 +29,7 @@ func (n *BreakExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 
 	return &BreakExpressionNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Label:    n.Label,
+		Label:    label,
 		Value:    val,
 	}
 }
@@ -40,6 +44,12 @@ func (n *BreakExpressionNode) traverse(parent Node, enter func(node, parent Node
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.Label != nil {
+		if n.Label.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
 	}
 
 	if n.Value != nil {
@@ -57,7 +67,10 @@ func (n *BreakExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if n.Label != o.Label {
+	if n.Label == o.Label {
+	} else if n.Label == nil || o.Label == nil {
+		return false
+	} else if !n.Label.Equal(value.Ref(o.Label)) {
 		return false
 	}
 
@@ -76,9 +89,10 @@ func (n *BreakExpressionNode) String() string {
 
 	buff.WriteString("break")
 
-	if n.Label != "" {
-		buff.WriteRune('$')
-		buff.WriteString(n.Label)
+	if n.Label != nil {
+		buff.WriteRune('[')
+		buff.WriteString(n.Label.String())
+		buff.WriteRune(']')
 	}
 
 	if n.Value != nil {
@@ -106,7 +120,7 @@ func (*BreakExpressionNode) Type(*types.GlobalEnvironment) types.Type {
 }
 
 // Create a new `break` expression node eg. `break`
-func NewBreakExpressionNode(loc *position.Location, label string, val ExpressionNode) *BreakExpressionNode {
+func NewBreakExpressionNode(loc *position.Location, label IdentifierNode, val ExpressionNode) *BreakExpressionNode {
 	return &BreakExpressionNode{
 		NodeBase: NodeBase{loc: loc},
 		Label:    label,
@@ -128,7 +142,11 @@ func (n *BreakExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::BreakExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  label: ")
-	buff.WriteString(n.Label)
+	if n.Label == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Label.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  value: ")
 	if n.Value == nil {

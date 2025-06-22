@@ -13,16 +13,24 @@ import (
 // Represents a `continue` expression eg. `continue`, `continue "foo"`
 type ContinueExpressionNode struct {
 	NodeBase
-	Label string
+	Label IdentifierNode
 	Value ExpressionNode
 }
 
 func (n *ContinueExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
-	val := n.Value.splice(loc, args, unquote).(ExpressionNode)
+	var label IdentifierNode
+	if n.Label != nil {
+		label = n.Label.splice(loc, args, unquote).(IdentifierNode)
+	}
+
+	var val ExpressionNode
+	if n.Value != nil {
+		val = n.Value.splice(loc, args, unquote).(ExpressionNode)
+	}
 
 	return &ContinueExpressionNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Label:    n.Label,
+		Label:    label,
 		Value:    val,
 	}
 }
@@ -37,6 +45,12 @@ func (n *ContinueExpressionNode) traverse(parent Node, enter func(node, parent N
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.Label != nil {
+		if n.Label.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
 	}
 
 	if n.Value != nil {
@@ -55,7 +69,10 @@ func (n *ContinueExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if n.Label != o.Label {
+	if n.Label == o.Label {
+	} else if n.Label == nil || o.Label == nil {
+		return false
+	} else if !n.Label.Equal(value.Ref(o.Label)) {
 		return false
 	}
 
@@ -75,9 +92,10 @@ func (n *ContinueExpressionNode) String() string {
 
 	buff.WriteString("continue")
 
-	if n.Label != "" {
-		buff.WriteRune('$')
-		buff.WriteString(n.Label)
+	if n.Label != nil {
+		buff.WriteRune('[')
+		buff.WriteString(n.Label.String())
+		buff.WriteRune(']')
 	}
 
 	if n.Value != nil {
@@ -105,7 +123,7 @@ func (*ContinueExpressionNode) IsStatic() bool {
 }
 
 // Create a new `continue` expression node eg. `continue`, `continue "foo"`
-func NewContinueExpressionNode(loc *position.Location, label string, val ExpressionNode) *ContinueExpressionNode {
+func NewContinueExpressionNode(loc *position.Location, label IdentifierNode, val ExpressionNode) *ContinueExpressionNode {
 	return &ContinueExpressionNode{
 		NodeBase: NodeBase{loc: loc},
 		Label:    label,
@@ -125,6 +143,13 @@ func (n *ContinueExpressionNode) Inspect() string {
 	var buff strings.Builder
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::ContinueExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+
+	buff.WriteString(",\n  label: ")
+	if n.Label == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.Label.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  value: ")
 	if n.Value == nil {

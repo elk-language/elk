@@ -334,8 +334,7 @@ const (
 	PRIVATE_CONSTANT     // Constant with an initial underscore
 	LABEL_IDENTIFIER_END // Identifiers end here
 
-	INSTANCE_VARIABLE  // Instance variable token eg. `@foo`
-	SPECIAL_IDENTIFIER // Special identifier token eg. `$foo`
+	INSTANCE_VARIABLE // Instance variable token eg. `@foo`
 
 	// Literals start here
 	LABEL_LITERAL_BEG
@@ -709,8 +708,7 @@ var tokenNames = [...]string{
 	PUBLIC_CONSTANT:    "PUBLIC_CONSTANT",
 	PRIVATE_CONSTANT:   "PRIVATE_CONSTANT",
 
-	INSTANCE_VARIABLE:  "INSTANCE_VARIABLE",
-	SPECIAL_IDENTIFIER: "SPECIAL_IDENTIFIER",
+	INSTANCE_VARIABLE: "INSTANCE_VARIABLE",
 
 	WORD_ARRAY_LIST_BEG:   "\\w[",
 	WORD_ARRAY_LIST_END:   "] (WORD_ARRAY_LIST_END)",

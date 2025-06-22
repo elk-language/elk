@@ -51,6 +51,10 @@ const (
 	invalidEscapeMode           // Triggered after encountering an invalid escape sequence in a string literal
 	stringInterpolationMode     // Triggered after consuming the initial token `${` of string interpolation
 
+	invalidQuotedIdentifierMode       // Triggered after encountering an invalid escape sequence in a quoted identifier
+	invalidQuotedConstantMode         // Triggered after encountering an invalid escape sequence in a quoted identifier
+	invalidQuotedInstanceVariableMode // Triggered after encountering an invalid escape sequence in a quoted identifier
+
 	regexLiteralMode       // Triggered after consuming the initial token `%/` of a regex literal
 	regexFlagMode          // Triggered during the lexing of regex literal flags
 	regexInterpolationMode // Triggered after consuming the initial token `${` of regex interpolation
@@ -266,6 +270,12 @@ func (l *Lexer) scanToken() *token.Token {
 		return l.scanInvalidUnicodeEscape()
 	case invalidBigUnicodeEscapeMode:
 		return l.scanInvalidBigUnicodeEscape()
+	case invalidQuotedIdentifierMode:
+		return l.quotedIdentifier()
+	case invalidQuotedConstantMode:
+		return l.quotedConstant()
+	case invalidQuotedInstanceVariableMode:
+		return l.quotedInstanceVariable()
 	default:
 		return l.lexError(fmt.Sprintf("unsupported lexing mode `%d`", l.mode()))
 	}
@@ -775,6 +785,69 @@ func (l *Lexer) rawString() *token.Token {
 	return l.tokenWithValue(token.RAW_STRING, result.String())
 }
 
+// Assumes that the beginning `$'` has already been consumed.
+// Consumes a raw quoted identifier.
+func (l *Lexer) rawQuotedIdentifier() *token.Token {
+	var result strings.Builder
+	for {
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError("unterminated raw quoted identifier, missing `'`")
+		}
+		if char == '\'' {
+			break
+		}
+		if char == '\n' {
+			l.incrementLine()
+		}
+		result.WriteRune(char)
+	}
+
+	return l.tokenWithValue(token.PUBLIC_IDENTIFIER, result.String())
+}
+
+// Assumes that the beginning `$$'` has already been consumed.
+// Consumes a raw quoted constant.
+func (l *Lexer) rawQuotedConstant() *token.Token {
+	var result strings.Builder
+	for {
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError("unterminated raw quoted constant, missing `'`")
+		}
+		if char == '\'' {
+			break
+		}
+		if char == '\n' {
+			l.incrementLine()
+		}
+		result.WriteRune(char)
+	}
+
+	return l.tokenWithValue(token.PUBLIC_CONSTANT, result.String())
+}
+
+// Assumes that the beginning `@'` has already been consumed.
+// Consumes a raw quoted instance variable.
+func (l *Lexer) rawQuotedInstanceVariable() *token.Token {
+	var result strings.Builder
+	for {
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError("unterminated raw quoted instance variable, missing `'`")
+		}
+		if char == '\'' {
+			break
+		}
+		if char == '\n' {
+			l.incrementLine()
+		}
+		result.WriteRune(char)
+	}
+
+	return l.tokenWithValue(token.INSTANCE_VARIABLE, result.String())
+}
+
 const unterminatedCharLiteralMessage = "unterminated character literal, missing backtick"
 
 const charTerminator = '`'
@@ -1118,17 +1191,349 @@ func (l *Lexer) instanceVariable() *token.Token {
 }
 
 // Assumes that the initial `$` has been consumed.
-// Consumes and constructs a special identifier token.
-func (l *Lexer) specialIdentifier() *token.Token {
+// Consumes and constructs a dollar identifier token.
+func (l *Lexer) dollarIdentifier() *token.Token {
 	for isIdentifierChar(l.peekChar()) {
 		l.advanceChar()
 	}
 
 	lexeme := l.source[l.start+1 : l.cursor]
 	if len(lexeme) == 0 {
-		return l.lexError("empty special identifier")
+		return l.lexError("empty identifier")
 	}
-	return l.tokenWithValue(token.SPECIAL_IDENTIFIER, string(lexeme))
+	return l.tokenWithValue(token.PUBLIC_IDENTIFIER, string(lexeme))
+}
+
+// Assumes that the initial `$$` has been consumed.
+// Consumes and constructs a double dollar constant token.
+func (l *Lexer) doubleDollarConstant() *token.Token {
+	for isIdentifierChar(l.peekChar()) {
+		l.advanceChar()
+	}
+
+	lexeme := l.source[l.start+2 : l.cursor]
+	if len(lexeme) == 0 {
+		return l.lexError("empty constant")
+	}
+	return l.tokenWithValue(token.PUBLIC_CONSTANT, string(lexeme))
+}
+
+// Assumes that the initial `@"` has been consumed.
+// Consumes and constructs a quoted instance variable token.
+func (l *Lexer) quotedInstanceVariable() *token.Token {
+	var lexemeBuff strings.Builder
+	for {
+		char := l.peekChar()
+		if char == '"' {
+			l.advanceChar()
+			if l.mode() == invalidQuotedInstanceVariableMode {
+				l.popMode()
+			}
+			return l.tokenWithValue(token.INSTANCE_VARIABLE, lexemeBuff.String())
+		}
+
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedInstanceVariableError)
+		}
+
+		if char == '\n' {
+			l.incrementLine()
+		}
+
+		if char != '\\' {
+			lexemeBuff.WriteRune(char)
+			continue
+		}
+
+		char, ok = l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedInstanceVariableError)
+		}
+		switch char {
+		case '\\':
+			lexemeBuff.WriteByte('\\')
+		case 'n':
+			lexemeBuff.WriteByte('\n')
+		case 't':
+			lexemeBuff.WriteByte('\t')
+		case '"':
+			lexemeBuff.WriteByte('"')
+		case 'r':
+			lexemeBuff.WriteByte('\r')
+		case 'a':
+			lexemeBuff.WriteByte('\a')
+		case 'b':
+			lexemeBuff.WriteByte('\b')
+		case 'v':
+			lexemeBuff.WriteByte('\v')
+		case 'f':
+			lexemeBuff.WriteByte('\f')
+		case '$':
+			lexemeBuff.WriteByte('$')
+		case '#':
+			lexemeBuff.WriteByte('#')
+		case 'u':
+			if !l.acceptCharsN(hexLiteralChars, 4) {
+				l.pushMode(invalidQuotedInstanceVariableMode)
+				l.pushMode(invalidUnicodeEscapeMode)
+				l.backupChars(2)
+				return l.tokenWithValue(token.INSTANCE_VARIABLE, lexemeBuff.String())
+			}
+			l.advanceChars(4)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-4:l.cursor]), 16, 16)
+			if err != nil {
+				return l.lexError(invalidUnicodeEscapeError)
+			}
+			lexemeBuff.WriteRune(rune(value))
+		case 'U':
+			if !l.acceptCharsN(hexLiteralChars, 8) {
+				l.pushMode(invalidQuotedInstanceVariableMode)
+				l.pushMode(invalidBigUnicodeEscapeMode)
+				l.backupChars(2)
+				return l.tokenWithValue(token.INSTANCE_VARIABLE, lexemeBuff.String())
+			}
+			l.advanceChars(8)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-8:l.cursor]), 16, 32)
+			if err != nil {
+				return l.lexError(invalidUnicodeEscapeError)
+			}
+			lexemeBuff.WriteRune(rune(value))
+		case 'x':
+			if !l.acceptCharsN(hexLiteralChars, 2) {
+				l.pushMode(invalidQuotedInstanceVariableMode)
+				l.pushMode(invalidHexEscapeMode)
+				l.backupChars(2)
+				return l.tokenWithValue(token.INSTANCE_VARIABLE, lexemeBuff.String())
+			}
+			l.advanceChars(2)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-2:l.cursor]), 16, 8)
+			if err != nil {
+				return l.lexError(invalidHexEscapeError)
+			}
+			lexemeBuff.WriteByte(byte(value))
+		case '\n':
+			l.incrementLine()
+			fallthrough
+		default:
+			l.pushMode(invalidQuotedInstanceVariableMode)
+			l.pushMode(invalidEscapeMode)
+			l.backupChars(2)
+			return l.tokenWithValue(token.INSTANCE_VARIABLE, lexemeBuff.String())
+		}
+	}
+}
+
+// Assumes that the initial `$$"` has been consumed.
+// Consumes and constructs a quoted constant token.
+func (l *Lexer) quotedConstant() *token.Token {
+	var lexemeBuff strings.Builder
+	for {
+		char := l.peekChar()
+		if char == '"' {
+			l.advanceChar()
+			if l.mode() == invalidQuotedConstantMode {
+				l.popMode()
+			}
+			return l.tokenWithValue(token.PUBLIC_CONSTANT, lexemeBuff.String())
+		}
+
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedConstantError)
+		}
+
+		if char == '\n' {
+			l.incrementLine()
+		}
+
+		if char != '\\' {
+			lexemeBuff.WriteRune(char)
+			continue
+		}
+
+		char, ok = l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedConstantError)
+		}
+		switch char {
+		case '\\':
+			lexemeBuff.WriteByte('\\')
+		case 'n':
+			lexemeBuff.WriteByte('\n')
+		case 't':
+			lexemeBuff.WriteByte('\t')
+		case '"':
+			lexemeBuff.WriteByte('"')
+		case 'r':
+			lexemeBuff.WriteByte('\r')
+		case 'a':
+			lexemeBuff.WriteByte('\a')
+		case 'b':
+			lexemeBuff.WriteByte('\b')
+		case 'v':
+			lexemeBuff.WriteByte('\v')
+		case 'f':
+			lexemeBuff.WriteByte('\f')
+		case '$':
+			lexemeBuff.WriteByte('$')
+		case '#':
+			lexemeBuff.WriteByte('#')
+		case 'u':
+			if !l.acceptCharsN(hexLiteralChars, 4) {
+				l.pushMode(invalidQuotedConstantMode)
+				l.pushMode(invalidUnicodeEscapeMode)
+				l.backupChars(2)
+				return l.tokenWithValue(token.PUBLIC_CONSTANT, lexemeBuff.String())
+			}
+			l.advanceChars(4)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-4:l.cursor]), 16, 16)
+			if err != nil {
+				return l.lexError(invalidUnicodeEscapeError)
+			}
+			lexemeBuff.WriteRune(rune(value))
+		case 'U':
+			if !l.acceptCharsN(hexLiteralChars, 8) {
+				l.pushMode(invalidQuotedConstantMode)
+				l.pushMode(invalidBigUnicodeEscapeMode)
+				l.backupChars(2)
+				return l.tokenWithValue(token.PUBLIC_CONSTANT, lexemeBuff.String())
+			}
+			l.advanceChars(8)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-8:l.cursor]), 16, 32)
+			if err != nil {
+				return l.lexError(invalidUnicodeEscapeError)
+			}
+			lexemeBuff.WriteRune(rune(value))
+		case 'x':
+			if !l.acceptCharsN(hexLiteralChars, 2) {
+				l.pushMode(invalidQuotedConstantMode)
+				l.pushMode(invalidHexEscapeMode)
+				l.backupChars(2)
+				return l.tokenWithValue(token.PUBLIC_CONSTANT, lexemeBuff.String())
+			}
+			l.advanceChars(2)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-2:l.cursor]), 16, 8)
+			if err != nil {
+				return l.lexError(invalidHexEscapeError)
+			}
+			lexemeBuff.WriteByte(byte(value))
+		case '\n':
+			l.incrementLine()
+			fallthrough
+		default:
+			l.pushMode(invalidQuotedConstantMode)
+			l.pushMode(invalidEscapeMode)
+			l.backupChars(2)
+			return l.tokenWithValue(token.PUBLIC_CONSTANT, lexemeBuff.String())
+		}
+	}
+}
+
+// Assumes that the initial `$"` has been consumed.
+// Consumes and constructs a quoted identifier token.
+func (l *Lexer) quotedIdentifier() *token.Token {
+	var lexemeBuff strings.Builder
+	for {
+		char := l.peekChar()
+		if char == '"' {
+			l.advanceChar()
+			if l.mode() == invalidQuotedIdentifierMode {
+				l.popMode()
+			}
+			return l.tokenWithValue(token.PUBLIC_IDENTIFIER, lexemeBuff.String())
+		}
+
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedIdentifierError)
+		}
+
+		if char == '\n' {
+			l.incrementLine()
+		}
+
+		if char != '\\' {
+			lexemeBuff.WriteRune(char)
+			continue
+		}
+
+		char, ok = l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedIdentifierError)
+		}
+		switch char {
+		case '\\':
+			lexemeBuff.WriteByte('\\')
+		case 'n':
+			lexemeBuff.WriteByte('\n')
+		case 't':
+			lexemeBuff.WriteByte('\t')
+		case '"':
+			lexemeBuff.WriteByte('"')
+		case 'r':
+			lexemeBuff.WriteByte('\r')
+		case 'a':
+			lexemeBuff.WriteByte('\a')
+		case 'b':
+			lexemeBuff.WriteByte('\b')
+		case 'v':
+			lexemeBuff.WriteByte('\v')
+		case 'f':
+			lexemeBuff.WriteByte('\f')
+		case '$':
+			lexemeBuff.WriteByte('$')
+		case '#':
+			lexemeBuff.WriteByte('#')
+		case 'u':
+			if !l.acceptCharsN(hexLiteralChars, 4) {
+				l.pushMode(invalidQuotedIdentifierMode)
+				l.pushMode(invalidUnicodeEscapeMode)
+				l.backupChars(2)
+				return l.tokenWithValue(token.PUBLIC_IDENTIFIER, lexemeBuff.String())
+			}
+			l.advanceChars(4)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-4:l.cursor]), 16, 16)
+			if err != nil {
+				return l.lexError(invalidUnicodeEscapeError)
+			}
+			lexemeBuff.WriteRune(rune(value))
+		case 'U':
+			if !l.acceptCharsN(hexLiteralChars, 8) {
+				l.pushMode(invalidQuotedIdentifierMode)
+				l.pushMode(invalidBigUnicodeEscapeMode)
+				l.backupChars(2)
+				return l.tokenWithValue(token.PUBLIC_IDENTIFIER, lexemeBuff.String())
+			}
+			l.advanceChars(8)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-8:l.cursor]), 16, 32)
+			if err != nil {
+				return l.lexError(invalidUnicodeEscapeError)
+			}
+			lexemeBuff.WriteRune(rune(value))
+		case 'x':
+			if !l.acceptCharsN(hexLiteralChars, 2) {
+				l.pushMode(invalidQuotedIdentifierMode)
+				l.pushMode(invalidHexEscapeMode)
+				l.backupChars(2)
+				return l.tokenWithValue(token.PUBLIC_IDENTIFIER, lexemeBuff.String())
+			}
+			l.advanceChars(2)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-2:l.cursor]), 16, 8)
+			if err != nil {
+				return l.lexError(invalidHexEscapeError)
+			}
+			lexemeBuff.WriteByte(byte(value))
+		case '\n':
+			l.incrementLine()
+			fallthrough
+		default:
+			l.pushMode(invalidQuotedIdentifierMode)
+			l.pushMode(invalidEscapeMode)
+			l.backupChars(2)
+			return l.tokenWithValue(token.PUBLIC_IDENTIFIER, lexemeBuff.String())
+		}
+	}
 }
 
 const (
@@ -1307,9 +1712,12 @@ func (l *Lexer) scanInvalidEscape() *token.Token {
 }
 
 const (
-	unterminatedStringError   = "unterminated string literal, missing `\"`"
-	invalidHexEscapeError     = "invalid hex escape"
-	invalidUnicodeEscapeError = "invalid unicode escape"
+	unterminatedInstanceVariableError = "unterminated quoted instance variable, missing `\"`"
+	unterminatedConstantError         = "unterminated quoted constant, missing `\"`"
+	unterminatedIdentifierError       = "unterminated quoted identifier, missing `\"`"
+	unterminatedStringError           = "unterminated string literal, missing `\"`"
+	invalidHexEscapeError             = "invalid hex escape"
+	invalidUnicodeEscapeError         = "invalid unicode escape"
 )
 
 // Scan characters when inside of a string literal (after the initial `"`)
@@ -2064,9 +2472,30 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 		case '_':
 			return l.privateIdentifier(afterMethodCallOperator)
 		case '@':
+			if l.matchChar('"') {
+				return l.quotedInstanceVariable()
+			}
+			if l.matchChar('\'') {
+				return l.rawQuotedInstanceVariable()
+			}
 			return l.instanceVariable()
 		case '$':
-			return l.specialIdentifier()
+			if l.matchChar('$') {
+				if l.matchChar('"') {
+					return l.quotedConstant()
+				}
+				if l.matchChar('\'') {
+					return l.rawQuotedConstant()
+				}
+				return l.doubleDollarConstant()
+			}
+			if l.matchChar('"') {
+				return l.quotedIdentifier()
+			}
+			if l.matchChar('\'') {
+				return l.rawQuotedIdentifier()
+			}
+			return l.dollarIdentifier()
 		default:
 			if isDigit(char) {
 				return l.numberLiteral(char)

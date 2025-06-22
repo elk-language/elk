@@ -6,12 +6,12 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      label: String = "",
+      label: IdentifierNode? = nil,
       value: ExpressionNode? = nil,
       location: FS::Location = loop; end,
     ); end
 
-    def label: String; end
+    def label: IdentifierNode?; end
     def value: ExpressionNode?; end
     def location: FS::Location; end
   end

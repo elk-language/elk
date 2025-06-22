@@ -13,7 +13,10 @@ func initContinueExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argLabel := (string)(args[1].MustReference().(value.String))
+			var argLabel ast.IdentifierNode
+			if !args[1].IsUndefined() {
+				argLabel = args[1].MustReference().(ast.IdentifierNode)
+			}
 
 			var argValue ast.ExpressionNode
 			if !args[2].IsUndefined() {
@@ -42,9 +45,12 @@ func initContinueExpressionNode() {
 		"label",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ContinueExpressionNode)
-			result := value.Ref(value.String(self.Label))
-			return result, value.Undefined
+			if self.Label == nil {
+				return value.Nil, value.Undefined
+			}
 
+			result := value.Ref(self.Label)
+			return result, value.Undefined
 		},
 	)
 

@@ -55,6 +55,129 @@ func TestIdentifier(t *testing.T) {
 				V(L(S(P(0, 1, 1), P(3, 1, 4))), token.PRIVATE_IDENTIFIER, "_foo"),
 			},
 		},
+
+		"dollar, ends on the last valid character": {
+			input: "$foo:+",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(3, 1, 4))), token.PUBLIC_IDENTIFIER, "foo"),
+				T(L(S(P(4, 1, 5), P(4, 1, 5))), token.COLON),
+				T(L(S(P(5, 1, 6), P(5, 1, 6))), token.PLUS),
+			},
+		},
+		"dollar, may contain letters underscores and numbers": {
+			input: "$some_ivar123",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(12, 1, 13))), token.PUBLIC_IDENTIFIER, "some_ivar123"),
+			},
+		},
+		"dollar, may start with an uppercase letter": {
+			input: "$SomeIvar123",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(11, 1, 12))), token.PUBLIC_IDENTIFIER, "SomeIvar123"),
+			},
+		},
+		"dollar, may start with a digit": {
+			input: "$1",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(1, 1, 2))), token.PUBLIC_IDENTIFIER, "1"),
+			},
+		},
+		"dollar, may start with an underscore": {
+			input: "$_bar",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(4, 1, 5))), token.PUBLIC_IDENTIFIER, "_bar"),
+			},
+		},
+		"dollar, may start with a utf-8 character": {
+			input: "$łódź",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(7, 1, 5))), token.PUBLIC_IDENTIFIER, "łódź"),
+			},
+		},
+		"dollar, may contain utf-8 characters": {
+			input: "$zażółć_gęślą_jaźń + 2",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(26, 1, 18))), token.PUBLIC_IDENTIFIER, "zażółć_gęślą_jaźń"),
+				T(L(S(P(28, 1, 20), P(28, 1, 20))), token.PLUS),
+				V(L(S(P(30, 1, 22), P(30, 1, 22))), token.INT, "2"),
+			},
+		},
+
+		"quoted, must be terminated": {
+			input: `$"This is a string`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(17, 1, 18))), token.ERROR, "unterminated quoted identifier, missing `\"`"),
+			},
+		},
+		"quoted, processes escape sequences": {
+			input: `$"Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF\$\#"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(95, 1, 96))), token.PUBLIC_IDENTIFIER, "Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF$#"),
+			},
+		},
+		"quoted, reports errors for invalid escape sequences": {
+			input: `$"www.foo\yes.com"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(8, 1, 9))), token.PUBLIC_IDENTIFIER, "www.foo"),
+				V(L(S(P(9, 1, 10), P(10, 1, 11))), token.ERROR, "invalid escape sequence `\\y` in string literal"),
+				V(L(S(P(11, 1, 12), P(17, 1, 18))), token.PUBLIC_IDENTIFIER, "es.com"),
+			},
+		},
+		"quoted, creates errors for invalid hex escapes": {
+			input: `$"some\xfj string"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(5, 1, 6))), token.PUBLIC_IDENTIFIER, "some"),
+				V(L(S(P(6, 1, 7), P(9, 1, 10))), token.ERROR, "invalid hex escape"),
+				V(L(S(P(10, 1, 11), P(17, 1, 18))), token.PUBLIC_IDENTIFIER, " string"),
+			},
+		},
+		"quoted, creates errors for invalid unicode escapes": {
+			input: `$"some\uiaab string"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(5, 1, 6))), token.PUBLIC_IDENTIFIER, "some"),
+				V(L(S(P(6, 1, 7), P(11, 1, 12))), token.ERROR, "invalid unicode escape"),
+				V(L(S(P(12, 1, 13), P(19, 1, 20))), token.PUBLIC_IDENTIFIER, " string"),
+			},
+		},
+		"quoted, creates errors for invalid big unicode escapes": {
+			input: `$"some\Uiaabuj46 string"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(5, 1, 6))), token.PUBLIC_IDENTIFIER, "some"),
+				V(L(S(P(6, 1, 7), P(15, 1, 16))), token.ERROR, "invalid unicode escape"),
+				V(L(S(P(16, 1, 17), P(23, 1, 24))), token.PUBLIC_IDENTIFIER, " string"),
+			},
+		},
+		"quoted, can be multiline": {
+			input: `$"multiline
+strings are
+awesome
+and really useful"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(49, 4, 18))), token.PUBLIC_IDENTIFIER, "multiline\nstrings are\nawesome\nand really useful"),
+			},
+		},
+
+		"raw quoted, must be terminated": {
+			input: "$'This is a raw string",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(21, 1, 22))), token.ERROR, "unterminated raw quoted identifier, missing `'`"),
+			},
+		},
+		"raw quoted, does not process escape sequences": {
+			input: `$'Some \n a\wesome \t string \r with \\ escape \b sequences \"\v\f\x12\a'`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(72, 1, 73))), token.PUBLIC_IDENTIFIER, `Some \n a\wesome \t string \r with \\ escape \b sequences \"\v\f\x12\a`),
+			},
+		},
+		"raw quoted, can be multiline": {
+			input: `$'multiline
+strings are
+awesome
+and really useful'`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(49, 4, 18))), token.PUBLIC_IDENTIFIER, "multiline\nstrings are\nawesome\nand really useful"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -164,6 +287,129 @@ func TestConstant(t *testing.T) {
 			input: "_Foo",
 			want: []*token.Token{
 				V(L(S(P(0, 1, 1), P(3, 1, 4))), token.PRIVATE_CONSTANT, "_Foo"),
+			},
+		},
+
+		"dollar, ends on the last valid character": {
+			input: "$$foo:+",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(4, 1, 5))), token.PUBLIC_CONSTANT, "foo"),
+				T(L(S(P(5, 1, 6), P(5, 1, 6))), token.COLON),
+				T(L(S(P(6, 1, 7), P(6, 1, 7))), token.PLUS),
+			},
+		},
+		"dollar, may contain letters underscores and numbers": {
+			input: "$$some_ivar123",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(13, 1, 14))), token.PUBLIC_CONSTANT, "some_ivar123"),
+			},
+		},
+		"dollar, may start with an uppercase letter": {
+			input: "$$SomeIvar123",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(12, 1, 13))), token.PUBLIC_CONSTANT, "SomeIvar123"),
+			},
+		},
+		"dollar, may start with a digit": {
+			input: "$$1",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(2, 1, 3))), token.PUBLIC_CONSTANT, "1"),
+			},
+		},
+		"dollar, may start with an underscore": {
+			input: "$$_bar",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(5, 1, 6))), token.PUBLIC_CONSTANT, "_bar"),
+			},
+		},
+		"dollar, may start with a utf-8 character": {
+			input: "$$łódź",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(8, 1, 6))), token.PUBLIC_CONSTANT, "łódź"),
+			},
+		},
+		"dollar, may contain utf-8 characters": {
+			input: "$$zażółć_gęślą_jaźń + 2",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(27, 1, 19))), token.PUBLIC_CONSTANT, "zażółć_gęślą_jaźń"),
+				T(L(S(P(29, 1, 21), P(29, 1, 21))), token.PLUS),
+				V(L(S(P(31, 1, 23), P(31, 1, 23))), token.INT, "2"),
+			},
+		},
+
+		"quoted, must be terminated": {
+			input: `$$"This is a string`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(18, 1, 19))), token.ERROR, "unterminated quoted constant, missing `\"`"),
+			},
+		},
+		"quoted, processes escape sequences": {
+			input: `$$"Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF\$\#"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(96, 1, 97))), token.PUBLIC_CONSTANT, "Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF$#"),
+			},
+		},
+		"quoted, reports errors for invalid escape sequences": {
+			input: `$$"www.foo\yes.com"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(9, 1, 10))), token.PUBLIC_CONSTANT, "www.foo"),
+				V(L(S(P(10, 1, 11), P(11, 1, 12))), token.ERROR, "invalid escape sequence `\\y` in string literal"),
+				V(L(S(P(12, 1, 13), P(18, 1, 19))), token.PUBLIC_CONSTANT, "es.com"),
+			},
+		},
+		"quoted, creates errors for invalid hex escapes": {
+			input: `$$"some\xfj string"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(6, 1, 7))), token.PUBLIC_CONSTANT, "some"),
+				V(L(S(P(7, 1, 8), P(10, 1, 11))), token.ERROR, "invalid hex escape"),
+				V(L(S(P(11, 1, 12), P(18, 1, 19))), token.PUBLIC_CONSTANT, " string"),
+			},
+		},
+		"quoted, creates errors for invalid unicode escapes": {
+			input: `$$"some\uiaab string"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(6, 1, 7))), token.PUBLIC_CONSTANT, "some"),
+				V(L(S(P(7, 1, 8), P(12, 1, 13))), token.ERROR, "invalid unicode escape"),
+				V(L(S(P(13, 1, 14), P(20, 1, 21))), token.PUBLIC_CONSTANT, " string"),
+			},
+		},
+		"quoted, creates errors for invalid big unicode escapes": {
+			input: `$$"some\Uiaabuj46 string"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(6, 1, 7))), token.PUBLIC_CONSTANT, "some"),
+				V(L(S(P(7, 1, 8), P(16, 1, 17))), token.ERROR, "invalid unicode escape"),
+				V(L(S(P(17, 1, 18), P(24, 1, 25))), token.PUBLIC_CONSTANT, " string"),
+			},
+		},
+		"quoted, can be multiline": {
+			input: `$$"multiline
+strings are
+awesome
+and really useful"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(50, 4, 18))), token.PUBLIC_CONSTANT, "multiline\nstrings are\nawesome\nand really useful"),
+			},
+		},
+
+		"raw quoted, must be terminated": {
+			input: "$$'This is a raw string",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(22, 1, 23))), token.ERROR, "unterminated raw quoted constant, missing `'`"),
+			},
+		},
+		"raw quoted, does not process escape sequences": {
+			input: `$$'Some \n a\wesome \t string \r with \\ escape \b sequences \"\v\f\x12\a'`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(73, 1, 74))), token.PUBLIC_CONSTANT, `Some \n a\wesome \t string \r with \\ escape \b sequences \"\v\f\x12\a`),
+			},
+		},
+		"raw quoted, can be multiline": {
+			input: `$$'multiline
+strings are
+awesome
+and really useful'`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(50, 4, 18))), token.PUBLIC_CONSTANT, "multiline\nstrings are\nawesome\nand really useful"),
 			},
 		},
 	}
@@ -276,61 +522,127 @@ func TestInstanceVariable(t *testing.T) {
 				V(L(S(P(30, 1, 22), P(30, 1, 22))), token.INT, "2"),
 			},
 		},
-	}
 
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			tokenTest(tc, t)
-		})
-	}
-}
-
-func TestSpecialIdentifier(t *testing.T) {
-	tests := testTable{
-		"ends on the last valid character": {
+		"dollar, ends on the last valid character": {
 			input: "$foo:+",
 			want: []*token.Token{
-				V(L(S(P(0, 1, 1), P(3, 1, 4))), token.SPECIAL_IDENTIFIER, "foo"),
+				V(L(S(P(0, 1, 1), P(3, 1, 4))), token.PUBLIC_IDENTIFIER, "foo"),
 				T(L(S(P(4, 1, 5), P(4, 1, 5))), token.COLON),
 				T(L(S(P(5, 1, 6), P(5, 1, 6))), token.PLUS),
 			},
 		},
-		"may contain letters underscores and numbers": {
+		"dollar, may contain letters underscores and numbers": {
 			input: "$some_ivar123",
 			want: []*token.Token{
-				V(L(S(P(0, 1, 1), P(12, 1, 13))), token.SPECIAL_IDENTIFIER, "some_ivar123"),
+				V(L(S(P(0, 1, 1), P(12, 1, 13))), token.PUBLIC_IDENTIFIER, "some_ivar123"),
 			},
 		},
-		"may start with an uppercase letter": {
+		"dollar, may start with an uppercase letter": {
 			input: "$SomeIvar123",
 			want: []*token.Token{
-				V(L(S(P(0, 1, 1), P(11, 1, 12))), token.SPECIAL_IDENTIFIER, "SomeIvar123"),
+				V(L(S(P(0, 1, 1), P(11, 1, 12))), token.PUBLIC_IDENTIFIER, "SomeIvar123"),
 			},
 		},
-		"may start with a digit": {
+		"dollar, may start with a digit": {
 			input: "$1",
 			want: []*token.Token{
-				V(L(S(P(0, 1, 1), P(1, 1, 2))), token.SPECIAL_IDENTIFIER, "1"),
+				V(L(S(P(0, 1, 1), P(1, 1, 2))), token.PUBLIC_IDENTIFIER, "1"),
 			},
 		},
-		"may start with an underscore": {
+		"dollar, may start with an underscore": {
 			input: "$_bar",
 			want: []*token.Token{
-				V(L(S(P(0, 1, 1), P(4, 1, 5))), token.SPECIAL_IDENTIFIER, "_bar"),
+				V(L(S(P(0, 1, 1), P(4, 1, 5))), token.PUBLIC_IDENTIFIER, "_bar"),
 			},
 		},
-		"may start with a utf-8 character": {
+		"dollar, may start with a utf-8 character": {
 			input: "$łódź",
 			want: []*token.Token{
-				V(L(S(P(0, 1, 1), P(7, 1, 5))), token.SPECIAL_IDENTIFIER, "łódź"),
+				V(L(S(P(0, 1, 1), P(7, 1, 5))), token.PUBLIC_IDENTIFIER, "łódź"),
 			},
 		},
-		"may contain utf-8 characters": {
+		"dollar, may contain utf-8 characters": {
 			input: "$zażółć_gęślą_jaźń + 2",
 			want: []*token.Token{
-				V(L(S(P(0, 1, 1), P(26, 1, 18))), token.SPECIAL_IDENTIFIER, "zażółć_gęślą_jaźń"),
+				V(L(S(P(0, 1, 1), P(26, 1, 18))), token.PUBLIC_IDENTIFIER, "zażółć_gęślą_jaźń"),
 				T(L(S(P(28, 1, 20), P(28, 1, 20))), token.PLUS),
 				V(L(S(P(30, 1, 22), P(30, 1, 22))), token.INT, "2"),
+			},
+		},
+
+		"quoted, must be terminated": {
+			input: `@"This is a string`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(17, 1, 18))), token.ERROR, "unterminated quoted instance variable, missing `\"`"),
+			},
+		},
+		"quoted, processes escape sequences": {
+			input: `@"Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF\$\#"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(95, 1, 96))), token.INSTANCE_VARIABLE, "Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF$#"),
+			},
+		},
+		"quoted, reports errors for invalid escape sequences": {
+			input: `@"www.foo\yes.com"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(8, 1, 9))), token.INSTANCE_VARIABLE, "www.foo"),
+				V(L(S(P(9, 1, 10), P(10, 1, 11))), token.ERROR, "invalid escape sequence `\\y` in string literal"),
+				V(L(S(P(11, 1, 12), P(17, 1, 18))), token.INSTANCE_VARIABLE, "es.com"),
+			},
+		},
+		"quoted, creates errors for invalid hex escapes": {
+			input: `@"some\xfj string"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(5, 1, 6))), token.INSTANCE_VARIABLE, "some"),
+				V(L(S(P(6, 1, 7), P(9, 1, 10))), token.ERROR, "invalid hex escape"),
+				V(L(S(P(10, 1, 11), P(17, 1, 18))), token.INSTANCE_VARIABLE, " string"),
+			},
+		},
+		"quoted, creates errors for invalid unicode escapes": {
+			input: `@"some\uiaab string"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(5, 1, 6))), token.INSTANCE_VARIABLE, "some"),
+				V(L(S(P(6, 1, 7), P(11, 1, 12))), token.ERROR, "invalid unicode escape"),
+				V(L(S(P(12, 1, 13), P(19, 1, 20))), token.INSTANCE_VARIABLE, " string"),
+			},
+		},
+		"quoted, creates errors for invalid big unicode escapes": {
+			input: `@"some\Uiaabuj46 string"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(5, 1, 6))), token.INSTANCE_VARIABLE, "some"),
+				V(L(S(P(6, 1, 7), P(15, 1, 16))), token.ERROR, "invalid unicode escape"),
+				V(L(S(P(16, 1, 17), P(23, 1, 24))), token.INSTANCE_VARIABLE, " string"),
+			},
+		},
+		"quoted, can be multiline": {
+			input: `@"multiline
+strings are
+awesome
+and really useful"`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(49, 4, 18))), token.INSTANCE_VARIABLE, "multiline\nstrings are\nawesome\nand really useful"),
+			},
+		},
+
+		"raw quoted, must be terminated": {
+			input: "@'This is a raw string",
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(21, 1, 22))), token.ERROR, "unterminated raw quoted instance variable, missing `'`"),
+			},
+		},
+		"raw quoted, does not process escape sequences": {
+			input: `@'Some \n a\wesome \t string \r with \\ escape \b sequences \"\v\f\x12\a'`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(72, 1, 73))), token.INSTANCE_VARIABLE, `Some \n a\wesome \t string \r with \\ escape \b sequences \"\v\f\x12\a`),
+			},
+		},
+		"raw quoted, can be multiline": {
+			input: `@'multiline
+strings are
+awesome
+and really useful'`,
+			want: []*token.Token{
+				V(L(S(P(0, 1, 1), P(49, 4, 18))), token.INSTANCE_VARIABLE, "multiline\nstrings are\nawesome\nand really useful"),
 			},
 		},
 	}
