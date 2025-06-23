@@ -1498,18 +1498,19 @@ func (c *Compiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) {
 		c.compileNode(node.Value, false)
 	}
 
-	finallyCount := c.countFinallyInLoop(node.Label)
+	labelName := identifierToName(node.Label)
+	finallyCount := c.countFinallyInLoop(labelName)
 	if finallyCount <= 0 {
-		c.leaveScopeOnBreak(location.StartPos.Line, node.Label)
+		c.leaveScopeOnBreak(location.StartPos.Line, labelName)
 
 		breakJumpOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP)
-		c.addLoopJump(node.Label, breakLoopJump, breakJumpOffset, location)
+		c.addLoopJump(labelName, breakLoopJump, breakJumpOffset, location)
 		return
 	}
 
 	jumpOffsetId := c.emitLoadValue(value.Undefined, location)
 	c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
-	c.addLoopJump(node.Label, breakFinallyLoopJump, jumpOffsetId, location)
+	c.addLoopJump(labelName, breakFinallyLoopJump, jumpOffsetId, location)
 
 	c.emitValue(value.SmallInt(finallyCount).ToValue(), location)
 	c.emit(location.StartPos.Line, bytecode.JUMP_TO_FINALLY)
@@ -1542,7 +1543,9 @@ func (c *Compiler) leaveScopeOnContinue(line int, label string) {
 
 func (c *Compiler) compileContinueExpressionNode(node *ast.ContinueExpressionNode) {
 	location := node.Location()
-	loop := c.findLoopJumpSet(node.Label, location)
+
+	labelName := identifierToName(node.Label)
+	loop := c.findLoopJumpSet(labelName, location)
 	if loop == nil {
 		return
 	}
@@ -1560,9 +1563,9 @@ func (c *Compiler) compileContinueExpressionNode(node *ast.ContinueExpressionNod
 		}
 	}
 
-	finallyCount := c.countFinallyInLoop(node.Label)
+	finallyCount := c.countFinallyInLoop(labelName)
 	if finallyCount <= 0 {
-		c.leaveScopeOnContinue(location.StartPos.Line, node.Label)
+		c.leaveScopeOnContinue(location.StartPos.Line, labelName)
 
 		continueJumpOffset := c.emitJump(location.StartPos.Line, bytecode.LOOP)
 		c.addLoopJumpTo(loop, continueLoopJump, continueJumpOffset)
@@ -1571,7 +1574,7 @@ func (c *Compiler) compileContinueExpressionNode(node *ast.ContinueExpressionNod
 
 	jumpOffsetId := c.emitLoadValue(value.Undefined, location)
 	c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
-	c.addLoopJump(node.Label, continueFinallyLoopJump, jumpOffsetId, location)
+	c.addLoopJump(labelName, continueFinallyLoopJump, jumpOffsetId, location)
 
 	c.emitValue(value.SmallInt(finallyCount).ToValue(), location)
 	c.emit(location.StartPos.Line, bytecode.JUMP_TO_FINALLY)

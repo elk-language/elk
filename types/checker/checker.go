@@ -2266,7 +2266,7 @@ func (c *Checker) checkContinueExpressionNode(node *ast.ContinueExpressionNode) 
 		typ = c.typeOfGuardVoid(node.Value)
 	}
 
-	loop := c.findLoop(node.Label, node.Location())
+	loop := c.findLoop(c.identifierToName(node.Label), node.Location())
 	if loop != nil && !loop.returnsValueFromLastIteration {
 		if loop.returnType == nil {
 			loop.returnType = typ
@@ -2287,7 +2287,7 @@ func (c *Checker) checkBreakExpressionNode(node *ast.BreakExpressionNode) ast.Ex
 		typ = c.typeOfGuardVoid(node.Value)
 	}
 
-	loop := c.findLoop(node.Label, node.Location())
+	loop := c.findLoop(c.identifierToName(node.Label), node.Location())
 	if loop != nil {
 		if loop.returnType == nil {
 			loop.returnType = typ
@@ -4177,6 +4177,8 @@ func (c *Checker) identifierToName(node ast.IdentifierNode) string {
 		return node.Value
 	case *ast.PublicIdentifierNode:
 		return node.Value
+	case nil:
+		return ""
 	default:
 		c.addFailure(
 			"invalid identifier",

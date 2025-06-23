@@ -716,7 +716,7 @@ func TestBreakExpression(t *testing.T) {
 			},
 		},
 		"outside of a loop with a nonexistent label": {
-			input: `break$foo`,
+			input: `break[foo]`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(8, 1, 9)), "cannot jump with `break` or `continue` outside of a loop"),
 			},
@@ -724,7 +724,7 @@ func TestBreakExpression(t *testing.T) {
 		"with a nonexistent label": {
 			input: `
 				loop
-					break$foo
+					break[foo]
 				end
 			`,
 			err: diagnostic.DiagnosticList{
@@ -735,19 +735,19 @@ func TestBreakExpression(t *testing.T) {
 			input: `
 				$foo: loop; end
 				loop
-					break$foo
+					break[foo]
 				end
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(35, 4, 6), P(43, 4, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
-				diagnostic.NewWarning(L("<main>", P(25, 3, 5), P(51, 5, 7)), "unreachable code"),
+				diagnostic.NewWarning(L("<main>", P(25, 3, 5), P(52, 5, 7)), "unreachable code"),
 			},
 		},
 		"with a valid label": {
 			input: `
 				$foo: loop
 					loop
-						break$foo
+						break[foo]
 					end
 				end
 			`,
@@ -782,7 +782,7 @@ func TestContinueExpression(t *testing.T) {
 			},
 		},
 		"outside of a loop with a nonexistent label": {
-			input: `continue$foo`,
+			input: `continue[foo]`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(11, 1, 12)), "cannot jump with `break` or `continue` outside of a loop"),
 			},
@@ -790,7 +790,7 @@ func TestContinueExpression(t *testing.T) {
 		"with a nonexistent label": {
 			input: `
 				loop
-					continue$foo
+					continue[foo]
 				end
 			`,
 			err: diagnostic.DiagnosticList{
@@ -801,19 +801,19 @@ func TestContinueExpression(t *testing.T) {
 			input: `
 				$foo: loop; end
 				loop
-					continue$foo
+					continue[foo]
 				end
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(35, 4, 6), P(46, 4, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
-				diagnostic.NewWarning(L("<main>", P(25, 3, 5), P(54, 5, 7)), "unreachable code"),
+				diagnostic.NewWarning(L("<main>", P(25, 3, 5), P(55, 5, 7)), "unreachable code"),
 			},
 		},
 		"with a valid label": {
 			input: `
 				$foo: loop
 					loop
-						continue$foo
+						continue[foo]
 					end
 				end
 			`,
@@ -1223,14 +1223,14 @@ func TestNumericForExpression(t *testing.T) {
 				var b: 8 = $foo: fornum ;a;
 					var b: Int? = 9
 					fornum ;b;
-						break$foo 2.5
+						break[foo] 2.5
 						"foo" + "bar"
 					end
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L("<main>", P(116, 7, 7), P(128, 7, 19)), "unreachable code"),
-				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(145, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
+				diagnostic.NewWarning(L("<main>", P(117, 7, 7), P(129, 7, 19)), "unreachable code"),
+				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(146, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -1320,14 +1320,14 @@ func TestNumericForExpression(t *testing.T) {
 				var b: 8 = $foo: fornum ;a;
 					var b: Int? = 9
 					fornum ;b;
-						continue$foo 2.5
+						continue[foo] 2.5
 						"foo" + "bar"
 					end
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L("<main>", P(119, 7, 7), P(131, 7, 19)), "unreachable code"),
-				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(148, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
+				diagnostic.NewWarning(L("<main>", P(120, 7, 7), P(132, 7, 19)), "unreachable code"),
+				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(149, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
 			},
 		},
 	}
@@ -1441,14 +1441,14 @@ func TestForInExpression(t *testing.T) {
 			input: `
 				var b: 8 = $foo: for i in 2...10
 					for j in [9, 2, 6]
-						break$foo 2.5
+						break[foo] 2.5
 						"foo" + "bar"
 					end
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L("<main>", P(88, 5, 7), P(100, 5, 19)), "unreachable code"),
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(117, 7, 7)), "type `2.5?` cannot be assigned to type `8`"),
+				diagnostic.NewWarning(L("<main>", P(89, 5, 7), P(101, 5, 19)), "unreachable code"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(118, 7, 7)), "type `2.5?` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -1484,14 +1484,14 @@ func TestForInExpression(t *testing.T) {
 			input: `
 				var b: 8 = $foo: for i in 1...20
 					for j in 7...30
-						continue$foo 2.5
+						continue[foo] 2.5
 						"foo" + "bar"
 					end
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L("<main>", P(88, 5, 7), P(100, 5, 19)), "unreachable code"),
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(117, 7, 7)), "type `nil` cannot be assigned to type `8`"),
+				diagnostic.NewWarning(L("<main>", P(89, 5, 7), P(101, 5, 19)), "unreachable code"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(118, 7, 7)), "type `nil` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -1582,11 +1582,11 @@ func TestModifierForInExpression(t *testing.T) {
 		"break from a nested labeled loop": {
 			input: `
 				var b: 8 = $foo: for i in 2...10
-					break$foo 2.5 for j in [9, 2, 6]
+					break[foo] 2.5 for j in [9, 2, 6]
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(82, 4, 7)), "type `2.5?` cannot be assigned to type `8`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(83, 4, 7)), "type `2.5?` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -1601,11 +1601,11 @@ func TestModifierForInExpression(t *testing.T) {
 		"continue a parent labeled loop": {
 			input: `
 				var b: 8 = $foo: for i in 1...20
-					continue$foo 2.5 for j in 7...30
+					continue[foo] 2.5 for j in 7...30
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(82, 4, 7)), "type `nil` cannot be assigned to type `8`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(83, 4, 7)), "type `nil` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -1707,13 +1707,13 @@ func TestLoopExpression(t *testing.T) {
 				var a: Int? = 2
 				var b = $foo: loop
 					loop
-						break$foo ""
+						break[foo] ""
 					end
 				end
 				b = 3
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(98, 8, 9), P(98, 8, 9)), "type `3` cannot be assigned to type `Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(99, 8, 9), P(99, 8, 9)), "type `3` cannot be assigned to type `Std::String`"),
 			},
 		},
 
@@ -1752,14 +1752,14 @@ func TestLoopExpression(t *testing.T) {
 				var a: Int? = 2
 				var b = $foo: loop
 					loop
-						continue$foo ""
+						continue[foo] ""
 					end
 				end
 				b = 3
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(101, 8, 9), P(101, 8, 9)), "type `3` cannot be assigned to type `never`"),
-				diagnostic.NewWarning(L("<main>", P(97, 8, 5), P(101, 8, 9)), "unreachable code"),
+				diagnostic.NewFailure(L("<main>", P(102, 8, 9), P(102, 8, 9)), "type `3` cannot be assigned to type `never`"),
+				diagnostic.NewWarning(L("<main>", P(98, 8, 5), P(102, 8, 9)), "unreachable code"),
 			},
 		},
 	}
@@ -1926,14 +1926,14 @@ func TestWhileExpression(t *testing.T) {
 				var b: 8 = $foo: while a
 					var b: Int? = 9
 					while b
-						break$foo 2.5
+						break[foo] 2.5
 						"foo" + "bar"
 					end
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L("<main>", P(110, 7, 7), P(122, 7, 19)), "unreachable code"),
-				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(139, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
+				diagnostic.NewWarning(L("<main>", P(111, 7, 7), P(123, 7, 19)), "unreachable code"),
+				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(140, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -2019,14 +2019,14 @@ func TestWhileExpression(t *testing.T) {
 				var b: 8 = $foo: while a
 					var b: Int? = 9
 					while b
-						continue$foo 2.5
+						continue[foo] 2.5
 						"foo" + "bar"
 					end
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L("<main>", P(113, 7, 7), P(125, 7, 19)), "unreachable code"),
-				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(142, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
+				diagnostic.NewWarning(L("<main>", P(114, 7, 7), P(126, 7, 19)), "unreachable code"),
+				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(143, 9, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
 			},
 		},
 	}
@@ -2123,11 +2123,11 @@ func TestWhileModifier(t *testing.T) {
 				var a: Int? = 2
 				var b: 8 = $foo: do
 					var b: Int? = 9
-					break$foo 2.5 while b
+					break[foo] 2.5 while b
 				end while a
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(107, 6, 15)), "type `nil | 2.5` cannot be assigned to type `8`"),
+				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(108, 6, 15)), "type `nil | 2.5` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -2158,11 +2158,11 @@ func TestWhileModifier(t *testing.T) {
 				var a: Int? = 2
 				var b: 8 = $foo: while a
 					var b: Int? = 9
-					continue$foo 2.5 while b
+					continue[foo] 2.5 while b
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(107, 6, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
+				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(108, 6, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
 			},
 		},
 	}
@@ -2325,14 +2325,14 @@ func TestUntilExpression(t *testing.T) {
 					until b
 						var c: Int? = 3
 						if c
-							break$foo 2.5
+							break[foo] 2.5
 						end
 						"foo" + "bar"
 					end
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(183, 12, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(184, 12, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -2420,14 +2420,14 @@ func TestUntilExpression(t *testing.T) {
 					until b
 						var c: Int? = 3
 						if c
-							continue$foo 2.5
+							continue[foo] 2.5
 						end
 						"foo" + "bar"
 					end
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(186, 12, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
+				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(187, 12, 7)), "type `2.5 | Std::String | nil` cannot be assigned to type `8`"),
 			},
 		},
 	}
@@ -2524,11 +2524,11 @@ func TestUntilModifier(t *testing.T) {
 				var a: Int? = 2
 				var b: 8 = $foo: do
 					var b: Int? = 9
-					break$foo 2.5 until b
+					break[foo] 2.5 until b
 				end until a
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(107, 6, 15)), "type `nil | 2.5` cannot be assigned to type `8`"),
+				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(108, 6, 15)), "type `nil | 2.5` cannot be assigned to type `8`"),
 			},
 		},
 
@@ -2559,11 +2559,11 @@ func TestUntilModifier(t *testing.T) {
 				var a: Int? = 2
 				var b: 8 = $foo: until a
 					var b: Int? = 9
-					continue$foo 2.5 until b
+					continue[foo] 2.5 until b
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(107, 6, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
+				diagnostic.NewFailure(L("<main>", P(36, 3, 16), P(108, 6, 7)), "type `nil | 2.5` cannot be assigned to type `8`"),
 			},
 		},
 	}
