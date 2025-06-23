@@ -635,7 +635,7 @@ func TestForInExpression(t *testing.T) {
 			input: `
 				$foo: for i in [1, 2, 3, 4, 5]
 					println(i)
-					break$foo if i > 2
+					break[foo] if i > 2
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -669,7 +669,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 2, 2,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(83, 5, 8)),
+				L(P(0, 1, 1), P(84, 5, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 9),
@@ -756,7 +756,7 @@ func TestForInExpression(t *testing.T) {
 		"with labeled continue": {
 			input: `
 				$foo: for i in [1, 2, 3, 4, 5]
-					continue$foo if i > 2
+					continue[foo] if i > 2
 					println(i)
 				end
 			`,
@@ -787,7 +787,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 2, 2,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(86, 5, 8)),
+				L(P(0, 1, 1), P(87, 5, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 9),
@@ -899,7 +899,7 @@ func TestForInExpression(t *testing.T) {
 			input: `
 				$foo: for c in ['a', 'b', 'c', 'd']
 					for i in [1, 2, 3, 4, 5]
-						break$foo if i > 2
+						break[foo] if i > 2
 						println(c, i)
 					end
 				end
@@ -945,7 +945,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 2, 2,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(132, 7, 8)),
+				L(P(0, 1, 1), P(133, 7, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 9),
@@ -1063,7 +1063,7 @@ func TestForInExpression(t *testing.T) {
 			input: `
 				$foo: for c in ['a', 'b', 'c', 'd']
 					for i in [1, 2, 3, 4, 5]
-						continue$foo if i > 2
+						continue[foo] if i > 2
 						println(c, i)
 					end
 				end
@@ -1108,7 +1108,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 2, 2,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(135, 7, 8)),
+				L(P(0, 1, 1), P(136, 7, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 9),
@@ -1955,7 +1955,7 @@ func TestBreak(t *testing.T) {
 			},
 		},
 		"in top level with a label": {
-			input: "break$foo",
+			input: "break[foo]",
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "cannot jump with `break` or `continue` outside of a loop"),
 			},
@@ -1963,7 +1963,7 @@ func TestBreak(t *testing.T) {
 		"nonexistent label": {
 			input: `
 				loop
-					break$foo
+					break[foo]
 				end
 			`,
 			err: diagnostic.DiagnosticList{
@@ -1974,7 +1974,7 @@ func TestBreak(t *testing.T) {
 			input: `
 				loop
 					$foo: 1 + 2
-					break$foo
+					break[foo]
 				end
 			`,
 			err: diagnostic.DiagnosticList{
@@ -1988,12 +1988,12 @@ func TestBreak(t *testing.T) {
 				end
 
 				loop
-					break$foo
+					break[foo]
 				end
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L(P(59, 7, 6), P(67, 7, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
-				diagnostic.NewWarning(L(P(49, 6, 5), P(75, 8, 7)), "unreachable code"),
+				diagnostic.NewWarning(L(P(49, 6, 5), P(76, 8, 7)), "unreachable code"),
 			},
 		},
 	}
@@ -2014,7 +2014,7 @@ func TestContinue(t *testing.T) {
 			},
 		},
 		"in top level with a label": {
-			input: "continue$foo",
+			input: "continue[foo]",
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L(P(0, 1, 1), P(11, 1, 12)), "cannot jump with `break` or `continue` outside of a loop"),
 			},
@@ -2022,7 +2022,7 @@ func TestContinue(t *testing.T) {
 		"nonexistent label": {
 			input: `
 				loop
-					continue$foo
+					continue[foo]
 				end
 			`,
 			err: diagnostic.DiagnosticList{
@@ -2033,7 +2033,7 @@ func TestContinue(t *testing.T) {
 			input: `
 				loop
 					$foo: 1 + 2
-					continue$foo
+					continue[foo]
 				end
 			`,
 			err: diagnostic.DiagnosticList{
@@ -2047,12 +2047,12 @@ func TestContinue(t *testing.T) {
 				end
 
 				loop
-					continue$foo
+					continue[foo]
 				end
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L(P(59, 7, 6), P(70, 7, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
-				diagnostic.NewWarning(L(P(49, 6, 5), P(78, 8, 7)), "unreachable code"),
+				diagnostic.NewWarning(L(P(49, 6, 5), P(79, 8, 7)), "unreachable code"),
 			},
 		},
 	}
@@ -2172,7 +2172,7 @@ func TestLoopExpression(t *testing.T) {
 				a := 0
 				$foo: loop
 					a = a + 1
-					continue$foo
+					continue[foo]
 					println("foo")
 				end
 			`,
@@ -2195,7 +2195,7 @@ func TestLoopExpression(t *testing.T) {
 					byte(bytecode.LOOP), 0, 17,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(87, 7, 8)),
+				L(P(0, 1, 1), P(88, 7, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -2212,7 +2212,7 @@ func TestLoopExpression(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(65, 6, 6), P(78, 6, 19)), "unreachable code"),
+				diagnostic.NewWarning(L(P(66, 6, 6), P(79, 6, 19)), "unreachable code"),
 			},
 		},
 		"continue in a nested loop": {
@@ -2293,7 +2293,7 @@ func TestLoopExpression(t *testing.T) {
 					j += 1
 					i := 0
 					loop
-						continue$foo if i >= 5
+						continue[foo] if i >= 5
 						i += 1
 					end
 					continue if j >= 5
@@ -2337,7 +2337,7 @@ func TestLoopExpression(t *testing.T) {
 					byte(bytecode.LOOP), 0, 50,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(144, 11, 8)),
+				L(P(0, 1, 1), P(145, 11, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -2354,7 +2354,7 @@ func TestLoopExpression(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(118, 10, 6), P(135, 10, 23)), "unreachable code"),
+				diagnostic.NewWarning(L(P(119, 10, 6), P(136, 10, 23)), "unreachable code"),
 			},
 		},
 		"with break": {
@@ -2404,7 +2404,7 @@ func TestLoopExpression(t *testing.T) {
 				a := 0
 				$foo: loop
 					a = a + 1
-					break$foo if a > 5
+					break[foo] if a > 5
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -2428,7 +2428,7 @@ func TestLoopExpression(t *testing.T) {
 					byte(bytecode.LOOP), 0, 21,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(73, 6, 8)),
+				L(P(0, 1, 1), P(74, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -2517,7 +2517,7 @@ func TestLoopExpression(t *testing.T) {
 					j += 1
 					i := 0
 					loop
-						break$outer if i >= 5
+						break[outer] if i >= 5
 						i += 1
 					end
 					break if j >= 5
@@ -2563,7 +2563,7 @@ func TestLoopExpression(t *testing.T) {
 					byte(bytecode.LOOP), 0, 52,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(142, 11, 8)),
+				L(P(0, 1, 1), P(143, 11, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -2580,7 +2580,7 @@ func TestLoopExpression(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(119, 10, 6), P(133, 10, 20)), "unreachable code"),
+				diagnostic.NewWarning(L(P(120, 10, 6), P(134, 10, 20)), "unreachable code"),
 			},
 		},
 		"break with value": {
@@ -2961,7 +2961,7 @@ func TestNumericFor(t *testing.T) {
 				a := 0
 				$foo: fornum ;;
 					a += 1
-					break$foo if a > 10
+					break[foo] if a > 10
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -2985,7 +2985,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LOOP), 0, 22,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(76, 6, 8)),
+				L(P(0, 1, 1), P(77, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -3053,7 +3053,7 @@ func TestNumericFor(t *testing.T) {
 			input: `
 				$foo: fornum a := 0;;
 					fornum ;; a += 1
-						continue$foo if a > 10
+						continue[foo] if a > 10
 					end
 				end
 			`,
@@ -3083,7 +3083,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 1, 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(94, 6, 8)),
+				L(P(0, 1, 1), P(95, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 3),
@@ -3155,7 +3155,7 @@ func TestNumericFor(t *testing.T) {
 			input: `
 				$foo: fornum a := 0;;
 					fornum ;; a += 1
-						break$foo if a > 10
+						break[foo] if a > 10
 					end
 				end
 			`,
@@ -3186,7 +3186,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 1, 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(91, 6, 8)),
+				L(P(0, 1, 1), P(92, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 3),
@@ -3506,7 +3506,7 @@ func TestModifierWhile(t *testing.T) {
 				i := 0
 				$foo: do
 					i += 1
-					break$foo if i < 5
+					break[foo] if i < 5
 				end while true
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -3530,7 +3530,7 @@ func TestModifierWhile(t *testing.T) {
 					byte(bytecode.LOOP), 0, 21,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(79, 6, 19)),
+				L(P(0, 1, 1), P(80, 6, 19)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -3543,7 +3543,7 @@ func TestModifierWhile(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(75, 6, 15), P(78, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
+				diagnostic.NewWarning(L(P(76, 6, 15), P(79, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 
@@ -3669,7 +3669,7 @@ func TestModifierWhile(t *testing.T) {
 					j += 1
 					i := 0
 					do
-						continue$foo if i + j > 8
+						continue[foo] if i + j > 8
 						i += 1
 					end while i < 5
 				end while j < 5
@@ -3713,7 +3713,7 @@ func TestModifierWhile(t *testing.T) {
 					byte(bytecode.LOOP), 0, 48,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(143, 10, 20)),
+				L(P(0, 1, 1), P(144, 10, 20)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -3810,7 +3810,7 @@ func TestModifierWhile(t *testing.T) {
 					j += 1
 					i := 0
 					do
-						break$foo if i + j > 8
+						break[foo] if i + j > 8
 						i += 1
 					end while i < 5
 				end while j < 5
@@ -3854,7 +3854,7 @@ func TestModifierWhile(t *testing.T) {
 					byte(bytecode.LOOP), 0, 48,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(140, 10, 20)),
+				L(P(0, 1, 1), P(141, 10, 20)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -4044,7 +4044,7 @@ func TestWhile(t *testing.T) {
 			  i := 0
 				$foo: while true
 					i += 1
-					break$foo if i < 5
+					break[foo] if i < 5
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -4068,7 +4068,7 @@ func TestWhile(t *testing.T) {
 					byte(bytecode.LOOP), 0, 21,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(77, 6, 8)),
+				L(P(0, 1, 1), P(78, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -4207,7 +4207,7 @@ func TestWhile(t *testing.T) {
 					j += 1
 					i := 0
 					while i < 5
-						continue$foo if i + j > 8
+						continue[foo] if i + j > 8
 						i += 1
 					end
 				end
@@ -4252,7 +4252,7 @@ func TestWhile(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 2, 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(137, 10, 8)),
+				L(P(0, 1, 1), P(138, 10, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -4348,7 +4348,7 @@ func TestWhile(t *testing.T) {
 					j += 1
 					i := 0
 					while i < 5
-						break$foo if i + j > 8
+						break[foo] if i + j > 8
 						i += 1
 					end
 				end
@@ -4394,7 +4394,7 @@ func TestWhile(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 2, 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(134, 10, 8)),
+				L(P(0, 1, 1), P(135, 10, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -4638,7 +4638,7 @@ func TestModifierUntil(t *testing.T) {
 			  i := 0
 				$foo: do
 					i += 1
-					break$foo if i < 5
+					break[foo] if i < 5
 				end until false
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -4662,7 +4662,7 @@ func TestModifierUntil(t *testing.T) {
 					byte(bytecode.LOOP), 0, 21,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(81, 6, 20)),
+				L(P(0, 1, 1), P(82, 6, 20)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -4675,7 +4675,7 @@ func TestModifierUntil(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(76, 6, 15), P(80, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
+				diagnostic.NewWarning(L(P(77, 6, 15), P(81, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
 			},
 		},
 		"with break with value": {
@@ -4800,7 +4800,7 @@ func TestModifierUntil(t *testing.T) {
 					j += 1
 					i := 0
 					do
-						continue$foo if i + j > 8
+						continue[foo] if i + j > 8
 						i += 1
 					end until i >= 5
 				end until j >= 5
@@ -4844,7 +4844,7 @@ func TestModifierUntil(t *testing.T) {
 					byte(bytecode.LOOP), 0, 48,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(145, 10, 21)),
+				L(P(0, 1, 1), P(146, 10, 21)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -4941,7 +4941,7 @@ func TestModifierUntil(t *testing.T) {
 					j += 1
 					i := 0
 					do
-						break$foo if i + j > 8
+						break[foo] if i + j > 8
 						i += 1
 					end until i >= 5
 				end until j >= 5
@@ -4985,7 +4985,7 @@ func TestModifierUntil(t *testing.T) {
 					byte(bytecode.LOOP), 0, 48,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(142, 10, 21)),
+				L(P(0, 1, 1), P(143, 10, 21)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -5175,7 +5175,7 @@ func TestUntil(t *testing.T) {
 			  i := 0
 				$foo: until false
 					i += 1
-					break$foo if i < 5
+					break[foo] if i < 5
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -5199,7 +5199,7 @@ func TestUntil(t *testing.T) {
 					byte(bytecode.LOOP), 0, 21,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(78, 6, 8)),
+				L(P(0, 1, 1), P(79, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -5337,7 +5337,7 @@ func TestUntil(t *testing.T) {
 					j += 1
 					i := 0
 					until i >= 5
-						continue$foo if i + j > 8
+						continue[foo] if i + j > 8
 						i += 1
 					end
 				end
@@ -5383,7 +5383,7 @@ func TestUntil(t *testing.T) {
 					byte(bytecode.LOOP), 0, 49,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(139, 10, 8)),
+				L(P(0, 1, 1), P(140, 10, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
@@ -5478,7 +5478,7 @@ func TestUntil(t *testing.T) {
 					j += 1
 					i := 0
 					until i >= 5
-						break$foo if i + j > 8
+						break[foo] if i + j > 8
 						i += 1
 					end
 				end
@@ -5524,7 +5524,7 @@ func TestUntil(t *testing.T) {
 					byte(bytecode.LOOP), 0, 49,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(136, 10, 8)),
+				L(P(0, 1, 1), P(137, 10, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
