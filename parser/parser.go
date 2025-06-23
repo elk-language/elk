@@ -2282,6 +2282,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.sealedModifier(false)
 	case token.ASYNC:
 		return p.asyncModifier(false)
+	case token.DOLLAR_IDENTIFIER:
+		return p.identifierOrLabel()
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
 		return p.identifierOrFunction()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
@@ -7062,6 +7064,23 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 	return p.closureAfterArrow(firstSpan, params, returnType, throwType)
 }
 
+// identifierOrFunction = DOLLAR_IDENTIFIER [":" expressionWithModifier]
+func (p *Parser) identifierOrLabel() ast.ExpressionNode {
+	if p.secondLookahead.Type == token.COLON {
+		label := p.advance()
+		p.advance() // colon
+		expr := p.expressionWithModifier()
+
+		return ast.NewLabeledExpressionNode(
+			label.Location().Join(expr.Location()),
+			label.Value,
+			expr,
+		)
+	}
+
+	return p.publicIdentifier()
+}
+
 // identifierOrFunction = identifier | identifier closureAfterArrow
 func (p *Parser) identifierOrFunction() ast.ExpressionNode {
 	if p.secondLookahead.Type == token.THIN_ARROW {
@@ -7080,18 +7099,6 @@ func (p *Parser) identifierOrFunction() ast.ExpressionNode {
 			},
 			nil,
 			nil,
-		)
-	}
-
-	if p.secondLookahead.Type == token.COLON {
-		label := p.advance()
-		p.advance() // colon
-		expr := p.expressionWithModifier()
-
-		return ast.NewLabeledExpressionNode(
-			label.Location().Join(expr.Location()),
-			label.Value,
-			expr,
 		)
 	}
 
@@ -7152,7 +7159,7 @@ func (p *Parser) docComment(allowed bool) ast.ExpressionNode {
 }
 
 func (p *Parser) publicIdentifier() *ast.PublicIdentifierNode {
-	ident, ok := p.matchOk(token.PUBLIC_IDENTIFIER)
+	ident, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.DOLLAR_IDENTIFIER)
 	if !ok {
 		panic(fmt.Sprintf("invalid public identifier token: %#v", ident))
 	}
@@ -7175,7 +7182,7 @@ func (p *Parser) privateIdentifier() *ast.PrivateIdentifierNode {
 
 // identifier = PUBLIC_IDENTIFIER | PRIVATE_IDENTIFIER | unquote
 func (p *Parser) identifier() ast.IdentifierNode {
-	if p.accept(token.PUBLIC_IDENTIFIER) {
+	if p.accept(token.PUBLIC_IDENTIFIER, token.DOLLAR_IDENTIFIER) {
 		return p.publicIdentifier()
 	}
 	if p.accept(token.PRIVATE_IDENTIFIER) {

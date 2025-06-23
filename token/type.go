@@ -39,7 +39,7 @@ func Types() iter.Seq2[uint16, string] {
 // eg. `foo 2`
 func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 	switch t {
-	case BANG, TILDE, LBRACE, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
+	case BANG, TILDE, LBRACE, DOLLAR_IDENTIFIER, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
 		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE, COLON, CHAR_LITERAL, RAW_CHAR_LITERAL,
 		RAW_STRING, STRING_BEG, NIL, FALSE, TRUE, LOOP, DEF, SIG,
 		INIT, CLASS, STRUCT, MODULE, MIXIN, INTERFACE, ENUM, TYPE, TYPEDEF,
@@ -56,7 +56,7 @@ func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 // a range value eg. `...2`
 func (t Type) IsValidAsEndInRangeLiteral() bool {
 	switch t {
-	case SCOPE_RES_OP, BANG, TILDE, LBRACE, LPAREN, LBRACKET, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
+	case SCOPE_RES_OP, BANG, TILDE, LBRACE, LPAREN, LBRACKET, DOLLAR_IDENTIFIER, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
 		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE,
 		RAW_STRING, STRING_BEG, CHAR_LITERAL, RAW_CHAR_LITERAL, FLOAT, FLOAT32, FLOAT64,
 		NIL, FALSE, TRUE, LOOP, ENUM,
@@ -153,12 +153,12 @@ func (t Type) IsValidSimpleSymbolContent() bool {
 
 // Check whether the token is a valid method name (without operators).
 func (t Type) IsValidRegularMethodName() bool {
-	return t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER || t.IsKeyword()
+	return t == DOLLAR_IDENTIFIER || t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER || t.IsKeyword()
 }
 
 // Check whether the token is a valid macro name.
 func (t Type) IsValidMacroName() bool {
-	return t == PUBLIC_IDENTIFIER || t.IsKeyword()
+	return t == DOLLAR_IDENTIFIER || t == PUBLIC_IDENTIFIER || t.IsKeyword()
 }
 
 // Check whether the token is a valid method name (including operators).
@@ -169,7 +169,7 @@ func (t Type) IsValidMethodName() bool {
 // Check whether the token is a valid method name in method
 // call expressions.
 func (t Type) IsValidPublicMethodName() bool {
-	return t == PUBLIC_IDENTIFIER || t.IsKeyword() || t.IsOverridableOperator()
+	return t == DOLLAR_IDENTIFIER || t == PUBLIC_IDENTIFIER || t.IsKeyword() || t.IsOverridableOperator()
 }
 
 // Check whether the token is an overridable operator.
@@ -328,10 +328,11 @@ const (
 
 	// Identifiers start here
 	LABEL_IDENTIFIER_BEG
-	PUBLIC_IDENTIFIER    // Identifier
-	PRIVATE_IDENTIFIER   // Identifier with a initial underscore
-	PUBLIC_CONSTANT      // Constant (identifier with an initial capital letter)
-	PRIVATE_CONSTANT     // Constant with an initial underscore
+	DOLLAR_IDENTIFIER    // Dollar Identifier eg. `$foo`
+	PUBLIC_IDENTIFIER    // Identifier eg. `foo`
+	PRIVATE_IDENTIFIER   // Identifier with a initial underscore eg. `_foo`
+	PUBLIC_CONSTANT      // Constant (identifier with an initial capital letter) eg. `Foo`
+	PRIVATE_CONSTANT     // Constant with an initial underscore eg. `_Foo`
 	LABEL_IDENTIFIER_END // Identifiers end here
 
 	INSTANCE_VARIABLE // Instance variable token eg. `@foo`
@@ -703,6 +704,7 @@ var tokenNames = [...]string{
 	RTRIPLE_BITSHIFT:       ">>>",
 	PERCENT:                "%",
 
+	DOLLAR_IDENTIFIER:  "DOLLAR_IDENTIFIER",
 	PUBLIC_IDENTIFIER:  "PUBLIC_IDENTIFIER",
 	PRIVATE_IDENTIFIER: "PRIVATE_IDENTIFIER",
 	PUBLIC_CONSTANT:    "PUBLIC_CONSTANT",

@@ -803,7 +803,7 @@ func (l *Lexer) rawQuotedIdentifier() *token.Token {
 		result.WriteRune(char)
 	}
 
-	return l.tokenWithValue(token.PUBLIC_IDENTIFIER, result.String())
+	return l.tokenWithValue(token.DOLLAR_IDENTIFIER, result.String())
 }
 
 // Assumes that the beginning `$$'` has already been consumed.
@@ -1311,7 +1311,7 @@ func (l *Lexer) quotedConstant() *token.Token {
 // Assumes that the initial `$"` has been consumed.
 // Consumes and constructs a quoted public identifier token.
 func (l *Lexer) quotedPublicIdentifier() *token.Token {
-	return l.quotedIdentifier(invalidQuotedIdentifierMode, token.PUBLIC_IDENTIFIER, unterminatedIdentifierError)
+	return l.quotedIdentifier(invalidQuotedIdentifierMode, token.DOLLAR_IDENTIFIER, unterminatedIdentifierError)
 }
 
 const (
@@ -2273,7 +2273,7 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			if l.matchChar('\'') {
 				return l.rawQuotedIdentifier()
 			}
-			return l.prefixedIdentifier(1, token.PUBLIC_IDENTIFIER)
+			return l.prefixedIdentifier(1, token.DOLLAR_IDENTIFIER)
 		case '§':
 			if l.matchChar('"') {
 				return l.quotedConstant()
