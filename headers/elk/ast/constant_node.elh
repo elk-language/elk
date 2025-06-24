@@ -9,6 +9,12 @@ module ::Std::Elk::AST
 						UsingEntryNode,
 						ComplexConstantNode
 
+		##[
+			Indicates that the format of a
+			constant node is invalid.
+		]##
+		class FormatError < Node::FormatError; end
+
 		def to_ast_const_node: ConstantNode; end
 
 		interface Convertible

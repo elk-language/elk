@@ -135,6 +135,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				{
 					namespace := namespace.TryDefineMixin("All nodes that should be valid constants\nshould implement this interface.", false, value.ToSymbol("ConstantNode"), env)
 					namespace.TryDefineInterface("", value.ToSymbol("Convertible"), env)
+					namespace.TryDefineClass("Indicates that the format of a\nconstant node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				namespace.TryDefineClass("Represents a constructor call eg. `String(123)`", false, true, true, false, value.ToSymbol("ConstructorCallNode"), objectClass, env)
@@ -172,6 +173,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				{
 					namespace := namespace.TryDefineMixin("All nodes that should be valid identifiers\nshould implement this interface.", false, value.ToSymbol("IdentifierNode"), env)
 					namespace.TryDefineInterface("", value.ToSymbol("Convertible"), env)
+					namespace.TryDefineClass("Indicates that the format of an\nidentifier node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				namespace.TryDefineClass("Represents an `if` expression eg. `if foo then println(\"bar\")`", false, true, true, false, value.ToSymbol("IfExpressionNode"), objectClass, env)
@@ -230,6 +232,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				{
 					namespace := namespace.TryDefineMixin("A base for all Elk AST (Abstract Syntax Tree) nodes.", false, value.ToSymbol("Node"), env)
 					namespace.TryDefineInterface("Represents a value that can be converted to an Elk AST Node.", value.ToSymbol("Convertible"), env)
+					namespace.TryDefineClass("Indicates that the format of some AST node is\ninvalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				namespace.TryDefineClass("Represents a not type eg. `~String`", false, true, true, false, value.ToSymbol("NotTypeNode"), objectClass, env)
@@ -248,8 +251,16 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.Name() // noop - avoid unused variable error
 				}
 				namespace.TryDefineClass("Postfix expression eg. `foo++`, `bar--`", false, true, true, false, value.ToSymbol("PostfixExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a private constant eg. `_Foo`", false, true, true, false, value.ToSymbol("PrivateConstantNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a private identifier eg. `_foo`", false, true, true, false, value.ToSymbol("PrivateIdentifierNode"), objectClass, env)
+				{
+					namespace := namespace.TryDefineClass("Represents a private constant eg. `_Foo`", false, true, true, false, value.ToSymbol("PrivateConstantNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nprivate constant node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace.Name() // noop - avoid unused variable error
+				}
+				{
+					namespace := namespace.TryDefineClass("Represents a private identifier eg. `_foo`", false, true, true, false, value.ToSymbol("PrivateIdentifierNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nprivate identifier node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace.Name() // noop - avoid unused variable error
+				}
 				namespace.TryDefineClass("Represents a single Elk program (usually a single file).", false, true, true, false, value.ToSymbol("ProgramNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a constant with as in using declarations\neg. `Foo as Bar`.", false, true, true, false, value.ToSymbol("PublicConstantAsNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a public constant eg. `Foo`.", false, true, true, false, value.ToSymbol("PublicConstantNode"), objectClass, env)
@@ -2122,6 +2133,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 							// Define instance variables
 						}
+						{
+							namespace := namespace.MustSubtypeString("FormatError").(*Class)
+
+							namespace.Name() // noop - avoid unused variable error
+							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+
+							// Define constants
+
+							// Define instance variables
+						}
 					}
 					{
 						namespace := namespace.MustSubtypeString("ConstructorCallNode").(*Class)
@@ -2691,6 +2716,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 							// Define methods
 							namespace.DefineMethod("", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_ident_node"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
+
+							// Define constants
+
+							// Define instance variables
+						}
+						{
+							namespace := namespace.MustSubtypeString("FormatError").(*Class)
+
+							namespace.Name() // noop - avoid unused variable error
+							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+
+							// Include mixins and implement interfaces
+
+							// Define methods
 
 							// Define constants
 
@@ -3710,6 +3749,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 							// Define instance variables
 						}
+						{
+							namespace := namespace.MustSubtypeString("FormatError").(*Class)
+
+							namespace.Name() // noop - avoid unused variable error
+							namespace.SetParent(NameToNamespace("Std::FormatError", env))
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+
+							// Define constants
+
+							// Define instance variables
+						}
 					}
 					{
 						namespace := namespace.MustSubtypeString("NotTypeNode").(*Class)
@@ -3898,13 +3951,28 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ConstantNode", env).(*Mixin))
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::PrivateConstantNode::FormatError", env))
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
 
 						// Define instance variables
+
+						{
+							namespace := namespace.MustSubtypeString("FormatError").(*Class)
+
+							namespace.Name() // noop - avoid unused variable error
+							namespace.SetParent(NameToNamespace("Std::Elk::AST::ConstantNode::FormatError", env))
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+
+							// Define constants
+
+							// Define instance variables
+						}
 					}
 					{
 						namespace := namespace.MustSubtypeString("PrivateIdentifierNode").(*Class)
@@ -3917,13 +3985,28 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::IdentifierNode", env).(*Mixin))
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::PrivateIdentifierNode::FormatError", env))
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
 
 						// Define instance variables
+
+						{
+							namespace := namespace.MustSubtypeString("FormatError").(*Class)
+
+							namespace.Name() // noop - avoid unused variable error
+							namespace.SetParent(NameToNamespace("Std::Elk::AST::IdentifierNode::FormatError", env))
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+
+							// Define constants
+
+							// Define instance variables
+						}
 					}
 					{
 						namespace := namespace.MustSubtypeString("ProgramNode").(*Class)

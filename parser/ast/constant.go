@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/elk-language/elk/indent"
@@ -104,8 +105,23 @@ func (n *PublicConstantNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+var PublicConstantRegexp = regexp.MustCompile(`^\p{Lu}[\p{L}\p{N}_]*$`)
+
 func (n *PublicConstantNode) String() string {
-	return n.Value
+	if PublicConstantRegexp.MatchString(n.Value) {
+		return n.Value
+	}
+
+	var buff strings.Builder
+	buff.WriteString("$$")
+
+	if PrefixedIdentifierRegexp.MatchString(n.Value) {
+		buff.WriteString(n.Value)
+		return buff.String()
+	}
+
+	buff.WriteString(value.String(n.Value).Inspect())
+	return buff.String()
 }
 
 func (*PublicConstantNode) IsStatic() bool {
@@ -145,6 +161,8 @@ type PrivateConstantNode struct {
 	TypedNodeBase
 	Value string
 }
+
+var PrivateConstantRegexp = regexp.MustCompile(`^_\p{Lu}[\p{L}\p{N}_]*$`)
 
 func (n *PrivateConstantNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &PrivateConstantNode{

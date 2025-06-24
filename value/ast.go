@@ -32,6 +32,12 @@ var TypeParameterNodeMixin *Mixin           // Std::Elk::AST::TypeParameterNode
 var PatternExpressionNodeMixin *Mixin       // Std::Elk::AST::PatternExpressionNode
 var InstanceVariableNodeMixin *Mixin        // Std::Elk::AST::InstanceVariableNode
 
+var NodeFormatErrorClass *Class                  // Std::Elk::AST::Node::FormatError
+var IdentifierNodeFormatErrorClass *Class        // Std::Elk::AST::IdentifierNode::FormatError
+var PrivateIdentifierNodeFormatErrorClass *Class // Std::Elk::AST::PrivateIdentifierNode::FormatError
+var ConstantNodeFormatErrorClass *Class          // Std::Elk::AST::ConstantNode::FormatError
+var PrivateConstantNodeFormatErrorClass *Class   // Std::Elk::AST::PrivateConstantNode::FormatError
+
 var ExpressionStatementNodeClass *Class // Std::Elk::AST::ExpressionStatementNode
 var EmptyStatementNodeClass *Class      // Std::Elk::AST::EmptyStatementNode
 var ImportStatementNodeClass *Class     // Std::Elk::AST::ImportStatementNode
@@ -223,6 +229,9 @@ func initElkAST() {
 
 	NodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
 
+	NodeFormatErrorClass = NewClassWithOptions(ClassWithParent(FormatErrorClass))
+	NodeMixin.AddConstantString("FormatError", Ref(NodeFormatErrorClass))
+
 	StatementNodeMixin = NewMixin()
 	StatementNodeMixin.IncludeMixin(NodeMixin)
 	ElkASTModule.AddConstantString("StatementNode", Ref(StatementNodeMixin))
@@ -308,6 +317,9 @@ func initElkAST() {
 	IdentifierNodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
 	ElkASTModule.AddConstantString("IdentifierNode", Ref(IdentifierNodeMixin))
 
+	IdentifierNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(NodeFormatErrorClass))
+	IdentifierNodeMixin.AddConstantString("FormatError", Ref(IdentifierNodeFormatErrorClass))
+
 	RegexLiteralContentNodeMixin = NewMixin()
 	RegexLiteralContentNodeMixin.IncludeMixin(NodeMixin)
 	ElkASTModule.AddConstantString("RegexLiteralContentNode", Ref(RegexLiteralContentNodeMixin))
@@ -365,6 +377,9 @@ func initElkAST() {
 	ConstantNodeMixin.IncludeMixin(UsingEntryNodeMixin)
 	ConstantNodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
 	ElkASTModule.AddConstantString("ConstantNode", Ref(ConstantNodeMixin))
+
+	ConstantNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(FormatErrorClass))
+	ConstantNodeMixin.AddConstantString("FormatError", Ref(ConstantNodeFormatErrorClass))
 
 	InvalidNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	InvalidNodeClass.IncludeMixin(StatementNodeMixin)
@@ -680,6 +695,9 @@ func initElkAST() {
 	PrivateIdentifierNodeClass.IncludeMixin(IdentifierNodeMixin)
 	ElkASTModule.AddConstantString("PrivateIdentifierNode", Ref(PrivateIdentifierNodeClass))
 
+	PrivateIdentifierNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(IdentifierNodeFormatErrorClass))
+	PrivateIdentifierNodeClass.AddConstantString("FormatError", Ref(PrivateIdentifierNodeFormatErrorClass))
+
 	PublicConstantNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	PublicConstantNodeClass.IncludeMixin(ExpressionNodeMixin)
 	PublicConstantNodeClass.IncludeMixin(TypeNodeMixin)
@@ -703,6 +721,9 @@ func initElkAST() {
 	PrivateConstantNodeClass.IncludeMixin(ComplexConstantNodeMixin)
 	PrivateConstantNodeClass.IncludeMixin(ConstantNodeMixin)
 	ElkASTModule.AddConstantString("PrivateConstantNode", Ref(PrivateConstantNodeClass))
+
+	PrivateConstantNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
+	PrivateConstantNodeClass.AddConstantString("FormatError", Ref(PrivateConstantNodeFormatErrorClass))
 
 	AsExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	AsExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)

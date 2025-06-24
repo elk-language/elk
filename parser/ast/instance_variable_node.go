@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
@@ -59,7 +60,16 @@ func (n *PublicInstanceVariableNode) Equal(other value.Value) bool {
 }
 
 func (n *PublicInstanceVariableNode) String() string {
-	return fmt.Sprintf("@%s", n.Value)
+	var buff strings.Builder
+	buff.WriteByte('@')
+
+	if PrefixedIdentifierRegexp.MatchString(n.Value) {
+		buff.WriteString(n.Value)
+		return buff.String()
+	}
+
+	buff.WriteString(value.String(n.Value).Inspect())
+	return buff.String()
 }
 
 func (*PublicInstanceVariableNode) IsStatic() bool {

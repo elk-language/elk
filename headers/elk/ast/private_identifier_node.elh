@@ -7,7 +7,14 @@ module Std::Elk::AST
             PatternNode,
             IdentifierNode
 
-    init(value: String, location: FS::Location = loop; end); end
+		##[
+			Indicates that the format of a
+			private identifier node is invalid.
+		]##
+		class FormatError < IdentifierNode::FormatError; end
+
+    init(value: String, location: FS::Location = loop; end)! FormatError; end
+
     def value: String; end
     def location: FS::Location; end
   end

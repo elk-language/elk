@@ -10,7 +10,14 @@ module Std::Elk::AST
             ComplexConstantNode,
             ConstantNode
 
-    init(value: String, location: FS::Location = loop; end); end
+		##[
+			Indicates that the format of a
+			private constant node is invalid.
+		]##
+		class FormatError < ConstantNode::FormatError; end
+
+    init(value: String, location: FS::Location = loop; end)! FormatError; end
+
     def value: String; end
     def location: FS::Location; end
   end

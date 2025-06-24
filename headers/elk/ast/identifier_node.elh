@@ -7,6 +7,11 @@ module ::Std::Elk::AST
 		include ExpressionNode,
 						PatternNode
 
+		##[
+			Indicates that the format of an
+			identifier node is invalid.
+		]##
+		class FormatError < Node::FormatError; end
 
 		def to_ast_ident_node: IdentifierNode; end
 

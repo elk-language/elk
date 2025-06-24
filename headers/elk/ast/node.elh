@@ -3,6 +3,12 @@ module ::Std::Elk::AST
 		A base for all Elk AST (Abstract Syntax Tree) nodes.
 	]##
 	mixin Node
+		##[
+			Indicates that the format of some AST node is
+			invalid.
+		]##
+		class FormatError < ::Std::FormatError; end
+
 		singleton
 			##[
 				Convert the given AST Node, or collection of nodes into
