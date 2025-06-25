@@ -960,9 +960,9 @@ func (i *BigInt) Hash() UInt64 {
 }
 
 // Parses an unsigned big.Int from a string using Elk syntax.
-func ParseUBigInt(s string, base int) (*BigInt, Value) {
+func parseUBigInt(s string, base int, formatErr *Class) (*BigInt, Value) {
 	if s == "" {
-		return nil, Ref(Errorf(FormatErrorClass, "invalid integer format"))
+		return nil, Ref(Errorf(formatErr, "invalid integer format"))
 	}
 
 	switch {
@@ -995,7 +995,7 @@ func ParseUBigInt(s string, base int) (*BigInt, Value) {
 			}
 		}
 	default:
-		return nil, Ref(Errorf(FormatErrorClass, "invalid integer base %d", base))
+		return nil, Ref(Errorf(formatErr, "invalid integer base %d", base))
 	}
 
 	n := &big.Int{}
@@ -1009,11 +1009,11 @@ func ParseUBigInt(s string, base int) (*BigInt, Value) {
 		case 'a' <= letterToLower(c) && letterToLower(c) <= 'z':
 			d = letterToLower(c) - 'a' + 10
 		default:
-			return nil, Ref(Errorf(FormatErrorClass, "illegal characters in integer: %c", c))
+			return nil, Ref(Errorf(formatErr, "illegal characters in integer: %c", c))
 		}
 
 		if d >= byte(base) {
-			return nil, Ref(Errorf(FormatErrorClass, "illegal characters in integer (base %d): %c", base, c))
+			return nil, Ref(Errorf(formatErr, "illegal characters in integer (base %d): %c", base, c))
 		}
 
 		n.Mul(n, big.NewInt(int64(base)))
@@ -1026,21 +1026,27 @@ func ParseUBigInt(s string, base int) (*BigInt, Value) {
 
 // Parses a signed big.Int from a string using Elk syntax.
 func ParseBigInt(s string, base int) (*BigInt, Value) {
+	return ParseBigIntWithErr(s, base, FormatErrorClass)
+}
+
+// Parses a signed big.Int from a string using Elk syntax.
+func ParseBigIntWithErr(s string, base int, formatError *Class) (*BigInt, Value) {
 	if s == "" {
-		return nil, Ref(Errorf(FormatErrorClass, "invalid integer format"))
+		return nil, Ref(Errorf(formatError, "invalid integer format"))
 	}
 
 	// Pick off leading sign.
 	neg := false
-	if s[0] == '+' {
+	switch s[0] {
+	case '+':
 		s = s[1:]
-	} else if s[0] == '-' {
+	case '-':
 		neg = true
 		s = s[1:]
 	}
 
 	// Convert unsigned and check range.
-	u, err := ParseUBigInt(s, base)
+	u, err := parseUBigInt(s, base, formatError)
 	un := u.ToGoBigInt()
 
 	if !err.IsUndefined() {
@@ -1054,8 +1060,8 @@ func ParseBigInt(s string, base int) (*BigInt, Value) {
 	return ToElkBigInt(un), Undefined
 }
 
-func ParseInt(s string, base int) (Value, Value) {
-	val, err := ParseBigInt(s, base)
+func ParseIntWithErr(s string, base int, formatErr *Class) (Value, Value) {
+	val, err := ParseBigIntWithErr(s, base, formatErr)
 	if !err.IsUndefined() {
 		return Undefined, err
 	}
@@ -1065,6 +1071,10 @@ func ParseInt(s string, base int) (Value, Value) {
 	}
 
 	return Ref(val), Undefined
+}
+
+func ParseInt(s string, base int) (Value, Value) {
+	return ParseIntWithErr(s, base, FormatErrorClass)
 }
 
 // Same as [ParseBigInt] but panics on error.

@@ -572,9 +572,9 @@ func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) Value {
 }
 
 // Parses an unsigned strict integer from a string using Elk syntax.
-func StrictParseUint(s string, base int, bitSize int) (uint64, Value) {
+func StrictParseUintWithErr(s string, base int, bitSize int, formatErr *Class) (uint64, Value) {
 	if s == "" {
-		return 0, Ref(Errorf(FormatErrorClass, "invalid integer format"))
+		return 0, Ref(Errorf(formatErr, "invalid integer format"))
 	}
 
 	switch {
@@ -607,13 +607,13 @@ func StrictParseUint(s string, base int, bitSize int) (uint64, Value) {
 			}
 		}
 	default:
-		return 0, Ref(Errorf(FormatErrorClass, "invalid integer base %d", base))
+		return 0, Ref(Errorf(formatErr, "invalid integer base %d", base))
 	}
 
 	if bitSize == 0 {
 		bitSize = strconv.IntSize
 	} else if bitSize < 0 || bitSize > 64 {
-		return 0, Ref(Errorf(FormatErrorClass, "invalid integer bit size %d", bitSize))
+		return 0, Ref(Errorf(formatErr, "invalid integer bit size %d", bitSize))
 	}
 
 	// Cutoff is the smallest number such that cutoff*base > math.MaxUint64.
@@ -645,23 +645,23 @@ func StrictParseUint(s string, base int, bitSize int) (uint64, Value) {
 		case 'a' <= letterToLower(c) && letterToLower(c) <= 'z':
 			d = letterToLower(c) - 'a' + 10
 		default:
-			return 0, Ref(Errorf(FormatErrorClass, "illegal characters in integer: %c", c))
+			return 0, Ref(Errorf(formatErr, "illegal characters in integer: %c", c))
 		}
 
 		if d >= byte(base) {
-			return 0, Ref(Errorf(FormatErrorClass, "illegal characters in integer (base %d): %c", base, c))
+			return 0, Ref(Errorf(formatErr, "illegal characters in integer (base %d): %c", base, c))
 		}
 
 		if n >= cutoff {
 			// n*base overflows
-			return maxVal, Ref(Errorf(FormatErrorClass, "value overflows"))
+			return maxVal, Ref(Errorf(formatErr, "value overflows"))
 		}
 		n *= uint64(base)
 
 		n1 := n + uint64(d)
 		if n1 < n || n1 > maxVal {
 			// n+d overflows
-			return maxVal, Ref(Errorf(FormatErrorClass, "value overflows"))
+			return maxVal, Ref(Errorf(formatErr, "value overflows"))
 		}
 		n = n1
 	}
@@ -669,17 +669,23 @@ func StrictParseUint(s string, base int, bitSize int) (uint64, Value) {
 	return n, Undefined
 }
 
+// Parses an unsigned strict integer from a string using Elk syntax.
+func StrictParseUint(s string, base int, bitSize int) (uint64, Value) {
+	return StrictParseUintWithErr(s, base, bitSize, FormatErrorClass)
+}
+
 // Parses a signed strict integer from a string using Elk syntax.
-func StrictParseInt(s string, base int, bitSize int) (int64, Value) {
+func StrictParseIntWithErr(s string, base int, bitSize int, formatErr *Class) (int64, Value) {
 	if s == "" {
-		return 0, Ref(Errorf(FormatErrorClass, "invalid integer format"))
+		return 0, Ref(Errorf(formatErr, "invalid integer format"))
 	}
 
 	// Pick off leading sign.
 	neg := false
-	if s[0] == '+' {
+	switch s[0] {
+	case '+':
 		s = s[1:]
-	} else if s[0] == '-' {
+	case '-':
 		neg = true
 		s = s[1:]
 	}
@@ -697,16 +703,21 @@ func StrictParseInt(s string, base int, bitSize int) (int64, Value) {
 
 	cutoff := uint64(1 << uint(bitSize-1))
 	if !neg && un >= cutoff {
-		return int64(cutoff - 1), Ref(Errorf(FormatErrorClass, "value overflows"))
+		return int64(cutoff - 1), Ref(Errorf(formatErr, "value overflows"))
 	}
 	if neg && un > cutoff {
-		return -int64(cutoff), Ref(Errorf(FormatErrorClass, "value overflows"))
+		return -int64(cutoff), Ref(Errorf(formatErr, "value overflows"))
 	}
 	n := int64(un)
 	if neg {
 		n = -n
 	}
 	return n, Undefined
+}
+
+// Parses a signed strict integer from a string using Elk syntax.
+func StrictParseInt(s string, base int, bitSize int) (int64, Value) {
+	return StrictParseIntWithErr(s, base, bitSize, FormatErrorClass)
 }
 
 // Converts letters to lowercase.

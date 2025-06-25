@@ -8,8 +8,15 @@ module Std::Elk::AST
             PatternNode,
             IntCollectionContentNode
 
-    init(value: String, location: FS::Location = loop; end); end
+    ##[
+			Indicates that the format of an
+			int node is invalid.
+		]##
+		class FormatError < Node::FormatError; end
+
+    init(value: String, location: FS::Location = loop; end)! FormatError; end
     def value: String; end
     def location: FS::Location; end
+    def to_int: Int; end
   end
 end

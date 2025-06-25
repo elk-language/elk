@@ -14,6 +14,10 @@ func initUInt8LiteralNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
+			_, err := value.ParseBigIntWithErr(argValue, 0, value.UInt8LiteralNodeFormatErrorClass)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -70,6 +74,20 @@ func initUInt8LiteralNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UInt8LiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
+		},
+	)
+
+	vm.Def(
+		c,
+		"to_uint8",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.UInt8LiteralNode)
+			result, err := value.StrictParseUintWithErr(self.Value, 0, 8, value.UInt8LiteralNodeFormatErrorClass)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
+
+			return value.UInt8(result).ToValue(), value.Undefined
 		},
 	)
 

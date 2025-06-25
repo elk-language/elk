@@ -37,6 +37,15 @@ var IdentifierNodeFormatErrorClass *Class        // Std::Elk::AST::IdentifierNod
 var PrivateIdentifierNodeFormatErrorClass *Class // Std::Elk::AST::PrivateIdentifierNode::FormatError
 var ConstantNodeFormatErrorClass *Class          // Std::Elk::AST::ConstantNode::FormatError
 var PrivateConstantNodeFormatErrorClass *Class   // Std::Elk::AST::PrivateConstantNode::FormatError
+var IntLiteralNodeFormatErrorClass *Class        // Std::Elk::AST::IntLiteralNode::FormatError
+var Int8LiteralNodeFormatErrorClass *Class       // Std::Elk::AST::Int8LiteralNode::FormatError
+var Int16LiteralNodeFormatErrorClass *Class      // Std::Elk::AST::Int16LiteralNode::FormatError
+var Int32LiteralNodeFormatErrorClass *Class      // Std::Elk::AST::Int32LiteralNode::FormatError
+var Int64LiteralNodeFormatErrorClass *Class      // Std::Elk::AST::Int64LiteralNode::FormatError
+var UInt8LiteralNodeFormatErrorClass *Class      // Std::Elk::AST::UInt8LiteralNode::FormatError
+var UInt16LiteralNodeFormatErrorClass *Class     // Std::Elk::AST::UInt16LiteralNode::FormatError
+var UInt32LiteralNodeFormatErrorClass *Class     // Std::Elk::AST::UInt32LiteralNode::FormatError
+var UInt64LiteralNodeFormatErrorClass *Class     // Std::Elk::AST::UInt64LiteralNode::FormatError
 
 var ExpressionStatementNodeClass *Class // Std::Elk::AST::ExpressionStatementNode
 var EmptyStatementNodeClass *Class      // Std::Elk::AST::EmptyStatementNode
@@ -511,11 +520,17 @@ func initElkAST() {
 	IntLiteralNodeClass.IncludeMixin(IntCollectionContentNodeMixin)
 	ElkASTModule.AddConstantString("IntLiteralNode", Ref(IntLiteralNodeClass))
 
+	IntLiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
+	IntLiteralNodeClass.AddConstantString("FormatError", Ref(IntLiteralNodeFormatErrorClass))
+
 	Int64LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	Int64LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
 	Int64LiteralNodeClass.IncludeMixin(TypeNodeMixin)
 	Int64LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("Int64LiteralNode", Ref(Int64LiteralNodeClass))
+
+	Int64LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
+	Int64LiteralNodeClass.AddConstantString("FormatError", Ref(Int64LiteralNodeFormatErrorClass))
 
 	Int32LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	Int32LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
@@ -523,11 +538,17 @@ func initElkAST() {
 	Int32LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("Int32LiteralNode", Ref(Int32LiteralNodeClass))
 
+	Int32LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
+	Int32LiteralNodeClass.AddConstantString("FormatError", Ref(Int32LiteralNodeFormatErrorClass))
+
 	Int16LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	Int16LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
 	Int16LiteralNodeClass.IncludeMixin(TypeNodeMixin)
 	Int16LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("Int16LiteralNode", Ref(Int16LiteralNodeClass))
+
+	Int16LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
+	Int16LiteralNodeClass.AddConstantString("FormatError", Ref(Int16LiteralNodeFormatErrorClass))
 
 	Int8LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	Int8LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
@@ -535,11 +556,17 @@ func initElkAST() {
 	Int8LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("Int8LiteralNode", Ref(Int8LiteralNodeClass))
 
+	Int8LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
+	Int8LiteralNodeClass.AddConstantString("FormatError", Ref(Int8LiteralNodeFormatErrorClass))
+
 	UInt64LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	UInt64LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
 	UInt64LiteralNodeClass.IncludeMixin(TypeNodeMixin)
 	UInt64LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("UInt64LiteralNode", Ref(UInt64LiteralNodeClass))
+
+	UInt64LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
+	UInt64LiteralNodeClass.AddConstantString("FormatError", Ref(UInt64LiteralNodeFormatErrorClass))
 
 	UInt32LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	UInt32LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
@@ -547,17 +574,26 @@ func initElkAST() {
 	UInt32LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("UInt32LiteralNode", Ref(UInt32LiteralNodeClass))
 
+	UInt32LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
+	UInt32LiteralNodeClass.AddConstantString("FormatError", Ref(UInt32LiteralNodeFormatErrorClass))
+
 	UInt16LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	UInt16LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
 	UInt16LiteralNodeClass.IncludeMixin(TypeNodeMixin)
 	UInt16LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("UInt16LiteralNode", Ref(UInt16LiteralNodeClass))
 
+	UInt16LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
+	UInt16LiteralNodeClass.AddConstantString("FormatError", Ref(UInt16LiteralNodeFormatErrorClass))
+
 	UInt8LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	UInt8LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
 	UInt8LiteralNodeClass.IncludeMixin(TypeNodeMixin)
 	UInt8LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("UInt8LiteralNode", Ref(UInt8LiteralNodeClass))
+
+	UInt8LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
+	UInt8LiteralNodeClass.AddConstantString("FormatError", Ref(UInt8LiteralNodeFormatErrorClass))
 
 	FloatLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	FloatLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)

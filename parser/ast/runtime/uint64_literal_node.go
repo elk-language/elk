@@ -14,7 +14,10 @@ func initUInt64LiteralNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
-
+			_, err := value.ParseBigIntWithErr(argValue, 0, value.UInt64LiteralNodeFormatErrorClass)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
 				argLoc = position.ZeroLocation
@@ -70,6 +73,20 @@ func initUInt64LiteralNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UInt64LiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
+		},
+	)
+
+	vm.Def(
+		c,
+		"to_uint64",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.UInt64LiteralNode)
+			result, err := value.StrictParseUintWithErr(self.Value, 0, 64, value.UInt64LiteralNodeFormatErrorClass)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
+
+			return value.UInt64(result).ToValue(), value.Undefined
 		},
 	)
 
