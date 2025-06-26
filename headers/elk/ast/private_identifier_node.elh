@@ -17,5 +17,6 @@ module Std::Elk::AST
 
     def value: String; end
     def location: FS::Location; end
+    def to_symbol: Symbol; end
   end
 end

@@ -962,7 +962,7 @@ func (i *BigInt) Hash() UInt64 {
 // Parses an unsigned big.Int from a string using Elk syntax.
 func parseUBigInt(s string, base int, formatErr *Class) (*BigInt, Value) {
 	if s == "" {
-		return nil, Ref(Errorf(formatErr, "invalid integer format"))
+		return nil, Ref(NewError(formatErr, "invalid integer format"))
 	}
 
 	switch {
@@ -1032,7 +1032,7 @@ func ParseBigInt(s string, base int) (*BigInt, Value) {
 // Parses a signed big.Int from a string using Elk syntax.
 func ParseBigIntWithErr(s string, base int, formatError *Class) (*BigInt, Value) {
 	if s == "" {
-		return nil, Ref(Errorf(formatError, "invalid integer format"))
+		return nil, Ref(NewError(formatError, "invalid integer format"))
 	}
 
 	// Pick off leading sign.

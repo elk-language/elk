@@ -7,8 +7,15 @@ module Std::Elk::AST
             TypeNode,
             PatternNode
 
+    ##[
+			Indicates that the format of a
+			float32 node is invalid.
+		]##
+		class FormatError < Node::FormatError; end
+
     init(value: String, location: FS::Location = loop; end); end
     def value: String; end
     def location: FS::Location; end
+    def to_float32: Float32; end
   end
 end

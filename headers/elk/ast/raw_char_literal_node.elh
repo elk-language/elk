@@ -9,6 +9,7 @@ module Std::Elk::AST
 
     init(value: Char, location: FS::Location = loop; end); end
     def value: Char; end
+    def to_char: Char; end
     def location: FS::Location; end
   end
 end

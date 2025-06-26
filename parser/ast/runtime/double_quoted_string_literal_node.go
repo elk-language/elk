@@ -96,4 +96,22 @@ func initDoubleQuotedStringLiteralNode() {
 			return value.Ref(node), value.Undefined
 		},
 	)
+	vm.Def(
+		c,
+		"to_ast_const_node",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.String)
+			node := ast.NewPublicConstantNode(position.ZeroLocation, self.String())
+			return value.Ref(node), value.Undefined
+		},
+	)
+	vm.Def(
+		c,
+		"to_ast_ivar_node",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.String)
+			node := ast.NewPublicInstanceVariableNode(position.ZeroLocation, self.String())
+			return value.Ref(node), value.Undefined
+		},
+	)
 }

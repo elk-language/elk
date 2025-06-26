@@ -72,4 +72,14 @@ func initPublicInstanceVariableNode() {
 		},
 	)
 
+	vm.Def(
+		c,
+		"to_symbol",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.PublicInstanceVariableNode)
+			result := value.ToSymbol(self.Value).ToValue()
+			return result, value.Undefined
+		},
+	)
+
 }

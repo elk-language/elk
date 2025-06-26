@@ -177,4 +177,16 @@ sealed noinit primitive class ::Std::BigFloat
 	alias to_ast_expr_node to_ast_node,
 			  to_ast_pattern_node to_ast_node,
 				to_ast_type_node to_ast_node
+
+
+	##[
+		Values that conform to this interface
+		can be converted to a big float.
+	]##
+	interface Convertible
+		##[
+			Convert the value to a big float.
+		]##
+		def to_bigfloat: BigFloat; end
+	end
 end

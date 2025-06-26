@@ -31,7 +31,6 @@ module Std::Elk::AST
     def body: ArrayTuple[StatementNode]; end
     def flags: UInt8; end
     def location: FS::Location; end
-    def location: FS::Location; end
 
     ##[
       Whether the method is abstract eg. `abstract def foo; end`

@@ -113,4 +113,20 @@ sealed noinit primitive class ::Std::Char < Value
 	alias to_ast_expr_node to_ast_node,
 			  to_ast_pattern_node to_ast_node,
 				to_ast_type_node to_ast_node
+
+	##[
+		Returns the identifier AST Node with the same value.
+	]##
+	def to_ast_ident_node: Elk::AST::PublicIdentifierNode; end
+
+	##[
+		Returns the constant AST Node with the same value.
+	]##
+	def to_ast_const_node: Elk::AST::PublicConstantNode; end
+
+	##[
+		Returns the instance variable AST Node with the same value.
+	]##
+	def to_ast_ivar_node: Elk::AST::PublicInstanceVariableNode; end
+
 end

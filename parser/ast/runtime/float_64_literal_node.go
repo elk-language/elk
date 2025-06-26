@@ -1,6 +1,8 @@
 package runtime
 
 import (
+	"strconv"
+
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -14,6 +16,16 @@ func initFloat64LiteralNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
+			_, err := strconv.ParseFloat(argValue, 64)
+			if err != nil {
+				return value.Undefined,
+					value.Ref(
+						value.NewError(
+							value.Float64LiteralNodeFormatErrorClass,
+							err.Error(),
+						),
+					)
+			}
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -69,6 +81,26 @@ func initFloat64LiteralNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.Float64LiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
+		},
+	)
+
+	vm.Def(
+		c,
+		"to_float64",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.Float64LiteralNode)
+			result, err := strconv.ParseFloat(self.Value, 64)
+			if err != nil {
+				return value.Undefined,
+					value.Ref(
+						value.NewError(
+							value.Float64LiteralNodeFormatErrorClass,
+							err.Error(),
+						),
+					)
+			}
+
+			return value.Float64(result).ToValue(), value.Undefined
 		},
 	)
 

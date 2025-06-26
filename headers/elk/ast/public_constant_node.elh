@@ -14,5 +14,6 @@ module Std::Elk::AST
     init(value: String, location: FS::Location = loop; end); end
     def value: String; end
     def location: FS::Location; end
+    def to_symbol: Symbol; end
   end
 end

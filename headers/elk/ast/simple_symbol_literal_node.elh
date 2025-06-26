@@ -12,6 +12,7 @@ module Std::Elk::AST
     init(content: String, location: FS::Location = loop; end); end
     def content: String; end
     def location: FS::Location; end
+    def to_symbol: Symbol; end
 
     def to_ast_ident_node: IdentifierNode; end
   end

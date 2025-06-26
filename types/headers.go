@@ -43,7 +43,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineClass("Represents an open range from -∞ to a given value *(-∞, end)*", false, true, true, false, value.ToSymbol("BeginlessOpenRange"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, true, value.ToSymbol("BigFloat"), objectClass, env)
+		{
+			namespace := namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, true, value.ToSymbol("BigFloat"), objectClass, env)
+			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a big float.", value.ToSymbol("Convertible"), env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.TryDefineClass("Represents boolean values.\nThere are only two instances of `Bool`, `true` and `false`.", false, true, true, true, value.ToSymbol("Bool"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("Box wraps another value, it's a pointer to another `Value`.", false, true, true, false, value.ToSymbol("Box"), objectClass, env)
@@ -112,7 +116,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents attribute access eg. `foo.bar`", false, true, true, false, value.ToSymbol("AttributeAccessNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an attribute declaration in getters, setters and accessors eg. `foo: String`", false, true, true, false, value.ToSymbol("AttributeParameterNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an `await` expression eg. `await foo()`", false, true, true, false, value.ToSymbol("AwaitExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("BigFloat literal eg. `5.2bf`, `.5bf`, `45e20bf`", false, true, true, false, value.ToSymbol("BigFloatLiteralNode"), objectClass, env)
+				{
+					namespace := namespace.TryDefineClass("BigFloat literal eg. `5.2bf`, `.5bf`, `45e20bf`", false, true, true, false, value.ToSymbol("BigFloatLiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nbig float node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace.Name() // noop - avoid unused variable error
+				}
 				namespace.TryDefineClass("Represents a bin ArrayList literal eg. `\\b[11 10]`", false, true, true, false, value.ToSymbol("BinArrayListLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a bin ArrayTuple literal eg. `%b[11 10]`", false, true, true, false, value.ToSymbol("BinArrayTupleLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a bin HashSet literal eg. `^b[11 10]`", false, true, true, false, value.ToSymbol("BinHashSetLiteralNode"), objectClass, env)
@@ -152,9 +160,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Expression optionally terminated with a newline or a semicolon.", false, true, true, false, value.ToSymbol("ExpressionStatementNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an `extend where` block expression eg.\n\n```\nextend where T < Foo\n  def hello then println(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("ExtendWhereBlockExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("`false` literal.", false, true, true, false, value.ToSymbol("FalseLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Float32 literal eg. `5.2f32`, `.5f32`, `45e20f32`", false, true, true, false, value.ToSymbol("Float32LiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Float64 literal eg. `5.2f64`, `.5f64`, `45e20f64`", false, true, true, false, value.ToSymbol("Float64LiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Float literal eg. `5.2`, `.5`, `45e20`", false, true, true, false, value.ToSymbol("FloatLiteralNode"), objectClass, env)
+				{
+					namespace := namespace.TryDefineClass("Float32 literal eg. `5.2f32`, `.5f32`, `45e20f32`", false, true, true, false, value.ToSymbol("Float32LiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nfloat32 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace.Name() // noop - avoid unused variable error
+				}
+				{
+					namespace := namespace.TryDefineClass("Float64 literal eg. `5.2f64`, `.5f64`, `45e20f64`", false, true, true, false, value.ToSymbol("Float64LiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nfloat64 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace.Name() // noop - avoid unused variable error
+				}
+				{
+					namespace := namespace.TryDefineClass("Float literal eg. `5.2`, `.5`, `45e20`", false, true, true, false, value.ToSymbol("FloatLiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nfloat node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace.Name() // noop - avoid unused variable error
+				}
 				namespace.TryDefineClass("Represents a `for in` expression eg. `for i in 5..15 then println(i)`", false, true, true, false, value.ToSymbol("ForInExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a formal parameter in function or struct declarations eg. `foo: String = 'bar'`", false, true, true, false, value.ToSymbol("FormalParameterNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a generic constant in type annotations eg. `ArrayList[String]`", false, true, true, false, value.ToSymbol("GenericConstantNode"), objectClass, env)
@@ -952,6 +972,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
+
+				{
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Convert the value to a big float.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("to_bigfloat"), nil, nil, NameToType("Std::BigFloat", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtypeString("Bool").(*Class)
@@ -1093,7 +1128,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Always returns 1.\nFor better compatibility with `String`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Return the lowercase version of this character.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("lowercase"), nil, nil, NameToType("Std::Char", env), Never{})
 				namespace.DefineMethod("Creates a new `String` that contains the\ncontent of `self` repeated `n` times.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("repeat"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the constant AST Node with the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_const_node"), nil, nil, NameToType("Std::Elk::AST::PublicConstantNode", env), Never{})
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_expr_node"), nil, nil, NameToType("Std::Elk::AST::CharLiteralNode", env), Never{})
+				namespace.DefineMethod("Returns the identifier AST Node with the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_ident_node"), nil, nil, NameToType("Std::Elk::AST::PublicIdentifierNode", env), Never{})
+				namespace.DefineMethod("Returns the instance variable AST Node with the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_ivar_node"), nil, nil, NameToType("Std::Elk::AST::PublicInstanceVariableNode", env), Never{})
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_node"), nil, nil, NameToType("Std::Elk::AST::CharLiteralNode", env), Never{})
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_pattern_node"), nil, nil, NameToType("Std::Elk::AST::CharLiteralNode", env), Never{})
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_type_node"), nil, nil, NameToType("Std::Elk::AST::CharLiteralNode", env), Never{})
@@ -1768,11 +1806,27 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_bigfloat"), nil, nil, NameToType("Std::BigFloat", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
 
 						// Define instance variables
+
+						{
+							namespace := namespace.MustSubtypeString("FormatError").(*Class)
+
+							namespace.Name() // noop - avoid unused variable error
+							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+
+							// Define constants
+
+							// Define instance variables
+						}
 					}
 					{
 						namespace := namespace.MustSubtypeString("BinArrayListLiteralNode").(*Class)
@@ -1989,6 +2043,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Char", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_char"), nil, nil, NameToType("Std::Char", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Char", env), Never{})
 
 						// Define constants
@@ -2393,11 +2448,27 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_float32"), nil, nil, NameToType("Std::Float32", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
 
 						// Define instance variables
+
+						{
+							namespace := namespace.MustSubtypeString("FormatError").(*Class)
+
+							namespace.Name() // noop - avoid unused variable error
+							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+
+							// Define constants
+
+							// Define instance variables
+						}
 					}
 					{
 						namespace := namespace.MustSubtypeString("Float64LiteralNode").(*Class)
@@ -2412,11 +2483,27 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_float64"), nil, nil, NameToType("Std::Float64", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
 
 						// Define instance variables
+
+						{
+							namespace := namespace.MustSubtypeString("FormatError").(*Class)
+
+							namespace.Name() // noop - avoid unused variable error
+							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+
+							// Define constants
+
+							// Define instance variables
+						}
 					}
 					{
 						namespace := namespace.MustSubtypeString("FloatLiteralNode").(*Class)
@@ -2431,11 +2518,27 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_float"), nil, nil, NameToType("Std::Float", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
 
 						// Define instance variables
+
+						{
+							namespace := namespace.MustSubtypeString("FormatError").(*Class)
+
+							namespace.Name() // noop - avoid unused variable error
+							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+
+							// Define constants
+
+							// Define instance variables
+						}
 					}
 					{
 						namespace := namespace.MustSubtypeString("ForInExpressionNode").(*Class)
@@ -4069,6 +4172,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::PrivateConstantNode::FormatError", env))
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
@@ -4103,6 +4207,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::PrivateIdentifierNode::FormatError", env))
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
@@ -4177,6 +4282,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
@@ -4216,6 +4322,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
@@ -4234,6 +4341,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
@@ -4290,6 +4398,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Char", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_char"), nil, nil, NameToType("Std::Char", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Char", env), Never{})
 
 						// Define constants
@@ -4584,6 +4693,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("content"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_ident_node"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 
 						// Define constants
 
@@ -8235,7 +8345,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Create a new string with all of the characters\nof this one turned into lowercase.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("lowercase"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Remove the given suffix from the `String`.\n\nDoes nothing if the `String` doesn't end\nwith `suffix` and returns `self`.\n\nIf the `String` ends with the given suffix\na new `String` gets created and returned that doesn't contain\nthe suffix.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("remove_suffix"), nil, []*Parameter{NewParameter(value.ToSymbol("suffix"), NewUnion(NameToType("Std::String", env), NameToType("Std::Char", env)), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Creates a new `String` that contains the\ncontent of `self` repeated `n` times.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("repeat"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the constant AST Node with the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_const_node"), nil, nil, NameToType("Std::Elk::AST::PublicConstantNode", env), Never{})
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_expr_node"), nil, nil, NameToType("Std::Elk::AST::DoubleQuotedStringLiteralNode", env), Never{})
+				namespace.DefineMethod("Returns the identifier AST Node with the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_ident_node"), nil, nil, NameToType("Std::Elk::AST::PublicIdentifierNode", env), Never{})
+				namespace.DefineMethod("Returns the instance variable AST Node with the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_ivar_node"), nil, nil, NameToType("Std::Elk::AST::PublicInstanceVariableNode", env), Never{})
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_node"), nil, nil, NameToType("Std::Elk::AST::DoubleQuotedStringLiteralNode", env), Never{})
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_pattern_node"), nil, nil, NameToType("Std::Elk::AST::DoubleQuotedStringLiteralNode", env), Never{})
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_type_node"), nil, nil, NameToType("Std::Elk::AST::DoubleQuotedStringLiteralNode", env), Never{})
