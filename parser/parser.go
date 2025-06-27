@@ -2236,6 +2236,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.valueDeclaration()
 	case token.CONST:
 		return p.constantDeclaration(false)
+	case token.FUNC:
+		return p.functionDefinition()
 	case token.DEF:
 		return p.methodDefinition(false)
 	case token.MACRO:
@@ -3223,6 +3225,32 @@ func (p *Parser) methodName() ast.IdentifierNode {
 	return ast.NewPublicIdentifierNode(location, methodName)
 }
 
+func (p *Parser) functionName() ast.IdentifierNode {
+	var methodName string
+	var location *position.Location
+
+	if p.accept(token.UNQUOTE) {
+		return p.unquoteIdentifier()
+	}
+	if p.accept(token.SHORT_UNQUOTE_BEG) {
+		return p.shortUnquoteIdentifier()
+	}
+
+	if p.lookahead.IsValidFunctionName() {
+		methodNameTok := p.advance()
+		methodName = methodNameTok.FetchValue()
+		location = methodNameTok.Location()
+		if methodNameTok.Type == token.PRIVATE_IDENTIFIER {
+			return ast.NewPrivateIdentifierNode(location, methodName)
+		}
+		return ast.NewPublicIdentifierNode(location, methodName)
+	} else {
+		p.errorExpected("a function name")
+		tok := p.advance()
+		return ast.NewInvalidNode(tok.Location(), tok)
+	}
+}
+
 // macroDefinition = "macro" macroName ["(" formalParameterList ")"] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
 	var params []ast.ParameterNode
@@ -3286,6 +3314,77 @@ func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
 		false,
 		macroName,
 		params,
+		body,
+	)
+}
+
+// functionDefinition = "func" methodName ["(" methodParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) functionDefinition() ast.ExpressionNode {
+	var params []ast.ParameterNode
+	var returnType ast.TypeNode
+	var throwType ast.TypeNode
+	var body []ast.StatementNode
+	var location *position.Location
+
+	funcTok := p.advance()
+	location = funcTok.Location()
+
+	p.swallowNewlines()
+	nameNode := p.functionName()
+
+	if p.match(token.LPAREN) {
+		p.swallowNewlines()
+		if !p.match(token.RPAREN) {
+			params = p.methodParameterList(token.RPAREN)
+
+			p.swallowNewlines()
+			rparen, ok := p.consume(token.RPAREN)
+			if !ok {
+				return ast.NewInvalidNode(
+					rparen.Location(),
+					rparen,
+				)
+			}
+			location = location.Join(rparen.Location())
+		}
+	}
+
+	// return type
+	if p.match(token.COLON) {
+		returnType = p.typeAnnotation()
+		location = location.Join(returnType.Location())
+	}
+
+	// throw type
+	if p.match(token.BANG) {
+		throwType = p.typeAnnotation()
+		location = location.Join(throwType.Location())
+	}
+
+	lastLocation, body, multiline := p.statementBlockWithThen(token.END)
+	if lastLocation != nil {
+		location = location.Join(lastLocation)
+	}
+
+	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
+		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
+		if ok {
+			location = location.Join(endTok.Location())
+		}
+	}
+
+	return ast.NewFunctionDefinitionNode(
+		location,
+		nameNode,
+		params,
+		returnType,
+		throwType,
 		body,
 	)
 }

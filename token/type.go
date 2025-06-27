@@ -151,6 +151,11 @@ func (t Type) IsValidSimpleSymbolContent() bool {
 	return t.IsIdentifier() || t == RAW_STRING || t.IsKeyword() || t.IsOverridableOperator()
 }
 
+// Check whether the token is a valid function name.
+func (t Type) IsValidFunctionName() bool {
+	return t == DOLLAR_IDENTIFIER || t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER
+}
+
 // Check whether the token is a valid method name (without operators).
 func (t Type) IsValidRegularMethodName() bool {
 	return t == DOLLAR_IDENTIFIER || t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER || t.IsKeyword()
