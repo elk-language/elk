@@ -4824,8 +4824,48 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, ta
 	return node
 }
 
-func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Closure) ast.ExpressionNode {
-	baseMethod := closureType.Method(symbol.L_call)
+func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.ClosureLiteralNode, name string) ast.ExpressionNode {
+	closure := types.NewClosure(nil)
+	method, mod := c.declareMethod(
+		nil,
+		closure,
+		"",
+		false,
+		false,
+		true,
+		false,
+		false,
+		symbol.L_call,
+		nil,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Location(),
+	)
+	closure.Body = method
+
+	local := newLocal(closure, true, false)
+	c.addLocal(name, local)
+
+	returnTypeNode, throwTypeNode := c.checkMethod(
+		closure,
+		method,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Body,
+		node.Location(),
+	)
+	node.ReturnType = returnTypeNode
+	node.ThrowType = throwTypeNode
+	node.SetType(closure)
+	if mod != nil {
+		c.popConstScope()
+	}
+	return node
+}
+
+func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, baseMethod *types.Method) ast.ExpressionNode {
 	closure := types.NewClosure(nil)
 	method, mod := c.declareMethod(
 		baseMethod,
@@ -4862,50 +4902,21 @@ func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, 
 	return node
 }
 
+func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Closure) ast.ExpressionNode {
+	baseMethod := closureType.Method(symbol.L_call)
+	return c.checkClosureLiteralNodeWithBase(node, baseMethod)
+}
+
+func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.ExpressionNode {
+	return c.checkClosureLiteralNodeWithBase(node, nil)
+}
+
 func (c *Checker) checkGoExpressionNode(node *ast.GoExpressionNode) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
 	c.checkStatements(node.Body, false)
 	c.popLocalEnv()
 
 	node.SetType(c.Std(symbol.Thread))
-	return node
-}
-
-func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.ExpressionNode {
-	closure := types.NewClosure(nil)
-	method, mod := c.declareMethod(
-		nil,
-		closure,
-		"",
-		false,
-		false,
-		true,
-		false,
-		false,
-		symbol.L_call,
-		nil,
-		node.Parameters,
-		node.ReturnType,
-		node.ThrowType,
-		node.Location(),
-	)
-
-	returnTypeNode, throwTypeNode := c.checkMethod(
-		closure,
-		method,
-		node.Parameters,
-		node.ReturnType,
-		node.ThrowType,
-		node.Body,
-		node.Location(),
-	)
-	node.ReturnType = returnTypeNode
-	node.ThrowType = throwTypeNode
-	closure.Body = method
-	node.SetType(closure)
-	if mod != nil {
-		c.popConstScope()
-	}
 	return node
 }
 
@@ -5009,7 +5020,7 @@ func (c *Checker) checkShortVariableDeclaration(node *ast.AssignmentExpressionNo
 	case *ast.PrivateIdentifierNode:
 		name = left.Value
 	}
-	init, _, typ := c.checkVariableDeclaration(name, node.Right, nil, node.Location())
+	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Location(), false)
 	node.Right = init
 	node.SetType(typ)
 	return node
@@ -6614,11 +6625,12 @@ func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDec
 	c.declareInstanceVariable(value.ToSymbol(name), declaredType, node.Location())
 }
 
-func (c *Checker) checkVariableDeclaration(
+func (c *Checker) checkLocalDeclaration(
 	name string,
 	initialiser ast.ExpressionNode,
 	typeNode ast.TypeNode,
 	location *position.Location,
+	singleAssignment bool,
 ) (
 	_init ast.ExpressionNode,
 	_typeNode ast.TypeNode,
@@ -6633,26 +6645,37 @@ func (c *Checker) checkVariableDeclaration(
 	if initialiser == nil {
 		if typeNode == nil {
 			c.addFailure(
-				fmt.Sprintf("cannot declare a variable without a type `%s`", name),
+				fmt.Sprintf("cannot declare a local without a type `%s`", name),
 				location,
 			)
-			c.addLocal(name, newLocal(types.Untyped{}, false, false))
+			c.addLocal(name, newLocal(types.Untyped{}, false, singleAssignment))
 			return initialiser, typeNode, types.Untyped{}
 		}
 
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(typeNode)
 		declaredType := c.TypeOf(declaredTypeNode)
-		c.addLocal(name, newLocal(declaredType, false, false))
+		c.addLocal(name, newLocal(declaredType, false, singleAssignment))
 		return initialiser, declaredTypeNode, types.Void{}
 	}
 
 	// with an initialiser
 	if typeNode == nil {
 		// without a type, inference
+
+		initClosure, initIsClosure := initialiser.(*ast.ClosureLiteralNode)
+		if initIsClosure {
+			init := c.checkClosureLiteralNodeInVariableDeclaration(
+				initClosure,
+				name,
+			)
+			actualType := c.ToNonLiteral(c.typeOfGuardVoid(init), false)
+			return init, nil, actualType
+		}
+
 		init := c.checkExpression(initialiser)
 		actualType := c.ToNonLiteral(c.typeOfGuardVoid(init), false)
-		local := newLocal(actualType, true, false)
+		local := newLocal(actualType, true, singleAssignment)
 		c.addLocal(name, local)
 		return init, nil, actualType
 	}
@@ -6662,7 +6685,7 @@ func (c *Checker) checkVariableDeclaration(
 	declaredTypeNode := c.checkTypeNode(typeNode)
 	declaredType := c.TypeOf(declaredTypeNode)
 
-	local := newLocal(declaredType, true, false)
+	local := newLocal(declaredType, true, singleAssignment)
 
 	var earlierInitialisation bool
 	// if the value assigned is a closure literal
@@ -6867,63 +6890,29 @@ func (c *Checker) extractCollectionElementFromType(collectionMixin *types.Mixin,
 }
 
 func (c *Checker) checkVariableDeclarationNode(node *ast.VariableDeclarationNode) {
-	init, typeNode, typ := c.checkVariableDeclaration(c.identifierToName(node.Name), node.Initialiser, node.TypeNode, node.Location())
+	init, typeNode, typ := c.checkLocalDeclaration(
+		c.identifierToName(node.Name),
+		node.Initialiser,
+		node.TypeNode,
+		node.Location(),
+		false,
+	)
 	node.Initialiser = init
 	node.TypeNode = typeNode
 	node.SetType(typ)
 }
 
 func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
-	name := c.identifierToName(node.Name)
-	if variable := c.getLocal(name); variable != nil {
-		c.addFailure(
-			fmt.Sprintf("cannot redeclare local `%s`", name),
-			node.Location(),
-		)
-	}
-	if node.Initialiser == nil {
-		if node.TypeNode == nil {
-			c.addFailure(
-				fmt.Sprintf("cannot declare a value without a type `%s`", name),
-				node.Location(),
-			)
-			c.addLocal(name, newLocal(types.Untyped{}, false, true))
-			node.SetType(types.Untyped{})
-			return
-		}
-
-		// without an initialiser but with a type
-		declaredTypeNode := c.checkTypeNode(node.TypeNode)
-		declaredType := c.TypeOf(declaredTypeNode)
-		c.addLocal(name, newLocal(declaredType, false, true))
-		node.TypeNode = declaredTypeNode
-		node.SetType(types.Void{})
-		return
-	}
-
-	// with an initialiser
-	if node.TypeNode == nil {
-		// without a type, inference
-		init := c.checkExpression(node.Initialiser)
-		actualType := c.typeOfGuardVoid(init)
-		c.addLocal(name, newLocal(actualType, true, true))
-		node.Initialiser = init
-		node.SetType(actualType)
-		return
-	}
-
-	// with a type and an initializer
-
-	declaredTypeNode := c.checkTypeNode(node.TypeNode)
-	declaredType := c.TypeOf(declaredTypeNode)
-	init := c.checkExpressionWithType(node.Initialiser, declaredType)
-	actualType := c.typeOfGuardVoid(init)
-	c.addLocal(name, newLocal(declaredType, true, true))
-	c.checkCanAssign(actualType, declaredType, init.Location())
-
-	node.TypeNode = declaredTypeNode
+	init, typeNode, typ := c.checkLocalDeclaration(
+		c.identifierToName(node.Name),
+		node.Initialiser,
+		node.TypeNode,
+		node.Location(),
+		true,
+	)
 	node.Initialiser = init
-	node.SetType(actualType)
+	node.TypeNode = typeNode
+	node.SetType(typ)
 }
 
 func extractConstantName(node ast.ExpressionNode) string {

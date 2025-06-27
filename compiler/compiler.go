@@ -2910,8 +2910,8 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 	case token.EQUAL_OP:
 		return c.setLocal(name, right, location, valueIsIgnored)
 	case token.COLON_EQUAL:
-		c.compileNodeWithResult(right)
 		local := c.defineLocal(name, location)
+		c.compileNodeWithResult(right)
 		if local == nil {
 			return valueIgnoredToResult(valueIsIgnored)
 		}
