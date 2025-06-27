@@ -4267,6 +4267,29 @@ func TestClosureLiteral(t *testing.T) {
 				a = |a: Int, b: String = "foo"|: String -> b
 			`,
 		},
+		"infer types from local assignment": {
+			input: `
+				var a: |a: Int|: String
+				a = |a| -> a.to_string
+			`,
+		},
+		"allow recursive closure in local declaration": {
+			input: `
+				var a: |b: Int|: String = |b| ->
+					a(b - 1)
+				end
+				a(10)
+			`,
+		},
+		"allow recursive closure in local assignment": {
+			input: `
+			  var a: |b: Int|: String
+				a = |b| ->
+					a(b - 1)
+				end
+				a(10)
+			`,
+		},
 		"assign an incompatible closure to a closure type": {
 			input: `
 				a := |a: Int|: Int -> a
@@ -4316,7 +4339,17 @@ func TestClosureLiteral(t *testing.T) {
 				a := |a: Int|: Int -> a
 				a.(9)
 				a.call(3 + 8)
+				a(3 + 8)
 			`,
+		},
+		"call an uninitialised closure": {
+			input: `
+				var a: |a: Int|: Int
+				a(3 + 8)
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 5), P(37, 3, 12)), "cannot access uninitialised local `a`"),
+			},
 		},
 		"call a closure with invalid arguments": {
 			input: `

@@ -3400,12 +3400,12 @@ func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.Bi
 func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode, valueIsIgnored bool) expressionResult {
 	initialised := node.Initialiser != nil
 
-	if initialised {
-		c.compileNodeWithResult(node.Initialiser)
-	}
 	local := c.defineLocal(identifierToName(node.Name), node.Location())
 	if local == nil {
 		return valueIgnoredToResult(valueIsIgnored)
+	}
+	if initialised {
+		c.compileNodeWithResult(node.Initialiser)
 	}
 
 	if initialised {
@@ -4615,12 +4615,12 @@ func (c *Compiler) compilerVariablePatternDeclarationNode(node *ast.VariablePatt
 func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationNode, valueIsIgnored bool) expressionResult {
 	initialised := node.Initialiser != nil
 
-	if initialised {
-		c.compileNodeWithResult(node.Initialiser)
-	}
 	local := c.defineLocal(identifierToName(node.Name), node.Location())
 	if local == nil {
 		return valueIgnoredToResult(valueIsIgnored)
+	}
+	if initialised {
+		c.compileNodeWithResult(node.Initialiser)
 	}
 
 	if initialised {

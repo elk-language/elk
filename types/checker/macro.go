@@ -683,3 +683,31 @@ func (c *Checker) declareMacro(
 	macroNamespace.SetMethod(name, newMacro)
 	return newMacro
 }
+
+func (c *Checker) checkMacroCallNode(node *ast.MacroCallNode) ast.ExpressionNode {
+	posArgs := []ast.ExpressionNode{node.Receiver}
+
+	result := c.expandMacroByName(
+		c.identifierToName(node.MacroName),
+		append(posArgs, node.PositionalArguments...),
+		node.NamedArguments,
+		node.Location(),
+	)
+	if result == nil {
+		return node
+	}
+	return c.checkExpression(result)
+}
+
+func (c *Checker) checkReceiverlessMacroCallNode(node *ast.ReceiverlessMacroCallNode) ast.ExpressionNode {
+	result := c.expandMacroByName(
+		c.identifierToName(node.MacroName),
+		node.PositionalArguments,
+		node.NamedArguments,
+		node.Location(),
+	)
+	if result == nil {
+		return node
+	}
+	return c.checkExpression(result)
+}

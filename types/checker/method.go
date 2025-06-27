@@ -2916,8 +2916,12 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 }
 
 func (c *Checker) getReceiverlessMethod(name value.Symbol, location *position.Location) (_ *types.Method, fromLocal bool) {
-	local, _ := c.resolveLocal(name.String(), nil)
+	nameStr := name.String()
+	local, _ := c.resolveLocal(nameStr, nil)
 	if local != nil {
+		if !local.initialised {
+			c.addUninitialisedLocalError(nameStr, location)
+		}
 		return c.getMethod(local.typ, symbol.L_call, location), true
 	}
 	method := c.getMethod(c.selfType, name, nil)

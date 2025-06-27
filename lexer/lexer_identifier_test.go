@@ -118,9 +118,9 @@ func TestIdentifier(t *testing.T) {
 		"quoted, reports errors for invalid escape sequences": {
 			input: `$"www.foo\yes.com"`,
 			want: []*token.Token{
-				V(L(S(P(0, 1, 1), P(8, 1, 9))), token.PUBLIC_IDENTIFIER, "www.foo"),
+				V(L(S(P(0, 1, 1), P(8, 1, 9))), token.DOLLAR_IDENTIFIER, "www.foo"),
 				V(L(S(P(9, 1, 10), P(10, 1, 11))), token.ERROR, "invalid escape sequence `\\y` in string literal"),
-				V(L(S(P(11, 1, 12), P(17, 1, 18))), token.PUBLIC_IDENTIFIER, "es.com"),
+				V(L(S(P(11, 1, 12), P(17, 1, 18))), token.DOLLAR_IDENTIFIER, "es.com"),
 			},
 		},
 		"quoted, creates errors for invalid hex escapes": {

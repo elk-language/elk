@@ -817,8 +817,7 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 
 	switch n := node.(type) {
 	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
-		*ast.ConstantDeclarationNode, *ast.UninterpolatedRegexLiteralNode,
-		*ast.MacroCallNode, *ast.ReceiverlessMacroCallNode:
+		*ast.ConstantDeclarationNode, *ast.UninterpolatedRegexLiteralNode:
 		return n
 	case *ast.ExtendWhereBlockExpressionNode:
 		if c.TypeOf(node) == nil {
@@ -1134,6 +1133,10 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		)
 		n.SetType(types.Untyped{})
 		return n
+	case *ast.MacroCallNode:
+		return c.checkMacroCallNode(n)
+	case *ast.ReceiverlessMacroCallNode:
+		return c.checkReceiverlessMacroCallNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -5071,7 +5074,7 @@ func (c *Checker) checkAttributeAssignment(attributeNode *ast.AttributeAccessNod
 func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
 	ivarType := c.checkInstanceVariable(name, node.Left.Location())
 
-	node.Right = c.checkExpression(node.Right)
+	node.Right = c.checkExpressionWithType(node.Right, ivarType)
 	assignedType := c.typeOfGuardVoid(node.Right)
 	c.checkCanAssign(assignedType, ivarType, node.Right.Location())
 	c.registerInitialisedInstanceVariable(value.ToSymbol(name))
@@ -5107,7 +5110,14 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 		c.addValueReassignedError(name, node.Left.Location())
 	}
 
-	node.Right = c.checkExpression(node.Right)
+	// if the value assigned is a closure literal
+	// initialise the local earlier to allow recursive closures
+	switch node.Right.(type) {
+	case *ast.ClosureLiteralNode:
+		variable.setInitialised()
+	}
+
+	node.Right = c.checkExpressionWithType(node.Right, variable.typ)
 	assignedType := c.typeOfGuardVoid(node.Right)
 
 	currentVar := variable
@@ -6395,6 +6405,13 @@ func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 	return node
 }
 
+func (c *Checker) addUninitialisedLocalError(name string, loc *position.Location) {
+	c.addFailure(
+		fmt.Sprintf("cannot access uninitialised local `%s`", name),
+		loc,
+	)
+}
+
 func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
 	local, _ := c.resolveLocal(node.Value, node.Location())
 	if local == nil {
@@ -6402,10 +6419,7 @@ func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast
 		return node
 	}
 	if !local.initialised {
-		c.addFailure(
-			fmt.Sprintf("cannot access uninitialised local `%s`", node.Value),
-			node.Location(),
-		)
+		c.addUninitialisedLocalError(node.Value, node.Location())
 	}
 	node.SetType(local.typ)
 	return node
@@ -6418,10 +6432,7 @@ func (c *Checker) checkPrivateIdentifierNode(node *ast.PrivateIdentifierNode) *a
 		return node
 	}
 	if !local.initialised {
-		c.addFailure(
-			fmt.Sprintf("cannot access uninitialised local `%s`", node.Value),
-			node.Location(),
-		)
+		c.addUninitialisedLocalError(node.Value, node.Location())
 	}
 	node.SetType(local.typ)
 	return node
@@ -6641,7 +6652,8 @@ func (c *Checker) checkVariableDeclaration(
 		// without a type, inference
 		init := c.checkExpression(initialiser)
 		actualType := c.ToNonLiteral(c.typeOfGuardVoid(init), false)
-		c.addLocal(name, newLocal(actualType, true, false))
+		local := newLocal(actualType, true, false)
+		c.addLocal(name, local)
 		return init, nil, actualType
 	}
 
@@ -6649,9 +6661,23 @@ func (c *Checker) checkVariableDeclaration(
 
 	declaredTypeNode := c.checkTypeNode(typeNode)
 	declaredType := c.TypeOf(declaredTypeNode)
+
+	local := newLocal(declaredType, true, false)
+
+	var earlierInitialisation bool
+	// if the value assigned is a closure literal
+	// initialise the local earlier to allow recursive closures
+	switch initialiser.(type) {
+	case *ast.ClosureLiteralNode:
+		earlierInitialisation = true
+		c.addLocal(name, local)
+	}
+
 	init := c.checkExpressionWithType(initialiser, declaredType)
 	actualType := c.typeOfGuardVoid(init)
-	c.addLocal(name, newLocal(declaredType, true, false))
+	if !earlierInitialisation {
+		c.addLocal(name, local)
+	}
 	c.checkCanAssign(actualType, declaredType, init.Location())
 
 	return init, declaredTypeNode, actualType

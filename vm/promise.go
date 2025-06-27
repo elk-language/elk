@@ -29,7 +29,7 @@ func newPromise(threadPool *ThreadPool, generator *Generator) *Promise {
 	return p
 }
 
-// Create a new promise executed by the VM
+// Create a new promise for a piece of bytecode executed by the VM
 func NewPromiseForBytecode(threadPool *ThreadPool, bytecode *BytecodeFunction, args ...value.Value) *Promise {
 	generator := NewGeneratorForBytecode(bytecode, args...)
 

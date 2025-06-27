@@ -129,11 +129,11 @@ func (*PublicConstantNode) IsStatic() bool {
 }
 
 func (*PublicConstantNode) Class() *value.Class {
-	return value.PublicIdentifierNodeClass
+	return value.PublicConstantNodeClass
 }
 
 func (*PublicConstantNode) DirectClass() *value.Class {
-	return value.PublicIdentifierNodeClass
+	return value.PublicConstantNodeClass
 }
 
 func (n *PublicConstantNode) Inspect() string {
@@ -205,11 +205,11 @@ func (*PrivateConstantNode) IsStatic() bool {
 }
 
 func (*PrivateConstantNode) Class() *value.Class {
-	return value.PublicIdentifierNodeClass
+	return value.PrivateConstantNodeClass
 }
 
 func (*PrivateConstantNode) DirectClass() *value.Class {
-	return value.PublicIdentifierNodeClass
+	return value.PrivateConstantNodeClass
 }
 
 func (n *PrivateConstantNode) Inspect() string {
