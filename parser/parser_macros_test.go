@@ -1700,7 +1700,7 @@ func TestMacroCall(t *testing.T) {
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(11, 1, 12), P(22, 1, 23))),
-									ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(22, 1, 23))), "func"),
+									ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(22, 1, 23))), "fn"),
 									ast.NewClosureLiteralNode(
 										L(S(P(11, 1, 12), P(22, 1, 23))),
 										[]ast.ParameterNode{
@@ -1974,7 +1974,7 @@ func TestMacroCall(t *testing.T) {
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(26, 1, 27))),
-									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(26, 1, 27))), "func"),
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(26, 1, 27))), "fn"),
 									ast.NewClosureLiteralNode(
 										L(S(P(15, 1, 16), P(26, 1, 27))),
 										[]ast.ParameterNode{

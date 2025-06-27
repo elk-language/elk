@@ -1325,7 +1325,7 @@ func TestMethodCall(t *testing.T) {
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(10, 1, 11), P(21, 1, 22))),
-									ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(21, 1, 22))), "func"),
+									ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(21, 1, 22))), "fn"),
 									ast.NewClosureLiteralNode(
 										L(S(P(10, 1, 11), P(21, 1, 22))),
 										[]ast.ParameterNode{
@@ -1688,7 +1688,7 @@ func TestMethodCall(t *testing.T) {
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(14, 1, 15), P(25, 1, 26))),
-									ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(25, 1, 26))), "func"),
+									ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(25, 1, 26))), "fn"),
 									ast.NewClosureLiteralNode(
 										L(S(P(14, 1, 15), P(25, 1, 26))),
 										[]ast.ParameterNode{

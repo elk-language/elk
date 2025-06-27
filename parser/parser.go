@@ -1540,7 +1540,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 					namedArgs,
 					ast.NewNamedCallArgumentNode(
 						function.Location(),
-						ast.NewPublicIdentifierNode(function.Location(), "func"),
+						ast.NewPublicIdentifierNode(function.Location(), "fn"),
 						function,
 					),
 				)
@@ -1599,7 +1599,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 					namedArgs,
 					ast.NewNamedCallArgumentNode(
 						function.Location(),
-						ast.NewPublicIdentifierNode(function.Location(), "func"),
+						ast.NewPublicIdentifierNode(function.Location(), "fn"),
 						function,
 					),
 				)
@@ -1693,7 +1693,7 @@ methodCallLoop:
 						namedArgs,
 						ast.NewNamedCallArgumentNode(
 							function.Location(),
-							ast.NewPublicIdentifierNode(function.Location(), "func"),
+							ast.NewPublicIdentifierNode(function.Location(), "fn"),
 							function,
 						),
 					)
@@ -1824,7 +1824,7 @@ methodCallLoop:
 					namedArgs,
 					ast.NewNamedCallArgumentNode(
 						function.Location(),
-						ast.NewPublicIdentifierNode(function.Location(), "func"),
+						ast.NewPublicIdentifierNode(function.Location(), "fn"),
 						function,
 					),
 				)
