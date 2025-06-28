@@ -6669,12 +6669,18 @@ func (c *Checker) checkLocalDeclaration(
 				initClosure,
 				name,
 			)
-			actualType := c.ToNonLiteral(c.typeOfGuardVoid(init), false)
+			actualType := c.typeOfGuardVoid(init)
+			if !singleAssignment {
+				actualType = c.ToNonLiteral(actualType, false)
+			}
 			return init, nil, actualType
 		}
 
 		init := c.checkExpression(initialiser)
-		actualType := c.ToNonLiteral(c.typeOfGuardVoid(init), false)
+		actualType := c.typeOfGuardVoid(init)
+		if !singleAssignment {
+			actualType = c.ToNonLiteral(actualType, false)
+		}
 		local := newLocal(actualType, true, singleAssignment)
 		c.addLocal(name, local)
 		return init, nil, actualType

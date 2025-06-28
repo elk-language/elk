@@ -451,6 +451,7 @@ const (
 	FOR               // Keyword `for`
 	FORNUM            // Keyword `fornum`
 	IN                // Keyword `in`
+	OF                // Keyword `of`
 	BREAK             // Keyword `break`
 	CONTINUE          // Keyword `continue`
 	RETURN            // Keyword `return`
@@ -484,6 +485,7 @@ const (
 	CATCH             // Keyword `catch`
 	DO                // Keyword `do`
 	FINALLY           // Keyword `finally`
+	DEFER             // Keyword `defer`
 	ALIAS             // Keyword `alias`
 	AS                // Keyword `as`
 	IS                // Keyword `is`
@@ -507,12 +509,17 @@ const (
 	NOTHING           // Keyword `nothing`
 	ANY               // Keyword `any`
 	PRIMITIVE         // Keyword `primitive`
+	PUBLIC            // Keyword `public`
+	PRIVATE           // Keyword `private`
+	PROTECTED         // Keyword `protected`
 	NATIVE            // Keyword `native`
 	DEFAULT           // Keyword `default`
 	MACRO             // Keyword `macro`
 	BOOL              // Keyword `bool`
 	NEW               // Keyword `new`
+	EXTERN            // Keyword `extern`
 	IMPORT            // Keyword `import`
+	EXPORT            // Keyword `export`
 	WHERE             // Keyword `where`
 	UNTYPED           // Keyword `untyped`
 	UNCHECKED         // Keyword `unchecked`
@@ -543,6 +550,7 @@ var Keywords = map[string]Type{
 	"for":             FOR,
 	"fornum":          FORNUM,
 	"in":              IN,
+	"of":              OF,
 	"break":           BREAK,
 	"continue":        CONTINUE,
 	"return":          RETURN,
@@ -576,6 +584,7 @@ var Keywords = map[string]Type{
 	"catch":           CATCH,
 	"do":              DO,
 	"finally":         FINALLY,
+	"defer":           DEFER,
 	"alias":           ALIAS,
 	"as":              AS,
 	"is":              IS,
@@ -600,11 +609,16 @@ var Keywords = map[string]Type{
 	"any":             ANY,
 	"native":          NATIVE,
 	"primitive":       PRIMITIVE,
+	"public":          PUBLIC,
+	"private":         PRIVATE,
+	"protected":       PROTECTED,
 	"default":         DEFAULT,
 	"macro":           MACRO,
 	"bool":            BOOL,
 	"new":             NEW,
+	"extern":          EXTERN,
 	"import":          IMPORT,
+	"export":          EXPORT,
 	"where":           WHERE,
 	"untyped":         UNTYPED,
 	"unchecked":       UNCHECKED,
@@ -800,6 +814,7 @@ var tokenNames = [...]string{
 	FOR:             "for",
 	FORNUM:          "fornum",
 	IN:              "in",
+	OF:              "of",
 	BREAK:           "break",
 	CONTINUE:        "continue",
 	RETURN:          "return",
@@ -833,6 +848,7 @@ var tokenNames = [...]string{
 	CATCH:           "catch",
 	DO:              "do",
 	FINALLY:         "finally",
+	DEFER:           "defer",
 	ALIAS:           "alias",
 	AS:              "as",
 	IS:              "is",
@@ -856,12 +872,17 @@ var tokenNames = [...]string{
 	NOTHING:         "nothing",
 	ANY:             "any",
 	PRIMITIVE:       "primitive",
+	PUBLIC:          "public",
+	PRIVATE:         "private",
+	PROTECTED:       "protected",
 	NATIVE:          "native",
 	DEFAULT:         "default",
 	MACRO:           "macro",
 	BOOL:            "bool",
 	NEW:             "new",
+	EXTERN:          "extern",
 	IMPORT:          "import",
+	EXPORT:          "export",
 	WHERE:           "where",
 	UNTYPED:         "untyped",
 	UNCHECKED:       "unchecked",

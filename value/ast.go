@@ -143,7 +143,6 @@ var MethodLookupNodeClass *Class                  // Std::Elk::AST::MethodLookup
 var UsingEntryWithSubentriesNodeClass *Class      // Std::Elk::AST::UsingEntryWithSubentriesNode
 var UsingAllEntryNodeClass *Class                 // Std::Elk::AST::UsingAllEntryNode
 var ClosureLiteralNodeClass *Class                // Std::Elk::AST::ClosureLiteralNode
-var FunctionDefinitionNodeClass *Class            // Std::Elk::AST::FunctionDefinitionNode
 var ClassDeclarationNodeClass *Class              // Std::Elk::AST::ClassDeclarationNode
 var ModuleDeclarationNodeClass *Class             // Std::Elk::AST::ModuleDeclarationNode
 var MixinDeclarationNodeClass *Class              // Std::Elk::AST::MixinDeclarationNode
@@ -908,10 +907,6 @@ func initElkAST() {
 	ClosureLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	ClosureLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("ClosureLiteralNode", Ref(ClosureLiteralNodeClass))
-
-	FunctionDefinitionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	FunctionDefinitionNodeClass.IncludeMixin(ExpressionNodeMixin)
-	ElkASTModule.AddConstantString("FunctionDefinitionNode", Ref(FunctionDefinitionNodeClass))
 
 	ClassDeclarationNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	ClassDeclarationNodeClass.IncludeMixin(ExpressionNodeMixin)
