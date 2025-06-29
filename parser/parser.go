@@ -2250,7 +2250,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.quoteExpression()
 	case token.SHORT_UNQUOTE_BEG:
 		return p.shortUnquoteExpression()
-	case token.UNQUOTE:
+	case token.UNQUOTE, token.UNQUOTE_EXPR:
 		return p.unquoteExpression()
 	case token.UNQUOTE_IDENT:
 		return p.unquoteIdentifier()
@@ -4665,7 +4665,7 @@ func (p *Parser) primaryType() ast.TypeNode {
 	}
 
 	switch p.lookahead.Type {
-	case token.UNQUOTE:
+	case token.UNQUOTE, token.UNQUOTE_TYPE:
 		return p.unquoteType()
 	case token.SHORT_UNQUOTE_BEG:
 		return p.shortUnquoteType()
@@ -4936,12 +4936,12 @@ func (p *Parser) mustExpression() *ast.MustExpressionNode {
 	)
 }
 
-// unquoteExpression = "unquote" "(" expressionWithoutModifier ")"
+// unquoteExpression = ("unquote" | "unquote_expr") "(" expressionWithoutModifier ")"
 func (p *Parser) unquoteExpression() ast.ExpressionNode {
 	return p.unquote(ast.UNQUOTE_EXPRESSION_KIND)
 }
 
-// unquotePattern = "unquote" "(" expressionWithoutModifier ")"
+// unquotePattern = ("unquote" | "unquote_pattern") "(" expressionWithoutModifier ")"
 func (p *Parser) unquotePattern() ast.PatternNode {
 	return p.unquote(ast.UNQUOTE_PATTERN_KIND)
 }
@@ -4951,27 +4951,27 @@ func (p *Parser) unquotePatternExpression() ast.PatternExpressionNode {
 	return p.unquote(ast.UNQUOTE_PATTERN_EXPRESSION_KIND)
 }
 
-// unquoteConstant = "unquote" "(" expressionWithoutModifier ")"
+// unquoteConstant = ("unquote" | "unquote_const") "(" expressionWithoutModifier ")"
 func (p *Parser) unquoteConstant() ast.ConstantNode {
 	return p.unquote(ast.UNQUOTE_CONSTANT_KIND)
 }
 
-// unquoteType = "unquote" "(" expressionWithoutModifier ")"
+// unquoteType = ("unquote" | "unquote_type") "(" expressionWithoutModifier ")"
 func (p *Parser) unquoteType() ast.TypeNode {
 	return p.unquote(ast.UNQUOTE_TYPE_KIND)
 }
 
-// unquoteIdentifier = "unquote" "(" expressionWithoutModifier ")"
+// unquoteIdentifier = ("unquote" | "unquote_ident") "(" expressionWithoutModifier ")"
 func (p *Parser) unquoteIdentifier() ast.IdentifierNode {
 	return p.unquote(ast.UNQUOTE_IDENTIFIER_KIND)
 }
 
-// unquoteInstanceVariable = "unquote" "(" expressionWithoutModifier ")"
+// unquoteInstanceVariable = ("unquote" | "unquote_ivar") "(" expressionWithoutModifier ")"
 func (p *Parser) unquoteInstanceVariable() ast.InstanceVariableNode {
 	return p.unquote(ast.UNQUOTE_INSTANCE_VARIABLE_KIND)
 }
 
-// unquote = "unquote" "(" expressionWithoutModifier ")"
+// unquote = UNQUOTE "(" expressionWithoutModifier ")"
 func (p *Parser) unquote(kind ast.UnquoteKind) ast.UnquoteOrInvalidNode {
 	unquoteTok := p.advance()
 

@@ -526,6 +526,8 @@ const (
 	GOTO              // Keyword `goto`
 	QUOTE             // Keyword `quote`
 	UNQUOTE           // Keyword `unquote`
+	UNQUOTE_EXPR      // Keyword `unquote_expr`
+	UNQUOTE_TYPE      // Keyword `unquote_type`
 	UNQUOTE_IDENT     // Keyword `unquote_ident`
 	UNQUOTE_CONST     // Keyword `unquote_const`
 	UNQUOTE_IVAR      // Keyword `unquote_ivar`
@@ -625,6 +627,8 @@ var Keywords = map[string]Type{
 	"goto":            GOTO,
 	"quote":           QUOTE,
 	"unquote":         UNQUOTE,
+	"unquote_expr":    UNQUOTE_EXPR,
+	"unquote_type":    UNQUOTE_TYPE,
 	"unquote_ident":   UNQUOTE_IDENT,
 	"unquote_const":   UNQUOTE_CONST,
 	"unquote_ivar":    UNQUOTE_IVAR,
@@ -889,6 +893,8 @@ var tokenNames = [...]string{
 	GOTO:            "goto",
 	QUOTE:           "quote",
 	UNQUOTE:         "unquote",
+	UNQUOTE_EXPR:    "unquote_expr",
+	UNQUOTE_TYPE:    "unquote_type",
 	UNQUOTE_IDENT:   "unquote_ident",
 	UNQUOTE_CONST:   "unquote_const",
 	UNQUOTE_IVAR:    "unquote_ivar",
