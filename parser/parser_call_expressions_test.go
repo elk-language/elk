@@ -1403,6 +1403,34 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
+		"can have unquote_ident as the name": {
+			input: "foo.unquote_ident(bar * 2)()",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(27, 1, 28))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(27, 1, 28))),
+						ast.NewMethodCallNode(
+							L(S(P(0, 1, 1), P(27, 1, 28))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(25, 1, 26))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(18, 1, 19), P(24, 1, 25))),
+									T(L(S(P(22, 1, 23), P(22, 1, 23))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "bar"),
+									ast.NewIntLiteralNode(L(S(P(24, 1, 25), P(24, 1, 25))), "2"),
+								),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have short unquote as the name": {
 			input: "foo.!{bar * 2}()",
 			want: ast.NewProgramNode(
@@ -2370,6 +2398,31 @@ func TestAttributeAccess(t *testing.T) {
 									T(L(S(P(16, 1, 17), P(16, 1, 17))), token.PLUS),
 									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "foo"),
 									ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "1"),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have unquote_ident as the name": {
+			input: "foo.unquote_ident(foo + 1)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(25, 1, 26))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(25, 1, 26))),
+						ast.NewAttributeAccessNode(
+							L(S(P(0, 1, 1), P(25, 1, 26))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(25, 1, 26))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(18, 1, 19), P(24, 1, 25))),
+									T(L(S(P(22, 1, 23), P(22, 1, 23))), token.PLUS),
+									ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(24, 1, 25), P(24, 1, 25))), "1"),
 								),
 							),
 						),

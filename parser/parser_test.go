@@ -988,6 +988,35 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 		},
+		"can contain unquote_const": {
+			input: "Foo::unquote_const(baz * 2)::Baz",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(31, 1, 32))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(31, 1, 32))),
+						ast.NewConstantLookupNode(
+							L(S(P(0, 1, 1), P(31, 1, 32))),
+							ast.NewConstantLookupNode(
+								L(S(P(0, 1, 1), P(26, 1, 27))),
+								ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+								ast.NewUnquoteNode(
+									L(S(P(5, 1, 6), P(26, 1, 27))),
+									ast.UNQUOTE_CONSTANT_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(19, 1, 20), P(25, 1, 26))),
+										T(L(S(P(23, 1, 24), P(23, 1, 24))), token.STAR),
+										ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "baz"),
+										ast.NewIntLiteralNode(L(S(P(25, 1, 26), P(25, 1, 26))), "2"),
+									),
+								),
+							),
+							ast.NewPublicConstantNode(L(S(P(29, 1, 30), P(31, 1, 32))), "Baz"),
+						),
+					),
+				},
+			),
+		},
 		"is executed from left to right": {
 			input: "Foo::Bar::Baz",
 			want: ast.NewProgramNode(

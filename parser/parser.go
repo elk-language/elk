@@ -3176,7 +3176,7 @@ func (p *Parser) methodName() ast.IdentifierNode {
 	var methodName string
 	var location *position.Location
 
-	if p.accept(token.UNQUOTE) {
+	if p.accept(token.UNQUOTE, token.UNQUOTE_IDENT) {
 		return p.unquoteIdentifier()
 	}
 	if p.accept(token.SHORT_UNQUOTE_BEG) {
@@ -4337,7 +4337,8 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 	var init ast.ExpressionNode
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER, token.UNQUOTE, token.SHORT_UNQUOTE_BEG:
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
+		token.UNQUOTE, token.UNQUOTE_IDENT, token.SHORT_UNQUOTE_BEG:
 		varName := p.identifier()
 		var typ ast.TypeNode
 		lastLocation := varName.Location()
@@ -4428,7 +4429,8 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	var init ast.ExpressionNode
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER, token.UNQUOTE, token.SHORT_UNQUOTE_BEG:
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
+		token.UNQUOTE, token.UNQUOTE_IDENT, token.SHORT_UNQUOTE_BEG:
 		valName := p.identifier()
 		var typ ast.TypeNode
 		lastLocation := valName.Location()

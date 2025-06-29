@@ -10,6 +10,162 @@ import (
 
 func TestAddition(t *testing.T) {
 	tests := testTable{
+		"can contain unquote": {
+			input: "1 + 2 + unquote(foo)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(19, 1, 20))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(19, 1, 20))),
+						ast.NewBinaryExpressionNode(
+							L(S(P(0, 1, 1), P(19, 1, 20))),
+							T(L(S(P(6, 1, 7), P(6, 1, 7))), token.PLUS),
+							ast.NewBinaryExpressionNode(
+								L(S(P(0, 1, 1), P(4, 1, 5))),
+								T(L(S(P(2, 1, 3), P(2, 1, 3))), token.PLUS),
+								ast.NewIntLiteralNode(L(S(P(0, 1, 1), P(0, 1, 1))), "1"),
+								ast.NewIntLiteralNode(L(S(P(4, 1, 5), P(4, 1, 5))), "2"),
+							),
+							ast.NewUnquoteNode(
+								L(S(P(8, 1, 9), P(19, 1, 20))),
+								ast.UNQUOTE_EXPRESSION_KIND,
+								ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(18, 1, 19))), "foo"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can contain unquote_expr": {
+			input: "1 + 2 + unquote_expr(foo)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(24, 1, 25))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(24, 1, 25))),
+						ast.NewBinaryExpressionNode(
+							L(S(P(0, 1, 1), P(24, 1, 25))),
+							T(L(S(P(6, 1, 7), P(6, 1, 7))), token.PLUS),
+							ast.NewBinaryExpressionNode(
+								L(S(P(0, 1, 1), P(4, 1, 5))),
+								T(L(S(P(2, 1, 3), P(2, 1, 3))), token.PLUS),
+								ast.NewIntLiteralNode(L(S(P(0, 1, 1), P(0, 1, 1))), "1"),
+								ast.NewIntLiteralNode(L(S(P(4, 1, 5), P(4, 1, 5))), "2"),
+							),
+							ast.NewUnquoteNode(
+								L(S(P(8, 1, 9), P(24, 1, 25))),
+								ast.UNQUOTE_EXPRESSION_KIND,
+								ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "foo"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can contain unquote_ident": {
+			input: "1 + 2 + unquote_ident(foo)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(25, 1, 26))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(25, 1, 26))),
+						ast.NewBinaryExpressionNode(
+							L(S(P(0, 1, 1), P(25, 1, 26))),
+							T(L(S(P(6, 1, 7), P(6, 1, 7))), token.PLUS),
+							ast.NewBinaryExpressionNode(
+								L(S(P(0, 1, 1), P(4, 1, 5))),
+								T(L(S(P(2, 1, 3), P(2, 1, 3))), token.PLUS),
+								ast.NewIntLiteralNode(L(S(P(0, 1, 1), P(0, 1, 1))), "1"),
+								ast.NewIntLiteralNode(L(S(P(4, 1, 5), P(4, 1, 5))), "2"),
+							),
+							ast.NewUnquoteNode(
+								L(S(P(8, 1, 9), P(25, 1, 26))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(24, 1, 25))), "foo"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can contain unquote_const": {
+			input: "1 + 2 + unquote_const(foo)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(25, 1, 26))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(25, 1, 26))),
+						ast.NewBinaryExpressionNode(
+							L(S(P(0, 1, 1), P(25, 1, 26))),
+							T(L(S(P(6, 1, 7), P(6, 1, 7))), token.PLUS),
+							ast.NewBinaryExpressionNode(
+								L(S(P(0, 1, 1), P(4, 1, 5))),
+								T(L(S(P(2, 1, 3), P(2, 1, 3))), token.PLUS),
+								ast.NewIntLiteralNode(L(S(P(0, 1, 1), P(0, 1, 1))), "1"),
+								ast.NewIntLiteralNode(L(S(P(4, 1, 5), P(4, 1, 5))), "2"),
+							),
+							ast.NewUnquoteNode(
+								L(S(P(8, 1, 9), P(25, 1, 26))),
+								ast.UNQUOTE_CONSTANT_KIND,
+								ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(24, 1, 25))), "foo"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can contain unquote_ivar": {
+			input: "1 + 2 + unquote_ivar(foo)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(24, 1, 25))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(24, 1, 25))),
+						ast.NewBinaryExpressionNode(
+							L(S(P(0, 1, 1), P(24, 1, 25))),
+							T(L(S(P(6, 1, 7), P(6, 1, 7))), token.PLUS),
+							ast.NewBinaryExpressionNode(
+								L(S(P(0, 1, 1), P(4, 1, 5))),
+								T(L(S(P(2, 1, 3), P(2, 1, 3))), token.PLUS),
+								ast.NewIntLiteralNode(L(S(P(0, 1, 1), P(0, 1, 1))), "1"),
+								ast.NewIntLiteralNode(L(S(P(4, 1, 5), P(4, 1, 5))), "2"),
+							),
+							ast.NewUnquoteNode(
+								L(S(P(8, 1, 9), P(24, 1, 25))),
+								ast.UNQUOTE_INSTANCE_VARIABLE_KIND,
+								ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "foo"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can contain short unquote": {
+			input: "1 + 2 + !{foo}",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(13, 1, 14))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(13, 1, 14))),
+						ast.NewBinaryExpressionNode(
+							L(S(P(0, 1, 1), P(13, 1, 14))),
+							T(L(S(P(6, 1, 7), P(6, 1, 7))), token.PLUS),
+							ast.NewBinaryExpressionNode(
+								L(S(P(0, 1, 1), P(4, 1, 5))),
+								T(L(S(P(2, 1, 3), P(2, 1, 3))), token.PLUS),
+								ast.NewIntLiteralNode(L(S(P(0, 1, 1), P(0, 1, 1))), "1"),
+								ast.NewIntLiteralNode(L(S(P(4, 1, 5), P(4, 1, 5))), "2"),
+							),
+							ast.NewUnquoteNode(
+								L(S(P(8, 1, 9), P(13, 1, 14))),
+								ast.UNQUOTE_EXPRESSION_KIND,
+								ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "foo"),
+							),
+						),
+					),
+				},
+			),
+		},
 		"is evaluated from left to right": {
 			input: "1 + 2 + 3",
 			want: ast.NewProgramNode(

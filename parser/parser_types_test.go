@@ -578,6 +578,33 @@ func TestNilableType(t *testing.T) {
 				},
 			),
 		},
+		"can have unquote_type": {
+			input: "type unquote_type(foo + 2)?",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(26, 1, 27))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(26, 1, 27))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(26, 1, 27))),
+							ast.NewNilableTypeNode(
+								L(S(P(5, 1, 6), P(26, 1, 27))),
+								ast.NewUnquoteNode(
+									L(S(P(5, 1, 6), P(25, 1, 26))),
+									ast.UNQUOTE_TYPE_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(18, 1, 19), P(24, 1, 25))),
+										T(L(S(P(22, 1, 23), P(22, 1, 23))), token.PLUS),
+										ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "foo"),
+										ast.NewIntLiteralNode(L(S(P(24, 1, 25), P(24, 1, 25))), "2"),
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
 		"can have short unquote": {
 			input: "type !{foo / 2}?",
 			want: ast.NewProgramNode(
