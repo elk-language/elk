@@ -82,7 +82,7 @@ var (
 	PatternExpressionNode = value.ToSymbol("PatternExpressionNode")
 	TypeNode              = value.ToSymbol("TypeNode")
 	IdentifierNode        = value.ToSymbol("IdentifierNode")
-	InstanceVariableNode  = value.ToSymbol("InstanceVariable")
+	InstanceVariableNode  = value.ToSymbol("InstanceVariableNode")
 	AST                   = value.ToSymbol("AST")
 )
 

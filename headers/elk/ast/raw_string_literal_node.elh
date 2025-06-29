@@ -3,9 +3,8 @@ module Std::Elk::AST
     Raw string literal enclosed with single quotes eg. `'foo'`.
   ]##
   sealed primitive class RawStringLiteralNode
-    include ExpressionNode,
+    include PatternExpressionNode,
             TypeNode,
-            PatternNode,
             WordCollectionContentNode,
             StringLiteralNode,
             SimpleStringLiteralNode

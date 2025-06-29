@@ -3,9 +3,8 @@ module Std::Elk::AST
     Represents an interpolated string literal eg. `"foo ${bar} baz"`
   ]##
   sealed primitive class InterpolatedStringLiteralNode
-    include ExpressionNode,
+    include PatternExpressionNode,
             TypeNode,
-            PatternNode,
             StringLiteralNode
 
     init(content: ArrayTuple[StringLiteralContentNode], location: FS::Location = loop; end); end

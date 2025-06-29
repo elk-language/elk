@@ -3,9 +3,8 @@ module Std::Elk::AST
     Int8 literal eg. `5i8`, `1_20i8`, `0xffi8`
   ]##
   sealed primitive class Int8LiteralNode
-    include ExpressionNode,
-            TypeNode,
-            PatternNode
+    include PatternExpressionNode,
+            TypeNode
 
     ##[
 			Indicates that the format of an

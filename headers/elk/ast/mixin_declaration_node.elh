@@ -3,6 +3,8 @@ module Std::Elk::AST
     Represents a mixin declaration eg. `mixin Foo; end`
   ]##
   sealed primitive class MixinDeclarationNode
+    include ExpressionNode
+
     init(
       constant: ExpressionNode,
       is_abstract: bool = false,

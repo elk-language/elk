@@ -3,9 +3,8 @@ module Std::Elk::AST
     Represents a public constant eg. `Foo`.
   ]##
   sealed primitive class PublicConstantNode
-    include ExpressionNode,
+    include PatternExpressionNode,
             TypeNode,
-            PatternNode,
             UsingEntryNode,
             UsingSubentryNode,
             ComplexConstantNode,

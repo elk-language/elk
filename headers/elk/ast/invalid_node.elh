@@ -4,11 +4,10 @@ module Std::Elk::AST
   ]##
   sealed primitive class InvalidNode
     include StatementNode,
-            ExpressionNode,
+            PatternExpressionNode,
             StructBodyStatementNode,
             ParameterNode,
             TypeNode,
-            PatternNode,
             UsingEntryNode,
             UsingSubentryNode,
             NamedArgumentNode,

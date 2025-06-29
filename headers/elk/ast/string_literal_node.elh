@@ -4,7 +4,6 @@ module ::Std::Elk::AST
 		implement this interface.
 	]##
 	mixin StringLiteralNode
-		include PatternNode,
-						ExpressionNode
+		include PatternExpressionNode
 	end
 end

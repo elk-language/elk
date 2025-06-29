@@ -3,8 +3,7 @@ module Std::Elk::AST
     Represents a bin HashSet literal eg. `^b[11 10]`
   ]##
   sealed primitive class BinHashSetLiteralNode
-    include ExpressionNode,
-            PatternNode
+    include PatternExpressionNode
 
     init(
       elements: ArrayTuple[IntCollectionContentNode],

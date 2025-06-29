@@ -3,9 +3,8 @@ module Std::Elk::AST
     Represents a constant lookup expressions eg. `Foo::Bar`
   ]##
   sealed primitive class ConstantLookupNode
-    include ExpressionNode,
+    include PatternExpressionNode,
             TypeNode,
-            PatternNode,
             UsingEntryNode,
             ComplexConstantNode
 

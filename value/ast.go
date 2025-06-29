@@ -296,6 +296,12 @@ func initElkAST() {
 	ExpressionNodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
 	ElkASTModule.AddConstantString("ExpressionNode", Ref(ExpressionNodeMixin))
 
+	PatternExpressionNodeMixin = NewMixin()
+	PatternExpressionNodeMixin.IncludeMixin(ExpressionNodeMixin)
+	PatternExpressionNodeMixin.IncludeMixin(PatternNodeMixin)
+	PatternExpressionNodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
+	ElkASTModule.AddConstantString("PatternExpressionNode", Ref(PatternExpressionNodeMixin))
+
 	SymbolLiteralNodeMixin = NewMixin()
 	SymbolLiteralNodeMixin.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("SymbolLiteralNode", Ref(SymbolLiteralNodeMixin))
@@ -325,8 +331,7 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("IntCollectionContentNode", Ref(IntCollectionContentNodeMixin))
 
 	IdentifierNodeMixin = NewMixin()
-	IdentifierNodeMixin.IncludeMixin(ExpressionNodeMixin)
-	IdentifierNodeMixin.IncludeMixin(PatternNodeMixin)
+	IdentifierNodeMixin.IncludeMixin(PatternExpressionNodeMixin)
 	IdentifierNodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
 	ElkASTModule.AddConstantString("IdentifierNode", Ref(IdentifierNodeMixin))
 
@@ -338,8 +343,7 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("RegexLiteralContentNode", Ref(RegexLiteralContentNodeMixin))
 
 	RegexLiteralNodeMixin = NewMixin()
-	RegexLiteralNodeMixin.IncludeMixin(PatternNodeMixin)
-	RegexLiteralNodeMixin.IncludeMixin(ExpressionNodeMixin)
+	RegexLiteralNodeMixin.IncludeMixin(PatternExpressionNodeMixin)
 	RegexLiteralNodeMixin.AddConstantString("CASE_INSENSITIVE_FLAG", UInt8(flag.CaseInsensitiveFlag).ToValue())
 	RegexLiteralNodeMixin.AddConstantString("MULTILINE_FLAG", UInt8(flag.MultilineFlag).ToValue())
 	RegexLiteralNodeMixin.AddConstantString("DOT_ALL_FLAG", UInt8(flag.DotAllFlag).ToValue())
@@ -353,8 +357,7 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("StringLiteralContentNode", Ref(StringLiteralContentNodeMixin))
 
 	StringLiteralNodeMixin = NewMixin()
-	StringLiteralNodeMixin.IncludeMixin(PatternNodeMixin)
-	StringLiteralNodeMixin.IncludeMixin(ExpressionNodeMixin)
+	StringLiteralNodeMixin.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("StringLiteralNode", Ref(StringLiteralNodeMixin))
 
 	SimpleStringLiteralNodeMixin = NewMixin()
@@ -366,20 +369,13 @@ func initElkAST() {
 	TypeParameterNodeMixin.IncludeMixin(NodeMixin)
 	ElkASTModule.AddConstantString("TypeParameterNode", Ref(TypeParameterNodeMixin))
 
-	PatternExpressionNodeMixin = NewMixin()
-	PatternExpressionNodeMixin.IncludeMixin(ExpressionNodeMixin)
-	PatternExpressionNodeMixin.IncludeMixin(PatternNodeMixin)
-	PatternExpressionNodeMixin.AddConstantString("Convertible", Ref(NewInterface()))
-	ElkASTModule.AddConstantString("PatternExpressionNode", Ref(PatternExpressionNodeMixin))
-
 	InstanceVariableNodeMixin = NewMixin()
 	InstanceVariableNodeMixin.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("InstanceVariableNode", Ref(InstanceVariableNodeMixin))
 
 	ComplexConstantNodeMixin = NewMixin()
-	ComplexConstantNodeMixin.IncludeMixin(ExpressionNodeMixin)
+	ComplexConstantNodeMixin.IncludeMixin(PatternExpressionNodeMixin)
 	ComplexConstantNodeMixin.IncludeMixin(TypeNodeMixin)
-	ComplexConstantNodeMixin.IncludeMixin(PatternNodeMixin)
 	ComplexConstantNodeMixin.IncludeMixin(UsingEntryNodeMixin)
 	ElkASTModule.AddConstantString("ComplexConstantNode", Ref(ComplexConstantNodeMixin))
 
@@ -396,11 +392,10 @@ func initElkAST() {
 
 	InvalidNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	InvalidNodeClass.IncludeMixin(StatementNodeMixin)
-	InvalidNodeClass.IncludeMixin(ExpressionNodeMixin)
 	InvalidNodeClass.IncludeMixin(StructBodyStatementNodeMixin)
 	InvalidNodeClass.IncludeMixin(ParameterNodeMixin)
 	InvalidNodeClass.IncludeMixin(TypeNodeMixin)
-	InvalidNodeClass.IncludeMixin(PatternNodeMixin)
+	InvalidNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	InvalidNodeClass.IncludeMixin(SymbolLiteralNodeMixin)
 	InvalidNodeClass.IncludeMixin(UsingEntryNodeMixin)
 	InvalidNodeClass.IncludeMixin(UsingSubentryNodeMixin)
@@ -472,26 +467,22 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("LogicalExpressionNode", Ref(LogicalExpressionNodeClass))
 
 	UnaryExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	UnaryExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
-	UnaryExpressionNodeClass.IncludeMixin(PatternNodeMixin)
+	UnaryExpressionNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("UnaryExpressionNode", Ref(UnaryExpressionNodeClass))
 
 	TrueLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	TrueLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	TrueLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	TrueLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	TrueLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("TrueLiteralNode", Ref(TrueLiteralNodeClass))
 
 	FalseLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	FalseLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	FalseLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	FalseLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	FalseLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("FalseLiteralNode", Ref(FalseLiteralNodeClass))
 
 	NilLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	NilLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	NilLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	NilLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	NilLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	NilLiteralNodeClass.IncludeMixin(UsingEntryNodeMixin)
 	NilLiteralNodeClass.IncludeMixin(ComplexConstantNodeMixin)
 	ElkASTModule.AddConstantString("NilLiteralNode", Ref(NilLiteralNodeClass))
@@ -510,17 +501,15 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("PublicInstanceVariableNode", Ref(PublicInstanceVariableNodeClass))
 
 	SimpleSymbolLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	SimpleSymbolLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	SimpleSymbolLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	SimpleSymbolLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	SimpleSymbolLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	SimpleSymbolLiteralNodeClass.IncludeMixin(SymbolLiteralNodeMixin)
 	SimpleSymbolLiteralNodeClass.IncludeMixin(SymbolCollectionContentNodeMixin)
 	ElkASTModule.AddConstantString("SimpleSymbolLiteralNode", Ref(SimpleSymbolLiteralNodeClass))
 
 	IntLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	IntLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	IntLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	IntLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	IntLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	IntLiteralNodeClass.IncludeMixin(IntCollectionContentNodeMixin)
 	ElkASTModule.AddConstantString("IntLiteralNode", Ref(IntLiteralNodeClass))
 
@@ -528,9 +517,8 @@ func initElkAST() {
 	IntLiteralNodeClass.AddConstantString("FormatError", Ref(IntLiteralNodeFormatErrorClass))
 
 	Int64LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	Int64LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	Int64LiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	Int64LiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	Int64LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("Int64LiteralNode", Ref(Int64LiteralNodeClass))
 
 	Int64LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
@@ -546,98 +534,87 @@ func initElkAST() {
 	Int32LiteralNodeClass.AddConstantString("FormatError", Ref(Int32LiteralNodeFormatErrorClass))
 
 	Int16LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	Int16LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	Int16LiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	Int16LiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	Int16LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("Int16LiteralNode", Ref(Int16LiteralNodeClass))
 
 	Int16LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
 	Int16LiteralNodeClass.AddConstantString("FormatError", Ref(Int16LiteralNodeFormatErrorClass))
 
 	Int8LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	Int8LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	Int8LiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	Int8LiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	Int8LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("Int8LiteralNode", Ref(Int8LiteralNodeClass))
 
 	Int8LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
 	Int8LiteralNodeClass.AddConstantString("FormatError", Ref(Int8LiteralNodeFormatErrorClass))
 
 	UInt64LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	UInt64LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	UInt64LiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	UInt64LiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	UInt64LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("UInt64LiteralNode", Ref(UInt64LiteralNodeClass))
 
 	UInt64LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
 	UInt64LiteralNodeClass.AddConstantString("FormatError", Ref(UInt64LiteralNodeFormatErrorClass))
 
 	UInt32LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	UInt32LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	UInt32LiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	UInt32LiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	UInt32LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("UInt32LiteralNode", Ref(UInt32LiteralNodeClass))
 
 	UInt32LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
 	UInt32LiteralNodeClass.AddConstantString("FormatError", Ref(UInt32LiteralNodeFormatErrorClass))
 
 	UInt16LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	UInt16LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	UInt16LiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	UInt16LiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	UInt16LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("UInt16LiteralNode", Ref(UInt16LiteralNodeClass))
 
 	UInt16LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
 	UInt16LiteralNodeClass.AddConstantString("FormatError", Ref(UInt16LiteralNodeFormatErrorClass))
 
 	UInt8LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	UInt8LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	UInt8LiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	UInt8LiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	UInt8LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("UInt8LiteralNode", Ref(UInt8LiteralNodeClass))
 
 	UInt8LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
 	UInt8LiteralNodeClass.AddConstantString("FormatError", Ref(UInt8LiteralNodeFormatErrorClass))
 
 	FloatLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	FloatLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	FloatLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	FloatLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	FloatLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("FloatLiteralNode", Ref(FloatLiteralNodeClass))
 
 	FloatLiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
 	FloatLiteralNodeClass.AddConstantString("FormatError", Ref(FloatLiteralNodeFormatErrorClass))
 
 	BigFloatLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	BigFloatLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
 	BigFloatLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	BigFloatLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	BigFloatLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("BigFloatLiteralNode", Ref(BigFloatLiteralNodeClass))
 
 	BigFloatLiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
 	BigFloatLiteralNodeClass.AddConstantString("FormatError", Ref(BigFloatLiteralNodeFormatErrorClass))
 
 	Float64LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	Float64LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	Float64LiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	Float64LiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	Float64LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("Float64LiteralNode", Ref(Float64LiteralNodeClass))
 
 	Float64LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
 	Float64LiteralNodeClass.AddConstantString("FormatError", Ref(Float64LiteralNodeFormatErrorClass))
 
 	Float32LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	Float32LiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	Float32LiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	Float32LiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	Float32LiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("Float32LiteralNode", Ref(Float32LiteralNodeClass))
 
 	Float32LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithParent(ConstantNodeMixin))
 	Float32LiteralNodeClass.AddConstantString("FormatError", Ref(Float32LiteralNodeFormatErrorClass))
 
 	UninterpolatedRegexLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	UninterpolatedRegexLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	UninterpolatedRegexLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	UninterpolatedRegexLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	UninterpolatedRegexLiteralNodeClass.IncludeMixin(RegexLiteralNodeMixin)
 	ElkASTModule.AddConstantString("UninterpolatedRegexLiteralNode", Ref(UninterpolatedRegexLiteralNodeClass))
 
@@ -652,27 +629,23 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("RegexInterpolationNodeClass", Ref(RegexInterpolationNodeClass))
 
 	InterpolatedRegexLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	InterpolatedRegexLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	InterpolatedRegexLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	InterpolatedRegexLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	InterpolatedRegexLiteralNodeClass.IncludeMixin(RegexLiteralNodeMixin)
 	ElkASTModule.AddConstantString("InterpolatedRegexLiteralNode", Ref(InterpolatedRegexLiteralNodeClass))
 
 	CharLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	CharLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	CharLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	CharLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	CharLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("CharLiteralNode", Ref(CharLiteralNodeClass))
 
 	RawCharLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	RawCharLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	RawCharLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	RawCharLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	RawCharLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("RawCharLiteralNode", Ref(RawCharLiteralNodeClass))
 
 	RawStringLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	RawStringLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	RawStringLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	RawStringLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	RawStringLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	RawStringLiteralNodeClass.IncludeMixin(WordCollectionContentNodeMixin)
 	RawStringLiteralNodeClass.IncludeMixin(StringLiteralNodeMixin)
 	RawStringLiteralNodeClass.IncludeMixin(SimpleStringLiteralNodeMixin)
@@ -694,24 +667,21 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("StringInterpolationNode", Ref(StringInterpolationNodeClass))
 
 	InterpolatedStringLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	InterpolatedStringLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	InterpolatedStringLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	InterpolatedStringLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	InterpolatedStringLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	InterpolatedStringLiteralNodeClass.IncludeMixin(StringLiteralNodeMixin)
 	ElkASTModule.AddConstantString("InterpolatedStringLiteralNode", Ref(InterpolatedStringLiteralNodeClass))
 
 	DoubleQuotedStringLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	DoubleQuotedStringLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	DoubleQuotedStringLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	DoubleQuotedStringLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	DoubleQuotedStringLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	DoubleQuotedStringLiteralNodeClass.IncludeMixin(StringLiteralNodeMixin)
 	DoubleQuotedStringLiteralNodeClass.IncludeMixin(SimpleStringLiteralNodeMixin)
 	ElkASTModule.AddConstantString("DoubleQuotedStringLiteralNode", Ref(DoubleQuotedStringLiteralNodeClass))
 
 	InterpolatedSymbolLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	InterpolatedSymbolLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
+	InterpolatedSymbolLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	InterpolatedSymbolLiteralNodeClass.IncludeMixin(TypeNodeMixin)
-	InterpolatedSymbolLiteralNodeClass.IncludeMixin(PatternNodeMixin)
 	InterpolatedSymbolLiteralNodeClass.IncludeMixin(SymbolLiteralNodeMixin)
 	ElkASTModule.AddConstantString("InterpolatedSymbolLiteralNode", Ref(InterpolatedSymbolLiteralNodeClass))
 
@@ -726,8 +696,7 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("MethodLookupAsNode", Ref(MethodLookupAsNodeClass))
 
 	PublicIdentifierNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	PublicIdentifierNodeClass.IncludeMixin(ExpressionNodeMixin)
-	PublicIdentifierNodeClass.IncludeMixin(PatternNodeMixin)
+	PublicIdentifierNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	PublicIdentifierNodeClass.IncludeMixin(UsingSubentryNodeMixin)
 	PublicIdentifierNodeClass.IncludeMixin(IdentifierNodeMixin)
 	ElkASTModule.AddConstantString("PublicIdentifierNode", Ref(PublicIdentifierNodeClass))
@@ -742,8 +711,7 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("PublicIdentifierAsNode", Ref(PublicIdentifierAsNodeClass))
 
 	PrivateIdentifierNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	PrivateIdentifierNodeClass.IncludeMixin(ExpressionNodeMixin)
-	PrivateIdentifierNodeClass.IncludeMixin(PatternNodeMixin)
+	PrivateIdentifierNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	PrivateIdentifierNodeClass.IncludeMixin(IdentifierNodeMixin)
 	ElkASTModule.AddConstantString("PrivateIdentifierNode", Ref(PrivateIdentifierNodeClass))
 
@@ -751,9 +719,8 @@ func initElkAST() {
 	PrivateIdentifierNodeClass.AddConstantString("FormatError", Ref(PrivateIdentifierNodeFormatErrorClass))
 
 	PublicConstantNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	PublicConstantNodeClass.IncludeMixin(ExpressionNodeMixin)
+	PublicConstantNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	PublicConstantNodeClass.IncludeMixin(TypeNodeMixin)
-	PublicConstantNodeClass.IncludeMixin(PatternNodeMixin)
 	PublicConstantNodeClass.IncludeMixin(UsingEntryNodeMixin)
 	PublicConstantNodeClass.IncludeMixin(UsingSubentryNodeMixin)
 	PublicConstantNodeClass.IncludeMixin(ComplexConstantNodeMixin)
@@ -766,9 +733,8 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("PublicConstantAsNode", Ref(PublicConstantAsNodeClass))
 
 	PrivateConstantNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	PrivateConstantNodeClass.IncludeMixin(ExpressionNodeMixin)
+	PrivateConstantNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	PrivateConstantNodeClass.IncludeMixin(TypeNodeMixin)
-	PrivateConstantNodeClass.IncludeMixin(PatternNodeMixin)
 	PrivateConstantNodeClass.IncludeMixin(UsingEntryNodeMixin)
 	PrivateConstantNodeClass.IncludeMixin(ComplexConstantNodeMixin)
 	PrivateConstantNodeClass.IncludeMixin(ConstantNodeMixin)
@@ -794,8 +760,7 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("QuoteExpressionNode", Ref(QuoteExpressionNodeClass))
 
 	UnquoteNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	UnquoteNodeClass.IncludeMixin(ExpressionNodeMixin)
-	UnquoteNodeClass.IncludeMixin(PatternNodeMixin)
+	UnquoteNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	UnquoteNodeClass.IncludeMixin(TypeNodeMixin)
 	UnquoteNodeClass.IncludeMixin(ConstantNodeMixin)
 	UnquoteNodeClass.IncludeMixin(IdentifierNodeMixin)
@@ -882,9 +847,8 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("TypeofExpressionNode", Ref(TypeofExpressionNodeClass))
 
 	ConstantLookupNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	ConstantLookupNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ConstantLookupNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ConstantLookupNodeClass.IncludeMixin(TypeNodeMixin)
-	ConstantLookupNodeClass.IncludeMixin(PatternNodeMixin)
 	ConstantLookupNodeClass.IncludeMixin(UsingEntryNodeMixin)
 	ConstantLookupNodeClass.IncludeMixin(ComplexConstantNodeMixin)
 	ElkASTModule.AddConstantString("ConstantLookupNode", Ref(ConstantLookupNodeClass))
@@ -953,9 +917,8 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("ConstantDeclarationNode", Ref(ConstantDeclarationNodeClass))
 
 	GenericConstantNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	GenericConstantNodeClass.IncludeMixin(ExpressionNodeMixin)
+	GenericConstantNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	GenericConstantNodeClass.IncludeMixin(TypeNodeMixin)
-	GenericConstantNodeClass.IncludeMixin(PatternNodeMixin)
 	GenericConstantNodeClass.IncludeMixin(UsingEntryNodeMixin)
 	GenericConstantNodeClass.IncludeMixin(ComplexConstantNodeMixin)
 	ElkASTModule.AddConstantString("GenericConstantNode", Ref(GenericConstantNodeClass))
@@ -1079,8 +1042,7 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("SymbolKeyValueExpressionNode", Ref(SymbolKeyValueExpressionNodeClass))
 
 	WordArrayListLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	WordArrayListLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	WordArrayListLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	WordArrayListLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("WordArrayListLiteralNode", Ref(WordArrayListLiteralNodeClass))
 
 	ArrayListLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
@@ -1088,18 +1050,15 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("ArrayListLiteralNode", Ref(ArrayListLiteralNodeClass))
 
 	SymbolArrayListLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	SymbolArrayListLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	SymbolArrayListLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	SymbolArrayListLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("SymbolArrayListLiteralNode", Ref(SymbolArrayListLiteralNodeClass))
 
 	HexArrayListLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	HexArrayListLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	HexArrayListLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	HexArrayListLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("HexArrayListLiteralNode", Ref(HexArrayListLiteralNodeClass))
 
 	BinArrayListLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	BinArrayListLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	BinArrayListLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	BinArrayListLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("BinArrayListLiteralNode", Ref(BinArrayListLiteralNodeClass))
 
 	ArrayTupleLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
@@ -1107,23 +1066,19 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("ArrayTupleLiteralNode", Ref(ArrayTupleLiteralNodeClass))
 
 	WordArrayTupleLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	WordArrayTupleLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	WordArrayTupleLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	WordArrayTupleLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("WordArrayTupleLiteralNode", Ref(WordArrayTupleLiteralNodeClass))
 
 	SymbolArrayTupleLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	SymbolArrayTupleLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	SymbolArrayTupleLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	SymbolArrayTupleLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("SymbolArrayTupleLiteralNode", Ref(SymbolArrayTupleLiteralNodeClass))
 
 	HexArrayTupleLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	HexArrayTupleLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	HexArrayTupleLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	HexArrayTupleLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("HexArrayTupleLiteralNode", Ref(HexArrayTupleLiteralNodeClass))
 
 	BinArrayTupleLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	BinArrayTupleLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	BinArrayTupleLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	BinArrayTupleLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("BinArrayTupleLiteralNode", Ref(BinArrayTupleLiteralNodeClass))
 
 	HashSetLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
@@ -1131,23 +1086,19 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("HashSetLiteralNode", Ref(HashSetLiteralNodeClass))
 
 	WordHashSetLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	WordHashSetLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	WordHashSetLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	WordHashSetLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("WordHashSetLiteralNode", Ref(WordHashSetLiteralNodeClass))
 
 	SymbolHashSetLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	SymbolHashSetLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	SymbolHashSetLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	SymbolHashSetLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("SymbolHashSetLiteralNode", Ref(SymbolHashSetLiteralNodeClass))
 
 	HexHashSetLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	HexHashSetLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	HexHashSetLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	HexHashSetLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("HexHashSetLiteralNode", Ref(HexHashSetLiteralNodeClass))
 
 	BinHashSetLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	BinHashSetLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	BinHashSetLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	BinHashSetLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("BinHashSetLiteralNode", Ref(BinHashSetLiteralNodeClass))
 
 	HashMapLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
@@ -1159,8 +1110,7 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("HashRecordLiteralNode", Ref(HashRecordLiteralNodeClass))
 
 	RangeLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	RangeLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
-	RangeLiteralNodeClass.IncludeMixin(PatternNodeMixin)
+	RangeLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	ElkASTModule.AddConstantString("RangeLiteralNode", Ref(RangeLiteralNodeClass))
 
 	CaseNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))

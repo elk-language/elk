@@ -3,9 +3,8 @@ module Std::Elk::AST
     Int64 literal eg. `5i64`, `125_355i64`, `0xffi64`
   ]##
   sealed primitive class Int64LiteralNode
-    include ExpressionNode,
-            TypeNode,
-            PatternNode
+    include PatternExpressionNode,
+            TypeNode
 
     ##[
 			Indicates that the format of an

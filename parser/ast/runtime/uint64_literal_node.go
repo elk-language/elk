@@ -102,5 +102,6 @@ func initUInt64LiteralNode() {
 	)
 	vm.Alias(c, "to_ast_expr_node", "to_ast_node")
 	vm.Alias(c, "to_ast_pattern_node", "to_ast_node")
+	vm.Alias(c, "to_ast_pattern_expr_node", "to_ast_node")
 	vm.Alias(c, "to_ast_type_node", "to_ast_node")
 }

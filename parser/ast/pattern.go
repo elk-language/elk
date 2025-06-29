@@ -89,6 +89,8 @@ func PatternDeclaresVariables(pattern PatternNode) bool {
 		return anyPatternDeclaresVariables(pat.Elements)
 	case *RecordPatternNode:
 		return anyPatternDeclaresVariables(pat.Elements)
+	case *SetPatternNode:
+		return anyPatternDeclaresVariables(pat.Elements)
 	case *ListPatternNode:
 		return anyPatternDeclaresVariables(pat.Elements)
 	case *TuplePatternNode:

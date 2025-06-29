@@ -4,8 +4,7 @@ module ::Std::Elk::AST
 		should implement this interface.
 	]##
 	mixin IdentifierNode
-		include ExpressionNode,
-						PatternNode
+		include PatternExpressionNode
 
 		##[
 			Indicates that the format of an

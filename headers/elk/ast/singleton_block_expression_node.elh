@@ -7,9 +7,7 @@ module Std::Elk::AST
     end
   ]##
   sealed primitive class SingletonBlockExpressionNode
-    include ExpressionNode,
-            TypeNode,
-            PatternNode
+    include ExpressionNode
 
     init(
       body: ArrayTuple[StatementNode] = loop; end,

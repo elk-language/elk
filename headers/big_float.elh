@@ -176,8 +176,8 @@ sealed noinit primitive class ::Std::BigFloat
 	def to_ast_node: Elk::AST::BigFloatLiteralNode; end
 	alias to_ast_expr_node to_ast_node,
 			  to_ast_pattern_node to_ast_node,
-				to_ast_type_node to_ast_node
-
+				to_ast_type_node to_ast_node,
+				to_ast_pattern_expr_node to_ast_node
 
 	##[
 		Values that conform to this interface

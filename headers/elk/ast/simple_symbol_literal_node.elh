@@ -3,9 +3,8 @@ module Std::Elk::AST
     Represents a symbol literal with simple content eg. `:foo`, `:'foo bar`, `:"lol"`
   ]##
   sealed primitive class SimpleSymbolLiteralNode
-    include ExpressionNode,
+    include PatternExpressionNode,
             TypeNode,
-            PatternNode,
             SymbolCollectionContentNode,
             SymbolLiteralNode
 

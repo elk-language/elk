@@ -1259,7 +1259,7 @@ func (c *Checker) StdIdentifierNodeConvertible() *types.Interface {
 }
 
 func (c *Checker) StdInstanceVariableNodeConvertible() *types.Interface {
-	constant, _ := c.StdIdentifierNode().Subtype(symbol.Convertible)
+	constant, _ := c.StdInstanceVariableNode().Subtype(symbol.Convertible)
 	return constant.Type.(*types.Interface)
 }
 

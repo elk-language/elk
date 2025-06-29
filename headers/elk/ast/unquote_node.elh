@@ -7,8 +7,7 @@ module Std::Elk::AST
     ```
   ]##
   sealed primitive class UnquoteNode
-    include ExpressionNode
-    include PatternNode
+    include PatternExpressionNode
     include TypeNode
     include ConstantNode
     include IdentifierNode
