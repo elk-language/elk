@@ -1182,12 +1182,10 @@ func (c *Compiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) {
 	location := node.Location()
 
 	var newNode ast.ExpressionNode
-	if len(node.Body) != 1 {
-		newNode = ast.NewMacroBoundaryNode(location, node.Body, "")
-	} else if stmt, ok := node.Body[0].(*ast.ExpressionStatementNode); ok {
-		newNode = stmt.Expression
+	if expr := node.SingleExpression(); expr != nil {
+		newNode = expr
 	} else {
-		newNode = ast.NewMacroBoundaryNode(location, node.Body, "")
+		newNode = ast.NewDoExpressionNode(location, node.Body, nil, nil)
 	}
 
 	c.emitGetConst(value.ToSymbol("Std::Kernel"), location)

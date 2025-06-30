@@ -87,7 +87,7 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 	case *ast.InterfaceDeclarationNode:
 		c.hoistInterfaceDeclarationAndExpandMacros(expr)
 	case *ast.SingletonBlockExpressionNode:
-		c.hoistSingletonDeclaration(expr)
+		c.hoistSingletonDeclarationAndExpandMacros(expr)
 	case *ast.ExtendWhereBlockExpressionNode:
 		c.expandTopLevelMacros(expr.Body)
 	case *ast.StructDeclarationNode:
@@ -205,11 +205,10 @@ func (c *Checker) expandMacro(macro *types.Method, posArgs []ast.ExpressionNode,
 
 	resultNode := result.AsReference().(ast.ExpressionNode)
 	// wrap in a macro boundary to make it hygienic
-	resultBoundary, ok := resultNode.(*ast.MacroBoundaryNode)
-	if ok && resultBoundary.Name == "" {
+	if resultBlock, ok := resultNode.(*ast.DoExpressionNode); ok && resultBlock.HasSingleScope() {
 		resultNode = ast.NewMacroBoundaryNode(
 			resultNode.Location(),
-			resultBoundary.Body,
+			resultBlock.Body,
 			types.Inspect(macro),
 		)
 	} else {

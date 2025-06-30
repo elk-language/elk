@@ -22,6 +22,14 @@ type DoExpressionNode struct {
 	Finally []StatementNode
 }
 
+func (n *DoExpressionNode) HasSingleScope() bool {
+	return len(n.Catches) == 0 && len(n.Finally) == 0
+}
+
+func (n *DoExpressionNode) HasSingleStatement() bool {
+	return n.HasSingleScope() && len(n.Body) == 1
+}
+
 func (n *DoExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &DoExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},

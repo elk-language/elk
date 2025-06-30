@@ -16,6 +16,37 @@ type QuoteExpressionNode struct {
 	Body []StatementNode
 }
 
+// Check if the quote block consists of a single expression
+// statement, if so retrieves it and returns the expression.
+// Otherwise returns nil.
+func (n *QuoteExpressionNode) SingleExpression() ExpressionNode {
+	var stmtCount int
+	var exprStmt *ExpressionStatementNode
+
+	for _, stmt := range n.Body {
+		switch stmt := stmt.(type) {
+		case *ExpressionStatementNode:
+			exprStmt = stmt
+			if stmtCount > 0 {
+				return nil
+			}
+			stmtCount++
+		case *EmptyStatementNode:
+		default:
+			if stmtCount > 0 {
+				return nil
+			}
+			stmtCount++
+		}
+	}
+
+	if stmtCount == 1 && exprStmt != nil {
+		return exprStmt.Expression
+	}
+
+	return nil
+}
+
 func (n *QuoteExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &QuoteExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
