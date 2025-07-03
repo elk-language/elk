@@ -279,7 +279,7 @@ func TestUnquote(t *testing.T) {
 		"can take a instance variable node convertible value": {
 			input: `
 				quote
-					var [unquote(:bar)] = "foo"
+					var unquote_ivar(:foo): String?
 				end
 			`,
 		},

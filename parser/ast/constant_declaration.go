@@ -190,7 +190,11 @@ func (n *ConstantDeclarationNode) Inspect() string {
 	}
 
 	buff.WriteString(",\n  type_node: ")
-	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	if n.TypeNode == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	}
 
 	buff.WriteString(",\n  initialiser: ")
 	if n.Initialiser == nil {
