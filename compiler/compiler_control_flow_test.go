@@ -2638,23 +2638,26 @@ func TestLogicalOrOperator(t *testing.T) {
 	tests := testTable{
 		"simple": {
 			input: `
-				"foo" || true
+				a := "foo"
+				a || true
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_IF_NP), 0, 2,
-					// falsy
 					byte(bytecode.POP),
 					byte(bytecode.TRUE),
-					// truthy
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(18, 2, 18)),
+				L(P(0, 1, 1), P(29, 3, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 0),
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -2662,18 +2665,22 @@ func TestLogicalOrOperator(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` is truthy"),
-				diagnostic.NewWarning(L(P(14, 2, 14), P(17, 2, 17)), "unreachable code"),
+				diagnostic.NewWarning(L(P(20, 3, 5), P(20, 3, 5)), "this condition will always have the same result since type `Std::String` is truthy"),
+				diagnostic.NewWarning(L(P(25, 3, 10), P(28, 3, 13)), "unreachable code"),
 			},
 		},
 		"nested": {
 			input: `
-				"foo" || true || 3
+				a := "foo"
+				a || true || 3
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_IF_NP), 0, 2,
 					// falsy 1
 					byte(bytecode.POP),
@@ -2686,10 +2693,11 @@ func TestLogicalOrOperator(t *testing.T) {
 					// truthy 2
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(23, 2, 23)),
+				L(P(0, 1, 1), P(34, 3, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 0),
-					bytecode.NewLineInfo(2, 12),
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -2697,10 +2705,10 @@ func TestLogicalOrOperator(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` is truthy"),
-				diagnostic.NewWarning(L(P(14, 2, 14), P(17, 2, 17)), "unreachable code"),
-				diagnostic.NewWarning(L(P(5, 2, 5), P(17, 2, 17)), "this condition will always have the same result since type `\"foo\"` is truthy"),
-				diagnostic.NewWarning(L(P(22, 2, 22), P(22, 2, 22)), "unreachable code"),
+				diagnostic.NewWarning(L(P(20, 3, 5), P(20, 3, 5)), "this condition will always have the same result since type `Std::String` is truthy"),
+				diagnostic.NewWarning(L(P(25, 3, 10), P(28, 3, 13)), "unreachable code"),
+				diagnostic.NewWarning(L(P(20, 3, 5), P(28, 3, 13)), "this condition will always have the same result since type `Std::String` is truthy"),
+				diagnostic.NewWarning(L(P(33, 3, 18), P(33, 3, 18)), "unreachable code"),
 			},
 		},
 	}
@@ -2716,12 +2724,16 @@ func TestLogicalAndOperator(t *testing.T) {
 	tests := testTable{
 		"simple": {
 			input: `
-				"foo" && true
+				a := "foo"
+				a && true
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
 					// truthy
 					byte(bytecode.POP),
@@ -2729,10 +2741,11 @@ func TestLogicalAndOperator(t *testing.T) {
 					// falsy
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(18, 2, 18)),
+				L(P(0, 1, 1), P(29, 3, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 0),
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -2740,17 +2753,21 @@ func TestLogicalAndOperator(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` is truthy"),
+				diagnostic.NewWarning(L(P(20, 3, 5), P(20, 3, 5)), "this condition will always have the same result since type `Std::String` is truthy"),
 			},
 		},
 		"nested": {
 			input: `
-				"foo" && true && 3
+				a := "foo"
+				a && true && 3
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
 					// truthy 1
 					byte(bytecode.POP),
@@ -2763,10 +2780,11 @@ func TestLogicalAndOperator(t *testing.T) {
 					// falsy 2
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(23, 2, 23)),
+				L(P(0, 1, 1), P(34, 3, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 0),
-					bytecode.NewLineInfo(2, 12),
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -2774,8 +2792,8 @@ func TestLogicalAndOperator(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` is truthy"),
-				diagnostic.NewWarning(L(P(5, 2, 5), P(17, 2, 17)), "this condition will always have the same result since type `true` is truthy"),
+				diagnostic.NewWarning(L(P(20, 3, 5), P(20, 3, 5)), "this condition will always have the same result since type `Std::String` is truthy"),
+				diagnostic.NewWarning(L(P(20, 3, 5), P(28, 3, 13)), "this condition will always have the same result since type `true` is truthy"),
 			},
 		},
 	}
@@ -2791,21 +2809,26 @@ func TestNilCoalescingOperator(t *testing.T) {
 	tests := testTable{
 		"simple": {
 			input: `
-				"foo" ?? true
+				a := "foo"
+				a ?? true
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
 					byte(bytecode.POP),
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(18, 2, 18)),
+				L(P(0, 1, 1), P(29, 3, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 0),
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -2813,18 +2836,22 @@ func TestNilCoalescingOperator(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` can never be nil"),
-				diagnostic.NewWarning(L(P(14, 2, 14), P(17, 2, 17)), "unreachable code"),
+				diagnostic.NewWarning(L(P(20, 3, 5), P(20, 3, 5)), "this condition will always have the same result since type `Std::String` can never be nil"),
+				diagnostic.NewWarning(L(P(25, 3, 10), P(28, 3, 13)), "unreachable code"),
 			},
 		},
 		"nested": {
 			input: `
-				"foo" ?? true ?? 3
+				a := "foo"
+				a ?? true ?? 3
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
 					byte(bytecode.POP),
 					byte(bytecode.TRUE),
@@ -2833,10 +2860,11 @@ func TestNilCoalescingOperator(t *testing.T) {
 					byte(bytecode.INT_3),
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(23, 2, 23)),
+				L(P(0, 1, 1), P(34, 3, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 0),
-					bytecode.NewLineInfo(2, 12),
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
 					value.Undefined,
@@ -2844,10 +2872,10 @@ func TestNilCoalescingOperator(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(5, 2, 5), P(9, 2, 9)), "this condition will always have the same result since type `\"foo\"` can never be nil"),
-				diagnostic.NewWarning(L(P(14, 2, 14), P(17, 2, 17)), "unreachable code"),
-				diagnostic.NewWarning(L(P(5, 2, 5), P(17, 2, 17)), "this condition will always have the same result since type `\"foo\"` can never be nil"),
-				diagnostic.NewWarning(L(P(22, 2, 22), P(22, 2, 22)), "unreachable code"),
+				diagnostic.NewWarning(L(P(20, 3, 5), P(20, 3, 5)), "this condition will always have the same result since type `Std::String` can never be nil"),
+				diagnostic.NewWarning(L(P(25, 3, 10), P(28, 3, 13)), "unreachable code"),
+				diagnostic.NewWarning(L(P(20, 3, 5), P(28, 3, 13)), "this condition will always have the same result since type `Std::String` can never be nil"),
+				diagnostic.NewWarning(L(P(33, 3, 18), P(33, 3, 18)), "unreachable code"),
 			},
 		},
 	}

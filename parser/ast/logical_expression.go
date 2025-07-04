@@ -17,7 +17,7 @@ type LogicalExpressionNode struct {
 	Op     *token.Token   // operator
 	Left   ExpressionNode // left hand side
 	Right  ExpressionNode // right hand side
-	static bool
+	static static
 }
 
 func (n *LogicalExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -103,7 +103,14 @@ func (n *LogicalExpressionNode) String() string {
 }
 
 func (l *LogicalExpressionNode) IsStatic() bool {
-	return l.static
+	if l.static == staticUnset {
+		if areExpressionsStatic(l.Left, l.Right) {
+			l.static = staticTrue
+		} else {
+			l.static = staticFalse
+		}
+	}
+	return l.static == staticTrue
 }
 
 // Create a new logical expression node.
@@ -113,7 +120,6 @@ func NewLogicalExpressionNode(loc *position.Location, op *token.Token, left, rig
 		Op:            op,
 		Left:          left,
 		Right:         right,
-		static:        areExpressionsStatic(left, right),
 	}
 }
 

@@ -15,7 +15,7 @@ type KeyValueExpressionNode struct {
 	TypedNodeBase
 	Key    ExpressionNode
 	Value  ExpressionNode
-	static bool
+	static static
 }
 
 func (n *KeyValueExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -26,7 +26,6 @@ func (n *KeyValueExpressionNode) splice(loc *position.Location, args *[]Node, un
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Key:           key,
 		Value:         val,
-		static:        areExpressionsStatic(key, val),
 	}
 }
 
@@ -75,7 +74,14 @@ func (n *KeyValueExpressionNode) String() string {
 }
 
 func (k *KeyValueExpressionNode) IsStatic() bool {
-	return k.static
+	if k.static == staticUnset {
+		if areExpressionsStatic(k.Key, k.Value) {
+			k.static = staticTrue
+		} else {
+			k.static = staticFalse
+		}
+	}
+	return k.static == staticTrue
 }
 
 // Create a key value expression node eg. `foo => bar`
@@ -84,7 +90,6 @@ func NewKeyValueExpressionNode(loc *position.Location, key, val ExpressionNode) 
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Key:           key,
 		Value:         val,
-		static:        areExpressionsStatic(key, val),
 	}
 }
 

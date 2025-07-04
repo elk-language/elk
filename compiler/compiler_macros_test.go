@@ -741,7 +741,7 @@ func TestQuote(t *testing.T) {
 			),
 		},
 
-		"short unquote_ivar": {
+		"unquote_ivar": {
 			input: `
 				quote
 					var unquote_ivar(:foo): String?
@@ -789,6 +789,205 @@ func TestQuote(t *testing.T) {
 					value.ToSymbol("foo").ToValue(),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("to_ast_ivar_node"), 0)),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("#splice"), 2)),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestMacroExpansion(t *testing.T) {
+	tests := testTable{
+		"compile-time fibonacci": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro fib(i: IntLiteralNode)
+					var calc_fib: |n: Int|: Int = |n| ->
+						return 1 if n < 3
+
+						calc_fib(n - 2) + calc_fib(n - 1)
+					end
+
+					calc_fib(i.to_int).to_ast_node
+				end
+
+				fib!(10) * 2
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_INT_8), 110,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(240, 14, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 0),
+					bytecode.NewLineInfo(14, 3),
+				},
+				[]value.Value{
+					value.Undefined,
+				},
+			),
+		},
+		"recursive fibonacci macro": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro fib(i: IntLiteralNode)
+					int := i.to_int
+					return try IntLiteralNode('1') if int < 3
+
+					quote
+						fib!(!{int - 1}) + fib!(!{int - 2})
+					end
+				end
+
+				fib!(10) * 2
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_INT_8), 110,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(218, 13, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 0),
+					bytecode.NewLineInfo(13, 3),
+				},
+				[]value.Value{
+					value.Undefined,
+				},
+			),
+		},
+		"define a class": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro box(name: ConstantNode, typ: TypeExpressionNode)
+					quote
+						class !{name}
+							attr value: !{typ.type_node}
+							init(@value: !{typ.type_node}); end
+						end
+					end
+				end
+
+				box!(BoxString, type String?)
+
+				b := BoxString("foo")
+				b.value
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.INSTANTIATE8), 1,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(298, 16, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(13, 1),
+					bytecode.NewLineInfo(15, 7),
+					bytecode.NewLineInfo(16, 4),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						namespaceDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 1,
+							byte(bytecode.GET_CONST8), 1,
+							byte(bytecode.GET_CONST8), 2,
+							byte(bytecode.SET_SUPERCLASS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(298, 16, 12)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 10),
+							bytecode.NewLineInfo(16, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("BoxString").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						methodDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.LOAD_VALUE_3),
+							byte(bytecode.DEF_GETTER),
+							byte(bytecode.LOAD_VALUE_3),
+							byte(bytecode.DEF_SETTER),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(298, 16, 12)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 10),
+							bytecode.NewLineInfo(16, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("BoxString").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
+								value.ToSymbol("#init"),
+								[]byte{
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
+									byte(bytecode.SET_IVAR8), 0,
+									byte(bytecode.POP),
+									byte(bytecode.NIL),
+									byte(bytecode.POP),
+									byte(bytecode.RETURN_SELF),
+								},
+								L(P(230, 13, 5), P(258, 13, 33)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(13, 8),
+								},
+								1,
+								0,
+								[]value.Value{
+									value.ToSymbol("value").ToValue(),
+								},
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("value").ToValue(),
+						},
+					)),
+					value.ToSymbol("BoxString").ToValue(),
+					value.Ref(value.String("foo")),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("value"),
+						0,
+					)),
 				},
 			),
 		},

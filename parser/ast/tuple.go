@@ -14,7 +14,7 @@ import (
 type ArrayTupleLiteralNode struct {
 	TypedNodeBase
 	Elements []ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *ArrayTupleLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -23,7 +23,6 @@ func (n *ArrayTupleLiteralNode) splice(loc *position.Location, args *[]Node, unq
 	return &ArrayTupleLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
-		static:        isExpressionSliceStatic(elements),
 	}
 }
 
@@ -49,7 +48,14 @@ func (n *ArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent No
 }
 
 func (t *ArrayTupleLiteralNode) IsStatic() bool {
-	return t.static
+	if t.static == staticUnset {
+		if isExpressionSliceStatic(t.Elements) {
+			t.static = staticTrue
+		} else {
+			t.static = staticFalse
+		}
+	}
+	return t.static == staticTrue
 }
 
 // Create a ArrayTuple literal node eg. `%[1, 5, -6]`
@@ -57,7 +63,6 @@ func NewArrayTupleLiteralNode(loc *position.Location, elements []ExpressionNode)
 	return &ArrayTupleLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
-		static:        isExpressionSliceStatic(elements),
 	}
 }
 

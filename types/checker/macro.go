@@ -678,6 +678,7 @@ func (c *Checker) declareMacro(
 		types.Never{},
 		macroNamespace,
 	)
+	newMacro.SetMacro(true)
 	newMacro.SetLocation(location)
 	macroNamespace.SetMethod(name, newMacro)
 	return newMacro

@@ -698,7 +698,7 @@ type SubscriptExpressionNode struct {
 	TypedNodeBase
 	Receiver ExpressionNode
 	Key      ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *SubscriptExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -709,7 +709,6 @@ func (n *SubscriptExpressionNode) splice(loc *position.Location, args *[]Node, u
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:      receiver,
 		Key:           key,
-		static:        receiver.IsStatic() && key.IsStatic(),
 	}
 }
 
@@ -767,7 +766,14 @@ func (n *SubscriptExpressionNode) String() string {
 }
 
 func (s *SubscriptExpressionNode) IsStatic() bool {
-	return s.static
+	if s.static == staticUnset {
+		if areExpressionsStatic(s.Key, s.Receiver) {
+			s.static = staticTrue
+		} else {
+			s.static = staticFalse
+		}
+	}
+	return s.static == staticTrue
 }
 
 func (*SubscriptExpressionNode) Class() *value.Class {
@@ -804,7 +810,6 @@ func NewSubscriptExpressionNode(loc *position.Location, recv, key ExpressionNode
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Receiver:      recv,
 		Key:           key,
-		static:        recv.IsStatic() && key.IsStatic(),
 	}
 }
 
@@ -813,7 +818,7 @@ type NilSafeSubscriptExpressionNode struct {
 	TypedNodeBase
 	Receiver ExpressionNode
 	Key      ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *NilSafeSubscriptExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -824,7 +829,6 @@ func (n *NilSafeSubscriptExpressionNode) splice(loc *position.Location, args *[]
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:      receiver,
 		Key:           key,
-		static:        receiver.IsStatic() && key.IsStatic(),
 	}
 }
 
@@ -882,7 +886,14 @@ func (n *NilSafeSubscriptExpressionNode) String() string {
 }
 
 func (s *NilSafeSubscriptExpressionNode) IsStatic() bool {
-	return s.static
+	if s.static == staticUnset {
+		if areExpressionsStatic(s.Key, s.Receiver) {
+			s.static = staticTrue
+		} else {
+			s.static = staticFalse
+		}
+	}
+	return s.static == staticTrue
 }
 
 func (*NilSafeSubscriptExpressionNode) Class() *value.Class {
@@ -919,7 +930,6 @@ func NewNilSafeSubscriptExpressionNode(loc *position.Location, recv, key Express
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Receiver:      recv,
 		Key:           key,
-		static:        recv.IsStatic() && key.IsStatic(),
 	}
 }
 

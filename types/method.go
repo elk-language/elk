@@ -146,6 +146,7 @@ const (
 	METHOD_ATTRIBUTE_FLAG
 	METHOD_GENERATOR_FLAG
 	METHOD_ASYNC_FLAG
+	METHOD_MACRO_FLAG
 	// used in using expression placeholders
 	METHOD_PLACEHOLDER_FLAG
 	METHOD_CHECKED_FLAG
@@ -322,6 +323,15 @@ func (m *Method) SetAsync(val bool) *Method {
 	return m
 }
 
+func (m *Method) IsMacro() bool {
+	return m.Flags.HasFlag(METHOD_MACRO_FLAG)
+}
+
+func (m *Method) SetMacro(val bool) *Method {
+	m.SetFlag(METHOD_MACRO_FLAG, val)
+	return m
+}
+
 func (m *Method) IsReplaced() bool {
 	return m.Flags.HasFlag(METHOD_REPLACED_FLAG)
 }
@@ -350,7 +360,7 @@ func (m *Method) SetAbstract(abstract bool) *Method {
 }
 
 func (m *Method) IsDefinable() bool {
-	return !m.IsCompiled() && (m.Bytecode != nil || m.IsAttribute())
+	return !m.IsCompiled() && !m.IsMacro() && (m.Bytecode != nil || m.IsAttribute())
 }
 
 func (m *Method) IsSetter() bool {

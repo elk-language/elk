@@ -15,26 +15,21 @@ type HashMapLiteralNode struct {
 	TypedNodeBase
 	Elements []ExpressionNode
 	Capacity ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *HashMapLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 	var capacity ExpressionNode
-	var static bool
 
 	if n.Capacity != nil {
 		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
-		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
-	} else {
-		static = isExpressionSliceStatic(elements)
 	}
 
 	return &HashMapLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -146,22 +141,22 @@ func (n *HashMapLiteralNode) String() string {
 }
 
 func (m *HashMapLiteralNode) IsStatic() bool {
-	return m.static
+	if m.static == staticUnset {
+		if isExpressionSliceStatic(m.Elements) && isExpressionStatic(m.Capacity) {
+			m.static = staticTrue
+		} else {
+			m.static = staticFalse
+		}
+	}
+	return m.static == staticTrue
 }
 
 // Create a HashMap literal node eg. `{ foo: 1, 'bar' => 5, baz }`
 func NewHashMapLiteralNode(loc *position.Location, elements []ExpressionNode, capacity ExpressionNode) *HashMapLiteralNode {
-	var static bool
-	if capacity != nil {
-		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
-	} else {
-		static = isExpressionSliceStatic(elements)
-	}
 	return &HashMapLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -212,17 +207,15 @@ func (n *HashMapLiteralNode) Error() string {
 type HashRecordLiteralNode struct {
 	TypedNodeBase
 	Elements []ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *HashRecordLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
-	static := isExpressionSliceStatic(elements)
 
 	return &HashRecordLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
-		static:        static,
 	}
 }
 
@@ -308,7 +301,14 @@ func (n *HashRecordLiteralNode) String() string {
 }
 
 func (r *HashRecordLiteralNode) IsStatic() bool {
-	return r.static
+	if r.static == staticUnset {
+		if isExpressionSliceStatic(r.Elements) {
+			r.static = staticTrue
+		} else {
+			r.static = staticFalse
+		}
+	}
+	return r.static == staticTrue
 }
 
 // Create a Record literal node eg. `%{ foo: 1, 'bar' => 5, baz }`
@@ -316,7 +316,6 @@ func NewHashRecordLiteralNode(loc *position.Location, elements []ExpressionNode)
 	return &HashRecordLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
-		static:        isExpressionSliceStatic(elements),
 	}
 }
 

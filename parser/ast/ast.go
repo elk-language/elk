@@ -15,6 +15,14 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+type static uint8
+
+const (
+	staticUnset static = iota
+	staticFalse
+	staticTrue
+)
+
 // Checks whether all expressions in the given list are static.
 func isExpressionSliceStatic(elements []ExpressionNode) bool {
 	for _, element := range elements {
@@ -28,11 +36,16 @@ func isExpressionSliceStatic(elements []ExpressionNode) bool {
 // Checks whether all expressions in the given list are static.
 func areExpressionsStatic(elements ...ExpressionNode) bool {
 	for _, element := range elements {
-		if element != nil && !element.IsStatic() {
+		if !isExpressionStatic(element) {
 			return false
 		}
 	}
+
 	return true
+}
+
+func isExpressionStatic(expr ExpressionNode) bool {
+	return expr == nil || expr.IsStatic()
 }
 
 // Checks whether all nodes in the given list are static.
