@@ -701,10 +701,6 @@ func initElkAST() {
 	PublicIdentifierNodeClass.IncludeMixin(IdentifierNodeMixin)
 	ElkASTModule.AddConstantString("PublicIdentifierNode", Ref(PublicIdentifierNodeClass))
 
-	PublicIdentifierNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	PublicIdentifierNodeClass.IncludeMixin(ExpressionNodeMixin)
-	ElkASTModule.AddConstantString("PublicIdentifierNode", Ref(PublicIdentifierNodeClass))
-
 	PublicIdentifierAsNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	PublicIdentifierAsNodeClass.IncludeMixin(ExpressionNodeMixin)
 	PublicIdentifierAsNodeClass.IncludeMixin(UsingSubentryNodeMixin)

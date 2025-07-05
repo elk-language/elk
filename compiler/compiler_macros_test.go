@@ -808,7 +808,7 @@ func TestMacroExpansion(t *testing.T) {
 				using Std::Elk::AST::*
 
 				macro fib(i: IntLiteralNode)
-					var calc_fib: |n: Int|: Int = |n| ->
+					calc_fib := |n: Int|: Int ->
 						return 1 if n < 3
 
 						calc_fib(n - 2) + calc_fib(n - 1)
@@ -825,7 +825,7 @@ func TestMacroExpansion(t *testing.T) {
 					byte(bytecode.LOAD_INT_8), 110,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(240, 14, 17)),
+				L(P(0, 1, 1), P(232, 14, 17)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 0),
 					bytecode.NewLineInfo(14, 3),

@@ -38,6 +38,7 @@ type MethodDefinitionNode struct {
 }
 
 func (n *MethodDefinitionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	name := n.Name.splice(loc, args, unquote).(IdentifierNode)
 	typeParams := SpliceSlice(n.TypeParameters, loc, args, unquote)
 	params := SpliceSlice(n.Parameters, loc, args, unquote)
 
@@ -56,7 +57,7 @@ func (n *MethodDefinitionNode) splice(loc *position.Location, args *[]Node, unqu
 	return &MethodDefinitionNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Name:                   n.Name.splice(loc, args, unquote).(IdentifierNode),
+		Name:                   name,
 		TypeParameters:         typeParams,
 		Parameters:             params,
 		ReturnType:             returnType,
@@ -629,6 +630,7 @@ type MethodSignatureDefinitionNode struct {
 }
 
 func (n *MethodSignatureDefinitionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	name := n.Name.splice(loc, args, unquote).(IdentifierNode)
 	typeParams := SpliceSlice(n.TypeParameters, loc, args, unquote)
 	params := SpliceSlice(n.Parameters, loc, args, unquote)
 
@@ -645,7 +647,7 @@ func (n *MethodSignatureDefinitionNode) splice(loc *position.Location, args *[]N
 	return &MethodSignatureDefinitionNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Name:                   n.Name.splice(loc, args, unquote).(IdentifierNode),
+		Name:                   name,
 		TypeParameters:         typeParams,
 		Parameters:             params,
 		ReturnType:             returnType,

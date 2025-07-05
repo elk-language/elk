@@ -56,5 +56,7 @@ module Std::Elk::AST
     def expression: ExpressionNode; end
     def kind: UInt8; end
     def location: FS::Location; end
+
+    def value: String; end
   end
 end

@@ -302,3 +302,157 @@ func TestUnquote(t *testing.T) {
 		})
 	}
 }
+
+func TestExpandMacro(t *testing.T) {
+	tests := testTable{
+		"define a class in a top level macro": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro klass(name: ConstantNode)
+					quote
+						class !{name}
+							def foo: String
+								"lol"
+							end
+						end
+					end
+				end
+				klass!(Bar)
+
+				b := Bar()
+				var a: String = b.foo
+			`,
+		},
+		"inherit from a generated class": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro klass(name: ConstantNode)
+					quote
+						class !{name}
+							def foo: String
+								"lol"
+							end
+						end
+					end
+				end
+				klass!(Bar)
+
+				class Baz < Bar; end
+				b := Baz()
+				var a: String = b.foo
+			`,
+		},
+		"define a class in an expression level macro": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro klass(name: ConstantNode)
+					quote
+						class !{name}
+							def foo: String
+								"lol"
+							end
+						end
+					end
+				end
+				klass!(Bar) + 5
+
+				b := Bar()
+				var a: String = b.foo
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(175, 13, 5), P(185, 13, 15)), "class definitions cannot appear in this context"),
+				diagnostic.NewFailure(L("<main>", P(175, 13, 5), P(185, 13, 15)), "method definitions cannot appear in this context"),
+				diagnostic.NewFailure(L("<main>", P(175, 13, 5), P(189, 13, 19)), "method `+` is not defined on type `Std::Nil`"),
+				diagnostic.NewFailure(L("<main>", P(201, 15, 10), P(203, 15, 12)), "undefined type `Bar`"),
+			},
+		},
+		"generate a method": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro fn(name: IdentifierNode)
+					quote
+						def !{name}: String
+							!{name.value}
+						end
+					end
+				end
+
+				module Foo
+					fn!(lol)
+				end
+
+				var a: String = Foo.lol
+			`,
+		},
+		"use a generated method in a constant": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro fn(name: IdentifierNode)
+					quote
+						def !{name}: String
+							!{name.value}
+						end
+					end
+				end
+
+				module Foo
+					fn!(lol)
+					const BAR: String = "#{Foo.lol()} hey"
+				end
+
+				var a: String = Foo::BAR
+			`,
+		},
+		"generate a method in an expression level macro": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro fn(name: IdentifierNode)
+					quote
+						def !{name}: String
+							!{name.value}
+						end
+					end
+				end
+
+				module Foo
+					fn!(lol) * 5
+				end
+
+				var a: String = Foo.lol
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(170, 13, 6), P(177, 13, 13)), "method definitions cannot appear in this context"),
+				diagnostic.NewFailure(L("<main>", P(212, 16, 21), P(218, 16, 27)), "method `lol` is not defined on type `Foo`"),
+			},
+		},
+		"generate an expression": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro fib(i: IntLiteralNode)
+					calc_fib := |n: Int|: Int ->
+						return 1 if n < 3
+
+						calc_fib(n - 2) + calc_fib(n - 1)
+					end
+
+					calc_fib(i.to_int).to_ast_node
+				end
+
+				timeout := fib!(15) + 2
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}

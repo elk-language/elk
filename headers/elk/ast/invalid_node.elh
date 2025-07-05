@@ -32,5 +32,7 @@ module Std::Elk::AST
     def is_normal: bool; end
     def is_positional_rest: bool; end
     def is_named_rest: bool; end
+
+    def value: String; end
   end
 end

@@ -191,7 +191,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents a hex ArrayTuple literal eg. `%x[ff ee]`", false, true, true, false, value.ToSymbol("HexArrayTupleLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a hex HashSet literal eg. `^x[ff ee]`", false, true, true, false, value.ToSymbol("HexHashSetLiteralNode"), objectClass, env)
 				{
-					namespace := namespace.TryDefineMixin("All nodes that should be valid identifiers\nshould implement this interface.", false, value.ToSymbol("IdentifierNode"), env)
+					namespace := namespace.TryDefineMixin("All nodes that should be valid identifiers\nshould implement this interface.", true, value.ToSymbol("IdentifierNode"), env)
 					namespace.TryDefineInterface("", value.ToSymbol("Convertible"), env)
 					namespace.TryDefineClass("Indicates that the format of an\nidentifier node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
@@ -1388,6 +1388,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Define methods
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("inspect_call_stack"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("inspect_inheritance"), nil, []*Parameter{NewParameter(value.ToSymbol("klass"), NameToType("Std::Class", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("inspect_value_stack"), nil, nil, Void{}, Never{})
 				namespace.DefineMethod("Returns the current stack trace.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("stack_trace"), nil, nil, NameToType("Std::StackTrace", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("start_cpu_profile"), nil, []*Parameter{NewParameter(value.ToSymbol("file_path"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, NameToType("Std::FileSystemError", env))
@@ -2826,6 +2827,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_ident_node"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
 
@@ -3337,6 +3339,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_positional_rest"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("token"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
 
@@ -5435,6 +5438,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("kind"), nil, nil, NameToType("Std::UInt8", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
 						namespace.DefineConstant(value.ToSymbol("UNQUOTE_CONSTANT_KIND"), NameToType("Std::UInt8", env))

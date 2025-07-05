@@ -3,7 +3,7 @@ module ::Std::Elk::AST
 		All nodes that should be valid identifiers
 		should implement this interface.
 	]##
-	mixin IdentifierNode
+	abstract mixin IdentifierNode
 		include PatternExpressionNode
 
 		##[
@@ -11,6 +11,8 @@ module ::Std::Elk::AST
 			identifier node is invalid.
 		]##
 		class FormatError < Node::FormatError; end
+
+		sig value: String
 
 		def to_ast_ident_node: IdentifierNode; end
 

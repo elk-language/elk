@@ -13,4 +13,6 @@ module Std::Debug
     Returns the current stack trace.
   ]##
   def stack_trace: StackTrace; end
+
+  def inspect_inheritance(klass: Class): String; end
 end

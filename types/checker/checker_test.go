@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
@@ -15,6 +16,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/k0kubun/pp/v3"
 )
+
+func init() {
+	elk.InitGlobalEnvironment()
+}
 
 func TestMain(m *testing.M) {
 	concurrencyLimit = 1

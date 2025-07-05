@@ -55,6 +55,15 @@ func initDebug() {
 	)
 	Def(
 		c,
+		"inspect_inheritance",
+		func(v *VM, args []value.Value) (value.Value, value.Value) {
+			klass := args[1].AsReference().(*value.Class)
+			return value.Ref(value.String(klass.InspectInheritance())), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"stack_trace",
 		func(v *VM, args []value.Value) (value.Value, value.Value) {
 			return value.Ref(v.BuildStackTrace()), value.Undefined

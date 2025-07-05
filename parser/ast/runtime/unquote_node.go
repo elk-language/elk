@@ -88,4 +88,12 @@ func initUnquoteNode() {
 		},
 	)
 
+	vm.Def(
+		c,
+		"value",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			return value.Ref(value.String("")), value.Undefined
+		},
+	)
+
 }
