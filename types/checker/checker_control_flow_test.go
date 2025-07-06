@@ -332,7 +332,7 @@ func TestThrowExpression(t *testing.T) {
 				foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(50, 6, 5), P(54, 6, 9)), "thrown value of type `Std::Symbol` must be caught"),
+				diagnostic.NewFailure(L("<main>", P(50, 6, 5), P(52, 6, 7)), "thrown value of type `Std::Symbol` must be caught"),
 			},
 		},
 		"call receiverless method that throws and catch": {
@@ -359,7 +359,7 @@ func TestThrowExpression(t *testing.T) {
 				Foo.foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(76, 8, 5), P(84, 8, 13)), "thrown value of type `Std::Symbol` must be caught"),
+				diagnostic.NewFailure(L("<main>", P(80, 8, 9), P(82, 8, 11)), "thrown value of type `Std::Symbol` must be caught"),
 			},
 		},
 		"call method that throws and catch": {
@@ -682,7 +682,7 @@ func TestSwitchExpression(t *testing.T) {
 				  end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(58, 4, 18), P(60, 4, 20)), "method `b` is not defined on type `Std::Object`"),
+				diagnostic.NewFailure(L("<main>", P(58, 4, 18), P(58, 4, 18)), "method `b` is not defined on type `Std::Object`"),
 				diagnostic.NewFailure(L("<main>", P(47, 4, 7), P(150, 11, 9)), "type `5 | 2.5 | \"else\"` cannot be assigned to type `0`"),
 			},
 		},

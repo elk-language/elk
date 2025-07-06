@@ -443,8 +443,8 @@ func TestQuote(t *testing.T) {
 												"Std::Elk::AST::ListPatternNode",
 											),
 											[]ast.ExpressionNode{
-												ast.NewUndefinedLiteralNode(L(P(29, 3, 19), P(55, 3, 45))),
-												ast.NewUndefinedLiteralNode(L(P(29, 3, 19), P(55, 3, 45))),
+												ast.NewUndefinedLiteralNode(L(P(29, 3, 19), P(53, 3, 43))),
+												ast.NewUndefinedLiteralNode(L(P(29, 3, 19), P(53, 3, 43))),
 											},
 											nil,
 										),
@@ -509,8 +509,8 @@ func TestQuote(t *testing.T) {
 												"Std::Elk::AST::ListPatternNode",
 											),
 											[]ast.ExpressionNode{
-												ast.NewUndefinedLiteralNode(L(P(37, 3, 27), P(63, 3, 53))),
-												ast.NewUndefinedLiteralNode(L(P(37, 3, 27), P(63, 3, 53))),
+												ast.NewUndefinedLiteralNode(L(P(37, 3, 27), P(61, 3, 51))),
+												ast.NewUndefinedLiteralNode(L(P(37, 3, 27), P(61, 3, 51))),
 											},
 											nil,
 										),
@@ -575,8 +575,8 @@ func TestQuote(t *testing.T) {
 												"Std::Elk::AST::ListPatternNode",
 											),
 											[]ast.ExpressionNode{
-												ast.NewUndefinedLiteralNode(L(P(23, 3, 13), P(49, 3, 39))),
-												ast.NewUndefinedLiteralNode(L(P(23, 3, 13), P(49, 3, 39))),
+												ast.NewUndefinedLiteralNode(L(P(23, 3, 13), P(47, 3, 37))),
+												ast.NewUndefinedLiteralNode(L(P(23, 3, 13), P(47, 3, 37))),
 											},
 											nil,
 										),

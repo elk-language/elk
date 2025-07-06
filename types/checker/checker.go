@@ -4214,7 +4214,7 @@ func (c *Checker) instanceVariableToName(node ast.InstanceVariableNode) string {
 
 func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	name := c.identifierToName(node.MethodName)
-	method, fromLocal := c.getReceiverlessMethod(value.ToSymbol(name), node.Location())
+	method, fromLocal := c.getReceiverlessMethod(value.ToSymbol(name), node.MethodName.Location())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -4228,7 +4228,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		method,
 		node.TypeArguments,
 		method.TypeParameters,
-		node.Location(),
+		node.MethodName.Location(),
 	)
 	if !ok {
 		c.checkExpressions(node.PositionalArguments)
@@ -4253,7 +4253,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		default:
 			// from self
 			receiver = ast.NewSelfLiteralNode(node.Location())
-			c.checkNonNilableInstanceVariablesForSelf(node.Location())
+			c.checkNonNilableInstanceVariablesForSelf(node.MethodName.Location())
 		}
 	}
 
@@ -4261,7 +4261,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		method,
 		node.PositionalArguments,
 		node.NamedArguments,
-		node.Location(),
+		node.MethodName.Location(),
 	)
 	newNode := ast.NewMethodCallNode(
 		node.Location(),
@@ -4283,7 +4283,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	methodName := c.identifierToName(node.MethodName)
 	methodNameSymbol := value.ToSymbol(methodName)
-	method, fromLocal := c.getReceiverlessMethod(methodNameSymbol, node.Location())
+	method, fromLocal := c.getReceiverlessMethod(methodNameSymbol, node.MethodName.Location())
 	if method == nil || method.IsPlaceholder() {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -4302,7 +4302,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 			node.PositionalArguments,
 			node.NamedArguments,
 			method.TypeParameters,
-			node.Location(),
+			node.MethodName.Location(),
 		)
 		if typedPositionalArguments == nil {
 			node.SetType(types.Untyped{})
@@ -4319,7 +4319,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 			method,
 			node.PositionalArguments,
 			node.NamedArguments,
-			node.Location(),
+			node.MethodName.Location(),
 		)
 	}
 
@@ -4331,7 +4331,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		case *types.Module:
 			if under == c.selfType {
 				receiver = ast.NewSelfLiteralNode(node.Location())
-				c.checkNonNilableInstanceVariablesForSelf(node.Location())
+				c.checkNonNilableInstanceVariablesForSelf(node.MethodName.Location())
 			} else {
 				// from using
 				receiver = ast.NewPublicConstantNode(node.Location(), under.Name())
@@ -4339,7 +4339,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		case *types.SingletonClass:
 			if under == c.selfType {
 				receiver = ast.NewSelfLiteralNode(node.Location())
-				c.checkNonNilableInstanceVariablesForSelf(node.Location())
+				c.checkNonNilableInstanceVariablesForSelf(node.MethodName.Location())
 			} else {
 				// from using
 				receiver = ast.NewPublicConstantNode(node.Location(), under.AttachedObject.Name())
@@ -4347,7 +4347,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		default:
 			// from self
 			receiver = ast.NewSelfLiteralNode(node.Location())
-			c.checkNonNilableInstanceVariablesForSelf(node.Location())
+			c.checkNonNilableInstanceVariablesForSelf(node.MethodName.Location())
 		}
 	}
 
@@ -4355,7 +4355,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		node.Location(),
 		receiver,
 		token.New(node.Location(), token.DOT),
-		ast.NewPublicIdentifierNode(node.Location(), method.Name.String()),
+		ast.NewPublicIdentifierNode(node.MethodName.Location(), method.Name.String()),
 		typedPositionalArguments,
 		nil,
 	)
@@ -4363,7 +4363,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	if len(c.catchScopes) < 1 {
 		newNode.TailCall = tailPosition
 	}
-	c.checkCalledMethodThrowType(method, node.Location())
+	c.checkCalledMethodThrowType(method, node.MethodName.Location())
 
 	newNode.SetType(method.ReturnType)
 	return newNode
@@ -4629,7 +4629,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 		method,
 		node.PositionalArguments,
 		node.NamedArguments,
-		node.Location(),
+		node.ClassNode.Location(),
 	)
 
 	node.PositionalArguments = typedPositionalArguments
@@ -4706,7 +4706,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			method,
 			node.PositionalArguments,
 			node.NamedArguments,
-			node.Location(),
+			node.ClassNode.Location(),
 		)
 
 		node.PositionalArguments = typedPositionalArguments
@@ -4805,7 +4805,7 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, tailPosition boo
 		nil,
 		node.PositionalArguments,
 		node.NamedArguments,
-		node.Location(),
+		node.MethodName.Location(),
 	)
 	if len(c.catchScopes) < 1 {
 		node.TailCall = tailPosition
@@ -4823,7 +4823,7 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, ta
 		node.TypeArguments,
 		node.PositionalArguments,
 		node.NamedArguments,
-		node.Location(),
+		node.MethodName.Location(),
 	)
 	if len(c.catchScopes) < 1 {
 		node.TailCall = tailPosition

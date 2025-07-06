@@ -190,13 +190,14 @@ func (c *Checker) expandMacro(macro *types.Method, posArgs []ast.ExpressionNode,
 	}
 
 	promise := vm.NewPromiseForBytecode(c.threadPool, macro.Bytecode, runtimeArgs...)
-	result, _, err := promise.AwaitSync()
+	result, stackTrace, err := promise.AwaitSync()
 	if !err.IsUndefined() {
 		c.addFailure(
 			fmt.Sprintf(
-				"error while executing macro `%s`: %s",
+				"error while executing macro `%s`: %s\n%s",
 				types.InspectWithColor(macro),
 				lexer.Colorize(err.Inspect()),
+				stackTrace.String(),
 			),
 			loc,
 		)

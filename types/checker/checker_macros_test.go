@@ -428,7 +428,7 @@ func TestExpandMacro(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(170, 13, 6), P(177, 13, 13)), "method definitions cannot appear in this context"),
-				diagnostic.NewFailure(L("<main>", P(212, 16, 21), P(218, 16, 27)), "method `lol` is not defined on type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(216, 16, 25), P(218, 16, 27)), "method `lol` is not defined on type `Foo`"),
 			},
 		},
 		"generate an expression": {
@@ -458,7 +458,7 @@ func TestExpandMacro(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(
 					L("<main>", P(70, 5, 5), P(72, 5, 7)),
-					"error while executing macro `Std::Kernel::foo!`: 5",
+					"error while executing macro `Std::Kernel::foo!`: 5\nStack trace (the most recent call is last)\n 0: <main>:4, in `foo!`\n",
 				),
 			},
 		},

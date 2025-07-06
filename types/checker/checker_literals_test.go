@@ -82,7 +82,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var foo = %[1, a.lol if a]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(45, 3, 20), P(49, 3, 24)), "method `lol` is not defined on type `Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(47, 3, 22), P(49, 3, 24)), "method `lol` is not defined on type `Std::String`"),
 			},
 		},
 		"truthy modifier if": {
@@ -123,7 +123,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var foo = %[1, a.lol unless a]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(45, 3, 20), P(49, 3, 24)), "method `lol` is not defined on type `Std::Nil`"),
+				diagnostic.NewFailure(L("<main>", P(47, 3, 22), P(49, 3, 24)), "method `lol` is not defined on type `Std::Nil`"),
 			},
 		},
 		"truthy modifier unless": {
@@ -299,7 +299,7 @@ func TestHashSetLiteral(t *testing.T) {
 				var foo = ^[1, a.lol if a]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(45, 3, 20), P(49, 3, 24)), "method `lol` is not defined on type `Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(47, 3, 22), P(49, 3, 24)), "method `lol` is not defined on type `Std::String`"),
 			},
 		},
 		"truthy modifier if": {
@@ -340,7 +340,7 @@ func TestHashSetLiteral(t *testing.T) {
 				var foo = ^[1, a.lol unless a]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(45, 3, 20), P(49, 3, 24)), "method `lol` is not defined on type `Std::Nil`"),
+				diagnostic.NewFailure(L("<main>", P(47, 3, 22), P(49, 3, 24)), "method `lol` is not defined on type `Std::Nil`"),
 			},
 		},
 		"truthy modifier unless": {
@@ -698,7 +698,7 @@ func TestArrayListLiteral(t *testing.T) {
 				var foo = [1, a.lol if a]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(44, 3, 19), P(48, 3, 23)), "method `lol` is not defined on type `Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(46, 3, 21), P(48, 3, 23)), "method `lol` is not defined on type `Std::String`"),
 			},
 		},
 		"truthy modifier if": {
@@ -739,7 +739,7 @@ func TestArrayListLiteral(t *testing.T) {
 				var foo = [1, a.lol unless a]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(44, 3, 19), P(48, 3, 23)), "method `lol` is not defined on type `Std::Nil`"),
+				diagnostic.NewFailure(L("<main>", P(46, 3, 21), P(48, 3, 23)), "method `lol` is not defined on type `Std::Nil`"),
 			},
 		},
 		"truthy modifier unless": {
@@ -1068,7 +1068,7 @@ func TestHashMapLiteral(t *testing.T) {
 				var foo = { a: 1, b: a.lol if a }
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(51, 3, 26), P(55, 3, 30)), "method `lol` is not defined on type `Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(53, 3, 28), P(55, 3, 30)), "method `lol` is not defined on type `Std::String`"),
 			},
 		},
 		"truthy modifier if": {
@@ -1261,7 +1261,7 @@ func TestHashRecordLiteral(t *testing.T) {
 				var foo = %{ a: 1, b: a.lol if a }
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(52, 3, 27), P(56, 3, 31)), "method `lol` is not defined on type `Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(54, 3, 29), P(56, 3, 31)), "method `lol` is not defined on type `Std::String`"),
 			},
 		},
 		"truthy modifier if": {
@@ -1612,7 +1612,7 @@ func TestRangeLiteral(t *testing.T) {
 		"beginless closed range - call iter": {
 			input: "var a: 9 = (...5).iter",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(21, 1, 22)), "method `iter` is not defined on type `Std::BeginlessClosedRange[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(18, 1, 19), P(21, 1, 22)), "method `iter` is not defined on type `Std::BeginlessClosedRange[Std::Int]`"),
 			},
 		},
 
@@ -1676,7 +1676,7 @@ func TestRangeLiteral(t *testing.T) {
 		"beginless open range - call iter": {
 			input: "var a: 9 = (..<5).iter",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(21, 1, 22)), "method `iter` is not defined on type `Std::BeginlessOpenRange[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(18, 1, 19), P(21, 1, 22)), "method `iter` is not defined on type `Std::BeginlessOpenRange[Std::Int]`"),
 			},
 		},
 
@@ -1752,13 +1752,13 @@ func TestRangeLiteral(t *testing.T) {
 		"closed range - call iter on not iterable range": {
 			input: "(1.2...2.5).iter",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(1, 1, 2), P(15, 1, 16)), "method `iter` is not defined on type `Std::ClosedRange[Std::Float]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(15, 1, 16)), "method `iter` is not defined on type `Std::ClosedRange[Std::Float]`"),
 			},
 		},
 		"closed range - call iter on mixed range": {
 			input: "(1...2.5).iter",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(1, 1, 2), P(13, 1, 14)), "method `iter` is not defined on type `Std::ClosedRange[Std::Int | Std::Float]`"),
+				diagnostic.NewFailure(L("<main>", P(10, 1, 11), P(13, 1, 14)), "method `iter` is not defined on type `Std::ClosedRange[Std::Int | Std::Float]`"),
 			},
 		},
 
@@ -1834,13 +1834,13 @@ func TestRangeLiteral(t *testing.T) {
 		"open range - call iter on not iterable range": {
 			input: "(1.2<.<2.5).iter",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(1, 1, 2), P(15, 1, 16)), "method `iter` is not defined on type `Std::OpenRange[Std::Float]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(15, 1, 16)), "method `iter` is not defined on type `Std::OpenRange[Std::Float]`"),
 			},
 		},
 		"open range - call iter on mixed range": {
 			input: "(1<.<2.5).iter",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(1, 1, 2), P(13, 1, 14)), "method `iter` is not defined on type `Std::OpenRange[Std::Int | Std::Float]`"),
+				diagnostic.NewFailure(L("<main>", P(10, 1, 11), P(13, 1, 14)), "method `iter` is not defined on type `Std::OpenRange[Std::Int | Std::Float]`"),
 			},
 		},
 
@@ -1916,13 +1916,13 @@ func TestRangeLiteral(t *testing.T) {
 		"left open range - call iter on not iterable range": {
 			input: "(1.2<..2.5).iter",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(1, 1, 2), P(15, 1, 16)), "method `iter` is not defined on type `Std::LeftOpenRange[Std::Float]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(15, 1, 16)), "method `iter` is not defined on type `Std::LeftOpenRange[Std::Float]`"),
 			},
 		},
 		"left open range - call iter on mixed range": {
 			input: "(1<..2.5).iter",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(1, 1, 2), P(13, 1, 14)), "method `iter` is not defined on type `Std::LeftOpenRange[Std::Int | Std::Float]`"),
+				diagnostic.NewFailure(L("<main>", P(10, 1, 11), P(13, 1, 14)), "method `iter` is not defined on type `Std::LeftOpenRange[Std::Int | Std::Float]`"),
 			},
 		},
 
@@ -1998,13 +1998,13 @@ func TestRangeLiteral(t *testing.T) {
 		"right open range - call iter on not iterable range": {
 			input: "(1.2..<2.5).iter",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(1, 1, 2), P(15, 1, 16)), "method `iter` is not defined on type `Std::RightOpenRange[Std::Float]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(15, 1, 16)), "method `iter` is not defined on type `Std::RightOpenRange[Std::Float]`"),
 			},
 		},
 		"right open range - call iter on mixed range": {
 			input: "(1..<2.5).iter",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(1, 1, 2), P(13, 1, 14)), "method `iter` is not defined on type `Std::RightOpenRange[Std::Int | Std::Float]`"),
+				diagnostic.NewFailure(L("<main>", P(10, 1, 11), P(13, 1, 14)), "method `iter` is not defined on type `Std::RightOpenRange[Std::Int | Std::Float]`"),
 			},
 		},
 
@@ -2074,7 +2074,7 @@ func TestRangeLiteral(t *testing.T) {
 		"endless closed range - call iter on not iterable range": {
 			input: "(1.2...).iter",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(1, 1, 2), P(12, 1, 13)), "method `iter` is not defined on type `Std::EndlessClosedRange[Std::Float]`"),
+				diagnostic.NewFailure(L("<main>", P(9, 1, 10), P(12, 1, 13)), "method `iter` is not defined on type `Std::EndlessClosedRange[Std::Float]`"),
 			},
 		},
 
@@ -2144,7 +2144,7 @@ func TestRangeLiteral(t *testing.T) {
 		"endless open range - call iter on not iterable range": {
 			input: "(1.2<..).iter",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(1, 1, 2), P(12, 1, 13)), "method `iter` is not defined on type `Std::EndlessOpenRange[Std::Float]`"),
+				diagnostic.NewFailure(L("<main>", P(9, 1, 10), P(12, 1, 13)), "method `iter` is not defined on type `Std::EndlessOpenRange[Std::Float]`"),
 			},
 		},
 	}
