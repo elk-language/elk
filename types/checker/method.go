@@ -353,9 +353,19 @@ func (c *Checker) checkUsingExpressionForMethods(node *ast.UsingExpressionNode) 
 		c.resolveUsingEntry(entry)
 		switch e := entry.(type) {
 		case *ast.MethodLookupNode:
-			c.checkUsingMethodLookupEntryNode(e.Receiver, e.Name, "", e.Location())
+			c.checkUsingMethodLookupEntryNode(
+				e.Receiver,
+				c.identifierToName(e.Name),
+				"",
+				e.Location(),
+			)
 		case *ast.MethodLookupAsNode:
-			c.checkUsingMethodLookupEntryNode(e.MethodLookup.Receiver, e.MethodLookup.Name, e.AsName, e.Location())
+			c.checkUsingMethodLookupEntryNode(
+				e.MethodLookup.Receiver,
+				c.identifierToName(e.MethodLookup.Name),
+				c.identifierToName(e.AsName),
+				e.Location(),
+			)
 		case *ast.UsingEntryWithSubentriesNode:
 			c.checkUsingEntryWithSubentriesForMethods(e)
 		}

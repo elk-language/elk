@@ -85,6 +85,7 @@ func (*TypeofExpressionNode) expressionNode()              {}
 func (*ConstantDeclarationNode) expressionNode()           {}
 func (*ConstantLookupNode) expressionNode()                {}
 func (*MethodLookupNode) expressionNode()                  {}
+func (*InstanceMethodLookupNode) expressionNode()          {}
 func (*UsingAllEntryNode) expressionNode()                 {}
 func (*UsingEntryWithSubentriesNode) expressionNode()      {}
 func (*ClosureLiteralNode) expressionNode()                {}

@@ -103,6 +103,7 @@ func InitGlobalEnvironment() {
 	initMacroDefinitionNode()
 	initMethodDefinitionNode()
 	initMethodLookupAsNode()
+	initInstanceMethodLookupNode()
 	initMethodLookupNode()
 	initMethodParameterNode()
 	initMethodSignatureDefinitionNode()

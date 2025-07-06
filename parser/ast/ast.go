@@ -179,7 +179,7 @@ func ExpressionPrecedence(expr ExpressionNode) uint8 {
 		return 210
 	case *ConstructorCallNode, *GenericConstructorCallNode:
 		return 220
-	case *ConstantLookupNode:
+	case *ConstantLookupNode, *MethodLookupNode, *InstanceMethodLookupNode:
 		return 230
 	}
 

@@ -14,7 +14,7 @@ func initMethodLookupNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
-			argName := (string)(args[2].MustReference().(value.String))
+			argName := args[2].MustReference().(ast.IdentifierNode)
 
 			var argLoc *position.Location
 			if args[3].IsUndefined() {
@@ -49,7 +49,7 @@ func initMethodLookupNode() {
 		"name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodLookupNode)
-			result := value.Ref(value.String(self.Name))
+			result := value.Ref(self.Name)
 			return result, value.Undefined
 
 		},

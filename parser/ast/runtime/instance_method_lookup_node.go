@@ -7,14 +7,14 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func initMethodLookupAsNode() {
-	c := &value.MethodLookupAsNodeClass.MethodContainer
+func initInstanceMethodLookupNode() {
+	c := &value.InstanceMethodLookupNodeClass.MethodContainer
 	vm.Def(
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argMethodLookup := args[1].MustReference().(*ast.MethodLookupNode)
-			argAsName := args[2].MustReference().(ast.IdentifierNode)
+			argReceiver := args[1].MustReference().(ast.ExpressionNode)
+			argName := args[2].MustReference().(ast.IdentifierNode)
 
 			var argLoc *position.Location
 			if args[3].IsUndefined() {
@@ -22,10 +22,10 @@ func initMethodLookupAsNode() {
 			} else {
 				argLoc = (*position.Location)(args[3].Pointer())
 			}
-			self := ast.NewMethodLookupAsNode(
+			self := ast.NewInstanceMethodLookupNode(
 				argLoc,
-				argMethodLookup,
-				argAsName,
+				argReceiver,
+				argName,
 			)
 			return value.Ref(self), value.Undefined
 
@@ -35,10 +35,10 @@ func initMethodLookupAsNode() {
 
 	vm.Def(
 		c,
-		"method_lookup",
+		"receiver",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.MethodLookupAsNode)
-			result := value.Ref(self.MethodLookup)
+			self := args[0].MustReference().(*ast.InstanceMethodLookupNode)
+			result := value.Ref(self.Receiver)
 			return result, value.Undefined
 
 		},
@@ -46,10 +46,10 @@ func initMethodLookupAsNode() {
 
 	vm.Def(
 		c,
-		"as_name",
+		"name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.MethodLookupAsNode)
-			result := value.Ref(self.AsName)
+			self := args[0].MustReference().(*ast.InstanceMethodLookupNode)
+			result := value.Ref(self.Name)
 			return result, value.Undefined
 
 		},
@@ -59,18 +59,17 @@ func initMethodLookupAsNode() {
 		c,
 		"location",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.MethodLookupAsNode)
+			self := args[0].MustReference().(*ast.InstanceMethodLookupNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
 
 		},
 	)
-
 	vm.Def(
 		c,
 		"==",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.MethodLookupAsNode)
+			self := args[0].MustReference().(*ast.InstanceMethodLookupNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
 		},
@@ -81,7 +80,7 @@ func initMethodLookupAsNode() {
 		c,
 		"to_string",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.MethodLookupAsNode)
+			self := args[0].MustReference().(*ast.InstanceMethodLookupNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
 	)

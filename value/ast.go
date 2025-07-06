@@ -140,6 +140,7 @@ var AwaitExpressionNodeClass *Class               // Std::Elk::AST::AwaitExpress
 var TypeofExpressionNodeClass *Class              // Std::Elk::AST::TypeofExpressionNode
 var ConstantLookupNodeClass *Class                // Std::Elk::AST::ConstantLookupNode
 var MethodLookupNodeClass *Class                  // Std::Elk::AST::MethodLookupNode
+var InstanceMethodLookupNodeClass *Class          // Std::Elk::AST::InstanceMethodLookupNode
 var UsingEntryWithSubentriesNodeClass *Class      // Std::Elk::AST::UsingEntryWithSubentriesNode
 var UsingAllEntryNodeClass *Class                 // Std::Elk::AST::UsingAllEntryNode
 var ClosureLiteralNodeClass *Class                // Std::Elk::AST::ClosureLiteralNode
@@ -853,6 +854,10 @@ func initElkAST() {
 	MethodLookupNodeClass.IncludeMixin(ExpressionNodeMixin)
 	MethodLookupNodeClass.IncludeMixin(UsingEntryNodeMixin)
 	ElkASTModule.AddConstantString("MethodLookupNode", Ref(MethodLookupNodeClass))
+
+	InstanceMethodLookupNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	InstanceMethodLookupNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("InstanceMethodLookupNode", Ref(InstanceMethodLookupNodeClass))
 
 	UsingEntryWithSubentriesNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	UsingEntryWithSubentriesNodeClass.IncludeMixin(ExpressionNodeMixin)

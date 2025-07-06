@@ -1950,16 +1950,32 @@ func (p *Parser) callArgumentList() (*position.Location, []ast.ExpressionNode, [
 		nil
 }
 
-// constructorCall = constantLookup |
-// strictConstantLookup ["::[" typeAnnotationList "]"] ( "(" argumentList ")" | argumentList )
+// constructorCall = constantLookup [ ["::[" typeAnnotationList "]"] ( "(" argumentList ")" | argumentList ) ]
 func (p *Parser) constructorCall() ast.ExpressionNode {
-	if !p.accept(token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT, token.SCOPE_RES_OP) {
-		return p.constantLookup()
+	constantExpr := p.constantOrMethodLookup()
+	var constant ast.ComplexConstantNode
+
+	switch c := constantExpr.(type) {
+	case *ast.ConstantLookupNode:
+		constant = c
+	case *ast.PublicConstantNode:
+		constant = c
+	case *ast.PrivateConstantNode:
+		constant = c
+	case *ast.UnquoteNode:
+		if c.Kind != ast.UNQUOTE_CONSTANT_KIND {
+			return constantExpr
+		}
+		constant = c
+	default:
+		return constantExpr
 	}
 
-	constant := p.strictConstantLookup()
-	location := constant.Location()
+	if !p.lookahead.IsValidAsArgumentToNoParenFunctionCall() && !p.accept(token.COLON_COLON_LBRACKET, token.LPAREN) {
+		return constant
+	}
 
+	location := constant.Location()
 	var typeArgs []ast.TypeNode
 	if p.match(token.COLON_COLON_LBRACKET) {
 		p.swallowNewlines()
@@ -2007,13 +2023,14 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 
 const privateConstantAccessMessage = "cannot access a private constant from the outside"
 
-// constantLookup = primaryExpression | "::" publicConstant | constantLookup "::" publicConstant
-func (p *Parser) constantLookup() ast.ExpressionNode {
+// constantOrMethodLookup = primaryExpression | "::" (publicConstant | identifier) | constantOrMethodLookup "::" (publicConstant | identifier)
+func (p *Parser) constantOrMethodLookup() ast.ExpressionNode {
 	var left ast.ExpressionNode
 	if tok, ok := p.matchOk(token.SCOPE_RES_OP); ok {
 		if p.accept(token.PRIVATE_CONSTANT) {
 			p.errorUnexpected(privateConstantAccessMessage)
 		}
+
 		right := p.constant()
 		left = ast.NewConstantLookupNode(
 			tok.Location().Join(right.Location()),
@@ -2028,16 +2045,38 @@ func (p *Parser) constantLookup() ast.ExpressionNode {
 		p.advance()
 
 		p.swallowNewlines()
-		if p.accept(token.PRIVATE_CONSTANT) {
-			p.errorUnexpected(privateConstantAccessMessage)
-		}
-		right := p.constant()
+		if p.accept(token.PRIVATE_CONSTANT,
+			token.PUBLIC_CONSTANT,
+			token.UNQUOTE,
+			token.UNQUOTE_CONST,
+			token.SHORT_UNQUOTE_BEG,
+		) {
+			if p.accept(token.PRIVATE_CONSTANT) {
+				p.errorUnexpected(privateConstantAccessMessage)
+			}
 
-		left = ast.NewConstantLookupNode(
-			left.Location().Join(right.Location()),
-			left,
-			right,
-		)
+			right := p.constant()
+			left = ast.NewConstantLookupNode(
+				left.Location().Join(right.Location()),
+				left,
+				right,
+			)
+		} else if p.accept(
+			token.DOLLAR_IDENTIFIER,
+			token.PUBLIC_IDENTIFIER,
+			token.UNQUOTE_IDENT,
+		) {
+			right := p.methodName()
+			left = ast.NewMethodLookupNode(
+				left.Location().Join(right.Location()),
+				left,
+				right,
+			)
+		} else {
+			p.errorExpected("a public constant or method name")
+			tok := p.advance()
+			return ast.NewInvalidNode(tok.Location(), tok)
+		}
 	}
 
 	return left
@@ -3849,11 +3888,11 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 
 		p.swallowNewlines()
 		if p.accept(token.PUBLIC_IDENTIFIER) {
-			nameTok := p.advance()
+			nameTok := p.publicIdentifier()
 			methodLookup := ast.NewMethodLookupNode(
 				left.Location().Join(nameTok.Location()),
 				left,
-				nameTok.Value,
+				nameTok,
 			)
 			if p.match(token.AS) {
 				asNameTok, ok := p.consume(token.PUBLIC_IDENTIFIER)
@@ -3863,10 +3902,11 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 						asNameTok,
 					)
 				}
+
 				return ast.NewMethodLookupAsNode(
 					left.Location(),
 					methodLookup,
-					asNameTok.Value,
+					tokenToIdentifier(asNameTok),
 				)
 			}
 			return methodLookup
@@ -3949,7 +3989,7 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 	var constant ast.ExpressionNode
 	var typeVars []ast.TypeParameterNode
 	if !p.accept(token.LESS, token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
-		constant = p.constantLookup()
+		constant = p.constantOrMethodLookup()
 
 		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
@@ -4035,7 +4075,7 @@ func (p *Parser) moduleDeclaration(allowed bool) ast.ExpressionNode {
 	moduleTok := p.advance()
 	var constant ast.ExpressionNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
-		constant = p.constantLookup()
+		constant = p.constantOrMethodLookup()
 
 		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
@@ -4116,7 +4156,7 @@ func (p *Parser) mixinDeclaration(allowed bool) ast.ExpressionNode {
 	var constant ast.ExpressionNode
 	var typeVars []ast.TypeParameterNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
-		constant = p.constantLookup()
+		constant = p.constantOrMethodLookup()
 
 		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
@@ -4195,7 +4235,7 @@ func (p *Parser) interfaceDeclaration(allowed bool) ast.ExpressionNode {
 	var constant ast.ExpressionNode
 	var typeVars []ast.TypeParameterNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
-		constant = p.constantLookup()
+		constant = p.constantOrMethodLookup()
 
 		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
@@ -4273,7 +4313,7 @@ func (p *Parser) structDeclaration(allowed bool) ast.ExpressionNode {
 	var constant ast.ExpressionNode
 	var typeVars []ast.TypeParameterNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
-		constant = p.constantLookup()
+		constant = p.constantOrMethodLookup()
 
 		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
@@ -4520,7 +4560,7 @@ func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	constant := p.constantLookup()
+	constant := p.constantOrMethodLookup()
 	switch c := constant.(type) {
 	case *ast.PublicConstantNode,
 		*ast.PrivateConstantNode,

@@ -106,6 +106,7 @@ func (e *evaluator) parse(input string) {
 
 	ast, dl := parser.Parse(sourceName, input)
 
+	pp.Println(ast)
 	if dl != nil {
 		fmt.Println()
 
@@ -119,7 +120,7 @@ func (e *evaluator) parse(input string) {
 			return
 		}
 	}
-	pp.Println(ast)
+
 }
 
 // compiles the input to bytecode and dumps it to the output
