@@ -206,7 +206,7 @@ func NewMacroDefinitionNode(
 
 // Represents a method call eg. `'123'.to_int!()`
 type MacroCallNode struct {
-	NodeBase
+	TypedNodeBase
 	Receiver            ExpressionNode
 	MacroName           IdentifierNode
 	PositionalArguments []ExpressionNode
@@ -215,7 +215,7 @@ type MacroCallNode struct {
 
 func (n *MacroCallNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MacroCallNode{
-		NodeBase:            NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Receiver:            n.Receiver.splice(loc, args, unquote).(ExpressionNode),
 		MacroName:           n.MacroName.splice(loc, args, unquote).(IdentifierNode),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
@@ -348,10 +348,6 @@ func (*MacroCallNode) IsStatic() bool {
 	return false
 }
 
-func (*MacroCallNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
-	return types.Untyped{}
-}
-
 func (*MacroCallNode) Class() *value.Class {
 	return value.MacroCallNodeClass
 }
@@ -401,7 +397,7 @@ func (n *MacroCallNode) Error() string {
 // Create a macro call node eg. `'123'.to_int!()`
 func NewMacroCallNode(loc *position.Location, recv ExpressionNode, macroName IdentifierNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MacroCallNode {
 	return &MacroCallNode{
-		NodeBase:            NodeBase{loc: loc},
+		TypedNodeBase:       TypedNodeBase{loc: loc},
 		Receiver:            recv,
 		MacroName:           macroName,
 		PositionalArguments: posArgs,
@@ -411,7 +407,7 @@ func NewMacroCallNode(loc *position.Location, recv ExpressionNode, macroName Ide
 
 // Represents a function-like macro call eg. `foo!(123)`
 type ReceiverlessMacroCallNode struct {
-	NodeBase
+	TypedNodeBase
 	MacroName           IdentifierNode
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
@@ -419,7 +415,7 @@ type ReceiverlessMacroCallNode struct {
 
 func (n *ReceiverlessMacroCallNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ReceiverlessMacroCallNode{
-		NodeBase:            NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		MacroName:           n.MacroName.splice(loc, args, unquote).(IdentifierNode),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
@@ -532,10 +528,6 @@ func (*ReceiverlessMacroCallNode) IsStatic() bool {
 	return false
 }
 
-func (*ReceiverlessMacroCallNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
-	return types.Untyped{}
-}
-
 func (*ReceiverlessMacroCallNode) Class() *value.Class {
 	return value.ReceiverlessMacroCallNodeClass
 }
@@ -582,7 +574,7 @@ func (n *ReceiverlessMacroCallNode) Error() string {
 // Create a function call node eg. `to_string(123)`
 func NewReceiverlessMacroCallNode(loc *position.Location, macroName IdentifierNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ReceiverlessMacroCallNode {
 	return &ReceiverlessMacroCallNode{
-		NodeBase:            NodeBase{loc: loc},
+		TypedNodeBase:       TypedNodeBase{loc: loc},
 		MacroName:           macroName,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,

@@ -462,6 +462,370 @@ func TestExpandMacro(t *testing.T) {
 				),
 			},
 		},
+		"cannot make nil-safe macro calls": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(a: IntLiteralNode) then a
+				end
+				Foo?.baz!(5)
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(100, 7, 8), P(101, 7, 9)), "invalid macro call operator"),
+			},
+		},
+		"cannot make cascade macro calls": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(a: IntLiteralNode) then a
+				end
+				Foo..baz!(5)
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(100, 7, 8), P(101, 7, 9)), "invalid macro call operator"),
+			},
+		},
+		"cannot make nil-safe cascade macro calls": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(a: IntLiteralNode) then a
+				end
+				Foo?..baz!(5)
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(100, 7, 8), P(102, 7, 10)), "invalid macro call operator"),
+			},
+		},
+
+		"missing required argument": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then bar
+					baz!("foo")
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(116, 6, 6), P(126, 6, 16)), "argument `c` is missing in call to `Foo::baz!`"),
+			},
+		},
+		"all required positional arguments": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then c
+					baz!("foo", 5)
+				end
+			`,
+		},
+		"all required positional arguments with wrong type": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then c
+					baz!(123.4, 5)
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(119, 6, 11), P(123, 6, 15)), "expected type `Std::Elk::AST::StringLiteralNode` for parameter `bar` in call to `Foo::baz!`, got type `Std::Elk::AST::FloatLiteralNode`"),
+			},
+		},
+		"too many positional arguments": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then c
+					baz!("foo", 5, 28, 9, 0)
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(114, 6, 6), P(137, 6, 29)), "expected 2 arguments in call to `Foo::baz!`, got 5"),
+			},
+		},
+		"missing required argument with named argument": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then c
+					baz!(bar: "foo")
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(114, 6, 6), P(129, 6, 21)), "argument `c` is missing in call to `Foo::baz!`"),
+			},
+		},
+		"all required named arguments": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then c
+					baz!(c: 5, bar: "foo")
+				end
+			`,
+		},
+		"all required named arguments with wrong type": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then c
+					baz!(c: 5, bar: 123.4)
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(125, 6, 17), P(134, 6, 26)), "expected type `Std::Elk::AST::StringLiteralNode` for parameter `bar` in call to `Foo::baz!`, got type `Std::Elk::AST::FloatLiteralNode`"),
+			},
+		},
+		"duplicated positional argument as named argument": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then c
+					baz!("foo", 5, bar: 9)
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(129, 6, 21), P(134, 6, 26)), "duplicated argument `bar` in call to `Foo::baz!`"),
+				diagnostic.NewFailure(L("<main>", P(129, 6, 21), P(134, 6, 26)), "expected type `Std::Elk::AST::StringLiteralNode` for parameter `bar` in call to `Foo::baz!`, got type `Std::Elk::AST::IntLiteralNode`"),
+			},
+		},
+		"duplicated named argument": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then c
+					baz!("foo", 2, c: 3, c: 9)
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(129, 6, 21), P(132, 6, 24)), "duplicated argument `c` in call to `Foo::baz!`"),
+				diagnostic.NewFailure(L("<main>", P(135, 6, 27), P(138, 6, 30)), "duplicated argument `c` in call to `Foo::baz!`"),
+			},
+		},
+		"call with missing optional argument": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode = 3.to_ast_node) then c
+					var a: 3 = baz!("foo")
+				end
+			`,
+		},
+		"call with optional argument": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode = 3.to_ast_node) then c
+					var a: 9 = baz!("foo", 9)
+				end
+			`,
+		},
+		"call with missing rest arguments": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(*b: FloatLiteralNode) then 3.to_ast_node
+					baz!
+				end
+			`,
+		},
+		"call with rest arguments": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(*b: FloatLiteralNode) then 3.to_ast_node
+					baz! 1.2, 56.9, .5
+				end
+			`,
+		},
+		"call with splat argument": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(*b: FloatLiteralNode) then 1.to_ast_node
+					arr := [1.2, 2.6, 3.1]
+					baz!(*arr)
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(138, 7, 11), P(141, 7, 14)), "expected type `Std::Elk::AST::FloatLiteralNode` for rest parameter `*b` in call to `Foo::baz!`, got type `Std::Elk::AST::SplatExpressionNode`"),
+			},
+		},
+		"call with rest argument given by name": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(*b: FloatLiteralNode) then 3.to_ast_node
+					baz! b: []
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(110, 6, 11), P(114, 6, 15)), "nonexistent parameter `b` given in call to `Foo::baz!`"),
+			},
+		},
+		"call with required post arguments": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then c
+					baz!("foo", 3)
+				end
+			`,
+		},
+		"call with missing post argument": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then 3.to_ast_node
+					baz!("foo")
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(148, 6, 6), P(158, 6, 16)), "argument `c` is missing in call to `Foo::baz!`"),
+			},
+		},
+		"call with rest and post arguments": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then 3.to_ast_node
+					baz!("foo", 2.5, .9, 128.1, 3)
+				end
+			`,
+		},
+		"call with rest and post arguments and wrong type in post": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then c
+					baz!("foo", 2.5, .9, 128.1, 3.2)
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(164, 6, 34), P(166, 6, 36)), "expected type `Std::Elk::AST::IntLiteralNode` for parameter `c` in call to `Foo::baz!`, got type `Std::Elk::AST::FloatLiteralNode`"),
+			},
+		},
+		"call with rest and post arguments and wrong type in rest": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then c
+					baz!("foo", 212, .9, '282', 3)
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(148, 6, 18), P(150, 6, 20)), "expected type `Std::Elk::AST::FloatLiteralNode` for rest parameter `*b` in call to `Foo::baz!`, got type `Std::Elk::AST::IntLiteralNode`"),
+				diagnostic.NewFailure(L("<main>", P(157, 6, 27), P(161, 6, 31)), "expected type `Std::Elk::AST::FloatLiteralNode` for rest parameter `*b` in call to `Foo::baz!`, got type `Std::Elk::AST::RawStringLiteralNode`"),
+			},
+		},
+		"call with rest arguments and missing post argument": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then c
+					baz!("foo", 2.5, .9, 128.1)
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(157, 6, 27), P(161, 6, 31)), "expected type `Std::Elk::AST::IntLiteralNode` for parameter `c` in call to `Foo::baz!`, got type `Std::Elk::AST::FloatLiteralNode`"),
+			},
+		},
+		"call with named post argument": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then c
+					baz!("foo", c: 3)
+				end
+			`,
+		},
+		"call with named pre rest argument": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then c
+					baz!(bar: "foo", c: 3)
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(136, 6, 6), P(157, 6, 27)), "expected 1... positional arguments in call to `Foo::baz!`, got 0"),
+			},
+		},
+		"call without named rest arguments": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode, **rest: IntLiteralNode) then c
+					baz!("foo", 5)
+				end
+			`,
+		},
+		"call with named rest arguments": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode, **rest: IntLiteralNode) then c
+					baz!("foo", d: 25, c: 5, e: 11)
+				end
+			`,
+		},
+		"call with named rest arguments with wrong type": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(bar: StringLiteralNode, c: IntLiteralNode, **rest: IntLiteralNode) then c
+					baz!("foo", d: .2, c: 5, e: .1)
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(150, 6, 18), P(154, 6, 22)), "expected type `Std::Elk::AST::IntLiteralNode` for named rest parameter `**rest` in call to `baz!`, got type `Std::Elk::AST::FloatLiteralNode`"),
+				diagnostic.NewFailure(L("<main>", P(163, 6, 31), P(167, 6, 35)), "expected type `Std::Elk::AST::IntLiteralNode` for named rest parameter `**rest` in call to `baz!`, got type `Std::Elk::AST::FloatLiteralNode`"),
+			},
+		},
+		"call with double splat argument": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(**b: FloatLiteralNode) then 3.to_ast_node
+					map := { foo: 1.2, bar: 29.9 }
+					baz! a: 1.2, **map, b: .5
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(155, 7, 19), P(159, 7, 23)), "double splat arguments cannot be used in macro call `Foo::baz!`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

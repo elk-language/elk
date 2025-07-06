@@ -1809,7 +1809,7 @@ func TestMethodCalls(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(16, 3, 5), P(16, 3, 5)), "method `call` is not defined on type `Std::Int`"),
 			},
 		},
-		"call to a async method returns a promise": {
+		"call to an async method returns a promise": {
 			input: `
 				module Foo
 					async def baz(a: Int): Int
@@ -1822,7 +1822,7 @@ func TestMethodCalls(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(91, 7, 18), P(100, 7, 27)), "type `Std::Promise[Std::Int, never]` cannot be assigned to type `nil`"),
 			},
 		},
-		"call to a async method returns a promise that throws": {
+		"call to an async method returns a promise that throws": {
 			input: `
 				module Foo
 					async def baz(a: Int): Int ! Error

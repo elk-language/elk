@@ -101,6 +101,7 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 			expr.NamedArguments,
 			expr.Location(),
 		)
+		expr.SetType(types.Untyped{})
 		if result == nil {
 			return expr
 		}
@@ -112,6 +113,7 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 			expr.NamedArguments,
 			expr.Location(),
 		)
+		expr.SetType(types.Untyped{})
 		if result == nil {
 			return expr
 		}
@@ -186,7 +188,12 @@ func (c *Checker) expandMacro(macro *types.Method, posArgs []ast.ExpressionNode,
 	)
 
 	for _, arg := range checkedArgs {
-		runtimeArgs = append(runtimeArgs, value.Ref(arg))
+		switch arg := arg.(type) {
+		case *ast.UndefinedLiteralNode:
+			runtimeArgs = append(runtimeArgs, value.Undefined)
+		default:
+			runtimeArgs = append(runtimeArgs, value.Ref(arg))
+		}
 	}
 
 	promise := vm.NewPromiseForBytecode(c.threadPool, macro.Bytecode, runtimeArgs...)
@@ -686,8 +693,17 @@ func (c *Checker) declareMacro(
 }
 
 func (c *Checker) checkMacroCallNode(node *ast.MacroCallNode) ast.ExpressionNode {
-	posArgs := []ast.ExpressionNode{node.Receiver}
+	node.SetType(types.Untyped{})
 
+	if c.mode == macroMode {
+		c.addFailure(
+			"macros cannot be used in macro definitions",
+			node.MacroName.Location(),
+		)
+		return node
+	}
+
+	posArgs := []ast.ExpressionNode{node.Receiver}
 	result := c.expandMacroByName(
 		c.identifierToName(node.MacroName),
 		append(posArgs, node.PositionalArguments...),
@@ -701,6 +717,8 @@ func (c *Checker) checkMacroCallNode(node *ast.MacroCallNode) ast.ExpressionNode
 }
 
 func (c *Checker) checkReceiverlessMacroCallNode(node *ast.ReceiverlessMacroCallNode) ast.ExpressionNode {
+	node.SetType(types.Untyped{})
+
 	if c.mode == macroMode {
 		c.addFailure(
 			"macros cannot be used in macro definitions",
