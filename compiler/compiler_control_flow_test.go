@@ -1193,19 +1193,18 @@ func TestAwaitExpression(t *testing.T) {
 					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.AWAIT_SYNC),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(23, 1, 24)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 11),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("await_sync"), 0)),
 				},
 			),
 		},
@@ -1268,6 +1267,79 @@ func TestAwaitExpression(t *testing.T) {
 									bytecode.NewLineInfo(2, 2),
 									bytecode.NewLineInfo(4, 1),
 									bytecode.NewLineInfo(3, 8),
+									bytecode.NewLineInfo(4, 1),
+								},
+								1,
+								1,
+								[]value.Value{
+									value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
+									value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+								},
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+				},
+			),
+		},
+		"await_sync in an asynchronous context": {
+			input: `
+				async def foo
+					await_sync timeout(2.seconds)
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(61, 4, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(4, 2),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						methodDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(61, 4, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+							bytecode.NewLineInfo(4, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Std::Kernel").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.PROMISE),
+									byte(bytecode.RETURN),
+									byte(bytecode.INT_2),
+									byte(bytecode.CALL_METHOD8), 0,
+									byte(bytecode.UNDEFINED),
+									byte(bytecode.CALL_SELF8), 1,
+									byte(bytecode.AWAIT_SYNC),
+									byte(bytecode.RETURN),
+								},
+								L(P(5, 2, 5), P(60, 4, 7)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(2, 2),
+									bytecode.NewLineInfo(4, 1),
+									bytecode.NewLineInfo(3, 7),
 									bytecode.NewLineInfo(4, 1),
 								},
 								1,

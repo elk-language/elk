@@ -448,6 +448,161 @@ func TestExpandMacro(t *testing.T) {
 				timeout := fib!(15) + 2
 			`,
 		},
+		"throw an error in a macro": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro foo then throw unchecked 5
+				foo!
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
+					L("<main>", P(70, 5, 5), P(72, 5, 7)),
+					"error while executing macro `Std::Kernel::foo!`: 5",
+				),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestMacroDefinition(t *testing.T) {
+	tests := testTable{
+		"declare within a macro": {
+			input: `
+				macro foo
+					macro bar; end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 6), P(33, 3, 19)), "macro definitions cannot appear in this context"),
+			},
+		},
+		"param types must inherit from ExpressionNode": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(b: Float)
+						loop; end
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(59, 5, 16), P(66, 5, 23)), "type `Std::Float` does not inherit from `Std::Elk::AST::ExpressionNode`, macro parameters must be expression nodes"),
+			},
+		},
+		"returned value must inherit from ExpressionNode": {
+			input: `
+				module Foo
+					macro baz
+						5
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(37, 4, 7), P(37, 4, 7)), "type `5` cannot be assigned to type `Std::Elk::AST::ExpressionNode`"),
+			},
+		},
+		"positional rest params have tuple types": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(*b: FloatLiteralNode)
+						var c: nil = b
+						loop; end
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(100, 6, 20), P(100, 6, 20)), "type `Std::Tuple[Std::Elk::AST::FloatLiteralNode]` cannot be assigned to type `nil`"),
+			},
+		},
+		"named rest params have record types": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro baz(**b: FloatLiteralNode)
+						var c: nil = b
+						loop; end
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(101, 6, 20), P(101, 6, 20)), "type `Std::Record[Std::Symbol, Std::Elk::AST::FloatLiteralNode]` cannot be assigned to type `nil`"),
+			},
+		},
+		"cannot declare with type parameters": {
+			input: `
+				macro foo[V](a: V)
+					a
+					loop; end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(14, 2, 14), P(14, 2, 14)), "unexpected [, expected a statement separator `\\n`, `;`"),
+				diagnostic.NewFailure(L("<main>", P(17, 2, 17), P(17, 2, 17)), "unexpected (, expected a statement separator `\\n`, `;`"),
+			},
+		},
+		"cannot declare with a return type": {
+			input: `
+				macro foo: String
+					5
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(14, 2, 14), P(14, 2, 14)), "unexpected :, expected a statement separator `\\n`, `;`"),
+			},
+		},
+		"redeclare the macro in the same class": {
+			input: `
+				using Std::Elk::AST::*
+
+				class Foo
+					macro baz(a: IntLiteralNode) then a
+					macro baz then try IntLiteralNode("123")
+
+					baz!
+				end
+			`,
+		},
+		"macros get hoisted to the top": {
+			input: `
+				using Std::Elk::AST::*
+
+			  baz!
+				macro baz then try IntLiteralNode("123")
+			`,
+		},
+		"macros cannot reference other macros": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro bar then try IntLiteralNode("1")
+				macro foo then bar!()
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(91, 5, 20), P(93, 5, 22)), "macros cannot be used in macro definitions"),
+			},
+		},
+		"macros cannot use instance variable parameters": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro bar(@a: IntLiteralNode) then a
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 4, 15), P(44, 4, 16)), "unexpected INSTANCE_VARIABLE, expected an identifier as the name of the declared signature parameter"),
+				diagnostic.NewFailure(L("<main>", P(45, 4, 17), P(45, 4, 17)), "unexpected :, expected )"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

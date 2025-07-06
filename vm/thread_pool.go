@@ -48,6 +48,7 @@ func threadWorker(thread *VM, queue chan *Promise) {
 			task.Generator = nil
 			task.ThreadPool = nil
 			task.err = err
+			task.stackTrace = thread.GetStackTrace()
 			task.wg.Done()
 			task.enqueueContinuations(queue)
 

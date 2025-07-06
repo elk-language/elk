@@ -14,11 +14,13 @@ import (
 type AwaitExpressionNode struct {
 	TypedNodeBase
 	Value ExpressionNode
+	Sync  bool
 }
 
 func (n *AwaitExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AwaitExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Sync:          n.Sync,
 		Value:         n.Value.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
@@ -47,19 +49,21 @@ func (*AwaitExpressionNode) IsStatic() bool {
 }
 
 // Create a new `await` expression node eg. `await foo()`
-func NewAwaitExpressionNode(loc *position.Location, val ExpressionNode) *AwaitExpressionNode {
+func NewAwaitExpressionNode(loc *position.Location, val ExpressionNode, sync bool) *AwaitExpressionNode {
 	return &AwaitExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
+		Sync:          sync,
 	}
 }
+
 func (n *AwaitExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*AwaitExpressionNode)
 	if !ok {
 		return false
 	}
 
-	if !n.loc.Equal(o.loc) {
+	if n.Sync != o.Sync || !n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -76,7 +80,11 @@ func (n *AwaitExpressionNode) Equal(other value.Value) bool {
 func (n *AwaitExpressionNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString("await ")
+	if n.Sync {
+		buff.WriteString("await_sync")
+	} else {
+		buff.WriteString("await ")
+	}
 
 	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Value)
 	if parens {
@@ -105,6 +113,8 @@ func (n *AwaitExpressionNode) Inspect() string {
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
+
+	fmt.Fprintf(&buff, ",\n  sync: %t", n.Sync)
 
 	buff.WriteString("\n}")
 

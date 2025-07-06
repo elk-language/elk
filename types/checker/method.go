@@ -432,13 +432,13 @@ func (c *Checker) newMethodChecker(
 	selfType,
 	returnType,
 	throwType types.Type,
-	isInit bool,
+	mode mode,
 	threadPool *vm.ThreadPool,
 ) *Checker {
 	checker := &Checker{
 		env:            c.env,
 		Filename:       filename,
-		mode:           methodMode,
+		mode:           mode,
 		phase:          methodCheckPhase,
 		selfType:       selfType,
 		returnType:     returnType,
@@ -454,9 +454,6 @@ func (c *Checker) newMethodChecker(
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		compiler:             c.compiler,
 		threadPool:           threadPool,
-	}
-	if isInit {
-		checker.mode = initMode
 	}
 	return checker
 }
@@ -505,6 +502,14 @@ func (c *Checker) checkMethods() {
 		func(methodCheck methodCheckEntry) {
 			method := methodCheck.method
 			node := methodCheck.node
+
+			var mode mode
+			if method.IsInit() {
+				mode = initMode
+			} else {
+				mode = methodMode
+			}
+
 			methodChecker := c.newMethodChecker(
 				node.Location().FilePath,
 				methodCheck.constantScopes,
@@ -512,9 +517,10 @@ func (c *Checker) checkMethods() {
 				method.DefinedUnder,
 				method.ReturnType,
 				method.ThrowType,
-				method.IsInit(),
+				mode,
 				c.threadPool,
 			)
+
 			methodChecker.checkMethodDefinition(node, method)
 
 			// method has to be checked if it doesn't
@@ -1033,6 +1039,8 @@ func (c *Checker) checkMethod(
 		}
 		if checkedMethod.IsInit() {
 			c.mode = initMode
+		} else if checkedMethod.IsMacro() {
+			c.mode = macroMode
 		} else {
 			c.mode = methodMode
 		}

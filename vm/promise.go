@@ -12,6 +12,7 @@ type Promise struct {
 	ThreadPool    *ThreadPool
 	continuations []*Promise
 	result        value.Value
+	stackTrace    *value.StackTrace
 	err           value.Value
 	wg            sync.WaitGroup // the wait group hits 0 when the promise is resolved, used for waiting for a promise
 	m             sync.Mutex
@@ -105,9 +106,9 @@ func (p *Promise) IsResolved() bool {
 }
 
 // Wait for the result of the promise
-func (p *Promise) AwaitSync() (value.Value, value.Value) {
+func (p *Promise) AwaitSync() (value.Value, *value.StackTrace, value.Value) {
 	p.wg.Wait()
-	return p.result, p.err
+	return p.result, p.stackTrace, p.err
 }
 
 func (p *Promise) RegisterContinuation(continuation *Promise) {
@@ -202,7 +203,7 @@ func initPromise() {
 						p.Reject(err)
 						return
 					}
-					_, err = promise.AwaitSync()
+					_, _, err = promise.AwaitSync()
 					if !err.IsUndefined() {
 						p.Reject(err)
 						return
@@ -219,14 +220,6 @@ func initPromise() {
 
 	// Instance methods
 	c = &value.PromiseClass.MethodContainer
-	Def(
-		c,
-		"await_sync",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*Promise)(args[0].Pointer())
-			return self.AwaitSync()
-		},
-	)
 	Def(
 		c,
 		"is_resolved",

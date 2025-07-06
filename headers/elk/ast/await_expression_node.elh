@@ -5,8 +5,9 @@ module Std::Elk::AST
   sealed primitive class AwaitExpressionNode
     include ExpressionNode
 
-    init(value: ExpressionNode, location: FS::Location = loop; end); end
+    init(value: ExpressionNode, sync: Bool = false, location: FS::Location = loop; end); end
     def value: ExpressionNode; end
+    def sync: Bool; end
     def location: FS::Location; end
   end
 end

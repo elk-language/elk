@@ -22,12 +22,6 @@ sealed primitive noinit class Std::Promise[+Val, +Err = never]
   end
 
   ##[
-    Blocks the current thread until the promise
-    gets resolved.
-  ]##
-  def await_sync: Val ! Err; end
-
-  ##[
     Check whether the promise is done.
   ]##
   def is_resolved: bool; end

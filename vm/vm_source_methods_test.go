@@ -350,6 +350,32 @@ func TestVMSource_Async(t *testing.T) {
 			wantStdout:   "START\nSTART\nSTART\nSTART\nSTART\nSTART\nSTART\nSTART\nSTOP\nSTOP\nSTOP\nSTOP\nSTOP\nSTOP\nSTOP\nSTOP\n",
 			wantStackTop: value.Nil,
 		},
+		"await a promise that throws": {
+			source: `
+				def lol: String
+					throw unchecked 5
+				end
+				async def foo: String
+					lol() + "u"
+				end
+				async def bar: String
+				  await foo()
+				end
+				async def baz: String
+					await bar()
+				end
+
+				baz().await_sync
+			`,
+			wantRuntimeErr: value.SmallInt(5).ToValue(),
+			wantStackTrace: &value.StackTrace{
+				{FuncName: "sourceName", FileName: "sourceName", LineNumber: 15},
+				{FuncName: "baz", FileName: "sourceName", LineNumber: 12},
+				{FuncName: "bar", FileName: "sourceName", LineNumber: 9},
+				{FuncName: "foo", FileName: "sourceName", LineNumber: 6},
+				{FuncName: "lol", FileName: "sourceName", LineNumber: 3},
+			},
+		},
 	}
 
 	for name, tc := range tests {

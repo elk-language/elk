@@ -190,7 +190,7 @@ func (c *Checker) expandMacro(macro *types.Method, posArgs []ast.ExpressionNode,
 	}
 
 	promise := vm.NewPromiseForBytecode(c.threadPool, macro.Bytecode, runtimeArgs...)
-	result, err := promise.AwaitSync()
+	result, _, err := promise.AwaitSync()
 	if !err.IsUndefined() {
 		c.addFailure(
 			fmt.Sprintf(
@@ -574,7 +574,7 @@ func (c *Checker) checkMacros() {
 				c.StdNode().Singleton(),
 				macro.ReturnType,
 				macro.ThrowType,
-				false,
+				macroMode,
 				c.threadPool,
 			)
 			macroChecker.checkMacroDefinition(node, macro)
@@ -700,6 +700,14 @@ func (c *Checker) checkMacroCallNode(node *ast.MacroCallNode) ast.ExpressionNode
 }
 
 func (c *Checker) checkReceiverlessMacroCallNode(node *ast.ReceiverlessMacroCallNode) ast.ExpressionNode {
+	if c.mode == macroMode {
+		c.addFailure(
+			"macros cannot be used in macro definitions",
+			node.MacroName.Location(),
+		)
+		return node
+	}
+
 	result := c.expandMacroByName(
 		c.identifierToName(node.MacroName),
 		node.PositionalArguments,

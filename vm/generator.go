@@ -11,13 +11,18 @@ import (
 // for pausing and resuming execution
 type Generator struct {
 	Bytecode *BytecodeFunction
+	ip       uintptr
 	upvalues []*Upvalue
 	stack    []value.Value
-	ip       uintptr
 }
 
 // Create a new generator
-func newGenerator(bytecode *BytecodeFunction, upvalues []*Upvalue, stack []value.Value, ip uintptr) *Generator {
+func newGenerator(
+	bytecode *BytecodeFunction,
+	upvalues []*Upvalue,
+	stack []value.Value,
+	ip uintptr,
+) *Generator {
 	return &Generator{
 		Bytecode: bytecode,
 		upvalues: upvalues,

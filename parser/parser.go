@@ -1740,6 +1740,19 @@ methodCallLoop:
 			receiver = ast.NewAwaitExpressionNode(
 				location,
 				receiver,
+				false,
+			)
+			continue
+		case token.AWAIT_SYNC:
+			if opToken.Type != token.DOT {
+				p.errorMessageLocation("invalid await_sync operator", opToken.Location())
+			}
+			nameTok := p.advance()
+			location := receiver.Location().Join(nameTok.Location())
+			receiver = ast.NewAwaitExpressionNode(
+				location,
+				receiver,
+				true,
 			)
 			continue
 		case token.MUST:
@@ -2156,6 +2169,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.breakExpression()
 	case token.AWAIT:
 		return p.awaitExpression()
+	case token.AWAIT_SYNC:
+		return p.awaitSyncExpression()
 	case token.GO:
 		return p.goExpression()
 	case token.RETURN:
@@ -5249,6 +5264,19 @@ func (p *Parser) awaitExpression() *ast.AwaitExpressionNode {
 	return ast.NewAwaitExpressionNode(
 		awaitTok.Location().Join(expr.Location()),
 		expr,
+		false,
+	)
+}
+
+// awaitSyncExpression = "await_sync" expressionWithoutModifier
+func (p *Parser) awaitSyncExpression() *ast.AwaitExpressionNode {
+	awaitTok := p.advance()
+	expr := p.expressionWithoutModifier()
+
+	return ast.NewAwaitExpressionNode(
+		awaitTok.Location().Join(expr.Location()),
+		expr,
+		true,
 	)
 }
 

@@ -875,11 +875,19 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return n
 	case *ast.MethodDefinitionNode, *ast.InitDefinitionNode,
 		*ast.MethodSignatureDefinitionNode, *ast.SetterDeclarationNode,
-		*ast.GetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode,
-		*ast.MacroDefinitionNode:
+		*ast.GetterDeclarationNode, *ast.AttrDeclarationNode, *ast.AliasDeclarationNode:
 		if c.TypeOf(node) == nil {
 			c.addFailure(
 				"method definitions cannot appear in this context",
+				node.Location(),
+			)
+			node.SetType(types.Untyped{})
+		}
+		return n
+	case *ast.MacroDefinitionNode:
+		if c.TypeOf(node) == nil {
+			c.addFailure(
+				"macro definitions cannot appear in this context",
 				node.Location(),
 			)
 			node.SetType(types.Untyped{})

@@ -3424,8 +3424,8 @@ func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode, v
 func (c *Compiler) compileAwaitExpressionNode(node *ast.AwaitExpressionNode) {
 	location := node.Location()
 	c.compileNodeWithResult(node.Value)
-	if !c.isAsync {
-		c.emitCallMethod(value.NewCallSiteInfo(value.ToSymbol("await_sync"), 0), node.Location(), false)
+	if !c.isAsync || node.Sync {
+		c.emit(location.StartPos.Line, bytecode.AWAIT_SYNC)
 		return
 	}
 

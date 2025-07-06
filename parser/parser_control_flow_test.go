@@ -2566,6 +2566,157 @@ func TestBreak(t *testing.T) {
 	}
 }
 
+func TestAwaitSync(t *testing.T) {
+	tests := testTable{
+		"cannot stand alone": {
+			input: `await_sync`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(9, 1, 10))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(9, 1, 10))),
+						ast.NewAwaitExpressionNode(
+							L(S(P(0, 1, 1), P(9, 1, 10))),
+							ast.NewInvalidNode(
+								L(S(P(10, 1, 11), P(9, 1, 10))),
+								T(L(S(P(10, 1, 11), P(9, 1, 10))), token.END_OF_FILE),
+							),
+							true,
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(10, 1, 11), P(9, 1, 10))), "unexpected END_OF_FILE, expected an expression"),
+			},
+		},
+		"can have an argument": {
+			input: `await_sync 2`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(11, 1, 12))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(11, 1, 12))),
+						ast.NewAwaitExpressionNode(
+							L(S(P(0, 1, 1), P(11, 1, 12))),
+							ast.NewIntLiteralNode(L(S(P(11, 1, 12), P(11, 1, 12))), "2"),
+							true,
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `foo && await_sync foo`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(20, 1, 21))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(20, 1, 21))),
+						ast.NewLogicalExpressionNode(
+							L(S(P(0, 1, 1), P(20, 1, 21))),
+							T(L(S(P(4, 1, 5), P(5, 1, 6))), token.AND_AND),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							ast.NewAwaitExpressionNode(
+								L(S(P(7, 1, 8), P(20, 1, 21))),
+								ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "foo"),
+								true,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can resemble a method call": {
+			input: `foo.await_sync`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(13, 1, 14))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(13, 1, 14))),
+						ast.NewAwaitExpressionNode(
+							L(S(P(0, 1, 1), P(13, 1, 14))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							true,
+						),
+					),
+				},
+			),
+		},
+		"cannot have arguments": {
+			input: `foo.await(2)`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 1, 9))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(8, 1, 9))),
+						ast.NewAwaitExpressionNode(
+							L(S(P(0, 1, 1), P(8, 1, 9))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							false,
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(9, 1, 10), P(9, 1, 10))), "unexpected (, expected a statement separator `\\n`, `;`"),
+			},
+		},
+		"can be chained": {
+			input: `foo.await_sync.elo().await_sync`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(30, 1, 31))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(30, 1, 31))),
+						ast.NewAwaitExpressionNode(
+							L(S(P(0, 1, 1), P(30, 1, 31))),
+							ast.NewMethodCallNode(
+								L(S(P(0, 1, 1), P(19, 1, 20))),
+								ast.NewAwaitExpressionNode(
+									L(S(P(0, 1, 1), P(13, 1, 14))),
+									ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+									true,
+								),
+								T(L(S(P(14, 1, 15), P(14, 1, 15))), token.DOT),
+								ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elo"),
+								nil,
+								nil,
+							),
+							true,
+						),
+					),
+				},
+			),
+		},
+		"invalid operator": {
+			input: `foo..await_sync`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(14, 1, 15))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(14, 1, 15))),
+						ast.NewAwaitExpressionNode(
+							L(S(P(0, 1, 1), P(14, 1, 15))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							true,
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(3, 1, 4), P(4, 1, 5))), "invalid await_sync operator"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestAwait(t *testing.T) {
 	tests := testTable{
 		"cannot stand alone": {
@@ -2581,6 +2732,7 @@ func TestAwait(t *testing.T) {
 								L(S(P(5, 1, 6), P(4, 1, 5))),
 								T(L(S(P(5, 1, 6), P(4, 1, 5))), token.END_OF_FILE),
 							),
+							false,
 						),
 					),
 				},
@@ -2599,6 +2751,7 @@ func TestAwait(t *testing.T) {
 						ast.NewAwaitExpressionNode(
 							L(S(P(0, 1, 1), P(6, 1, 7))),
 							ast.NewIntLiteralNode(L(S(P(6, 1, 7), P(6, 1, 7))), "2"),
+							false,
 						),
 					),
 				},
@@ -2618,6 +2771,7 @@ func TestAwait(t *testing.T) {
 							ast.NewAwaitExpressionNode(
 								L(S(P(7, 1, 8), P(15, 1, 16))),
 								ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(15, 1, 16))), "foo"),
+								false,
 							),
 						),
 					),
@@ -2634,6 +2788,7 @@ func TestAwait(t *testing.T) {
 						ast.NewAwaitExpressionNode(
 							L(S(P(0, 1, 1), P(8, 1, 9))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							false,
 						),
 					),
 				},
@@ -2649,6 +2804,7 @@ func TestAwait(t *testing.T) {
 						ast.NewAwaitExpressionNode(
 							L(S(P(0, 1, 1), P(8, 1, 9))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							false,
 						),
 					),
 				},
@@ -2671,12 +2827,14 @@ func TestAwait(t *testing.T) {
 								ast.NewAwaitExpressionNode(
 									L(S(P(0, 1, 1), P(8, 1, 9))),
 									ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+									false,
 								),
 								T(L(S(P(9, 1, 10), P(9, 1, 10))), token.DOT),
 								ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "elo"),
 								nil,
 								nil,
 							),
+							false,
 						),
 					),
 				},
@@ -2692,6 +2850,7 @@ func TestAwait(t *testing.T) {
 						ast.NewAwaitExpressionNode(
 							L(S(P(0, 1, 1), P(9, 1, 10))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							false,
 						),
 					),
 				},

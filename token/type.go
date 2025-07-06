@@ -458,6 +458,7 @@ const (
 	YIELD             // Keyword `yield`
 	ASYNC             // Keyword `async`
 	AWAIT             // Keyword `await`
+	AWAIT_SYNC        // Keyword `await_sync`
 	GO                // Keyword `go`
 	DEF               // Keyword `def`
 	SIG               // Keyword `sig`
@@ -559,6 +560,7 @@ var Keywords = map[string]Type{
 	"yield":           YIELD,
 	"async":           ASYNC,
 	"await":           AWAIT,
+	"await_sync":      AWAIT_SYNC,
 	"go":              GO,
 	"def":             DEF,
 	"sig":             SIG,
@@ -825,6 +827,7 @@ var tokenNames = [...]string{
 	YIELD:           "yield",
 	ASYNC:           "async",
 	AWAIT:           "await",
+	AWAIT_SYNC:      "await_sync",
 	GO:              "go",
 	DEF:             "def",
 	SIG:             "sig",
