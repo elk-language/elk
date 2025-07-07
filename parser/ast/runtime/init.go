@@ -97,6 +97,7 @@ func InitGlobalEnvironment() {
 	initLogicalExpressionNode()
 	initLoopExpressionNode()
 	initMapPatternNode()
+	initScopedMacroCallNode()
 	initReceiverlessMacroCallNode()
 	initMacroCallNode()
 	initMethodCallNode()

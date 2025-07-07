@@ -2041,42 +2041,126 @@ func (p *Parser) constantOrMethodLookup() ast.ExpressionNode {
 		left = p.primaryExpression()
 	}
 
-	for p.lookahead.Type == token.SCOPE_RES_OP {
-		p.advance()
+	for {
+		if p.accept(token.DOT_COLON) {
+			p.advance()
 
-		p.swallowNewlines()
-		if p.accept(token.PRIVATE_CONSTANT,
-			token.PUBLIC_CONSTANT,
-			token.UNQUOTE,
-			token.UNQUOTE_CONST,
-			token.SHORT_UNQUOTE_BEG,
-		) {
-			if p.accept(token.PRIVATE_CONSTANT) {
-				p.errorUnexpected(privateConstantAccessMessage)
+			p.swallowNewlines()
+			if p.accept(
+				token.DOLLAR_IDENTIFIER,
+				token.PUBLIC_IDENTIFIER,
+				token.UNQUOTE_IDENT,
+				token.UNQUOTE,
+				token.SHORT_UNQUOTE_BEG,
+			) {
+				right := p.methodName()
+				left = ast.NewInstanceMethodLookupNode(
+					left.Location().Join(right.Location()),
+					left,
+					right,
+				)
+				continue
 			}
 
-			right := p.constant()
-			left = ast.NewConstantLookupNode(
-				left.Location().Join(right.Location()),
-				left,
-				right,
-			)
-		} else if p.accept(
-			token.DOLLAR_IDENTIFIER,
-			token.PUBLIC_IDENTIFIER,
-			token.UNQUOTE_IDENT,
-		) {
-			right := p.methodName()
-			left = ast.NewMethodLookupNode(
-				left.Location().Join(right.Location()),
-				left,
-				right,
-			)
-		} else {
+			p.errorExpected("a public method name")
+			tok := p.advance()
+			return ast.NewInvalidNode(tok.Location(), tok)
+		}
+
+		if p.accept(token.SCOPE_RES_OP) {
+			p.advance()
+
+			p.swallowNewlines()
+
+			if p.accept(token.PRIVATE_CONSTANT,
+				token.PUBLIC_CONSTANT,
+				token.UNQUOTE,
+				token.UNQUOTE_CONST,
+				token.SHORT_UNQUOTE_BEG,
+			) {
+				if p.accept(token.PRIVATE_CONSTANT) {
+					p.errorUnexpected(privateConstantAccessMessage)
+				}
+
+				right := p.constant()
+				left = ast.NewConstantLookupNode(
+					left.Location().Join(right.Location()),
+					left,
+					right,
+				)
+				continue
+			}
+
+			if p.accept(
+				token.DOLLAR_IDENTIFIER,
+				token.PUBLIC_IDENTIFIER,
+				token.UNQUOTE_IDENT,
+			) {
+				right := p.methodName()
+
+				if bang, ok := p.matchOk(token.BANG); ok {
+					switch right.(type) {
+					case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
+					default:
+						p.errorMessageLocation("invalid macro name", right.Location())
+					}
+
+					location := left.Location().Join(bang.Location())
+					hasParentheses := p.lookahead.Type == token.LPAREN
+					lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
+					if errToken != nil {
+						return ast.NewInvalidNode(
+							errToken.Location(),
+							errToken,
+						)
+					}
+					if lastArgSpan != nil {
+						location = location.Join(lastArgSpan)
+					}
+
+					hasTrailingClosure := p.hasTrailingClosure()
+
+					if hasTrailingClosure && (hasParentheses || len(posArgs) == 0 && len(namedArgs) == 0) {
+						function := p.closureExpression()
+						if len(namedArgs) > 0 {
+							namedArgs = append(
+								namedArgs,
+								ast.NewNamedCallArgumentNode(
+									function.Location(),
+									ast.NewPublicIdentifierNode(function.Location(), "fn"),
+									function,
+								),
+							)
+						} else {
+							posArgs = append(posArgs, function)
+						}
+						location = location.Join(function.Location())
+					}
+
+					left = ast.NewScopedMacroCallNode(
+						location,
+						left,
+						right,
+						posArgs,
+						namedArgs,
+					)
+					continue
+				}
+
+				left = ast.NewMethodLookupNode(
+					left.Location().Join(right.Location()),
+					left,
+					right,
+				)
+				continue
+			}
+
 			p.errorExpected("a public constant or method name")
 			tok := p.advance()
 			return ast.NewInvalidNode(tok.Location(), tok)
 		}
+
+		break
 	}
 
 	return left
