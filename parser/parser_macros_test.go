@@ -1501,805 +1501,408 @@ func TestScopedMacroCall(t *testing.T) {
 				},
 			),
 		},
-		// TODO
-		// "can omit the receiver and have an empty argument list": {
-		// 	input: "foo!()",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(5, 1, 6))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(5, 1, 6))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(5, 1, 6))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can omit the receiver, parens and arguments": {
-		// 	input: "foo!",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(3, 1, 4))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(3, 1, 4))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(2, 1, 3))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "cannot omit the receiver and have type arguments": {
-		// 	input: "foo!::[String]()",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(2, 1, 3))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(2, 1, 3))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(2, 1, 3))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// 	err: diagnostic.DiagnosticList{
-		// 		diagnostic.NewFailure(L(S(P(4, 1, 5), P(6, 1, 7))), "unexpected ::[, expected a statement separator `\\n`, `;`"),
-		// 	},
-		// },
-		// "can omit the receiver, arguments and have a trailing closure": {
-		// 	input: "foo!() |i| -> i * 2",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(18, 1, 19))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(18, 1, 19))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(18, 1, 19))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewClosureLiteralNode(
-		// 							L(S(P(7, 1, 8), P(18, 1, 19))),
-		// 							[]ast.ParameterNode{
-		// 								ast.NewFormalParameterNode(
-		// 									L(S(P(8, 1, 9), P(8, 1, 9))),
-		// 									ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(8, 1, 9))), "i"),
-		// 									nil,
-		// 									nil,
-		// 									ast.NormalParameterKind,
-		// 								),
-		// 							},
-		// 							nil,
-		// 							nil,
-		// 							[]ast.StatementNode{
-		// 								ast.NewExpressionStatementNode(
-		// 									L(S(P(14, 1, 15), P(18, 1, 19))),
-		// 									ast.NewBinaryExpressionNode(
-		// 										L(S(P(14, 1, 15), P(18, 1, 19))),
-		// 										T(L(S(P(16, 1, 17), P(16, 1, 17))), token.STAR),
-		// 										ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(14, 1, 15))), "i"),
-		// 										ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "2"),
-		// 									),
-		// 								),
-		// 							},
-		// 						),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can omit the receiver, arguments and have a trailing closure without pipes": {
-		// 	input: "foo!() -> i * 2",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(14, 1, 15))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(14, 1, 15))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(14, 1, 15))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewClosureLiteralNode(
-		// 							L(S(P(7, 1, 8), P(14, 1, 15))),
-		// 							nil,
-		// 							nil,
-		// 							nil,
-		// 							[]ast.StatementNode{
-		// 								ast.NewExpressionStatementNode(
-		// 									L(S(P(10, 1, 11), P(14, 1, 15))),
-		// 									ast.NewBinaryExpressionNode(
-		// 										L(S(P(10, 1, 11), P(14, 1, 15))),
-		// 										T(L(S(P(12, 1, 13), P(12, 1, 13))), token.STAR),
-		// 										ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(10, 1, 11))), "i"),
-		// 										ast.NewIntLiteralNode(L(S(P(14, 1, 15), P(14, 1, 15))), "2"),
-		// 									),
-		// 								),
-		// 							},
-		// 						),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can omit the receiver, arguments and have a trailing closure without arguments": {
-		// 	input: "foo!() || -> i * 2",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(17, 1, 18))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(17, 1, 18))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(17, 1, 18))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewClosureLiteralNode(
-		// 							L(S(P(7, 1, 8), P(17, 1, 18))),
-		// 							nil,
-		// 							nil,
-		// 							nil,
-		// 							[]ast.StatementNode{
-		// 								ast.NewExpressionStatementNode(
-		// 									L(S(P(13, 1, 14), P(17, 1, 18))),
-		// 									ast.NewBinaryExpressionNode(
-		// 										L(S(P(13, 1, 14), P(17, 1, 18))),
-		// 										T(L(S(P(15, 1, 16), P(15, 1, 16))), token.STAR),
-		// 										ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(13, 1, 14))), "i"),
-		// 										ast.NewIntLiteralNode(L(S(P(17, 1, 18), P(17, 1, 18))), "2"),
-		// 									),
-		// 								),
-		// 							},
-		// 						),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can omit the receiver and have a trailing closure": {
-		// 	input: "foo!(1, 5) |i| -> i * 2",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(22, 1, 23))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(22, 1, 23))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(22, 1, 23))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewIntLiteralNode(L(S(P(5, 1, 6), P(5, 1, 6))), "1"),
-		// 						ast.NewIntLiteralNode(L(S(P(8, 1, 9), P(8, 1, 9))), "5"),
-		// 						ast.NewClosureLiteralNode(
-		// 							L(S(P(11, 1, 12), P(22, 1, 23))),
-		// 							[]ast.ParameterNode{
-		// 								ast.NewFormalParameterNode(
-		// 									L(S(P(12, 1, 13), P(12, 1, 13))),
-		// 									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(12, 1, 13))), "i"),
-		// 									nil,
-		// 									nil,
-		// 									ast.NormalParameterKind,
-		// 								),
-		// 							},
-		// 							nil,
-		// 							nil,
-		// 							[]ast.StatementNode{
-		// 								ast.NewExpressionStatementNode(
-		// 									L(S(P(18, 1, 19), P(22, 1, 23))),
-		// 									ast.NewBinaryExpressionNode(
-		// 										L(S(P(18, 1, 19), P(22, 1, 23))),
-		// 										T(L(S(P(20, 1, 21), P(20, 1, 21))), token.STAR),
-		// 										ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(18, 1, 19))), "i"),
-		// 										ast.NewIntLiteralNode(L(S(P(22, 1, 23), P(22, 1, 23))), "2"),
-		// 									),
-		// 								),
-		// 							},
-		// 						),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can omit the receiver have named arguments and a trailing closure": {
-		// 	input: "foo!(f: 5) |i| -> i * 2",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(22, 1, 23))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(22, 1, 23))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(22, 1, 23))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					nil,
-		// 					[]ast.NamedArgumentNode{
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(5, 1, 6), P(8, 1, 9))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(5, 1, 6))), "f"),
-		// 							ast.NewIntLiteralNode(L(S(P(8, 1, 9), P(8, 1, 9))), "5"),
-		// 						),
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(11, 1, 12), P(22, 1, 23))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(22, 1, 23))), "fn"),
-		// 							ast.NewClosureLiteralNode(
-		// 								L(S(P(11, 1, 12), P(22, 1, 23))),
-		// 								[]ast.ParameterNode{
-		// 									ast.NewFormalParameterNode(
-		// 										L(S(P(12, 1, 13), P(12, 1, 13))),
-		// 										ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(12, 1, 13))), "i"),
-		// 										nil,
-		// 										nil,
-		// 										ast.NormalParameterKind,
-		// 									),
-		// 								},
-		// 								nil,
-		// 								nil,
-		// 								[]ast.StatementNode{
-		// 									ast.NewExpressionStatementNode(
-		// 										L(S(P(18, 1, 19), P(22, 1, 23))),
-		// 										ast.NewBinaryExpressionNode(
-		// 											L(S(P(18, 1, 19), P(22, 1, 23))),
-		// 											T(L(S(P(20, 1, 21), P(20, 1, 21))), token.STAR),
-		// 											ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(18, 1, 19))), "i"),
-		// 											ast.NewIntLiteralNode(L(S(P(22, 1, 23), P(22, 1, 23))), "2"),
-		// 										),
-		// 									),
-		// 								},
-		// 							),
-		// 						),
-		// 					},
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have a private name with an implicit receiver": {
-		// 	input: "_foo!()",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(6, 1, 7))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(6, 1, 7))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(6, 1, 7))),
-		// 					ast.NewPrivateIdentifierNode(L(S(P(0, 1, 1), P(3, 1, 4))), "_foo"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have an explicit receiver": {
-		// 	input: "foo.bar!()",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(9, 1, 10))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(9, 1, 10))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(9, 1, 10))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "cannot have an explicit receiver with type arguments": {
-		// 	input: "foo.bar!::[String]()",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(19, 1, 20))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(19, 1, 20))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(19, 1, 20))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// 	err: diagnostic.DiagnosticList{
-		// 		&diagnostic.Diagnostic{
-		// 			Location: L(S(P(8, 1, 9), P(17, 1, 18))),
-		// 			Message:  "macro calls cannot be generic",
-		// 		},
-		// 	},
-		// },
-		// "can have an explicit receiver and a trailing closure without pipes": {
-		// 	input: "foo.bar!() -> i * 2",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(18, 1, 19))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(18, 1, 19))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(18, 1, 19))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewClosureLiteralNode(
-		// 							L(S(P(11, 1, 12), P(18, 1, 19))),
-		// 							nil,
-		// 							nil,
-		// 							nil,
-		// 							[]ast.StatementNode{
-		// 								ast.NewExpressionStatementNode(
-		// 									L(S(P(14, 1, 15), P(18, 1, 19))),
-		// 									ast.NewBinaryExpressionNode(
-		// 										L(S(P(14, 1, 15), P(18, 1, 19))),
-		// 										T(L(S(P(16, 1, 17), P(16, 1, 17))), token.STAR),
-		// 										ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(14, 1, 15))), "i"),
-		// 										ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "2"),
-		// 									),
-		// 								),
-		// 							},
-		// 						),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have an explicit receiver and a trailing closure without arguments": {
-		// 	input: "foo.bar!() || -> i * 2",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(21, 1, 22))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(21, 1, 22))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(21, 1, 22))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewClosureLiteralNode(
-		// 							L(S(P(11, 1, 12), P(21, 1, 22))),
-		// 							nil,
-		// 							nil,
-		// 							nil,
-		// 							[]ast.StatementNode{
-		// 								ast.NewExpressionStatementNode(
-		// 									L(S(P(17, 1, 18), P(21, 1, 22))),
-		// 									ast.NewBinaryExpressionNode(
-		// 										L(S(P(17, 1, 18), P(21, 1, 22))),
-		// 										T(L(S(P(19, 1, 20), P(19, 1, 20))), token.STAR),
-		// 										ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "i"),
-		// 										ast.NewIntLiteralNode(L(S(P(21, 1, 22), P(21, 1, 22))), "2"),
-		// 									),
-		// 								),
-		// 							},
-		// 						),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have an explicit receiver and a trailing closure": {
-		// 	input: "foo.bar!() |i| -> i * 2",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(22, 1, 23))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(22, 1, 23))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(22, 1, 23))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewClosureLiteralNode(
-		// 							L(S(P(11, 1, 12), P(22, 1, 23))),
-		// 							[]ast.ParameterNode{
-		// 								ast.NewFormalParameterNode(
-		// 									L(S(P(12, 1, 13), P(12, 1, 13))),
-		// 									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(12, 1, 13))), "i"),
-		// 									nil,
-		// 									nil,
-		// 									ast.NormalParameterKind,
-		// 								),
-		// 							},
-		// 							nil,
-		// 							nil,
-		// 							[]ast.StatementNode{
-		// 								ast.NewExpressionStatementNode(
-		// 									L(S(P(18, 1, 19), P(22, 1, 23))),
-		// 									ast.NewBinaryExpressionNode(
-		// 										L(S(P(18, 1, 19), P(22, 1, 23))),
-		// 										T(L(S(P(20, 1, 21), P(20, 1, 21))), token.STAR),
-		// 										ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(18, 1, 19))), "i"),
-		// 										ast.NewIntLiteralNode(L(S(P(22, 1, 23), P(22, 1, 23))), "2"),
-		// 									),
-		// 								),
-		// 							},
-		// 						),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have an explicit receiver, arguments and a trailing closure": {
-		// 	input: "foo.bar!(1, 5) |i| -> i * 2",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(26, 1, 27))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(26, 1, 27))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(26, 1, 27))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewIntLiteralNode(L(S(P(9, 1, 10), P(9, 1, 10))), "1"),
-		// 						ast.NewIntLiteralNode(L(S(P(12, 1, 13), P(12, 1, 13))), "5"),
-		// 						ast.NewClosureLiteralNode(
-		// 							L(S(P(15, 1, 16), P(26, 1, 27))),
-		// 							[]ast.ParameterNode{
-		// 								ast.NewFormalParameterNode(
-		// 									L(S(P(16, 1, 17), P(16, 1, 17))),
-		// 									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(16, 1, 17))), "i"),
-		// 									nil,
-		// 									nil,
-		// 									ast.NormalParameterKind,
-		// 								),
-		// 							},
-		// 							nil,
-		// 							nil,
-		// 							[]ast.StatementNode{
-		// 								ast.NewExpressionStatementNode(
-		// 									L(S(P(22, 1, 23), P(26, 1, 27))),
-		// 									ast.NewBinaryExpressionNode(
-		// 										L(S(P(22, 1, 23), P(26, 1, 27))),
-		// 										T(L(S(P(24, 1, 25), P(24, 1, 25))), token.STAR),
-		// 										ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(22, 1, 23))), "i"),
-		// 										ast.NewIntLiteralNode(L(S(P(26, 1, 27), P(26, 1, 27))), "2"),
-		// 									),
-		// 								),
-		// 							},
-		// 						),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have an explicit receiver, named arguments and a trailing closure": {
-		// 	input: "foo.bar!(f: 5) |i| -> i * 2",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(26, 1, 27))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(26, 1, 27))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(26, 1, 27))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
-		// 					nil,
-		// 					[]ast.NamedArgumentNode{
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(9, 1, 10), P(12, 1, 13))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(9, 1, 10))), "f"),
-		// 							ast.NewIntLiteralNode(L(S(P(12, 1, 13), P(12, 1, 13))), "5"),
-		// 						),
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(15, 1, 16), P(26, 1, 27))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(26, 1, 27))), "fn"),
-		// 							ast.NewClosureLiteralNode(
-		// 								L(S(P(15, 1, 16), P(26, 1, 27))),
-		// 								[]ast.ParameterNode{
-		// 									ast.NewFormalParameterNode(
-		// 										L(S(P(16, 1, 17), P(16, 1, 17))),
-		// 										ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(16, 1, 17))), "i"),
-		// 										nil,
-		// 										nil,
-		// 										ast.NormalParameterKind,
-		// 									),
-		// 								},
-		// 								nil,
-		// 								nil,
-		// 								[]ast.StatementNode{
-		// 									ast.NewExpressionStatementNode(
-		// 										L(S(P(22, 1, 23), P(26, 1, 27))),
-		// 										ast.NewBinaryExpressionNode(
-		// 											L(S(P(22, 1, 23), P(26, 1, 27))),
-		// 											T(L(S(P(24, 1, 25), P(24, 1, 25))), token.STAR),
-		// 											ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(22, 1, 23))), "i"),
-		// 											ast.NewIntLiteralNode(L(S(P(26, 1, 27), P(26, 1, 27))), "2"),
-		// 										),
-		// 									),
-		// 								},
-		// 							),
-		// 						),
-		// 					},
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can omit parentheses": {
-		// 	input: "foo.bar! 1",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(9, 1, 10))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(9, 1, 10))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(9, 1, 10))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewIntLiteralNode(L(S(P(9, 1, 10), P(9, 1, 10))), "1"),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "cannot use the safe navigation operator": {
-		// 	input: "foo?.bar!",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(8, 1, 9))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(8, 1, 9))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(8, 1, 9))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// 	err: diagnostic.DiagnosticList{
-		// 		diagnostic.NewFailure(
-		// 			L(S(P(3, 1, 4), P(4, 1, 5))),
-		// 			"invalid macro call operator",
-		// 		),
-		// 	},
-		// },
-		// "cannot use the cascade call operator": {
-		// 	input: "foo..bar!",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(8, 1, 9))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(8, 1, 9))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(8, 1, 9))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// 	err: diagnostic.DiagnosticList{
-		// 		diagnostic.NewFailure(
-		// 			L(S(P(3, 1, 4), P(4, 1, 5))),
-		// 			"invalid macro call operator",
-		// 		),
-		// 	},
-		// },
-		// "cannot use the safe cascade call operator": {
-		// 	input: "foo?..bar!",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(9, 1, 10))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(9, 1, 10))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(9, 1, 10))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// 	err: diagnostic.DiagnosticList{
-		// 		diagnostic.NewFailure(
-		// 			L(S(P(3, 1, 4), P(5, 1, 6))),
-		// 			"invalid macro call operator",
-		// 		),
-		// 	},
-		// },
-		// "can be nested with parentheses": {
-		// 	input: "foo.bar!().baz!()",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(16, 1, 17))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(16, 1, 17))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(16, 1, 17))),
-		// 					ast.NewMacroCallNode(
-		// 						L(S(P(0, 1, 1), P(9, 1, 10))),
-		// 						ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 						ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
-		// 						nil,
-		// 						nil,
-		// 					),
-		// 					ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(13, 1, 14))), "baz"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have any expression as the receiver": {
-		// 	input: "(foo + 2).bar!()",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(15, 1, 16))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(1, 1, 2), P(15, 1, 16))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(1, 1, 2), P(15, 1, 16))),
-		// 					ast.NewBinaryExpressionNode(
-		// 						L(S(P(1, 1, 2), P(7, 1, 8))),
-		// 						T(L(S(P(5, 1, 6), P(5, 1, 6))), token.PLUS),
-		// 						ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
-		// 						ast.NewIntLiteralNode(L(S(P(7, 1, 8), P(7, 1, 8))), "2"),
-		// 					),
-		// 					ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "bar"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "cannot call a private method on an explicit receiver": {
-		// 	input: "foo._bar!()",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(10, 1, 11))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(10, 1, 11))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(10, 1, 11))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewPrivateIdentifierNode(L(S(P(4, 1, 5), P(7, 1, 8))), "_bar"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// 	err: diagnostic.DiagnosticList{
-		// 		diagnostic.NewFailure(L(S(P(4, 1, 5), P(7, 1, 8))), "unexpected PRIVATE_IDENTIFIER, expected a public method name (public identifier, keyword or overridable operator)"),
-		// 	},
-		// },
-		// "cannot have a non overridable operator as the macro name": {
-		// 	input: "foo.&&!()",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(8, 1, 9))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(8, 1, 9))),
-		// 				ast.NewMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(8, 1, 9))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					ast.NewInvalidNode(
-		// 						L(S(P(4, 1, 5), P(5, 1, 6))),
-		// 						T(L(S(P(4, 1, 5), P(5, 1, 6))), token.AND_AND),
-		// 					),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// 	err: diagnostic.DiagnosticList{
-		// 		diagnostic.NewFailure(L(S(P(4, 1, 5), P(5, 1, 6))), "unexpected &&, expected a public method name (public identifier, keyword or overridable operator)"),
-		// 		diagnostic.NewFailure(L(S(P(4, 1, 5), P(5, 1, 6))), "invalid macro name"),
-		// 	},
-		// },
-		// "can have positional arguments": {
-		// 	input: "foo!(.1, 'foo', :bar)",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(20, 1, 21))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(20, 1, 21))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(20, 1, 21))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
-		// 						ast.NewRawStringLiteralNode(L(S(P(9, 1, 10), P(13, 1, 14))), "foo"),
-		// 						ast.NewSimpleSymbolLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "bar"),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have splat arguments": {
-		// 	input: "foo!(*baz, 'foo', *bar)",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(22, 1, 23))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(22, 1, 23))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(22, 1, 23))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewSplatExpressionNode(
-		// 							L(S(P(5, 1, 6), P(8, 1, 9))),
-		// 							ast.NewPublicIdentifierNode(
-		// 								L(S(P(6, 1, 7), P(8, 1, 9))),
-		// 								"baz",
-		// 							),
-		// 						),
-		// 						ast.NewRawStringLiteralNode(L(S(P(11, 1, 12), P(15, 1, 16))), "foo"),
-		// 						ast.NewSplatExpressionNode(
-		// 							L(S(P(18, 1, 19), P(21, 1, 22))),
-		// 							ast.NewPublicIdentifierNode(
-		// 								L(S(P(19, 1, 20), P(21, 1, 22))),
-		// 								"bar",
-		// 							),
-		// 						),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have a trailing comma": {
-		// 	input: "foo!(.1, 'foo', :bar,)",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(21, 1, 22))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(21, 1, 22))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(21, 1, 22))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
-		// 						ast.NewRawStringLiteralNode(L(S(P(9, 1, 10), P(13, 1, 14))), "foo"),
-		// 						ast.NewSimpleSymbolLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "bar"),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
+		"can have an empty argument list": {
+			input: "Bar::foo!()",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(10, 1, 11))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(10, 1, 11))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(10, 1, 11))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Bar"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can omit parens and arguments": {
+			input: "Foo::foo!",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 1, 9))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(8, 1, 9))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(8, 1, 9))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can omit arguments and have a trailing closure": {
+			input: "Foo::foo!() |i| -> i * 2",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(23, 1, 24))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(23, 1, 24))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(23, 1, 24))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewClosureLiteralNode(
+									L(S(P(12, 1, 13), P(23, 1, 24))),
+									[]ast.ParameterNode{
+										ast.NewFormalParameterNode(
+											L(S(P(13, 1, 14), P(13, 1, 14))),
+											ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(13, 1, 14))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
+									},
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(19, 1, 20), P(23, 1, 24))),
+											ast.NewBinaryExpressionNode(
+												L(S(P(19, 1, 20), P(23, 1, 24))),
+												T(L(S(P(21, 1, 22), P(21, 1, 22))), token.STAR),
+												ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(19, 1, 20))), "i"),
+												ast.NewIntLiteralNode(L(S(P(23, 1, 24), P(23, 1, 24))), "2"),
+											),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can omit arguments and have a trailing closure without pipes": {
+			input: "Foo::foo!() -> i * 2",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(19, 1, 20))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(19, 1, 20))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(19, 1, 20))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewClosureLiteralNode(
+									L(S(P(12, 1, 13), P(19, 1, 20))),
+									nil,
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(15, 1, 16), P(19, 1, 20))),
+											ast.NewBinaryExpressionNode(
+												L(S(P(15, 1, 16), P(19, 1, 20))),
+												T(L(S(P(17, 1, 18), P(17, 1, 18))), token.STAR),
+												ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(15, 1, 16))), "i"),
+												ast.NewIntLiteralNode(L(S(P(19, 1, 20), P(19, 1, 20))), "2"),
+											),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can omit arguments and have a trailing closure without arguments": {
+			input: "Foo::foo!() || -> i * 2",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(22, 1, 23))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(22, 1, 23))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(22, 1, 23))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewClosureLiteralNode(
+									L(S(P(12, 1, 13), P(22, 1, 23))),
+									nil,
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(18, 1, 19), P(22, 1, 23))),
+											ast.NewBinaryExpressionNode(
+												L(S(P(18, 1, 19), P(22, 1, 23))),
+												T(L(S(P(20, 1, 21), P(20, 1, 21))), token.STAR),
+												ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(18, 1, 19))), "i"),
+												ast.NewIntLiteralNode(L(S(P(22, 1, 23), P(22, 1, 23))), "2"),
+											),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a trailing closure": {
+			input: "Foo::foo!(1, 5) |i| -> i * 2",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(27, 1, 28))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(27, 1, 28))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(27, 1, 28))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(L(S(P(10, 1, 11), P(10, 1, 11))), "1"),
+								ast.NewIntLiteralNode(L(S(P(13, 1, 14), P(13, 1, 14))), "5"),
+								ast.NewClosureLiteralNode(
+									L(S(P(16, 1, 17), P(27, 1, 28))),
+									[]ast.ParameterNode{
+										ast.NewFormalParameterNode(
+											L(S(P(17, 1, 18), P(17, 1, 18))),
+											ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
+									},
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(23, 1, 24), P(27, 1, 28))),
+											ast.NewBinaryExpressionNode(
+												L(S(P(23, 1, 24), P(27, 1, 28))),
+												T(L(S(P(25, 1, 26), P(25, 1, 26))), token.STAR),
+												ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(23, 1, 24))), "i"),
+												ast.NewIntLiteralNode(L(S(P(27, 1, 28), P(27, 1, 28))), "2"),
+											),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have named arguments and a trailing closure": {
+			input: "Foo::foo!(f: 5) |i| -> i * 2",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(27, 1, 28))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(27, 1, 28))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(27, 1, 28))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							nil,
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									L(S(P(10, 1, 11), P(13, 1, 14))),
+									ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(10, 1, 11))), "f"),
+									ast.NewIntLiteralNode(L(S(P(13, 1, 14), P(13, 1, 14))), "5"),
+								),
+								ast.NewNamedCallArgumentNode(
+									L(S(P(16, 1, 17), P(27, 1, 28))),
+									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(27, 1, 28))), "fn"),
+									ast.NewClosureLiteralNode(
+										L(S(P(16, 1, 17), P(27, 1, 28))),
+										[]ast.ParameterNode{
+											ast.NewFormalParameterNode(
+												L(S(P(17, 1, 18), P(17, 1, 18))),
+												ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "i"),
+												nil,
+												nil,
+												ast.NormalParameterKind,
+											),
+										},
+										nil,
+										nil,
+										[]ast.StatementNode{
+											ast.NewExpressionStatementNode(
+												L(S(P(23, 1, 24), P(27, 1, 28))),
+												ast.NewBinaryExpressionNode(
+													L(S(P(23, 1, 24), P(27, 1, 28))),
+													T(L(S(P(25, 1, 26), P(25, 1, 26))), token.STAR),
+													ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(23, 1, 24))), "i"),
+													ast.NewIntLiteralNode(L(S(P(27, 1, 28), P(27, 1, 28))), "2"),
+												),
+											),
+										},
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"cannot have a private name": {
+			input: "Foo::_foo!()",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 1, 9))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(5, 1, 6), P(8, 1, 9))),
+						ast.NewInvalidNode(
+							L(S(P(5, 1, 6), P(8, 1, 9))),
+							V(L(S(P(5, 1, 6), P(8, 1, 9))), token.PRIVATE_IDENTIFIER, "_foo"),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				&diagnostic.Diagnostic{
+					Location: L(S(P(5, 1, 6), P(8, 1, 9))),
+					Message:  "unexpected PRIVATE_IDENTIFIER, expected a public constant or method name",
+				},
+				&diagnostic.Diagnostic{
+					Location: L(S(P(9, 1, 10), P(9, 1, 10))),
+					Message:  "unexpected !, expected a statement separator `\\n`, `;`",
+				},
+			},
+		},
+		"cannot have type arguments": {
+			input: "Foo::bar!::[String]()",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 1, 9))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(8, 1, 9))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(8, 1, 9))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				&diagnostic.Diagnostic{
+					Location: L(S(P(9, 1, 10), P(11, 1, 12))),
+					Message:  "unexpected ::[, expected a statement separator `\\n`, `;`",
+				},
+			},
+		},
+		"can be nested with parentheses": {
+			input: "Foo::bar!()::baz!()",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(18, 1, 19))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(18, 1, 19))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(18, 1, 19))),
+							ast.NewScopedMacroCallNode(
+								L(S(P(0, 1, 1), P(10, 1, 11))),
+								ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+								ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
+								nil,
+								nil,
+							),
+							ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(15, 1, 16))), "baz"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have positional arguments": {
+			input: "Foo::foo!(.1, 'foo', :bar)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(25, 1, 26))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(25, 1, 26))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(25, 1, 26))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(L(S(P(10, 1, 11), P(11, 1, 12))), "0.1"),
+								ast.NewRawStringLiteralNode(L(S(P(14, 1, 15), P(18, 1, 19))), "foo"),
+								ast.NewSimpleSymbolLiteralNode(L(S(P(21, 1, 22), P(24, 1, 25))), "bar"),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have splat arguments": {
+			input: "Foo::foo!(*baz, 'foo', *bar)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(27, 1, 28))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(27, 1, 28))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(27, 1, 28))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewSplatExpressionNode(
+									L(S(P(10, 1, 11), P(13, 1, 14))),
+									ast.NewPublicIdentifierNode(
+										L(S(P(11, 1, 12), P(13, 1, 14))),
+										"baz",
+									),
+								),
+								ast.NewRawStringLiteralNode(L(S(P(16, 1, 17), P(20, 1, 21))), "foo"),
+								ast.NewSplatExpressionNode(
+									L(S(P(23, 1, 24), P(26, 1, 27))),
+									ast.NewPublicIdentifierNode(
+										L(S(P(24, 1, 25), P(26, 1, 27))),
+										"bar",
+									),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a trailing comma": {
+			input: "Foo::foo!(.1, 'foo', :bar,)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(26, 1, 27))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(26, 1, 27))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(26, 1, 27))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(L(S(P(10, 1, 11), P(11, 1, 12))), "0.1"),
+								ast.NewRawStringLiteralNode(L(S(P(14, 1, 15), P(18, 1, 19))), "foo"),
+								ast.NewSimpleSymbolLiteralNode(L(S(P(21, 1, 22), P(24, 1, 25))), "bar"),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 		// "can have named arguments": {
 		// 	input: "foo!(bar: :baz, elk: true)",
 		// 	want: ast.NewProgramNode(
