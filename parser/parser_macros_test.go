@@ -1903,332 +1903,343 @@ func TestScopedMacroCall(t *testing.T) {
 				},
 			),
 		},
-		// "can have named arguments": {
-		// 	input: "foo!(bar: :baz, elk: true)",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(25, 1, 26))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(25, 1, 26))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(25, 1, 26))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					nil,
-		// 					[]ast.NamedArgumentNode{
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(5, 1, 6), P(13, 1, 14))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
-		// 							ast.NewSimpleSymbolLiteralNode(L(S(P(10, 1, 11), P(13, 1, 14))), "baz"),
-		// 						),
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(16, 1, 17), P(24, 1, 25))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(18, 1, 19))), "elk"),
-		// 							ast.NewTrueLiteralNode(L(S(P(21, 1, 22), P(24, 1, 25)))),
-		// 						),
-		// 					},
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have double splat arguments": {
-		// 	input: "foo!(**f, bar: :baz, **dupa(), elk: true)",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(40, 1, 41))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(40, 1, 41))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(40, 1, 41))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					nil,
-		// 					[]ast.NamedArgumentNode{
-		// 						ast.NewDoubleSplatExpressionNode(
-		// 							L(S(P(5, 1, 6), P(7, 1, 8))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(7, 1, 8))), "f"),
-		// 						),
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(10, 1, 11), P(18, 1, 19))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "bar"),
-		// 							ast.NewSimpleSymbolLiteralNode(L(S(P(15, 1, 16), P(18, 1, 19))), "baz"),
-		// 						),
-		// 						ast.NewDoubleSplatExpressionNode(
-		// 							L(S(P(21, 1, 22), P(28, 1, 29))),
-		// 							ast.NewReceiverlessMethodCallNode(
-		// 								L(S(P(23, 1, 24), P(28, 1, 29))),
-		// 								ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(26, 1, 27))), "dupa"),
-		// 								nil,
-		// 								nil,
-		// 							),
-		// 						),
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(31, 1, 32), P(39, 1, 40))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(31, 1, 32), P(33, 1, 34))), "elk"),
-		// 							ast.NewTrueLiteralNode(L(S(P(36, 1, 37), P(39, 1, 40)))),
-		// 						),
-		// 					},
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have positional and named arguments": {
-		// 	input: "foo!(.1, 'foo', :bar, bar: :baz, elk: true)",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(42, 1, 43))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(42, 1, 43))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(42, 1, 43))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
-		// 						ast.NewRawStringLiteralNode(L(S(P(9, 1, 10), P(13, 1, 14))), "foo"),
-		// 						ast.NewSimpleSymbolLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "bar"),
-		// 					},
-		// 					[]ast.NamedArgumentNode{
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(22, 1, 23), P(30, 1, 31))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(24, 1, 25))), "bar"),
-		// 							ast.NewSimpleSymbolLiteralNode(L(S(P(27, 1, 28), P(30, 1, 31))), "baz"),
-		// 						),
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(33, 1, 34), P(41, 1, 42))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(33, 1, 34), P(35, 1, 36))), "elk"),
-		// 							ast.NewTrueLiteralNode(L(S(P(38, 1, 39), P(41, 1, 42)))),
-		// 						),
-		// 					},
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have newlines after commas": {
-		// 	input: "foo!(.1,\n'foo',\n:bar, bar: :baz,\nelk: true)",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(42, 4, 10))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(42, 4, 10))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(42, 4, 10))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
-		// 						ast.NewRawStringLiteralNode(L(S(P(9, 2, 1), P(13, 2, 5))), "foo"),
-		// 						ast.NewSimpleSymbolLiteralNode(L(S(P(16, 3, 1), P(19, 3, 4))), "bar"),
-		// 					},
-		// 					[]ast.NamedArgumentNode{
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(22, 3, 7), P(30, 3, 15))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(22, 3, 7), P(24, 3, 9))), "bar"),
-		// 							ast.NewSimpleSymbolLiteralNode(L(S(P(27, 3, 12), P(30, 3, 15))), "baz"),
-		// 						),
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(33, 4, 1), P(41, 4, 9))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(33, 4, 1), P(35, 4, 3))), "elk"),
-		// 							ast.NewTrueLiteralNode(L(S(P(38, 4, 6), P(41, 4, 9)))),
-		// 						),
-		// 					},
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have newlines around parentheses": {
-		// 	input: "foo!(\n.1, 'foo', :bar, bar: :baz, elk: true\n)",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(44, 3, 1))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(44, 3, 1))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(44, 3, 1))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewFloatLiteralNode(L(S(P(6, 2, 1), P(7, 2, 2))), "0.1"),
-		// 						ast.NewRawStringLiteralNode(L(S(P(10, 2, 5), P(14, 2, 9))), "foo"),
-		// 						ast.NewSimpleSymbolLiteralNode(L(S(P(17, 2, 12), P(20, 2, 15))), "bar"),
-		// 					},
-		// 					[]ast.NamedArgumentNode{
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(23, 2, 18), P(31, 2, 26))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(23, 2, 18), P(25, 2, 20))), "bar"),
-		// 							ast.NewSimpleSymbolLiteralNode(L(S(P(28, 2, 23), P(31, 2, 26))), "baz"),
-		// 						),
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(34, 2, 29), P(42, 2, 37))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(34, 2, 29), P(36, 2, 31))), "elk"),
-		// 							ast.NewTrueLiteralNode(L(S(P(39, 2, 34), P(42, 2, 37)))),
-		// 						),
-		// 					},
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "cannot have newlines before the opening parenthesis": {
-		// 	input: "foo!\n(.1, 'foo', :bar, bar: :baz, elk: true)",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(43, 2, 39))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(4, 1, 5))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(2, 1, 3))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(6, 2, 2), P(43, 2, 39))),
-		// 				ast.NewFloatLiteralNode(L(S(P(6, 2, 2), P(7, 2, 3))), "0.1"),
-		// 			),
-		// 		},
-		// 	),
-		// 	err: diagnostic.DiagnosticList{
-		// 		diagnostic.NewFailure(L(S(P(8, 2, 4), P(8, 2, 4))), "unexpected ,, expected )"),
-		// 	},
-		// },
-		// "can have positional arguments without parentheses": {
-		// 	input: "foo! .1, 'foo', :bar",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(19, 1, 20))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(19, 1, 20))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(19, 1, 20))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
-		// 						ast.NewRawStringLiteralNode(L(S(P(9, 1, 10), P(13, 1, 14))), "foo"),
-		// 						ast.NewSimpleSymbolLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "bar"),
-		// 					},
-		// 					nil,
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have named arguments without parentheses": {
-		// 	input: "foo! bar: :baz, elk: true",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(24, 1, 25))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(24, 1, 25))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(24, 1, 25))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					nil,
-		// 					[]ast.NamedArgumentNode{
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(5, 1, 6), P(13, 1, 14))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
-		// 							ast.NewSimpleSymbolLiteralNode(L(S(P(10, 1, 11), P(13, 1, 14))), "baz"),
-		// 						),
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(16, 1, 17), P(24, 1, 25))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(18, 1, 19))), "elk"),
-		// 							ast.NewTrueLiteralNode(L(S(P(21, 1, 22), P(24, 1, 25)))),
-		// 						),
-		// 					},
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have positional and named arguments without parentheses": {
-		// 	input: "foo! .1, 'foo', :bar, bar: :baz, elk: true",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(41, 1, 42))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(41, 1, 42))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(41, 1, 42))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
-		// 						ast.NewRawStringLiteralNode(L(S(P(9, 1, 10), P(13, 1, 14))), "foo"),
-		// 						ast.NewSimpleSymbolLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "bar"),
-		// 					},
-		// 					[]ast.NamedArgumentNode{
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(22, 1, 23), P(30, 1, 31))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(24, 1, 25))), "bar"),
-		// 							ast.NewSimpleSymbolLiteralNode(L(S(P(27, 1, 28), P(30, 1, 31))), "baz"),
-		// 						),
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(33, 1, 34), P(41, 1, 42))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(33, 1, 34), P(35, 1, 36))), "elk"),
-		// 							ast.NewTrueLiteralNode(L(S(P(38, 1, 39), P(41, 1, 42)))),
-		// 						),
-		// 					},
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "can have newlines after commas without parentheses": {
-		// 	input: "foo! .1,\n'foo',\n:bar, bar: :baz,\nelk: true",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(41, 4, 9))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(41, 4, 9))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(41, 4, 9))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					[]ast.ExpressionNode{
-		// 						ast.NewFloatLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "0.1"),
-		// 						ast.NewRawStringLiteralNode(L(S(P(9, 2, 1), P(13, 2, 5))), "foo"),
-		// 						ast.NewSimpleSymbolLiteralNode(L(S(P(16, 3, 1), P(19, 3, 4))), "bar"),
-		// 					},
-		// 					[]ast.NamedArgumentNode{
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(22, 3, 7), P(30, 3, 15))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(22, 3, 7), P(24, 3, 9))), "bar"),
-		// 							ast.NewSimpleSymbolLiteralNode(L(S(P(27, 3, 12), P(30, 3, 15))), "baz"),
-		// 						),
-		// 						ast.NewNamedCallArgumentNode(
-		// 							L(S(P(33, 4, 1), P(41, 4, 9))),
-		// 							ast.NewPublicIdentifierNode(L(S(P(33, 4, 1), P(35, 4, 3))), "elk"),
-		// 							ast.NewTrueLiteralNode(L(S(P(38, 4, 6), P(41, 4, 9)))),
-		// 						),
-		// 					},
-		// 				),
-		// 			),
-		// 		},
-		// 	),
-		// },
-		// "cannot have newlines before the arguments without parentheses": {
-		// 	input: "foo!\n.1, 'foo', :bar, bar: :baz, elk: true",
-		// 	want: ast.NewProgramNode(
-		// 		L(S(P(0, 1, 1), P(6, 2, 2))),
-		// 		[]ast.StatementNode{
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(0, 1, 1), P(4, 1, 5))),
-		// 				ast.NewReceiverlessMacroCallNode(
-		// 					L(S(P(0, 1, 1), P(2, 1, 3))),
-		// 					ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-		// 					nil,
-		// 					nil,
-		// 				),
-		// 			),
-		// 			ast.NewExpressionStatementNode(
-		// 				L(S(P(5, 2, 1), P(6, 2, 2))),
-		// 				ast.NewFloatLiteralNode(L(S(P(5, 2, 1), P(6, 2, 2))), "0.1"),
-		// 			),
-		// 		},
-		// 	),
-		// 	err: diagnostic.DiagnosticList{
-		// 		diagnostic.NewFailure(L(S(P(7, 2, 3), P(7, 2, 3))), "unexpected ,, expected a statement separator `\\n`, `;`"),
-		// 	},
-		// },
+		"can have named arguments": {
+			input: "Foo::foo!(bar: :baz, elk: true)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(30, 1, 31))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(30, 1, 31))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(30, 1, 31))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							nil,
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									L(S(P(10, 1, 11), P(18, 1, 19))),
+									ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "bar"),
+									ast.NewSimpleSymbolLiteralNode(L(S(P(15, 1, 16), P(18, 1, 19))), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									L(S(P(21, 1, 22), P(29, 1, 30))),
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "elk"),
+									ast.NewTrueLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30)))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have double splat arguments": {
+			input: "Foo::foo!(**f, bar: :baz, **dupa(), elk: true)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(45, 1, 46))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(45, 1, 46))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(45, 1, 46))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							nil,
+							[]ast.NamedArgumentNode{
+								ast.NewDoubleSplatExpressionNode(
+									L(S(P(10, 1, 11), P(12, 1, 13))),
+									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(12, 1, 13))), "f"),
+								),
+								ast.NewNamedCallArgumentNode(
+									L(S(P(15, 1, 16), P(23, 1, 24))),
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "bar"),
+									ast.NewSimpleSymbolLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24))), "baz"),
+								),
+								ast.NewDoubleSplatExpressionNode(
+									L(S(P(26, 1, 27), P(33, 1, 34))),
+									ast.NewReceiverlessMethodCallNode(
+										L(S(P(28, 1, 29), P(33, 1, 34))),
+										ast.NewPublicIdentifierNode(L(S(P(28, 1, 29), P(31, 1, 32))), "dupa"),
+										nil,
+										nil,
+									),
+								),
+								ast.NewNamedCallArgumentNode(
+									L(S(P(36, 1, 37), P(44, 1, 45))),
+									ast.NewPublicIdentifierNode(L(S(P(36, 1, 37), P(38, 1, 39))), "elk"),
+									ast.NewTrueLiteralNode(L(S(P(41, 1, 42), P(44, 1, 45)))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have positional and named arguments": {
+			input: "Foo::foo!(.1, 'foo', :bar, bar: :baz, elk: true)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(47, 1, 48))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(47, 1, 48))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(47, 1, 48))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(L(S(P(10, 1, 11), P(11, 1, 12))), "0.1"),
+								ast.NewRawStringLiteralNode(L(S(P(14, 1, 15), P(18, 1, 19))), "foo"),
+								ast.NewSimpleSymbolLiteralNode(L(S(P(21, 1, 22), P(24, 1, 25))), "bar"),
+							},
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									L(S(P(27, 1, 28), P(35, 1, 36))),
+									ast.NewPublicIdentifierNode(L(S(P(27, 1, 28), P(29, 1, 30))), "bar"),
+									ast.NewSimpleSymbolLiteralNode(L(S(P(32, 1, 33), P(35, 1, 36))), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									L(S(P(38, 1, 39), P(46, 1, 47))),
+									ast.NewPublicIdentifierNode(L(S(P(38, 1, 39), P(40, 1, 41))), "elk"),
+									ast.NewTrueLiteralNode(L(S(P(43, 1, 44), P(46, 1, 47)))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after commas": {
+			input: "Foo::foo!(.1,\n'foo',\n:bar, bar: :baz,\nelk: true)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(47, 4, 10))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(47, 4, 10))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(47, 4, 10))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(L(S(P(10, 1, 11), P(11, 1, 12))), "0.1"),
+								ast.NewRawStringLiteralNode(L(S(P(14, 2, 1), P(18, 2, 5))), "foo"),
+								ast.NewSimpleSymbolLiteralNode(L(S(P(21, 3, 1), P(24, 3, 4))), "bar"),
+							},
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									L(S(P(27, 3, 7), P(35, 3, 15))),
+									ast.NewPublicIdentifierNode(L(S(P(27, 3, 7), P(29, 3, 9))), "bar"),
+									ast.NewSimpleSymbolLiteralNode(L(S(P(32, 3, 12), P(35, 3, 15))), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									L(S(P(38, 4, 1), P(46, 4, 9))),
+									ast.NewPublicIdentifierNode(L(S(P(38, 4, 1), P(40, 4, 3))), "elk"),
+									ast.NewTrueLiteralNode(L(S(P(43, 4, 6), P(46, 4, 9)))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have newlines around parentheses": {
+			input: "Foo::foo!(\n.1, 'foo', :bar, bar: :baz, elk: true\n)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(49, 3, 1))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(49, 3, 1))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(49, 3, 1))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(L(S(P(11, 2, 1), P(12, 2, 2))), "0.1"),
+								ast.NewRawStringLiteralNode(L(S(P(15, 2, 5), P(19, 2, 9))), "foo"),
+								ast.NewSimpleSymbolLiteralNode(L(S(P(22, 2, 12), P(25, 2, 15))), "bar"),
+							},
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									L(S(P(28, 2, 18), P(36, 2, 26))),
+									ast.NewPublicIdentifierNode(L(S(P(28, 2, 18), P(30, 2, 20))), "bar"),
+									ast.NewSimpleSymbolLiteralNode(L(S(P(33, 2, 23), P(36, 2, 26))), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									L(S(P(39, 2, 29), P(47, 2, 37))),
+									ast.NewPublicIdentifierNode(L(S(P(39, 2, 29), P(41, 2, 31))), "elk"),
+									ast.NewTrueLiteralNode(L(S(P(44, 2, 34), P(47, 2, 37)))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"cannot have newlines before the opening parenthesis": {
+			input: "Foo::foo!\n(.1, 'foo', :bar, bar: :baz, elk: true)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(48, 2, 39))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(9, 1, 10))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(8, 1, 9))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							nil,
+							nil,
+						),
+					),
+					ast.NewExpressionStatementNode(
+						L(S(P(11, 2, 2), P(48, 2, 39))),
+						ast.NewFloatLiteralNode(L(S(P(11, 2, 2), P(12, 2, 3))), "0.1"),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(13, 2, 4), P(13, 2, 4))), "unexpected ,, expected )"),
+			},
+		},
+		"can have positional arguments without parentheses": {
+			input: "Foo::foo! .1, 'foo', :bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(24, 1, 25))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(24, 1, 25))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(24, 1, 25))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(L(S(P(10, 1, 11), P(11, 1, 12))), "0.1"),
+								ast.NewRawStringLiteralNode(L(S(P(14, 1, 15), P(18, 1, 19))), "foo"),
+								ast.NewSimpleSymbolLiteralNode(L(S(P(21, 1, 22), P(24, 1, 25))), "bar"),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have named arguments without parentheses": {
+			input: "Foo::foo! bar: :baz, elk: true",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(29, 1, 30))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(29, 1, 30))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(29, 1, 30))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							nil,
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									L(S(P(10, 1, 11), P(18, 1, 19))),
+									ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "bar"),
+									ast.NewSimpleSymbolLiteralNode(L(S(P(15, 1, 16), P(18, 1, 19))), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									L(S(P(21, 1, 22), P(29, 1, 30))),
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "elk"),
+									ast.NewTrueLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30)))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have positional and named arguments without parentheses": {
+			input: "Foo::foo! .1, 'foo', :bar, bar: :baz, elk: true",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(46, 1, 47))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(46, 1, 47))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(46, 1, 47))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(L(S(P(10, 1, 11), P(11, 1, 12))), "0.1"),
+								ast.NewRawStringLiteralNode(L(S(P(14, 1, 15), P(18, 1, 19))), "foo"),
+								ast.NewSimpleSymbolLiteralNode(L(S(P(21, 1, 22), P(24, 1, 25))), "bar"),
+							},
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									L(S(P(27, 1, 28), P(35, 1, 36))),
+									ast.NewPublicIdentifierNode(L(S(P(27, 1, 28), P(29, 1, 30))), "bar"),
+									ast.NewSimpleSymbolLiteralNode(L(S(P(32, 1, 33), P(35, 1, 36))), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									L(S(P(38, 1, 39), P(46, 1, 47))),
+									ast.NewPublicIdentifierNode(L(S(P(38, 1, 39), P(40, 1, 41))), "elk"),
+									ast.NewTrueLiteralNode(L(S(P(43, 1, 44), P(46, 1, 47)))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after commas without parentheses": {
+			input: "Foo::foo! .1,\n'foo',\n:bar, bar: :baz,\nelk: true",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(46, 4, 9))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(46, 4, 9))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(46, 4, 9))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(L(S(P(10, 1, 11), P(11, 1, 12))), "0.1"),
+								ast.NewRawStringLiteralNode(L(S(P(14, 2, 1), P(18, 2, 5))), "foo"),
+								ast.NewSimpleSymbolLiteralNode(L(S(P(21, 3, 1), P(24, 3, 4))), "bar"),
+							},
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									L(S(P(27, 3, 7), P(35, 3, 15))),
+									ast.NewPublicIdentifierNode(L(S(P(27, 3, 7), P(29, 3, 9))), "bar"),
+									ast.NewSimpleSymbolLiteralNode(L(S(P(32, 3, 12), P(35, 3, 15))), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									L(S(P(38, 4, 1), P(46, 4, 9))),
+									ast.NewPublicIdentifierNode(L(S(P(38, 4, 1), P(40, 4, 3))), "elk"),
+									ast.NewTrueLiteralNode(L(S(P(43, 4, 6), P(46, 4, 9)))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"cannot have newlines before the arguments without parentheses": {
+			input: "Foo::foo!\n.1, 'foo', :bar, bar: :baz, elk: true",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(11, 2, 2))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(9, 1, 10))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(8, 1, 9))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							nil,
+							nil,
+						),
+					),
+					ast.NewExpressionStatementNode(
+						L(S(P(10, 2, 1), P(11, 2, 2))),
+						ast.NewFloatLiteralNode(L(S(P(10, 2, 1), P(11, 2, 2))), "0.1"),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(12, 2, 3), P(12, 2, 3))), "unexpected ,, expected a statement separator `\\n`, `;`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
