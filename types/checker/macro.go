@@ -125,48 +125,73 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 
 func (c *Checker) resolveMacro(name value.Symbol) *types.Method {
 	for methodScope := range ds.ReverseSlice(c.methodScopes) {
-		var namespace types.Namespace
-		switch n := methodScope.container.(type) {
-		case *types.Class:
-			namespace = n.Singleton()
-		case *types.Mixin:
-			namespace = n.Singleton()
-		case *types.Module:
-			namespace = n
-		case *types.SingletonClass:
-			namespace = n
-		default:
-			continue
-		}
-
-		for parent := range types.Parents(namespace) {
-			macro := parent.Method(name)
-			if macro != nil {
-				return macro
-			}
+		macro := c.resolveMacroForNamespace(methodScope.container, name)
+		if macro != nil {
+			return macro
 		}
 	}
 
 	return nil
 }
 
-func (c *Checker) getMacro(name value.Symbol, loc *position.Location) *types.Method {
-	macro := c.resolveMacro(name)
+func (c *Checker) resolveMacroForNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
+	switch n := namespace.(type) {
+	case *types.Class:
+		namespace = n.Singleton()
+	case *types.Mixin:
+		namespace = n.Singleton()
+	case *types.Module:
+		namespace = n
+	case *types.SingletonClass:
+		namespace = n
+	default:
+		return nil
+	}
+
+	for parent := range types.Parents(namespace) {
+		macro := parent.Method(name)
+		if macro != nil {
+			return macro
+		}
+	}
+
+	return nil
+}
+
+func (c *Checker) getMacroForNamespace(namespace types.Namespace, name value.Symbol, loc *position.Location) *types.Method {
+	macro := c.resolveMacroForNamespace(namespace, name)
 	if macro == nil {
-		c.addFailure(
-			fmt.Sprintf(
-				"undefined macro `%s`",
-				name.String(),
-			),
-			loc,
-		)
+		c.addUndefinedMacroError(name.String(), loc)
 	}
 
 	return macro
 }
 
+func (c *Checker) addUndefinedMacroError(name string, loc *position.Location) {
+	c.addFailure(
+		fmt.Sprintf(
+			"undefined macro `%s`",
+			name,
+		),
+		loc,
+	)
+}
+
+func (c *Checker) getMacro(name value.Symbol, loc *position.Location) *types.Method {
+	macro := c.resolveMacro(name)
+	if macro == nil {
+		c.addUndefinedMacroError(name.String(), loc)
+	}
+
+	return macro
+}
+
+func (c *Checker) macroMethodName(macroName string) value.Symbol {
+	return value.ToSymbol(macroName + "!")
+}
+
 func (c *Checker) expandMacroByName(name string, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.ExpressionNode {
-	macroName := value.ToSymbol(name + "!")
+	macroName := c.macroMethodName(name)
 	macro := c.getMacro(macroName, loc)
 	if macro == nil {
 		return nil
@@ -542,7 +567,7 @@ func (c *Checker) hoistMacroDefinition(node *ast.MacroDefinitionNode) {
 	macro := c.declareMacro(
 		definedUnder,
 		node.DocComment(),
-		value.ToSymbol(c.identifierToName(node.Name)+"!"),
+		c.macroMethodName(c.identifierToName(node.Name)),
 		node.Parameters,
 		node.Location(),
 	)
@@ -696,10 +721,7 @@ func (c *Checker) checkMacroCallNode(node *ast.MacroCallNode) ast.ExpressionNode
 	node.SetType(types.Untyped{})
 
 	if c.mode == macroMode {
-		c.addFailure(
-			"macros cannot be used in macro definitions",
-			node.MacroName.Location(),
-		)
+		c.addMacroInMacroError(node.MacroName.Location())
 		return node
 	}
 
@@ -716,14 +738,61 @@ func (c *Checker) checkMacroCallNode(node *ast.MacroCallNode) ast.ExpressionNode
 	return c.checkExpression(result)
 }
 
+func (c *Checker) addMacroInMacroError(loc *position.Location) {
+	c.addFailure(
+		"macros cannot be used in macro definitions",
+		loc,
+	)
+}
+
+func (c *Checker) checkScopedMacroCallNode(node *ast.ScopedMacroCallNode) ast.ExpressionNode {
+	node.SetType(types.Untyped{})
+
+	if c.mode == macroMode {
+		c.addMacroInMacroError(node.MacroName.Location())
+		return node
+	}
+
+	node.Receiver = c.checkExpression(node.Receiver)
+	receiverType := c.TypeOf(node.Receiver)
+
+	var receiverNamespace types.Namespace
+	switch r := receiverType.(type) {
+	case types.Namespace:
+		receiverNamespace = r
+	case types.Untyped:
+		return node
+	default:
+		c.addFailure(
+			fmt.Sprintf("invalid macro scope %T", receiverType),
+			node.Receiver.Location(),
+		)
+		return node
+	}
+
+	macroName := c.macroMethodName(c.identifierToName(node.MacroName))
+	macro := c.getMacroForNamespace(receiverNamespace, macroName, node.MacroName.Location())
+	if macro == nil {
+		return node
+	}
+
+	result := c.expandMacro(
+		macro,
+		node.PositionalArguments,
+		node.NamedArguments,
+		node.Location(),
+	)
+	if result == nil {
+		return node
+	}
+	return c.checkExpression(result)
+}
+
 func (c *Checker) checkReceiverlessMacroCallNode(node *ast.ReceiverlessMacroCallNode) ast.ExpressionNode {
 	node.SetType(types.Untyped{})
 
 	if c.mode == macroMode {
-		c.addFailure(
-			"macros cannot be used in macro definitions",
-			node.MacroName.Location(),
-		)
+		c.addMacroInMacroError(node.MacroName.Location())
 		return node
 	}
 

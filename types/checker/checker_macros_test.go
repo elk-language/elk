@@ -448,6 +448,77 @@ func TestExpandMacro(t *testing.T) {
 				timeout := fib!(15) + 2
 			`,
 		},
+		"use a scoped macro": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro fib(i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				timeout := Foo::fib!(15) + 2
+			`,
+		},
+		"use an invalid namespace for a macro": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Foo
+					macro fib(i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				timeout := Foob::fib!(15) + 2
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(261, 16, 16), P(264, 16, 19)), "undefined constant `Foob`"),
+			},
+		},
+		"call a nonexistent macro": {
+			input: `
+				module Foo; end
+				timeout := Foo::fib!(15) + 2
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(41, 3, 21), P(43, 3, 23)), "undefined macro `fib!`"),
+			},
+		},
+		"inherit a macro": {
+			input: `
+				using Std::Elk::AST::*
+
+				class Foo
+					macro fib(i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				class Bar < Foo; end
+
+				timeout := Bar::fib!(15) + 2
+			`,
+		},
 		"throw an error in a macro": {
 			input: `
 				using Std::Elk::AST::*

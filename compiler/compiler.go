@@ -805,7 +805,7 @@ func (c *Compiler) nodeIsCompilable(node ast.Node) bool {
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
 		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
-		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode:
+		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
 		return false
 	case *ast.ExpressionStatementNode:
 		return c.nodeIsCompilable(node.Expression)
@@ -863,7 +863,7 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
 		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
-		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode:
+		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
 		return expressionIgnored
 	case *ast.ProgramNode:
 		return c.compileStatements(node.Body, node.Location(), valueIsIgnored)

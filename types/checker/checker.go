@@ -1145,6 +1145,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkMacroCallNode(n)
 	case *ast.ReceiverlessMacroCallNode:
 		return c.checkReceiverlessMacroCallNode(n)
+	case *ast.ScopedMacroCallNode:
+		return c.checkScopedMacroCallNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
