@@ -9,6 +9,7 @@ import (
 	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/position"
 	perror "github.com/elk-language/elk/position/diagnostic"
+	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -40,6 +41,9 @@ var P = position.New
 
 // Create a new span in tests
 var S = position.NewSpan
+
+var T = token.New
+var V = token.NewWithValue
 
 // Create a new location in tests
 func L(startPos, endPos *position.Position) *position.Location {

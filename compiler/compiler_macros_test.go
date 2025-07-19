@@ -43,7 +43,7 @@ func TestQuote(t *testing.T) {
 							ast.NewIntLiteralNode(L(P(20, 3, 10), P(20, 3, 10)), "2"),
 						),
 					),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("#splice"), 2)),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("#splice"), 1)),
 				},
 			),
 		},

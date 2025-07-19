@@ -1211,16 +1211,20 @@ func (c *Compiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) {
 		},
 		nil,
 	)
+	var argCount int
+
 	if unquoteCount != 0 {
+		argCount = 2
 		c.emitNewArrayTuple(unquoteCount, location)
 	} else {
+		argCount = 1
 		c.removeBytes(tupleBaseOffset, 1)
 	}
 
 	c.emitCallMethod(
 		value.NewCallSiteInfo(
 			symbol.S_splice,
-			2,
+			argCount,
 		),
 		location,
 		false,

@@ -488,9 +488,16 @@ func (n *NodeBase) Error() string {
 // Check whether the node can be used as a left value
 // in a variable/constant declaration.
 func IsValidDeclarationTarget(node Node) bool {
-	switch node.(type) {
+	switch node := node.(type) {
 	case *PrivateIdentifierNode, *PublicIdentifierNode:
 		return true
+	case *UnquoteNode:
+		switch node.Kind {
+		case UNQUOTE_IDENTIFIER_KIND:
+			return true
+		default:
+			return false
+		}
 	default:
 		return false
 	}
