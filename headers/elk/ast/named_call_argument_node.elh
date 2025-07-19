@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class NamedCallArgumentNode
     include NamedArgumentNode
 
-    init(name: String, value: ExpressionNode, location: FS::Location = loop; end); end
-    def name: String; end
+    init(name: IdentifierNode, value: ExpressionNode, location: FS::Location = loop; end); end
+    def name: IdentifierNode; end
     def value: ExpressionNode; end
     def location: FS::Location; end
   end

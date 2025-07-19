@@ -13,6 +13,81 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+func TestClosureLiteral(t *testing.T) {
+	tests := testTable{
+		"recursive closure": {
+			input: `
+				var calc_fib: |n: Int|: Int = |n| ->
+					return 1 if n < 3
+
+					calc_fib(n - 2) + calc_fib(n - 1)
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CLOSURE), 2, 1, 0xff,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(112, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(6, 1),
+				},
+				[]value.Value{
+					value.Undefined,
+					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						functionSymbol,
+						[]byte{
+							byte(bytecode.GET_LOCAL_1),
+							byte(bytecode.INT_3),
+							byte(bytecode.JUMP_UNLESS_ILT), 0, 2,
+							byte(bytecode.INT_1),
+							byte(bytecode.RETURN),
+							byte(bytecode.GET_UPVALUE_0),
+							byte(bytecode.GET_LOCAL_1),
+							byte(bytecode.INT_2),
+							byte(bytecode.SUBTRACT_INT),
+							byte(bytecode.CALL8), 0,
+							byte(bytecode.GET_UPVALUE_0),
+							byte(bytecode.GET_LOCAL_1),
+							byte(bytecode.INT_1),
+							byte(bytecode.SUBTRACT_INT),
+							byte(bytecode.CALL8), 1,
+							byte(bytecode.ADD_INT),
+							byte(bytecode.RETURN),
+						},
+						L(P(35, 2, 35), P(111, 6, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 7),
+							bytecode.NewLineInfo(5, 13),
+							bytecode.NewLineInfo(6, 1),
+						},
+						1,
+						0,
+						[]value.Value{
+							value.Ref(value.NewCallSiteInfo(value.ToSymbol("call"), 1)),
+							value.Ref(value.NewCallSiteInfo(value.ToSymbol("call"), 1)),
+						},
+						1,
+					)),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestStringLiteral(t *testing.T) {
 	tests := testTable{
 		"static string": {

@@ -4,9 +4,8 @@ module ::Std::Elk::AST
 		should implement this interface.
 	]##
 	mixin ComplexConstantNode
-		include ExpressionNode,
+		include PatternExpressionNode,
 						TypeNode,
-						PatternNode,
 						UsingEntryNode
 
 	end

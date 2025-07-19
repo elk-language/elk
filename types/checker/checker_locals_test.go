@@ -470,6 +470,15 @@ func TestVariableAssignment(t *testing.T) {
 
 func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
+		"declare a recursive closure": {
+			input: `
+				var calc_fib = |n: Int|: Int ->
+					return 1 if n < 3
+
+					calc_fib(n - 2) + calc_fib(n - 1)
+				end
+			`,
+		},
 		"returns void when not initialised": {
 			input: "var a: 9 = (var foo: Int)",
 			err: diagnostic.DiagnosticList{
@@ -515,7 +524,7 @@ func TestVariableDeclaration(t *testing.T) {
 		"reject variable declaration without initializer and type": {
 			input: "var foo",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a variable without a type `foo`"),
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a local without a type `foo`"),
 			},
 		},
 		"reject redeclared variable": {
@@ -553,6 +562,15 @@ func TestShortVariableDeclaration(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(25, 1, 26)), "cannot redeclare local `foo`"),
 			},
 		},
+		"declare a recursive closure": {
+			input: `
+				calc_fib := |n: Int|: Int ->
+					return 1 if n < 3
+
+					calc_fib(n - 2) + calc_fib(n - 1)
+				end
+			`,
+		},
 	}
 
 	for name, tc := range tests {
@@ -564,6 +582,15 @@ func TestShortVariableDeclaration(t *testing.T) {
 
 func TestValueDeclaration(t *testing.T) {
 	tests := testTable{
+		"declare a recursive closure": {
+			input: `
+				val calc_fib = |n: Int|: Int ->
+					return 1 if n < 3
+
+					calc_fib(n - 2) + calc_fib(n - 1)
+				end
+			`,
+		},
 		"returns void when not initialised": {
 			input: "var a: 9 = (val foo: Int)",
 			err: diagnostic.DiagnosticList{
@@ -603,7 +630,7 @@ func TestValueDeclaration(t *testing.T) {
 		"reject value declaration without initializer and type": {
 			input: "val foo",
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a value without a type `foo`"),
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a local without a type `foo`"),
 			},
 		},
 		"reject redeclared value": {

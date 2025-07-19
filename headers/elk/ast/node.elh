@@ -4,6 +4,20 @@ module ::Std::Elk::AST
 	]##
 	mixin Node
 		##[
+			Indicates that the format of some AST node is
+			invalid.
+		]##
+		class FormatError < ::Std::FormatError; end
+
+		singleton
+			##[
+				Convert the given AST Node, or collection of nodes into
+				an expression.
+			]##
+			def expr(node: StatementNode | ArrayTuple[StatementNode]): ExpressionNode; end
+		end
+
+		##[
 			Returns the span that represents
 			the position of this node in a source file/string.
 		]##
@@ -17,7 +31,7 @@ module ::Std::Elk::AST
 		##[
 			Returns self.
 		]##
-		def to_ast: self; end
+		def to_ast_node: self; end
 
 		def inspect: String; end
 

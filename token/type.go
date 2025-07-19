@@ -39,7 +39,7 @@ func Types() iter.Seq2[uint16, string] {
 // eg. `foo 2`
 func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 	switch t {
-	case BANG, TILDE, LBRACE, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
+	case BANG, TILDE, LBRACE, DOLLAR_IDENTIFIER, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
 		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE, COLON, CHAR_LITERAL, RAW_CHAR_LITERAL,
 		RAW_STRING, STRING_BEG, NIL, FALSE, TRUE, LOOP, DEF, SIG,
 		INIT, CLASS, STRUCT, MODULE, MIXIN, INTERFACE, ENUM, TYPE, TYPEDEF,
@@ -56,7 +56,7 @@ func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 // a range value eg. `...2`
 func (t Type) IsValidAsEndInRangeLiteral() bool {
 	switch t {
-	case SCOPE_RES_OP, BANG, TILDE, LBRACE, LPAREN, LBRACKET, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
+	case SCOPE_RES_OP, BANG, TILDE, LBRACE, LPAREN, LBRACKET, DOLLAR_IDENTIFIER, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
 		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE,
 		RAW_STRING, STRING_BEG, CHAR_LITERAL, RAW_CHAR_LITERAL, FLOAT, FLOAT32, FLOAT64,
 		NIL, FALSE, TRUE, LOOP, ENUM,
@@ -151,25 +151,30 @@ func (t Type) IsValidSimpleSymbolContent() bool {
 	return t.IsIdentifier() || t == RAW_STRING || t.IsKeyword() || t.IsOverridableOperator()
 }
 
+// Check whether the token is a valid function name.
+func (t Type) IsValidFunctionName() bool {
+	return t == DOLLAR_IDENTIFIER || t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER
+}
+
 // Check whether the token is a valid method name (without operators).
 func (t Type) IsValidRegularMethodName() bool {
-	return t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER || t.IsKeyword()
+	return t == DOLLAR_IDENTIFIER || t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER || t.IsKeyword()
 }
 
 // Check whether the token is a valid macro name.
 func (t Type) IsValidMacroName() bool {
-	return t == PUBLIC_IDENTIFIER || t.IsKeyword()
+	return t == DOLLAR_IDENTIFIER || t == PUBLIC_IDENTIFIER || t.IsKeyword()
 }
 
 // Check whether the token is a valid method name (including operators).
 func (t Type) IsValidMethodName() bool {
-	return t.IsValidRegularMethodName() || t.IsOverridableOperator()
+	return t == SHORT_UNQUOTE_BEG || t.IsValidRegularMethodName() || t.IsOverridableOperator()
 }
 
 // Check whether the token is a valid method name in method
 // call expressions.
 func (t Type) IsValidPublicMethodName() bool {
-	return t == PUBLIC_IDENTIFIER || t.IsKeyword() || t.IsOverridableOperator()
+	return t == DOLLAR_IDENTIFIER || t == PUBLIC_IDENTIFIER || t.IsKeyword() || t.IsOverridableOperator()
 }
 
 // Check whether the token is an overridable operator.
@@ -265,6 +270,7 @@ const (
 	COLON_EQUAL             // Colon equal `:=`
 	LABEL_ASSIGN_OP_END     // Assignment operators end here
 
+	SHORT_UNQUOTE_BEG      // Short unquote beginning `!{`
 	LPAREN                 // Left parenthesis `(`
 	RPAREN                 // Right parenthesis `)`
 	LBRACE                 // Left brace `{`
@@ -327,14 +333,14 @@ const (
 
 	// Identifiers start here
 	LABEL_IDENTIFIER_BEG
-	PUBLIC_IDENTIFIER    // Identifier
-	PRIVATE_IDENTIFIER   // Identifier with a initial underscore
-	PUBLIC_CONSTANT      // Constant (identifier with an initial capital letter)
-	PRIVATE_CONSTANT     // Constant with an initial underscore
+	DOLLAR_IDENTIFIER    // Dollar Identifier eg. `$foo`
+	PUBLIC_IDENTIFIER    // Identifier eg. `foo`
+	PRIVATE_IDENTIFIER   // Identifier with a initial underscore eg. `_foo`
+	PUBLIC_CONSTANT      // Constant (identifier with an initial capital letter) eg. `Foo`
+	PRIVATE_CONSTANT     // Constant with an initial underscore eg. `_Foo`
 	LABEL_IDENTIFIER_END // Identifiers end here
 
-	INSTANCE_VARIABLE  // Instance variable token eg. `@foo`
-	SPECIAL_IDENTIFIER // Special identifier token eg. `$foo`
+	INSTANCE_VARIABLE // Instance variable token eg. `@foo`
 
 	// Literals start here
 	LABEL_LITERAL_BEG
@@ -445,12 +451,14 @@ const (
 	FOR               // Keyword `for`
 	FORNUM            // Keyword `fornum`
 	IN                // Keyword `in`
+	OF                // Keyword `of`
 	BREAK             // Keyword `break`
 	CONTINUE          // Keyword `continue`
 	RETURN            // Keyword `return`
 	YIELD             // Keyword `yield`
 	ASYNC             // Keyword `async`
 	AWAIT             // Keyword `await`
+	AWAIT_SYNC        // Keyword `await_sync`
 	GO                // Keyword `go`
 	DEF               // Keyword `def`
 	SIG               // Keyword `sig`
@@ -478,6 +486,7 @@ const (
 	CATCH             // Keyword `catch`
 	DO                // Keyword `do`
 	FINALLY           // Keyword `finally`
+	DEFER             // Keyword `defer`
 	ALIAS             // Keyword `alias`
 	AS                // Keyword `as`
 	IS                // Keyword `is`
@@ -501,20 +510,31 @@ const (
 	NOTHING           // Keyword `nothing`
 	ANY               // Keyword `any`
 	PRIMITIVE         // Keyword `primitive`
+	PUBLIC            // Keyword `public`
+	PRIVATE           // Keyword `private`
+	PROTECTED         // Keyword `protected`
 	NATIVE            // Keyword `native`
 	DEFAULT           // Keyword `default`
 	MACRO             // Keyword `macro`
 	BOOL              // Keyword `bool`
 	NEW               // Keyword `new`
+	EXTERN            // Keyword `extern`
 	IMPORT            // Keyword `import`
+	EXPORT            // Keyword `export`
 	WHERE             // Keyword `where`
 	UNTYPED           // Keyword `untyped`
 	UNCHECKED         // Keyword `unchecked`
 	GOTO              // Keyword `goto`
 	QUOTE             // Keyword `quote`
 	UNQUOTE           // Keyword `unquote`
-	UNQUOTE_PATTERN   // Keyword `unquote_pattern`
+	UNQUOTE_EXPR      // Keyword `unquote_expr`
 	UNQUOTE_TYPE      // Keyword `unquote_type`
+	UNQUOTE_IDENT     // Keyword `unquote_ident`
+	UNQUOTE_CONST     // Keyword `unquote_const`
+	UNQUOTE_IVAR      // Keyword `unquote_ivar`
+	UNQUOTE_PATTERN   // Keyword `unquote_pattern`
+	UNDEFINED         // Keyword `undefined`
+	FUNC              // Keyword `func`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -533,12 +553,14 @@ var Keywords = map[string]Type{
 	"for":             FOR,
 	"fornum":          FORNUM,
 	"in":              IN,
+	"of":              OF,
 	"break":           BREAK,
 	"continue":        CONTINUE,
 	"return":          RETURN,
 	"yield":           YIELD,
 	"async":           ASYNC,
 	"await":           AWAIT,
+	"await_sync":      AWAIT_SYNC,
 	"go":              GO,
 	"def":             DEF,
 	"sig":             SIG,
@@ -566,6 +588,7 @@ var Keywords = map[string]Type{
 	"catch":           CATCH,
 	"do":              DO,
 	"finally":         FINALLY,
+	"defer":           DEFER,
 	"alias":           ALIAS,
 	"as":              AS,
 	"is":              IS,
@@ -590,19 +613,30 @@ var Keywords = map[string]Type{
 	"any":             ANY,
 	"native":          NATIVE,
 	"primitive":       PRIMITIVE,
+	"public":          PUBLIC,
+	"private":         PRIVATE,
+	"protected":       PROTECTED,
 	"default":         DEFAULT,
 	"macro":           MACRO,
 	"bool":            BOOL,
 	"new":             NEW,
+	"extern":          EXTERN,
 	"import":          IMPORT,
+	"export":          EXPORT,
 	"where":           WHERE,
 	"untyped":         UNTYPED,
 	"unchecked":       UNCHECKED,
 	"goto":            GOTO,
 	"quote":           QUOTE,
 	"unquote":         UNQUOTE,
-	"unquote_pattern": UNQUOTE_PATTERN,
+	"unquote_expr":    UNQUOTE_EXPR,
 	"unquote_type":    UNQUOTE_TYPE,
+	"unquote_ident":   UNQUOTE_IDENT,
+	"unquote_const":   UNQUOTE_CONST,
+	"unquote_ivar":    UNQUOTE_IVAR,
+	"unquote_pattern": UNQUOTE_PATTERN,
+	"undefined":       UNDEFINED,
+	"func":            FUNC,
 }
 
 var tokenNames = [...]string{
@@ -613,6 +647,7 @@ var tokenNames = [...]string{
 	THICK_ARROW:          "=>",
 	THIN_ARROW:           "->",
 	WIGGLY_ARROW:         "~>",
+	SHORT_UNQUOTE_BEG:    "!{",
 	LPAREN:               "(",
 	RPAREN:               ")",
 	LBRACE:               "{",
@@ -696,13 +731,13 @@ var tokenNames = [...]string{
 	RTRIPLE_BITSHIFT:       ">>>",
 	PERCENT:                "%",
 
+	DOLLAR_IDENTIFIER:  "DOLLAR_IDENTIFIER",
 	PUBLIC_IDENTIFIER:  "PUBLIC_IDENTIFIER",
 	PRIVATE_IDENTIFIER: "PRIVATE_IDENTIFIER",
 	PUBLIC_CONSTANT:    "PUBLIC_CONSTANT",
 	PRIVATE_CONSTANT:   "PRIVATE_CONSTANT",
 
-	INSTANCE_VARIABLE:  "INSTANCE_VARIABLE",
-	SPECIAL_IDENTIFIER: "SPECIAL_IDENTIFIER",
+	INSTANCE_VARIABLE: "INSTANCE_VARIABLE",
 
 	WORD_ARRAY_LIST_BEG:   "\\w[",
 	WORD_ARRAY_LIST_END:   "] (WORD_ARRAY_LIST_END)",
@@ -785,12 +820,14 @@ var tokenNames = [...]string{
 	FOR:             "for",
 	FORNUM:          "fornum",
 	IN:              "in",
+	OF:              "of",
 	BREAK:           "break",
 	CONTINUE:        "continue",
 	RETURN:          "return",
 	YIELD:           "yield",
 	ASYNC:           "async",
 	AWAIT:           "await",
+	AWAIT_SYNC:      "await_sync",
 	GO:              "go",
 	DEF:             "def",
 	SIG:             "sig",
@@ -818,6 +855,7 @@ var tokenNames = [...]string{
 	CATCH:           "catch",
 	DO:              "do",
 	FINALLY:         "finally",
+	DEFER:           "defer",
 	ALIAS:           "alias",
 	AS:              "as",
 	IS:              "is",
@@ -841,18 +879,29 @@ var tokenNames = [...]string{
 	NOTHING:         "nothing",
 	ANY:             "any",
 	PRIMITIVE:       "primitive",
+	PUBLIC:          "public",
+	PRIVATE:         "private",
+	PROTECTED:       "protected",
 	NATIVE:          "native",
 	DEFAULT:         "default",
 	MACRO:           "macro",
 	BOOL:            "bool",
 	NEW:             "new",
+	EXTERN:          "extern",
 	IMPORT:          "import",
+	EXPORT:          "export",
 	WHERE:           "where",
 	UNTYPED:         "untyped",
 	UNCHECKED:       "unchecked",
 	GOTO:            "goto",
 	QUOTE:           "quote",
 	UNQUOTE:         "unquote",
-	UNQUOTE_PATTERN: "unquote_pattern",
+	UNQUOTE_EXPR:    "unquote_expr",
 	UNQUOTE_TYPE:    "unquote_type",
+	UNQUOTE_IDENT:   "unquote_ident",
+	UNQUOTE_CONST:   "unquote_const",
+	UNQUOTE_IVAR:    "unquote_ivar",
+	UNQUOTE_PATTERN: "unquote_pattern",
+	UNDEFINED:       "undefined",
+	FUNC:            "func",
 }

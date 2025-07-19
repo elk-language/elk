@@ -3,8 +3,7 @@ module Std::Elk::AST
     Represents a word ArrayTuple literal eg. `%w[foo bar]`
   ]##
   sealed primitive class WordArrayTupleLiteralNode
-    include ExpressionNode,
-            PatternNode
+    include PatternExpressionNode
 
     init(
       elements: ArrayTuple[WordCollectionContentNode] = loop; end,

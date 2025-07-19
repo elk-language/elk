@@ -3,6 +3,7 @@ package compiler_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
@@ -13,6 +14,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/k0kubun/pp/v3"
 )
+
+func init() {
+	elk.InitGlobalEnvironment()
+}
 
 var namespaceDefinitionsSymbol value.Symbol = value.ToSymbol("<namespaceDefinitions>")
 var methodDefinitionsSymbol value.Symbol = value.ToSymbol("<methodDefinitions>")

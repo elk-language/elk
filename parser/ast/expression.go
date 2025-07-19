@@ -23,7 +23,7 @@ func (*TrueLiteralNode) expressionNode()                   {}
 func (*FalseLiteralNode) expressionNode()                  {}
 func (*NilLiteralNode) expressionNode()                    {}
 func (*UndefinedLiteralNode) expressionNode()              {}
-func (*InstanceVariableNode) expressionNode()              {}
+func (*PublicInstanceVariableNode) expressionNode()        {}
 func (*SimpleSymbolLiteralNode) expressionNode()           {}
 func (*InterpolatedSymbolLiteralNode) expressionNode()     {}
 func (*IntLiteralNode) expressionNode()                    {}
@@ -61,7 +61,7 @@ func (*SelfLiteralNode) expressionNode()                   {}
 func (*DoExpressionNode) expressionNode()                  {}
 func (*MacroBoundaryNode) expressionNode()                 {}
 func (*QuoteExpressionNode) expressionNode()               {}
-func (*UnquoteExpressionNode) expressionNode()             {}
+func (*UnquoteNode) expressionNode()                       {}
 func (*SingletonBlockExpressionNode) expressionNode()      {}
 func (*SwitchExpressionNode) expressionNode()              {}
 func (*IfExpressionNode) expressionNode()                  {}
@@ -85,6 +85,7 @@ func (*TypeofExpressionNode) expressionNode()              {}
 func (*ConstantDeclarationNode) expressionNode()           {}
 func (*ConstantLookupNode) expressionNode()                {}
 func (*MethodLookupNode) expressionNode()                  {}
+func (*InstanceMethodLookupNode) expressionNode()          {}
 func (*UsingAllEntryNode) expressionNode()                 {}
 func (*UsingEntryWithSubentriesNode) expressionNode()      {}
 func (*ClosureLiteralNode) expressionNode()                {}
@@ -113,6 +114,7 @@ func (*GenericConstructorCallNode) expressionNode()        {}
 func (*ConstructorCallNode) expressionNode()               {}
 func (*SubscriptExpressionNode) expressionNode()           {}
 func (*NilSafeSubscriptExpressionNode) expressionNode()    {}
+func (*ScopedMacroCallNode) expressionNode()               {}
 func (*MacroCallNode) expressionNode()                     {}
 func (*ReceiverlessMacroCallNode) expressionNode()         {}
 func (*CallNode) expressionNode()                          {}

@@ -3,15 +3,22 @@ module Std::Elk::AST
     Represents a private constant eg. `_Foo`
   ]##
   sealed primitive class PrivateConstantNode
-    include ExpressionNode,
+    include PatternExpressionNode,
             TypeNode,
-            PatternNode,
             UsingEntryNode,
             ComplexConstantNode,
             ConstantNode
 
-    init(value: String, location: FS::Location = loop; end); end
+		##[
+			Indicates that the format of a
+			private constant node is invalid.
+		]##
+		class FormatError < ConstantNode::FormatError; end
+
+    init(value: String, location: FS::Location = loop; end)! FormatError; end
+
     def value: String; end
     def location: FS::Location; end
+    def to_symbol: Symbol; end
   end
 end

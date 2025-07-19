@@ -13,7 +13,7 @@ func initReceiverlessMacroCallNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argMethodName := (string)(args[1].MustReference().(value.String))
+			argMethodName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argPositionalArguments []ast.ExpressionNode
 			if !args[2].IsUndefined() {
@@ -56,7 +56,7 @@ func initReceiverlessMacroCallNode() {
 		"macro_name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMacroCallNode)
-			result := value.Ref(value.String(self.MacroName))
+			result := value.Ref(self.MacroName)
 			return result, value.Undefined
 
 		},

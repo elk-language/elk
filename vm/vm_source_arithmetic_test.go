@@ -16,7 +16,7 @@ func TestVMSource_Exponentiate(t *testing.T) {
 		"Int64 ** Int32": {
 			source: "2i64 ** 10i32",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `**`, got type `10i32`"),
+				diagnostic.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `Std::Int64.:**`, got type `10i32`"),
 			},
 		},
 	}
@@ -37,13 +37,13 @@ func TestVMSource_Modulo(t *testing.T) {
 		"SmallInt % Float": {
 			source: "250 % 4.5",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(6, 1, 7), P(8, 1, 9)), "expected type `Std::Int` for parameter `other` in call to `%`, got type `4.5`"),
+				diagnostic.NewFailure(L(P(6, 1, 7), P(8, 1, 9)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:%`, got type `4.5`"),
 			},
 		},
 		"Int64 % Int32": {
 			source: "11i64 % 2i32",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `%`, got type `2i32`"),
+				diagnostic.NewFailure(L(P(8, 1, 9), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `Std::Int64.:%`, got type `2i32`"),
 			},
 		},
 	}
@@ -60,13 +60,13 @@ func TestVMSource_RightBitshift(t *testing.T) {
 		"Int >> String": {
 			source: "3 >> 'foo'",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::AnyInt` for parameter `other` in call to `>>`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::AnyInt` for parameter `other` in call to `Std::Int.:>>`, got type `\"foo\"`"),
 			},
 		},
 		"UInt16 >> Float": {
 			source: "3u16 >> 5.2",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::AnyInt` for parameter `other` in call to `>>`, got type `5.2`"),
+				diagnostic.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::AnyInt` for parameter `other` in call to `Std::UInt16.:>>`, got type `5.2`"),
 			},
 		},
 		"String >> Int": {
@@ -264,13 +264,13 @@ func TestVMSource_LogicalRightBitshift(t *testing.T) {
 		"Int64 >>> String": {
 			source: "3i64 >>> 'foo'",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(9, 1, 10), P(13, 1, 14)), "expected type `Std::AnyInt` for parameter `other` in call to `>>>`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L(P(9, 1, 10), P(13, 1, 14)), "expected type `Std::AnyInt` for parameter `other` in call to `Std::Int64.:>>>`, got type `\"foo\"`"),
 			},
 		},
 		"UInt16 >>> Float": {
 			source: "3u16 >>> 5.2",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(9, 1, 10), P(11, 1, 12)), "expected type `Std::AnyInt` for parameter `other` in call to `>>>`, got type `5.2`"),
+				diagnostic.NewFailure(L(P(9, 1, 10), P(11, 1, 12)), "expected type `Std::AnyInt` for parameter `other` in call to `Std::UInt16.:>>>`, got type `5.2`"),
 			},
 		},
 		"String >>> Int": {
@@ -445,13 +445,13 @@ func TestVMSource_LeftBitshift(t *testing.T) {
 		"Int << String": {
 			source: "3 << 'foo'",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::AnyInt` for parameter `other` in call to `<<`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L(P(5, 1, 6), P(9, 1, 10)), "expected type `Std::AnyInt` for parameter `other` in call to `Std::Int.:<<`, got type `\"foo\"`"),
 			},
 		},
 		"UInt16 << Float": {
 			source: "3u16 << 5.2",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::AnyInt` for parameter `other` in call to `<<`, got type `5.2`"),
+				diagnostic.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::AnyInt` for parameter `other` in call to `Std::UInt16.:<<`, got type `5.2`"),
 			},
 		},
 		"String << Int": {
@@ -643,13 +643,13 @@ func TestVMSource_LogicalLeftBitshift(t *testing.T) {
 		"Int64 <<< String": {
 			source: "3i64 <<< 'foo'",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(9, 1, 10), P(13, 1, 14)), "expected type `Std::AnyInt` for parameter `other` in call to `<<<`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L(P(9, 1, 10), P(13, 1, 14)), "expected type `Std::AnyInt` for parameter `other` in call to `Std::Int64.:<<<`, got type `\"foo\"`"),
 			},
 		},
 		"UInt16 <<< Float": {
 			source: "3u16 <<< 5.2",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(9, 1, 10), P(11, 1, 12)), "expected type `Std::AnyInt` for parameter `other` in call to `<<<`, got type `5.2`"),
+				diagnostic.NewFailure(L(P(9, 1, 10), P(11, 1, 12)), "expected type `Std::AnyInt` for parameter `other` in call to `Std::UInt16.:<<<`, got type `5.2`"),
 			},
 		},
 		"String <<< Int": {
@@ -835,19 +835,19 @@ func TestVMSource_BitwiseAnd(t *testing.T) {
 		"Int64 & String": {
 			source: "3i64 & 'foo'",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `&`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `Std::Int64.:&`, got type `\"foo\"`"),
 			},
 		},
 		"Int64 & SmallInt": {
 			source: "3i64 & 5",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `&`, got type `5`"),
+				diagnostic.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `Std::Int64.:&`, got type `5`"),
 			},
 		},
 		"UInt16 & Float": {
 			source: "3u16 & 5.2",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `&`, got type `5.2`"),
+				diagnostic.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `Std::UInt16.:&`, got type `5.2`"),
 			},
 		},
 		"String & Int": {
@@ -882,19 +882,19 @@ func TestVMSource_BitwiseAndNot(t *testing.T) {
 		"Int64 &~ String": {
 			source: "3i64 &~ 'foo'",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `&~`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L(P(8, 1, 9), P(12, 1, 13)), "expected type `Std::Int64` for parameter `other` in call to `Std::Int64.:&~`, got type `\"foo\"`"),
 			},
 		},
 		"Int64 &~ SmallInt": {
 			source: "3i64 &~ 5",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(8, 1, 9), P(8, 1, 9)), "expected type `Std::Int64` for parameter `other` in call to `&~`, got type `5`"),
+				diagnostic.NewFailure(L(P(8, 1, 9), P(8, 1, 9)), "expected type `Std::Int64` for parameter `other` in call to `Std::Int64.:&~`, got type `5`"),
 			},
 		},
 		"UInt16 &~ Float": {
 			source: "3u16 &~ 5.2",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `&~`, got type `5.2`"),
+				diagnostic.NewFailure(L(P(8, 1, 9), P(10, 1, 11)), "expected type `Std::UInt16` for parameter `other` in call to `Std::UInt16.:&~`, got type `5.2`"),
 			},
 		},
 		"String &~ Int": {
@@ -935,19 +935,19 @@ func TestVMSource_BitwiseOr(t *testing.T) {
 		"Int64 | String": {
 			source: "3i64 | 'foo'",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `|`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `Std::Int64.:|`, got type `\"foo\"`"),
 			},
 		},
 		"Int64 | SmallInt": {
 			source: "3i64 | 5",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `|`, got type `5`"),
+				diagnostic.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `Std::Int64.:|`, got type `5`"),
 			},
 		},
 		"UInt16 | Float": {
 			source: "3u16 | 5.2",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `|`, got type `5.2`"),
+				diagnostic.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `Std::UInt16.:|`, got type `5.2`"),
 			},
 		},
 		"String | Int": {
@@ -988,19 +988,19 @@ func TestVMSource_BitwiseXor(t *testing.T) {
 		"Int64 ^ String": {
 			source: "3i64 ^ 'foo'",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `^`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L(P(7, 1, 8), P(11, 1, 12)), "expected type `Std::Int64` for parameter `other` in call to `Std::Int64.:^`, got type `\"foo\"`"),
 			},
 		},
 		"Int64 ^ SmallInt": {
 			source: "3i64 ^ 5",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `^`, got type `5`"),
+				diagnostic.NewFailure(L(P(7, 1, 8), P(7, 1, 8)), "expected type `Std::Int64` for parameter `other` in call to `Std::Int64.:^`, got type `5`"),
 			},
 		},
 		"UInt16 ^ Float": {
 			source: "3u16 ^ 5.2",
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `^`, got type `5.2`"),
+				diagnostic.NewFailure(L(P(7, 1, 8), P(9, 1, 10)), "expected type `Std::UInt16` for parameter `other` in call to `Std::UInt16.:^`, got type `5.2`"),
 			},
 		},
 		"String ^ Int": {

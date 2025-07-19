@@ -22,8 +22,9 @@ func main() {
 		parse := fs.Bool("parse", false, "run the REPL in parser mode")
 		lex := fs.Bool("lex", false, "run the REPL in lexer mode")
 		typecheck := fs.Bool("typecheck", false, "run the REPL in type checker mode")
+		expand := fs.Bool("expand", false, "run the REPL in macro expansion mode")
 		fs.Parse(os.Args[2:])
-		repl.Run(*disassemble, *inspectStack, *parse, *lex, *typecheck)
+		repl.Run(*disassemble, *inspectStack, *parse, *lex, *typecheck, *expand)
 	case "run":
 		runFile(os.Args[2])
 	default:

@@ -1,19 +1,31 @@
 package runtime
 
 import (
+	"strconv"
+
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
 
-func initFloat32LiteralNode() {
-	c := &value.Float32LiteralNodeClass.MethodContainer
+func initFloat64LiteralNode() {
+	c := &value.Float64LiteralNodeClass.MethodContainer
 	vm.Def(
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
+			_, err := strconv.ParseFloat(argValue, 64)
+			if err != nil {
+				return value.Undefined,
+					value.Ref(
+						value.NewError(
+							value.Float64LiteralNodeFormatErrorClass,
+							err.Error(),
+						),
+					)
+			}
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -21,7 +33,7 @@ func initFloat32LiteralNode() {
 			} else {
 				argLoc = (*position.Location)(args[2].Pointer())
 			}
-			self := ast.NewFloat32LiteralNode(
+			self := ast.NewFloat64LiteralNode(
 				argLoc,
 				argValue,
 			)
@@ -35,7 +47,7 @@ func initFloat32LiteralNode() {
 		c,
 		"value",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Float32LiteralNode)
+			self := args[0].MustReference().(*ast.Float64LiteralNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
 
@@ -46,7 +58,7 @@ func initFloat32LiteralNode() {
 		c,
 		"location",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Float32LiteralNode)
+			self := args[0].MustReference().(*ast.Float64LiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
 
@@ -56,7 +68,7 @@ func initFloat32LiteralNode() {
 		c,
 		"==",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Float32LiteralNode)
+			self := args[0].MustReference().(*ast.Float64LiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
 		},
@@ -67,22 +79,43 @@ func initFloat32LiteralNode() {
 		c,
 		"to_string",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Float32LiteralNode)
+			self := args[0].MustReference().(*ast.Float64LiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
 	)
 
-	c = &value.Float32Class.MethodContainer
+	vm.Def(
+		c,
+		"to_float64",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.Float64LiteralNode)
+			result, err := strconv.ParseFloat(self.Value, 64)
+			if err != nil {
+				return value.Undefined,
+					value.Ref(
+						value.NewError(
+							value.Float64LiteralNodeFormatErrorClass,
+							err.Error(),
+						),
+					)
+			}
+
+			return value.Float64(result).ToValue(), value.Undefined
+		},
+	)
+
+	c = &value.Float64Class.MethodContainer
 	vm.Def(
 		c,
 		"to_ast_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsFloat32()
-			node := ast.NewFloat32LiteralNode(position.ZeroLocation, string(self.ToString()))
+			self := args[0].AsFloat64()
+			node := ast.NewFloat64LiteralNode(position.ZeroLocation, string(self.ToString()))
 			return value.Ref(node), value.Undefined
 		},
 	)
 	vm.Alias(c, "to_ast_expr_node", "to_ast_node")
 	vm.Alias(c, "to_ast_pattern_node", "to_ast_node")
+	vm.Alias(c, "to_ast_pattern_expr_node", "to_ast_node")
 	vm.Alias(c, "to_ast_type_node", "to_ast_node")
 }

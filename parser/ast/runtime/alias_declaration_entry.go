@@ -13,8 +13,8 @@ func initAliasDeclarationEntry() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			arg0 := (string)(args[1].MustReference().(value.String))
-			arg1 := (string)(args[2].MustReference().(value.String))
+			arg0 := args[1].MustReference().(ast.IdentifierNode)
+			arg1 := args[2].MustReference().(ast.IdentifierNode)
 
 			var argLoc *position.Location
 			if args[3].IsUndefined() {
@@ -38,7 +38,7 @@ func initAliasDeclarationEntry() {
 		"new_name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AliasDeclarationEntry)
-			result := value.Ref(value.String(self.NewName))
+			result := value.Ref(self.NewName)
 			return result, value.Undefined
 
 		},
@@ -49,7 +49,7 @@ func initAliasDeclarationEntry() {
 		"old_name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AliasDeclarationEntry)
-			result := value.Ref(value.String(self.OldName))
+			result := value.Ref(self.OldName)
 			return result, value.Undefined
 
 		},

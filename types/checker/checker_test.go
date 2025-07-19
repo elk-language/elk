@@ -5,15 +5,21 @@ import (
 	"os"
 	"testing"
 
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
+	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
 	"github.com/k0kubun/pp/v3"
 )
+
+func init() {
+	elk.InitGlobalEnvironment()
+}
 
 func TestMain(m *testing.M) {
 	concurrencyLimit = 1
@@ -97,7 +103,7 @@ var cmpOpts = []cmp.Option{
 
 func checkerTest(tc testCase, t *testing.T) {
 	t.Helper()
-	_, err := CheckSource("<main>", tc.input, nil, false)
+	_, err := CheckSource("<main>", tc.input, nil, false, vm.DefaultThreadPool)
 
 	if diff := cmp.Diff(tc.err, err, cmpOpts...); diff != "" {
 		t.Log(pp.Sprint(err))

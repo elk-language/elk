@@ -3,8 +3,7 @@ module Std::Elk::AST
     Expression of an operator with one operand eg. `!foo`, `-bar`
   ]##
   sealed primitive class UnaryExpressionNode
-    include ExpressionNode,
-            PatternNode
+    include PatternExpressionNode
 
     init(op: Elk::Token, right: ExpressionNode, location: FS::Location = loop; end); end
     def op: Elk::Token; end

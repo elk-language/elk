@@ -3,12 +3,18 @@ module Std::Elk::AST
     Float literal eg. `5.2`, `.5`, `45e20`
   ]##
   sealed primitive class FloatLiteralNode
-    include ExpressionNode,
-            TypeNode,
-            PatternNode
+    include PatternExpressionNode,
+            TypeNode
+
+    ##[
+			Indicates that the format of a
+			float node is invalid.
+		]##
+		class FormatError < Node::FormatError; end
 
     init(value: String, location: FS::Location = loop; end); end
     def value: String; end
     def location: FS::Location; end
+    def to_float: Float; end
   end
 end

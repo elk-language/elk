@@ -438,7 +438,7 @@ func TestSetterDefinition(t *testing.T) {
 				Foo().foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(52, 5, 5), P(60, 5, 13)), "method `foo` is not defined on type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(58, 5, 11), P(60, 5, 13)), "method `foo` is not defined on type `Foo`"),
 			},
 		},
 		"use an instance variable declared by a setter": {
@@ -1806,10 +1806,10 @@ func TestMethodCalls(t *testing.T) {
 				a(1)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(16, 3, 5), P(19, 3, 8)), "method `call` is not defined on type `Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(16, 3, 5), P(16, 3, 5)), "method `call` is not defined on type `Std::Int`"),
 			},
 		},
-		"call to a async method returns a promise": {
+		"call to an async method returns a promise": {
 			input: `
 				module Foo
 					async def baz(a: Int): Int
@@ -1822,7 +1822,7 @@ func TestMethodCalls(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(91, 7, 18), P(100, 7, 27)), "type `Std::Promise[Std::Int, never]` cannot be assigned to type `nil`"),
 			},
 		},
-		"call to a async method returns a promise that throws": {
+		"call to an async method returns a promise that throws": {
 			input: `
 				module Foo
 					async def baz(a: Int): Int ! Error
@@ -1881,7 +1881,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo?.baz(5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(61, 5, 5), P(71, 5, 15)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
+				diagnostic.NewFailure(L("<main>", P(66, 5, 10), P(68, 5, 12)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
 			},
 		},
 		"can make nil-safe call on a nilable receiver": {
@@ -1910,7 +1910,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo?..baz(5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(61, 5, 5), P(72, 5, 16)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
+				diagnostic.NewFailure(L("<main>", P(67, 5, 11), P(69, 5, 13)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
 			},
 		},
 		"can make nil-safe cascade call on a nilable receiver": {
@@ -1943,7 +1943,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(67, 5, 5), P(80, 5, 18)), "argument `c` is missing in call to `baz`"),
+				diagnostic.NewFailure(L("<main>", P(71, 5, 9), P(73, 5, 11)), "argument `c` is missing in call to `Foo::baz`"),
 			},
 		},
 		"all required positional arguments": {
@@ -1962,7 +1962,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz(123.4, 5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(75, 5, 13), P(79, 5, 17)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `123.4`"),
+				diagnostic.NewFailure(L("<main>", P(75, 5, 13), P(79, 5, 17)), "expected type `Std::String` for parameter `bar` in call to `Foo::baz`, got type `123.4`"),
 			},
 		},
 		"too many positional arguments": {
@@ -1973,7 +1973,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 5, 28, 9, 0)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(67, 5, 5), P(93, 5, 31)), "expected 2 arguments in call to `baz`, got 5"),
+				diagnostic.NewFailure(L("<main>", P(71, 5, 9), P(73, 5, 11)), "expected 2 arguments in call to `Foo::baz`, got 5"),
 			},
 		},
 		"missing required argument with named argument": {
@@ -1984,7 +1984,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz(bar: "foo")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(67, 5, 5), P(85, 5, 23)), "argument `c` is missing in call to `baz`"),
+				diagnostic.NewFailure(L("<main>", P(71, 5, 9), P(73, 5, 11)), "argument `c` is missing in call to `Foo::baz`"),
 			},
 		},
 		"all required named arguments": {
@@ -2003,7 +2003,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz(c: 5, bar: 123.4)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(81, 5, 19), P(90, 5, 28)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `123.4`"),
+				diagnostic.NewFailure(L("<main>", P(81, 5, 19), P(90, 5, 28)), "expected type `Std::String` for parameter `bar` in call to `Foo::baz`, got type `123.4`"),
 			},
 		},
 		"duplicated positional argument as named argument": {
@@ -2014,8 +2014,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 5, bar: 9)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(85, 5, 23), P(90, 5, 28)), "duplicated argument `bar` in call to `baz`"),
-				diagnostic.NewFailure(L("<main>", P(85, 5, 23), P(90, 5, 28)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `9`"),
+				diagnostic.NewFailure(L("<main>", P(85, 5, 23), P(90, 5, 28)), "duplicated argument `bar` in call to `Foo::baz`"),
+				diagnostic.NewFailure(L("<main>", P(85, 5, 23), P(90, 5, 28)), "expected type `Std::String` for parameter `bar` in call to `Foo::baz`, got type `9`"),
 			},
 		},
 		"duplicated named argument": {
@@ -2026,8 +2026,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 2, c: 3, c: 9)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(85, 5, 23), P(88, 5, 26)), "duplicated argument `c` in call to `baz`"),
-				diagnostic.NewFailure(L("<main>", P(91, 5, 29), P(94, 5, 32)), "duplicated argument `c` in call to `baz`"),
+				diagnostic.NewFailure(L("<main>", P(85, 5, 23), P(88, 5, 26)), "duplicated argument `c` in call to `Foo::baz`"),
+				diagnostic.NewFailure(L("<main>", P(91, 5, 29), P(94, 5, 32)), "duplicated argument `c` in call to `Foo::baz`"),
 			},
 		},
 		"call with missing optional argument": {
@@ -2089,7 +2089,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz(*arr)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(86, 6, 13), P(89, 6, 16)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(86, 6, 13), P(89, 6, 16)), "expected type `Std::Float` for rest parameter `*b` in call to `Foo::baz`, got type `Std::Int`"),
 			},
 		},
 		"call with splat argument without rest param": {
@@ -2112,8 +2112,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz 1.2, 5, "foo", .5
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(70, 5, 18), P(70, 5, 18)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `5`"),
-				diagnostic.NewFailure(L("<main>", P(73, 5, 21), P(77, 5, 25)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(70, 5, 18), P(70, 5, 18)), "expected type `Std::Float` for rest parameter `*b` in call to `Foo::baz`, got type `5`"),
+				diagnostic.NewFailure(L("<main>", P(73, 5, 21), P(77, 5, 25)), "expected type `Std::Float` for rest parameter `*b` in call to `Foo::baz`, got type `\"foo\"`"),
 			},
 		},
 		"call with rest argument given by name": {
@@ -2124,7 +2124,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz b: []
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(65, 5, 13), P(69, 5, 17)), "nonexistent parameter `b` given in call to `baz`"),
+				diagnostic.NewFailure(L("<main>", P(65, 5, 13), P(69, 5, 17)), "nonexistent parameter `b` given in call to `Foo::baz`"),
 			},
 		},
 		"call with required post arguments": {
@@ -2165,7 +2165,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(78, 5, 5), P(91, 5, 18)), "argument `c` is missing in call to `baz`"),
+				diagnostic.NewFailure(L("<main>", P(82, 5, 9), P(84, 5, 11)), "argument `c` is missing in call to `Foo::baz`"),
 			},
 		},
 		"call with rest and post arguments": {
@@ -2184,7 +2184,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 2.5, .9, 128.1, 3.2)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(109, 5, 36), P(111, 5, 38)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `3.2`"),
+				diagnostic.NewFailure(L("<main>", P(109, 5, 36), P(111, 5, 38)), "expected type `Std::Int` for parameter `c` in call to `Foo::baz`, got type `3.2`"),
 			},
 		},
 		"call with rest and post arguments and wrong type in rest": {
@@ -2195,8 +2195,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 212, .9, '282', 3)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(93, 5, 20), P(95, 5, 22)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `212`"),
-				diagnostic.NewFailure(L("<main>", P(102, 5, 29), P(106, 5, 33)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `\"282\"`"),
+				diagnostic.NewFailure(L("<main>", P(93, 5, 20), P(95, 5, 22)), "expected type `Std::Float` for rest parameter `*b` in call to `Foo::baz`, got type `212`"),
+				diagnostic.NewFailure(L("<main>", P(102, 5, 29), P(106, 5, 33)), "expected type `Std::Float` for rest parameter `*b` in call to `Foo::baz`, got type `\"282\"`"),
 			},
 		},
 		"call with rest arguments and missing post argument": {
@@ -2207,7 +2207,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz("foo", 2.5, .9, 128.1)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(102, 5, 29), P(106, 5, 33)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `128.1`"),
+				diagnostic.NewFailure(L("<main>", P(102, 5, 29), P(106, 5, 33)), "expected type `Std::Int` for parameter `c` in call to `Foo::baz`, got type `128.1`"),
 			},
 		},
 		"call with named post argument": {
@@ -2226,7 +2226,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz(bar: "foo", c: 3)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(78, 5, 5), P(102, 5, 29)), "expected 1... positional arguments in call to `baz`, got 0"),
+				diagnostic.NewFailure(L("<main>", P(82, 5, 9), P(84, 5, 11)), "expected 1... positional arguments in call to `Foo::baz`, got 0"),
 			},
 		},
 		"call without named rest arguments": {
@@ -2296,7 +2296,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo.baz(**map)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(91, 6, 5), P(104, 6, 18)), "argument `b` is missing in call to `baz`"),
+				diagnostic.NewFailure(L("<main>", P(95, 6, 9), P(97, 6, 11)), "argument `b` is missing in call to `Foo::baz`"),
 				diagnostic.NewFailure(L("<main>", P(99, 6, 13), P(103, 6, 17)), "double splat arguments cannot be present in calls to methods without a named rest parameter eg. `**foo: Int`"),
 			},
 		},
@@ -2325,7 +2325,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo().baz = 1
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(71, 5, 17), P(71, 5, 17)), "expected type `Std::String` for parameter `bar` in call to `baz=`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(71, 5, 17), P(71, 5, 17)), "expected type `Std::String` for parameter `bar` in call to `Foo.:baz=`, got type `1`"),
 			},
 		},
 		"call nonexistent setter": {
@@ -2364,8 +2364,8 @@ func TestMethodCalls(t *testing.T) {
 				Foo()[1] = "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(76, 5, 11), P(76, 5, 11)), "expected type `Std::String` for parameter `key` in call to `[]=`, got type `1`"),
-				diagnostic.NewFailure(L("<main>", P(81, 5, 16), P(85, 5, 20)), "expected type `Std::Int` for parameter `value` in call to `[]=`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(76, 5, 11), P(76, 5, 11)), "expected type `Std::String` for parameter `key` in call to `Foo.:[]=`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(81, 5, 16), P(85, 5, 20)), "expected type `Std::Int` for parameter `value` in call to `Foo.:[]=`, got type `\"foo\"`"),
 			},
 		},
 		"call nonexistent subscript setter": {
@@ -2394,7 +2394,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo()[1]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(75, 5, 11), P(75, 5, 11)), "expected type `Std::String` for parameter `key` in call to `[]`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(75, 5, 11), P(75, 5, 11)), "expected type `Std::String` for parameter `key` in call to `Foo.:[]`, got type `1`"),
 			},
 		},
 		"call nonexistent subscript": {
@@ -2448,7 +2448,7 @@ func TestMethodCalls(t *testing.T) {
 				a?[1]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(96, 6, 8), P(96, 6, 8)), "expected type `Std::String` for parameter `key` in call to `[]`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(96, 6, 8), P(96, 6, 8)), "expected type `Std::String` for parameter `key` in call to `Foo.:[]`, got type `1`"),
 			},
 		},
 		"call nonexistent nil-safe subscript": {
@@ -2469,7 +2469,7 @@ func TestMethodCalls(t *testing.T) {
 				f++
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(39, 4, 5), P(41, 4, 7)), "method `++` is not defined on type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(40, 4, 6), P(41, 4, 7)), "method `++` is not defined on type `Foo`"),
 			},
 		},
 		"call increment": {
@@ -2518,7 +2518,7 @@ func TestMethodCalls(t *testing.T) {
 				f--
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(39, 4, 5), P(41, 4, 7)), "method `--` is not defined on type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(40, 4, 6), P(41, 4, 7)), "method `--` is not defined on type `Foo`"),
 			},
 		},
 		"call decrement": {
@@ -2566,7 +2566,7 @@ func TestMethodCalls(t *testing.T) {
 				1 |> Foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(29, 3, 10), P(33, 3, 14)), "expected 0 arguments in call to `#init`, got 1"),
+				diagnostic.NewFailure(L("<main>", P(29, 3, 10), P(31, 3, 12)), "expected 0 arguments in call to `Foo.:#init`, got 1"),
 			},
 		},
 		"pipe operator add an argument with an incompatible type to a constructor call": {
@@ -2577,7 +2577,7 @@ func TestMethodCalls(t *testing.T) {
 				1 |> Foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(52, 5, 5), P(52, 5, 5)), "expected type `Std::Float` for parameter `a` in call to `#init`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(52, 5, 5), P(52, 5, 5)), "expected type `Std::Float` for parameter `a` in call to `Foo.:#init`, got type `1`"),
 			},
 		},
 		"pipe operator add an additional required argument with a compatible type to a constructor call": {
@@ -2606,7 +2606,7 @@ func TestMethodCalls(t *testing.T) {
 				1 |> f.foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(65, 6, 10), P(71, 6, 16)), "expected 0 arguments in call to `foo`, got 1"),
+				diagnostic.NewFailure(L("<main>", P(67, 6, 12), P(69, 6, 14)), "expected 0 arguments in call to `Foo.:foo`, got 1"),
 			},
 		},
 		"pipe operator add an argument with an incompatible type to a method call": {
@@ -2618,7 +2618,7 @@ func TestMethodCalls(t *testing.T) {
 				1 |> f.foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(70, 6, 5), P(70, 6, 5)), "expected type `Std::Float` for parameter `a` in call to `foo`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(70, 6, 5), P(70, 6, 5)), "expected type `Std::Float` for parameter `a` in call to `Foo.:foo`, got type `1`"),
 			},
 		},
 		"pipe operator add an additional required argument with a compatible type to a method call": {
@@ -2661,7 +2661,7 @@ func TestMethodCalls(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(44, 4, 11), P(48, 4, 15)), "expected 0 arguments in call to `foo`, got 1"),
+				diagnostic.NewFailure(L("<main>", P(44, 4, 11), P(46, 4, 13)), "expected 0 arguments in call to `Foo::foo`, got 1"),
 			},
 		},
 		"pipe operator add an argument with an incompatible type to a receiverless method call": {
@@ -2672,7 +2672,7 @@ func TestMethodCalls(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(49, 4, 6), P(49, 4, 6)), "expected type `Std::Float` for parameter `a` in call to `foo`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(49, 4, 6), P(49, 4, 6)), "expected type `Std::Float` for parameter `a` in call to `Foo::foo`, got type `1`"),
 			},
 		},
 		"pipe operator add an additional required argument with a compatible type to a receiverless method call": {
@@ -2700,7 +2700,7 @@ func TestMethodCalls(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(39, 4, 6), P(51, 4, 18)), "expected 0 arguments in call to `foo`, got 1"),
+				diagnostic.NewFailure(L("<main>", P(49, 4, 16), P(51, 4, 18)), "expected 0 arguments in call to `Foo::foo`, got 1"),
 			},
 		},
 		"pipe operator add an argument with an incompatible type to attribute access": {
@@ -2711,7 +2711,7 @@ func TestMethodCalls(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(49, 4, 6), P(49, 4, 6)), "expected type `Std::Float` for parameter `a` in call to `foo`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(49, 4, 6), P(49, 4, 6)), "expected type `Std::Float` for parameter `a` in call to `Foo::foo`, got type `1`"),
 			},
 		},
 		"pipe operator add an argument with a compatible type to attribute access": {
@@ -2732,7 +2732,7 @@ func TestMethodCalls(t *testing.T) {
 				1 |> f.()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(66, 6, 10), P(69, 6, 13)), "expected 0 arguments in call to `call`, got 1"),
+				diagnostic.NewFailure(L("<main>", P(66, 6, 10), P(69, 6, 13)), "expected 0 arguments in call to `Foo.:call`, got 1"),
 			},
 		},
 		"pipe operator add an argument with an incompatible type to a call": {
@@ -2744,7 +2744,7 @@ func TestMethodCalls(t *testing.T) {
 				1 |> f.()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(71, 6, 5), P(71, 6, 5)), "expected type `Std::Float` for parameter `a` in call to `call`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(71, 6, 5), P(71, 6, 5)), "expected type `Std::Float` for parameter `a` in call to `Foo.:call`, got type `1`"),
 			},
 		},
 		"pipe operator add an additional required argument with a compatible type to a call": {
@@ -2777,7 +2777,7 @@ func TestMethodCalls(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(60, 6, 7), P(67, 6, 14)), "method `foo` is not defined on type `any`"),
+				diagnostic.NewFailure(L("<main>", P(63, 6, 10), P(65, 6, 12)), "method `foo` is not defined on type `any`"),
 			},
 		},
 		"call a method on a type parameter with an upper bound": {
@@ -2810,7 +2810,7 @@ func TestMethodCalls(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(107, 10, 7), P(114, 10, 14)), "method `foo` is not defined on type `any`"),
+				diagnostic.NewFailure(L("<main>", P(110, 10, 10), P(112, 10, 12)), "method `foo` is not defined on type `any`"),
 			},
 		},
 	}
@@ -2902,7 +2902,7 @@ func TestGenericMethodCalls(t *testing.T) {
 				var a: Int = Foo.baz::[3](3)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(99, 6, 18), P(113, 6, 32)), "`Foo::baz` requires 0 type argument(s), got: 1"),
+				diagnostic.NewFailure(L("<main>", P(103, 6, 22), P(105, 6, 24)), "`Foo::baz` requires 0 type argument(s), got: 1"),
 			},
 		},
 
@@ -2995,7 +2995,7 @@ func TestGenericMethodCalls(t *testing.T) {
 				var b: 9 = Foo.foo("foo", 2)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(92, 5, 31), P(92, 5, 31)), "expected type `Std::String` for parameter `b` in call to `foo`, got type `2`"),
+				diagnostic.NewFailure(L("<main>", P(92, 5, 31), P(92, 5, 31)), "expected type `Std::String` for parameter `b` in call to `Foo::foo`, got type `2`"),
 				diagnostic.NewFailure(L("<main>", P(77, 5, 16), P(93, 5, 32)), "type `Std::String` cannot be assigned to type `9`"),
 			},
 		},
@@ -3074,7 +3074,7 @@ func TestGenericMethodCalls(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(92, 5, 19), P(102, 5, 29)), "`Foo::baz` requires 0 type argument(s), got: 1"),
+				diagnostic.NewFailure(L("<main>", P(92, 5, 19), P(94, 5, 21)), "`Foo::baz` requires 0 type argument(s), got: 1"),
 			},
 		},
 
@@ -3097,7 +3097,7 @@ func TestGenericMethodCalls(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(81, 4, 28), P(81, 4, 28)), "expected type `Std::String` for parameter `b` in call to `foo`, got type `2`"),
+				diagnostic.NewFailure(L("<main>", P(81, 4, 28), P(81, 4, 28)), "expected type `Std::String` for parameter `b` in call to `Foo::foo`, got type `2`"),
 				diagnostic.NewFailure(L("<main>", P(70, 4, 17), P(82, 4, 29)), "type `Std::String` cannot be assigned to type `9`"),
 			},
 		},
@@ -3120,7 +3120,7 @@ func TestGenericMethodCalls(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(40, 3, 11), P(44, 3, 15)), "type `||: nil` does not implement closure `|element: Std::String|: nil`:\n\n  - incorrect implementation of `call`\n      is:        `def call(): nil`\n      should be: `def call(element: Std::String): nil`\n"),
-				diagnostic.NewFailure(L("<main>", P(40, 3, 11), P(44, 3, 15)), "expected type `|element: Std::String|: nil` for parameter `fn` in call to `map`, got type `||: nil`"),
+				diagnostic.NewFailure(L("<main>", P(40, 3, 11), P(44, 3, 15)), "expected type `|element: Std::String|: nil` for parameter `fn` in call to `Std::Iterable::FiniteBase.:map`, got type `||: nil`"),
 			},
 		},
 	}
@@ -3221,7 +3221,7 @@ func TestConstructorCall(t *testing.T) {
 				Foo(1)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(57, 5, 9), P(57, 5, 9)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(57, 5, 9), P(57, 5, 9)), "expected type `Std::String` for parameter `a` in call to `Foo.:#init`, got type `1`"),
 			},
 		},
 		"instantiate a class with an inherited constructor": {
@@ -3244,7 +3244,7 @@ func TestConstructorCall(t *testing.T) {
 				Foo(1)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(83, 7, 9), P(83, 7, 9)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(83, 7, 9), P(83, 7, 9)), "expected type `Std::String` for parameter `a` in call to `Bar.:#init`, got type `1`"),
 			},
 		},
 		"call a method on an instantiated instance": {
@@ -3283,7 +3283,7 @@ func TestConstructorCall(t *testing.T) {
 				Foo::[String](1)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(65, 5, 19), P(65, 5, 19)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(65, 5, 19), P(65, 5, 19)), "expected type `Std::String` for parameter `a` in call to `Foo.:#init`, got type `1`"),
 			},
 		},
 		"instantiate a generic class with satisfied upper bound": {
@@ -3378,7 +3378,7 @@ func TestConstructorCall(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(70, 5, 11), P(70, 5, 11)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(70, 5, 11), P(70, 5, 11)), "expected type `Std::String` for parameter `a` in call to `Foo.:#init`, got type `1`"),
 			},
 		},
 		"new - instantiate a class with an inherited constructor": {
@@ -3407,7 +3407,7 @@ func TestConstructorCall(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(99, 8, 11), P(99, 8, 11)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(99, 8, 11), P(99, 8, 11)), "expected type `Std::String` for parameter `a` in call to `Bar.:#init`, got type `1`"),
 			},
 		},
 		"new - call a method on an instantiated instance": {
@@ -3446,7 +3446,7 @@ func TestConstructorCall(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(69, 6, 11), P(73, 6, 15)), "expected type `V` for parameter `a` in call to `#init`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(69, 6, 11), P(73, 6, 15)), "expected type `V` for parameter `a` in call to `Foo.:#init`, got type `\"foo\"`"),
 			},
 		},
 	}
@@ -3484,7 +3484,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var a: 9 = Foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(54, 3, 16), P(58, 3, 20)), "cannot infer type argument for `V` in call to `#init`"),
+				diagnostic.NewFailure(L("<main>", P(54, 3, 16), P(58, 3, 20)), "cannot infer type argument for `V` in call to `Foo.:#init`"),
 				diagnostic.NewFailure(L("<main>", P(54, 3, 16), P(58, 3, 20)), "type `Foo[untyped]` cannot be assigned to type `9`"),
 			},
 		},
@@ -3559,7 +3559,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo("foo", 2)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(79, 5, 27), P(79, 5, 27)), "expected type `Std::String` for parameter `b` in call to `#init`, got type `2`"),
+				diagnostic.NewFailure(L("<main>", P(79, 5, 27), P(79, 5, 27)), "expected type `Std::String` for parameter `b` in call to `Foo.:#init`, got type `2`"),
 				diagnostic.NewFailure(L("<main>", P(68, 5, 16), P(80, 5, 28)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
@@ -3734,7 +3734,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(1)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(118, 9, 20), P(118, 9, 20)), "expected type `Bar[V]` for parameter `a` in call to `#init`, got type `1`"),
+				diagnostic.NewFailure(L("<main>", P(118, 9, 20), P(118, 9, 20)), "expected type `Bar[V]` for parameter `a` in call to `Foo.:#init`, got type `1`"),
 				diagnostic.NewFailure(L("<main>", P(114, 9, 16), P(119, 9, 21)), "type `Foo[any]` cannot be assigned to type `9`"),
 			},
 		},
@@ -3759,7 +3759,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo("")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(94, 6, 20), P(95, 6, 21)), "expected type `&V` for parameter `a` in call to `#init`, got type `\"\"`"),
+				diagnostic.NewFailure(L("<main>", P(94, 6, 20), P(95, 6, 21)), "expected type `&V` for parameter `a` in call to `Foo.:#init`, got type `\"\"`"),
 				diagnostic.NewFailure(L("<main>", P(90, 6, 16), P(96, 6, 22)), "type `Foo[Std::Value]` cannot be assigned to type `9`"),
 			},
 		},
@@ -3783,7 +3783,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(String)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(75, 5, 20), P(80, 5, 25)), "expected type `%V` for parameter `a` in call to `#init`, got type `&Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(75, 5, 20), P(80, 5, 25)), "expected type `%V` for parameter `a` in call to `Foo.:#init`, got type `&Std::String`"),
 				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(81, 5, 26)), "type `Foo[Std::Class]` cannot be assigned to type `9`"),
 			},
 		},
@@ -3808,7 +3808,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(2.9)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(67, 5, 20), P(69, 5, 22)), "expected type `~V` for parameter `a` in call to `#init`, got type `2.9`"),
+				diagnostic.NewFailure(L("<main>", P(67, 5, 20), P(69, 5, 22)), "expected type `~V` for parameter `a` in call to `Foo.:#init`, got type `2.9`"),
 				diagnostic.NewFailure(L("<main>", P(63, 5, 16), P(70, 5, 23)), "type `Foo[any]` cannot be assigned to type `9`"),
 			},
 		},
@@ -3871,7 +3871,7 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(77, 5, 20), P(81, 5, 24)), "type `Std::String` does not implement closure `|a: V|: void`:\n\n  - missing method `call` with signature: `def call(a: V): void`\n"),
-				diagnostic.NewFailure(L("<main>", P(77, 5, 20), P(81, 5, 24)), "expected type `|a: V|: void` for parameter `a` in call to `#init`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(77, 5, 20), P(81, 5, 24)), "expected type `|a: V|: void` for parameter `a` in call to `Foo.:#init`, got type `\"foo\"`"),
 				diagnostic.NewFailure(L("<main>", P(73, 5, 16), P(82, 5, 25)), "type `Foo[any]` cannot be assigned to type `9`"),
 			},
 		},
@@ -4002,7 +4002,7 @@ func TestMethodInheritance(t *testing.T) {
 				bar.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(145, 13, 5), P(151, 13, 11)), "method `foo` is not defined on type `Bar`"),
+				diagnostic.NewFailure(L("<main>", P(149, 13, 9), P(151, 13, 11)), "method `foo` is not defined on type `Bar`"),
 			},
 		},
 		"call a method on singleton type": {
@@ -4150,7 +4150,7 @@ func TestMethodInheritance(t *testing.T) {
 				f.bar("lol")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(116, 9, 5), P(127, 9, 16)), "method `bar` is not defined on type `Foo[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(118, 9, 7), P(120, 9, 9)), "method `bar` is not defined on type `Foo[Std::Int]`"),
 			},
 		},
 		"call method from extend where in parent mixin when the conditions are not satisfied": {
@@ -4169,7 +4169,7 @@ func TestMethodInheritance(t *testing.T) {
 				b.foo("lol")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(154, 13, 5), P(165, 13, 16)), "method `foo` is not defined on type `Bar`"),
+				diagnostic.NewFailure(L("<main>", P(156, 13, 7), P(158, 13, 9)), "method `foo` is not defined on type `Bar`"),
 			},
 		},
 	}
@@ -4267,6 +4267,29 @@ func TestClosureLiteral(t *testing.T) {
 				a = |a: Int, b: String = "foo"|: String -> b
 			`,
 		},
+		"infer types from local assignment": {
+			input: `
+				var a: |a: Int|: String
+				a = |a| -> a.to_string
+			`,
+		},
+		"allow recursive closure in local declaration": {
+			input: `
+				var a: |b: Int|: String = |b| ->
+					a(b - 1)
+				end
+				a(10)
+			`,
+		},
+		"allow recursive closure in local assignment": {
+			input: `
+			  var a: |b: Int|: String
+				a = |b| ->
+					a(b - 1)
+				end
+				a(10)
+			`,
+		},
 		"assign an incompatible closure to a closure type": {
 			input: `
 				a := |a: Int|: Int -> a
@@ -4296,7 +4319,7 @@ func TestClosureLiteral(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "type `|i: Std::String|: 2.5` does not implement closure `|a: Std::String|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(i: Std::String): 2.5`\n      should be: `def call(a: Std::String): Std::Int`\n"),
-				diagnostic.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "expected type `|a: Std::String|: Std::Int` for parameter `fn` in call to `foo`, got type `|i: Std::String|: 2.5`"),
+				diagnostic.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "expected type `|a: Std::String|: Std::Int` for parameter `fn` in call to `Std::Kernel::foo`, got type `|i: Std::String|: 2.5`"),
 			},
 		},
 		"accept closure argument with different param names": {
@@ -4316,7 +4339,17 @@ func TestClosureLiteral(t *testing.T) {
 				a := |a: Int|: Int -> a
 				a.(9)
 				a.call(3 + 8)
+				a(3 + 8)
 			`,
+		},
+		"call an uninitialised closure": {
+			input: `
+				var a: |a: Int|: Int
+				a(3 + 8)
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 5), P(30, 3, 5)), "cannot access uninitialised local `a`"),
+			},
 		},
 		"call a closure with invalid arguments": {
 			input: `

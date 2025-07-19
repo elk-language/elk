@@ -14,6 +14,10 @@ func initInt64LiteralNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
+			_, err := value.ParseBigIntWithErr(argValue, 0, value.Int64LiteralNodeFormatErrorClass)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -72,6 +76,20 @@ func initInt64LiteralNode() {
 		},
 	)
 
+	vm.Def(
+		c,
+		"to_int64",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.Int64LiteralNode)
+			result, err := value.StrictParseIntWithErr(self.Value, 0, 64, value.Int64LiteralNodeFormatErrorClass)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
+
+			return value.Int64(result).ToValue(), value.Undefined
+		},
+	)
+
 	c = &value.Int64Class.MethodContainer
 	vm.Def(
 		c,
@@ -84,5 +102,6 @@ func initInt64LiteralNode() {
 	)
 	vm.Alias(c, "to_ast_expr_node", "to_ast_node")
 	vm.Alias(c, "to_ast_pattern_node", "to_ast_node")
+	vm.Alias(c, "to_ast_pattern_expr_node", "to_ast_node")
 	vm.Alias(c, "to_ast_type_node", "to_ast_node")
 }

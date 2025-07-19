@@ -6,6 +6,8 @@ module ::Std::Elk::AST
 	mixin TypeNode
 		include Node
 
+		def to_ast_type_node: TypeNode; end
+
 		##[
 			Represents a value that can be converted to an Elk AST Type Node.
 		]##

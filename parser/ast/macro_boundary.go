@@ -86,8 +86,17 @@ func (n *MacroBoundaryNode) String() string {
 	return buff.String()
 }
 
-func (*MacroBoundaryNode) IsStatic() bool {
-	return false
+func (m *MacroBoundaryNode) IsStatic() bool {
+	if len(m.Body) != 1 {
+		return false
+	}
+
+	exprStmt, ok := m.Body[0].(*ExpressionStatementNode)
+	if !ok {
+		return false
+	}
+
+	return exprStmt.IsStatic()
 }
 
 func (*MacroBoundaryNode) Class() *value.Class {

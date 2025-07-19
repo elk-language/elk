@@ -8,7 +8,6 @@ package parser
 import (
 	"fmt"
 	"slices"
-	"unicode"
 	"unicode/utf8"
 
 	"github.com/elk-language/elk/bitfield"
@@ -141,7 +140,7 @@ func (p *Parser) errorMessage(message string) {
 	p.errorMessageLocation(message, p.lookahead.Location())
 }
 
-// Same as [errorMessage] but let's you pass a Span.
+// Same as [errorMessage] but let's you pass a Location.
 func (p *Parser) errorMessageLocation(message string, loc *position.Location) {
 	if p.mode == panicMode {
 		return
@@ -873,7 +872,7 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	var paramName *token.Token
+	var name ast.IdentifierNode
 	var kind ast.ParameterKind
 	var location *position.Location
 
@@ -889,20 +888,25 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 	}
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		paramName = p.advance()
+	case token.PUBLIC_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
+	case token.PRIVATE_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
-		p.errorExpected("a lowercase identifier as the name of the declared formalParameter")
-		paramName = p.advance()
+		p.errorExpected("a lowercase identifier as the name of the declared signature parameter")
+		tok := p.advance()
+		name = ast.NewInvalidNode(tok.Location(), tok)
 	default:
-		p.errorExpected("an identifier as the name of the declared formalParameter")
+		p.errorExpected("an identifier as the name of the declared signature parameter")
 		tok := p.advance()
 		return ast.NewInvalidNode(
 			tok.Location(),
 			tok,
 		)
 	}
-	location = location.Join(paramName.Location())
+	location = location.Join(name.Location())
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotationWithoutUnionAndVoid()
@@ -919,7 +923,7 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 
 	return ast.NewFormalParameterNode(
 		location,
-		paramName.Value,
+		name,
 		typ,
 		init,
 		kind,
@@ -931,7 +935,7 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	var paramName *token.Token
+	var name ast.IdentifierNode
 	var setIvar bool
 	var kind ast.ParameterKind
 	var location *position.Location
@@ -948,14 +952,20 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 	}
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		paramName = p.advance()
+	case token.PUBLIC_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
+	case token.PRIVATE_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
 	case token.INSTANCE_VARIABLE:
-		paramName = p.advance()
+		tok := p.advance()
 		setIvar = true
+		name = ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
 		p.errorExpected("a lowercase identifier as the name of the declared formalParameter")
-		paramName = p.advance()
+		tok := p.advance()
+		name = ast.NewInvalidNode(tok.Location(), tok)
 	default:
 		p.errorExpected("an identifier as the name of the declared formalParameter")
 		tok := p.advance()
@@ -964,7 +974,7 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 			tok,
 		)
 	}
-	location = location.Join(paramName.Location())
+	location = location.Join(name.Location())
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotationWithoutVoid()
@@ -981,7 +991,7 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 
 	return ast.NewMethodParameterNode(
 		location,
-		paramName.Value,
+		name,
 		setIvar,
 		typ,
 		init,
@@ -1082,7 +1092,7 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 	var typ ast.TypeNode
 	var opt bool
 
-	var paramName *token.Token
+	var name ast.IdentifierNode
 	var kind ast.ParameterKind
 	var location *position.Location
 
@@ -1098,20 +1108,25 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 	}
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		paramName = p.advance()
+	case token.PUBLIC_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
+	case token.PRIVATE_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
-		p.errorExpected("a lowercase identifier as the name of the declared signatureParameter")
-		paramName = p.advance()
+		p.errorExpected("a lowercase identifier as the name of the declared signature parameter")
+		tok := p.advance()
+		name = ast.NewInvalidNode(tok.Location(), tok)
 	default:
-		p.errorExpected("an identifier as the name of the declared signatureParameter")
+		p.errorExpected("an identifier as the name of the declared signature parameter")
 		tok := p.advance()
 		return ast.NewInvalidNode(
 			tok.Location(),
 			tok,
 		)
 	}
-	location = location.Join(paramName.Location())
+	location = location.Join(name.Location())
 
 	if questionTok, ok := p.matchOk(token.QUESTION); ok {
 		opt = true
@@ -1128,7 +1143,7 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 
 	return ast.NewSignatureParameterNode(
 		location,
-		paramName.Value,
+		name,
 		typ,
 		opt,
 		kind,
@@ -1468,7 +1483,7 @@ func (p *Parser) namedArgument() ast.NamedArgumentNode {
 
 	return ast.NewNamedCallArgumentNode(
 		ident.Location().Join(val.Location()),
-		ident.Value,
+		tokenToIdentifier(ident),
 		val,
 	)
 }
@@ -1523,7 +1538,11 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			if len(namedArgs) > 0 {
 				namedArgs = append(
 					namedArgs,
-					ast.NewNamedCallArgumentNode(function.Location(), "func", function),
+					ast.NewNamedCallArgumentNode(
+						function.Location(),
+						ast.NewPublicIdentifierNode(function.Location(), "fn"),
+						function,
+					),
 				)
 			} else {
 				posArgs = append(posArgs, function)
@@ -1533,7 +1552,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 
 		receiver = ast.NewReceiverlessMacroCallNode(
 			location,
-			macroName.Value,
+			tokenToIdentifier(macroName),
 			posArgs,
 			namedArgs,
 		)
@@ -1578,7 +1597,11 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			if len(namedArgs) > 0 {
 				namedArgs = append(
 					namedArgs,
-					ast.NewNamedCallArgumentNode(function.Location(), "func", function),
+					ast.NewNamedCallArgumentNode(
+						function.Location(),
+						ast.NewPublicIdentifierNode(function.Location(), "fn"),
+						function,
+					),
 				)
 			} else {
 				posArgs = append(posArgs, function)
@@ -1589,7 +1612,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 		if len(typeArgs) > 0 {
 			receiver = ast.NewGenericReceiverlessMethodCallNode(
 				location,
-				methodName.Value,
+				tokenToIdentifier(methodName),
 				typeArgs,
 				posArgs,
 				namedArgs,
@@ -1597,7 +1620,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 		} else {
 			receiver = ast.NewReceiverlessMethodCallNode(
 				location,
-				methodName.Value,
+				tokenToIdentifier(methodName),
 				posArgs,
 				namedArgs,
 			)
@@ -1668,7 +1691,11 @@ methodCallLoop:
 				if len(namedArgs) > 0 {
 					namedArgs = append(
 						namedArgs,
-						ast.NewNamedCallArgumentNode(function.Location(), "func", function),
+						ast.NewNamedCallArgumentNode(
+							function.Location(),
+							ast.NewPublicIdentifierNode(function.Location(), "fn"),
+							function,
+						),
 					)
 				} else {
 					posArgs = append(posArgs, function)
@@ -1689,7 +1716,7 @@ methodCallLoop:
 		_, selfReceiver := receiver.(*ast.SelfLiteralNode)
 		p.swallowNewlines()
 
-		if (!selfReceiver && p.accept(token.PRIVATE_IDENTIFIER)) || p.lookahead.IsNonOverridableOperator() {
+		if (!selfReceiver && p.accept(token.PRIVATE_IDENTIFIER)) || p.lookahead.IsNonOverridableOperator() && p.lookahead.Type != token.SHORT_UNQUOTE_BEG {
 			p.errorExpected(expectedPublicMethodMessage)
 		} else if !p.lookahead.IsValidMethodName() {
 			p.errorExpected(expectedPublicMethodMessage)
@@ -1703,32 +1730,46 @@ methodCallLoop:
 			)
 		}
 
-		methodNameTok := p.advance()
-		methodName := methodNameTok.FetchValue()
-		location := receiver.Location().Join(methodNameTok.Location())
-
-		switch methodNameTok.Type {
+		switch p.lookahead.Type {
 		case token.AWAIT:
 			if opToken.Type != token.DOT {
 				p.errorMessageLocation("invalid await operator", opToken.Location())
 			}
+			nameTok := p.advance()
+			location := receiver.Location().Join(nameTok.Location())
 			receiver = ast.NewAwaitExpressionNode(
+				location,
+				receiver,
+				false,
+			)
+			continue
+		case token.AWAIT_SYNC:
+			if opToken.Type != token.DOT {
+				p.errorMessageLocation("invalid await_sync operator", opToken.Location())
+			}
+			nameTok := p.advance()
+			location := receiver.Location().Join(nameTok.Location())
+			receiver = ast.NewAwaitExpressionNode(
+				location,
+				receiver,
+				true,
+			)
+			continue
+		case token.MUST:
+			if opToken.Type != token.DOT {
+				p.errorMessageLocation("invalid must operator", opToken.Location())
+			}
+			nameTok := p.advance()
+			location := receiver.Location().Join(nameTok.Location())
+			receiver = ast.NewMustExpressionNode(
 				location,
 				receiver,
 			)
 			continue
-		case token.MUST:
-			if methodNameTok.Type == token.MUST {
-				if opToken.Type != token.DOT {
-					p.errorMessageLocation("invalid must operator", opToken.Location())
-				}
-				receiver = ast.NewMustExpressionNode(
-					location,
-					receiver,
-				)
-				continue
-			}
 		}
+
+		methodName := p.methodCallIdentifier()
+		location := receiver.Location().Join(methodName.Location())
 
 		var isMacro bool
 		if tok, ok := p.matchOk(token.BANG); ok {
@@ -1737,8 +1778,10 @@ methodCallLoop:
 			if opToken.Type != token.DOT {
 				p.errorMessageLocation("invalid macro call operator", opToken.Location())
 			}
-			if methodNameTok.Type != token.PUBLIC_IDENTIFIER && !methodNameTok.IsKeyword() {
-				p.errorMessageLocation("invalid macro name", methodNameTok.Location())
+			switch methodName.(type) {
+			case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
+			default:
+				p.errorMessageLocation("invalid macro name", methodName.Location())
 			}
 		}
 
@@ -1792,7 +1835,11 @@ methodCallLoop:
 			if len(namedArgs) > 0 {
 				namedArgs = append(
 					namedArgs,
-					ast.NewNamedCallArgumentNode(function.Location(), "func", function),
+					ast.NewNamedCallArgumentNode(
+						function.Location(),
+						ast.NewPublicIdentifierNode(function.Location(), "fn"),
+						function,
+					),
 				)
 			} else {
 				posArgs = append(posArgs, function)
@@ -1903,16 +1950,32 @@ func (p *Parser) callArgumentList() (*position.Location, []ast.ExpressionNode, [
 		nil
 }
 
-// constructorCall = constantLookup |
-// strictConstantLookup ["::[" typeAnnotationList "]"] ( "(" argumentList ")" | argumentList )
+// constructorCall = constantLookup [ ["::[" typeAnnotationList "]"] ( "(" argumentList ")" | argumentList ) ]
 func (p *Parser) constructorCall() ast.ExpressionNode {
-	if !p.accept(token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT, token.SCOPE_RES_OP) {
-		return p.constantLookup()
+	constantExpr := p.constantOrMethodLookup()
+	var constant ast.ComplexConstantNode
+
+	switch c := constantExpr.(type) {
+	case *ast.ConstantLookupNode:
+		constant = c
+	case *ast.PublicConstantNode:
+		constant = c
+	case *ast.PrivateConstantNode:
+		constant = c
+	case *ast.UnquoteNode:
+		if c.Kind != ast.UNQUOTE_CONSTANT_KIND {
+			return constantExpr
+		}
+		constant = c
+	default:
+		return constantExpr
 	}
 
-	constant := p.strictConstantLookup()
-	location := constant.Location()
+	if !p.lookahead.IsValidAsArgumentToNoParenFunctionCall() && !p.accept(token.COLON_COLON_LBRACKET, token.LPAREN) {
+		return constant
+	}
 
+	location := constant.Location()
 	var typeArgs []ast.TypeNode
 	if p.match(token.COLON_COLON_LBRACKET) {
 		p.swallowNewlines()
@@ -1960,13 +2023,14 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 
 const privateConstantAccessMessage = "cannot access a private constant from the outside"
 
-// constantLookup = primaryExpression | "::" publicConstant | constantLookup "::" publicConstant
-func (p *Parser) constantLookup() ast.ExpressionNode {
+// constantOrMethodLookup = primaryExpression | "::" (publicConstant | identifier) | constantOrMethodLookup "::" (publicConstant | identifier)
+func (p *Parser) constantOrMethodLookup() ast.ExpressionNode {
 	var left ast.ExpressionNode
 	if tok, ok := p.matchOk(token.SCOPE_RES_OP); ok {
 		if p.accept(token.PRIVATE_CONSTANT) {
 			p.errorUnexpected(privateConstantAccessMessage)
 		}
+
 		right := p.constant()
 		left = ast.NewConstantLookupNode(
 			tok.Location().Join(right.Location()),
@@ -1977,20 +2041,126 @@ func (p *Parser) constantLookup() ast.ExpressionNode {
 		left = p.primaryExpression()
 	}
 
-	for p.lookahead.Type == token.SCOPE_RES_OP {
-		p.advance()
+	for {
+		if p.accept(token.DOT_COLON) {
+			p.advance()
 
-		p.swallowNewlines()
-		if p.accept(token.PRIVATE_CONSTANT) {
-			p.errorUnexpected(privateConstantAccessMessage)
+			p.swallowNewlines()
+			if p.accept(
+				token.DOLLAR_IDENTIFIER,
+				token.PUBLIC_IDENTIFIER,
+				token.UNQUOTE_IDENT,
+				token.UNQUOTE,
+				token.SHORT_UNQUOTE_BEG,
+			) {
+				right := p.methodName()
+				left = ast.NewInstanceMethodLookupNode(
+					left.Location().Join(right.Location()),
+					left,
+					right,
+				)
+				continue
+			}
+
+			p.errorExpected("a public method name")
+			tok := p.advance()
+			return ast.NewInvalidNode(tok.Location(), tok)
 		}
-		right := p.constant()
 
-		left = ast.NewConstantLookupNode(
-			left.Location().Join(right.Location()),
-			left,
-			right,
-		)
+		if p.accept(token.SCOPE_RES_OP) {
+			p.advance()
+
+			p.swallowNewlines()
+
+			if p.accept(token.PRIVATE_CONSTANT,
+				token.PUBLIC_CONSTANT,
+				token.UNQUOTE,
+				token.UNQUOTE_CONST,
+				token.SHORT_UNQUOTE_BEG,
+			) {
+				if p.accept(token.PRIVATE_CONSTANT) {
+					p.errorUnexpected(privateConstantAccessMessage)
+				}
+
+				right := p.constant()
+				left = ast.NewConstantLookupNode(
+					left.Location().Join(right.Location()),
+					left,
+					right,
+				)
+				continue
+			}
+
+			if p.accept(
+				token.DOLLAR_IDENTIFIER,
+				token.PUBLIC_IDENTIFIER,
+				token.UNQUOTE_IDENT,
+			) {
+				right := p.methodName()
+
+				if bang, ok := p.matchOk(token.BANG); ok {
+					switch right.(type) {
+					case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
+					default:
+						p.errorMessageLocation("invalid macro name", right.Location())
+					}
+
+					location := left.Location().Join(bang.Location())
+					hasParentheses := p.lookahead.Type == token.LPAREN
+					lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
+					if errToken != nil {
+						return ast.NewInvalidNode(
+							errToken.Location(),
+							errToken,
+						)
+					}
+					if lastArgSpan != nil {
+						location = location.Join(lastArgSpan)
+					}
+
+					hasTrailingClosure := p.hasTrailingClosure()
+
+					if hasTrailingClosure && (hasParentheses || len(posArgs) == 0 && len(namedArgs) == 0) {
+						function := p.closureExpression()
+						if len(namedArgs) > 0 {
+							namedArgs = append(
+								namedArgs,
+								ast.NewNamedCallArgumentNode(
+									function.Location(),
+									ast.NewPublicIdentifierNode(function.Location(), "fn"),
+									function,
+								),
+							)
+						} else {
+							posArgs = append(posArgs, function)
+						}
+						location = location.Join(function.Location())
+					}
+
+					left = ast.NewScopedMacroCallNode(
+						location,
+						left,
+						right,
+						posArgs,
+						namedArgs,
+					)
+					continue
+				}
+
+				left = ast.NewMethodLookupNode(
+					left.Location().Join(right.Location()),
+					left,
+					right,
+				)
+				continue
+			}
+
+			p.errorExpected("a public constant or method name")
+			tok := p.advance()
+			return ast.NewInvalidNode(tok.Location(), tok)
+		}
+
+		break
 	}
 
 	return left
@@ -2054,7 +2224,7 @@ func (p *Parser) privateConstant() *ast.PrivateConstantNode {
 	)
 }
 
-// constant = privateConstant | publicConstant
+// constant = privateConstant | publicConstant | unquoteConstant
 func (p *Parser) constant() ast.ConstantNode {
 	if p.accept(token.PRIVATE_CONSTANT) {
 		return p.privateConstant()
@@ -2062,6 +2232,13 @@ func (p *Parser) constant() ast.ConstantNode {
 
 	if p.accept(token.PUBLIC_CONSTANT) {
 		return p.publicConstant()
+	}
+
+	if p.accept(token.UNQUOTE, token.UNQUOTE_CONST) {
+		return p.unquoteConstant()
+	}
+	if p.accept(token.SHORT_UNQUOTE_BEG) {
+		return p.shortUnquoteConstant()
 	}
 
 	p.errorExpected("a constant")
@@ -2115,6 +2292,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.breakExpression()
 	case token.AWAIT:
 		return p.awaitExpression()
+	case token.AWAIT_SYNC:
+		return p.awaitSyncExpression()
 	case token.GO:
 		return p.goExpression()
 	case token.RETURN:
@@ -2133,18 +2312,6 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.typeofExpression()
 	case token.REGEX_BEG:
 		return p.regexLiteral()
-	case token.SPECIAL_IDENTIFIER:
-		if p.acceptSecond(token.COLON) {
-			label := p.advance()
-			p.advance() // colon
-			expr := p.expressionWithModifier()
-
-			return ast.NewLabeledExpressionNode(
-				label.Location().Join(expr.Location()),
-				label.Value,
-				expr,
-			)
-		}
 	case token.LPAREN:
 		p.advance()
 		if p.mode == withoutBitwiseOrMode {
@@ -2219,8 +2386,16 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.ifExpression()
 	case token.QUOTE:
 		return p.quoteExpression()
-	case token.UNQUOTE:
+	case token.SHORT_UNQUOTE_BEG:
+		return p.shortUnquoteExpression()
+	case token.UNQUOTE, token.UNQUOTE_EXPR:
 		return p.unquoteExpression()
+	case token.UNQUOTE_IDENT:
+		return p.unquoteIdentifier()
+	case token.UNQUOTE_CONST:
+		return p.unquoteConstant()
+	case token.UNQUOTE_IVAR:
+		return p.unquoteInstanceVariable()
 	case token.DO:
 		return p.doExpressionOrMacroBoundary()
 	case token.UNLESS:
@@ -2245,6 +2420,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.sealedModifier(false)
 	case token.ASYNC:
 		return p.asyncModifier(false)
+	case token.DOLLAR_IDENTIFIER:
+		return p.identifierOrLabel()
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
 		return p.identifierOrFunction()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
@@ -2790,7 +2967,7 @@ func (p *Parser) keyValueMapExpression() ast.ExpressionNode {
 		val := p.expressionWithoutModifier()
 		return ast.NewSymbolKeyValueExpressionNode(
 			key.Location().Join(val.Location()),
-			key.Value,
+			tokenToIdentifier(key),
 			val,
 		)
 	}
@@ -2946,8 +3123,8 @@ func (p *Parser) methodSignatureDefinition(allowed bool) ast.ExpressionNode {
 	sigTok := p.advance()
 	location = sigTok.Location()
 
-	methodName, mSpan := p.methodName()
-	location = location.Join(mSpan)
+	methodName := p.methodName()
+	location = location.Join(methodName.Location())
 
 	var typeParams []ast.TypeParameterNode
 	if p.match(token.LBRACKET) {
@@ -3016,12 +3193,12 @@ func (p *Parser) methodSignatureDefinition(allowed bool) ast.ExpressionNode {
 
 // aliasEntry = identifier identifier
 func (p *Parser) aliasEntry() *ast.AliasDeclarationEntry {
-	newName, newNameSpan := p.methodName()
+	newName := p.methodName()
 	p.swallowNewlines()
-	oldName, oldNameSpan := p.methodName()
+	oldName := p.methodName()
 
 	return ast.NewAliasDeclarationEntry(
-		newNameSpan.Join(oldNameSpan),
+		newName.Location().Join(oldName.Location()),
 		newName,
 		oldName,
 	)
@@ -3117,21 +3294,32 @@ func (p *Parser) typeDefinition(allowed bool) ast.ExpressionNode {
 	)
 }
 
-func (p *Parser) macroName() (*token.Token, bool) {
+func (p *Parser) macroName() (ast.IdentifierNode, bool) {
 	if p.lookahead.IsValidMacroName() {
 		macroNameTok := p.advance()
-		return macroNameTok, true
+		if macroNameTok.Type == token.PRIVATE_IDENTIFIER {
+			return ast.NewPrivateIdentifierNode(macroNameTok.Location(), macroNameTok.FetchValue()), true
+		}
+
+		return ast.NewPublicIdentifierNode(macroNameTok.Location(), macroNameTok.FetchValue()), true
 	} else {
 		p.errorExpected("a macro name (public identifier, keyword)")
 		p.updateErrorMode(true)
 		tok := p.advance()
-		return tok, false
+		return ast.NewInvalidNode(tok.Location(), tok), false
 	}
 }
 
-func (p *Parser) methodName() (string, *position.Location) {
+func (p *Parser) methodName() ast.IdentifierNode {
 	var methodName string
 	var location *position.Location
+
+	if p.accept(token.UNQUOTE, token.UNQUOTE_IDENT) {
+		return p.unquoteIdentifier()
+	}
+	if p.accept(token.SHORT_UNQUOTE_BEG) {
+		return p.shortUnquoteIdentifier()
+	}
 
 	if p.lookahead.IsValidRegularMethodName() {
 		methodNameTok := p.advance()
@@ -3140,6 +3328,9 @@ func (p *Parser) methodName() (string, *position.Location) {
 		if tok, ok := p.matchOk(token.EQUAL_OP); ok {
 			methodName += "="
 			location = location.Join(tok.Location())
+		}
+		if methodNameTok.Type == token.PRIVATE_IDENTIFIER {
+			return ast.NewPrivateIdentifierNode(location, methodName)
 		}
 	} else if p.accept(token.LBRACKET) && p.acceptSecond(token.RBRACKET) {
 		// [
@@ -3158,13 +3349,42 @@ func (p *Parser) methodName() (string, *position.Location) {
 	} else {
 		if !p.lookahead.IsOverridableOperator() {
 			p.errorExpected("a method name (identifier, overridable operator)")
+			tok := p.advance()
+			return ast.NewInvalidNode(tok.Location(), tok)
 		}
-		tok := p.advance()
-		methodName = tok.FetchValue()
-		location = tok.Location()
+
+		methodNameTok := p.advance()
+		location = methodNameTok.Location()
+		methodName = methodNameTok.FetchValue()
 	}
 
-	return methodName, location
+	return ast.NewPublicIdentifierNode(location, methodName)
+}
+
+func (p *Parser) functionName() ast.IdentifierNode {
+	var methodName string
+	var location *position.Location
+
+	if p.accept(token.UNQUOTE) {
+		return p.unquoteIdentifier()
+	}
+	if p.accept(token.SHORT_UNQUOTE_BEG) {
+		return p.shortUnquoteIdentifier()
+	}
+
+	if p.lookahead.IsValidFunctionName() {
+		methodNameTok := p.advance()
+		methodName = methodNameTok.FetchValue()
+		location = methodNameTok.Location()
+		if methodNameTok.Type == token.PRIVATE_IDENTIFIER {
+			return ast.NewPrivateIdentifierNode(location, methodName)
+		}
+		return ast.NewPublicIdentifierNode(location, methodName)
+	} else {
+		p.errorExpected("a function name")
+		tok := p.advance()
+		return ast.NewInvalidNode(tok.Location(), tok)
+	}
 }
 
 // macroDefinition = "macro" macroName ["(" formalParameterList ")"] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
@@ -3177,9 +3397,9 @@ func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
 	location = macroTok.Location()
 
 	p.swallowNewlines()
-	macroNameTok, ok := p.macroName()
+	macroName, ok := p.macroName()
 	if !ok {
-		return ast.NewInvalidNode(macroNameTok.Location(), macroNameTok)
+		return macroName
 	}
 
 	if p.match(token.LPAREN) {
@@ -3228,7 +3448,7 @@ func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
 		location,
 		"",
 		false,
-		macroNameTok.FetchValue(),
+		macroName,
 		params,
 		body,
 	)
@@ -3250,19 +3470,9 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		isGenerator = true
 	}
 	p.swallowNewlines()
-	methodName, methodNameSpan := p.methodName()
-	var isSetter bool
-	var isSubscriptSetter bool
-
-	if methodName == "[]=" {
-		isSubscriptSetter = true
-	} else if len(methodName) > 0 {
-		firstChar, _ := utf8.DecodeRuneInString(methodName)
-		lastChar := methodName[len(methodName)-1]
-		if (unicode.IsLetter(firstChar) || firstChar == '_') && lastChar == '=' {
-			isSetter = true
-		}
-	}
+	methodNameNode := p.methodName()
+	isSetter := ast.MethodNameIsSetter(methodNameNode)
+	isSubscriptSetter := ast.MethodNameIsSubscriptSetter(methodNameNode)
 
 	var typeParams []ast.TypeParameterNode
 	if p.match(token.LBRACKET) {
@@ -3302,7 +3512,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 	if isSubscriptSetter {
 		var location *position.Location
 		if len(params) == 0 {
-			location = methodNameSpan
+			location = methodNameNode.Location()
 		} else {
 			location = position.JoinLocationOfCollection(params)
 		}
@@ -3312,7 +3522,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		}
 	} else if isSetter {
 		if len(params) == 0 {
-			p.errorMessageLocation("setter methods must have a single parameter, got: 0", methodNameSpan)
+			p.errorMessageLocation("setter methods must have a single parameter, got: 0", methodNameNode.Location())
 		} else if len(params) > 1 {
 			p.errorMessageLocation(fmt.Sprintf("setter methods must have a single parameter, got: %d", len(params)), position.JoinLocationOfCollection(params[1:]))
 		}
@@ -3366,7 +3576,7 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 		location,
 		"",
 		flags,
-		methodName,
+		methodNameNode,
 		typeParams,
 		params,
 		returnType,
@@ -3532,15 +3742,20 @@ func (p *Parser) attributeParameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	var paramName *token.Token
+	var name ast.IdentifierNode
 	var location *position.Location
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		paramName = p.advance()
+	case token.PUBLIC_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
+	case token.PRIVATE_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
 		p.errorExpected("a lowercase identifier as the name of the declared attribute")
-		paramName = p.advance()
+		tok := p.advance()
+		name = ast.NewInvalidNode(tok.Location(), tok)
 	default:
 		p.errorExpected("an identifier as the name of the declared attribute")
 		tok := p.advance()
@@ -3549,7 +3764,7 @@ func (p *Parser) attributeParameter() ast.ParameterNode {
 			tok,
 		)
 	}
-	location = location.Join(paramName.Location())
+	location = location.Join(name.Location())
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotation()
@@ -3563,7 +3778,7 @@ func (p *Parser) attributeParameter() ast.ParameterNode {
 
 	return ast.NewAttributeParameterNode(
 		location,
-		paramName.Value,
+		name,
 		typ,
 		init,
 	)
@@ -3574,15 +3789,20 @@ func (p *Parser) setterParameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	var paramName *token.Token
+	var name ast.IdentifierNode
 	var location *position.Location
 
 	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		paramName = p.advance()
+	case token.PUBLIC_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
+	case token.PRIVATE_IDENTIFIER:
+		tok := p.advance()
+		name = ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
 		p.errorExpected("a lowercase identifier as the name of the declared attribute")
-		paramName = p.advance()
+		tok := p.advance()
+		name = ast.NewInvalidNode(tok.Location(), tok)
 	default:
 		p.errorExpected("an identifier as the name of the declared attribute")
 		tok := p.advance()
@@ -3591,7 +3811,7 @@ func (p *Parser) setterParameter() ast.ParameterNode {
 			tok,
 		)
 	}
-	location = location.Join(paramName.Location())
+	location = location.Join(name.Location())
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotation()
@@ -3606,7 +3826,7 @@ func (p *Parser) setterParameter() ast.ParameterNode {
 
 	return ast.NewAttributeParameterNode(
 		location,
-		paramName.Value,
+		name,
 		typ,
 		init,
 	)
@@ -3752,11 +3972,11 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 
 		p.swallowNewlines()
 		if p.accept(token.PUBLIC_IDENTIFIER) {
-			nameTok := p.advance()
+			nameTok := p.publicIdentifier()
 			methodLookup := ast.NewMethodLookupNode(
 				left.Location().Join(nameTok.Location()),
 				left,
-				nameTok.Value,
+				nameTok,
 			)
 			if p.match(token.AS) {
 				asNameTok, ok := p.consume(token.PUBLIC_IDENTIFIER)
@@ -3766,10 +3986,11 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 						asNameTok,
 					)
 				}
+
 				return ast.NewMethodLookupAsNode(
 					left.Location(),
 					methodLookup,
-					asNameTok.Value,
+					tokenToIdentifier(asNameTok),
 				)
 			}
 			return methodLookup
@@ -3852,12 +4073,14 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 	var constant ast.ExpressionNode
 	var typeVars []ast.TypeParameterNode
 	if !p.accept(token.LESS, token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
-		constant = p.constantLookup()
+		constant = p.constantOrMethodLookup()
 
-		switch constant.(type) {
+		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
+		case *ast.UnquoteNode:
+			c.Kind = ast.UNQUOTE_CONSTANT_KIND
 		default:
 			p.errorMessageLocation("invalid class name, expected a constant", constant.Location())
 		}
@@ -3936,12 +4159,14 @@ func (p *Parser) moduleDeclaration(allowed bool) ast.ExpressionNode {
 	moduleTok := p.advance()
 	var constant ast.ExpressionNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
-		constant = p.constantLookup()
+		constant = p.constantOrMethodLookup()
 
-		switch constant.(type) {
+		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
+		case *ast.UnquoteNode:
+			c.Kind = ast.UNQUOTE_CONSTANT_KIND
 		default:
 			p.errorMessageLocation("invalid module name, expected a constant", constant.Location())
 		}
@@ -4015,12 +4240,14 @@ func (p *Parser) mixinDeclaration(allowed bool) ast.ExpressionNode {
 	var constant ast.ExpressionNode
 	var typeVars []ast.TypeParameterNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
-		constant = p.constantLookup()
+		constant = p.constantOrMethodLookup()
 
-		switch constant.(type) {
+		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
+		case *ast.UnquoteNode:
+			c.Kind = ast.UNQUOTE_CONSTANT_KIND
 		default:
 			p.errorMessageLocation("invalid mixin name, expected a constant", constant.Location())
 		}
@@ -4092,12 +4319,14 @@ func (p *Parser) interfaceDeclaration(allowed bool) ast.ExpressionNode {
 	var constant ast.ExpressionNode
 	var typeVars []ast.TypeParameterNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
-		constant = p.constantLookup()
+		constant = p.constantOrMethodLookup()
 
-		switch constant.(type) {
+		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
+		case *ast.UnquoteNode:
+			c.Kind = ast.UNQUOTE_CONSTANT_KIND
 		default:
 			p.errorMessageLocation("invalid interface name, expected a constant", constant.Location())
 		}
@@ -4168,12 +4397,14 @@ func (p *Parser) structDeclaration(allowed bool) ast.ExpressionNode {
 	var constant ast.ExpressionNode
 	var typeVars []ast.TypeParameterNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
-		constant = p.constantLookup()
+		constant = p.constantOrMethodLookup()
 
-		switch constant.(type) {
+		switch c := constant.(type) {
 		case *ast.PublicConstantNode,
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
+		case *ast.UnquoteNode:
+			c.Kind = ast.UNQUOTE_CONSTANT_KIND
 		default:
 			p.errorMessageLocation("invalid struct name, expected a constant", constant.Location())
 		}
@@ -4244,8 +4475,10 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 	varTok := p.advance()
 	var init ast.ExpressionNode
 
-	if varName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
-		token.INSTANCE_VARIABLE); ok {
+	switch p.lookahead.Type {
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
+		token.UNQUOTE, token.UNQUOTE_IDENT, token.SHORT_UNQUOTE_BEG:
+		varName := p.identifier()
 		var typ ast.TypeNode
 		lastLocation := varName.Location()
 
@@ -4258,39 +4491,52 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 			p.swallowNewlines()
 			init = p.expressionWithoutModifier()
 			lastLocation = init.Location()
-			if varName.Type == token.INSTANCE_VARIABLE {
-				p.errorMessageLocation("instance variables cannot be initialised when declared", lastLocation)
-			}
 		}
 
 		location := varTok.Location().Join(lastLocation)
-		if varName.Type == token.INSTANCE_VARIABLE {
-			if !instanceVariableAllowed {
-				p.errorMessageLocation(
-					"instance variable declarations cannot appear in expressions",
-					location,
-				)
-			}
-			if typ == nil {
-				p.errorMessageLocation(
-					"instance variable declarations must have an explicit type",
-					location,
-				)
-			}
-			return ast.NewInstanceVariableDeclarationNode(
-				location,
-				"",
-				varName.Value,
-				typ,
-			)
-		}
 
 		return ast.NewVariableDeclarationNode(
 			location,
 			"",
-			varName.Value,
+			varName,
 			typ,
 			init,
+		)
+	case token.INSTANCE_VARIABLE, token.UNQUOTE_IVAR:
+		varName := p.instanceVariable()
+		var typ ast.TypeNode
+		lastLocation := varName.Location()
+
+		if p.match(token.COLON) {
+			typ = p.typeAnnotationWithoutVoid()
+			lastLocation = typ.Location()
+		}
+
+		if p.match(token.EQUAL_OP) {
+			p.swallowNewlines()
+			init = p.expressionWithoutModifier()
+			lastLocation = init.Location()
+			p.errorMessageLocation("instance variables cannot be initialised when declared", lastLocation)
+		}
+
+		location := varTok.Location().Join(lastLocation)
+		if !instanceVariableAllowed {
+			p.errorMessageLocation(
+				"instance variable declarations cannot appear in expressions",
+				location,
+			)
+		}
+		if typ == nil {
+			p.errorMessageLocation(
+				"instance variable declarations must have an explicit type",
+				location,
+			)
+		}
+		return ast.NewInstanceVariableDeclarationNode(
+			location,
+			"",
+			varName,
+			typ,
 		)
 	}
 
@@ -4321,15 +4567,12 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	valTok := p.advance()
 	var init ast.ExpressionNode
 
-	if valName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
-		token.INSTANCE_VARIABLE); ok {
+	switch p.lookahead.Type {
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
+		token.UNQUOTE, token.UNQUOTE_IDENT, token.SHORT_UNQUOTE_BEG:
+		valName := p.identifier()
 		var typ ast.TypeNode
 		lastLocation := valName.Location()
-
-		switch valName.Type {
-		case token.INSTANCE_VARIABLE:
-			p.errorMessageLocation("instance variables cannot be declared using `val`", valName.Location())
-		}
 
 		if p.match(token.COLON) {
 			typ = p.typeAnnotationWithoutVoid()
@@ -4344,7 +4587,31 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 
 		return ast.NewValueDeclarationNode(
 			valTok.Location().Join(lastLocation),
-			valName.Value,
+			valName,
+			typ,
+			init,
+		)
+	case token.INSTANCE_VARIABLE:
+		nameTok := p.advance()
+		valName := ast.NewInvalidNode(nameTok.Location(), nameTok)
+		var typ ast.TypeNode
+		lastLocation := valName.Location()
+		p.errorMessageLocation("instance variables cannot be declared using `val`", valName.Location())
+
+		if p.match(token.COLON) {
+			typ = p.typeAnnotationWithoutVoid()
+			lastLocation = typ.Location()
+		}
+
+		if p.match(token.EQUAL_OP) {
+			p.swallowNewlines()
+			init = p.expressionWithoutModifier()
+			lastLocation = init.Location()
+		}
+
+		return ast.NewValueDeclarationNode(
+			valTok.Location().Join(lastLocation),
+			valName,
 			typ,
 			init,
 		)
@@ -4377,11 +4644,13 @@ func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	constant := p.constantLookup()
-	switch constant.(type) {
+	constant := p.constantOrMethodLookup()
+	switch c := constant.(type) {
 	case *ast.PublicConstantNode,
 		*ast.PrivateConstantNode,
 		*ast.ConstantLookupNode:
+	case *ast.UnquoteNode:
+		c.Kind = ast.UNQUOTE_CONSTANT_KIND
 	default:
 		p.errorMessageLocation("invalid constant name", constant.Location())
 	}
@@ -4537,6 +4806,10 @@ func (p *Parser) primaryType() ast.TypeNode {
 	}
 
 	switch p.lookahead.Type {
+	case token.UNQUOTE, token.UNQUOTE_TYPE:
+		return p.unquoteType()
+	case token.SHORT_UNQUOTE_BEG:
+		return p.shortUnquoteType()
 	case token.BOOL:
 		tok := p.advance()
 		return ast.NewBoolLiteralNode(tok.Location())
@@ -4804,26 +5077,112 @@ func (p *Parser) mustExpression() *ast.MustExpressionNode {
 	)
 }
 
-// unquoteExpression = "unquote" "(" expressionWithoutModifier ")"
+// unquoteExpression = ("unquote" | "unquote_expr") "(" expressionWithoutModifier ")"
 func (p *Parser) unquoteExpression() ast.ExpressionNode {
+	return p.unquote(ast.UNQUOTE_EXPRESSION_KIND)
+}
+
+// unquotePattern = ("unquote" | "unquote_pattern") "(" expressionWithoutModifier ")"
+func (p *Parser) unquotePattern() ast.PatternNode {
+	return p.unquote(ast.UNQUOTE_PATTERN_KIND)
+}
+
+// unquotePatternExpression = "unquote" "(" expressionWithoutModifier ")"
+func (p *Parser) unquotePatternExpression() ast.PatternExpressionNode {
+	return p.unquote(ast.UNQUOTE_PATTERN_EXPRESSION_KIND)
+}
+
+// unquoteConstant = ("unquote" | "unquote_const") "(" expressionWithoutModifier ")"
+func (p *Parser) unquoteConstant() ast.ConstantNode {
+	return p.unquote(ast.UNQUOTE_CONSTANT_KIND)
+}
+
+// unquoteType = ("unquote" | "unquote_type") "(" expressionWithoutModifier ")"
+func (p *Parser) unquoteType() ast.TypeNode {
+	return p.unquote(ast.UNQUOTE_TYPE_KIND)
+}
+
+// unquoteIdentifier = ("unquote" | "unquote_ident") "(" expressionWithoutModifier ")"
+func (p *Parser) unquoteIdentifier() ast.IdentifierNode {
+	return p.unquote(ast.UNQUOTE_IDENTIFIER_KIND)
+}
+
+// unquoteInstanceVariable = ("unquote" | "unquote_ivar") "(" expressionWithoutModifier ")"
+func (p *Parser) unquoteInstanceVariable() ast.InstanceVariableNode {
+	return p.unquote(ast.UNQUOTE_INSTANCE_VARIABLE_KIND)
+}
+
+// unquote = UNQUOTE "(" expressionWithoutModifier ")"
+func (p *Parser) unquote(kind ast.UnquoteKind) ast.UnquoteOrInvalidNode {
 	unquoteTok := p.advance()
 
 	lparen, ok := p.consume(token.LPAREN)
 	if !ok {
-		return ast.NewInvalidExpressionNode(lparen.Location(), lparen)
+		return ast.NewInvalidNode(lparen.Location(), lparen)
 	}
 
 	expr := p.expressionWithoutModifier()
 
 	rparen, ok := p.consume(token.RPAREN)
 	if !ok {
-		return ast.NewInvalidExpressionNode(rparen.Location(), rparen)
+		return ast.NewInvalidNode(rparen.Location(), rparen)
 	}
 
 	location := unquoteTok.Location().Join(rparen.Location())
 
-	return ast.NewUnquoteExpressionNode(
+	return ast.NewUnquoteNode(
 		location,
+		kind,
+		expr,
+	)
+}
+
+// shortUnquoteExpression = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquoteExpression() ast.ExpressionNode {
+	return p.shortUnquote(ast.UNQUOTE_EXPRESSION_KIND)
+}
+
+// shortUnquotePattern = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquotePattern() ast.PatternNode {
+	return p.shortUnquote(ast.UNQUOTE_PATTERN_KIND)
+}
+
+// shortUnquotePatternExpression = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquotePatternExpression() ast.PatternExpressionNode {
+	return p.shortUnquote(ast.UNQUOTE_PATTERN_EXPRESSION_KIND)
+}
+
+// shortUnquoteConstant = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquoteConstant() ast.ConstantNode {
+	return p.shortUnquote(ast.UNQUOTE_CONSTANT_KIND)
+}
+
+// shortUnquoteType = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquoteType() ast.TypeNode {
+	return p.shortUnquote(ast.UNQUOTE_TYPE_KIND)
+}
+
+// shortUnquoteIdentifier = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquoteIdentifier() ast.IdentifierNode {
+	return p.shortUnquote(ast.UNQUOTE_IDENTIFIER_KIND)
+}
+
+// shortUnquote = "${" expressionWithoutModifier "}"
+func (p *Parser) shortUnquote(kind ast.UnquoteKind) ast.UnquoteOrInvalidNode {
+	begTok := p.advance()
+
+	expr := p.expressionWithoutModifier()
+
+	rparen, ok := p.consume(token.RBRACE)
+	if !ok {
+		return ast.NewInvalidNode(rparen.Location(), rparen)
+	}
+
+	location := begTok.Location().Join(rparen.Location())
+
+	return ast.NewUnquoteNode(
+		location,
+		kind,
 		expr,
 	)
 }
@@ -4926,16 +5285,21 @@ func (p *Parser) typeofExpression() *ast.TypeofExpressionNode {
 	)
 }
 
-// breakExpression = "break" [SPECIAL_IDENTIFIER] [expressionWithoutModifier]
-func (p *Parser) breakExpression() *ast.BreakExpressionNode {
+// breakExpression = "break" ["[" identifier "]"] [expressionWithoutModifier]
+func (p *Parser) breakExpression() ast.ExpressionNode {
 	breakTok := p.advance()
 	location := breakTok.Location()
-	var label string
-	if p.lookahead.Type == token.SPECIAL_IDENTIFIER {
-		labelTok := p.advance()
-		label = labelTok.Value
-		location = location.Join(labelTok.Location())
+
+	var label ast.IdentifierNode
+	if p.lookahead.Type == token.LBRACKET {
+		p.advance() // [
+		label = p.identifier()
+		location = location.Join(label.Location())
+		if tok, ok := p.consume(token.RBRACKET); !ok { // ]
+			return ast.NewInvalidNode(tok.Location(), tok)
+		}
 	}
+
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewBreakExpressionNode(
 			location,
@@ -4953,16 +5317,21 @@ func (p *Parser) breakExpression() *ast.BreakExpressionNode {
 	)
 }
 
-// continueExpression = "continue" [SPECIAL_IDENTIFIER] [expressionWithoutModifier]
-func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
+// continueExpression = "continue" ["[" identifier "]"] [expressionWithoutModifier]
+func (p *Parser) continueExpression() ast.ExpressionNode {
 	continueTok := p.advance()
 	location := continueTok.Location()
-	var label string
-	if p.lookahead.Type == token.SPECIAL_IDENTIFIER {
-		labelTok := p.advance()
-		label = labelTok.Value
-		location = location.Join(labelTok.Location())
+
+	var label ast.IdentifierNode
+	if p.lookahead.Type == token.LBRACKET {
+		p.advance() // [
+		label = p.identifier()
+		location = location.Join(label.Location())
+		if tok, ok := p.consume(token.RBRACKET); !ok { // ]
+			return ast.NewInvalidNode(tok.Location(), tok)
+		}
 	}
+
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewContinueExpressionNode(
 			location,
@@ -5019,6 +5388,19 @@ func (p *Parser) awaitExpression() *ast.AwaitExpressionNode {
 	return ast.NewAwaitExpressionNode(
 		awaitTok.Location().Join(expr.Location()),
 		expr,
+		false,
+	)
+}
+
+// awaitSyncExpression = "await_sync" expressionWithoutModifier
+func (p *Parser) awaitSyncExpression() *ast.AwaitExpressionNode {
+	awaitTok := p.advance()
+	expr := p.expressionWithoutModifier()
+
+	return ast.NewAwaitExpressionNode(
+		awaitTok.Location().Join(expr.Location()),
+		expr,
+		true,
 	)
 }
 
@@ -6020,7 +6402,7 @@ func (p *Parser) setPatternElement() ast.PatternNode {
 }
 
 // literalPattern = ["-" | "+"] innerLiteralPattern
-func (p *Parser) literalPattern() ast.PatternExpressionNode {
+func (p *Parser) literalPattern() ast.PatternNode {
 	operator, ok := p.matchOk(token.MINUS, token.PLUS)
 	val := p.innerLiteralPattern()
 	if !ok {
@@ -6038,6 +6420,10 @@ func (p *Parser) innerLiteralPattern() ast.PatternExpressionNode {
 	switch p.lookahead.Type {
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.SCOPE_RES_OP:
 		return p.strictConstantLookup()
+	case token.UNQUOTE:
+		return p.unquotePatternExpression()
+	case token.SHORT_UNQUOTE_BEG:
+		return p.shortUnquotePatternExpression()
 	case token.TRUE:
 		return p.trueLiteral()
 	case token.FALSE:
@@ -6385,6 +6771,10 @@ func (p *Parser) innerPrimaryPattern() ast.PatternNode {
 		pattern := p.pattern()
 		p.consume(token.RPAREN)
 		return pattern
+	case token.UNQUOTE, token.UNQUOTE_PATTERN:
+		return p.unquotePattern()
+	case token.SHORT_UNQUOTE_BEG:
+		return p.shortUnquotePattern()
 	default:
 		return p.simplePattern()
 	}
@@ -6854,16 +7244,34 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 	return p.closureAfterArrow(firstSpan, params, returnType, throwType)
 }
 
+// identifierOrFunction = DOLLAR_IDENTIFIER [":" expressionWithModifier]
+func (p *Parser) identifierOrLabel() ast.ExpressionNode {
+	if p.secondLookahead.Type == token.COLON {
+		label := p.advance()
+		p.advance() // colon
+		expr := p.expressionWithModifier()
+
+		return ast.NewLabeledExpressionNode(
+			label.Location().Join(expr.Location()),
+			label.Value,
+			expr,
+		)
+	}
+
+	return p.publicIdentifier()
+}
+
 // identifierOrFunction = identifier | identifier closureAfterArrow
 func (p *Parser) identifierOrFunction() ast.ExpressionNode {
 	if p.secondLookahead.Type == token.THIN_ARROW {
 		ident := p.advance()
+
 		return p.closureAfterArrow(
 			ident.Location(),
 			[]ast.ParameterNode{
 				ast.NewFormalParameterNode(
 					ident.Location(),
-					ident.Value,
+					tokenToIdentifier(ident),
 					nil,
 					nil,
 					ast.NormalParameterKind,
@@ -6877,14 +7285,33 @@ func (p *Parser) identifierOrFunction() ast.ExpressionNode {
 	return p.identifier()
 }
 
-// instanceVariable = INSTANCE_VARIABLE
-func (p *Parser) instanceVariable() ast.ExpressionNode {
+func tokenToIdentifier(tok *token.Token) ast.IdentifierNode {
+	switch tok.Type {
+	case token.PRIVATE_IDENTIFIER:
+		return ast.NewPrivateIdentifierNode(tok.Location(), tok.Value)
+	case token.PUBLIC_IDENTIFIER:
+		return ast.NewPublicIdentifierNode(tok.Location(), tok.Value)
+	}
+
+	if tok.IsOverridableOperator() || tok.IsKeyword() {
+		return ast.NewPublicIdentifierNode(tok.Location(), tok.FetchValue())
+	}
+
+	return ast.NewInvalidNode(tok.Location(), tok)
+}
+
+// instanceVariable = INSTANCE_VARIABLE | unquoteInstanceVariable
+func (p *Parser) instanceVariable() ast.InstanceVariableNode {
+	if p.accept(token.UNQUOTE_IVAR) {
+		return p.unquoteInstanceVariable()
+	}
+
 	token, ok := p.consume(token.INSTANCE_VARIABLE)
 	if !ok {
 		return ast.NewInvalidNode(token.Location(), token)
 	}
 
-	return ast.NewInstanceVariableNode(
+	return ast.NewPublicInstanceVariableNode(
 		token.Location(),
 		token.Value,
 	)
@@ -6912,7 +7339,7 @@ func (p *Parser) docComment(allowed bool) ast.ExpressionNode {
 }
 
 func (p *Parser) publicIdentifier() *ast.PublicIdentifierNode {
-	ident, ok := p.matchOk(token.PUBLIC_IDENTIFIER)
+	ident, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.DOLLAR_IDENTIFIER)
 	if !ok {
 		panic(fmt.Sprintf("invalid public identifier token: %#v", ident))
 	}
@@ -6933,16 +7360,45 @@ func (p *Parser) privateIdentifier() *ast.PrivateIdentifierNode {
 	)
 }
 
-// identifier = PUBLIC_IDENTIFIER | PRIVATE_IDENTIFIER
+// identifier = PUBLIC_IDENTIFIER | PRIVATE_IDENTIFIER | unquote
 func (p *Parser) identifier() ast.IdentifierNode {
+	if p.accept(token.PUBLIC_IDENTIFIER, token.DOLLAR_IDENTIFIER) {
+		return p.publicIdentifier()
+	}
+	if p.accept(token.PRIVATE_IDENTIFIER) {
+		return p.privateIdentifier()
+	}
+	if p.accept(token.UNQUOTE, token.UNQUOTE_IDENT) {
+		return p.unquoteIdentifier()
+	}
+	if p.accept(token.SHORT_UNQUOTE_BEG) {
+		return p.shortUnquoteIdentifier()
+	}
+
+	p.errorExpected("an identifier")
+	errTok := p.advance()
+	return ast.NewInvalidNode(errTok.Location(), errTok)
+}
+
+func (p *Parser) methodCallIdentifier() ast.IdentifierNode {
 	if p.accept(token.PUBLIC_IDENTIFIER) {
 		return p.publicIdentifier()
 	}
 	if p.accept(token.PRIVATE_IDENTIFIER) {
 		return p.privateIdentifier()
 	}
+	if p.accept(token.UNQUOTE, token.UNQUOTE_IDENT) {
+		return p.unquoteIdentifier()
+	}
+	if p.accept(token.SHORT_UNQUOTE_BEG) {
+		return p.shortUnquoteIdentifier()
+	}
 
-	p.errorExpected("an identifier")
+	if p.lookahead.IsOverridableOperator() || p.lookahead.IsKeyword() {
+		tok := p.advance()
+		return ast.NewPublicIdentifierNode(tok.Location(), tok.FetchValue())
+	}
+
 	errTok := p.advance()
 	return ast.NewInvalidNode(errTok.Location(), errTok)
 }

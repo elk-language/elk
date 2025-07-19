@@ -15,6 +15,14 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+type static uint8
+
+const (
+	staticUnset static = iota
+	staticFalse
+	staticTrue
+)
+
 // Checks whether all expressions in the given list are static.
 func isExpressionSliceStatic(elements []ExpressionNode) bool {
 	for _, element := range elements {
@@ -28,11 +36,16 @@ func isExpressionSliceStatic(elements []ExpressionNode) bool {
 // Checks whether all expressions in the given list are static.
 func areExpressionsStatic(elements ...ExpressionNode) bool {
 	for _, element := range elements {
-		if element != nil && !element.IsStatic() {
+		if !isExpressionStatic(element) {
 			return false
 		}
 	}
+
 	return true
+}
+
+func isExpressionStatic(expr ExpressionNode) bool {
+	return expr == nil || expr.IsStatic()
 }
 
 // Checks whether all nodes in the given list are static.
@@ -161,11 +174,12 @@ func ExpressionPrecedence(expr ExpressionNode) uint8 {
 	case *GenericReceiverlessMethodCallNode,
 		*ReceiverlessMethodCallNode, *NilSafeSubscriptExpressionNode,
 		*SubscriptExpressionNode, *CallNode, *AttributeAccessNode,
-		*GenericMethodCallNode, *MethodCallNode, *AwaitExpressionNode:
+		*GenericMethodCallNode, *MethodCallNode, *AwaitExpressionNode,
+		*MacroCallNode, *ReceiverlessMacroCallNode:
 		return 210
 	case *ConstructorCallNode, *GenericConstructorCallNode:
 		return 220
-	case *ConstantLookupNode:
+	case *ConstantLookupNode, *MethodLookupNode, *InstanceMethodLookupNode:
 		return 230
 	}
 
@@ -474,9 +488,16 @@ func (n *NodeBase) Error() string {
 // Check whether the node can be used as a left value
 // in a variable/constant declaration.
 func IsValidDeclarationTarget(node Node) bool {
-	switch node.(type) {
+	switch node := node.(type) {
 	case *PrivateIdentifierNode, *PublicIdentifierNode:
 		return true
+	case *UnquoteNode:
+		switch node.Kind {
+		case UNQUOTE_IDENTIFIER_KIND:
+			return true
+		default:
+			return false
+		}
 	default:
 		return false
 	}
@@ -487,7 +508,7 @@ func IsValidDeclarationTarget(node Node) bool {
 func IsValidAssignmentTarget(node Node) bool {
 	switch node.(type) {
 	case *PrivateIdentifierNode, *PublicIdentifierNode,
-		*AttributeAccessNode, *InstanceVariableNode, *SubscriptExpressionNode:
+		*AttributeAccessNode, *PublicInstanceVariableNode, *SubscriptExpressionNode:
 		return true
 	default:
 		return false

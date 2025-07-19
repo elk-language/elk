@@ -278,6 +278,7 @@ const (
 	PROMISE                         // Create a new promise from the current function and push it onto the stack
 	AWAIT                           // Await the promise on top of the stack
 	AWAIT_RESULT                    // Handle the result of an awaited promise
+	AWAIT_SYNC                      // Await the promise on top of the stack synchronously
 )
 
 var opCodeNames = [...]string{
@@ -517,4 +518,5 @@ var opCodeNames = [...]string{
 	PROMISE:           "PROMISE",
 	AWAIT:             "AWAIT",
 	AWAIT_RESULT:      "AWAIT_RESULT",
+	AWAIT_SYNC:        "AWAIT_SYNC",
 }

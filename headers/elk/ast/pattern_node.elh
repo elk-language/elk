@@ -6,6 +6,9 @@ module ::Std::Elk::AST
 	mixin PatternNode
 		include Node
 
+		def to_ast_node: self; end
+		alias to_ast_pattern_node to_ast_node
+
 		##[
 			Represents a value that can be converted to an Elk AST Pattern Node.
 		]##

@@ -5,9 +5,9 @@ module Std::Elk::AST
   sealed primitive class AttributeAccessNode
     include ExpressionNode
 
-    init(receiver: ExpressionNode, attribute_name: String, location: FS::Location = loop; end); end
+    init(receiver: ExpressionNode, attribute_name: IdentifierNode, location: FS::Location = loop; end); end
     def receiver: ExpressionNode; end
-    def attribute_name: String; end
+    def attribute_name: IdentifierNode; end
     def location: FS::Location; end
   end
 end

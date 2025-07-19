@@ -3,12 +3,18 @@ module Std::Elk::AST
     Int16 literal eg. `5i16`, `1_20i16`, `0xffi16`
   ]##
   sealed primitive class Int16LiteralNode
-    include ExpressionNode,
-            TypeNode,
-            PatternNode
+    include PatternExpressionNode,
+            TypeNode
 
-    init(value: String, location: FS::Location = loop; end); end
+    ##[
+			Indicates that the format of an
+			int16 node is invalid.
+		]##
+		class FormatError < Node::FormatError; end
+
+    init(value: String, location: FS::Location = loop; end)! FormatError; end
     def value: String; end
     def location: FS::Location; end
+    def to_int16: Int16; end
   end
 end

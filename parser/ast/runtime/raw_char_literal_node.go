@@ -41,6 +41,7 @@ func initRawCharLiteralNode() {
 
 		},
 	)
+	vm.Alias(c, "to_char", "value")
 
 	vm.Def(
 		c,

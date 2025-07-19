@@ -2,6 +2,7 @@ package vm
 
 import (
 	"fmt"
+	"unsafe"
 
 	"github.com/elk-language/elk/value"
 )
@@ -10,19 +11,34 @@ import (
 // for pausing and resuming execution
 type Generator struct {
 	Bytecode *BytecodeFunction
+	ip       uintptr
 	upvalues []*Upvalue
 	stack    []value.Value
-	ip       uintptr
 }
 
 // Create a new generator
-func newGenerator(bytecode *BytecodeFunction, upvalues []*Upvalue, stack []value.Value, ip uintptr) *Generator {
+func newGenerator(
+	bytecode *BytecodeFunction,
+	upvalues []*Upvalue,
+	stack []value.Value,
+	ip uintptr,
+) *Generator {
 	return &Generator{
 		Bytecode: bytecode,
 		upvalues: upvalues,
 		stack:    stack,
 		ip:       ip,
 	}
+}
+
+// Create a new generator that executes the given piece of bytecode.
+func NewGeneratorForBytecode(bytecode *BytecodeFunction, args ...value.Value) *Generator {
+	return newGenerator(
+		bytecode,
+		nil,
+		args,
+		uintptr(unsafe.Pointer(&bytecode.Instructions[0])),
+	)
 }
 
 func (*Generator) Class() *value.Class {

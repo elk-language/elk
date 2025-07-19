@@ -11,8 +11,8 @@ func TestVMSource_Closure(t *testing.T) {
 		"variable from outer context": {
 			source: `
 				x := "outside"
-				func := -> println(x)
-				func.()
+				fn := -> println(x)
+				fn.()
 			`,
 			wantStdout:   "outside\n",
 			wantStackTop: value.Nil,

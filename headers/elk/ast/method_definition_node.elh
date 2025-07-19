@@ -11,7 +11,7 @@ module Std::Elk::AST
     const ASYNC_FLAG: UInt8
 
     init(
-      name: String,
+      name: IdentifierNode,
       type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
       parameters: ArrayTuple[ParameterNode] = loop; end,
       return_type: TypeNode? = nil,
@@ -23,14 +23,13 @@ module Std::Elk::AST
     ); end
 
     def doc_comment: String; end
-    def name: String; end
+    def name: IdentifierNode; end
     def type_parameters: ArrayTuple[TypeParameterNode]; end
     def parameters: ArrayTuple[ParameterNode]; end
     def return_type: TypeNode; end
     def throw_type: TypeNode; end
     def body: ArrayTuple[StatementNode]; end
     def flags: UInt8; end
-    def location: FS::Location; end
     def location: FS::Location; end
 
     ##[

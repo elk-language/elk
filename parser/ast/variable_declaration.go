@@ -14,12 +14,14 @@ import (
 type VariableDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
-	Name        string         // name of the variable
+	Name        IdentifierNode // name of the variable
 	TypeNode    TypeNode       // type of the variable
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
 func (n *VariableDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	name := n.Name.splice(loc, args, unquote).(IdentifierNode)
+
 	var typeNode TypeNode
 	if n.TypeNode != nil {
 		typeNode = n.TypeNode.splice(loc, args, unquote).(TypeNode)
@@ -33,7 +35,7 @@ func (n *VariableDeclarationNode) splice(loc *position.Location, args *[]Node, u
 	return &VariableDeclarationNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
-		Name:                   n.Name,
+		Name:                   name,
 		TypeNode:               typeNode,
 		Initialiser:            init,
 	}
@@ -49,6 +51,10 @@ func (n *VariableDeclarationNode) traverse(parent Node, enter func(node, parent 
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	if n.TypeNode != nil {
@@ -72,7 +78,7 @@ func (n *VariableDeclarationNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if n.Name != o.Name ||
+	if !n.Name.Equal(value.Ref(o.Name)) ||
 		n.comment != o.comment ||
 		!n.loc.Equal(o.loc) {
 		return false
@@ -99,7 +105,7 @@ func (n *VariableDeclarationNode) String() string {
 	var buff strings.Builder
 
 	buff.WriteString("var ")
-	buff.WriteString(n.Name)
+	buff.WriteString(n.Name.String())
 
 	if n.TypeNode != nil {
 		buff.WriteString(": ")
@@ -132,7 +138,7 @@ func (n *VariableDeclarationNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::VariableDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
-	buff.WriteString(n.Name)
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
 
 	buff.WriteString(",\n  type_node: ")
 	if n.TypeNode == nil {
@@ -158,7 +164,7 @@ func (v *VariableDeclarationNode) Error() string {
 }
 
 // Create a new variable declaration node eg. `var foo: String`
-func NewVariableDeclarationNode(loc *position.Location, docComment string, name string, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
+func NewVariableDeclarationNode(loc *position.Location, docComment string, name IdentifierNode, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
 	return &VariableDeclarationNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{

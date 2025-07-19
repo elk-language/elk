@@ -51,6 +51,10 @@ const (
 	invalidEscapeMode           // Triggered after encountering an invalid escape sequence in a string literal
 	stringInterpolationMode     // Triggered after consuming the initial token `${` of string interpolation
 
+	invalidQuotedIdentifierMode       // Triggered after encountering an invalid escape sequence in a quoted identifier
+	invalidQuotedConstantMode         // Triggered after encountering an invalid escape sequence in a quoted identifier
+	invalidQuotedInstanceVariableMode // Triggered after encountering an invalid escape sequence in a quoted identifier
+
 	regexLiteralMode       // Triggered after consuming the initial token `%/` of a regex literal
 	regexFlagMode          // Triggered during the lexing of regex literal flags
 	regexInterpolationMode // Triggered after consuming the initial token `${` of regex interpolation
@@ -266,6 +270,12 @@ func (l *Lexer) scanToken() *token.Token {
 		return l.scanInvalidUnicodeEscape()
 	case invalidBigUnicodeEscapeMode:
 		return l.scanInvalidBigUnicodeEscape()
+	case invalidQuotedIdentifierMode:
+		return l.quotedPublicIdentifier()
+	case invalidQuotedConstantMode:
+		return l.quotedConstant()
+	case invalidQuotedInstanceVariableMode:
+		return l.quotedInstanceVariable()
 	default:
 		return l.lexError(fmt.Sprintf("unsupported lexing mode `%d`", l.mode()))
 	}
@@ -775,6 +785,69 @@ func (l *Lexer) rawString() *token.Token {
 	return l.tokenWithValue(token.RAW_STRING, result.String())
 }
 
+// Assumes that the beginning `$'` has already been consumed.
+// Consumes a raw quoted identifier.
+func (l *Lexer) rawQuotedIdentifier() *token.Token {
+	var result strings.Builder
+	for {
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError("unterminated raw quoted identifier, missing `'`")
+		}
+		if char == '\'' {
+			break
+		}
+		if char == '\n' {
+			l.incrementLine()
+		}
+		result.WriteRune(char)
+	}
+
+	return l.tokenWithValue(token.DOLLAR_IDENTIFIER, result.String())
+}
+
+// Assumes that the beginning `$$'` has already been consumed.
+// Consumes a raw quoted constant.
+func (l *Lexer) rawQuotedConstant() *token.Token {
+	var result strings.Builder
+	for {
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError("unterminated raw quoted constant, missing `'`")
+		}
+		if char == '\'' {
+			break
+		}
+		if char == '\n' {
+			l.incrementLine()
+		}
+		result.WriteRune(char)
+	}
+
+	return l.tokenWithValue(token.PUBLIC_CONSTANT, result.String())
+}
+
+// Assumes that the beginning `@'` has already been consumed.
+// Consumes a raw quoted instance variable.
+func (l *Lexer) rawQuotedInstanceVariable() *token.Token {
+	var result strings.Builder
+	for {
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError("unterminated raw quoted instance variable, missing `'`")
+		}
+		if char == '\'' {
+			break
+		}
+		if char == '\n' {
+			l.incrementLine()
+		}
+		result.WriteRune(char)
+	}
+
+	return l.tokenWithValue(token.INSTANCE_VARIABLE, result.String())
+}
+
 const unterminatedCharLiteralMessage = "unterminated character literal, missing backtick"
 
 const charTerminator = '`'
@@ -1103,32 +1176,142 @@ func (l *Lexer) privateIdentifier(afterMethodCallOperator bool) *token.Token {
 	return l.tokenWithConsumedValue(token.PRIVATE_IDENTIFIER)
 }
 
-// Assumes that the initial `@` has been consumed.
-// Consumes and constructs an instance variable token.
-func (l *Lexer) instanceVariable() *token.Token {
+// Assumes that the prefix has been consumed.
+// Consumes and constructs a prefixed identifier.
+func (l *Lexer) prefixedIdentifier(prefixLength int, tok token.Type) *token.Token {
 	for isIdentifierChar(l.peekChar()) {
 		l.advanceChar()
 	}
 
-	lexeme := l.source[l.start+1 : l.cursor]
+	lexeme := l.source[l.start+prefixLength : l.cursor]
 	if len(lexeme) == 0 {
-		return l.lexError("empty instance variable name")
+		return l.lexError("empty identifier")
 	}
-	return l.tokenWithValue(token.INSTANCE_VARIABLE, string(lexeme))
+	return l.tokenWithValue(tok, string(lexeme))
 }
 
-// Assumes that the initial `$` has been consumed.
-// Consumes and constructs a special identifier token.
-func (l *Lexer) specialIdentifier() *token.Token {
-	for isIdentifierChar(l.peekChar()) {
-		l.advanceChar()
-	}
+// Assumes that the initial prefixed quote has been consumed.
+// Consumes and constructs a quoted identifier.
+func (l *Lexer) quotedIdentifier(invalidMode mode, tokenType token.Type, unterminatedError string) *token.Token {
+	var lexemeBuff strings.Builder
+	for {
+		char := l.peekChar()
+		if char == '"' {
+			l.advanceChar()
+			if l.mode() == invalidMode {
+				l.popMode()
+			}
+			return l.tokenWithValue(tokenType, lexemeBuff.String())
+		}
 
-	lexeme := l.source[l.start+1 : l.cursor]
-	if len(lexeme) == 0 {
-		return l.lexError("empty special identifier")
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedError)
+		}
+
+		if char == '\n' {
+			l.incrementLine()
+		}
+
+		if char != '\\' {
+			lexemeBuff.WriteRune(char)
+			continue
+		}
+
+		char, ok = l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedError)
+		}
+		switch char {
+		case '\\':
+			lexemeBuff.WriteByte('\\')
+		case 'n':
+			lexemeBuff.WriteByte('\n')
+		case 't':
+			lexemeBuff.WriteByte('\t')
+		case '"':
+			lexemeBuff.WriteByte('"')
+		case 'r':
+			lexemeBuff.WriteByte('\r')
+		case 'a':
+			lexemeBuff.WriteByte('\a')
+		case 'b':
+			lexemeBuff.WriteByte('\b')
+		case 'v':
+			lexemeBuff.WriteByte('\v')
+		case 'f':
+			lexemeBuff.WriteByte('\f')
+		case '$':
+			lexemeBuff.WriteByte('$')
+		case '#':
+			lexemeBuff.WriteByte('#')
+		case 'u':
+			if !l.acceptCharsN(hexLiteralChars, 4) {
+				l.pushMode(invalidMode)
+				l.pushMode(invalidUnicodeEscapeMode)
+				l.backupChars(2)
+				return l.tokenWithValue(tokenType, lexemeBuff.String())
+			}
+			l.advanceChars(4)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-4:l.cursor]), 16, 16)
+			if err != nil {
+				return l.lexError(invalidUnicodeEscapeError)
+			}
+			lexemeBuff.WriteRune(rune(value))
+		case 'U':
+			if !l.acceptCharsN(hexLiteralChars, 8) {
+				l.pushMode(invalidMode)
+				l.pushMode(invalidBigUnicodeEscapeMode)
+				l.backupChars(2)
+				return l.tokenWithValue(tokenType, lexemeBuff.String())
+			}
+			l.advanceChars(8)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-8:l.cursor]), 16, 32)
+			if err != nil {
+				return l.lexError(invalidUnicodeEscapeError)
+			}
+			lexemeBuff.WriteRune(rune(value))
+		case 'x':
+			if !l.acceptCharsN(hexLiteralChars, 2) {
+				l.pushMode(invalidMode)
+				l.pushMode(invalidHexEscapeMode)
+				l.backupChars(2)
+				return l.tokenWithValue(tokenType, lexemeBuff.String())
+			}
+			l.advanceChars(2)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-2:l.cursor]), 16, 8)
+			if err != nil {
+				return l.lexError(invalidHexEscapeError)
+			}
+			lexemeBuff.WriteByte(byte(value))
+		case '\n':
+			l.incrementLine()
+			fallthrough
+		default:
+			l.pushMode(invalidMode)
+			l.pushMode(invalidEscapeMode)
+			l.backupChars(2)
+			return l.tokenWithValue(tokenType, lexemeBuff.String())
+		}
 	}
-	return l.tokenWithValue(token.SPECIAL_IDENTIFIER, string(lexeme))
+}
+
+// Assumes that the initial `@"` has been consumed.
+// Consumes and constructs a quoted instance variable token.
+func (l *Lexer) quotedInstanceVariable() *token.Token {
+	return l.quotedIdentifier(invalidQuotedInstanceVariableMode, token.INSTANCE_VARIABLE, unterminatedInstanceVariableError)
+}
+
+// Assumes that the initial `$$"` has been consumed.
+// Consumes and constructs a quoted constant token.
+func (l *Lexer) quotedConstant() *token.Token {
+	return l.quotedIdentifier(invalidQuotedConstantMode, token.PUBLIC_CONSTANT, unterminatedConstantError)
+}
+
+// Assumes that the initial `$"` has been consumed.
+// Consumes and constructs a quoted public identifier token.
+func (l *Lexer) quotedPublicIdentifier() *token.Token {
+	return l.quotedIdentifier(invalidQuotedIdentifierMode, token.DOLLAR_IDENTIFIER, unterminatedIdentifierError)
 }
 
 const (
@@ -1307,9 +1490,12 @@ func (l *Lexer) scanInvalidEscape() *token.Token {
 }
 
 const (
-	unterminatedStringError   = "unterminated string literal, missing `\"`"
-	invalidHexEscapeError     = "invalid hex escape"
-	invalidUnicodeEscapeError = "invalid unicode escape"
+	unterminatedInstanceVariableError = "unterminated quoted instance variable, missing `\"`"
+	unterminatedConstantError         = "unterminated quoted constant, missing `\"`"
+	unterminatedIdentifierError       = "unterminated quoted identifier, missing `\"`"
+	unterminatedStringError           = "unterminated string literal, missing `\"`"
+	invalidHexEscapeError             = "invalid hex escape"
+	invalidUnicodeEscapeError         = "invalid unicode escape"
 )
 
 // Scan characters when inside of a string literal (after the initial `"`)
@@ -1927,6 +2113,9 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			}
 			return l.token(token.QUESTION)
 		case '!':
+			if l.matchChar('{') {
+				return l.token(token.SHORT_UNQUOTE_BEG)
+			}
 			if l.matchChar('=') {
 				if l.matchChar('=') {
 					return l.token(token.STRICT_NOT_EQUAL)
@@ -2061,9 +2250,38 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 		case '_':
 			return l.privateIdentifier(afterMethodCallOperator)
 		case '@':
-			return l.instanceVariable()
+			if l.matchChar('"') {
+				return l.quotedInstanceVariable()
+			}
+			if l.matchChar('\'') {
+				return l.rawQuotedInstanceVariable()
+			}
+			return l.prefixedIdentifier(1, token.INSTANCE_VARIABLE)
 		case '$':
-			return l.specialIdentifier()
+			if l.matchChar('$') {
+				if l.matchChar('"') {
+					return l.quotedConstant()
+				}
+				if l.matchChar('\'') {
+					return l.rawQuotedConstant()
+				}
+				return l.prefixedIdentifier(2, token.PUBLIC_CONSTANT)
+			}
+			if l.matchChar('"') {
+				return l.quotedPublicIdentifier()
+			}
+			if l.matchChar('\'') {
+				return l.rawQuotedIdentifier()
+			}
+			return l.prefixedIdentifier(1, token.DOLLAR_IDENTIFIER)
+		case '§':
+			if l.matchChar('"') {
+				return l.quotedConstant()
+			}
+			if l.matchChar('\'') {
+				return l.rawQuotedConstant()
+			}
+			return l.prefixedIdentifier(2, token.PUBLIC_CONSTANT)
 		default:
 			if isDigit(char) {
 				return l.numberLiteral(char)

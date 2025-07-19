@@ -15,26 +15,21 @@ type HashSetLiteralNode struct {
 	TypedNodeBase
 	Elements []ExpressionNode
 	Capacity ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *HashSetLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 	var capacity ExpressionNode
-	var static bool
 
 	if n.Capacity != nil {
 		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
-		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
-	} else {
-		static = isExpressionSliceStatic(elements)
 	}
 
 	return &HashSetLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -146,22 +141,22 @@ func (n *HashSetLiteralNode) String() string {
 }
 
 func (s *HashSetLiteralNode) IsStatic() bool {
-	return s.static
+	if s.static == staticUnset {
+		if isExpressionSliceStatic(s.Elements) && areExpressionsStatic(s.Capacity) {
+			s.static = staticTrue
+		} else {
+			s.static = staticFalse
+		}
+	}
+	return s.static == staticTrue
 }
 
 // Create a HashSet literal node eg. `^[1, 5, -6]`
 func NewHashSetLiteralNode(loc *position.Location, elements []ExpressionNode, capacity ExpressionNode) *HashSetLiteralNode {
-	var static bool
-	if capacity != nil {
-		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
-	} else {
-		static = isExpressionSliceStatic(elements)
-	}
 	return &HashSetLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -213,24 +208,21 @@ type WordHashSetLiteralNode struct {
 	TypedNodeBase
 	Elements []WordCollectionContentNode
 	Capacity ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *WordHashSetLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
-	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
 		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
-		static = capacity.IsStatic()
 	}
 
 	return &WordHashSetLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -325,22 +317,22 @@ func (n *WordHashSetLiteralNode) String() string {
 }
 
 func (w *WordHashSetLiteralNode) IsStatic() bool {
-	return w.static
+	if w.static == staticUnset {
+		if areExpressionsStatic(w.Capacity) {
+			w.static = staticTrue
+		} else {
+			w.static = staticFalse
+		}
+	}
+	return w.static == staticTrue
 }
 
 // Create a word HashSet literal node eg. `^w[foo bar]`
 func NewWordHashSetLiteralNode(loc *position.Location, elements []WordCollectionContentNode, capacity ExpressionNode) *WordHashSetLiteralNode {
-	var static bool
-	if capacity != nil {
-		static = capacity.IsStatic()
-	} else {
-		static = true
-	}
 	return &WordHashSetLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -397,24 +389,21 @@ type SymbolHashSetLiteralNode struct {
 	TypedNodeBase
 	Elements []SymbolCollectionContentNode
 	Capacity ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *SymbolHashSetLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
-	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
 		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
-		static = capacity.IsStatic()
 	}
 
 	return &SymbolHashSetLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -509,22 +498,22 @@ func (n *SymbolHashSetLiteralNode) String() string {
 }
 
 func (s *SymbolHashSetLiteralNode) IsStatic() bool {
-	return s.static
+	if s.static == staticUnset {
+		if isExpressionStatic(s.Capacity) {
+			s.static = staticTrue
+		} else {
+			s.static = staticFalse
+		}
+	}
+	return s.static == staticTrue
 }
 
 // Create a symbol HashSet literal node eg. `^s[foo bar]`
 func NewSymbolHashSetLiteralNode(loc *position.Location, elements []SymbolCollectionContentNode, capacity ExpressionNode) *SymbolHashSetLiteralNode {
-	var static bool
-	if capacity != nil {
-		static = capacity.IsStatic()
-	} else {
-		static = true
-	}
 	return &SymbolHashSetLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -580,24 +569,21 @@ type HexHashSetLiteralNode struct {
 	TypedNodeBase
 	Elements []IntCollectionContentNode
 	Capacity ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *HexHashSetLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
-	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
 		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
-		static = capacity.IsStatic()
 	}
 
 	return &HexHashSetLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -629,7 +615,14 @@ func (n *HexHashSetLiteralNode) traverse(parent Node, enter func(node, parent No
 }
 
 func (h *HexHashSetLiteralNode) IsStatic() bool {
-	return h.static
+	if h.static == staticUnset {
+		if isExpressionStatic(h.Capacity) {
+			h.static = staticTrue
+		} else {
+			h.static = staticFalse
+		}
+	}
+	return h.static == staticTrue
 }
 
 // Check if this node equals another node.
@@ -698,17 +691,10 @@ func (n *HexHashSetLiteralNode) String() string {
 
 // Create a hex HashSet literal node eg. `^x[ff ee]`
 func NewHexHashSetLiteralNode(loc *position.Location, elements []IntCollectionContentNode, capacity ExpressionNode) *HexHashSetLiteralNode {
-	var static bool
-	if capacity != nil {
-		static = capacity.IsStatic()
-	} else {
-		static = true
-	}
 	return &HexHashSetLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -764,24 +750,21 @@ type BinHashSetLiteralNode struct {
 	TypedNodeBase
 	Elements []IntCollectionContentNode
 	Capacity ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *BinHashSetLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
-	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
 		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
-		static = capacity.IsStatic()
 	}
 
 	return &BinHashSetLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -881,22 +864,22 @@ func (n *BinHashSetLiteralNode) String() string {
 }
 
 func (b *BinHashSetLiteralNode) IsStatic() bool {
-	return b.static
+	if b.static == staticUnset {
+		if isExpressionStatic(b.Capacity) {
+			b.static = staticTrue
+		} else {
+			b.static = staticFalse
+		}
+	}
+	return b.static == staticTrue
 }
 
 // Create a bin HashSet literal node eg. `^b[11 10]`
 func NewBinHashSetLiteralNode(loc *position.Location, elements []IntCollectionContentNode, capacity ExpressionNode) *BinHashSetLiteralNode {
-	var static bool
-	if capacity != nil {
-		static = capacity.IsStatic()
-	} else {
-		static = true
-	}
 	return &BinHashSetLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 

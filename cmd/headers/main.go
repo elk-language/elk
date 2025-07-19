@@ -22,7 +22,7 @@ func main() {
 		panic(err)
 	}
 	pathToMainFile := filepath.Join(workingDir, "headers", "main.elh")
-	_, errList := checker.CheckFile(pathToMainFile, env, true)
+	_, errList := checker.CheckFile(pathToMainFile, env, true, nil)
 	if len(errList) > 0 {
 		fmt.Println(errList.HumanString(true, lexer.Colorizer{}))
 		os.Exit(1)
@@ -43,6 +43,7 @@ func main() {
 				objectClass := env.StdSubtypeClass(symbol.Object)
 				namespace := env.Root
 				var mixin *Mixin
+				var method *Method
 				mixin.IsLiteral() // noop - avoid unused variable error
 		`,
 	)
@@ -340,7 +341,7 @@ func defineInstanceVariables(buffer *bytes.Buffer, namespace types.Namespace) {
 		fmt.Fprintf(
 			buffer,
 			"namespace.DefineInstanceVariable(value.ToSymbol(%q), %s)\n",
-			name,
+			name.String(),
 			typeToCode(typ, false),
 		)
 	}
@@ -364,6 +365,11 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 	buffer.WriteString("\n// Define methods\n")
 
 	for methodName, method := range types.SortedOwnMethods(namespace) {
+		isInit := methodName == symbol.S_init
+
+		if isInit {
+			buffer.WriteString("method = ")
+		}
 		fmt.Fprintf(
 			buffer,
 			"namespace.DefineMethod(%q, 0",
@@ -429,6 +435,22 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 			typeToCode(method.ReturnType, false),
 			typeToCode(method.ThrowType, false),
 		)
+
+		ivars := namespace.InstanceVariables()
+		if isInit && len(ivars) > 0 {
+			buffer.WriteString("ivars := method.InitialisedInstanceVariables\n")
+			for name := range namespace.InstanceVariables() {
+				if name == symbol.S_empty {
+					continue
+				}
+
+				fmt.Fprintf(
+					buffer,
+					"ivars.Add(value.ToSymbol(%q))\n",
+					name.String(),
+				)
+			}
+		}
 	}
 }
 

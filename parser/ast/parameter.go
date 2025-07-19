@@ -64,7 +64,7 @@ const (
 // Represents a formal parameter in function or struct declarations eg. `foo: String = 'bar'`
 type FormalParameterNode struct {
 	TypedNodeBase
-	Name        string         // name of the variable
+	Name        IdentifierNode // name of the variable
 	TypeNode    TypeNode       // type of the variable
 	Initialiser ExpressionNode // value assigned to the variable
 	Kind        ParameterKind
@@ -83,7 +83,7 @@ func (n *FormalParameterNode) splice(loc *position.Location, args *[]Node, unquo
 
 	return &FormalParameterNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Name:          n.Name,
+		Name:          n.Name.splice(loc, args, unquote).(IdentifierNode),
 		TypeNode:      typeNode,
 		Initialiser:   init,
 		Kind:          n.Kind,
@@ -100,6 +100,10 @@ func (n *FormalParameterNode) traverse(parent Node, enter func(node, parent Node
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	if n.TypeNode != nil {
@@ -124,7 +128,7 @@ func (n *FormalParameterNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if n.Name != o.Name || n.Kind != o.Kind {
+	if !n.Name.Equal(value.Ref(o.Name)) || n.Kind != o.Kind {
 		return false
 	}
 
@@ -149,7 +153,7 @@ func (n *FormalParameterNode) Equal(other value.Value) bool {
 func (f *FormalParameterNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString(f.Name)
+	buff.WriteString(f.Name.String())
 
 	if f.TypeNode != nil {
 		buff.WriteString(": ")
@@ -173,7 +177,7 @@ func (f *FormalParameterNode) IsOptional() bool {
 }
 
 // Create a new formal parameter node eg. `foo: String = 'bar'`
-func NewFormalParameterNode(loc *position.Location, name string, typ TypeNode, init ExpressionNode, kind ParameterKind) *FormalParameterNode {
+func NewFormalParameterNode(loc *position.Location, name IdentifierNode, typ TypeNode, init ExpressionNode, kind ParameterKind) *FormalParameterNode {
 	return &FormalParameterNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Name:          name,
@@ -197,7 +201,7 @@ func (n *FormalParameterNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::FormalParameterNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
-	buff.WriteString(n.Name)
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
 
 	buff.WriteString(",\n  type_node: ")
 	if n.TypeNode == nil {
@@ -228,7 +232,7 @@ func (n *FormalParameterNode) Error() string {
 // Represents a formal parameter in method declarations eg. `foo: String = 'bar'`
 type MethodParameterNode struct {
 	TypedNodeBase
-	Name                string         // name of the variable
+	Name                IdentifierNode // name of the variable
 	TypeNode            TypeNode       // type of the variable
 	Initialiser         ExpressionNode // value assigned to the variable
 	SetInstanceVariable bool           // whether an instance variable with this name gets automatically assigned
@@ -248,7 +252,7 @@ func (n *MethodParameterNode) splice(loc *position.Location, args *[]Node, unquo
 
 	return &MethodParameterNode{
 		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Name:                n.Name,
+		Name:                n.Name.splice(loc, args, unquote).(IdentifierNode),
 		TypeNode:            typeNode,
 		Initialiser:         init,
 		SetInstanceVariable: n.SetInstanceVariable,
@@ -266,6 +270,10 @@ func (n *MethodParameterNode) traverse(parent Node, enter func(node, parent Node
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	if n.TypeNode != nil {
@@ -304,7 +312,7 @@ func (n *MethodParameterNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc) &&
-		n.Name == o.Name &&
+		n.Name.Equal(value.Ref(o.Name)) &&
 		n.SetInstanceVariable == o.SetInstanceVariable &&
 		n.Kind == o.Kind
 }
@@ -323,7 +331,7 @@ func (n *MethodParameterNode) String() string {
 		buff.WriteRune('@')
 	}
 
-	buff.WriteString(n.Name)
+	buff.WriteString(n.Name.String())
 
 	if n.TypeNode != nil {
 		buff.WriteString(": ")
@@ -360,7 +368,7 @@ func (n *MethodParameterNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::MethodParameterNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
-	buff.WriteString(n.Name)
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
 
 	buff.WriteString(",\n  type_node: ")
 	if n.TypeNode == nil {
@@ -389,7 +397,7 @@ func (n *MethodParameterNode) Error() string {
 }
 
 // Create a new formal parameter node eg. `foo: String = 'bar'`
-func NewMethodParameterNode(loc *position.Location, name string, setIvar bool, typ TypeNode, init ExpressionNode, kind ParameterKind) *MethodParameterNode {
+func NewMethodParameterNode(loc *position.Location, name IdentifierNode, setIvar bool, typ TypeNode, init ExpressionNode, kind ParameterKind) *MethodParameterNode {
 	return &MethodParameterNode{
 		TypedNodeBase:       TypedNodeBase{loc: loc},
 		SetInstanceVariable: setIvar,
@@ -403,9 +411,9 @@ func NewMethodParameterNode(loc *position.Location, name string, setIvar bool, t
 // Represents a signature parameter in method and function signatures eg. `foo?: String`
 type SignatureParameterNode struct {
 	TypedNodeBase
-	Name     string   // name of the variable
-	TypeNode TypeNode // type of the variable
-	Optional bool     // whether this parameter is optional
+	Name     IdentifierNode // name of the variable
+	TypeNode TypeNode       // type of the variable
+	Optional bool           // whether this parameter is optional
 	Kind     ParameterKind
 }
 
@@ -417,7 +425,7 @@ func (n *SignatureParameterNode) splice(loc *position.Location, args *[]Node, un
 
 	return &SignatureParameterNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Name:          n.Name,
+		Name:          n.Name.splice(loc, args, unquote).(IdentifierNode),
 		TypeNode:      typeNode,
 		Optional:      n.Optional,
 		Kind:          n.Kind,
@@ -434,6 +442,10 @@ func (n *SignatureParameterNode) traverse(parent Node, enter func(node, parent N
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	if n.TypeNode != nil {
@@ -458,7 +470,7 @@ func (n *SignatureParameterNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.Name == o.Name &&
+	return n.Name.Equal(value.Ref(o.Name)) &&
 		n.Optional == o.Optional &&
 		n.Kind == o.Kind &&
 		n.loc.Equal(o.loc)
@@ -467,7 +479,7 @@ func (n *SignatureParameterNode) Equal(other value.Value) bool {
 func (n *SignatureParameterNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString(n.Name)
+	buff.WriteString(n.Name.String())
 
 	if n.Optional {
 		buff.WriteRune('?')
@@ -503,7 +515,7 @@ func (n *SignatureParameterNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::SignatureParameterNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
-	buff.WriteString(n.Name)
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
 
 	buff.WriteString(",\n  type_node: ")
 	if n.TypeNode == nil {
@@ -527,7 +539,7 @@ func (n *SignatureParameterNode) Error() string {
 }
 
 // Create a new signature parameter node eg. `foo?: String`
-func NewSignatureParameterNode(loc *position.Location, name string, typ TypeNode, opt bool, kind ParameterKind) *SignatureParameterNode {
+func NewSignatureParameterNode(loc *position.Location, name IdentifierNode, typ TypeNode, opt bool, kind ParameterKind) *SignatureParameterNode {
 	return &SignatureParameterNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Name:          name,
@@ -540,7 +552,7 @@ func NewSignatureParameterNode(loc *position.Location, name string, typ TypeNode
 // Represents an attribute declaration in getters, setters and accessors eg. `foo: String`
 type AttributeParameterNode struct {
 	TypedNodeBase
-	Name        string         // name of the variable
+	Name        IdentifierNode // name of the variable
 	TypeNode    TypeNode       // type of the variable
 	Initialiser ExpressionNode // value assigned to the variable
 }
@@ -558,7 +570,7 @@ func (n *AttributeParameterNode) splice(loc *position.Location, args *[]Node, un
 
 	return &AttributeParameterNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Name:          n.Name,
+		Name:          n.Name.splice(loc, args, unquote).(IdentifierNode),
 		TypeNode:      typeNode,
 		Initialiser:   init,
 	}
@@ -574,6 +586,10 @@ func (n *AttributeParameterNode) traverse(parent Node, enter func(node, parent N
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	if n.TypeNode != nil {
@@ -617,7 +633,7 @@ func (n *AttributeParameterNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if n.Name != o.Name {
+	if !n.Name.Equal(value.Ref(o.Name)) {
 		return false
 	}
 
@@ -641,7 +657,7 @@ func (n *AttributeParameterNode) Equal(other value.Value) bool {
 func (n *AttributeParameterNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString(n.Name)
+	buff.WriteString(n.Name.String())
 
 	if n.TypeNode != nil {
 		buff.WriteString(": ")
@@ -662,7 +678,7 @@ func (n *AttributeParameterNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::AttributeParameterNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
-	buff.WriteString(n.Name)
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
 
 	buff.WriteString(",\n  type_node: ")
 	if n.TypeNode == nil {
@@ -688,7 +704,7 @@ func (n *AttributeParameterNode) Error() string {
 }
 
 // Create a new attribute declaration in getters, setters and accessors eg. `foo: String`
-func NewAttributeParameterNode(loc *position.Location, name string, typ TypeNode, init ExpressionNode) *AttributeParameterNode {
+func NewAttributeParameterNode(loc *position.Location, name IdentifierNode, typ TypeNode, init ExpressionNode) *AttributeParameterNode {
 	return &AttributeParameterNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Name:          name,

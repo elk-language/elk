@@ -990,7 +990,7 @@ func TestClosure(t *testing.T) {
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(1, 1, 2))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
@@ -1032,7 +1032,7 @@ func TestClosure(t *testing.T) {
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(1, 1, 2))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
@@ -1077,7 +1077,7 @@ func TestClosure(t *testing.T) {
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(1, 1, 2))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
@@ -1126,7 +1126,7 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(1, 1, 2))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
@@ -1172,7 +1172,7 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(0, 1, 1), P(0, 1, 1))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(0, 1, 1))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
@@ -1214,21 +1214,21 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(1, 1, 2))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(4, 1, 5), P(4, 1, 5))),
-									"b",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "b"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(7, 1, 8), P(8, 1, 9))),
-									"c",
+									ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(8, 1, 9))), "c"),
 									nil,
 									nil,
 									ast.PositionalRestParameterKind,
@@ -1259,28 +1259,28 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(1, 1, 2))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(4, 1, 5), P(4, 1, 5))),
-									"b",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "b"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(7, 1, 8), P(8, 1, 9))),
-									"c",
+									ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(8, 1, 9))), "c"),
 									nil,
 									nil,
 									ast.PositionalRestParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(11, 1, 12), P(11, 1, 12))),
-									"d",
+									ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(11, 1, 12))), "d"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
@@ -1311,28 +1311,28 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(1, 1, 2))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(4, 1, 5), P(4, 1, 5))),
-									"b",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "b"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(7, 1, 8), P(8, 1, 9))),
-									"c",
+									ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(8, 1, 9))), "c"),
 									nil,
 									nil,
 									ast.PositionalRestParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(11, 1, 12), P(12, 1, 13))),
-									"d",
+									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(12, 1, 13))), "d"),
 									nil,
 									nil,
 									ast.PositionalRestParameterKind,
@@ -1366,21 +1366,21 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(1, 1, 2))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(4, 1, 5), P(4, 1, 5))),
-									"b",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "b"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(7, 1, 8), P(16, 1, 17))),
-									"c",
+									ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(8, 1, 9))), "c"),
 									ast.NewPublicConstantNode(L(S(P(11, 1, 12), P(16, 1, 17))), "String"),
 									nil,
 									ast.PositionalRestParameterKind,
@@ -1411,21 +1411,21 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(1, 1, 2))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(4, 1, 5), P(4, 1, 5))),
-									"b",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "b"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(7, 1, 8), P(9, 1, 10))),
-									"c",
+									ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(9, 1, 10))), "c"),
 									nil,
 									nil,
 									ast.NamedRestParameterKind,
@@ -1456,21 +1456,21 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(1, 1, 2))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(4, 1, 5), P(4, 1, 5))),
-									"b",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "b"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(7, 1, 8), P(17, 1, 18))),
-									"c",
+									ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(9, 1, 10))), "c"),
 									ast.NewPublicConstantNode(L(S(P(12, 1, 13), P(17, 1, 18))), "String"),
 									nil,
 									ast.NamedRestParameterKind,
@@ -1501,28 +1501,28 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(1, 1, 2))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(4, 1, 5), P(4, 1, 5))),
-									"b",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "b"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(7, 1, 8), P(9, 1, 10))),
-									"c",
+									ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(9, 1, 10))), "c"),
 									nil,
 									nil,
 									ast.NamedRestParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(12, 1, 13), P(12, 1, 13))),
-									"d",
+									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(12, 1, 13))), "d"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
@@ -1556,28 +1556,28 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(1, 1, 2))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(4, 1, 5), P(4, 1, 5))),
-									"b",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "b"),
 									nil,
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(7, 1, 8), P(8, 1, 9))),
-									"c",
+									ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(8, 1, 9))), "c"),
 									nil,
 									nil,
 									ast.PositionalRestParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(11, 1, 12), P(13, 1, 14))),
-									"d",
+									ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(13, 1, 14))), "d"),
 									nil,
 									nil,
 									ast.NamedRestParameterKind,
@@ -1608,14 +1608,14 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(6, 1, 7))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									ast.NewPublicConstantNode(L(S(P(4, 1, 5), P(6, 1, 7))), "Int"),
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(9, 1, 10), P(17, 1, 18))),
-									"b",
+									ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(9, 1, 10))), "b"),
 									ast.NewPublicConstantNode(L(S(P(12, 1, 13), P(17, 1, 18))), "String"),
 									nil,
 									ast.NormalParameterKind,
@@ -1657,14 +1657,14 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									L(S(P(1, 1, 2), P(6, 1, 7))),
-									"a",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(1, 1, 2))), "a"),
 									nil,
 									ast.NewIntLiteralNode(L(S(P(5, 1, 6), P(6, 1, 7))), "32"),
 									ast.NormalParameterKind,
 								),
 								ast.NewFormalParameterNode(
 									L(S(P(9, 1, 10), P(25, 1, 26))),
-									"b",
+									ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(9, 1, 10))), "b"),
 									ast.NewPublicConstantNode(L(S(P(12, 1, 13), P(17, 1, 18))), "String"),
 									ast.NewRawStringLiteralNode(L(S(P(21, 1, 22), P(25, 1, 26))), "foo"),
 									ast.NormalParameterKind,
@@ -4658,7 +4658,7 @@ func TestHashMapLiteral(t *testing.T) {
 										L(S(P(74, 1, 75), P(86, 1, 87))),
 										ast.NewPublicIdentifierNode(L(S(P(74, 1, 75), P(74, 1, 75))), "n"),
 										T(L(S(P(75, 1, 76), P(75, 1, 76))), token.DOT),
-										"to_string",
+										ast.NewPublicIdentifierNode(L(S(P(76, 1, 77), P(84, 1, 85))), "to_string"),
 										nil,
 										nil,
 									),
@@ -4683,7 +4683,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(1, 1, 2), P(9, 1, 10))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(6, 1, 7), P(9, 1, 10))), "bar"),
 								),
 							},
@@ -4705,7 +4705,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(1, 1, 2), P(9, 1, 10))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(6, 1, 7), P(9, 1, 10))), "bar"),
 								),
 							},
@@ -4727,7 +4727,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(1, 1, 2), P(8, 1, 9))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
 								),
 								ast.NewModifierForInNode(
@@ -4738,7 +4738,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(18, 1, 19), P(27, 1, 28))),
 											ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(27, 1, 28))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(33, 1, 34), P(35, 1, 36))), "baz"),
@@ -4763,7 +4763,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(1, 1, 2), P(8, 1, 9))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -4775,7 +4775,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(18, 1, 19), P(27, 1, 28))),
 											ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(27, 1, 28))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "baz"),
@@ -4799,7 +4799,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(1, 1, 2), P(8, 1, 9))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -4811,7 +4811,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(18, 1, 19), P(27, 1, 28))),
 											ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(27, 1, 28))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "baz"),
@@ -4846,7 +4846,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(15, 1, 16), P(24, 1, 25))),
 											ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(24, 1, 25))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(29, 1, 30), P(31, 1, 32))), "baz"),
@@ -4881,7 +4881,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(14, 1, 15), P(23, 1, 24))),
 											ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(16, 1, 17))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(23, 1, 24))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(28, 1, 29), P(30, 1, 31))), "baz"),
@@ -4908,7 +4908,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(2, 2, 1), P(9, 3, 3))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(2, 2, 1), P(4, 2, 3))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(7, 3, 1), P(9, 3, 3))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -4920,7 +4920,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(19, 5, 1), P(28, 5, 10))),
 											ast.NewPublicIdentifierNode(L(S(P(19, 5, 1), P(21, 5, 3))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(23, 5, 5), P(28, 5, 10))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(33, 6, 1), P(35, 6, 3))), "baz"),
@@ -4944,7 +4944,7 @@ func TestHashMapLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(2, 2, 1), P(9, 3, 3))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(2, 2, 1), P(4, 2, 3))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(7, 3, 1), P(9, 3, 3))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -4956,7 +4956,7 @@ func TestHashMapLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(19, 5, 1), P(28, 5, 10))),
 											ast.NewPublicIdentifierNode(L(S(P(19, 5, 1), P(21, 5, 3))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(23, 5, 5), P(28, 5, 10))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(33, 6, 1), P(35, 6, 3))), "baz"),
@@ -5100,7 +5100,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										L(S(P(75, 1, 76), P(87, 1, 88))),
 										ast.NewPublicIdentifierNode(L(S(P(75, 1, 76), P(75, 1, 76))), "n"),
 										T(L(S(P(76, 1, 77), P(76, 1, 77))), token.DOT),
-										"to_string",
+										ast.NewPublicIdentifierNode(L(S(P(77, 1, 78), P(85, 1, 86))), "to_string"),
 										nil,
 										nil,
 									),
@@ -5124,7 +5124,7 @@ func TestHashRecordLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(2, 1, 3), P(10, 1, 11))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(2, 1, 3), P(4, 1, 5))), "foo"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(7, 1, 8), P(10, 1, 11))), "bar"),
 								),
 							},
@@ -5145,7 +5145,7 @@ func TestHashRecordLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(2, 1, 3), P(9, 1, 10))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(2, 1, 3), P(4, 1, 5))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "bar"),
 								),
 								ast.NewModifierForInNode(
@@ -5156,7 +5156,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(19, 1, 20), P(28, 1, 29))),
 											ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(28, 1, 29))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(34, 1, 35), P(36, 1, 37))), "baz"),
@@ -5180,7 +5180,7 @@ func TestHashRecordLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(2, 1, 3), P(9, 1, 10))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(2, 1, 3), P(4, 1, 5))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -5192,7 +5192,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(19, 1, 20), P(28, 1, 29))),
 											ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(28, 1, 29))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(33, 1, 34), P(35, 1, 36))), "baz"),
@@ -5215,7 +5215,7 @@ func TestHashRecordLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(2, 1, 3), P(9, 1, 10))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(2, 1, 3), P(4, 1, 5))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -5227,7 +5227,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(19, 1, 20), P(28, 1, 29))),
 											ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(28, 1, 29))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(33, 1, 34), P(35, 1, 36))), "baz"),
@@ -5261,7 +5261,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(16, 1, 17), P(25, 1, 26))),
 											ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(18, 1, 19))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(20, 1, 21), P(25, 1, 26))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(30, 1, 31), P(32, 1, 33))), "baz"),
@@ -5295,7 +5295,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(15, 1, 16), P(24, 1, 25))),
 											ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(24, 1, 25))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(29, 1, 30), P(31, 1, 32))), "baz"),
@@ -5321,7 +5321,7 @@ func TestHashRecordLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(3, 2, 1), P(10, 3, 3))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(3, 2, 1), P(5, 2, 3))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(8, 3, 1), P(10, 3, 3))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -5333,7 +5333,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(20, 5, 1), P(29, 5, 10))),
 											ast.NewPublicIdentifierNode(L(S(P(20, 5, 1), P(22, 5, 3))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(24, 5, 5), P(29, 5, 10))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(34, 6, 1), P(36, 6, 3))), "baz"),
@@ -5356,7 +5356,7 @@ func TestHashRecordLiteral(t *testing.T) {
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									L(S(P(3, 2, 1), P(10, 3, 3))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(3, 2, 1), P(5, 2, 3))), "foo"),
 									ast.NewPublicIdentifierNode(L(S(P(8, 3, 1), P(10, 3, 3))), "bar"),
 								),
 								ast.NewModifierNode(
@@ -5368,7 +5368,7 @@ func TestHashRecordLiteral(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(20, 5, 1), P(29, 5, 10))),
 											ast.NewPublicIdentifierNode(L(S(P(20, 5, 1), P(22, 5, 3))), "baz"),
-											"to_int",
+											ast.NewPublicIdentifierNode(L(S(P(24, 5, 5), P(29, 5, 10))), "to_int"),
 										),
 									),
 									ast.NewPublicIdentifierNode(L(S(P(34, 6, 1), P(36, 6, 3))), "baz"),

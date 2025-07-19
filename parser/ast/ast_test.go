@@ -42,8 +42,9 @@ func TestSplice(t *testing.T) {
 				NewUnaryExpressionNode(
 					L("foo", S(P(5, 5, 2), P(15, 5, 6))),
 					T(L("main", S(P(0, 1, 1), P(15, 1, 16))), token.MINUS),
-					NewUnquoteExpressionNode(
+					NewUnquoteNode(
 						L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+						UNQUOTE_EXPRESSION_KIND,
 						NewPublicIdentifierNode(
 							L("foo", S(P(10, 6, 2), P(35, 6, 20))),
 							"x",
@@ -107,8 +108,9 @@ func TestSplice(t *testing.T) {
 				NewUnaryExpressionNode(
 					L("foo", S(P(5, 5, 2), P(15, 5, 6))),
 					T(L("main", S(P(0, 1, 1), P(15, 1, 16))), token.MINUS),
-					NewUnquoteExpressionNode(
+					NewUnquoteNode(
 						L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+						UNQUOTE_EXPRESSION_KIND,
 						NewPublicIdentifierNode(
 							L("foo", S(P(10, 6, 2), P(35, 6, 20))),
 							"x",
@@ -172,8 +174,9 @@ func TestSplice(t *testing.T) {
 				NewUnaryExpressionNode(
 					L("foo", S(P(5, 5, 2), P(15, 5, 6))),
 					T(L("main", S(P(0, 1, 1), P(15, 1, 16))), token.MINUS),
-					NewUnquoteExpressionNode(
+					NewUnquoteNode(
 						L("foo", S(P(10, 6, 2), P(35, 6, 20))),
+						UNQUOTE_EXPRESSION_KIND,
 						NewPublicIdentifierNode(
 							L("foo", S(P(10, 6, 2), P(35, 6, 20))),
 							"x",

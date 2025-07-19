@@ -7,8 +7,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func initFloat64LiteralNode() {
-	c := &value.Float64LiteralNodeClass.MethodContainer
+func initPublicInstanceVariableNode() {
+	c := &value.PublicInstanceVariableNodeClass.MethodContainer
 	vm.Def(
 		c,
 		"#init",
@@ -21,7 +21,7 @@ func initFloat64LiteralNode() {
 			} else {
 				argLoc = (*position.Location)(args[2].Pointer())
 			}
-			self := ast.NewFloat64LiteralNode(
+			self := ast.NewPublicInstanceVariableNode(
 				argLoc,
 				argValue,
 			)
@@ -35,7 +35,7 @@ func initFloat64LiteralNode() {
 		c,
 		"value",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Float64LiteralNode)
+			self := args[0].MustReference().(*ast.PublicInstanceVariableNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
 
@@ -46,7 +46,7 @@ func initFloat64LiteralNode() {
 		c,
 		"location",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Float64LiteralNode)
+			self := args[0].MustReference().(*ast.PublicInstanceVariableNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
 
@@ -56,7 +56,7 @@ func initFloat64LiteralNode() {
 		c,
 		"==",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Float64LiteralNode)
+			self := args[0].MustReference().(*ast.PublicInstanceVariableNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
 		},
@@ -67,22 +67,19 @@ func initFloat64LiteralNode() {
 		c,
 		"to_string",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.Float64LiteralNode)
+			self := args[0].MustReference().(*ast.PublicInstanceVariableNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
 	)
 
-	c = &value.Float64Class.MethodContainer
 	vm.Def(
 		c,
-		"to_ast_node",
+		"to_symbol",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsFloat64()
-			node := ast.NewFloat64LiteralNode(position.ZeroLocation, string(self.ToString()))
-			return value.Ref(node), value.Undefined
+			self := args[0].MustReference().(*ast.PublicInstanceVariableNode)
+			result := value.ToSymbol(self.Value).ToValue()
+			return result, value.Undefined
 		},
 	)
-	vm.Alias(c, "to_ast_expr_node", "to_ast_node")
-	vm.Alias(c, "to_ast_pattern_node", "to_ast_node")
-	vm.Alias(c, "to_ast_type_node", "to_ast_node")
+
 }

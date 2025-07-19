@@ -1,6 +1,8 @@
 package runtime
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
@@ -10,11 +12,11 @@ import (
 )
 
 func initNode() {
-	// Std::Node
+	// Std::Elk::AST::Node
 	c := &value.NodeMixin.MethodContainer
 	vm.Def(
 		c,
-		"to_ast",
+		"to_ast_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
@@ -63,6 +65,35 @@ func initNode() {
 		},
 	)
 
+	// &Std::Elk::AST::Node
+	c = &value.NodeMixin.SingletonClass().MethodContainer
+	vm.Def(
+		c,
+		"expr",
+		func(vm *vm.VM, args []value.Value) (value.Value, value.Value) {
+			node := args[1].AsReference()
+			var expr ast.ExpressionNode
+
+			switch node := node.(type) {
+			case ast.StatementNode:
+				expr = ast.NewDoExpressionNode(node.Location(), []ast.StatementNode{node}, nil, nil)
+			case *value.ArrayTuple:
+				body := ds.MapSlice(
+					*node,
+					func(v value.Value) ast.StatementNode {
+						return v.MustReference().(ast.StatementNode)
+					},
+				)
+				expr = ast.NewDoExpressionNode(position.ZeroLocation, body, nil, nil)
+			default:
+				panic(fmt.Sprintf("invalid node argument to expr: %T", node))
+			}
+
+			return value.Ref(expr), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
 	// Std::Kernel
 	c = &value.KernelModule.SingletonClass().MethodContainer
 	vm.Def(
@@ -70,23 +101,22 @@ func initNode() {
 		"#splice",
 		func(vm *vm.VM, args []value.Value) (value.Value, value.Value) {
 			baseNode := args[1].AsReference().(ast.Node)
-			replacementNodes := (*value.ArrayTuple)(args[2].Pointer())
 
-			var location *position.Location
-			if !args[3].IsUndefined() {
-				location = (*position.Location)(args[3].Pointer())
+			var replacementNodes value.ArrayTuple
+			if !args[2].IsUndefined() {
+				replacementNodes = *(*value.ArrayTuple)(args[2].Pointer())
 			}
 
 			r := ds.MapSlice(
-				*replacementNodes,
+				replacementNodes,
 				func(v value.Value) ast.Node {
 					return v.AsReference().(ast.Node)
 				},
 			)
-			result := ast.Splice(baseNode, location, &r)
+			result := ast.Splice(baseNode, nil, &r)
 
 			return value.Ref(result), value.Undefined
 		},
-		vm.DefWithParameters(3),
+		vm.DefWithParameters(2),
 	)
 }

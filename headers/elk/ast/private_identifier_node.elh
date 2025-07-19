@@ -3,12 +3,19 @@ module Std::Elk::AST
     Represents a private identifier eg. `_foo`
   ]##
   sealed primitive class PrivateIdentifierNode
-    include ExpressionNode,
-            PatternNode,
+    include PatternExpressionNode,
             IdentifierNode
 
-    init(value: String, location: FS::Location = loop; end); end
+		##[
+			Indicates that the format of a
+			private identifier node is invalid.
+		]##
+		class FormatError < IdentifierNode::FormatError; end
+
+    init(value: String, location: FS::Location = loop; end)! FormatError; end
+
     def value: String; end
     def location: FS::Location; end
+    def to_symbol: Symbol; end
   end
 end

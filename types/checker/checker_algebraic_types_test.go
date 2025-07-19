@@ -69,7 +69,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(69, 6, 5), P(73, 6, 9)), "method `foo` is not defined on type `Std::Nil`"),
+				diagnostic.NewFailure(L("<main>", P(71, 6, 7), P(73, 6, 9)), "method `foo` is not defined on type `Std::Nil`"),
 			},
 		},
 		"missing method on nilable type": {
@@ -82,7 +82,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(125, 7, 5), P(129, 7, 9)), "method `foo` is not defined on type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(127, 7, 7), P(129, 7, 9)), "method `foo` is not defined on type `Foo`"),
 			},
 		},
 		"missing method on both types": {
@@ -92,8 +92,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(47, 4, 5), P(51, 4, 9)), "method `foo` is not defined on type `Std::Nil`"),
-				diagnostic.NewFailure(L("<main>", P(47, 4, 5), P(51, 4, 9)), "method `foo` is not defined on type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(49, 4, 7), P(51, 4, 9)), "method `foo` is not defined on type `Std::Nil`"),
+				diagnostic.NewFailure(L("<main>", P(49, 4, 7), P(51, 4, 9)), "method `foo` is not defined on type `Foo`"),
 			},
 		},
 		"method with different number of arguments": {
@@ -108,7 +108,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(171, 9, 5), P(175, 9, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+				diagnostic.NewFailure(L("<main>", P(173, 9, 7), P(175, 9, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
 			},
 		},
 		"method with different return types": {
@@ -123,7 +123,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(176, 9, 5), P(180, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(178, 9, 7), P(180, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
 			},
 		},
 		"method with different param types": {
@@ -138,7 +138,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(176, 9, 5), P(180, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(178, 9, 7), P(180, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`"),
 			},
 		},
 		"method with additional optional params": {
@@ -165,7 +165,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo(5, 2.5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(189, 9, 5), P(201, 9, 17)), "expected 1 arguments in call to `foo`, got 2"),
+				diagnostic.NewFailure(L("<main>", P(191, 9, 7), P(193, 9, 9)), "expected 1 arguments in call to `Foo.:foo`, got 2"),
 			},
 		},
 		"method with additional rest param": {
@@ -180,7 +180,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo(5, 2.5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(185, 9, 5), P(197, 9, 17)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				diagnostic.NewFailure(L("<main>", P(187, 9, 7), P(189, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 		"method with additional named rest param": {
@@ -195,7 +195,7 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				a.foo(5, a: 2.5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(186, 9, 5), P(201, 9, 20)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				diagnostic.NewFailure(L("<main>", P(188, 9, 7), P(190, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 	}
@@ -321,7 +321,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.baz("lol", 1)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(151, 11, 5), P(165, 11, 19)), "method `Foo.:baz` is incompatible with `Bar.:baz`\n  is:        `def baz[V](a: V, b: V): void`\n  should be: `def baz(a: Std::String, b: Std::Int): void`\n\n  - method `Foo.:baz` has an incompatible parameter with `Bar.:baz`, has `b: V`, should have `b: Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(153, 11, 7), P(155, 11, 9)), "method `Foo.:baz` is incompatible with `Bar.:baz`\n  is:        `def baz[V](a: V, b: V): void`\n  should be: `def baz(a: Std::String, b: Std::Int): void`\n\n  - method `Foo.:baz` has an incompatible parameter with `Bar.:baz`, has `b: V`, should have `b: Std::Int`"),
 			},
 		},
 		"generic and non generic method with compatible type param reversed": {
@@ -352,7 +352,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.baz("lol")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(143, 11, 5), P(154, 11, 16)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V < Std::Int](a: V): void`\n  should be: `def baz(a: Std::String): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(145, 11, 7), P(147, 11, 9)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V < Std::Int](a: V): void`\n  should be: `def baz(a: Std::String): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: Std::String`"),
 			},
 		},
 		"generic and non generic method with compatible type param with upper bound": {
@@ -425,7 +425,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.baz("lol")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(150, 11, 5), P(161, 11, 16)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V < Std::Int](a: V): void`\n  should be: `def baz[V < Std::String](a: V): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: V`"),
+				diagnostic.NewFailure(L("<main>", P(152, 11, 7), P(154, 11, 9)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V < Std::Int](a: V): void`\n  should be: `def baz[V < Std::String](a: V): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: V`"),
 			},
 		},
 		"generic methods with intersecting upper bounds": {
@@ -456,7 +456,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.baz("lol")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(150, 11, 5), P(161, 11, 16)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V > Std::Int](a: V): void`\n  should be: `def baz[V > Std::String](a: V): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: V`"),
+				diagnostic.NewFailure(L("<main>", P(152, 11, 7), P(154, 11, 9)), "method `Bar.:baz` is incompatible with `Foo.:baz`\n  is:        `def baz[V > Std::Int](a: V): void`\n  should be: `def baz[V > Std::String](a: V): void`\n\n  - method `Bar.:baz` has an incompatible parameter with `Foo.:baz`, has `a: V`, should have `a: V`"),
 			},
 		},
 
@@ -471,8 +471,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(102, 8, 5), P(106, 8, 9)), "method `foo` is not defined on type `Bar`"),
-				diagnostic.NewFailure(L("<main>", P(102, 8, 5), P(106, 8, 9)), "method `foo` is not defined on type `Std::Nil`"),
+				diagnostic.NewFailure(L("<main>", P(104, 8, 7), P(106, 8, 9)), "method `foo` is not defined on type `Bar`"),
+				diagnostic.NewFailure(L("<main>", P(104, 8, 7), P(106, 8, 9)), "method `foo` is not defined on type `Std::Nil`"),
 			},
 		},
 		"method with different number of arguments": {
@@ -490,8 +490,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(252, 12, 5), P(256, 12, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
-				diagnostic.NewFailure(L("<main>", P(252, 12, 5), P(256, 12, 9)), "method `Bar.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String, c: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `c`"),
+				diagnostic.NewFailure(L("<main>", P(254, 12, 7), P(256, 12, 9)), "method `Foo.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+				diagnostic.NewFailure(L("<main>", P(254, 12, 7), P(256, 12, 9)), "method `Bar.:foo` is incompatible with `Std::Nil.:foo`\n  is:        `def foo(a: Std::Int, b: Std::String, c: Std::String): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`\n  - method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `c`"),
 			},
 		},
 		"method with different return types": {
@@ -509,8 +509,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(246, 12, 5), P(250, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::String`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
-				diagnostic.NewFailure(L("<main>", P(246, 12, 5), P(250, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(248, 12, 7), P(250, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::String`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(248, 12, 7), P(250, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
 			},
 		},
 		"method with different param types": {
@@ -528,8 +528,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::String`, should have `a: Std::Int`"),
-				diagnostic.NewFailure(L("<main>", P(245, 12, 5), P(249, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(247, 12, 7), P(249, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::String`, should have `a: Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(247, 12, 7), P(249, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has an incompatible parameter with `Foo.:foo`, has `a: Std::Float`, should have `a: Std::Int`"),
 			},
 		},
 		"method with wider param type": {
@@ -556,7 +556,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo("b")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(150, 9, 5), P(159, 9, 14)), "method `Foo.:foo` is incompatible with `Bar.:foo`\n  is:        `def foo(a: Std::String): Std::Int`\n  should be: `def foo(a: Std::Object): Std::Int`\n\n  - method `Foo.:foo` has an incompatible parameter with `Bar.:foo`, has `a: Std::String`, should have `a: Std::Object`"),
+				diagnostic.NewFailure(L("<main>", P(152, 9, 7), P(154, 9, 9)), "method `Foo.:foo` is incompatible with `Bar.:foo`\n  is:        `def foo(a: Std::String): Std::Int`\n  should be: `def foo(a: Std::Object): Std::Int`\n\n  - method `Foo.:foo` has an incompatible parameter with `Bar.:foo`, has `a: Std::String`, should have `a: Std::Object`"),
 			},
 		},
 		"method with wider return type": {
@@ -571,7 +571,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo("b")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(152, 9, 5), P(161, 9, 14)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Value`\n  should be: `def foo(a: Std::String): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::Value`, should have `Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(154, 9, 7), P(156, 9, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Value`\n  should be: `def foo(a: Std::String): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::Value`, should have `Std::Int`"),
 			},
 		},
 		"method with narrower return type": {
@@ -616,7 +616,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo(5, 2.5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(272, 12, 5), P(284, 12, 17)), "expected 1 arguments in call to `foo`, got 2"),
+				diagnostic.NewFailure(L("<main>", P(274, 12, 7), P(276, 12, 9)), "expected 1 arguments in call to `Foo.:foo`, got 2"),
 			},
 		},
 		"method with additional rest param": {
@@ -634,7 +634,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo(5, 2.5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(251, 12, 5), P(263, 12, 17)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				diagnostic.NewFailure(L("<main>", P(253, 12, 7), P(255, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, *b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 		"method with additional named rest param": {
@@ -652,7 +652,7 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				a.foo(5, a: 2.5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(252, 12, 5), P(267, 12, 20)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+				diagnostic.NewFailure(L("<main>", P(254, 12, 7), P(256, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int, **b: Std::Float): Std::Int`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 	}
@@ -955,7 +955,7 @@ func TestNotType(t *testing.T) {
 				a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(33, 3, 5), P(37, 3, 9)), "method `foo` is not defined on type `any`"),
+				diagnostic.NewFailure(L("<main>", P(35, 3, 7), P(37, 3, 9)), "method `foo` is not defined on type `any`"),
 			},
 		},
 		"normalise ~Float & String": {

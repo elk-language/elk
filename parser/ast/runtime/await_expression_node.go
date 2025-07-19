@@ -14,21 +14,33 @@ func initAwaitExpressionNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argVal := args[1].MustReference().(ast.ExpressionNode)
+			argSync := value.Truthy(args[2])
 
 			var argLoc *position.Location
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[2].Pointer())
+				argLoc = (*position.Location)(args[3].Pointer())
 			}
 			self := ast.NewAwaitExpressionNode(
 				argLoc,
 				argVal,
+				argSync,
 			)
 			return value.Ref(self), value.Undefined
 
 		},
 		vm.DefWithParameters(2),
+	)
+
+	vm.Def(
+		c,
+		"sync",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.AwaitExpressionNode)
+			result := value.ToElkBool(self.Sync)
+			return result, value.Undefined
+		},
 	)
 
 	vm.Def(

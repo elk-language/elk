@@ -3,12 +3,18 @@ module Std::Elk::AST
     UInt16 literal eg. `5u16`, `1_20u16`, `0xffu16`
   ]##
   sealed primitive class UInt16LiteralNode
-    include ExpressionNode,
-            TypeNode,
-            PatternNode
+    include PatternExpressionNode,
+            TypeNode
 
-    init(value: String, location: FS::Location = loop; end); end
+    ##[
+			Indicates that the format of an
+			uint16 node is invalid.
+		]##
+		class FormatError < Node::FormatError; end
+
+    init(value: String, location: FS::Location = loop; end)! FormatError; end
     def value: String; end
     def location: FS::Location; end
+    def to_uint16: UInt16; end
   end
 end

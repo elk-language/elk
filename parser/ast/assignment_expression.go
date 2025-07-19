@@ -40,10 +40,10 @@ func (n *AssignmentExpressionNode) traverse(parent Node, enter func(node, parent
 		return leave(n, parent)
 	}
 
-	if n.Right.traverse(n, enter, leave) == TraverseBreak {
+	if n.Left.traverse(n, enter, leave) == TraverseBreak {
 		return TraverseBreak
 	}
-	if n.Left.traverse(n, enter, leave) == TraverseBreak {
+	if n.Right.traverse(n, enter, leave) == TraverseBreak {
 		return TraverseBreak
 	}
 

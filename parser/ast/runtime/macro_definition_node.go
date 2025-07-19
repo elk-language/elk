@@ -13,7 +13,7 @@ func initMacroDefinitionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[1].MustReference().(value.String))
+			argName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argParameters []ast.ParameterNode
 			if !args[2].IsUndefined() {
@@ -67,7 +67,7 @@ func initMacroDefinitionNode() {
 		c,
 		"doc_comment",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.MethodDefinitionNode)
+			self := args[0].MustReference().(*ast.MacroDefinitionNode)
 			result := value.Ref(value.String(self.DocComment()))
 			return result, value.Undefined
 
@@ -78,8 +78,8 @@ func initMacroDefinitionNode() {
 		c,
 		"name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.MethodDefinitionNode)
-			result := value.Ref(value.String(self.Name))
+			self := args[0].MustReference().(*ast.MacroDefinitionNode)
+			result := value.Ref(self.Name)
 			return result, value.Undefined
 
 		},
@@ -89,7 +89,7 @@ func initMacroDefinitionNode() {
 		c,
 		"parameters",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.MethodDefinitionNode)
+			self := args[0].MustReference().(*ast.MacroDefinitionNode)
 
 			collection := self.Parameters
 			arrayTuple := value.NewArrayTupleWithLength(len(collection))

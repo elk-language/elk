@@ -13,12 +13,14 @@ import (
 // Represents a value declaration eg. `val foo: String`
 type ValueDeclarationNode struct {
 	TypedNodeBase
-	Name        string         // name of the value
+	Name        IdentifierNode // name of the value
 	TypeNode    TypeNode       // type of the value
 	Initialiser ExpressionNode // value assigned to the value
 }
 
 func (n *ValueDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	name := n.Name.splice(loc, args, unquote).(IdentifierNode)
+
 	var typeNode TypeNode
 	if n.TypeNode != nil {
 		typeNode = n.TypeNode.splice(loc, args, unquote).(TypeNode)
@@ -31,7 +33,7 @@ func (n *ValueDeclarationNode) splice(loc *position.Location, args *[]Node, unqu
 
 	return &ValueDeclarationNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		Name:          n.Name,
+		Name:          name,
 		TypeNode:      typeNode,
 		Initialiser:   init,
 	}
@@ -47,6 +49,10 @@ func (n *ValueDeclarationNode) traverse(parent Node, enter func(node, parent Nod
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	if n.TypeNode != nil {
@@ -70,7 +76,7 @@ func (n *ValueDeclarationNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if n.Name != o.Name ||
+	if !n.Name.Equal(value.Ref(o.Name)) ||
 		!n.loc.Equal(o.loc) {
 		return false
 	}
@@ -96,7 +102,7 @@ func (n *ValueDeclarationNode) String() string {
 	var buff strings.Builder
 
 	buff.WriteString("val ")
-	buff.WriteString(n.Name)
+	buff.WriteString(n.Name.String())
 
 	if n.TypeNode != nil {
 		buff.WriteString(": ")
@@ -116,7 +122,7 @@ func (*ValueDeclarationNode) IsStatic() bool {
 }
 
 // Create a new value declaration node eg. `val foo: String`
-func NewValueDeclarationNode(loc *position.Location, name string, typ TypeNode, init ExpressionNode) *ValueDeclarationNode {
+func NewValueDeclarationNode(loc *position.Location, name IdentifierNode, typ TypeNode, init ExpressionNode) *ValueDeclarationNode {
 	return &ValueDeclarationNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Name:          name,
@@ -139,7 +145,7 @@ func (n *ValueDeclarationNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ValueDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  name: ")
-	buff.WriteString(n.Name)
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
 
 	buff.WriteString(",\n  type_node: ")
 	if n.TypeNode == nil {

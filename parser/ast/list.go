@@ -15,26 +15,21 @@ type ArrayListLiteralNode struct {
 	TypedNodeBase
 	Elements []ExpressionNode
 	Capacity ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *ArrayListLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
-	var static bool
 	var capacity ExpressionNode
 	if n.Capacity != nil {
 		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
-		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
-	} else {
-		static = isExpressionSliceStatic(elements)
 	}
 
 	return &ArrayListLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -66,22 +61,22 @@ func (n *ArrayListLiteralNode) traverse(parent Node, enter func(node, parent Nod
 }
 
 func (l *ArrayListLiteralNode) IsStatic() bool {
-	return l.static
+	if l.static == staticUnset {
+		if isExpressionSliceStatic(l.Elements) && isExpressionStatic(l.Capacity) {
+			l.static = staticTrue
+		} else {
+			l.static = staticFalse
+		}
+	}
+	return l.static == staticTrue
 }
 
 // Create a ArrayList literal node eg. `[1, 5, -6]`
 func NewArrayListLiteralNode(loc *position.Location, elements []ExpressionNode, capacity ExpressionNode) *ArrayListLiteralNode {
-	var static bool
-	if capacity != nil {
-		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
-	} else {
-		static = isExpressionSliceStatic(elements)
-	}
 	return &ArrayListLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -216,24 +211,21 @@ type WordArrayListLiteralNode struct {
 	TypedNodeBase
 	Elements []WordCollectionContentNode
 	Capacity ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *WordArrayListLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
-	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
 		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
-		static = capacity.IsStatic()
 	}
 
 	return &WordArrayListLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -328,22 +320,22 @@ func (n *WordArrayListLiteralNode) String() string {
 }
 
 func (w *WordArrayListLiteralNode) IsStatic() bool {
-	return w.static
+	if w.static == staticUnset {
+		if isExpressionStatic(w.Capacity) {
+			w.static = staticTrue
+		} else {
+			w.static = staticFalse
+		}
+	}
+	return w.static == staticTrue
 }
 
 // Create a word ArrayList literal node eg. `\w[foo bar]`
 func NewWordArrayListLiteralNode(loc *position.Location, elements []WordCollectionContentNode, capacity ExpressionNode) *WordArrayListLiteralNode {
-	var static bool
-	if capacity != nil {
-		static = capacity.IsStatic()
-	} else {
-		static = true
-	}
 	return &WordArrayListLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -400,24 +392,21 @@ type SymbolArrayListLiteralNode struct {
 	TypedNodeBase
 	Elements []SymbolCollectionContentNode
 	Capacity ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *SymbolArrayListLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
-	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
 		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
-		static = capacity.IsStatic()
 	}
 
 	return &SymbolArrayListLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -512,22 +501,22 @@ func (n *SymbolArrayListLiteralNode) String() string {
 }
 
 func (s *SymbolArrayListLiteralNode) IsStatic() bool {
-	return s.static
+	if s.static == staticUnset {
+		if isExpressionStatic(s.Capacity) {
+			s.static = staticTrue
+		} else {
+			s.static = staticFalse
+		}
+	}
+	return s.static == staticTrue
 }
 
 // Create a symbol ArrayList literal node eg. `\s[foo bar]`
 func NewSymbolArrayListLiteralNode(loc *position.Location, elements []SymbolCollectionContentNode, capacity ExpressionNode) *SymbolArrayListLiteralNode {
-	var static bool
-	if capacity != nil {
-		static = capacity.IsStatic()
-	} else {
-		static = true
-	}
 	return &SymbolArrayListLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -583,24 +572,21 @@ type HexArrayListLiteralNode struct {
 	TypedNodeBase
 	Elements []IntCollectionContentNode
 	Capacity ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *HexArrayListLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
-	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
 		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
-		static = capacity.IsStatic()
 	}
 
 	return &HexArrayListLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -696,22 +682,22 @@ func (n *HexArrayListLiteralNode) String() string {
 }
 
 func (h *HexArrayListLiteralNode) IsStatic() bool {
-	return h.static
+	if h.static == staticUnset {
+		if isExpressionStatic(h.Capacity) {
+			h.static = staticTrue
+		} else {
+			h.static = staticFalse
+		}
+	}
+	return h.static == staticTrue
 }
 
 // Create a hex ArrayList literal node eg. `\x[ff ee]`
 func NewHexArrayListLiteralNode(loc *position.Location, elements []IntCollectionContentNode, capacity ExpressionNode) *HexArrayListLiteralNode {
-	var static bool
-	if capacity != nil {
-		static = capacity.IsStatic()
-	} else {
-		static = true
-	}
 	return &HexArrayListLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -768,24 +754,21 @@ type BinArrayListLiteralNode struct {
 	TypedNodeBase
 	Elements []IntCollectionContentNode
 	Capacity ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *BinArrayListLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	elements := SpliceSlice(n.Elements, loc, args, unquote)
 
-	static := true
 	var capacity ExpressionNode
 	if n.Capacity != nil {
 		capacity = n.Capacity.splice(loc, args, unquote).(ExpressionNode)
-		static = capacity.IsStatic()
 	}
 
 	return &BinArrayListLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 
@@ -817,8 +800,16 @@ func (n *BinArrayListLiteralNode) traverse(parent Node, enter func(node, parent 
 }
 
 func (b *BinArrayListLiteralNode) IsStatic() bool {
-	return b.static
+	if b.static == staticUnset {
+		if isExpressionStatic(b.Capacity) {
+			b.static = staticTrue
+		} else {
+			b.static = staticFalse
+		}
+	}
+	return b.static == staticTrue
 }
+
 func (n *BinArrayListLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BinArrayListLiteralNode)
 	if !ok {
@@ -889,17 +880,10 @@ func (n *BinArrayListLiteralNode) String() string {
 
 // Create a bin ArrayList literal node eg. `\b[11 10]`
 func NewBinArrayListLiteralNode(loc *position.Location, elements []IntCollectionContentNode, capacity ExpressionNode) *BinArrayListLiteralNode {
-	var static bool
-	if capacity != nil {
-		static = capacity.IsStatic()
-	} else {
-		static = true
-	}
 	return &BinArrayListLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Elements:      elements,
 		Capacity:      capacity,
-		static:        static,
 	}
 }
 

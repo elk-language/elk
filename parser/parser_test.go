@@ -43,6 +43,7 @@ func L(span *position.Span) *position.Location {
 // Inspects if the produced AST matches the expected one.
 func parserTest(tc testCase, t *testing.T) {
 	t.Helper()
+	pp.ColoringEnabled = false
 	got, err := Parse("<main>", tc.input)
 
 	opts := comparer.Options()
@@ -303,7 +304,7 @@ func TestInstanceVariables(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						L(S(P(0, 1, 1), P(3, 1, 4))),
-						ast.NewInstanceVariableNode(
+						ast.NewPublicInstanceVariableNode(
 							L(S(P(0, 1, 1), P(3, 1, 4))),
 							"foo",
 						),
@@ -929,6 +930,93 @@ func TestPostfixExpressions(t *testing.T) {
 
 func TestConstantLookup(t *testing.T) {
 	tests := testTable{
+		"can contain short unquote": {
+			input: "Foo::!{baz * 2}::Baz",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(19, 1, 20))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(19, 1, 20))),
+						ast.NewConstantLookupNode(
+							L(S(P(0, 1, 1), P(19, 1, 20))),
+							ast.NewConstantLookupNode(
+								L(S(P(0, 1, 1), P(14, 1, 15))),
+								ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+								ast.NewUnquoteNode(
+									L(S(P(5, 1, 6), P(14, 1, 15))),
+									ast.UNQUOTE_CONSTANT_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(7, 1, 8), P(13, 1, 14))),
+										T(L(S(P(11, 1, 12), P(11, 1, 12))), token.STAR),
+										ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "baz"),
+										ast.NewIntLiteralNode(L(S(P(13, 1, 14), P(13, 1, 14))), "2"),
+									),
+								),
+							),
+							ast.NewPublicConstantNode(L(S(P(17, 1, 18), P(19, 1, 20))), "Baz"),
+						),
+					),
+				},
+			),
+		},
+		"can contain unquote": {
+			input: "Foo::unquote(baz * 2)::Baz",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(25, 1, 26))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(25, 1, 26))),
+						ast.NewConstantLookupNode(
+							L(S(P(0, 1, 1), P(25, 1, 26))),
+							ast.NewConstantLookupNode(
+								L(S(P(0, 1, 1), P(20, 1, 21))),
+								ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+								ast.NewUnquoteNode(
+									L(S(P(5, 1, 6), P(20, 1, 21))),
+									ast.UNQUOTE_CONSTANT_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(13, 1, 14), P(19, 1, 20))),
+										T(L(S(P(17, 1, 18), P(17, 1, 18))), token.STAR),
+										ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(15, 1, 16))), "baz"),
+										ast.NewIntLiteralNode(L(S(P(19, 1, 20), P(19, 1, 20))), "2"),
+									),
+								),
+							),
+							ast.NewPublicConstantNode(L(S(P(23, 1, 24), P(25, 1, 26))), "Baz"),
+						),
+					),
+				},
+			),
+		},
+		"can contain unquote_const": {
+			input: "Foo::unquote_const(baz * 2)::Baz",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(31, 1, 32))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(31, 1, 32))),
+						ast.NewConstantLookupNode(
+							L(S(P(0, 1, 1), P(31, 1, 32))),
+							ast.NewConstantLookupNode(
+								L(S(P(0, 1, 1), P(26, 1, 27))),
+								ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+								ast.NewUnquoteNode(
+									L(S(P(5, 1, 6), P(26, 1, 27))),
+									ast.UNQUOTE_CONSTANT_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(19, 1, 20), P(25, 1, 26))),
+										T(L(S(P(23, 1, 24), P(23, 1, 24))), token.STAR),
+										ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "baz"),
+										ast.NewIntLiteralNode(L(S(P(25, 1, 26), P(25, 1, 26))), "2"),
+									),
+								),
+							),
+							ast.NewPublicConstantNode(L(S(P(29, 1, 30), P(31, 1, 32))), "Baz"),
+						),
+					),
+				},
+			),
+		},
 		"is executed from left to right": {
 			input: "Foo::Bar::Baz",
 			want: ast.NewProgramNode(
@@ -1061,17 +1149,18 @@ func TestConstantLookup(t *testing.T) {
 				L(S(P(0, 1, 1), P(7, 1, 8))),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						L(S(P(0, 1, 1), P(7, 1, 8))),
-						ast.NewConstantLookupNode(
-							L(S(P(0, 1, 1), P(7, 1, 8))),
-							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							ast.NewInvalidNode(L(S(P(5, 1, 6), P(7, 1, 8))), V(L(S(P(5, 1, 6), P(7, 1, 8))), token.INT, "123")),
+						L(S(P(5, 1, 6), P(7, 1, 8))),
+						ast.NewInvalidNode(
+							L(S(P(5, 1, 6), P(7, 1, 8))), V(L(S(P(5, 1, 6), P(7, 1, 8))),
+								token.INT,
+								"123",
+							),
 						),
 					),
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(5, 1, 6), P(7, 1, 8))), "unexpected INT, expected a constant"),
+				diagnostic.NewFailure(L(S(P(5, 1, 6), P(7, 1, 8))), "unexpected INT, expected a public constant or method name"),
 			},
 		},
 		"can be a part of an expression": {
@@ -1088,6 +1177,408 @@ func TestConstantLookup(t *testing.T) {
 								L(S(P(0, 1, 1), P(7, 1, 8))),
 								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 								ast.NewPublicConstantNode(L(S(P(5, 1, 6), P(7, 1, 8))), "Bar"),
+							),
+							ast.NewFloatLiteralNode(L(S(P(11, 1, 12), P(12, 1, 13))), "0.3"),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestMethodLookup(t *testing.T) {
+	tests := testTable{
+		"can contain unquote_ident": {
+			input: "Foo::unquote_ident(baz * 2)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(26, 1, 27))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(26, 1, 27))),
+						ast.NewMethodLookupNode(
+							L(S(P(0, 1, 1), P(26, 1, 27))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewUnquoteNode(
+								L(S(P(5, 1, 6), P(26, 1, 27))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(19, 1, 20), P(25, 1, 26))),
+									T(L(S(P(23, 1, 24), P(23, 1, 24))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "baz"),
+									ast.NewIntLiteralNode(L(S(P(25, 1, 26), P(25, 1, 26))), "2"),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"is executed from left to right": {
+			input: "Foo::Bar::foo::bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(17, 1, 18))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(17, 1, 18))),
+						ast.NewMethodLookupNode(
+							L(S(P(0, 1, 1), P(17, 1, 18))),
+							ast.NewMethodLookupNode(
+								L(S(P(0, 1, 1), P(12, 1, 13))),
+								ast.NewConstantLookupNode(
+									L(S(P(0, 1, 1), P(7, 1, 8))),
+									ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+									ast.NewPublicConstantNode(L(S(P(5, 1, 6), P(7, 1, 8))), "Bar"),
+								),
+								ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "foo"),
+							),
+							ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "bar"),
+						),
+					),
+				},
+			),
+		},
+		"cannot access private methods from the outside": {
+			input: "Foo::_bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 1, 9))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(5, 1, 6), P(8, 1, 9))),
+						ast.NewInvalidNode(
+							L(S(P(5, 1, 6), P(8, 1, 9))),
+							V(L(S(P(5, 1, 6), P(8, 1, 9))), token.PRIVATE_IDENTIFIER, "_bar"),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(5, 1, 6), P(8, 1, 9))), "unexpected PRIVATE_IDENTIFIER, expected a public constant or method name"),
+			},
+		},
+		"can have newlines after the operator": {
+			input: "Foo::\nbar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 2, 3))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(8, 2, 3))),
+						ast.NewMethodLookupNode(
+							L(S(P(0, 1, 1), P(8, 2, 3))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 2, 1), P(8, 2, 3))), "bar"),
+						),
+					),
+				},
+			),
+		},
+		"cannot have newlines before the operator": {
+			input: "Foo\n::bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 2, 5))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(3, 1, 4))),
+						ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+					),
+					ast.NewExpressionStatementNode(
+						L(S(P(4, 2, 1), P(8, 2, 5))),
+						ast.NewConstantLookupNode(
+							L(S(P(4, 2, 1), P(8, 2, 5))),
+							nil,
+							ast.NewInvalidNode(
+								L(S(P(6, 2, 3), P(8, 2, 5))),
+								V(L(S(P(6, 2, 3), P(8, 2, 5))), token.PUBLIC_IDENTIFIER, "bar"),
+							),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(6, 2, 3), P(8, 2, 5))), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
+			},
+		},
+		"cannot be a unary operator": {
+			input: "::bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(4, 1, 5))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(4, 1, 5))),
+						ast.NewConstantLookupNode(
+							L(S(P(0, 1, 1), P(4, 1, 5))),
+							nil,
+							ast.NewInvalidNode(
+								L(S(P(2, 1, 3), P(4, 1, 5))),
+								V(L(S(P(2, 1, 3), P(4, 1, 5))), token.PUBLIC_IDENTIFIER, "bar"),
+							),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(2, 1, 3), P(4, 1, 5))), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
+			},
+		},
+		"can have other primary expressions as the left side": {
+			input: "foo::Bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(7, 1, 8))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(7, 1, 8))),
+						ast.NewConstantLookupNode(
+							L(S(P(0, 1, 1), P(7, 1, 8))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							ast.NewPublicConstantNode(L(S(P(5, 1, 6), P(7, 1, 8))), "Bar"),
+						),
+					),
+				},
+			),
+		},
+		"can be a part of an expression": {
+			input: "foo::bar + .3",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(12, 1, 13))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(12, 1, 13))),
+						ast.NewBinaryExpressionNode(
+							L(S(P(0, 1, 1), P(12, 1, 13))),
+							T(L(S(P(9, 1, 10), P(9, 1, 10))), token.PLUS),
+							ast.NewMethodLookupNode(
+								L(S(P(0, 1, 1), P(7, 1, 8))),
+								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+								ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
+							),
+							ast.NewFloatLiteralNode(L(S(P(11, 1, 12), P(12, 1, 13))), "0.3"),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestInstanceMethodLookup(t *testing.T) {
+	tests := testTable{
+		"can contain short unquote": {
+			input: "Foo.:!{baz * 2}",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(14, 1, 15))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(14, 1, 15))),
+						ast.NewInstanceMethodLookupNode(
+							L(S(P(0, 1, 1), P(14, 1, 15))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewUnquoteNode(
+								L(S(P(5, 1, 6), P(14, 1, 15))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(7, 1, 8), P(13, 1, 14))),
+									T(L(S(P(11, 1, 12), P(11, 1, 12))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "baz"),
+									ast.NewIntLiteralNode(L(S(P(13, 1, 14), P(13, 1, 14))), "2"),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can contain unquote": {
+			input: "Foo.:unquote(baz * 2)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(20, 1, 21))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(20, 1, 21))),
+						ast.NewInstanceMethodLookupNode(
+							L(S(P(0, 1, 1), P(20, 1, 21))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewUnquoteNode(
+								L(S(P(5, 1, 6), P(20, 1, 21))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(13, 1, 14), P(19, 1, 20))),
+									T(L(S(P(17, 1, 18), P(17, 1, 18))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(15, 1, 16))), "baz"),
+									ast.NewIntLiteralNode(L(S(P(19, 1, 20), P(19, 1, 20))), "2"),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can contain unquote_ident": {
+			input: "Foo.:unquote_ident(baz * 2)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(26, 1, 27))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(26, 1, 27))),
+						ast.NewInstanceMethodLookupNode(
+							L(S(P(0, 1, 1), P(26, 1, 27))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewUnquoteNode(
+								L(S(P(5, 1, 6), P(26, 1, 27))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(19, 1, 20), P(25, 1, 26))),
+									T(L(S(P(23, 1, 24), P(23, 1, 24))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "baz"),
+									ast.NewIntLiteralNode(L(S(P(25, 1, 26), P(25, 1, 26))), "2"),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"is executed from left to right": {
+			input: "Foo::Bar.:foo.:bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(17, 1, 18))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(17, 1, 18))),
+						ast.NewInstanceMethodLookupNode(
+							L(S(P(0, 1, 1), P(17, 1, 18))),
+							ast.NewInstanceMethodLookupNode(
+								L(S(P(0, 1, 1), P(12, 1, 13))),
+								ast.NewConstantLookupNode(
+									L(S(P(0, 1, 1), P(7, 1, 8))),
+									ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+									ast.NewPublicConstantNode(L(S(P(5, 1, 6), P(7, 1, 8))), "Bar"),
+								),
+								ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "foo"),
+							),
+							ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "bar"),
+						),
+					),
+				},
+			),
+		},
+		"cannot access private methods from the outside": {
+			input: "Foo.:_bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 1, 9))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(5, 1, 6), P(8, 1, 9))),
+						ast.NewInvalidNode(
+							L(S(P(5, 1, 6), P(8, 1, 9))),
+							V(L(S(P(5, 1, 6), P(8, 1, 9))), token.PRIVATE_IDENTIFIER, "_bar"),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(5, 1, 6), P(8, 1, 9))), "unexpected PRIVATE_IDENTIFIER, expected a public method name"),
+			},
+		},
+		"can have newlines after the operator": {
+			input: "Foo.:\nbar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 2, 3))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(8, 2, 3))),
+						ast.NewInstanceMethodLookupNode(
+							L(S(P(0, 1, 1), P(8, 2, 3))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(6, 2, 1), P(8, 2, 3))), "bar"),
+						),
+					),
+				},
+			),
+		},
+		"cannot have newlines before the operator": {
+			input: "Foo\n.:bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 2, 5))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(3, 1, 4))),
+						ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+					),
+					ast.NewExpressionStatementNode(
+						L(S(P(4, 2, 1), P(8, 2, 5))),
+						ast.NewInvalidNode(
+							L(S(P(4, 2, 1), P(5, 2, 2))),
+							V(L(S(P(4, 2, 1), P(5, 2, 2))), token.DOT_COLON, ""),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(4, 2, 1), P(5, 2, 2))), "unexpected .:, expected an expression"),
+			},
+		},
+		"cannot be a unary operator": {
+			input: ".:bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(4, 1, 5))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(4, 1, 5))),
+						ast.NewInvalidNode(
+							L(S(P(0, 1, 1), P(1, 1, 2))),
+							V(L(S(P(0, 1, 1), P(1, 1, 2))), token.DOT_COLON, ""),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(0, 1, 1), P(1, 1, 2))), "unexpected .:, expected an expression"),
+			},
+		},
+		"cannot have constant as the right side": {
+			input: "foo.:Bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(7, 1, 8))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(5, 1, 6), P(7, 1, 8))),
+						ast.NewInvalidNode(
+							L(S(P(5, 1, 6), P(7, 1, 8))),
+							V(L(S(P(5, 1, 6), P(7, 1, 8))), token.PUBLIC_CONSTANT, "Bar"),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(5, 1, 6), P(7, 1, 8))), "unexpected PUBLIC_CONSTANT, expected a public method name"),
+			},
+		},
+		"can be a part of an expression": {
+			input: "foo.:bar + .3",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(12, 1, 13))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(12, 1, 13))),
+						ast.NewBinaryExpressionNode(
+							L(S(P(0, 1, 1), P(12, 1, 13))),
+							T(L(S(P(9, 1, 10), P(9, 1, 10))), token.PLUS),
+							ast.NewInstanceMethodLookupNode(
+								L(S(P(0, 1, 1), P(7, 1, 8))),
+								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+								ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
 							),
 							ast.NewFloatLiteralNode(L(S(P(11, 1, 12), P(12, 1, 13))), "0.3"),
 						),

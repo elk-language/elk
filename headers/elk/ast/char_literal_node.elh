@@ -3,12 +3,13 @@ module Std::Elk::AST
     Char literal eg. `c"a"`
   ]##
   sealed primitive class CharLiteralNode
-    include ExpressionNode,
-            TypeNode,
-            PatternNode
+    include PatternExpressionNode,
+            TypeNode
 
     init(value: Char, location: FS::Location = loop; end); end
     def value: Char; end
     def location: FS::Location; end
+
+    def to_char: Char; end
   end
 end

@@ -22,7 +22,7 @@ func initGenericMethodCallNode() {
 			}
 
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
-			argName := (string)(args[2].MustReference().(value.String))
+			argName := args[2].MustReference().(ast.IdentifierNode)
 
 			argTypeArgsTuple := args[3].MustReference().(*value.ArrayTuple)
 			argTypeArgs := make([]ast.TypeNode, argTypeArgsTuple.Length())
@@ -97,7 +97,7 @@ func initGenericMethodCallNode() {
 		"method_name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
-			result := value.Ref(value.String(self.MethodName))
+			result := value.Ref(self.MethodName)
 			return result, value.Undefined
 
 		},

@@ -13,7 +13,7 @@ func initMethodParameterNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[1].MustReference().(value.String))
+			argName := args[1].MustReference().(ast.IdentifierNode)
 			argTypeNode := args[2].MustReference().(ast.TypeNode)
 
 			var argInitialiser ast.ExpressionNode
@@ -56,7 +56,7 @@ func initMethodParameterNode() {
 		"name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
-			result := value.Ref(value.String(self.Name))
+			result := value.Ref(self.Name)
 			return result, value.Undefined
 
 		},

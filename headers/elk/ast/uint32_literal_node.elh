@@ -3,12 +3,18 @@ module Std::Elk::AST
     UInt32 literal eg. `5u32`, `1_20u32`, `0xffu32`
   ]##
   sealed primitive class UInt32LiteralNode
-    include ExpressionNode,
-            TypeNode,
-            PatternNode
+    include PatternExpressionNode,
+            TypeNode
 
-    init(value: String, location: FS::Location = loop; end); end
+    ##[
+			Indicates that the format of an
+			uint32 node is invalid.
+		]##
+		class FormatError < Node::FormatError; end
+
+    init(value: String, location: FS::Location = loop; end)! FormatError; end
     def value: String; end
     def location: FS::Location; end
+    def to_uint32: UInt32; end
   end
 end

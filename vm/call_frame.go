@@ -54,7 +54,7 @@ func (cf *CallFrame) ToCallFrameObject() value.CallFrame {
 
 func (c *CallFrame) ipIndex() int {
 	return int(
-		uintptr(unsafe.Pointer(c.ip)) -
+		c.ip -
 			uintptr(unsafe.Pointer(&c.bytecode.Instructions[0])),
 	)
 }

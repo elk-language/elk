@@ -590,14 +590,14 @@ func NewConstructorCallNode(loc *position.Location, class ComplexConstantNode, p
 type AttributeAccessNode struct {
 	TypedNodeBase
 	Receiver      ExpressionNode
-	AttributeName string
+	AttributeName IdentifierNode
 }
 
 func (n *AttributeAccessNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &AttributeAccessNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:      n.Receiver.splice(loc, args, unquote).(ExpressionNode),
-		AttributeName: n.AttributeName,
+		AttributeName: n.AttributeName.splice(loc, args, unquote).(IdentifierNode),
 	}
 }
 
@@ -614,6 +614,10 @@ func (n *AttributeAccessNode) traverse(parent Node, enter func(node, parent Node
 	}
 
 	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	if n.AttributeName.traverse(n, enter, leave) == TraverseBreak {
 		return TraverseBreak
 	}
 
@@ -640,7 +644,7 @@ func (n *AttributeAccessNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	buff.WriteString(",\n  attribute_name: ")
-	indent.IndentStringFromSecondLine(&buff, value.String(n.AttributeName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.AttributeName.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -655,7 +659,7 @@ func (n *AttributeAccessNode) Equal(other value.Value) bool {
 
 	return n.Span().Equal(o.Span()) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
-		n.AttributeName == o.AttributeName
+		n.AttributeName.Equal(value.Ref(o.AttributeName))
 }
 
 func (n *AttributeAccessNode) String() string {
@@ -671,7 +675,7 @@ func (n *AttributeAccessNode) String() string {
 	}
 
 	buff.WriteString(".")
-	buff.WriteString(n.AttributeName)
+	buff.WriteString(n.AttributeName.String())
 
 	return buff.String()
 }
@@ -681,7 +685,7 @@ func (n *AttributeAccessNode) Error() string {
 }
 
 // Create an attribute access node eg. `foo.bar`
-func NewAttributeAccessNode(loc *position.Location, recv ExpressionNode, attrName string) *AttributeAccessNode {
+func NewAttributeAccessNode(loc *position.Location, recv ExpressionNode, attrName IdentifierNode) *AttributeAccessNode {
 	return &AttributeAccessNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Receiver:      recv,
@@ -694,7 +698,7 @@ type SubscriptExpressionNode struct {
 	TypedNodeBase
 	Receiver ExpressionNode
 	Key      ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *SubscriptExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -705,7 +709,6 @@ func (n *SubscriptExpressionNode) splice(loc *position.Location, args *[]Node, u
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:      receiver,
 		Key:           key,
-		static:        receiver.IsStatic() && key.IsStatic(),
 	}
 }
 
@@ -763,7 +766,14 @@ func (n *SubscriptExpressionNode) String() string {
 }
 
 func (s *SubscriptExpressionNode) IsStatic() bool {
-	return s.static
+	if s.static == staticUnset {
+		if areExpressionsStatic(s.Key, s.Receiver) {
+			s.static = staticTrue
+		} else {
+			s.static = staticFalse
+		}
+	}
+	return s.static == staticTrue
 }
 
 func (*SubscriptExpressionNode) Class() *value.Class {
@@ -800,7 +810,6 @@ func NewSubscriptExpressionNode(loc *position.Location, recv, key ExpressionNode
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Receiver:      recv,
 		Key:           key,
-		static:        recv.IsStatic() && key.IsStatic(),
 	}
 }
 
@@ -809,7 +818,7 @@ type NilSafeSubscriptExpressionNode struct {
 	TypedNodeBase
 	Receiver ExpressionNode
 	Key      ExpressionNode
-	static   bool
+	static   static
 }
 
 func (n *NilSafeSubscriptExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -820,7 +829,6 @@ func (n *NilSafeSubscriptExpressionNode) splice(loc *position.Location, args *[]
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:      receiver,
 		Key:           key,
-		static:        receiver.IsStatic() && key.IsStatic(),
 	}
 }
 
@@ -878,7 +886,14 @@ func (n *NilSafeSubscriptExpressionNode) String() string {
 }
 
 func (s *NilSafeSubscriptExpressionNode) IsStatic() bool {
-	return s.static
+	if s.static == staticUnset {
+		if areExpressionsStatic(s.Key, s.Receiver) {
+			s.static = staticTrue
+		} else {
+			s.static = staticFalse
+		}
+	}
+	return s.static == staticTrue
 }
 
 func (*NilSafeSubscriptExpressionNode) Class() *value.Class {
@@ -915,7 +930,6 @@ func NewNilSafeSubscriptExpressionNode(loc *position.Location, recv, key Express
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Receiver:      recv,
 		Key:           key,
-		static:        recv.IsStatic() && key.IsStatic(),
 	}
 }
 
@@ -1006,7 +1020,15 @@ func (n *CallNode) Equal(other value.Value) bool {
 func (n *CallNode) String() string {
 	var buff strings.Builder
 
+	receiverParen := ExpressionPrecedence(n) > ExpressionPrecedence(n.Receiver)
+
+	if receiverParen {
+		buff.WriteRune('(')
+	}
 	buff.WriteString(n.Receiver.String())
+	if receiverParen {
+		buff.WriteRune(')')
+	}
 
 	if n.NilSafe {
 		buff.WriteRune('?')
@@ -1119,7 +1141,7 @@ type GenericMethodCallNode struct {
 	TypedNodeBase
 	Receiver            ExpressionNode
 	Op                  *token.Token
-	MethodName          string
+	MethodName          IdentifierNode
 	TypeArguments       []TypeNode
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
@@ -1131,7 +1153,7 @@ func (n *GenericMethodCallNode) splice(loc *position.Location, args *[]Node, unq
 		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:            n.Receiver.splice(loc, args, unquote).(ExpressionNode),
 		Op:                  n.Op.Splice(loc, unquote),
-		MethodName:          n.MethodName,
+		MethodName:          n.MethodName.splice(loc, args, unquote).(IdentifierNode),
 		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args, unquote),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
@@ -1149,6 +1171,10 @@ func (n *GenericMethodCallNode) traverse(parent Node, enter func(node, parent No
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.MethodName.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
@@ -1183,7 +1209,7 @@ func (n *GenericMethodCallNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if n.MethodName != o.MethodName ||
+	if !n.MethodName.Equal(value.Ref(o.MethodName)) ||
 		!n.Receiver.Equal(value.Ref(o.Receiver)) ||
 		!n.Op.Equal(o.Op) ||
 		n.loc.Equal(o.loc) {
@@ -1221,9 +1247,18 @@ func (n *GenericMethodCallNode) Equal(other value.Value) bool {
 func (n *GenericMethodCallNode) String() string {
 	var buff strings.Builder
 
+	receiverParen := ExpressionPrecedence(n) > ExpressionPrecedence(n.Receiver)
+
+	if receiverParen {
+		buff.WriteRune('(')
+	}
 	buff.WriteString(n.Receiver.String())
+	if receiverParen {
+		buff.WriteRune(')')
+	}
+
 	buff.WriteString(n.Op.String())
-	buff.WriteString(n.MethodName)
+	buff.WriteString(n.MethodName.String())
 	buff.WriteString("::[")
 
 	for i, arg := range n.TypeArguments {
@@ -1301,7 +1336,7 @@ func (n *GenericMethodCallNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
 
 	buff.WriteString(",\n  method_name: ")
-	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.MethodName.Inspect(), 1)
 
 	buff.WriteString(",\n  type_arguments: %[\n")
 	for i, element := range n.TypeArguments {
@@ -1340,7 +1375,7 @@ func (n *GenericMethodCallNode) Error() string {
 }
 
 // Create a method call node eg. `foo.bar::[String](a)`
-func NewGenericMethodCallNode(loc *position.Location, recv ExpressionNode, op *token.Token, methodName string, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericMethodCallNode {
+func NewGenericMethodCallNode(loc *position.Location, recv ExpressionNode, op *token.Token, methodName IdentifierNode, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericMethodCallNode {
 	return &GenericMethodCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: loc},
 		Receiver:            recv,
@@ -1357,7 +1392,7 @@ type MethodCallNode struct {
 	TypedNodeBase
 	Receiver            ExpressionNode
 	Op                  *token.Token
-	MethodName          string
+	MethodName          IdentifierNode
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 	TailCall            bool
@@ -1368,7 +1403,7 @@ func (n *MethodCallNode) splice(loc *position.Location, args *[]Node, unquote bo
 		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:            n.Receiver.splice(loc, args, unquote).(ExpressionNode),
 		Op:                  n.Op.Splice(loc, unquote),
-		MethodName:          n.MethodName,
+		MethodName:          n.MethodName.splice(loc, args, unquote).(IdentifierNode),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 		TailCall:            n.TailCall,
@@ -1385,6 +1420,10 @@ func (n *MethodCallNode) traverse(parent Node, enter func(node, parent Node) Tra
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.MethodName.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
@@ -1432,15 +1471,24 @@ func (n *MethodCallNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.Op.Equal(o.Op) &&
-		n.MethodName != o.MethodName
+		n.MethodName.Equal(value.Ref(o.MethodName))
 }
 
 func (n *MethodCallNode) String() string {
 	var buff strings.Builder
 
+	receiverParen := ExpressionPrecedence(n) > ExpressionPrecedence(n.Receiver)
+
+	if receiverParen {
+		buff.WriteRune('(')
+	}
 	buff.WriteString(n.Receiver.String())
+	if receiverParen {
+		buff.WriteRune(')')
+	}
+
 	buff.WriteString(n.Op.String())
-	buff.WriteString(n.MethodName)
+	buff.WriteString(n.MethodName.String())
 	buff.WriteString("(")
 
 	var hasMultilineArgs bool
@@ -1508,7 +1556,7 @@ func (n *MethodCallNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
 
 	buff.WriteString(",\n  method_name: ")
-	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.MethodName.Inspect(), 1)
 
 	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
@@ -1538,7 +1586,7 @@ func (n *MethodCallNode) Error() string {
 }
 
 // Create a method call node eg. `'123'.to_int()`
-func NewMethodCallNode(loc *position.Location, recv ExpressionNode, op *token.Token, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
+func NewMethodCallNode(loc *position.Location, recv ExpressionNode, op *token.Token, methodName IdentifierNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
 	return &MethodCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: loc},
 		Receiver:            recv,
@@ -1552,7 +1600,7 @@ func NewMethodCallNode(loc *position.Location, recv ExpressionNode, op *token.To
 // Represents a function-like call eg. `to_string(123)`
 type ReceiverlessMethodCallNode struct {
 	TypedNodeBase
-	MethodName          string
+	MethodName          IdentifierNode
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 	TailCall            bool
@@ -1561,7 +1609,7 @@ type ReceiverlessMethodCallNode struct {
 func (n *ReceiverlessMethodCallNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ReceiverlessMethodCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		MethodName:          n.MethodName,
+		MethodName:          n.MethodName.splice(loc, args, unquote).(IdentifierNode),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
 		TailCall:            n.TailCall,
@@ -1578,6 +1626,10 @@ func (n *ReceiverlessMethodCallNode) traverse(parent Node, enter func(node, pare
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.MethodName.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	for _, arg := range n.PositionalArguments {
@@ -1601,7 +1653,7 @@ func (n *ReceiverlessMethodCallNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if n.MethodName != o.MethodName ||
+	if !n.MethodName.Equal(value.Ref(o.MethodName)) ||
 		len(n.PositionalArguments) != len(o.PositionalArguments) ||
 		len(n.NamedArguments) != len(o.NamedArguments) ||
 		!n.loc.Equal(o.loc) {
@@ -1626,7 +1678,7 @@ func (n *ReceiverlessMethodCallNode) Equal(other value.Value) bool {
 func (n *ReceiverlessMethodCallNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString(n.MethodName)
+	buff.WriteString(n.MethodName.String())
 	buff.WriteString("(")
 
 	var hasMultilineArgs bool
@@ -1688,7 +1740,7 @@ func (n *ReceiverlessMethodCallNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ReceiverlessMethodCallNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  method_name: ")
-	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.MethodName.Inspect(), 1)
 
 	buff.WriteString(",\n  positional_arguments: %[\n")
 	for i, element := range n.PositionalArguments {
@@ -1718,7 +1770,7 @@ func (n *ReceiverlessMethodCallNode) Error() string {
 }
 
 // Create a function call node eg. `to_string(123)`
-func NewReceiverlessMethodCallNode(loc *position.Location, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ReceiverlessMethodCallNode {
+func NewReceiverlessMethodCallNode(loc *position.Location, methodName IdentifierNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ReceiverlessMethodCallNode {
 	return &ReceiverlessMethodCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: loc},
 		MethodName:          methodName,
@@ -1730,7 +1782,7 @@ func NewReceiverlessMethodCallNode(loc *position.Location, methodName string, po
 // Represents a generic function-like call eg. `foo::[Int](123)`
 type GenericReceiverlessMethodCallNode struct {
 	TypedNodeBase
-	MethodName          string
+	MethodName          IdentifierNode
 	TypeArguments       []TypeNode
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
@@ -1740,7 +1792,7 @@ type GenericReceiverlessMethodCallNode struct {
 func (n *GenericReceiverlessMethodCallNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &GenericReceiverlessMethodCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		MethodName:          n.MethodName,
+		MethodName:          n.MethodName.splice(loc, args, unquote).(IdentifierNode),
 		TypeArguments:       SpliceSlice(n.TypeArguments, loc, args, unquote),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
@@ -1758,6 +1810,10 @@ func (n *GenericReceiverlessMethodCallNode) traverse(parent Node, enter func(nod
 		return TraverseBreak
 	case TraverseSkip:
 		return leave(n, parent)
+	}
+
+	if n.MethodName.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
 	}
 
 	for _, arg := range n.TypeArguments {
@@ -1788,7 +1844,7 @@ func (n *GenericReceiverlessMethodCallNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if n.MethodName != o.MethodName || !n.loc.Equal(o.loc) {
+	if !n.MethodName.Equal(value.Ref(o.MethodName)) || !n.loc.Equal(o.loc) {
 		return false
 	}
 
@@ -1823,7 +1879,7 @@ func (n *GenericReceiverlessMethodCallNode) Equal(other value.Value) bool {
 func (n *GenericReceiverlessMethodCallNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString(n.MethodName)
+	buff.WriteString(n.MethodName.String())
 	buff.WriteString("::[")
 
 	for i, arg := range n.TypeArguments {
@@ -1895,7 +1951,7 @@ func (n *GenericReceiverlessMethodCallNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::GenericReceiverlessMethodCallNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  method_name: ")
-	indent.IndentStringFromSecondLine(&buff, value.String(n.MethodName).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.MethodName.Inspect(), 1)
 
 	buff.WriteString(",\n  type_arguments: %[\n")
 	for i, element := range n.TypeArguments {
@@ -1934,7 +1990,7 @@ func (n *GenericReceiverlessMethodCallNode) Error() string {
 }
 
 // Create a generic function call node eg. `foo::[Int](123)`
-func NewGenericReceiverlessMethodCallNode(loc *position.Location, methodName string, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericReceiverlessMethodCallNode {
+func NewGenericReceiverlessMethodCallNode(loc *position.Location, methodName IdentifierNode, typeArgs []TypeNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *GenericReceiverlessMethodCallNode {
 	return &GenericReceiverlessMethodCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: loc},
 		MethodName:          methodName,

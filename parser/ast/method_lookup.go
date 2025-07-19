@@ -10,18 +10,127 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+// Represents an instance method lookup expression eg. `Foo.:bar`
+type InstanceMethodLookupNode struct {
+	TypedNodeBase
+	Receiver ExpressionNode
+	Name     IdentifierNode
+}
+
+func (n *InstanceMethodLookupNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	return &InstanceMethodLookupNode{
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Receiver:      n.Receiver.splice(loc, args, unquote).(ExpressionNode),
+		Name:          n.Name.splice(loc, args, unquote).(IdentifierNode),
+	}
+}
+
+func (n *InstanceMethodLookupNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::InstanceMethodLookupNode", env)
+}
+
+func (n *InstanceMethodLookupNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	if n.Receiver.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
+}
+
+func (n *InstanceMethodLookupNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InstanceMethodLookupNode)
+	if !ok {
+		return false
+	}
+
+	return n.Span().Equal(o.Span()) &&
+		n.Receiver.Equal(value.Ref(o.Receiver)) &&
+		n.Name.Equal(value.Ref(o.Name))
+}
+
+func (n *InstanceMethodLookupNode) String() string {
+	var buff strings.Builder
+
+	parens := ExpressionPrecedence(n) > ExpressionPrecedence(n.Receiver)
+
+	if parens {
+		buff.WriteRune('(')
+	}
+	buff.WriteString(n.Receiver.String())
+	if parens {
+		buff.WriteRune(')')
+	}
+
+	buff.WriteString("::")
+	buff.WriteString(n.Name.String())
+
+	return buff.String()
+}
+
+func (*InstanceMethodLookupNode) IsStatic() bool {
+	return false
+}
+
+// Create a new method lookup expression node eg. `Foo::bar`, `a::c`
+func NewInstanceMethodLookupNode(loc *position.Location, receiver ExpressionNode, name IdentifierNode) *InstanceMethodLookupNode {
+	return &InstanceMethodLookupNode{
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		Receiver:      receiver,
+		Name:          name,
+	}
+}
+
+func (*InstanceMethodLookupNode) Class() *value.Class {
+	return value.InstanceMethodLookupNodeClass
+}
+
+func (*InstanceMethodLookupNode) DirectClass() *value.Class {
+	return value.InstanceMethodLookupNodeClass
+}
+
+func (n *InstanceMethodLookupNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::Elk::AST::InstanceMethodLookupNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+
+	buff.WriteString(",\n  receiver: ")
+	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
+
+	buff.WriteString(",\n  name: ")
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (n *InstanceMethodLookupNode) Error() string {
+	return n.Inspect()
+}
+
 // Represents a method lookup expression eg. `Foo::bar`, `a::c`
 type MethodLookupNode struct {
 	TypedNodeBase
 	Receiver ExpressionNode
-	Name     string
+	Name     IdentifierNode
 }
 
 func (n *MethodLookupNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MethodLookupNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Receiver:      n.Receiver.splice(loc, args, unquote).(ExpressionNode),
-		Name:          n.Name,
+		Name:          n.Name.splice(loc, args, unquote).(IdentifierNode),
 	}
 }
 
@@ -41,6 +150,10 @@ func (n *MethodLookupNode) traverse(parent Node, enter func(node, parent Node) T
 		return TraverseBreak
 	}
 
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	return leave(n, parent)
 }
 
@@ -52,7 +165,7 @@ func (n *MethodLookupNode) Equal(other value.Value) bool {
 
 	return n.Span().Equal(o.Span()) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
-		n.Name == o.Name
+		n.Name.Equal(value.Ref(o.Name))
 }
 
 func (n *MethodLookupNode) String() string {
@@ -69,7 +182,7 @@ func (n *MethodLookupNode) String() string {
 	}
 
 	buff.WriteString("::")
-	buff.WriteString(n.Name)
+	buff.WriteString(n.Name.String())
 
 	return buff.String()
 }
@@ -79,7 +192,7 @@ func (*MethodLookupNode) IsStatic() bool {
 }
 
 // Create a new method lookup expression node eg. `Foo::bar`, `a::c`
-func NewMethodLookupNode(loc *position.Location, receiver ExpressionNode, name string) *MethodLookupNode {
+func NewMethodLookupNode(loc *position.Location, receiver ExpressionNode, name IdentifierNode) *MethodLookupNode {
 	return &MethodLookupNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Receiver:      receiver,
@@ -104,7 +217,7 @@ func (n *MethodLookupNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	buff.WriteString(",\n  name: ")
-	buff.WriteString(n.Name)
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -116,18 +229,18 @@ func (n *MethodLookupNode) Error() string {
 }
 
 // Represents a method lookup with as in using declarations
-// eg. `Foo::bar as Bar`.
+// eg. `Foo::bar as baz`.
 type MethodLookupAsNode struct {
 	NodeBase
 	MethodLookup *MethodLookupNode
-	AsName       string
+	AsName       IdentifierNode
 }
 
 func (n *MethodLookupAsNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MethodLookupAsNode{
 		NodeBase:     NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		MethodLookup: n.MethodLookup.splice(loc, args, unquote).(*MethodLookupNode),
-		AsName:       n.AsName,
+		AsName:       n.AsName.splice(loc, args, unquote).(IdentifierNode),
 	}
 }
 
@@ -147,6 +260,10 @@ func (n *MethodLookupAsNode) traverse(parent Node, enter func(node, parent Node)
 		return TraverseBreak
 	}
 
+	if n.AsName.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	return leave(n, parent)
 }
 
@@ -159,7 +276,7 @@ func (n *MethodLookupAsNode) Equal(other value.Value) bool {
 
 	return n.loc.Equal(o.loc) &&
 		n.MethodLookup.Equal(value.Ref(o.MethodLookup)) &&
-		n.AsName == o.AsName
+		n.AsName.Equal(value.Ref(o.AsName))
 }
 
 // Return a string representation of this method lookup as node.
@@ -168,7 +285,7 @@ func (n *MethodLookupAsNode) String() string {
 
 	buff.WriteString(n.MethodLookup.String())
 	buff.WriteString(" as ")
-	buff.WriteString(n.AsName)
+	buff.WriteString(n.AsName.String())
 
 	return buff.String()
 }
@@ -178,7 +295,7 @@ func (*MethodLookupAsNode) IsStatic() bool {
 }
 
 // Create a new identifier with as eg. `Foo::bar as Bar`.
-func NewMethodLookupAsNode(loc *position.Location, methodLookup *MethodLookupNode, as string) *MethodLookupAsNode {
+func NewMethodLookupAsNode(loc *position.Location, methodLookup *MethodLookupNode, as IdentifierNode) *MethodLookupAsNode {
 	return &MethodLookupAsNode{
 		NodeBase:     NodeBase{loc: loc},
 		MethodLookup: methodLookup,
@@ -203,7 +320,7 @@ func (n *MethodLookupAsNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, n.MethodLookup.Inspect(), 1)
 
 	buff.WriteString(",\n  as_name: ")
-	buff.WriteString(n.AsName)
+	indent.IndentStringFromSecondLine(&buff, n.AsName.Inspect(), 1)
 
 	buff.WriteString("\n}")
 

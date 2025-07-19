@@ -1,6 +1,8 @@
 package runtime
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -14,6 +16,16 @@ func initPrivateConstantNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
+
+			if !ast.PrivateConstantRegexp.MatchString(argValue) {
+				return value.Undefined,
+					value.Ref(
+						value.NewError(
+							value.PrivateConstantNodeFormatErrorClass,
+							fmt.Sprintf("invalid private constant: %s", argValue),
+						),
+					)
+			}
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -70,6 +82,15 @@ func initPrivateConstantNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PrivateConstantNode)
 			return value.Ref(value.String(self.String())), value.Undefined
+		},
+	)
+
+	vm.Def(
+		c,
+		"to_symbol",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.PrivateConstantNode)
+			return value.ToSymbol(self.String()).ToValue(), value.Undefined
 		},
 	)
 

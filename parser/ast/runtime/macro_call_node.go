@@ -14,7 +14,7 @@ func initMacroCallNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
-			argMethodName := (string)(args[2].MustReference().(value.String))
+			argMacroName := args[2].MustReference().(ast.IdentifierNode)
 
 			var argPositionalArguments []ast.ExpressionNode
 			if !args[3].IsUndefined() {
@@ -43,7 +43,7 @@ func initMacroCallNode() {
 			self := ast.NewMacroCallNode(
 				argLoc,
 				argReceiver,
-				argMethodName,
+				argMacroName,
 				argPositionalArguments,
 				argNamedArguments,
 			)
@@ -69,7 +69,7 @@ func initMacroCallNode() {
 		"macro_name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroCallNode)
-			result := value.Ref(value.String(self.MacroName))
+			result := value.Ref(self.MacroName)
 			return result, value.Undefined
 
 		},

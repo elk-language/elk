@@ -13,7 +13,7 @@ func initNamedCallArgumentNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[1].MustReference().(value.String))
+			argName := args[1].MustReference().(ast.IdentifierNode)
 			argValue := args[2].MustReference().(ast.ExpressionNode)
 
 			var argLoc *position.Location
@@ -38,7 +38,7 @@ func initNamedCallArgumentNode() {
 		"name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NamedCallArgumentNode)
-			result := value.Ref(value.String(self.Name))
+			result := value.Ref(self.Name)
 			return result, value.Undefined
 
 		},

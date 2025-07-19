@@ -972,21 +972,32 @@ func (c *Checker) isSubtypeOfMixin(a types.Namespace, b *types.Mixin) bool {
 	return ok
 }
 
+func (c *Checker) namespaceIsMixin(a types.Namespace, b *types.Mixin) bool {
+	switch a := a.(type) {
+	case *types.Mixin:
+		if a == b {
+			return true
+		}
+	case *types.MixinProxy:
+		if a.Mixin == b {
+			return true
+		}
+	case *types.Generic:
+		if c.IsTheSameNamespace(a.Namespace, b) {
+			return true
+		}
+	case *types.TemporaryParent:
+		return c.namespaceIsMixin(a.Namespace, b)
+	}
+
+	return false
+}
+
 func (c *Checker) includesMixin(a types.Namespace, b *types.Mixin) (bool, types.Namespace) {
 	for parent := range types.Parents(a) {
-		switch p := parent.(type) {
-		case *types.Mixin:
-			if p == b {
-				return true, p
-			}
-		case *types.MixinProxy:
-			if p.Mixin == b {
-				return true, p
-			}
-		case *types.Generic:
-			if c.IsTheSameNamespace(p.Namespace, b) {
-				return true, p
-			}
+		ok := c.namespaceIsMixin(parent, b)
+		if ok {
+			return true, parent
 		}
 	}
 

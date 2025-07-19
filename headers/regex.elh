@@ -34,5 +34,6 @@ sealed primitive class ::Std::Regex
 	]##
 	def to_ast_node: Elk::AST::UninterpolatedRegexLiteralNode; end
 	alias to_ast_expr_node to_ast_node,
-			  to_ast_pattern_node to_ast_node
+			  to_ast_pattern_node to_ast_node,
+			  to_ast_pattern_expr_node to_ast_node
 end

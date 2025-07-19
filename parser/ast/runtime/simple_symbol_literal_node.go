@@ -73,6 +73,16 @@ func initSimpleSymbolLiteralNode() {
 		},
 	)
 
+	vm.Def(
+		c,
+		"to_symbol",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.SimpleSymbolLiteralNode)
+			result := value.ToSymbol(self.Content).ToValue()
+			return result, value.Undefined
+		},
+	)
+
 	c = &value.SymbolClass.MethodContainer
 	vm.Def(
 		c,
@@ -85,5 +95,36 @@ func initSimpleSymbolLiteralNode() {
 	)
 	vm.Alias(c, "to_ast_expr_node", "to_ast_node")
 	vm.Alias(c, "to_ast_pattern_node", "to_ast_node")
+	vm.Alias(c, "to_ast_pattern_expr_node", "to_ast_node")
 	vm.Alias(c, "to_ast_type_node", "to_ast_node")
+
+	vm.Def(
+		c,
+		"to_ast_ident_node",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsInlineSymbol()
+			node := ast.NewPublicIdentifierNode(position.ZeroLocation, self.String())
+			return value.Ref(node), value.Undefined
+		},
+	)
+
+	vm.Def(
+		c,
+		"to_ast_const_node",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsInlineSymbol()
+			node := ast.NewPublicConstantNode(position.ZeroLocation, self.String())
+			return value.Ref(node), value.Undefined
+		},
+	)
+
+	vm.Def(
+		c,
+		"to_ast_ivar_node",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsInlineSymbol()
+			node := ast.NewPublicInstanceVariableNode(position.ZeroLocation, self.String())
+			return value.Ref(node), value.Undefined
+		},
+	)
 }

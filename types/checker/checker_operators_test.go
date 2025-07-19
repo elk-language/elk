@@ -537,12 +537,12 @@ func TestBinaryOpMethod(t *testing.T) {
 
 func TestAdd(t *testing.T) {
 	tests := testTable{
-		"Int - String => Error": {
+		"Int + String => Error": {
 			input: `
 				var a: Int = 1 + "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `\"foo\"`"),
 			},
 		},
 		"Int + Int => Int": {
@@ -606,7 +606,7 @@ func TestSubtract(t *testing.T) {
 				var a: Int = 1 - "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `-`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:-`, got type `\"foo\"`"),
 			},
 		},
 		"Int - Int => Int": {
@@ -670,7 +670,7 @@ func TestMultiply(t *testing.T) {
 				var a: Int = 1 * "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `*`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:*`, got type `\"foo\"`"),
 			},
 		},
 		"Int * Int => Int": {
@@ -734,7 +734,7 @@ func TestDivide(t *testing.T) {
 				var a: Int = 1 / "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `/`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:/`, got type `\"foo\"`"),
 			},
 		},
 		"Int / Int => Int": {
@@ -798,7 +798,7 @@ func TestExponentiate(t *testing.T) {
 				var a: Int = 1 ** "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(23, 2, 23), P(27, 2, 27)), "expected type `Std::Int` for parameter `other` in call to `**`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(23, 2, 23), P(27, 2, 27)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:**`, got type `\"foo\"`"),
 			},
 		},
 		"Int ** Int => Int": {

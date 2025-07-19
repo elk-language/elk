@@ -111,9 +111,25 @@ func resolve(node ast.Node) value.Value {
 		return resolveFloat32(n)
 	case *ast.FloatLiteralNode:
 		return resolveFloat(n)
+	case *ast.MacroBoundaryNode:
+		return resolveMacroBoundary(n)
 	}
 
 	return value.Undefined
+}
+
+func resolveMacroBoundary(n *ast.MacroBoundaryNode) value.Value {
+	if len(n.Body) != 1 {
+		return value.Undefined
+	}
+
+	stmt := n.Body[0]
+	exprStmt, ok := stmt.(*ast.ExpressionStatementNode)
+	if !ok {
+		return value.Undefined
+	}
+
+	return resolve(exprStmt.Expression)
 }
 
 func resolveUninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode) value.Value {
@@ -228,7 +244,7 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 	for _, elementNode := range node.Elements {
 		switch element := elementNode.(type) {
 		case *ast.SymbolKeyValueExpressionNode:
-			key := value.ToSymbol(element.Key).ToValue()
+			key := value.ToSymbol(identifierToName(element.Key)).ToValue()
 			val := resolve(element.Value)
 			if val.IsUndefined() {
 				return value.Undefined
@@ -272,7 +288,7 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 	for _, elementNode := range node.Elements {
 		switch element := elementNode.(type) {
 		case *ast.SymbolKeyValueExpressionNode:
-			key := value.ToSymbol(element.Key).ToValue()
+			key := value.ToSymbol(identifierToName(element.Key)).ToValue()
 			val := resolve(element.Value)
 			if val.IsUndefined() {
 				return value.Undefined

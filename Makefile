@@ -1,4 +1,4 @@
-header:
+header: generate
 	go run ./cmd/headers/main.go -tags headers
 	go fmt ./types/headers.go
 
@@ -8,7 +8,7 @@ generate:
 elkify:
 	go run ./cmd/elkify/main.go
 
-fmt: generate header
+fmt: header
 	go fmt ./...
 
 vet:
@@ -34,6 +34,9 @@ lex: fmt
 
 parse: fmt
 	go run ./cmd/elk repl --parse
+
+expand: fmt
+	go run ./cmd/elk repl --expand
 
 inspect: fmt
 	go run ./cmd/elk repl --inspect-stack

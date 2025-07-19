@@ -62,6 +62,10 @@ var stateSymbols = [...]value.Symbol{
 
 // A single instance of the Elk Virtual Machine.
 type VM struct {
+	Stdin  io.Reader // standard output used by the VM
+	Stdout io.Writer // standard input used by the VM
+	Stderr io.Writer // standard error used by the VM
+
 	bytecode        *BytecodeFunction
 	upvalues        []*Upvalue
 	openUpvalueHead *Upvalue // linked list of open upvalues, living on the stack
@@ -75,9 +79,6 @@ type VM struct {
 	callFrames      []CallFrame       // Call stack
 	errStackTrace   *value.StackTrace // The most recent error stack trace
 	threadPool      *ThreadPool
-	Stdin           io.Reader // standard output used by the VM
-	Stdout          io.Writer // standard input used by the VM
-	Stderr          io.Writer // standard error used by the VM
 	state           state
 }
 
@@ -553,11 +554,12 @@ func (vm *VM) run() {
 			// promise is already resolved, no need to switch contexts
 			err := promise.err
 			result := promise.result
+			stackTrace := promise.stackTrace
 			promise.m.Unlock()
 
 			if !err.IsUndefined() {
 				vm.pop()
-				vm.throw(err)
+				vm.rethrow(err, vm.BuildStackTracePrepend(stackTrace))
 				return
 			}
 
@@ -572,9 +574,21 @@ func (vm *VM) run() {
 
 			result := promise.result
 			err := promise.err
+			stackTrace := promise.stackTrace
 			if !err.IsUndefined() {
 				vm.pop()
-				vm.throw(err)
+				vm.rethrow(err, vm.BuildStackTracePrepend(stackTrace))
+				return
+			}
+
+			vm.replace(result)
+		case bytecode.AWAIT_SYNC:
+			promise := (*Promise)(vm.peek().Pointer())
+
+			result, stackTrace, err := promise.AwaitSync()
+			if !err.IsUndefined() {
+				vm.pop()
+				vm.rethrow(err, vm.BuildStackTracePrepend(stackTrace))
 				return
 			}
 
@@ -1398,7 +1412,7 @@ func (vm *VM) ResetError() {
 	vm.errStackTrace = nil
 }
 
-func (vm *VM) getStackTrace() *value.StackTrace {
+func (vm *VM) GetStackTrace() *value.StackTrace {
 	if vm.errStackTrace != nil {
 		return vm.errStackTrace
 	}
@@ -1418,12 +1432,30 @@ func (vm *VM) makeCallFrameObject() value.CallFrame {
 func (vm *VM) BuildStackTrace() *value.StackTrace {
 	callStack := vm.callStack()
 
-	stackTraceSlice := make([]value.CallFrame, len(callStack)+1)
-	i := 0
-	for ; i < len(callStack); i++ {
-		stackTraceSlice[i] = callStack[i].ToCallFrameObject()
+	stackTraceSlice := make([]value.CallFrame, 0, len(callStack)+1)
+	for _, element := range callStack {
+		if element.bytecode == nil {
+			continue
+		}
+		stackTraceSlice = append(stackTraceSlice, element.ToCallFrameObject())
 	}
-	stackTraceSlice[i] = vm.makeCallFrameObject()
+	stackTraceSlice = append(stackTraceSlice, vm.makeCallFrameObject())
+
+	return (*value.StackTrace)(&stackTraceSlice)
+}
+
+func (vm *VM) BuildStackTracePrepend(base *value.StackTrace) *value.StackTrace {
+	callStack := vm.callStack()
+
+	stackTraceSlice := make([]value.CallFrame, 0, len(*base)+len(callStack)+1)
+	for _, element := range callStack {
+		if element.bytecode == nil {
+			continue
+		}
+		stackTraceSlice = append(stackTraceSlice, element.ToCallFrameObject())
+	}
+	stackTraceSlice = append(stackTraceSlice, vm.makeCallFrameObject())
+	stackTraceSlice = append(stackTraceSlice, (*base)...)
 
 	return (*value.StackTrace)(&stackTraceSlice)
 }
@@ -1727,7 +1759,7 @@ func (vm *VM) opCallSelfTCO(callInfoIndex int) (err value.Value) {
 	class := self.DirectClass()
 
 	// shift all arguments one slot forward to make room for self
-	for i := 0; i < callInfo.ArgumentCount; i++ {
+	for i := range callInfo.ArgumentCount {
 		*vm.spAdd(-i) = *vm.spAdd(-i - 1)
 	}
 	*vm.spAdd(-callInfo.ArgumentCount) = self
@@ -1746,7 +1778,14 @@ func (vm *VM) opCallSelfTCO(callInfoIndex int) (err value.Value) {
 		return vm.callSetterMethod(m)
 	}
 
-	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+	panic(
+		fmt.Sprintf(
+			"tried to call a method that is neither bytecode nor native: %#v, %s in %s",
+			method,
+			callInfo.Name,
+			class.Name,
+		),
+	)
 }
 
 // Call a method with an implicit receiver
@@ -1757,7 +1796,7 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 	class := self.DirectClass()
 
 	// shift all arguments one slot forward to make room for self
-	for i := 0; i < callInfo.ArgumentCount; i++ {
+	for i := range callInfo.ArgumentCount {
 		*vm.spAdd(-i) = *vm.spAdd(-i - 1)
 	}
 	*vm.spAdd(-callInfo.ArgumentCount) = self
@@ -1776,7 +1815,14 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 		return vm.callSetterMethod(m)
 	}
 
-	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+	panic(
+		fmt.Sprintf(
+			"tried to call a method that is neither bytecode nor native: %#v, %s in %s",
+			method,
+			callInfo.Name,
+			class.Name,
+		),
+	)
 }
 
 func (vm *VM) callGetterMethod(method *GetterMethod) value.Value {
@@ -2015,7 +2061,7 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 	case *SetterMethod:
 		return vm.callSetterMethod(m)
 	default:
-		panic(fmt.Sprintf("tried to call an invalid method: %T of class: %s", method, class.Name))
+		panic(fmt.Sprintf("tried to call an invalid method: %T (%s) of class: %s (%s)", method, callInfo.Name, class.Name, self.Inspect()))
 	}
 }
 
@@ -3884,7 +3930,7 @@ func (vm *VM) opAs() {
 // Throw an error and attempt to find code
 // that catches it.
 func (vm *VM) throw(err value.Value) {
-	vm.rethrow(err, vm.getStackTrace())
+	vm.rethrow(err, vm.GetStackTrace())
 }
 
 func (vm *VM) rethrow(err value.Value, stackTrace *value.StackTrace) {

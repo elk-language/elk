@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    Represents an instance method lookup expression eg. `Foo.:bar`
+  ]##
+  sealed primitive class InstanceMethodLookupNode
+    include ExpressionNode
+
+    init(receiver: ExpressionNode, name: IdentifierNode, location: FS::Location = loop; end); end
+    def receiver: ExpressionNode; end
+    def name: IdentifierNode; end
+    def location: FS::Location; end
+  end
+end

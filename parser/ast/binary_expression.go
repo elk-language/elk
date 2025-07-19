@@ -17,7 +17,7 @@ type BinaryExpressionNode struct {
 	Op     *token.Token   // operator
 	Left   ExpressionNode // left hand side
 	Right  ExpressionNode // right hand side
-	static bool
+	static static
 }
 
 func (n *BinaryExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -29,7 +29,6 @@ func (n *BinaryExpressionNode) splice(loc *position.Location, args *[]Node, unqu
 		Op:            n.Op.Splice(loc, unquote),
 		Left:          left,
 		Right:         right,
-		static:        areExpressionsStatic(left, right),
 	}
 }
 
@@ -106,7 +105,14 @@ func (n *BinaryExpressionNode) String() string {
 }
 
 func (b *BinaryExpressionNode) IsStatic() bool {
-	return b.static
+	if b.static == staticUnset {
+		if areExpressionsStatic(b.Left, b.Right) {
+			b.static = staticTrue
+		} else {
+			b.static = staticFalse
+		}
+	}
+	return b.static == staticTrue
 }
 
 // Create a new binary expression node.
@@ -116,7 +122,6 @@ func NewBinaryExpressionNode(loc *position.Location, op *token.Token, left, righ
 		Op:            op,
 		Left:          left,
 		Right:         right,
-		static:        areExpressionsStatic(left, right),
 	}
 }
 

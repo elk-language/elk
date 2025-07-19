@@ -2,6 +2,9 @@
 	A base class for most errors in Elk stdlib.
 ]##
 class Std::Error
+	getter message: String
+
+	init(@message: String); end
 end
 
 ##[

@@ -14,7 +14,7 @@ func initAttributeAccessNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
-			argAttrName := (string)(args[2].MustReference().(value.String))
+			argAttrName := args[2].MustReference().(ast.IdentifierNode)
 
 			var argLoc *position.Location
 			if args[3].IsUndefined() {
@@ -49,7 +49,7 @@ func initAttributeAccessNode() {
 		"attribute_name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeAccessNode)
-			result := value.Ref(value.String(self.AttributeName))
+			result := value.Ref(self.AttributeName)
 			return result, value.Undefined
 
 		},

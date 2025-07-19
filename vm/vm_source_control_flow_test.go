@@ -962,7 +962,7 @@ func TestVMSource_ForIn(t *testing.T) {
 			source: `
 				$outer: for i in [1, 2, 3]
 					for j in [8, 9, 10]
-						break$outer if j == 10
+						break[outer] if j == 10
 						print(i.inspect, ":", j.inspect, " ")
 					end
 				end
@@ -974,7 +974,7 @@ func TestVMSource_ForIn(t *testing.T) {
 			source: `
 				$outer: for i in [1, 2, 3]
 					for j in [8, 9, 10]
-						break$outer j if j == 10
+						break[outer] j if j == 10
 						print(i.inspect, ":", j.inspect, " ")
 					end
 				end
@@ -1077,7 +1077,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 			source: `
 				$foo: fornum j := 1; j <= 5; j += 1
 					fornum i := 1; i <= 5; i += 1
-						continue$foo if i % 2 == 0 || j % 2 == 0
+						continue[foo] if i % 2 == 0 || j % 2 == 0
 						println j.to_string + ":" + i.to_string
 					end
 				end
@@ -1103,7 +1103,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 				$foo: fornum j := 1;; j += 1
 					fornum i := 1;; i += 1
 						println j.to_string + ":" + i.to_string
-						break$foo if i >= 5
+						break[foo] if i >= 5
 					end
 					break if j >= 5
 				end
@@ -1111,7 +1111,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 			wantStdout:   "1:1\n1:2\n1:3\n1:4\n1:5\n",
 			wantStackTop: value.Nil,
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(148, 7, 6), P(162, 7, 20)), "unreachable code"),
+				diagnostic.NewWarning(L(P(149, 7, 6), P(163, 7, 20)), "unreachable code"),
 			},
 		},
 	}
@@ -1196,7 +1196,7 @@ func TestVMSource_While(t *testing.T) {
 					j += 1
 					i := 0
 					while true
-						break$foo if i >= 5
+						break[foo] if i >= 5
 						i += 1
 						println j.to_string + ":" + i.to_string
 					end
@@ -1208,7 +1208,7 @@ func TestVMSource_While(t *testing.T) {
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(28, 3, 17), P(31, 3, 20)), "this condition will always have the same result since type `true` is truthy"),
 				diagnostic.NewWarning(L(P(68, 6, 12), P(71, 6, 15)), "this condition will always have the same result since type `true` is truthy"),
-				diagnostic.NewWarning(L(P(172, 11, 6), P(186, 11, 20)), "unreachable code"),
+				diagnostic.NewWarning(L(P(173, 11, 6), P(187, 11, 20)), "unreachable code"),
 			},
 		},
 		"continue": {
@@ -1255,7 +1255,7 @@ func TestVMSource_While(t *testing.T) {
 					i := 0
 					while i < 5
 						i += 1
-						continue$foo if i % 2 == 0 || j % 2 == 0
+						continue[foo] if i % 2 == 0 || j % 2 == 0
 						println j.to_string + ":" + i.to_string
 					end
 				end
@@ -1407,7 +1407,7 @@ func TestVMSource_ModifierWhile(t *testing.T) {
 					j += 1
 					i := 0
 					do
-						break$foo if i >= 5
+						break[foo] if i >= 5
 						i += 1
 						println j.to_string + ":" + i.to_string
 					end while true
@@ -1417,9 +1417,9 @@ func TestVMSource_ModifierWhile(t *testing.T) {
 			wantStdout:   "1:1\n1:2\n1:3\n1:4\n1:5\n",
 			wantStackTop: value.Nil,
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(197, 12, 15), P(200, 12, 18)), "this condition will always have the same result since type `true` is truthy"),
-				diagnostic.NewWarning(L(P(157, 10, 16), P(160, 10, 19)), "this condition will always have the same result since type `true` is truthy"),
-				diagnostic.NewWarning(L(P(167, 11, 6), P(181, 11, 20)), "unreachable code"),
+				diagnostic.NewWarning(L(P(198, 12, 15), P(201, 12, 18)), "this condition will always have the same result since type `true` is truthy"),
+				diagnostic.NewWarning(L(P(158, 10, 16), P(161, 10, 19)), "this condition will always have the same result since type `true` is truthy"),
+				diagnostic.NewWarning(L(P(168, 11, 6), P(182, 11, 20)), "unreachable code"),
 			},
 		},
 		"continue": {
@@ -1466,7 +1466,7 @@ func TestVMSource_ModifierWhile(t *testing.T) {
 					i := 0
 					do
 						i += 1
-						continue$foo if i % 2 == 0 || j % 2 == 0
+						continue[foo] if i % 2 == 0 || j % 2 == 0
 						println j.to_string + ":" + i.to_string
 					end while i < 5
 				end while j < 5
@@ -1618,7 +1618,7 @@ func TestVMSource_Until(t *testing.T) {
 					j += 1
 					i := 0
 					until false
-						break$foo if i >= 5
+						break[foo] if i >= 5
 						i += 1
 						println j.to_string + ":" + i.to_string
 					end
@@ -1630,7 +1630,7 @@ func TestVMSource_Until(t *testing.T) {
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(28, 3, 17), P(32, 3, 21)), "this condition will always have the same result since type `false` is falsy"),
 				diagnostic.NewWarning(L(P(69, 6, 12), P(73, 6, 16)), "this condition will always have the same result since type `false` is falsy"),
-				diagnostic.NewWarning(L(P(174, 11, 6), P(188, 11, 20)), "unreachable code"),
+				diagnostic.NewWarning(L(P(175, 11, 6), P(189, 11, 20)), "unreachable code"),
 			},
 		},
 		"continue": {
@@ -1677,7 +1677,7 @@ func TestVMSource_Until(t *testing.T) {
 					i := 0
 					until i >= 5
 						i += 1
-						continue$foo if i % 2 == 0 || j % 2 == 0
+						continue[foo] if i % 2 == 0 || j % 2 == 0
 						println j.to_string + ":" + i.to_string
 					end
 				end
@@ -1829,7 +1829,7 @@ func TestVMSource_ModifierUntil(t *testing.T) {
 					j += 1
 					i := 0
 					do
-						break$foo if i >= 5
+						break[foo] if i >= 5
 						i += 1
 						println j.to_string + ":" + i.to_string
 					end until false
@@ -1839,9 +1839,9 @@ func TestVMSource_ModifierUntil(t *testing.T) {
 			wantStdout:   "1:1\n1:2\n1:3\n1:4\n1:5\n",
 			wantStackTop: value.Nil,
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L(P(198, 12, 15), P(202, 12, 19)), "this condition will always have the same result since type `false` is falsy"),
-				diagnostic.NewWarning(L(P(157, 10, 16), P(161, 10, 20)), "this condition will always have the same result since type `false` is falsy"),
-				diagnostic.NewWarning(L(P(168, 11, 6), P(182, 11, 20)), "unreachable code"),
+				diagnostic.NewWarning(L(P(199, 12, 15), P(203, 12, 19)), "this condition will always have the same result since type `false` is falsy"),
+				diagnostic.NewWarning(L(P(158, 10, 16), P(162, 10, 20)), "this condition will always have the same result since type `false` is falsy"),
+				diagnostic.NewWarning(L(P(169, 11, 6), P(183, 11, 20)), "unreachable code"),
 			},
 		},
 		"continue": {
@@ -1888,7 +1888,7 @@ func TestVMSource_ModifierUntil(t *testing.T) {
 					i := 0
 					do
 						i += 1
-						continue$foo if i % 2 == 0 || j % 2 == 0
+						continue[foo] if i % 2 == 0 || j % 2 == 0
 						println j.to_string + ":" + i.to_string
 					end until i >= 5
 				end until j >= 5

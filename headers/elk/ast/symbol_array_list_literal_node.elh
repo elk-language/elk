@@ -3,8 +3,7 @@ module Std::Elk::AST
     Represents a symbol ArrayList literal eg. `\s[foo bar]`
   ]##
   sealed primitive class SymbolArrayListLiteralNode
-    include ExpressionNode,
-            PatternNode
+    include PatternExpressionNode
 
     init(
       elements: ArrayTuple[SymbolCollectionContentNode] = loop; end,

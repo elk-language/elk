@@ -73,14 +73,14 @@ func TestClosureType(t *testing.T) {
 								[]ast.ParameterNode{
 									ast.NewSignatureParameterNode(
 										L(S(P(6, 1, 7), P(14, 1, 15))),
-										"a",
+										ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(6, 1, 7))), "a"),
 										ast.NewPublicConstantNode(L(S(P(9, 1, 10), P(14, 1, 15))), "String"),
 										false,
 										ast.NormalParameterKind,
 									),
 									ast.NewSignatureParameterNode(
 										L(S(P(17, 1, 18), P(23, 1, 24))),
-										"b",
+										ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(17, 1, 18))), "b"),
 										ast.NewPublicConstantNode(L(S(P(21, 1, 22), P(23, 1, 24))), "Int"),
 										true,
 										ast.NormalParameterKind,
@@ -551,6 +551,87 @@ func TestNotType(t *testing.T) {
 
 func TestNilableType(t *testing.T) {
 	tests := testTable{
+		"can have unquote": {
+			input: "type unquote(foo + 2)?",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(21, 1, 22))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(21, 1, 22))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(21, 1, 22))),
+							ast.NewNilableTypeNode(
+								L(S(P(5, 1, 6), P(21, 1, 22))),
+								ast.NewUnquoteNode(
+									L(S(P(5, 1, 6), P(20, 1, 21))),
+									ast.UNQUOTE_TYPE_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(13, 1, 14), P(19, 1, 20))),
+										T(L(S(P(17, 1, 18), P(17, 1, 18))), token.PLUS),
+										ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(15, 1, 16))), "foo"),
+										ast.NewIntLiteralNode(L(S(P(19, 1, 20), P(19, 1, 20))), "2"),
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have unquote_type": {
+			input: "type unquote_type(foo + 2)?",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(26, 1, 27))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(26, 1, 27))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(26, 1, 27))),
+							ast.NewNilableTypeNode(
+								L(S(P(5, 1, 6), P(26, 1, 27))),
+								ast.NewUnquoteNode(
+									L(S(P(5, 1, 6), P(25, 1, 26))),
+									ast.UNQUOTE_TYPE_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(18, 1, 19), P(24, 1, 25))),
+										T(L(S(P(22, 1, 23), P(22, 1, 23))), token.PLUS),
+										ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "foo"),
+										ast.NewIntLiteralNode(L(S(P(24, 1, 25), P(24, 1, 25))), "2"),
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have short unquote": {
+			input: "type !{foo / 2}?",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(15, 1, 16))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(15, 1, 16))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(15, 1, 16))),
+							ast.NewNilableTypeNode(
+								L(S(P(5, 1, 6), P(15, 1, 16))),
+								ast.NewUnquoteNode(
+									L(S(P(5, 1, 6), P(14, 1, 15))),
+									ast.UNQUOTE_TYPE_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(7, 1, 8), P(13, 1, 14))),
+										T(L(S(P(11, 1, 12), P(11, 1, 12))), token.SLASH),
+										ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
+										ast.NewIntLiteralNode(L(S(P(13, 1, 14), P(13, 1, 14))), "2"),
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
 		"type can be a nilable type with a constant": {
 			input: "type String?",
 			want: ast.NewProgramNode(

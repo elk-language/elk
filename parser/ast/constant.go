@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/elk-language/elk/indent"
@@ -48,6 +49,7 @@ func (*PrivateConstantNode) complexConstantNode() {}
 func (*ConstantLookupNode) complexConstantNode()  {}
 func (*GenericConstantNode) complexConstantNode() {}
 func (*NilLiteralNode) complexConstantNode()      {}
+func (*UnquoteNode) complexConstantNode()         {}
 
 // All nodes that should be valid constants
 // should implement this interface.
@@ -63,6 +65,7 @@ type ConstantNode interface {
 func (*InvalidNode) constantNode()         {}
 func (*PublicConstantNode) constantNode()  {}
 func (*PrivateConstantNode) constantNode() {}
+func (*UnquoteNode) constantNode()         {}
 
 // Represents a public constant eg. `Foo`.
 type PublicConstantNode struct {
@@ -102,8 +105,23 @@ func (n *PublicConstantNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+var PublicConstantRegexp = regexp.MustCompile(`^\p{Lu}[\p{L}\p{N}_]*$`)
+
 func (n *PublicConstantNode) String() string {
-	return n.Value
+	if PublicConstantRegexp.MatchString(n.Value) {
+		return n.Value
+	}
+
+	var buff strings.Builder
+	buff.WriteString("$$")
+
+	if PrefixedIdentifierRegexp.MatchString(n.Value) {
+		buff.WriteString(n.Value)
+		return buff.String()
+	}
+
+	buff.WriteString(value.String(n.Value).Inspect())
+	return buff.String()
 }
 
 func (*PublicConstantNode) IsStatic() bool {
@@ -111,11 +129,11 @@ func (*PublicConstantNode) IsStatic() bool {
 }
 
 func (*PublicConstantNode) Class() *value.Class {
-	return value.PublicIdentifierNodeClass
+	return value.PublicConstantNodeClass
 }
 
 func (*PublicConstantNode) DirectClass() *value.Class {
-	return value.PublicIdentifierNodeClass
+	return value.PublicConstantNodeClass
 }
 
 func (n *PublicConstantNode) Inspect() string {
@@ -143,6 +161,8 @@ type PrivateConstantNode struct {
 	TypedNodeBase
 	Value string
 }
+
+var PrivateConstantRegexp = regexp.MustCompile(`^_\p{Lu}[\p{L}\p{N}_]*$`)
 
 func (n *PrivateConstantNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &PrivateConstantNode{
@@ -185,11 +205,11 @@ func (*PrivateConstantNode) IsStatic() bool {
 }
 
 func (*PrivateConstantNode) Class() *value.Class {
-	return value.PublicIdentifierNodeClass
+	return value.PrivateConstantNodeClass
 }
 
 func (*PrivateConstantNode) DirectClass() *value.Class {
-	return value.PublicIdentifierNodeClass
+	return value.PrivateConstantNodeClass
 }
 
 func (n *PrivateConstantNode) Inspect() string {

@@ -15,7 +15,7 @@ type KeyValueExpressionNode struct {
 	TypedNodeBase
 	Key    ExpressionNode
 	Value  ExpressionNode
-	static bool
+	static static
 }
 
 func (n *KeyValueExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -26,7 +26,6 @@ func (n *KeyValueExpressionNode) splice(loc *position.Location, args *[]Node, un
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Key:           key,
 		Value:         val,
-		static:        areExpressionsStatic(key, val),
 	}
 }
 
@@ -75,7 +74,14 @@ func (n *KeyValueExpressionNode) String() string {
 }
 
 func (k *KeyValueExpressionNode) IsStatic() bool {
-	return k.static
+	if k.static == staticUnset {
+		if areExpressionsStatic(k.Key, k.Value) {
+			k.static = staticTrue
+		} else {
+			k.static = staticFalse
+		}
+	}
+	return k.static == staticTrue
 }
 
 // Create a key value expression node eg. `foo => bar`
@@ -84,7 +90,6 @@ func NewKeyValueExpressionNode(loc *position.Location, key, val ExpressionNode) 
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Key:           key,
 		Value:         val,
-		static:        areExpressionsStatic(key, val),
 	}
 }
 
@@ -119,14 +124,14 @@ func (n *KeyValueExpressionNode) Error() string {
 // Represents a symbol value expression eg. `foo: bar`
 type SymbolKeyValueExpressionNode struct {
 	NodeBase
-	Key   string
+	Key   IdentifierNode
 	Value ExpressionNode
 }
 
 func (n *SymbolKeyValueExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SymbolKeyValueExpressionNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Key:      n.Key,
+		Key:      n.Key.splice(loc, args, unquote).(IdentifierNode),
 		Value:    n.Value.splice(loc, args, unquote).(ExpressionNode),
 	}
 }
@@ -164,7 +169,7 @@ func (n *SymbolKeyValueExpressionNode) Equal(other value.Value) bool {
 func (n *SymbolKeyValueExpressionNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString(n.Key)
+	buff.WriteString(n.Key.String())
 	buff.WriteString(": ")
 	buff.WriteString(n.Value.String())
 
@@ -176,7 +181,7 @@ func (s *SymbolKeyValueExpressionNode) IsStatic() bool {
 }
 
 // Create a symbol key value node eg. `foo: bar`
-func NewSymbolKeyValueExpressionNode(loc *position.Location, key string, val ExpressionNode) *SymbolKeyValueExpressionNode {
+func NewSymbolKeyValueExpressionNode(loc *position.Location, key IdentifierNode, val ExpressionNode) *SymbolKeyValueExpressionNode {
 	return &SymbolKeyValueExpressionNode{
 		NodeBase: NodeBase{loc: loc},
 		Key:      key,
@@ -198,7 +203,7 @@ func (n *SymbolKeyValueExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValueExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  key: ")
-	indent.IndentStringFromSecondLine(&buff, value.String(n.Key).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)

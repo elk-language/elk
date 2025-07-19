@@ -3,8 +3,7 @@ module Std::Elk::AST
     Represents a bin ArrayList literal eg. `\b[11 10]`
   ]##
   sealed primitive class BinArrayListLiteralNode
-    include ExpressionNode,
-            PatternNode
+    include PatternExpressionNode
 
     init(
       elements: ArrayTuple[IntCollectionContentNode],

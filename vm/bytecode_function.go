@@ -443,7 +443,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.LESS_INT, bytecode.LESS_FLOAT, bytecode.LESS_EQUAL_FLOAT, bytecode.NOT_EQUAL_INT, bytecode.NOT_EQUAL_FLOAT,
 		bytecode.INCREMENT_INT, bytecode.DECREMENT_INT, bytecode.CLOSE_UPVALUE_1, bytecode.CLOSE_UPVALUE_2, bytecode.CLOSE_UPVALUE_3,
 		bytecode.GENERATOR, bytecode.YIELD, bytecode.STOP_ITERATION, bytecode.GO, bytecode.DUP_SECOND,
-		bytecode.PROMISE, bytecode.AWAIT, bytecode.AWAIT_RESULT:
+		bytecode.PROMISE, bytecode.AWAIT, bytecode.AWAIT_RESULT, bytecode.AWAIT_SYNC:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,

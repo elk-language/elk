@@ -4,8 +4,7 @@ module Std::Elk::AST
     implement this interface.
   ]##
   mixin RegexLiteralNode
-    include PatternNode,
-            ExpressionNode
+    include PatternExpressionNode
 
     ##[
       `i` - case insensitive character matching

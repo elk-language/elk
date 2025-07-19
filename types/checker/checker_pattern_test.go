@@ -965,7 +965,7 @@ func TestStringLiteralPattern(t *testing.T) {
 				var "hello${1 + 2i8}" as a = b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(38, 3, 21), P(40, 3, 23)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `2i8`"),
+				diagnostic.NewFailure(L("<main>", P(38, 3, 21), P(40, 3, 23)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `2i8`"),
 			},
 		},
 		"pattern with raw string literal": {
@@ -1019,7 +1019,7 @@ func TestSymbolLiteralPattern(t *testing.T) {
 				var :"hello${1 + 2i8}" as a = b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(38, 3, 22), P(40, 3, 24)), "expected type `Std::Int` for parameter `other` in call to `+`, got type `2i8`"),
+				diagnostic.NewFailure(L("<main>", P(38, 3, 22), P(40, 3, 24)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `2i8`"),
 			},
 		},
 		"pattern with simple symbol literal": {
@@ -1697,7 +1697,7 @@ func TestObjectPattern(t *testing.T) {
 				var b: 7 = f
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(69, 6, 13), P(71, 6, 15)), "argument `a` is missing in call to `bar`"),
+				diagnostic.NewFailure(L("<main>", P(69, 6, 13), P(71, 6, 15)), "argument `a` is missing in call to `Foo.:bar`"),
 				diagnostic.NewFailure(L("<main>", P(102, 7, 16), P(104, 7, 18)), "type `Std::Int` cannot be assigned to type `9`"),
 				diagnostic.NewFailure(L("<main>", P(121, 8, 16), P(121, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
 			},
@@ -2064,7 +2064,7 @@ func TestObjectPattern(t *testing.T) {
 				var c: 7 = f
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(69, 6, 13), P(74, 6, 18)), "argument `a` is missing in call to `bar`"),
+				diagnostic.NewFailure(L("<main>", P(69, 6, 13), P(74, 6, 18)), "argument `a` is missing in call to `Foo.:bar`"),
 				diagnostic.NewFailure(L("<main>", P(105, 7, 16), P(105, 7, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 				diagnostic.NewFailure(L("<main>", P(122, 8, 16), P(122, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
 			},

@@ -3,13 +3,13 @@ module Std::Elk::AST
     Represents a public identifier eg. `foo`.
   ]##
   sealed primitive class PublicIdentifierNode
-    include ExpressionNode,
-            PatternNode,
+    include PatternExpressionNode,
             UsingSubentryNode,
             IdentifierNode
 
     init(value: String, location: FS::Location = loop; end); end
     def value: String; end
     def location: FS::Location; end
+    def to_symbol: Symbol; end
   end
 end

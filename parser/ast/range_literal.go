@@ -33,7 +33,7 @@ type RangeLiteralNode struct {
 	Start  ExpressionNode
 	End    ExpressionNode
 	Op     *token.Token
-	static bool
+	static static
 }
 
 func (n *RangeLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -52,7 +52,6 @@ func (n *RangeLiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 		Start:         start,
 		End:           end,
 		Op:            n.Op.Splice(loc, unquote),
-		static:        areExpressionsStatic(start, end),
 	}
 }
 
@@ -123,7 +122,14 @@ func (n *RangeLiteralNode) String() string {
 }
 
 func (r *RangeLiteralNode) IsStatic() bool {
-	return r.static
+	if r.static == staticUnset {
+		if areExpressionsStatic(r.Start, r.End) {
+			r.static = staticTrue
+		} else {
+			r.static = staticFalse
+		}
+	}
+	return r.static == staticTrue
 }
 
 // Create a Range literal node eg. `1...5`
@@ -133,7 +139,6 @@ func NewRangeLiteralNode(loc *position.Location, op *token.Token, start, end Exp
 		Op:            op,
 		Start:         start,
 		End:           end,
-		static:        areExpressionsStatic(start, end),
 	}
 }
 

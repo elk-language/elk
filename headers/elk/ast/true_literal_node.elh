@@ -3,9 +3,8 @@ module Std::Elk::AST
     `true` literal.
   ]##
   sealed primitive class TrueLiteralNode
-    include ExpressionNode,
-            TypeNode,
-            PatternNode
+    include PatternExpressionNode,
+            TypeNode
 
     init(location: FS::Location = loop; end); end
     def location: FS::Location; end

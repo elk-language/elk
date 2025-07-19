@@ -17,7 +17,423 @@ import (
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
 )
+
+// Gathers all declarations of methods, constants and instance variables
+func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
+	for _, statement := range statements {
+		stmt, ok := statement.(*ast.ExpressionStatementNode)
+		if !ok {
+			continue
+		}
+
+		expression := stmt.Expression
+
+		switch expr := expression.(type) {
+		case *ast.MacroBoundaryNode:
+			c.hoistMethodDefinitions(expr.Body)
+		case *ast.ConstantDeclarationNode:
+			c.hoistConstantDeclaration(expr)
+		case *ast.AliasDeclarationNode:
+			c.hoistAliasDeclaration(expr)
+		case *ast.MethodDefinitionNode:
+			c.hoistMethodDefinition(expr)
+		case *ast.MethodSignatureDefinitionNode:
+			c.hoistMethodSignatureDefinition(expr)
+		case *ast.InitDefinitionNode:
+			stmt.Expression = c.hoistInitDefinition(expr)
+		case *ast.InstanceVariableDeclarationNode:
+			c.hoistInstanceVariableDeclaration(expr)
+		case *ast.GetterDeclarationNode:
+			c.hoistGetterDeclaration(expr)
+		case *ast.SetterDeclarationNode:
+			c.hoistSetterDeclaration(expr)
+		case *ast.AttrDeclarationNode:
+			c.hoistAttrDeclaration(expr)
+		case *ast.UsingExpressionNode:
+			c.checkUsingExpressionForMethods(expr)
+		case *ast.ModuleDeclarationNode:
+			c.hoistMethodDefinitionsWithinModule(expr)
+		case *ast.ClassDeclarationNode:
+			c.hoistMethodDefinitionsWithinClass(expr)
+		case *ast.MixinDeclarationNode:
+			c.hoistMethodDefinitionsWithinMixin(expr)
+		case *ast.InterfaceDeclarationNode:
+			c.hoistMethodDefinitionsWithinInterface(expr)
+		case *ast.SingletonBlockExpressionNode:
+			c.hoistMethodDefinitionsWithinSingleton(expr)
+		case *ast.ExtendWhereBlockExpressionNode:
+			c.hoistMethodDefinitionsWithinExtendWhere(expr)
+		}
+	}
+}
+
+func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.MethodDefinitionNode {
+	switch c.mode {
+	case classMode:
+	default:
+		c.addFailure(
+			"init definitions cannot appear outside of classes",
+			initNode.Location(),
+		)
+	}
+	method, mod := c.declareMethod(
+		nil,
+		c.currentMethodScope().container,
+		initNode.DocComment(),
+		false,
+		false,
+		false,
+		false,
+		false,
+		symbol.S_init,
+		nil,
+		initNode.Parameters,
+		nil,
+		initNode.ThrowType,
+		initNode.Location(),
+	)
+	initNode.SetType(method)
+	newNode := ast.NewMethodDefinitionNode(
+		initNode.Location(),
+		initNode.DocComment(),
+		0,
+		ast.NewPublicIdentifierNode(initNode.Location(), "#init"),
+		nil,
+		initNode.Parameters,
+		nil,
+		initNode.ThrowType,
+		initNode.Body,
+	)
+	newNode.SetType(method)
+	c.registerMethodCheck(method, newNode)
+	if mod != nil {
+		c.popConstScope()
+	}
+	return newNode
+}
+
+func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
+	node.SetType(types.Untyped{})
+	namespace := c.currentMethodScope().container
+	for _, entry := range node.Entries {
+		c.hoistAliasEntry(entry, namespace)
+	}
+}
+
+func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace types.Namespace) {
+	oldName := c.identifierToName(node.OldName)
+	oldNameSymbol := value.ToSymbol(oldName)
+	aliasedMethod := namespace.Method(oldNameSymbol)
+	if aliasedMethod == nil {
+		c.addMissingMethodError(namespace, oldName, node.Location())
+		return
+	}
+	newName := value.ToSymbol(c.identifierToName(node.NewName))
+	oldMethod := c.resolveMethodInNamespace(namespace, newName)
+	c.checkMethodOverrideWithPlaceholder(aliasedMethod, oldMethod, node.Location())
+	c.checkSpecialMethods(newName, aliasedMethod, nil, node.Location())
+	namespace.SetMethodAlias(newName, aliasedMethod)
+}
+
+func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNode, methodName, asName string, location *position.Location) {
+	_, constant, fullConstantName, _ := c.resolveConstantInRoot(receiverNode)
+	var namespace types.Namespace
+
+	switch con := constant.(type) {
+	case *types.Module:
+		namespace = con
+	case *types.SingletonClass:
+		namespace = con
+	default:
+		c.addFailure(
+			fmt.Sprintf("undefined namespace `%s`", lexer.Colorize(fullConstantName)),
+			receiverNode.Location(),
+		)
+		return
+	}
+
+	originalMethodSymbol := value.ToSymbol(methodName)
+	var newMethodSymbol value.Symbol
+	if asName != "" {
+		newMethodSymbol = value.ToSymbol(asName)
+	} else {
+		newMethodSymbol = value.ToSymbol(methodName)
+	}
+
+	usingNamespace := c.getUsingBufferNamespace()
+
+	method := namespace.MethodString(methodName)
+	if method != nil {
+		usingNamespace.SetMethod(newMethodSymbol, method)
+		return
+	}
+
+	placeholder := types.NewMethodPlaceholder(
+		fmt.Sprintf("%s::%s", fullConstantName, methodName),
+		newMethodSymbol,
+		usingNamespace,
+		location,
+	)
+	c.registerMethodPlaceholder(placeholder)
+	namespace.SetMethod(originalMethodSymbol, placeholder)
+	usingNamespace.SetMethod(newMethodSymbol, placeholder)
+}
+
+func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
+	for _, entry := range node.Entries {
+		c.resolveUsingEntry(entry)
+	}
+}
+
+func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode) {
+	typ := c.TypeOf(entry)
+	switch t := typ.(type) {
+	case *types.Module:
+		c.pushConstScope(makeUsingConstantScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t))
+	case *types.Mixin:
+		c.pushConstScope(makeUsingConstantScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t))
+	case *types.Class:
+		c.pushConstScope(makeUsingConstantScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t))
+	case *types.Interface:
+		c.pushConstScope(makeUsingConstantScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t))
+	case *types.NamespacePlaceholder:
+		c.pushConstScope(makeUsingConstantScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t))
+		t.Locations.Push(entry.Location())
+	case *types.UsingBufferNamespace:
+		if c.enclosingScopeIsAUsingBuffer() {
+			return
+		}
+		c.pushConstScope(makeUsingBufferConstantScope(t))
+		c.pushMethodScope(makeUsingBufferMethodScope(t))
+	}
+}
+
+func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNode) {
+	class, ok := c.TypeOf(node).(*types.Class)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(class))
+		c.pushMethodScope(makeLocalMethodScope(class))
+	}
+
+	previousMode := c.mode
+	previousSelf := c.selfType
+	c.mode = classMode
+	c.selfType = class
+	c.hoistMethodDefinitions(node.Body)
+	c.setMode(previousMode)
+	c.selfType = previousSelf
+
+	c.registerClassWithIvars(class, node)
+	if ok {
+		c.popLocalConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) registerClassWithIvars(class *types.Class, node *ast.ClassDeclarationNode) {
+	if class == nil || !types.NamespaceDeclaresInstanceVariables(class) {
+		return
+	}
+
+	c.classesWithIvars = append(c.classesWithIvars, node)
+}
+
+func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclarationNode) {
+	module, ok := c.TypeOf(node).(*types.Module)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(module))
+		c.pushMethodScope(makeLocalMethodScope(module))
+	}
+
+	previousMode := c.mode
+	previousSelf := c.selfType
+	c.mode = moduleMode
+	c.selfType = module
+	c.hoistMethodDefinitions(node.Body)
+	c.setMode(previousMode)
+	c.selfType = previousSelf
+
+	if ok {
+		c.popLocalConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) hoistMethodDefinitionsWithinMixin(node *ast.MixinDeclarationNode) {
+	mixin, ok := c.TypeOf(node).(*types.Mixin)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(mixin))
+		c.pushMethodScope(makeLocalMethodScope(mixin))
+	}
+
+	previousMode := c.mode
+	previousSelf := c.selfType
+	c.mode = mixinMode
+	c.selfType = mixin
+	c.hoistMethodDefinitions(node.Body)
+	c.setMode(previousMode)
+	c.selfType = previousSelf
+
+	if ok {
+		c.popLocalConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) hoistMethodDefinitionsWithinInterface(node *ast.InterfaceDeclarationNode) {
+	iface, ok := c.TypeOf(node).(*types.Interface)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(iface))
+		c.pushMethodScope(makeLocalMethodScope(iface))
+	}
+
+	previousMode := c.mode
+	previousSelf := c.selfType
+	c.mode = interfaceMode
+	c.selfType = iface
+	c.hoistMethodDefinitions(node.Body)
+	c.setMode(previousMode)
+	c.selfType = previousSelf
+
+	if ok {
+		c.popLocalConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlockExpressionNode) {
+	namespace := c.currentConstScope().container
+	singleton := namespace.Singleton()
+	if singleton == nil {
+		return
+	}
+
+	c.pushConstScope(makeLocalConstantScope(singleton))
+	c.pushMethodScope(makeLocalMethodScope(singleton))
+
+	previousMode := c.mode
+	previousSelf := c.selfType
+	c.mode = singletonMode
+	c.selfType = singleton
+	c.hoistMethodDefinitions(expr.Body)
+	c.setMode(previousMode)
+	c.selfType = previousSelf
+
+	c.popLocalConstScope()
+	c.popMethodScope()
+}
+
+func (c *Checker) hoistMethodDefinitionsWithinExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
+	namespace, ok := c.TypeOf(node).(*types.MixinWithWhere)
+	if ok {
+		c.pushConstScope(makeLocalConstantScope(namespace))
+		c.pushMethodScope(makeLocalMethodScope(namespace))
+	}
+
+	previousMode := c.mode
+	c.mode = extendWhereMode
+	c.hoistMethodDefinitions(node.Body)
+	c.setMode(previousMode)
+
+	if ok {
+		c.popLocalConstScope()
+		c.popMethodScope()
+	}
+}
+
+func (c *Checker) checkUsingExpressionForMethods(node *ast.UsingExpressionNode) {
+	for _, entry := range node.Entries {
+		c.resolveUsingEntry(entry)
+		switch e := entry.(type) {
+		case *ast.MethodLookupNode:
+			c.checkUsingMethodLookupEntryNode(
+				e.Receiver,
+				c.identifierToName(e.Name),
+				"",
+				e.Location(),
+			)
+		case *ast.MethodLookupAsNode:
+			c.checkUsingMethodLookupEntryNode(
+				e.MethodLookup.Receiver,
+				c.identifierToName(e.MethodLookup.Name),
+				c.identifierToName(e.AsName),
+				e.Location(),
+			)
+		case *ast.UsingEntryWithSubentriesNode:
+			c.checkUsingEntryWithSubentriesForMethods(e)
+		}
+	}
+}
+
+func (c *Checker) checkUsingEntryWithSubentriesForMethods(node *ast.UsingEntryWithSubentriesNode) {
+	for _, subentry := range node.Subentries {
+		switch s := subentry.(type) {
+		case *ast.PublicIdentifierNode:
+			c.checkUsingMethodLookupEntryNode(node.Namespace, s.Value, "", s.Location())
+		case *ast.PublicIdentifierAsNode:
+			c.checkUsingMethodLookupEntryNode(node.Namespace, s.Target.Value, s.AsName, s.Location())
+		case *ast.PublicConstantNode, *ast.PublicConstantAsNode:
+		default:
+			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))
+		}
+	}
+}
+
+func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
+	definedUnder := c.currentMethodScope().container
+	method, mod := c.declareMethod(
+		nil,
+		definedUnder,
+		node.DocComment(),
+		node.IsAbstract(),
+		node.IsSealed(),
+		false,
+		node.IsGenerator(),
+		node.IsAsync(),
+		value.ToSymbol(c.identifierToName(node.Name)),
+		node.TypeParameters,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Location(),
+	)
+	method.Node = node
+	node.SetType(method)
+	c.registerMethodCheck(method, node)
+	if mod != nil {
+		c.popConstScope()
+	}
+}
+
+func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefinitionNode) {
+	method, mod := c.declareMethod(
+		nil,
+		c.currentMethodScope().container,
+		node.DocComment(),
+		true,
+		false,
+		false,
+		false,
+		false,
+		value.ToSymbol(c.identifierToName(node.Name)),
+		node.TypeParameters,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Location(),
+	)
+	if mod != nil {
+		c.popConstScope()
+	}
+	node.SetType(method)
+}
 
 func (c *Checker) newMethodChecker(
 	filename string,
@@ -26,12 +442,13 @@ func (c *Checker) newMethodChecker(
 	selfType,
 	returnType,
 	throwType types.Type,
-	isInit bool,
+	mode mode,
+	threadPool *vm.ThreadPool,
 ) *Checker {
 	checker := &Checker{
 		env:            c.env,
 		Filename:       filename,
-		mode:           methodMode,
+		mode:           mode,
 		phase:          methodCheckPhase,
 		selfType:       selfType,
 		returnType:     returnType,
@@ -46,13 +463,12 @@ func (c *Checker) newMethodChecker(
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		compiler:             c.compiler,
-	}
-	if isInit {
-		checker.mode = initMode
+		threadPool:           threadPool,
 	}
 	return checker
 }
 
+// Checks whether all methods specified in `using` statements have been defined
 func (c *Checker) checkMethodPlaceholders() {
 	for _, placeholder := range c.methodPlaceholders {
 		if placeholder.IsChecked() {
@@ -87,7 +503,7 @@ func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefi
 	})
 }
 
-var concurrencyLimit = 10_000
+var concurrencyLimit = 1000
 
 func (c *Checker) checkMethods() {
 	concurrent.Foreach(
@@ -96,6 +512,14 @@ func (c *Checker) checkMethods() {
 		func(methodCheck methodCheckEntry) {
 			method := methodCheck.method
 			node := methodCheck.node
+
+			var mode mode
+			if method.IsInit() {
+				mode = initMode
+			} else {
+				mode = methodMode
+			}
+
 			methodChecker := c.newMethodChecker(
 				node.Location().FilePath,
 				methodCheck.constantScopes,
@@ -103,8 +527,10 @@ func (c *Checker) checkMethods() {
 				method.DefinedUnder,
 				method.ReturnType,
 				method.ThrowType,
-				method.IsInit(),
+				mode,
+				c.threadPool,
 			)
+
 			methodChecker.checkMethodDefinition(node, method)
 
 			// method has to be checked if it doesn't
@@ -116,8 +542,19 @@ func (c *Checker) checkMethods() {
 			}
 		},
 	)
+
+	c.methodChecks = nil
 }
 
+// Check whether method calls in constant definitions are valid.
+// This lets the typechecker detect situations like circular references
+// where a constant definition contains a call to a method
+// that uses the constant that is being defined.
+//
+//			const FOO: Int = bar()
+//	    def bar: Int
+//	      FOO * 5
+//	    end
 func (c *Checker) checkMethodsInConstants() {
 	for _, method := range c.methodCache.Slice {
 		c.checkMethodInConstant(method, method.UsedInConstants)
@@ -144,6 +581,7 @@ func (c *Checker) checkMethodInConstant(method *types.Method, usedInConstants ds
 }
 
 func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docComment string) {
+	name := c.identifierToName(node.Name)
 	method, mod := c.declareMethod(
 		nil,
 		c.currentMethodScope().container,
@@ -153,7 +591,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		false,
 		false,
 		false,
-		value.ToSymbol(node.Name),
+		value.ToSymbol(name),
 		nil,
 		nil,
 		node.TypeNode,
@@ -167,14 +605,14 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 
 	if init == nil {
 		body = ast.ExpressionToStatements(
-			ast.NewInstanceVariableNode(node.Location(), node.Name),
+			ast.NewPublicInstanceVariableNode(node.Location(), name),
 		)
 	} else {
 		body = ast.ExpressionToStatements(
 			ast.NewAssignmentExpressionNode(
 				node.Location(),
 				token.New(init.Location(), token.QUESTION_QUESTION_EQUAL),
-				ast.NewInstanceVariableNode(node.Location(), node.Name),
+				ast.NewPublicInstanceVariableNode(node.Location(), name),
 				init,
 			),
 		)
@@ -238,7 +676,7 @@ func (c *Checker) deepCopyMethod(method *types.Method) *types.Method {
 }
 
 func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docComment string) {
-	setterName := node.Name + "="
+	setterName := c.identifierToName(node.Name) + "="
 
 	methodScope := c.currentMethodScope()
 	var paramSpan *position.Location
@@ -279,7 +717,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		node.Location(),
 		docComment,
 		0,
-		setterName,
+		ast.NewPublicIdentifierNode(node.Name.Location(), setterName),
 		nil,
 		params,
 		nil,
@@ -298,7 +736,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 
 func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, location *position.Location) {
 	c.addFailure(
-		fmt.Sprintf("expected %s arguments in call to `%s`, got %d", method.ExpectedParamCountString(), lexer.Colorize(method.Name.String()), got),
+		fmt.Sprintf("expected %s arguments in call to `%s`, got %d", method.ExpectedParamCountString(), types.InspectWithColor(method), got),
 		location,
 	)
 }
@@ -507,8 +945,9 @@ func (c *Checker) checkMethod(
 		case *ast.MethodParameterNode:
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
+			pName := c.identifierToName(p.Name)
 			if p.SetInstanceVariable {
-				c.registerInitialisedInstanceVariable(value.ToSymbol(p.Name))
+				c.registerInitialisedInstanceVariable(value.ToSymbol(pName))
 			}
 			declaredType = c.TypeOf(p).(*types.Parameter).Type
 			if p.TypeNode != nil {
@@ -526,12 +965,13 @@ func (c *Checker) checkMethod(
 				initType := c.TypeOf(initNode)
 				c.checkCanAssign(initType, declaredType, initNode.Location())
 			}
-			c.addLocal(p.Name, newLocal(declaredType, true, checkedMethod.IsGenerator()))
+			c.addLocal(pName, newLocal(declaredType, true, checkedMethod.IsGenerator()))
 			p.Initialiser = initNode
 			p.TypeNode = declaredTypeNode
 		case *ast.FormalParameterNode:
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
+			pName := c.identifierToName(p.Name)
 			declaredType = c.TypeOf(p).(*types.Parameter).Type
 			if p.TypeNode != nil {
 				declaredTypeNode = p.TypeNode
@@ -548,7 +988,7 @@ func (c *Checker) checkMethod(
 				initType := c.TypeOf(initNode)
 				c.checkCanAssign(initType, declaredType, initNode.Location())
 			}
-			c.addLocal(p.Name, newLocal(declaredType, true, false))
+			c.addLocal(pName, newLocal(declaredType, true, false))
 			p.Initialiser = initNode
 			p.TypeNode = declaredTypeNode
 		default:
@@ -609,6 +1049,8 @@ func (c *Checker) checkMethod(
 		}
 		if checkedMethod.IsInit() {
 			c.mode = initMode
+		} else if checkedMethod.IsMacro() {
+			c.mode = macroMode
 		} else {
 			c.mode = methodMode
 		}
@@ -923,7 +1365,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 					types.InspectWithColor(param.Type),
 					param.Name.String(),
-					lexer.Colorize(method.Name.String()),
+					types.InspectWithColor(method),
 					types.InspectWithColor(posArgType),
 				),
 				posArg.Location(),
@@ -937,7 +1379,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				fmt.Sprintf(
 					"expected %d... positional arguments in call to `%s`, got %d",
 					requiredPosParamCount,
-					lexer.Colorize(method.Name.String()),
+					types.InspectWithColor(method),
 					len(positionalArguments),
 				),
 				location,
@@ -969,7 +1411,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(posRestParam.Type),
 						posRestParam.Name.String(),
-						lexer.Colorize(method.Name.String()),
+						types.InspectWithColor(method),
 						types.InspectWithColor(posArgType),
 					),
 					posArg.Location(),
@@ -1009,7 +1451,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
 						param.Name.String(),
-						lexer.Colorize(method.Name.String()),
+						types.InspectWithColor(method),
 						types.InspectWithColor(posArgType),
 					),
 					posArg.Location(),
@@ -1026,7 +1468,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	firstNamedParamIndex := currentParamIndex
 	definedNamedArgumentsSlice := make([]bool, len(namedArguments))
 
-	for i := 0; i < len(method.Params); i++ {
+	for i := range method.Params {
 		param := method.Params[i]
 		switch param.Kind {
 		case types.PositionalRestParameterKind, types.NamedRestParameterKind:
@@ -1046,7 +1488,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				panic(fmt.Sprintf("invalid named argument node: %T", namedArgI))
 			}
 
-			if namedArg.Name != paramName {
+			if c.identifierToName(namedArg.Name) != paramName {
 				continue
 			}
 			if found || i < firstNamedParamIndex {
@@ -1054,7 +1496,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					fmt.Sprintf(
 						"duplicated argument `%s` in call to `%s`",
 						paramName,
-						lexer.Colorize(method.Name.String()),
+						types.InspectWithColor(method),
 					),
 					namedArg.Location(),
 				)
@@ -1077,7 +1519,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
 						types.InspectWithColor(param.Type),
 						param.Name.String(),
-						lexer.Colorize(method.Name.String()),
+						types.InspectWithColor(method),
 						types.InspectWithColor(namedArgType),
 					),
 					namedArg.Location(),
@@ -1099,7 +1541,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				fmt.Sprintf(
 					"argument `%s` is missing in call to `%s`",
 					paramName,
-					lexer.Colorize(method.Name.String()),
+					types.InspectWithColor(method),
 				),
 				location,
 			)
@@ -1183,8 +1625,8 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 				c.addFailure(
 					fmt.Sprintf(
 						"nonexistent parameter `%s` given in call to `%s`",
-						namedArg.Name,
-						lexer.Colorize(method.Name.String()),
+						namedArg.Name.String(),
+						types.InspectWithColor(method),
 					),
 					namedArg.Location(),
 				)
@@ -1218,7 +1660,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					fmt.Sprintf(
 						"cannot infer type argument for `%s` in call to `%s`",
 						types.InspectWithColor(typeParam),
-						lexer.Colorize(method.Name.String()),
+						types.InspectWithColor(method),
 					),
 					location,
 				)
@@ -1274,7 +1716,12 @@ func (c *Checker) checkNamedRestArgumentType(methodName string, argType types.Ty
 	)
 }
 
-func (c *Checker) checkNonGenericMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, location *position.Location) []ast.ExpressionNode {
+func (c *Checker) checkNonGenericMethodArguments(
+	method *types.Method,
+	positionalArguments []ast.ExpressionNode,
+	namedArguments []ast.NamedArgumentNode,
+	location *position.Location,
+) []ast.ExpressionNode {
 	posArgs, _ := c.checkMethodArgumentsAndInferTypeArguments(method, positionalArguments, namedArguments, nil, location)
 	return posArgs
 }
@@ -1309,7 +1756,12 @@ func (c *Checker) checkMethodArguments(
 		}
 
 		method = c.replaceTypeParametersInMethodCopy(method, typeArgs.ArgumentMap, true)
-		typedPositionalArguments = c.checkNonGenericMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, location)
+		typedPositionalArguments = c.checkNonGenericMethodArguments(
+			method,
+			positionalArgumentNodes,
+			namedArgumentNodes,
+			location,
+		)
 		return method, typedPositionalArguments
 	}
 
@@ -1331,7 +1783,12 @@ func (c *Checker) checkMethodArguments(
 		return method, typedPositionalArguments
 	}
 
-	typedPositionalArguments = c.checkNonGenericMethodArguments(method, positionalArgumentNodes, namedArgumentNodes, location)
+	typedPositionalArguments = c.checkNonGenericMethodArguments(
+		method,
+		positionalArgumentNodes,
+		namedArgumentNodes,
+		location,
+	)
 	return method, typedPositionalArguments
 }
 
@@ -1573,6 +2030,7 @@ func (c *Checker) declareMethod(
 	for i, paramNode := range paramNodes {
 		switch p := paramNode.(type) {
 		case *ast.FormalParameterNode:
+			pName := c.identifierToName(p.Name)
 			var declaredType types.Type
 			if p.TypeNode != nil {
 				p.TypeNode = c.checkTypeNode(p.TypeNode)
@@ -1581,7 +2039,7 @@ func (c *Checker) declareMethod(
 				declaredType = baseMethod.Params[i].Type
 			} else {
 				c.addFailure(
-					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
+					fmt.Sprintf("cannot declare parameter `%s` without a type", pName),
 					paramNode.Location(),
 				)
 			}
@@ -1598,7 +2056,7 @@ func (c *Checker) declareMethod(
 			if p.Initialiser != nil {
 				kind = types.DefaultValueParameterKind
 			}
-			name := value.ToSymbol(p.Name)
+			name := value.ToSymbol(pName)
 			paramType := types.NewParameter(
 				name,
 				declaredType,
@@ -1608,15 +2066,16 @@ func (c *Checker) declareMethod(
 			p.SetType(paramType)
 			params = append(params, paramType)
 		case *ast.MethodParameterNode:
+			pName := c.identifierToName(p.Name)
 			var declaredType types.Type
 			if p.SetInstanceVariable {
-				currentIvar, _ := c.getInstanceVariableIn(value.ToSymbol(p.Name), methodNamespace)
+				currentIvar, _ := c.getInstanceVariableIn(value.ToSymbol(pName), methodNamespace)
 				if p.TypeNode == nil {
 					if currentIvar == nil {
 						c.addFailure(
 							fmt.Sprintf(
 								"cannot infer the type of instance variable `%s`",
-								p.Name,
+								pName,
 							),
 							p.Location(),
 						)
@@ -1627,9 +2086,9 @@ func (c *Checker) declareMethod(
 					p.TypeNode = c.checkTypeNode(p.TypeNode)
 					declaredType = c.TypeOf(p.TypeNode)
 					if currentIvar != nil {
-						c.checkCanAssignInstanceVariable(p.Name, declaredType, currentIvar, p.TypeNode.Location())
+						c.checkCanAssignInstanceVariable(pName, declaredType, currentIvar, p.TypeNode.Location())
 					} else {
-						c.declareInstanceVariable(value.ToSymbol(p.Name), declaredType, p.Location())
+						c.declareInstanceVariable(value.ToSymbol(pName), declaredType, p.Location())
 					}
 				}
 			} else if p.TypeNode != nil {
@@ -1639,7 +2098,7 @@ func (c *Checker) declareMethod(
 				declaredType = baseMethod.Params[i].Type
 			} else {
 				c.addFailure(
-					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
+					fmt.Sprintf("cannot declare parameter `%s` without a type", pName),
 					paramNode.Location(),
 				)
 			}
@@ -1656,7 +2115,7 @@ func (c *Checker) declareMethod(
 			if p.Initialiser != nil {
 				kind = types.DefaultValueParameterKind
 			}
-			name := value.ToSymbol(p.Name)
+			name := value.ToSymbol(pName)
 			paramType := types.NewParameter(
 				name,
 				declaredType,
@@ -1666,6 +2125,7 @@ func (c *Checker) declareMethod(
 			p.SetType(paramType)
 			params = append(params, paramType)
 		case *ast.SignatureParameterNode:
+			pName := c.identifierToName(p.Name)
 			var declaredType types.Type
 			if p.TypeNode != nil {
 				p.TypeNode = c.checkTypeNode(p.TypeNode)
@@ -1674,7 +2134,7 @@ func (c *Checker) declareMethod(
 				declaredType = baseMethod.Params[i].Type
 			} else {
 				c.addFailure(
-					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
+					fmt.Sprintf("cannot declare parameter `%s` without a type", pName),
 					paramNode.Location(),
 				)
 			}
@@ -1691,7 +2151,7 @@ func (c *Checker) declareMethod(
 			if p.Optional {
 				kind = types.DefaultValueParameterKind
 			}
-			name := value.ToSymbol(p.Name)
+			name := value.ToSymbol(pName)
 			paramType := types.NewParameter(
 				name,
 				declaredType,
@@ -2474,8 +2934,12 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 }
 
 func (c *Checker) getReceiverlessMethod(name value.Symbol, location *position.Location) (_ *types.Method, fromLocal bool) {
-	local, _ := c.resolveLocal(name.String(), nil)
+	nameStr := name.String()
+	local, _ := c.resolveLocal(nameStr, nil)
 	if local != nil {
+		if !local.initialised {
+			c.addUninitialisedLocalError(nameStr, location)
+		}
 		return c.getMethod(local.typ, symbol.L_call, location), true
 	}
 	method := c.getMethod(c.selfType, name, nil)

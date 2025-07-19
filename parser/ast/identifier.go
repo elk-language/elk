@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/elk-language/elk/indent"
@@ -21,6 +22,18 @@ type IdentifierNode interface {
 func (*InvalidNode) identifierNode()           {}
 func (*PublicIdentifierNode) identifierNode()  {}
 func (*PrivateIdentifierNode) identifierNode() {}
+func (*UnquoteNode) identifierNode()           {}
+
+func IdentifierToString(ident IdentifierNode) string {
+	switch ident := ident.(type) {
+	case *PublicIdentifierNode:
+		return ident.Value
+	case *PrivateIdentifierNode:
+		return ident.Value
+	}
+
+	return ""
+}
 
 // Represents a public identifier eg. `foo`.
 type PublicIdentifierNode struct {
@@ -60,8 +73,24 @@ func (n *PublicIdentifierNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+var IdentifierRegexp = regexp.MustCompile(`^\p{Ll}[\p{L}\p{N}_]*$`)
+var PrefixedIdentifierRegexp = regexp.MustCompile(`^[\p{L}\p{N}_]+$`)
+
 func (n *PublicIdentifierNode) String() string {
-	return n.Value
+	if IdentifierRegexp.MatchString(n.Value) {
+		return n.Value
+	}
+
+	var buff strings.Builder
+	buff.WriteByte('$')
+
+	if PrefixedIdentifierRegexp.MatchString(n.Value) {
+		buff.WriteString(n.Value)
+		return buff.String()
+	}
+
+	buff.WriteString(value.String(n.Value).Inspect())
+	return buff.String()
 }
 
 func (*PublicIdentifierNode) IsStatic() bool {
@@ -101,6 +130,8 @@ type PrivateIdentifierNode struct {
 	TypedNodeBase
 	Value string
 }
+
+var PrivateIdentifierRegexp = regexp.MustCompile(`^_[\p{L}\p{N}_]*$`)
 
 func (n *PrivateIdentifierNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &PrivateIdentifierNode{

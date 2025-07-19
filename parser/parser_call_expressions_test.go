@@ -72,7 +72,7 @@ func TestPipeExpression(t *testing.T) {
 							ast.NewIntLiteralNode(L(S(P(0, 1, 1), P(0, 1, 1))), "2"),
 							ast.NewReceiverlessMethodCallNode(
 								L(S(P(5, 1, 6), P(9, 1, 10))),
-								"foo",
+								ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
 								nil,
 								nil,
 							),
@@ -99,7 +99,7 @@ func TestPipeExpression(t *testing.T) {
 									"a",
 								),
 								T(L(S(P(6, 1, 7), P(6, 1, 7))), token.DOT),
-								"foo",
+								ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
 								nil,
 								nil,
 							),
@@ -150,7 +150,7 @@ func TestPipeExpression(t *testing.T) {
 								T(L(S(P(11, 1, 12), P(11, 1, 12))), token.PLUS),
 								ast.NewReceiverlessMethodCallNode(
 									L(S(P(5, 1, 6), P(9, 1, 10))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
 									nil,
 									nil,
 								),
@@ -180,14 +180,14 @@ func TestPipeExpression(t *testing.T) {
 								ast.NewIntLiteralNode(L(S(P(0, 1, 1), P(0, 1, 1))), "2"),
 								ast.NewReceiverlessMethodCallNode(
 									L(S(P(5, 1, 6), P(9, 1, 10))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
 									nil,
 									nil,
 								),
 							),
 							ast.NewReceiverlessMethodCallNode(
 								L(S(P(14, 1, 15), P(21, 1, 22))),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(16, 1, 17))), "bar"),
 								[]ast.ExpressionNode{
 									ast.NewFloatLiteralNode(L(S(P(18, 1, 19), P(20, 1, 21))), "9.2"),
 								},
@@ -473,12 +473,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(12, 1, 13))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(9, 1, 10), P(12, 1, 13))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(23, 1, 24))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24)))),
 								),
 							},
@@ -505,12 +505,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 1, 22), P(29, 1, 30))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 1, 33), P(40, 1, 41))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 1, 38), P(40, 1, 41)))),
 								),
 							},
@@ -537,12 +537,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 3, 7), P(29, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 3, 7), P(23, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 3, 12), P(29, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 4, 1), P(40, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 4, 1), P(34, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 4, 6), P(40, 4, 9)))),
 								),
 							},
@@ -569,12 +569,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(22, 2, 18), P(30, 2, 26))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(22, 2, 18), P(24, 2, 20))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(27, 2, 23), P(30, 2, 26))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(33, 2, 29), P(41, 2, 37))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(33, 2, 29), P(35, 2, 31))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(38, 2, 34), P(41, 2, 37)))),
 								),
 							},
@@ -637,12 +637,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(12, 1, 13))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(9, 1, 10), P(12, 1, 13))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(23, 1, 24))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24)))),
 								),
 							},
@@ -669,12 +669,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 1, 22), P(29, 1, 30))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 1, 33), P(40, 1, 41))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 1, 38), P(40, 1, 41)))),
 								),
 							},
@@ -701,12 +701,12 @@ func TestConstructorCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 3, 7), P(29, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 3, 7), P(23, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 3, 12), P(29, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 4, 1), P(40, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 4, 1), P(34, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 4, 6), P(40, 4, 9)))),
 								),
 							},
@@ -835,12 +835,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(12, 1, 13))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(9, 1, 10), P(12, 1, 13))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(23, 1, 24))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24)))),
 								),
 							},
@@ -866,12 +866,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 1, 22), P(29, 1, 30))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 1, 33), P(40, 1, 41))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 1, 38), P(40, 1, 41)))),
 								),
 							},
@@ -897,12 +897,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 3, 7), P(29, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 3, 7), P(23, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 3, 12), P(29, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 4, 1), P(40, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 4, 1), P(34, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 4, 6), P(40, 4, 9)))),
 								),
 							},
@@ -928,12 +928,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(22, 2, 18), P(30, 2, 26))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(22, 2, 18), P(24, 2, 20))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(27, 2, 23), P(30, 2, 26))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(33, 2, 29), P(41, 2, 37))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(33, 2, 29), P(35, 2, 31))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(38, 2, 34), P(41, 2, 37)))),
 								),
 							},
@@ -975,12 +975,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(12, 1, 13))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(9, 1, 10), P(12, 1, 13))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(23, 1, 24))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24)))),
 								),
 							},
@@ -1006,12 +1006,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 1, 22), P(29, 1, 30))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 1, 33), P(40, 1, 41))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 1, 38), P(40, 1, 41)))),
 								),
 							},
@@ -1037,12 +1037,12 @@ func TestNewExpression(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 3, 7), P(29, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 3, 7), P(23, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 3, 12), P(29, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 4, 1), P(40, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 4, 1), P(34, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 4, 6), P(40, 4, 9)))),
 								),
 							},
@@ -1075,7 +1075,7 @@ func TestMethodCall(t *testing.T) {
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							ast.NewReceiverlessMethodCallNode(
 								L(S(P(6, 1, 7), P(10, 1, 11))),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
 								nil,
 								nil,
 							),
@@ -1093,7 +1093,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(4, 1, 5))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(4, 1, 5))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							nil,
 						),
@@ -1110,7 +1110,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(14, 1, 15))),
 						ast.NewGenericReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(14, 1, 15))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.TypeNode{
 								ast.NewPublicConstantNode(L(S(P(6, 1, 7), P(11, 1, 12))), "String"),
 							},
@@ -1137,7 +1137,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(5, 2, 5), P(32, 4, 8))),
 						ast.NewGenericReceiverlessMethodCallNode(
 							L(S(P(5, 2, 5), P(31, 4, 7))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(5, 2, 5), P(7, 2, 7))), "foo"),
 							[]ast.TypeNode{
 								ast.NewPublicConstantNode(L(S(P(17, 3, 6), P(22, 3, 11))), "String"),
 							},
@@ -1157,12 +1157,18 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(17, 1, 18))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(17, 1, 18))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewClosureLiteralNode(
 									L(S(P(6, 1, 7), P(17, 1, 18))),
 									[]ast.ParameterNode{
-										ast.NewFormalParameterNode(L(S(P(7, 1, 8), P(7, 1, 8))), "i", nil, nil, ast.NormalParameterKind),
+										ast.NewFormalParameterNode(
+											L(S(P(7, 1, 8), P(7, 1, 8))),
+											ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(7, 1, 8))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
 									},
 									nil,
 									nil,
@@ -1194,7 +1200,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(13, 1, 14))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(13, 1, 14))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewClosureLiteralNode(
 									L(S(P(6, 1, 7), P(13, 1, 14))),
@@ -1229,7 +1235,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(16, 1, 17))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(16, 1, 17))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewClosureLiteralNode(
 									L(S(P(6, 1, 7), P(16, 1, 17))),
@@ -1264,14 +1270,20 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(21, 1, 22))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(21, 1, 22))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewIntLiteralNode(L(S(P(4, 1, 5), P(4, 1, 5))), "1"),
 								ast.NewIntLiteralNode(L(S(P(7, 1, 8), P(7, 1, 8))), "5"),
 								ast.NewClosureLiteralNode(
 									L(S(P(10, 1, 11), P(21, 1, 22))),
 									[]ast.ParameterNode{
-										ast.NewFormalParameterNode(L(S(P(11, 1, 12), P(11, 1, 12))), "i", nil, nil, ast.NormalParameterKind),
+										ast.NewFormalParameterNode(
+											L(S(P(11, 1, 12), P(11, 1, 12))),
+											ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(11, 1, 12))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
 									},
 									nil,
 									nil,
@@ -1303,21 +1315,27 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(21, 1, 22))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(21, 1, 22))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(7, 1, 8))),
-									"f",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "f"),
 									ast.NewIntLiteralNode(L(S(P(7, 1, 8), P(7, 1, 8))), "5"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(10, 1, 11), P(21, 1, 22))),
-									"func",
+									ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(21, 1, 22))), "fn"),
 									ast.NewClosureLiteralNode(
 										L(S(P(10, 1, 11), P(21, 1, 22))),
 										[]ast.ParameterNode{
-											ast.NewFormalParameterNode(L(S(P(11, 1, 12), P(11, 1, 12))), "i", nil, nil, ast.NormalParameterKind),
+											ast.NewFormalParameterNode(
+												L(S(P(11, 1, 12), P(11, 1, 12))),
+												ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(11, 1, 12))), "i"),
+												nil,
+												nil,
+												ast.NormalParameterKind,
+											),
 										},
 										nil,
 										nil,
@@ -1349,7 +1367,91 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(5, 1, 6))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(5, 1, 6))),
-							"_foo",
+							ast.NewPrivateIdentifierNode(L(S(P(0, 1, 1), P(3, 1, 4))), "_foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have unquote as the name": {
+			input: "foo.unquote(bar * 2)()",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(21, 1, 22))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(21, 1, 22))),
+						ast.NewMethodCallNode(
+							L(S(P(0, 1, 1), P(21, 1, 22))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(19, 1, 20))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(12, 1, 13), P(18, 1, 19))),
+									T(L(S(P(16, 1, 17), P(16, 1, 17))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "bar"),
+									ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "2"),
+								),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have unquote_ident as the name": {
+			input: "foo.unquote_ident(bar * 2)()",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(27, 1, 28))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(27, 1, 28))),
+						ast.NewMethodCallNode(
+							L(S(P(0, 1, 1), P(27, 1, 28))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(25, 1, 26))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(18, 1, 19), P(24, 1, 25))),
+									T(L(S(P(22, 1, 23), P(22, 1, 23))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "bar"),
+									ast.NewIntLiteralNode(L(S(P(24, 1, 25), P(24, 1, 25))), "2"),
+								),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have short unquote as the name": {
+			input: "foo.!{bar * 2}()",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(15, 1, 16))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(15, 1, 16))),
+						ast.NewMethodCallNode(
+							L(S(P(0, 1, 1), P(15, 1, 16))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(13, 1, 14))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(6, 1, 7), P(12, 1, 13))),
+									T(L(S(P(10, 1, 11), P(10, 1, 11))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
+									ast.NewIntLiteralNode(L(S(P(12, 1, 13), P(12, 1, 13))), "2"),
+								),
+							),
 							nil,
 							nil,
 						),
@@ -1368,7 +1470,7 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(8, 1, 9))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							nil,
 							nil,
 						),
@@ -1387,7 +1489,7 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(18, 1, 19))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							[]ast.TypeNode{
 								ast.NewPublicConstantNode(L(S(P(10, 1, 11), P(15, 1, 16))), "String"),
 							},
@@ -1416,7 +1518,7 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(5, 2, 5), P(35, 4, 7))),
 							ast.NewPublicIdentifierNode(L(S(P(5, 2, 5), P(7, 2, 7))), "foo"),
 							T(L(S(P(8, 2, 8), P(8, 2, 8))), token.DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(9, 2, 9), P(11, 2, 11))), "bar"),
 							[]ast.TypeNode{
 								ast.NewPublicConstantNode(L(S(P(21, 3, 6), P(26, 3, 11))), "String"),
 							},
@@ -1438,7 +1540,7 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(17, 1, 18))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							[]ast.ExpressionNode{
 								ast.NewClosureLiteralNode(
 									L(S(P(10, 1, 11), P(17, 1, 18))),
@@ -1475,7 +1577,7 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(20, 1, 21))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							[]ast.ExpressionNode{
 								ast.NewClosureLiteralNode(
 									L(S(P(10, 1, 11), P(20, 1, 21))),
@@ -1512,12 +1614,18 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(21, 1, 22))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							[]ast.ExpressionNode{
 								ast.NewClosureLiteralNode(
 									L(S(P(10, 1, 11), P(21, 1, 22))),
 									[]ast.ParameterNode{
-										ast.NewFormalParameterNode(L(S(P(11, 1, 12), P(11, 1, 12))), "i", nil, nil, ast.NormalParameterKind),
+										ast.NewFormalParameterNode(
+											L(S(P(11, 1, 12), P(11, 1, 12))),
+											ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(11, 1, 12))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
 									},
 									nil,
 									nil,
@@ -1551,14 +1659,20 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(25, 1, 26))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							[]ast.ExpressionNode{
 								ast.NewIntLiteralNode(L(S(P(8, 1, 9), P(8, 1, 9))), "1"),
 								ast.NewIntLiteralNode(L(S(P(11, 1, 12), P(11, 1, 12))), "5"),
 								ast.NewClosureLiteralNode(
 									L(S(P(14, 1, 15), P(25, 1, 26))),
 									[]ast.ParameterNode{
-										ast.NewFormalParameterNode(L(S(P(15, 1, 16), P(15, 1, 16))), "i", nil, nil, ast.NormalParameterKind),
+										ast.NewFormalParameterNode(
+											L(S(P(15, 1, 16), P(15, 1, 16))),
+											ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(15, 1, 16))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
 									},
 									nil,
 									nil,
@@ -1592,21 +1706,27 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(25, 1, 26))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							nil,
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(8, 1, 9), P(11, 1, 12))),
-									"f",
+									ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(8, 1, 9))), "f"),
 									ast.NewIntLiteralNode(L(S(P(11, 1, 12), P(11, 1, 12))), "5"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(14, 1, 15), P(25, 1, 26))),
-									"func",
+									ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(25, 1, 26))), "fn"),
 									ast.NewClosureLiteralNode(
 										L(S(P(14, 1, 15), P(25, 1, 26))),
 										[]ast.ParameterNode{
-											ast.NewFormalParameterNode(L(S(P(15, 1, 16), P(15, 1, 16))), "i", nil, nil, ast.NormalParameterKind),
+											ast.NewFormalParameterNode(
+												L(S(P(15, 1, 16), P(15, 1, 16))),
+												ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(15, 1, 16))), "i"),
+												nil,
+												nil,
+												ast.NormalParameterKind,
+											),
 										},
 										nil,
 										nil,
@@ -1640,7 +1760,7 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(8, 1, 9))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							[]ast.ExpressionNode{
 								ast.NewIntLiteralNode(L(S(P(8, 1, 9), P(8, 1, 9))), "1"),
 							},
@@ -1661,7 +1781,7 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(7, 1, 8))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(4, 1, 5))), token.QUESTION_DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
 							nil,
 							nil,
 						),
@@ -1680,7 +1800,7 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(7, 1, 8))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(4, 1, 5))), token.DOT_DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
 							nil,
 							nil,
 						),
@@ -1699,7 +1819,7 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(8, 1, 9))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(5, 1, 6))), token.QUESTION_DOT_DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
 							nil,
 							nil,
 						),
@@ -1720,12 +1840,12 @@ func TestMethodCall(t *testing.T) {
 								L(S(P(0, 1, 1), P(8, 1, 9))),
 								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 								T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 								nil,
 								nil,
 							),
 							T(L(S(P(9, 1, 10), P(9, 1, 10))), token.DOT),
-							"baz",
+							ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "baz"),
 							nil,
 							nil,
 						),
@@ -1749,7 +1869,7 @@ func TestMethodCall(t *testing.T) {
 								ast.NewIntLiteralNode(L(S(P(7, 1, 8), P(7, 1, 8))), "2"),
 							),
 							T(L(S(P(9, 1, 10), P(9, 1, 10))), token.DOT),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "bar"),
 							nil,
 							nil,
 						),
@@ -1768,7 +1888,7 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(9, 1, 10))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
-							"_bar",
+							ast.NewPrivateIdentifierNode(L(S(P(4, 1, 5), P(7, 1, 8))), "_bar"),
 							nil,
 							nil,
 						),
@@ -1790,7 +1910,7 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(6, 1, 7))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
-							"+",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(4, 1, 5))), "+"),
 							nil,
 							nil,
 						),
@@ -1809,7 +1929,10 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(7, 1, 8))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
-							"&&",
+							ast.NewInvalidNode(
+								L(S(P(4, 1, 5), P(5, 1, 6))),
+								T(L(S(P(4, 1, 5), P(5, 1, 6))), token.AND_AND),
+							),
 							nil,
 							nil,
 						),
@@ -1831,7 +1954,7 @@ func TestMethodCall(t *testing.T) {
 							L(S(P(0, 1, 1), P(10, 1, 11))),
 							ast.NewSelfLiteralNode(L(S(P(0, 1, 1), P(3, 1, 4)))),
 							T(L(S(P(4, 1, 5), P(4, 1, 5))), token.DOT),
-							"_foo",
+							ast.NewPrivateIdentifierNode(L(S(P(5, 1, 6), P(8, 1, 9))), "_foo"),
 							nil,
 							nil,
 						),
@@ -1848,7 +1971,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(19, 1, 20))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(19, 1, 20))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(4, 1, 5), P(5, 1, 6))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(8, 1, 9), P(12, 1, 13))), "foo"),
@@ -1869,7 +1992,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(21, 1, 22))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(21, 1, 22))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewSplatExpressionNode(
 									L(S(P(4, 1, 5), P(7, 1, 8))),
@@ -1902,7 +2025,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(20, 1, 21))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(20, 1, 21))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(4, 1, 5), P(5, 1, 6))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(8, 1, 9), P(12, 1, 13))), "foo"),
@@ -1923,17 +2046,17 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(24, 1, 25))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(24, 1, 25))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(12, 1, 13))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(9, 1, 10), P(12, 1, 13))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(23, 1, 24))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24)))),
 								),
 							},
@@ -1951,7 +2074,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(39, 1, 40))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							[]ast.NamedArgumentNode{
 								ast.NewDoubleSplatExpressionNode(
@@ -1960,21 +2083,21 @@ func TestMethodCall(t *testing.T) {
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(9, 1, 10), P(17, 1, 18))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(11, 1, 12))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(14, 1, 15), P(17, 1, 18))), "baz"),
 								),
 								ast.NewDoubleSplatExpressionNode(
 									L(S(P(20, 1, 21), P(27, 1, 28))),
 									ast.NewReceiverlessMethodCallNode(
 										L(S(P(22, 1, 23), P(27, 1, 28))),
-										"dupa",
+										ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(25, 1, 26))), "dupa"),
 										nil,
 										nil,
 									),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(30, 1, 31), P(38, 1, 39))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(30, 1, 31), P(32, 1, 33))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(35, 1, 36), P(38, 1, 39)))),
 								),
 							},
@@ -1992,7 +2115,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(41, 1, 42))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(41, 1, 42))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(4, 1, 5), P(5, 1, 6))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(8, 1, 9), P(12, 1, 13))), "foo"),
@@ -2001,12 +2124,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 1, 22), P(29, 1, 30))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 1, 33), P(40, 1, 41))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 1, 38), P(40, 1, 41)))),
 								),
 							},
@@ -2024,7 +2147,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(41, 4, 10))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(41, 4, 10))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(4, 1, 5), P(5, 1, 6))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(8, 2, 1), P(12, 2, 5))), "foo"),
@@ -2033,12 +2156,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 3, 7), P(29, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 3, 7), P(23, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 3, 12), P(29, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 4, 1), P(40, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 4, 1), P(34, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 4, 6), P(40, 4, 9)))),
 								),
 							},
@@ -2056,7 +2179,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(43, 3, 1))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(43, 3, 1))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(5, 2, 1), P(6, 2, 2))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(9, 2, 5), P(13, 2, 9))), "foo"),
@@ -2065,12 +2188,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(22, 2, 18), P(30, 2, 26))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(22, 2, 18), P(24, 2, 20))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(27, 2, 23), P(30, 2, 26))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(33, 2, 29), P(41, 2, 37))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(33, 2, 29), P(35, 2, 31))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(38, 2, 34), P(41, 2, 37)))),
 								),
 							},
@@ -2107,7 +2230,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(18, 1, 19))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(18, 1, 19))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(4, 1, 5), P(5, 1, 6))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(8, 1, 9), P(12, 1, 13))), "foo"),
@@ -2128,17 +2251,17 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(23, 1, 24))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(23, 1, 24))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							nil,
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(4, 1, 5), P(12, 1, 13))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(9, 1, 10), P(12, 1, 13))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(15, 1, 16), P(23, 1, 24))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(20, 1, 21), P(23, 1, 24)))),
 								),
 							},
@@ -2156,7 +2279,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(40, 1, 41))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(40, 1, 41))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(4, 1, 5), P(5, 1, 6))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(8, 1, 9), P(12, 1, 13))), "foo"),
@@ -2165,12 +2288,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 1, 22), P(29, 1, 30))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 1, 27), P(29, 1, 30))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 1, 33), P(40, 1, 41))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(34, 1, 35))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 1, 38), P(40, 1, 41)))),
 								),
 							},
@@ -2188,7 +2311,7 @@ func TestMethodCall(t *testing.T) {
 						L(S(P(0, 1, 1), P(40, 4, 9))),
 						ast.NewReceiverlessMethodCallNode(
 							L(S(P(0, 1, 1), P(40, 4, 9))),
-							"foo",
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(L(S(P(4, 1, 5), P(5, 1, 6))), "0.1"),
 								ast.NewRawStringLiteralNode(L(S(P(8, 2, 1), P(12, 2, 5))), "foo"),
@@ -2197,12 +2320,12 @@ func TestMethodCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(21, 3, 7), P(29, 3, 15))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(21, 3, 7), P(23, 3, 9))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(26, 3, 12), P(29, 3, 15))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(32, 4, 1), P(40, 4, 9))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(32, 4, 1), P(34, 4, 3))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(37, 4, 6), P(40, 4, 9)))),
 								),
 							},
@@ -2251,7 +2374,82 @@ func TestAttributeAccess(t *testing.T) {
 						ast.NewAttributeAccessNode(
 							L(S(P(0, 1, 1), P(7, 1, 8))),
 							ast.NewSelfLiteralNode(L(S(P(0, 1, 1), P(3, 1, 4)))),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "bar"),
+						),
+					),
+				},
+			),
+		},
+		"can have unquote as the name": {
+			input: "foo.unquote(foo + 1)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(19, 1, 20))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(19, 1, 20))),
+						ast.NewAttributeAccessNode(
+							L(S(P(0, 1, 1), P(19, 1, 20))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(19, 1, 20))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(12, 1, 13), P(18, 1, 19))),
+									T(L(S(P(16, 1, 17), P(16, 1, 17))), token.PLUS),
+									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "1"),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have unquote_ident as the name": {
+			input: "foo.unquote_ident(foo + 1)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(25, 1, 26))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(25, 1, 26))),
+						ast.NewAttributeAccessNode(
+							L(S(P(0, 1, 1), P(25, 1, 26))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(25, 1, 26))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(18, 1, 19), P(24, 1, 25))),
+									T(L(S(P(22, 1, 23), P(22, 1, 23))), token.PLUS),
+									ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(24, 1, 25), P(24, 1, 25))), "1"),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have short unquote as the name": {
+			input: "foo.!{foo + 1}",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(13, 1, 14))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(13, 1, 14))),
+						ast.NewAttributeAccessNode(
+							L(S(P(0, 1, 1), P(13, 1, 14))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(13, 1, 14))),
+								ast.UNQUOTE_IDENTIFIER_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(6, 1, 7), P(12, 1, 13))),
+									T(L(S(P(10, 1, 11), P(10, 1, 11))), token.PLUS),
+									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
+									ast.NewIntLiteralNode(L(S(P(12, 1, 13), P(12, 1, 13))), "1"),
+								),
+							),
 						),
 					),
 				},
@@ -2267,7 +2465,7 @@ func TestAttributeAccess(t *testing.T) {
 						ast.NewAttributeAccessNode(
 							L(S(P(0, 1, 1), P(6, 1, 7))),
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-							"bar",
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 						),
 					),
 				},
@@ -2285,9 +2483,9 @@ func TestAttributeAccess(t *testing.T) {
 							ast.NewAttributeAccessNode(
 								L(S(P(0, 1, 1), P(6, 1, 7))),
 								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
 							),
-							"baz",
+							ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(10, 1, 11))), "baz"),
 						),
 					),
 				},
@@ -2305,9 +2503,9 @@ func TestAttributeAccess(t *testing.T) {
 							ast.NewAttributeAccessNode(
 								L(S(P(0, 1, 1), P(7, 2, 3))),
 								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(5, 2, 1), P(7, 2, 3))), "bar"),
 							),
-							"baz",
+							ast.NewPublicIdentifierNode(L(S(P(10, 3, 1), P(12, 3, 3))), "baz"),
 						),
 					),
 				},
@@ -2325,9 +2523,9 @@ func TestAttributeAccess(t *testing.T) {
 							ast.NewAttributeAccessNode(
 								L(S(P(0, 1, 1), P(7, 2, 4))),
 								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(5, 2, 2), P(7, 2, 4))), "bar"),
 							),
-							"baz",
+							ast.NewPublicIdentifierNode(L(S(P(10, 3, 2), P(12, 3, 4))), "baz"),
 						),
 					),
 				},
@@ -2346,13 +2544,13 @@ func TestAttributeAccess(t *testing.T) {
 								L(S(P(0, 1, 1), P(8, 1, 9))),
 								ast.NewReceiverlessMethodCallNode(
 									L(S(P(0, 1, 1), P(4, 1, 5))),
-									"foo",
+									ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 									nil,
 									nil,
 								),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "bar"),
 							),
-							"baz",
+							ast.NewPublicIdentifierNode(L(S(P(10, 1, 11), P(12, 1, 13))), "baz"),
 						),
 					),
 				},
@@ -2406,12 +2604,12 @@ func TestCall(t *testing.T) {
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
 									L(S(P(23, 1, 24), P(31, 1, 32))),
-									"bar",
+									ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(25, 1, 26))), "bar"),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(28, 1, 29), P(31, 1, 32))), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
 									L(S(P(34, 1, 35), P(42, 1, 43))),
-									"elk",
+									ast.NewPublicIdentifierNode(L(S(P(34, 1, 35), P(36, 1, 37))), "elk"),
 									ast.NewTrueLiteralNode(L(S(P(39, 1, 40), P(42, 1, 43)))),
 								),
 							},
@@ -2570,7 +2768,7 @@ func TestSubscript(t *testing.T) {
 							ast.NewAttributeAccessNode(
 								L(S(P(0, 1, 1), P(7, 1, 8))),
 								ast.NewSelfLiteralNode(L(S(P(0, 1, 1), P(3, 1, 4)))),
-								"foo",
+								ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
 							),
 							ast.NewIntLiteralNode(
 								L(S(P(9, 1, 10), P(9, 1, 10))),
@@ -2599,7 +2797,7 @@ func TestSubscript(t *testing.T) {
 										ast.NewAttributeAccessNode(
 											L(S(P(0, 1, 1), P(7, 1, 8))),
 											ast.NewSelfLiteralNode(L(S(P(0, 1, 1), P(3, 1, 4)))),
-											"foo",
+											ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
 										),
 										ast.NewIntLiteralNode(
 											L(S(P(9, 1, 10), P(9, 1, 10))),
@@ -2611,7 +2809,7 @@ func TestSubscript(t *testing.T) {
 										"2",
 									),
 								),
-								"bar",
+								ast.NewPublicIdentifierNode(L(S(P(15, 1, 16), P(17, 1, 18))), "bar"),
 							),
 							ast.NewIntLiteralNode(
 								L(S(P(19, 1, 20), P(19, 1, 20))),
@@ -2635,7 +2833,7 @@ func TestSubscript(t *testing.T) {
 								L(S(P(0, 1, 1), P(9, 1, 10))),
 								ast.NewSelfLiteralNode(L(S(P(0, 1, 1), P(3, 1, 4)))),
 								T(L(S(P(4, 1, 5), P(4, 1, 5))), token.DOT),
-								"foo",
+								ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
 								nil,
 								nil,
 							),
@@ -2659,7 +2857,7 @@ func TestSubscript(t *testing.T) {
 							L(S(P(0, 1, 1), P(7, 1, 8))),
 							ast.NewReceiverlessMethodCallNode(
 								L(S(P(0, 1, 1), P(4, 1, 5))),
-								"foo",
+								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 								nil,
 								nil,
 							),
@@ -2795,7 +2993,7 @@ func TestNilSafeSubscript(t *testing.T) {
 							ast.NewAttributeAccessNode(
 								L(S(P(0, 1, 1), P(7, 1, 8))),
 								ast.NewSelfLiteralNode(L(S(P(0, 1, 1), P(3, 1, 4)))),
-								"foo",
+								ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
 							),
 							ast.NewIntLiteralNode(
 								L(S(P(10, 1, 11), P(10, 1, 11))),
@@ -2819,7 +3017,7 @@ func TestNilSafeSubscript(t *testing.T) {
 								L(S(P(0, 1, 1), P(9, 1, 10))),
 								ast.NewSelfLiteralNode(L(S(P(0, 1, 1), P(3, 1, 4)))),
 								T(L(S(P(4, 1, 5), P(4, 1, 5))), token.DOT),
-								"foo",
+								ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
 								nil,
 								nil,
 							),
@@ -2843,7 +3041,7 @@ func TestNilSafeSubscript(t *testing.T) {
 							L(S(P(0, 1, 1), P(8, 1, 9))),
 							ast.NewReceiverlessMethodCallNode(
 								L(S(P(0, 1, 1), P(4, 1, 5))),
-								"foo",
+								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
 								nil,
 								nil,
 							),

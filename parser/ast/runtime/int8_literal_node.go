@@ -14,6 +14,10 @@ func initInt8LiteralNode() {
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
+			_, err := value.ParseBigIntWithErr(argValue, 0, value.Int8LiteralNodeFormatErrorClass)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -72,6 +76,20 @@ func initInt8LiteralNode() {
 		},
 	)
 
+	vm.Def(
+		c,
+		"to_int8",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.Int8LiteralNode)
+			result, err := value.StrictParseIntWithErr(self.Value, 0, 8, value.Int8LiteralNodeFormatErrorClass)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
+
+			return value.Int8(result).ToValue(), value.Undefined
+		},
+	)
+
 	c = &value.Int8Class.MethodContainer
 	vm.Def(
 		c,
@@ -84,5 +102,6 @@ func initInt8LiteralNode() {
 	)
 	vm.Alias(c, "to_ast_expr_node", "to_ast_node")
 	vm.Alias(c, "to_ast_pattern_node", "to_ast_node")
+	vm.Alias(c, "to_ast_pattern_expr_node", "to_ast_node")
 	vm.Alias(c, "to_ast_type_node", "to_ast_node")
 }

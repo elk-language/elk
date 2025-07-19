@@ -26,9 +26,10 @@ import (
 
 const MainName = "<main>"
 
-func CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *Compiler {
+func CreateCompiler(parent *Compiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *Compiler {
 	compiler := New(loc.FilePath, topLevelMode, loc, checker)
 	compiler.Errors = errors
+	compiler.Parent = parent
 	return compiler
 }
 
@@ -65,6 +66,7 @@ const (
 	topLevelMode mode = iota
 	namespaceMode
 	methodMode
+	macroMode
 	setterMethodMode
 	initMethodMode
 	valuePatternDeclarationNode
@@ -184,7 +186,7 @@ func New(name string, mode mode, loc *position.Location, checker types.Checker) 
 	c.defineLocal("$self", position.DefaultLocation)
 	switch mode {
 	case topLevelMode, namespaceMode,
-		methodMode, setterMethodMode, initMethodMode:
+		methodMode, setterMethodMode, initMethodMode, macroMode:
 		c.predefinedLocals = 1
 	}
 	return c
@@ -324,6 +326,17 @@ func (c *Compiler) compileProgram(node ast.Node) {
 	c.prepLocals()
 }
 
+func identifierToName(node ast.IdentifierNode) string {
+	switch node := node.(type) {
+	case *ast.PrivateIdentifierNode:
+		return node.Value
+	case *ast.PublicIdentifierNode:
+		return node.Value
+	default:
+		return ""
+	}
+}
+
 // Entry point for compiling the body of a function.
 func (c *Compiler) compileFunction(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
 	c.Bytecode.SetParameterCount(len(parameters))
@@ -332,7 +345,8 @@ func (c *Compiler) compileFunction(location *position.Location, parameters []ast
 		p := param.(*ast.FormalParameterNode)
 		pSpan := p.Location()
 
-		local := c.defineLocal(p.Name, pSpan)
+		pName := identifierToName(p.Name)
+		local := c.defineLocal(pName, pSpan)
 		if local == nil {
 			return
 		}
@@ -522,7 +536,7 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.
 	var mode mode
 	if node.IsSetter() {
 		mode = setterMethodMode
-	} else if node.Name == "#init" {
+	} else if identifierToName(node.Name) == "#init" {
 		mode = initMethodMode
 	} else {
 		mode = methodMode
@@ -537,13 +551,61 @@ func (c *Compiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.
 	return methodCompiler.Bytecode
 }
 
+func (c *Compiler) CompileMacroBody(node *ast.MacroDefinitionNode, name value.Symbol) *vm.BytecodeFunction {
+	methodCompiler := New(name.String(), macroMode, node.Location(), c.checker)
+	methodCompiler.Errors = c.Errors
+	methodCompiler.compileMacroBody(node.Location(), node.Parameters, node.Body)
+
+	return methodCompiler.Bytecode
+}
+
+const macroLocationParamName = "_location"
+
+// Entry point for compiling the body of a macro.
+func (c *Compiler) compileMacroBody(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
+	paramCount := len(parameters)
+
+	for _, param := range parameters {
+		p := param.(*ast.FormalParameterNode)
+		pSpan := p.Location()
+
+		pName := identifierToName(p.Name)
+		local := c.defineLocal(pName, pSpan)
+		if local == nil {
+			return
+		}
+		c.predefinedLocals++
+
+		if p.Initialiser != nil {
+			c.Bytecode.IncrementOptionalParameterCount()
+
+			c.emitGetLocal(location.StartPos.Line, local.index)
+			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
+
+			c.compileNode(p.Initialiser, false)
+			c.emitSetLocalPop(pSpan.StartPos.Line, local.index)
+
+			c.patchJump(jump, pSpan)
+		}
+	}
+
+	c.Bytecode.SetParameterCount(paramCount)
+
+	c.compileStatements(body, location, false)
+
+	c.emitReturn(location, nil)
+	c.emitFinalReturn(location, nil)
+	c.prepLocals()
+}
+
 // Entry point for compiling the body of a method.
 func (c *Compiler) compileMethodBody(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
 	for _, param := range parameters {
 		p := param.(*ast.MethodParameterNode)
 		pSpan := p.Location()
 
-		local := c.defineLocal(p.Name, pSpan)
+		pName := identifierToName(p.Name)
+		local := c.defineLocal(pName, pSpan)
 		if local == nil {
 			return
 		}
@@ -563,7 +625,7 @@ func (c *Compiler) compileMethodBody(location *position.Location, parameters []a
 
 		if p.SetInstanceVariable {
 			c.emitGetLocal(location.StartPos.Line, local.index)
-			c.emitSetInstanceVariableNoPop(value.ToSymbol(p.Name), pSpan)
+			c.emitSetInstanceVariableNoPop(value.ToSymbol(pName), pSpan)
 			// pop the value after setting it
 			c.emit(pSpan.StartPos.Line, bytecode.POP)
 		}
@@ -742,7 +804,8 @@ func (c *Compiler) nodeIsCompilable(node ast.Node) bool {
 		*ast.StructDeclarationNode, *ast.GenericReceiverlessMethodCallNode,
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
-		*ast.InstanceVariableDeclarationNode:
+		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
+		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
 		return false
 	case *ast.ExpressionStatementNode:
 		return c.nodeIsCompilable(node.Expression)
@@ -799,7 +862,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		*ast.StructDeclarationNode, *ast.GenericReceiverlessMethodCallNode,
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
-		*ast.InstanceVariableDeclarationNode:
+		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
+		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
 		return expressionIgnored
 	case *ast.ProgramNode:
 		return c.compileStatements(node.Body, node.Location(), valueIsIgnored)
@@ -875,7 +939,7 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		c.compileLocalVariableAccess(node.Value, node.Location())
 	case *ast.PrivateIdentifierNode:
 		c.compileLocalVariableAccess(node.Value, node.Location())
-	case *ast.InstanceVariableNode:
+	case *ast.PublicInstanceVariableNode:
 		c.compileInstanceVariableAccess(node.Value, node.Location())
 	case *ast.BinaryExpressionNode:
 		c.compileBinaryExpressionNode(node)
@@ -1071,8 +1135,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		c.emitValue(value.Float32(f).ToValue(), node.Location())
 	case *ast.QuoteExpressionNode:
 		c.compileQuoteExpressionNode(node)
-	case *ast.UnquoteExpressionNode:
-		c.compileUnquoteExpressionNode(node)
+	case *ast.UnquoteNode:
+		c.compileUnquoteNode(node)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
@@ -1083,11 +1147,30 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	return expressionCompiled
 }
 
-func (c *Compiler) compileUnquoteExpressionNode(node *ast.UnquoteExpressionNode) {
+func (c *Compiler) compileUnquoteNode(node *ast.UnquoteNode) {
 	c.compileNodeWithResult(node.Expression)
+	var methodName value.Symbol
+
+	switch node.Kind {
+	case ast.UNQUOTE_EXPRESSION_KIND:
+		methodName = symbol.L_to_ast_expr_node
+	case ast.UNQUOTE_CONSTANT_KIND:
+		methodName = symbol.L_to_ast_const_node
+	case ast.UNQUOTE_PATTERN_KIND:
+		methodName = symbol.L_to_ast_pattern_node
+	case ast.UNQUOTE_PATTERN_EXPRESSION_KIND:
+		methodName = symbol.L_to_ast_pattern_expr_node
+	case ast.UNQUOTE_TYPE_KIND:
+		methodName = symbol.L_to_ast_type_node
+	case ast.UNQUOTE_IDENTIFIER_KIND:
+		methodName = symbol.L_to_ast_ident_node
+	case ast.UNQUOTE_INSTANCE_VARIABLE_KIND:
+		methodName = symbol.L_to_ast_ivar_node
+	}
+
 	c.emitCallMethod(
 		value.NewCallSiteInfo(
-			symbol.L_to_ast_expr_node,
+			methodName,
 			0,
 		),
 		node.Location(),
@@ -1097,10 +1180,19 @@ func (c *Compiler) compileUnquoteExpressionNode(node *ast.UnquoteExpressionNode)
 
 func (c *Compiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) {
 	location := node.Location()
-	newNode := ast.NewMacroBoundaryNode(location, node.Body, "")
+
+	var newNode ast.ExpressionNode
+	if expr := node.SingleExpression(); expr != nil {
+		newNode = expr
+	} else {
+		newNode = ast.NewDoExpressionNode(location, node.Body, nil, nil)
+	}
+
 	c.emitGetConst(value.ToSymbol("Std::Kernel"), location)
 	c.emitValue(value.Ref(newNode), location)
 
+	tupleBaseOffset := c.nextInstructionOffset()
+	// ArrayTuple base
 	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 
 	var unquoteCount int
@@ -1108,7 +1200,7 @@ func (c *Compiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) {
 		node,
 		func(node, parent ast.Node) ast.TraverseOption {
 			switch node := node.(type) {
-			case *ast.UnquoteExpressionNode:
+			case *ast.UnquoteNode:
 				unquoteCount++
 				c.compileNodeWithResult(node)
 
@@ -1119,17 +1211,20 @@ func (c *Compiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) {
 		},
 		nil,
 	)
-	if unquoteCount != 0 {
-		c.emitNewArrayTuple(unquoteCount, location)
-	}
+	var argCount int
 
-	// location
-	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
+	if unquoteCount != 0 {
+		argCount = 2
+		c.emitNewArrayTuple(unquoteCount, location)
+	} else {
+		argCount = 1
+		c.removeBytes(tupleBaseOffset, 1)
+	}
 
 	c.emitCallMethod(
 		value.NewCallSiteInfo(
 			symbol.S_splice,
-			3,
+			argCount,
 		),
 		location,
 		false,
@@ -1408,18 +1503,19 @@ func (c *Compiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) {
 		c.compileNode(node.Value, false)
 	}
 
-	finallyCount := c.countFinallyInLoop(node.Label)
+	labelName := identifierToName(node.Label)
+	finallyCount := c.countFinallyInLoop(labelName)
 	if finallyCount <= 0 {
-		c.leaveScopeOnBreak(location.StartPos.Line, node.Label)
+		c.leaveScopeOnBreak(location.StartPos.Line, labelName)
 
 		breakJumpOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP)
-		c.addLoopJump(node.Label, breakLoopJump, breakJumpOffset, location)
+		c.addLoopJump(labelName, breakLoopJump, breakJumpOffset, location)
 		return
 	}
 
 	jumpOffsetId := c.emitLoadValue(value.Undefined, location)
 	c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
-	c.addLoopJump(node.Label, breakFinallyLoopJump, jumpOffsetId, location)
+	c.addLoopJump(labelName, breakFinallyLoopJump, jumpOffsetId, location)
 
 	c.emitValue(value.SmallInt(finallyCount).ToValue(), location)
 	c.emit(location.StartPos.Line, bytecode.JUMP_TO_FINALLY)
@@ -1452,7 +1548,9 @@ func (c *Compiler) leaveScopeOnContinue(line int, label string) {
 
 func (c *Compiler) compileContinueExpressionNode(node *ast.ContinueExpressionNode) {
 	location := node.Location()
-	loop := c.findLoopJumpSet(node.Label, location)
+
+	labelName := identifierToName(node.Label)
+	loop := c.findLoopJumpSet(labelName, location)
 	if loop == nil {
 		return
 	}
@@ -1470,9 +1568,9 @@ func (c *Compiler) compileContinueExpressionNode(node *ast.ContinueExpressionNod
 		}
 	}
 
-	finallyCount := c.countFinallyInLoop(node.Label)
+	finallyCount := c.countFinallyInLoop(labelName)
 	if finallyCount <= 0 {
-		c.leaveScopeOnContinue(location.StartPos.Line, node.Label)
+		c.leaveScopeOnContinue(location.StartPos.Line, labelName)
 
 		continueJumpOffset := c.emitJump(location.StartPos.Line, bytecode.LOOP)
 		c.addLoopJumpTo(loop, continueLoopJump, continueJumpOffset)
@@ -1481,7 +1579,7 @@ func (c *Compiler) compileContinueExpressionNode(node *ast.ContinueExpressionNod
 
 	jumpOffsetId := c.emitLoadValue(value.Undefined, location)
 	c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
-	c.addLoopJump(node.Label, continueFinallyLoopJump, jumpOffsetId, location)
+	c.addLoopJump(labelName, continueFinallyLoopJump, jumpOffsetId, location)
 
 	c.emitValue(value.SmallInt(finallyCount).ToValue(), location)
 	c.emit(location.StartPos.Line, bytecode.JUMP_TO_FINALLY)
@@ -1867,7 +1965,7 @@ func (c *Compiler) compileForInIntAsNumericFor(label string, inExpression ast.Ex
 	init := ast.NewVariableDeclarationNode(
 		paramExpr.Location(),
 		"",
-		paramName,
+		ast.NewPublicIdentifierNode(paramExpr.Location(), paramName),
 		nil,
 		ast.NewIntLiteralNode(location, "0"),
 	)
@@ -1919,7 +2017,7 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 		location,
 		ast.NewPublicIdentifierNode(inExpression.Location(), rangeVarName),
 		token.New(location, token.DOT),
-		"start",
+		ast.NewPublicIdentifierNode(inExpression.Location(), "start"),
 		nil,
 		nil,
 	)
@@ -1938,7 +2036,7 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 			location,
 			initVal,
 			token.New(location, token.DOT),
-			"++",
+			ast.NewPublicIdentifierNode(location, "++"),
 			nil,
 			nil,
 		)
@@ -1948,7 +2046,7 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 			location,
 			initVal,
 			token.New(location, token.DOT),
-			"++",
+			ast.NewPublicIdentifierNode(location, "++"),
 			nil,
 			nil,
 		)
@@ -1957,7 +2055,7 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 			location,
 			initVal,
 			token.New(location, token.DOT),
-			"++",
+			ast.NewPublicIdentifierNode(location, "++"),
 			nil,
 			nil,
 		)
@@ -1978,7 +2076,7 @@ func (c *Compiler) compileForInRangeAsNumericFor(label string, inExpression ast.
 	init := ast.NewVariableDeclarationNode(
 		paramExpr.Location(),
 		"",
-		paramName,
+		ast.NewPublicIdentifierNode(paramExpr.Location(), paramName),
 		nil,
 		initVal,
 	)
@@ -2018,7 +2116,7 @@ func (c *Compiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast.I
 	init := ast.NewVariableDeclarationNode(
 		paramExpr.Location(),
 		"",
-		paramName,
+		ast.NewPublicIdentifierNode(paramExpr.Location(), paramName),
 		nil,
 		ast.NewIntLiteralNode(paramExpr.Location(), "0"),
 	)
@@ -2072,7 +2170,7 @@ func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *a
 			inRange.Location(),
 			inRange.Start,
 			token.New(inRange.Op.Location(), token.DOT),
-			"++",
+			ast.NewPublicIdentifierNode(location, "++"),
 			nil,
 			nil,
 		)
@@ -2082,7 +2180,7 @@ func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *a
 			inRange.Location(),
 			inRange.Start,
 			token.New(inRange.Op.Location(), token.DOT),
-			"++",
+			ast.NewPublicIdentifierNode(location, "++"),
 			nil,
 			nil,
 		)
@@ -2093,7 +2191,7 @@ func (c *Compiler) compileForInRangeLiteralAsNumericFor(label string, inRange *a
 	init := ast.NewVariableDeclarationNode(
 		paramExpr.Location(),
 		"",
-		paramName,
+		ast.NewPublicIdentifierNode(paramExpr.Location(), paramName),
 		nil,
 		initVal,
 	)
@@ -2402,7 +2500,7 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 
 		// set value
 		c.compileSubscriptSet(receiverType, node.Location())
-	case *ast.InstanceVariableNode:
+	case *ast.PublicInstanceVariableNode:
 		switch c.mode {
 		case topLevelMode:
 			c.Errors.AddFailure(
@@ -2429,8 +2527,9 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 	case *ast.AttributeAccessNode:
 		// get value
 		c.compileNodeWithResult(n.Receiver)
-		name := value.ToSymbol(n.AttributeName)
-		callInfo := value.NewCallSiteInfo(name, 0)
+		name := identifierToName(n.AttributeName)
+		nameSymbol := value.ToSymbol(name)
+		callInfo := value.NewCallSiteInfo(nameSymbol, 0)
 		c.emitCallMethod(callInfo, node.Location(), false)
 
 		switch node.Op.Type {
@@ -2443,7 +2542,7 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 		}
 
 		// set attribute
-		c.emitSetterCall(n.AttributeName, node.Location())
+		c.emitSetterCall(name, node.Location())
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Expression),
@@ -2460,42 +2559,45 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 	case token.EQUAL_OP:
 		c.compileNodeWithResult(attr.Receiver)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(attr.AttributeName, node.Location())
+		c.emitSetterCall(identifierToName(attr.AttributeName), node.Location())
 	case token.OR_OR_EQUAL:
+		name := identifierToName(attr.AttributeName)
 		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(attr.Receiver)
-		c.emitGetterCall(attr.AttributeName, location)
+		c.emitGetterCall(name, location)
 
 		jump := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF_NP)
 
 		// if falsy
 		c.emit(location.StartPos.Line, bytecode.POP)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(attr.AttributeName, location)
+		c.emitSetterCall(name, location)
 
 		// if truthy
 		c.patchJump(jump, location)
 	case token.AND_AND_EQUAL:
+		name := identifierToName(attr.AttributeName)
 		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(attr.Receiver)
-		c.emitGetterCall(attr.AttributeName, location)
+		c.emitGetterCall(name, location)
 
 		jump := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
 
 		// if truthy
 		c.emit(location.StartPos.Line, bytecode.POP)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(attr.AttributeName, location)
+		c.emitSetterCall(name, location)
 
 		// if falsy
 		c.patchJump(jump, location)
 	case token.QUESTION_QUESTION_EQUAL:
+		name := identifierToName(attr.AttributeName)
 		location := node.Location()
 		// Read the current value
 		c.compileNodeWithResult(attr.Receiver)
-		c.emitGetterCall(attr.AttributeName, location)
+		c.emitGetterCall(name, location)
 
 		nilJump := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF_NIL_NP)
 		nonNilJump := c.emitJump(location.StartPos.Line, bytecode.JUMP)
@@ -2504,7 +2606,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 		c.patchJump(nilJump, location)
 		c.emit(location.StartPos.Line, bytecode.POP)
 		c.compileNodeWithResult(node.Right)
-		c.emitSetterCall(attr.AttributeName, location)
+		c.emitSetterCall(name, location)
 
 		// if not nil
 		c.patchJump(nonNilJump, location)
@@ -2513,7 +2615,7 @@ func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr 
 	}
 }
 
-func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode, ivar *ast.InstanceVariableNode, valueIsIgnored bool) expressionResult {
+func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode, ivar *ast.PublicInstanceVariableNode, valueIsIgnored bool) expressionResult {
 	switch c.mode {
 	case topLevelMode:
 		c.Errors.AddFailure(
@@ -2720,7 +2822,7 @@ func (c *Compiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressio
 		return c.localVariableAssignment(n.Value, node.Op, node.Right, node.Location(), valueIsIgnored)
 	case *ast.SubscriptExpressionNode:
 		return c.subscriptAssignment(node, n, valueIsIgnored)
-	case *ast.InstanceVariableNode:
+	case *ast.PublicInstanceVariableNode:
 		return c.instanceVariableAssignment(node, n, valueIsIgnored)
 	case *ast.AttributeAccessNode:
 		c.attributeAssignment(node, n)
@@ -2813,8 +2915,8 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 	case token.EQUAL_OP:
 		return c.setLocal(name, right, location, valueIsIgnored)
 	case token.COLON_EQUAL:
-		c.compileNodeWithResult(right)
 		local := c.defineLocal(name, location)
+		c.compileNodeWithResult(right)
 		if local == nil {
 			return valueIgnoredToResult(valueIsIgnored)
 		}
@@ -3303,12 +3405,12 @@ func (c *Compiler) optimiseIfLessEqual(jumpOp bytecode.OpCode, condition *ast.Bi
 func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode, valueIsIgnored bool) expressionResult {
 	initialised := node.Initialiser != nil
 
-	if initialised {
-		c.compileNodeWithResult(node.Initialiser)
-	}
-	local := c.defineLocal(node.Name, node.Location())
+	local := c.defineLocal(identifierToName(node.Name), node.Location())
 	if local == nil {
 		return valueIgnoredToResult(valueIsIgnored)
+	}
+	if initialised {
+		c.compileNodeWithResult(node.Initialiser)
 	}
 
 	if initialised {
@@ -3326,8 +3428,8 @@ func (c *Compiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode, v
 func (c *Compiler) compileAwaitExpressionNode(node *ast.AwaitExpressionNode) {
 	location := node.Location()
 	c.compileNodeWithResult(node.Value)
-	if !c.isAsync {
-		c.emitCallMethod(value.NewCallSiteInfo(value.ToSymbol("await_sync"), 0), node.Location(), false)
+	if !c.isAsync || node.Sync {
+		c.emit(location.StartPos.Line, bytecode.AWAIT_SYNC)
 		return
 	}
 
@@ -4075,9 +4177,10 @@ func (c *Compiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressionN
 func (c *Compiler) compileAttributeAccessNode(node *ast.AttributeAccessNode) {
 	c.compileNodeWithResult(node.Receiver)
 
-	name := value.ToSymbol(node.AttributeName)
-	callInfo := value.NewCallSiteInfo(name, 0)
-	if node.AttributeName == "call" {
+	name := identifierToName(node.AttributeName)
+	nameSymbol := value.ToSymbol(name)
+	callInfo := value.NewCallSiteInfo(nameSymbol, 0)
+	if name == "call" {
 		c.emitCall(callInfo, node.Location())
 	} else {
 		c.emitCallMethod(callInfo, node.Location(), false)
@@ -4144,8 +4247,9 @@ func (c *Compiler) compileGenericMethodCallNode(node *ast.GenericMethodCallNode)
 	)
 }
 
-func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, name string, args []ast.ExpressionNode, tailCall bool, location *position.Location) {
+func (c *Compiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, nameNode ast.IdentifierNode, args []ast.ExpressionNode, tailCall bool, location *position.Location) {
 	_, onSelf := receiver.(*ast.SelfLiteralNode)
+	name := identifierToName(nameNode)
 
 	switch op.Type {
 	case token.QUESTION_DOT:
@@ -4516,12 +4620,12 @@ func (c *Compiler) compilerVariablePatternDeclarationNode(node *ast.VariablePatt
 func (c *Compiler) compileVariableDeclarationNode(node *ast.VariableDeclarationNode, valueIsIgnored bool) expressionResult {
 	initialised := node.Initialiser != nil
 
-	if initialised {
-		c.compileNodeWithResult(node.Initialiser)
-	}
-	local := c.defineLocal(node.Name, node.Location())
+	local := c.defineLocal(identifierToName(node.Name), node.Location())
 	if local == nil {
 		return valueIgnoredToResult(valueIsIgnored)
+	}
+	if initialised {
+		c.compileNodeWithResult(node.Initialiser)
 	}
 
 	if initialised {
@@ -4801,7 +4905,7 @@ elementLoop:
 			if !e.IsStatic() {
 				break elementSwitch
 			}
-			key := value.ToSymbol(e.Key)
+			key := value.ToSymbol(identifierToName(e.Key))
 			val := resolve(e.Value)
 			if val.IsUndefined() || value.IsMutableCollection(val) {
 				break elementSwitch
@@ -4850,7 +4954,7 @@ elementLoop:
 				c.compileNodeWithResult(element.Key)
 				c.compileNodeWithResult(element.Value)
 			case *ast.SymbolKeyValueExpressionNode:
-				c.emitValue(value.ToSymbol(element.Key).ToValue(), element.Location())
+				c.emitValue(value.ToSymbol(identifierToName(element.Key)).ToValue(), element.Location())
 				c.compileNodeWithResult(element.Value)
 			case *ast.PublicIdentifierNode:
 				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Location())
@@ -4873,7 +4977,7 @@ elementLoop:
 				c.compileNodeWithResult(e.Value)
 				c.emit(e.Location().StartPos.Line, bytecode.MAP_SET)
 			case *ast.SymbolKeyValueExpressionNode:
-				c.emitValue(value.ToSymbol(e.Key).ToValue(), e.Location())
+				c.emitValue(value.ToSymbol(identifierToName(e.Key)).ToValue(), e.Location())
 				c.compileNodeWithResult(e.Value)
 				c.emit(e.Location().StartPos.Line, bytecode.MAP_SET)
 			case *ast.ModifierNode:
@@ -4897,7 +5001,7 @@ elementLoop:
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
+							c.emitValue(value.ToSymbol(identifierToName(then.Key)).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						default:
@@ -4919,7 +5023,7 @@ elementLoop:
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
+							c.emitValue(value.ToSymbol(identifierToName(then.Key)).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						default:
@@ -4933,7 +5037,7 @@ elementLoop:
 							c.compileNodeWithResult(els.Value)
 							c.emit(els.Location().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(els.Key).ToValue(), els.Location())
+							c.emitValue(value.ToSymbol(identifierToName(els.Key)).ToValue(), els.Location())
 							c.compileNodeWithResult(els.Value)
 							c.emit(els.Location().EndPos.Line, bytecode.MAP_SET)
 						default:
@@ -4955,7 +5059,7 @@ elementLoop:
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
+							c.emitValue(value.ToSymbol(identifierToName(then.Key)).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().EndPos.Line, bytecode.MAP_SET)
 						default:
@@ -5005,7 +5109,7 @@ elementLoop:
 			if !e.IsStatic() {
 				break elementSwitch
 			}
-			key := value.ToSymbol(e.Key)
+			key := value.ToSymbol(identifierToName(e.Key))
 			val := resolve(e.Value)
 			if val.IsUndefined() || value.IsMutableCollection(val) {
 				break elementSwitch
@@ -5041,7 +5145,7 @@ elementLoop:
 				c.compileNodeWithResult(element.Key)
 				c.compileNodeWithResult(element.Value)
 			case *ast.SymbolKeyValueExpressionNode:
-				c.emitValue(value.ToSymbol(element.Key).ToValue(), element.Location())
+				c.emitValue(value.ToSymbol(identifierToName(element.Key)).ToValue(), element.Location())
 				c.compileNodeWithResult(element.Value)
 			case *ast.PublicIdentifierNode:
 				c.emitValue(value.ToSymbol(element.Value).ToValue(), element.Location())
@@ -5064,7 +5168,7 @@ elementLoop:
 				c.compileNodeWithResult(e.Value)
 				c.emit(e.Location().StartPos.Line, bytecode.MAP_SET)
 			case *ast.SymbolKeyValueExpressionNode:
-				c.emitValue(value.ToSymbol(e.Key).ToValue(), e.Location())
+				c.emitValue(value.ToSymbol(identifierToName(e.Key)).ToValue(), e.Location())
 				c.compileNodeWithResult(e.Value)
 				c.emit(e.Location().StartPos.Line, bytecode.MAP_SET)
 			case *ast.ModifierNode:
@@ -5088,7 +5192,7 @@ elementLoop:
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
+							c.emitValue(value.ToSymbol(identifierToName(then.Key)).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						default:
@@ -5110,7 +5214,7 @@ elementLoop:
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
+							c.emitValue(value.ToSymbol(identifierToName(then.Key)).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().StartPos.Line, bytecode.MAP_SET)
 						default:
@@ -5124,7 +5228,7 @@ elementLoop:
 							c.compileNodeWithResult(els.Value)
 							c.emit(els.Location().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(els.Key).ToValue(), els.Location())
+							c.emitValue(value.ToSymbol(identifierToName(els.Key)).ToValue(), els.Location())
 							c.compileNodeWithResult(els.Value)
 							c.emit(els.Location().EndPos.Line, bytecode.MAP_SET)
 						default:
@@ -5146,7 +5250,7 @@ elementLoop:
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
-							c.emitValue(value.ToSymbol(then.Key).ToValue(), then.Location())
+							c.emitValue(value.ToSymbol(identifierToName(then.Key)).ToValue(), then.Location())
 							c.compileNodeWithResult(then.Value)
 							c.emit(then.Location().EndPos.Line, bytecode.MAP_SET)
 						default:

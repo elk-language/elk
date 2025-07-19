@@ -398,7 +398,7 @@ func TestUsing(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(13, 2, 13)), "undefined namespace `Foo`"),
-				diagnostic.NewFailure(L("<main>", P(38, 4, 18), P(42, 4, 22)), "method `bar` is not defined on type `Std::Object`"),
+				diagnostic.NewFailure(L("<main>", P(38, 4, 18), P(40, 4, 20)), "method `bar` is not defined on type `Std::Object`"),
 			},
 		},
 		"using with a single nonexistent method": {

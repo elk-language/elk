@@ -13,7 +13,7 @@ func initMethodSignatureDefinitionNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argName := (string)(args[1].MustReference().(value.String))
+			argName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argTypeParameters []ast.TypeParameterNode
 			if !args[2].IsUndefined() {
@@ -85,7 +85,7 @@ func initMethodSignatureDefinitionNode() {
 		"name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodSignatureDefinitionNode)
-			result := value.Ref(value.String(self.Name))
+			result := value.Ref(self.Name)
 			return result, value.Undefined
 
 		},

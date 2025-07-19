@@ -192,9 +192,9 @@ func TestStruct(t *testing.T) {
 				var f = Foo(5.2, 'b', :bar)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(72, 7, 17), P(74, 7, 19)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `5.2`"),
-				diagnostic.NewFailure(L("<main>", P(77, 7, 22), P(79, 7, 24)), "expected type `Std::Int` for parameter `b` in call to `#init`, got type `\"b\"`"),
-				diagnostic.NewFailure(L("<main>", P(68, 7, 13), P(86, 7, 31)), "expected 1...2 arguments in call to `#init`, got 3"),
+				diagnostic.NewFailure(L("<main>", P(72, 7, 17), P(74, 7, 19)), "expected type `Std::String` for parameter `a` in call to `Foo.:#init`, got type `5.2`"),
+				diagnostic.NewFailure(L("<main>", P(77, 7, 22), P(79, 7, 24)), "expected type `Std::Int` for parameter `b` in call to `Foo.:#init`, got type `\"b\"`"),
+				diagnostic.NewFailure(L("<main>", P(68, 7, 13), P(70, 7, 15)), "expected 1...2 arguments in call to `Foo.:#init`, got 3"),
 			},
 		},
 		"call a getter on a struct": {
@@ -1290,7 +1290,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(54, 6, 7), P(58, 6, 11)), "instance variable `var @foo: Std::String` must be initialised before `self` can be used, since it is non-nilable"),
+				diagnostic.NewFailure(L("<main>", P(54, 6, 7), P(56, 6, 9)), "instance variable `var @foo: Std::String` must be initialised before `self` can be used, since it is non-nilable"),
 			},
 		},
 		"declare a non-nilable instance variable in a class and assign it in init after reading self": {
@@ -2645,7 +2645,7 @@ func TestMixin(t *testing.T) {
 				Bar.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(111, 11, 5), P(117, 11, 11)), "method `foo` is not defined on type `&Bar`"),
+				diagnostic.NewFailure(L("<main>", P(115, 11, 9), P(117, 11, 11)), "method `foo` is not defined on type `&Bar`"),
 			},
 		},
 		"within a method": {
@@ -2809,7 +2809,7 @@ func TestInterface(t *testing.T) {
 				Bar.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(121, 11, 5), P(127, 11, 11)), "method `foo` is not defined on type `&Bar`"),
+				diagnostic.NewFailure(L("<main>", P(125, 11, 9), P(127, 11, 11)), "method `foo` is not defined on type `&Bar`"),
 			},
 		},
 		"within a method": {
