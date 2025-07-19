@@ -835,6 +835,62 @@ func TestMacroExpansion(t *testing.T) {
 				},
 			),
 		},
+		"call a scoped macro": {
+			input: `
+				using Std::Elk::AST::*
+
+				module Math
+					macro fib(i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				Math::fib!(10) * 2
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_INT_8), 110,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(269, 16, 23)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(16, 3),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<namespaceDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 0,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(269, 16, 23)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+							bytecode.NewLineInfo(16, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Math").ToValue(),
+						},
+					)),
+					value.Undefined,
+				},
+			),
+		},
 		"recursive fibonacci macro": {
 			input: `
 				using Std::Elk::AST::*
@@ -986,6 +1042,140 @@ func TestMacroExpansion(t *testing.T) {
 					value.Ref(value.String("foo")),
 					value.Ref(value.NewCallSiteInfo(
 						value.ToSymbol("value"),
+						0,
+					)),
+				},
+			),
+		},
+		"define a method": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro reader(name: IdentifierNode, typ: TypeExpressionNode)
+					ivar := PublicInstanceVariableNode(name.value)
+
+					quote
+						var unquote_ivar(ivar): !{typ.type_node}
+						def !{name}: !{typ.type_node}
+							!{ivar}
+						end
+					end
+				end
+
+				class Foo
+					reader!(bar, type Int | Float?)
+				end
+
+				b := Foo()
+				b.bar
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.INIT_NAMESPACE),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.INSTANTIATE8), 0,
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(367, 20, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(15, 4),
+					bytecode.NewLineInfo(19, 6),
+					bytecode.NewLineInfo(20, 4),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						namespaceDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 1,
+							byte(bytecode.GET_CONST8), 1,
+							byte(bytecode.GET_CONST8), 2,
+							byte(bytecode.SET_SUPERCLASS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(367, 20, 10)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 10),
+							bytecode.NewLineInfo(20, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						methodDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(367, 20, 10)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(20, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
+								value.ToSymbol("bar"),
+								[]byte{
+									byte(bytecode.GET_IVAR8), 0,
+									byte(bytecode.RETURN),
+								},
+								L(P(302, 16, 6), P(332, 16, 36)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(16, 3),
+								},
+								0,
+								0,
+								[]value.Value{
+									value.ToSymbol("bar").ToValue(),
+								},
+							)),
+							value.ToSymbol("bar").ToValue(),
+						},
+					)),
+					value.ToSymbol("Foo").ToValue(),
+					value.Ref(vm.NewBytecodeFunction(
+						value.ToSymbol("<class: Foo>"),
+						[]byte{
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(287, 15, 5), P(340, 17, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(16, 1),
+							bytecode.NewLineInfo(17, 1),
+						},
+						0,
+						0,
+						nil,
+					)),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("bar"),
 						0,
 					)),
 				},

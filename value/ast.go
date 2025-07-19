@@ -500,6 +500,7 @@ func initElkAST() {
 
 	PublicInstanceVariableNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	PublicInstanceVariableNodeClass.IncludeMixin(ExpressionNodeMixin)
+	PublicInstanceVariableNodeClass.IncludeMixin(InstanceVariableNodeMixin)
 	ElkASTModule.AddConstantString("PublicInstanceVariableNode", Ref(PublicInstanceVariableNodeClass))
 
 	SimpleSymbolLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
