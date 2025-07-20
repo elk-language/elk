@@ -130,7 +130,7 @@ type Checker struct {
 	typeDefinitionChecks    *typeDefinitionChecks
 	methodCache             *concurrent.Slice[*types.Method] // used in constant definition checks, the list of methods used in the current constant declaration
 	method                  *types.Method
-	classesWithIvars        []*ast.ClassDeclarationNode // classes that declare instance variables
+	classesWithIvars        *ds.OrderedMap[string, *classWithIvarsData] // classes that declare instance variables
 	compiler                *compiler.Compiler
 	threadPool              *vm.ThreadPool
 }
@@ -319,6 +319,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.checkTypeDefinitions()
 
 	c.switchToMainCompiler()
+	c.classesWithIvars = ds.NewOrderedMap[string, *classWithIvarsData]()
 	methodCompiler, offset := c.initMethodCompiler(node.Location())
 	c.hoistMethodDefinitionsInFile(c.Filename, node)
 	c.checkConstantPlaceholders()
@@ -399,9 +400,9 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 
 // Check if instance variable definitions in classes are valid
 func (c *Checker) checkClassesWithIvars() {
-	for _, classNode := range c.classesWithIvars {
-		class := c.TypeOf(classNode).(*types.Class)
-		c.checkNonNilableInstanceVariableForClass(class, classNode.Location())
+	for _, classData := range c.classesWithIvars.All() {
+		class := classData.class
+		c.checkNonNilableInstanceVariableForClass(class, classData.locations)
 	}
 	c.classesWithIvars = nil
 }
@@ -3950,7 +3951,7 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(location *position.Loc
 	c.method.SetInstanceVariablesChecked(true)
 }
 
-func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, location *position.Location) {
+func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, locations []*position.Location) {
 	init := c.getMethod(class, symbol.S_init, nil)
 
 	if init == nil {
@@ -3962,13 +3963,15 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 				continue
 			}
 
-			c.addFailure(
-				fmt.Sprintf(
-					"instance variable `%s` must be initialised in the constructor, since it is not nilable",
-					types.InspectInstanceVariableDeclarationWithColor(name.String(), ivar.Type),
-				),
-				location,
-			)
+			for _, loc := range locations {
+				c.addFailure(
+					fmt.Sprintf(
+						"instance variable `%s` must be initialised in the constructor, since it is not nilable",
+						types.InspectInstanceVariableDeclarationWithColor(name.String(), ivar.Type),
+					),
+					loc,
+				)
+			}
 		}
 		return
 	}
@@ -3987,13 +3990,15 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 			continue
 		}
 
-		c.addFailure(
-			fmt.Sprintf(
-				"instance variable `%s` must be initialised in the constructor, since it is non-nilable",
-				types.InspectInstanceVariableDeclarationWithColor(name.String(), ivar.Type),
-			),
-			location,
-		)
+		for _, loc := range locations {
+			c.addFailure(
+				fmt.Sprintf(
+					"instance variable `%s` must be initialised in the constructor, since it is non-nilable",
+					types.InspectInstanceVariableDeclarationWithColor(name.String(), ivar.Type),
+				),
+				loc,
+			)
+		}
 	}
 }
 

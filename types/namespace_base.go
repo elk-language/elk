@@ -98,6 +98,10 @@ func (c *NamespaceBase) InstanceVariables() TypeMap {
 	return c.instanceVariables
 }
 
+func (c *NamespaceBase) HasInstanceVariables() bool {
+	return len(c.instanceVariables) > 0
+}
+
 func (c *NamespaceBase) SetInstanceVariables(iv TypeMap) {
 	c.instanceVariables = iv
 }

@@ -49,12 +49,32 @@ func (m *OrderedMap[K, V]) GetOk(key K) (V, bool) {
 
 // Set adds a new key value pair or sets an existing
 // key to the given value
-func (m *OrderedMap[K, V]) Set(key K, val V) {
+func (m *OrderedMap[K, V]) Set(key K, val V) *OrderedMap[K, V] {
 	_, present := m.data[key]
 	m.data[key] = val
 	if !present {
 		m.order = append(m.order, key)
 	}
+
+	return m
+}
+
+// Includes checks if the given key exists within the map
+func (m *OrderedMap[K, V]) Includes(key K) bool {
+	_, present := m.data[key]
+	return present
+}
+
+// Insert adds a new pair if the key is not already present in the map
+// otherwise it does nothing and returns false
+func (m *OrderedMap[K, V]) Insert(key K, val V) bool {
+	_, present := m.data[key]
+	if present {
+		return false
+	}
+
+	m.Set(key, val)
+	return true
 }
 
 // Delete removes the given key and returns true when the key was

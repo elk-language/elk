@@ -364,7 +364,7 @@ func NameToNamespace(fullSubtypePath string, env *GlobalEnvironment) Namespace {
 }
 
 // Iterate over direct parents of the given namespace (including itself).
-func SimpleParents(namespace Namespace) iter.Seq[Namespace] {
+func DirectParents(namespace Namespace) iter.Seq[Namespace] {
 	return func(yield func(parent Namespace) bool) {
 		for parent := namespace; parent != nil; parent = parent.Parent() {
 			if !yield(parent) {

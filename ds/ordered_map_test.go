@@ -128,6 +128,60 @@ func TestOrderedMap_Set(t *testing.T) {
 	}
 }
 
+func TestOrderedMap_Insert(t *testing.T) {
+	tests := map[string]struct {
+		m       *OrderedMap[string, int]
+		key     string
+		value   int
+		want    bool
+		wantMap *OrderedMap[string, int]
+	}{
+		"existing value": {
+			m: NewOrderedMapWithPairs(
+				MakePair("foo", 1),
+				MakePair("bar", -25),
+			),
+			key:   "bar",
+			value: 2,
+			want:  false,
+			wantMap: NewOrderedMapWithPairs(
+				MakePair("foo", 1),
+				MakePair("bar", -25),
+			),
+		},
+		"new value": {
+			m: NewOrderedMapWithPairs(
+				MakePair("foo", 1),
+				MakePair("bar", -25),
+			),
+			key:   "lol",
+			value: 10,
+			want:  true,
+			wantMap: NewOrderedMapWithPairs(
+				MakePair("foo", 1),
+				MakePair("bar", -25),
+				MakePair("lol", 10),
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.m.Insert(tc.key, tc.value)
+
+			opts := cmp.Options{
+				cmp.AllowUnexported(OrderedMap[string, int]{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Error(diff)
+			}
+			if diff := cmp.Diff(tc.wantMap, tc.m, opts...); diff != "" {
+				t.Error(diff)
+			}
+		})
+	}
+}
+
 func TestOrderedMap_Delete(t *testing.T) {
 	tests := map[string]struct {
 		m       *OrderedMap[string, int]
@@ -184,7 +238,7 @@ func TestOrderedMap_All(t *testing.T) {
 		m       *OrderedMap[string, int]
 		wantAll []Pair[string, int]
 	}{
-		"iterate in insertion order": {
+		"iterate in insertion order for constructor": {
 			m: NewOrderedMapWithPairs(
 				MakePair("foo", 1),
 				MakePair("bar", -25),
@@ -194,6 +248,17 @@ func TestOrderedMap_All(t *testing.T) {
 				MakePair("foo", 1),
 				MakePair("bar", -25),
 				MakePair("baz", 5),
+			},
+		},
+		"iterate in insertion order for setters": {
+			m: NewOrderedMap[string, int]().
+				Set("bar", 8).
+				Set("baz", 2).
+				Set("foo", -21),
+			wantAll: []Pair[string, int]{
+				MakePair("bar", 8),
+				MakePair("baz", 2),
+				MakePair("foo", -21),
 			},
 		},
 	}

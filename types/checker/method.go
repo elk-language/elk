@@ -237,12 +237,66 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 	}
 }
 
+type classWithIvarsData struct {
+	class     *types.Class
+	locations []*position.Location
+}
+
+func (c *classWithIvarsData) addLocation(loc *position.Location) {
+	c.locations = append(c.locations, loc)
+}
+
+func (c *Checker) insertClassWithIvarsData(class *types.Class) *classWithIvarsData {
+	data, ok := c.classesWithIvars.GetOk(class.Name())
+	if ok {
+		return data
+	}
+
+	data = &classWithIvarsData{class: class}
+	c.classesWithIvars.Set(class.Name(), data)
+	return data
+}
+
 func (c *Checker) registerClassWithIvars(class *types.Class, node *ast.ClassDeclarationNode) {
-	if class == nil || !types.NamespaceDeclaresInstanceVariables(class) {
+	if class == nil {
 		return
 	}
 
-	c.classesWithIvars = append(c.classesWithIvars, node)
+	var parents []types.Namespace
+	for parent := range types.DirectParents(class.Parent()) {
+		if c.classesWithIvars.Includes(parent.Name()) {
+			break
+		}
+		parents = append(parents, parent)
+	}
+
+	var hasIvars bool
+	for i := len(parents) - 1; i >= 0; i-- {
+		parent := parents[i]
+		switch parent := parent.(type) {
+		case *types.MixinProxy:
+			if !hasIvars && parent.HasInstanceVariables() {
+				hasIvars = true
+			}
+		case *types.Class:
+			if hasIvars {
+				c.insertClassWithIvarsData(parent)
+				continue
+			}
+
+			if !parent.HasInstanceVariables() {
+				continue
+			}
+
+			hasIvars = true
+			c.insertClassWithIvarsData(parent)
+		}
+	}
+
+	if hasIvars || class.HasInstanceVariables() {
+		classData := c.insertClassWithIvarsData(class)
+		classData.addLocation(node.Location())
+	}
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclarationNode) {
