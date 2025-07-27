@@ -287,6 +287,24 @@ func (c *Compiler) CompileClassInheritance(class *types.Class, location *positio
 	c.emit(location.StartPos.Line, bytecode.SET_SUPERCLASS)
 }
 
+func (c *Compiler) CompileIvarIndices(target types.Namespace, location *position.Location) {
+	var ivarIndices *value.IvarIndices
+	switch t := target.(type) {
+	case *types.SingletonClass:
+		ivarIndices = &t.IvarIndices
+		targetName := value.ToSymbol(t.AttachedObject.Name())
+		c.emitGetConst(targetName, location)
+		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
+	case *types.Class:
+		ivarIndices = &t.IvarIndices
+		targetName := value.ToSymbol(t.Name())
+		c.emitGetConst(targetName, location)
+	}
+
+	c.emitValue(value.Ref(ivarIndices), location)
+	c.emit(location.StartPos.Line, bytecode.DEF_IVARS)
+}
+
 func (c *Compiler) CompileInclude(target types.Namespace, mixin *types.Mixin, location *position.Location) {
 	switch t := target.(type) {
 	case *types.SingletonClass:
@@ -383,6 +401,34 @@ func (c *Compiler) InitMethodCompiler(location *position.Location) (*Compiler, i
 	return methodCompiler, offset
 }
 
+var ivarIndicesSymbol = value.ToSymbol("<ivarIndices>")
+
+func (c *Compiler) InitIvarIndicesCompiler(location *position.Location) (*Compiler, int) {
+	ivarCompiler := New(ivarIndicesSymbol.String(), topLevelMode, c.Bytecode.Location, c.checker)
+	ivarCompiler.Errors = c.Errors
+	ivarCompiler.Parent = c
+
+	offset := c.nextInstructionOffset()
+	c.emitValue(value.Ref(ivarCompiler.Bytecode), location)
+	c.emit(location.StartPos.Line, bytecode.EXEC)
+	c.emit(location.StartPos.Line, bytecode.POP)
+
+	return ivarCompiler, offset
+}
+
+func (c *Compiler) FinishIvarIndicesCompiler(location *position.Location, execOffset int) *Compiler {
+	if len(c.Bytecode.Instructions) > 0 {
+		c.emit(location.EndPos.Line, bytecode.NIL)
+		c.emit(location.EndPos.Line, bytecode.RETURN)
+		return c.Parent
+	}
+
+	// If no instructions were emitted, remove the EXEC instruction block
+	c.Parent.removeBytes(execOffset, 3)
+	c.Parent.removeBytecodeFunction(ivarIndicesSymbol)
+	return c.Parent
+}
+
 func (c *Compiler) CompileMethods(location *position.Location, execOffset int) {
 	c.compileMethodsWithinModule(c.checker.Env().Root, location)
 	if len(c.Bytecode.Instructions) > 0 {
@@ -393,7 +439,7 @@ func (c *Compiler) CompileMethods(location *position.Location, execOffset int) {
 
 	// If no instructions were emitted, remove the EXEC instruction block
 	c.Parent.removeBytes(execOffset, 3)
-	c.Parent.removeMethodDefinitionsBytecodeFunction()
+	c.Parent.removeBytecodeFunction(methodDefinitionsSymbol)
 }
 
 func (c *Compiler) removeBytes(offset int, count int) {
@@ -404,14 +450,14 @@ func (c *Compiler) removeBytes(offset int, count int) {
 
 var methodDefinitionsSymbol = value.ToSymbol("<methodDefinitions>")
 
-func (c *Compiler) removeMethodDefinitionsBytecodeFunction() {
+func (c *Compiler) removeBytecodeFunction(name value.Symbol) {
 	for i, val := range c.Bytecode.Values {
 		val, ok := val.SafeAsReference().(*vm.BytecodeFunction)
 		if !ok {
 			continue
 		}
 
-		if val.Name() == methodDefinitionsSymbol {
+		if val.Name() == name {
 			c.Bytecode.Values[i] = value.Undefined
 			break
 		}
@@ -1020,11 +1066,32 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	case *ast.MacroBoundaryNode:
 		c.compileMacroBoundaryNode(node)
 	case *ast.IfExpressionNode:
-		return c.compileIfExpression(false, node.Condition, node.ThenBody, node.ElseBody, node.Location(), valueIsIgnored)
+		return c.compileIfExpression(
+			false,
+			node.Condition,
+			node.ThenBody,
+			node.ElseBody,
+			node.Location(),
+			valueIsIgnored,
+		)
 	case *ast.UnlessExpressionNode:
-		return c.compileIfExpression(true, node.Condition, node.ThenBody, node.ElseBody, node.Location(), valueIsIgnored)
+		return c.compileIfExpression(
+			true,
+			node.Condition,
+			node.ThenBody,
+			node.ElseBody,
+			node.Location(),
+			valueIsIgnored,
+		)
 	case *ast.ModifierIfElseNode:
-		return c.compileModifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Location(), valueIsIgnored)
+		return c.compileModifierIfExpression(
+			false,
+			node.Condition,
+			node.ThenExpression,
+			node.ElseExpression,
+			node.Location(),
+			valueIsIgnored,
+		)
 	case *ast.ModifierNode:
 		return c.compileModifierExpressionNode("", node, valueIsIgnored)
 	case *ast.BreakExpressionNode:

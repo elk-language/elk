@@ -667,6 +667,8 @@ func (vm *VM) run() {
 			vm.opDefMethodAlias()
 		case bytecode.INCLUDE:
 			vm.throwIfErr(vm.opInclude())
+		case bytecode.DEF_IVARS:
+			vm.throwIfErr(vm.opDefIvars())
 		case bytecode.APPEND:
 			vm.opAppend()
 		case bytecode.MAP_SET:
@@ -2157,6 +2159,26 @@ func (vm *VM) populateMissingParameters(paramCount, argumentCount int) {
 	if missingParams > 0 {
 		vm.spIncrementBy(missingParams)
 	}
+}
+
+// Define instance variables in a class
+func (vm *VM) opDefIvars() (err value.Value) {
+	ivarIndices := (*value.IvarIndices)(vm.popGet().Pointer())
+	classVal := vm.popGet()
+
+	switch class := classVal.SafeAsReference().(type) {
+	case *value.Class:
+		class.IvarIndices = *ivarIndices
+	default:
+		return value.Ref(value.Errorf(
+			value.TypeErrorClass,
+			"cannot define instance variables in %s: `%s`",
+			classVal.Class().PrintableName(),
+			classVal.Inspect(),
+		))
+	}
+
+	return value.Undefined
 }
 
 // Include a mixin in a class/mixin.

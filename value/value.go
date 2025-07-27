@@ -3,6 +3,7 @@ package value
 import (
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 	"unsafe"
 
@@ -794,10 +795,8 @@ func IsMutableCollection(val Value) bool {
 	case *ArrayList, *HashMap:
 		return true
 	case *ArrayTuple:
-		for _, element := range *v {
-			if IsMutableCollection(element) {
-				return true
-			}
+		if slices.ContainsFunc(*v, IsMutableCollection) {
+			return true
 		}
 	case *HashRecord:
 		for _, pair := range v.Table {

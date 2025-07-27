@@ -66,6 +66,7 @@ func (e *evaluator) evaluate(input string) {
 
 	if e.typechecker == nil {
 		e.typechecker = checker.New()
+		e.typechecker.SetIncremental(true)
 		e.vm = vm.New()
 	}
 
@@ -130,6 +131,7 @@ func (e *evaluator) disassemble(input string) {
 
 	if e.typechecker == nil {
 		e.typechecker = checker.New()
+		e.typechecker.SetIncremental(true)
 	}
 	fn, dl := e.typechecker.CheckSource(sourceName, input)
 
@@ -159,6 +161,7 @@ func (e *evaluator) typecheck(input string) {
 
 	if e.typechecker == nil {
 		e.typechecker = checker.New()
+		e.typechecker.SetIncremental(true)
 	}
 	_, dl := e.typechecker.CheckSource(sourceName, input)
 
@@ -188,6 +191,7 @@ func (e *evaluator) expand(input string) {
 
 	if e.typechecker == nil {
 		e.typechecker = checker.New()
+		e.typechecker.SetIncremental(true)
 	}
 	_, dl := e.typechecker.CheckSource(sourceName, input)
 

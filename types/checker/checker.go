@@ -4,6 +4,7 @@ package checker
 import (
 	"fmt"
 	"iter"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -91,6 +92,7 @@ const (
 	inferClosureThrowTypeFlag
 	generatorFlag
 	definedMacrosFlag // indicates that the typechecker has defined some macros
+	incrementalFlag   // indicates the typechecker should check and compiler code incrementally (REPL)
 )
 
 type phase uint8
@@ -185,6 +187,18 @@ func (c *Checker) SetHeader(val bool) {
 		c.flags.SetFlag(headerFlag)
 	} else {
 		c.flags.UnsetFlag(headerFlag)
+	}
+}
+
+func (c *Checker) IsIncremental() bool {
+	return c.flags.HasFlag(incrementalFlag)
+}
+
+func (c *Checker) SetIncremental(val bool) {
+	if val {
+		c.flags.SetFlag(incrementalFlag)
+	} else {
+		c.flags.UnsetFlag(incrementalFlag)
 	}
 }
 
@@ -327,7 +341,9 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.checkConstants()
 	c.checkMethods()
 	c.compileMethods(methodCompiler, offset, node.Location())
-	c.checkClassesWithIvars()
+
+	c.checkClassesWithIvars(node.Location())
+
 	c.checkMethodsInConstants()
 	c.phase = expressionPhase
 	c.checkExpressionsInFile(c.Filename, node)
@@ -399,12 +415,24 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 }
 
 // Check if instance variable definitions in classes are valid
-func (c *Checker) checkClassesWithIvars() {
+func (c *Checker) checkClassesWithIvars(loc *position.Location) {
+	var offset int
+	if c.shouldCompile() {
+		var ivarCompiler *compiler.Compiler
+		ivarCompiler, offset = c.compiler.InitIvarIndicesCompiler(loc)
+		c.compiler = ivarCompiler
+	}
+
 	for _, classData := range c.classesWithIvars.All() {
 		class := classData.class
 		c.checkNonNilableInstanceVariableForClass(class, classData.locations)
+		c.assignIvarIndices(classData.class)
 	}
+
 	c.classesWithIvars = nil
+	if c.shouldCompile() {
+		c.compiler = c.compiler.FinishIvarIndicesCompiler(loc, offset)
+	}
 }
 
 func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
@@ -3949,6 +3977,70 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(location *position.Loc
 	}
 
 	c.method.SetInstanceVariablesChecked(true)
+}
+
+func (c *Checker) assignIvarIndices(class *types.Class) {
+	if !c.IsIncremental() && class.IvarIndices != nil {
+		return
+	}
+
+	var parents []types.Namespace
+	var i int
+	firstParentWithIvars := -1
+
+	for parent := range types.Parents(class) {
+		parents = append(parents, parent)
+
+		switch parent := parent.(type) {
+		case *types.Class:
+			if parent.HasInstanceVariables() {
+				firstParentWithIvars = i
+			}
+			if !c.IsIncremental() && parent.IvarIndices != nil {
+				break
+			}
+		}
+		i++
+	}
+	if firstParentWithIvars == -1 {
+		firstParentWithIvars = 0
+	} else {
+		firstParentWithIvars = len(parents) - 1 - firstParentWithIvars
+	}
+
+	currentIvarIndices := make(value.IvarIndices)
+
+	for i := firstParentWithIvars; i >= 0; i-- {
+		parent := parents[i]
+		switch parent := parent.(type) {
+		case *types.Class:
+			if !c.IsIncremental() && parent.IvarIndices != nil {
+				currentIvarIndices = maps.Clone(parent.IvarIndices)
+				continue
+			}
+
+			for ivarName := range parent.InstanceVariables() {
+				if ivarName == symbol.S_empty {
+					continue
+				}
+				currentIvarIndices[ivarName] = len(currentIvarIndices)
+			}
+
+			parent.IvarIndices = currentIvarIndices
+			if c.shouldCompile() && len(currentIvarIndices) != 0 {
+				c.compiler.CompileIvarIndices(parent, position.DefaultLocation)
+			}
+
+			currentIvarIndices = maps.Clone(currentIvarIndices)
+		case *types.MixinProxy:
+			for ivarName := range parent.InstanceVariables() {
+				if ivarName == symbol.S_empty {
+					continue
+				}
+				currentIvarIndices[ivarName] = len(currentIvarIndices)
+			}
+		}
+	}
 }
 
 func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, locations []*position.Location) {

@@ -29,6 +29,7 @@ type Class struct {
 	MethodContainer
 	ConstructorFunc   ConstructorFunc
 	Flags             bitfield.BitField8
+	IvarIndices       IvarIndices
 	instanceVariables SymbolMap
 }
 
@@ -38,6 +39,12 @@ type ClassOption = func(*Class)
 func ClassWithName(name string) ClassOption {
 	return func(c *Class) {
 		c.ConstantContainer.Name = name
+	}
+}
+
+func ClassWithIvarIndices(ivarIndices IvarIndices) ClassOption {
+	return func(c *Class) {
+		c.IvarIndices = ivarIndices
 	}
 }
 

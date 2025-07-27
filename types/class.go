@@ -19,6 +19,7 @@ type Class struct {
 	Checked        bool
 	singleton      *SingletonClass
 	typeParameters []*TypeParameter
+	IvarIndices    value.IvarIndices
 	NamespaceBase
 }
 

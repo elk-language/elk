@@ -279,6 +279,7 @@ const (
 	AWAIT                           // Await the promise on top of the stack
 	AWAIT_RESULT                    // Handle the result of an awaited promise
 	AWAIT_SYNC                      // Await the promise on top of the stack synchronously
+	DEF_IVARS                       // Define instance variables in a class
 )
 
 var opCodeNames = [...]string{
@@ -519,4 +520,5 @@ var opCodeNames = [...]string{
 	AWAIT:             "AWAIT",
 	AWAIT_RESULT:      "AWAIT_RESULT",
 	AWAIT_SYNC:        "AWAIT_SYNC",
+	DEF_IVARS:         "DEF_IVARS",
 }

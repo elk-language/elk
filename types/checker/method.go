@@ -262,38 +262,7 @@ func (c *Checker) registerClassWithIvars(class *types.Class, node *ast.ClassDecl
 		return
 	}
 
-	var parents []types.Namespace
-	for parent := range types.DirectParents(class.Parent()) {
-		if c.classesWithIvars.Includes(parent.Name()) {
-			break
-		}
-		parents = append(parents, parent)
-	}
-
-	var hasIvars bool
-	for i := len(parents) - 1; i >= 0; i-- {
-		parent := parents[i]
-		switch parent := parent.(type) {
-		case *types.MixinProxy:
-			if !hasIvars && parent.HasInstanceVariables() {
-				hasIvars = true
-			}
-		case *types.Class:
-			if hasIvars {
-				c.insertClassWithIvarsData(parent)
-				continue
-			}
-
-			if !parent.HasInstanceVariables() {
-				continue
-			}
-
-			hasIvars = true
-			c.insertClassWithIvarsData(parent)
-		}
-	}
-
-	if hasIvars || class.HasInstanceVariables() {
+	if types.NamespaceDeclaresInstanceVariables(class) {
 		classData := c.insertClassWithIvarsData(class)
 		classData.addLocation(node.Location())
 	}
