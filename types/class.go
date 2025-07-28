@@ -19,8 +19,19 @@ type Class struct {
 	Checked        bool
 	singleton      *SingletonClass
 	typeParameters []*TypeParameter
-	IvarIndices    value.IvarIndices
+	IvarIndices    *value.IvarIndices
 	NamespaceBase
+}
+
+func (c *Class) AttachedObjectName() string {
+	if len(c.name) < 1 {
+		return ""
+	}
+	if c.name[0] != '&' {
+		return ""
+	}
+
+	return c.name[1:]
 }
 
 func (c *Class) IsGeneric() bool {

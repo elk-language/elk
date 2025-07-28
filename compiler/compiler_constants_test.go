@@ -15,7 +15,7 @@ func TestGetConstant(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
@@ -23,7 +23,6 @@ func TestGetConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std").ToValue(),
 				},
 			),
@@ -33,7 +32,7 @@ func TestGetConstant(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(16, 1, 17)),
@@ -41,7 +40,6 @@ func TestGetConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Float::INF").ToValue(),
 				},
 			),
@@ -54,7 +52,7 @@ func TestGetConstant(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(37, 3, 6)),
@@ -63,7 +61,6 @@ func TestGetConstant(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Float::INF").ToValue(),
 				},
 			),
@@ -187,8 +184,8 @@ func TestDefConstant(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.INT_3),
 					byte(bytecode.DEF_CONST),
 					byte(bytecode.NIL),
@@ -199,7 +196,6 @@ func TestDefConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Root").ToValue(),
 					value.ToSymbol("Foo").ToValue(),
 				},

@@ -287,21 +287,16 @@ func (c *Compiler) CompileClassInheritance(class *types.Class, location *positio
 	c.emit(location.StartPos.Line, bytecode.SET_SUPERCLASS)
 }
 
-func (c *Compiler) CompileIvarIndices(target types.Namespace, location *position.Location) {
-	var ivarIndices *value.IvarIndices
-	switch t := target.(type) {
-	case *types.SingletonClass:
-		ivarIndices = &t.IvarIndices
-		targetName := value.ToSymbol(t.AttachedObject.Name())
-		c.emitGetConst(targetName, location)
+func (c *Compiler) CompileIvarIndices(target *types.Class, location *position.Location) {
+	attachedObjectName := target.AttachedObjectName()
+	if attachedObjectName != "" {
+		c.emitGetConst(value.ToSymbol(attachedObjectName), location)
 		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
-	case *types.Class:
-		ivarIndices = &t.IvarIndices
-		targetName := value.ToSymbol(t.Name())
-		c.emitGetConst(targetName, location)
+	} else {
+		c.emitGetConst(value.ToSymbol(target.Name()), location)
 	}
 
-	c.emitValue(value.Ref(ivarIndices), location)
+	c.emitValue(value.Ref(target.IvarIndices), location)
 	c.emit(location.StartPos.Line, bytecode.DEF_IVARS)
 }
 
@@ -459,6 +454,9 @@ func (c *Compiler) removeBytecodeFunction(name value.Symbol) {
 
 		if val.Name() == name {
 			c.Bytecode.Values[i] = value.Undefined
+			if i == len(c.Bytecode.Values)-1 {
+				c.Bytecode.Values = c.Bytecode.Values[:len(c.Bytecode.Values)-1]
+			}
 			break
 		}
 	}

@@ -424,8 +424,9 @@ func (c *Checker) checkClassesWithIvars(loc *position.Location) {
 	}
 
 	for _, classData := range c.classesWithIvars.All() {
-		class := classData.class
-		c.checkNonNilableInstanceVariableForClass(class, classData.locations)
+		if !classData.singleton {
+			c.checkNonNilableInstanceVariableForClass(classData.class, classData.locations)
+		}
 		c.assignIvarIndices(classData.class)
 	}
 
@@ -4015,7 +4016,7 @@ func (c *Checker) assignIvarIndices(class *types.Class) {
 		switch parent := parent.(type) {
 		case *types.Class:
 			if !c.IsIncremental() && parent.IvarIndices != nil {
-				currentIvarIndices = maps.Clone(parent.IvarIndices)
+				currentIvarIndices = maps.Clone(*parent.IvarIndices)
 				continue
 			}
 
@@ -4026,7 +4027,7 @@ func (c *Checker) assignIvarIndices(class *types.Class) {
 				currentIvarIndices[ivarName] = len(currentIvarIndices)
 			}
 
-			parent.IvarIndices = currentIvarIndices
+			parent.IvarIndices = &currentIvarIndices
 			if c.shouldCompile() && len(currentIvarIndices) != 0 {
 				c.compiler.CompileIvarIndices(parent, position.DefaultLocation)
 			}

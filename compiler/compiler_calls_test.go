@@ -24,9 +24,7 @@ func TestSubscript(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"dynamic": {
@@ -38,7 +36,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -53,7 +51,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -70,14 +67,14 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_IF_NIL), 0, 7,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.JUMP), 0, 0,
 					byte(bytecode.RETURN),
 				},
@@ -88,7 +85,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -110,7 +106,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -126,7 +122,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -143,13 +138,13 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.LOAD_INT_8), 15,
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(48, 3, 16)),
@@ -159,7 +154,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -178,7 +172,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -196,7 +190,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -213,7 +206,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -231,7 +224,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -357,7 +349,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -375,7 +367,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -392,7 +383,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -410,7 +401,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -536,7 +526,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -556,7 +546,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -573,7 +562,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -581,7 +570,7 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.ADD_FLOAT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
@@ -593,7 +582,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.Float(5.5).ToValue(),
 						value.Float(3.9).ToValue(),
@@ -611,7 +599,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -631,7 +619,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -759,7 +746,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -779,7 +766,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -796,7 +782,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -804,7 +790,7 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SUBTRACT_FLOAT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
@@ -816,7 +802,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.Float(5.5).ToValue(),
 						value.Float(3.9).ToValue(),
@@ -834,7 +819,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -854,7 +839,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -982,7 +966,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1002,7 +986,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1019,7 +1002,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1027,7 +1010,7 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.MULTIPLY_FLOAT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
@@ -1039,7 +1022,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.Float(5.5).ToValue(),
 						value.Float(3.9).ToValue(),
@@ -1057,7 +1039,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1077,7 +1059,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -1205,7 +1186,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1225,7 +1206,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1242,7 +1222,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1250,7 +1230,7 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.DIVIDE_FLOAT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
@@ -1262,7 +1242,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.Float(5.2).ToValue(),
 						value.Float(3.0).ToValue(),
@@ -1280,7 +1259,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1300,7 +1279,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -1428,7 +1406,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1448,7 +1426,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1465,7 +1442,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1485,7 +1462,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -1613,7 +1589,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1633,7 +1609,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1650,7 +1625,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1658,7 +1633,7 @@ func TestSubscript(t *testing.T) {
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.MODULO_FLOAT),
 					byte(bytecode.SUBSCRIPT_SET),
 					byte(bytecode.RETURN),
@@ -1670,7 +1645,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.Float(5.5).ToValue(),
 						value.Float(3.9).ToValue(),
@@ -1688,7 +1662,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1708,7 +1682,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -1836,7 +1809,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1856,7 +1829,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1873,7 +1845,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -1893,7 +1865,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -2020,7 +1991,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2040,7 +2011,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -2057,7 +2027,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2077,7 +2047,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -2204,7 +2173,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2224,7 +2193,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -2241,7 +2209,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2261,7 +2229,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -2388,7 +2355,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2408,7 +2375,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -2425,7 +2391,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2445,7 +2411,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -2572,7 +2537,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2592,7 +2557,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -2609,7 +2573,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2629,7 +2593,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -2757,7 +2720,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2777,7 +2740,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt64(5).ToValue(),
 						value.UInt64(3).ToValue(),
@@ -2794,7 +2756,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2814,7 +2776,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -2941,7 +2902,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2961,7 +2922,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt64(5).ToValue(),
 						value.UInt64(3).ToValue(),
@@ -2978,7 +2938,7 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
@@ -2998,7 +2958,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.UInt8(5).ToValue(),
 						value.UInt8(3).ToValue(),
@@ -3126,18 +3085,18 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.JUMP_IF_NP), 0, 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(50, 3, 17)),
@@ -3147,7 +3106,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -3166,18 +3124,18 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.JUMP_UNLESS_NP), 0, 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(50, 3, 17)),
@@ -3187,7 +3145,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -3206,18 +3163,18 @@ func TestSubscript(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.JUMP_UNLESS_NNP), 0, 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(50, 3, 17)),
@@ -3227,7 +3184,6 @@ func TestSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),

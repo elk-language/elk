@@ -230,7 +230,7 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 	c.setMode(previousMode)
 	c.selfType = previousSelf
 
-	c.registerClassWithIvars(class, node)
+	c.registerClassWithIvars(class, false, node.Location())
 	if ok {
 		c.popLocalConstScope()
 		c.popMethodScope()
@@ -239,6 +239,7 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 
 type classWithIvarsData struct {
 	class     *types.Class
+	singleton bool
 	locations []*position.Location
 }
 
@@ -246,25 +247,25 @@ func (c *classWithIvarsData) addLocation(loc *position.Location) {
 	c.locations = append(c.locations, loc)
 }
 
-func (c *Checker) insertClassWithIvarsData(class *types.Class) *classWithIvarsData {
+func (c *Checker) insertClassWithIvarsData(class *types.Class, singleton bool) *classWithIvarsData {
 	data, ok := c.classesWithIvars.GetOk(class.Name())
 	if ok {
 		return data
 	}
 
-	data = &classWithIvarsData{class: class}
+	data = &classWithIvarsData{class: class, singleton: singleton}
 	c.classesWithIvars.Set(class.Name(), data)
 	return data
 }
 
-func (c *Checker) registerClassWithIvars(class *types.Class, node *ast.ClassDeclarationNode) {
+func (c *Checker) registerClassWithIvars(class *types.Class, singleton bool, loc *position.Location) {
 	if class == nil {
 		return
 	}
 
 	if types.NamespaceDeclaresInstanceVariables(class) {
-		classData := c.insertClassWithIvarsData(class)
-		classData.addLocation(node.Location())
+		classData := c.insertClassWithIvarsData(class, singleton)
+		classData.addLocation(loc)
 	}
 }
 
@@ -349,6 +350,7 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 	c.setMode(previousMode)
 	c.selfType = previousSelf
 
+	c.registerClassWithIvars(&singleton.Class, true, expr.Location())
 	c.popLocalConstScope()
 	c.popMethodScope()
 }

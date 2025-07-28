@@ -24,7 +24,7 @@ func TestLaxEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25 =~ 25": {
@@ -39,7 +39,7 @@ func TestLaxEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25 =~ '25'": {
@@ -54,7 +54,7 @@ func TestLaxEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"compile runtime 24 =~ 98": {
@@ -74,9 +74,7 @@ func TestLaxEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -102,7 +100,7 @@ func TestLaxNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25 !~ 25": {
@@ -117,7 +115,7 @@ func TestLaxNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25 !~ '25'": {
@@ -132,7 +130,7 @@ func TestLaxNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"compile runtime 24 !~ 98": {
@@ -152,9 +150,7 @@ func TestLaxNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -180,7 +176,7 @@ func TestEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `25.0`"),
@@ -198,7 +194,7 @@ func TestEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25 == '25'": {
@@ -213,7 +209,7 @@ func TestEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
@@ -236,9 +232,7 @@ func TestEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime float": {
@@ -247,10 +241,10 @@ func TestEqual(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EQUAL_INT),
 					byte(bytecode.RETURN),
 				},
@@ -259,7 +253,6 @@ func TestEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(24.5).ToValue(),
 					value.Float(98.0).ToValue(),
 				},
@@ -282,9 +275,7 @@ func TestEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime value": {
@@ -297,7 +288,7 @@ func TestEqual(t *testing.T) {
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.LOAD_INT8), 98,
-					byte(bytecode.CALL_METHOD8), 1,
+					byte(bytecode.CALL_METHOD8), 0,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(24, 1, 25)),
@@ -305,7 +296,6 @@ func TestEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewCallSiteInfo(symbol.OpEqual, 1)),
 				},
 			),
@@ -333,7 +323,7 @@ func TestNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `25.0`"),
@@ -351,7 +341,7 @@ func TestNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25 != '25'": {
@@ -366,7 +356,7 @@ func TestNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
@@ -389,9 +379,7 @@ func TestNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime float": {
@@ -400,10 +388,10 @@ func TestNotEqual(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NOT_EQUAL),
 					byte(bytecode.RETURN),
 				},
@@ -412,7 +400,6 @@ func TestNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(24.5).ToValue(),
 					value.Float(98.0).ToValue(),
 				},
@@ -435,9 +422,7 @@ func TestNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime value": {
@@ -450,7 +435,7 @@ func TestNotEqual(t *testing.T) {
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.LOAD_INT8), 98,
-					byte(bytecode.CALL_METHOD8), 1,
+					byte(bytecode.CALL_METHOD8), 0,
 					byte(bytecode.NOT),
 					byte(bytecode.RETURN),
 				},
@@ -459,7 +444,6 @@ func TestNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewCallSiteInfo(symbol.OpEqual, 1)),
 				},
 			),
@@ -487,7 +471,7 @@ func TestStrictEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25 === 25.0": {
@@ -502,7 +486,7 @@ func TestStrictEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this strict equality check is impossible, `25` cannot ever be equal to `25.0`"),
@@ -520,7 +504,7 @@ func TestStrictEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this strict equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
@@ -543,9 +527,7 @@ func TestStrictEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -571,7 +553,7 @@ func TestStrictNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25 !== 25.0": {
@@ -586,7 +568,7 @@ func TestStrictNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this strict equality check is impossible, `25` cannot ever be equal to `25.0`"),
@@ -604,7 +586,7 @@ func TestStrictNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(1, 1, 2)), "this strict equality check is impossible, `25` cannot ever be equal to `\"25\"`"),
@@ -627,9 +609,7 @@ func TestStrictNotEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -655,7 +635,7 @@ func TestGreaterThan(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25 > 3": {
@@ -670,7 +650,7 @@ func TestGreaterThan(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25.2 > 25": {
@@ -685,7 +665,7 @@ func TestGreaterThan(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 7 > 20": {
@@ -700,7 +680,7 @@ func TestGreaterThan(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"compile runtime int": {
@@ -720,9 +700,7 @@ func TestGreaterThan(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime float": {
@@ -731,10 +709,10 @@ func TestGreaterThan(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GREATER_FLOAT),
 					byte(bytecode.RETURN),
 				},
@@ -743,7 +721,6 @@ func TestGreaterThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(24.5).ToValue(),
 					value.Float(98.5).ToValue(),
 				},
@@ -766,9 +743,7 @@ func TestGreaterThan(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime value": {
@@ -891,7 +866,7 @@ func TestGreaterThanEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25 >= 3": {
@@ -906,7 +881,7 @@ func TestGreaterThanEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25.2 >= 25": {
@@ -921,7 +896,7 @@ func TestGreaterThanEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 7 >= 20": {
@@ -936,7 +911,7 @@ func TestGreaterThanEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"compile runtime int": {
@@ -956,9 +931,7 @@ func TestGreaterThanEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime float": {
@@ -967,10 +940,10 @@ func TestGreaterThanEqual(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GREATER_EQUAL_F),
 					byte(bytecode.RETURN),
 				},
@@ -979,7 +952,6 @@ func TestGreaterThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(24.5).ToValue(),
 					value.Float(98.5).ToValue(),
 				},
@@ -1002,9 +974,7 @@ func TestGreaterThanEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime value": {
@@ -1127,7 +1097,7 @@ func TestLessThan(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25 < 3": {
@@ -1142,7 +1112,7 @@ func TestLessThan(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25.2 < 25": {
@@ -1157,7 +1127,7 @@ func TestLessThan(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 7 < 20": {
@@ -1172,7 +1142,7 @@ func TestLessThan(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"compile runtime int": {
@@ -1192,9 +1162,7 @@ func TestLessThan(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime float": {
@@ -1203,10 +1171,10 @@ func TestLessThan(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.LESS_FLOAT),
 					byte(bytecode.RETURN),
 				},
@@ -1215,7 +1183,6 @@ func TestLessThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(24.5).ToValue(),
 					value.Float(98.5).ToValue(),
 				},
@@ -1238,9 +1205,7 @@ func TestLessThan(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime value": {
@@ -1363,7 +1328,7 @@ func TestLessThanEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25 <= 3": {
@@ -1378,7 +1343,7 @@ func TestLessThanEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 25.2 <= 25": {
@@ -1393,7 +1358,7 @@ func TestLessThanEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static 7 <= 20": {
@@ -1408,7 +1373,7 @@ func TestLessThanEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"compile runtime int": {
@@ -1428,9 +1393,7 @@ func TestLessThanEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime float": {
@@ -1439,10 +1402,10 @@ func TestLessThanEqual(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.LESS_EQUAL_FLOAT),
 					byte(bytecode.RETURN),
 				},
@@ -1451,7 +1414,6 @@ func TestLessThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(24.5).ToValue(),
 					value.Float(98.5).ToValue(),
 				},
@@ -1474,9 +1436,7 @@ func TestLessThanEqual(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime value": {
