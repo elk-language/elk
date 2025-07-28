@@ -16,7 +16,7 @@ func TestGoExpression(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.CLOSURE), 0xff,
 					byte(bytecode.GO),
 					byte(bytecode.RETURN),
@@ -26,7 +26,6 @@ func TestGoExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<closure>"),
 						[]byte{
@@ -65,7 +64,7 @@ func TestGoExpression(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.CLOSURE), 2, 1, 0xff,
 					byte(bytecode.GO),
 					byte(bytecode.RETURN),
@@ -78,7 +77,6 @@ func TestGoExpression(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
 						value.ToSymbol("<closure>"),
 						[]byte{
@@ -145,11 +143,11 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.LOAD_INT_8), 20,
 					byte(bytecode.JUMP_UNLESS_ILT), 0, 15,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_1),
@@ -169,7 +167,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
 						value.ToSymbol("println"),
@@ -200,11 +197,11 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.JUMP_UNLESS_ILT), 0, 15,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_3),
@@ -228,7 +225,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 12),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
 						value.ToSymbol("println"),
@@ -254,11 +250,11 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.LOAD_INT_8), 20,
 					byte(bytecode.JUMP_UNLESS_ILE), 0, 15,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_1),
@@ -278,7 +274,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
 						value.ToSymbol("println"),
@@ -298,26 +293,26 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.DUP),
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.SET_LOCAL_3),
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.SET_LOCAL_4),
 					byte(bytecode.NIL),
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.JUMP_UNLESS_ILE), 0, 15,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 4,
+					byte(bytecode.GET_CONST8), 3,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_4),
@@ -341,7 +336,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 12),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewClosedRange(value.SmallInt(5).ToValue(), value.SmallInt(20).ToValue())),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("end"), 0)),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("start"), 0)),
@@ -363,18 +357,18 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 13,
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 17,
 					byte(bytecode.NIL),
@@ -389,7 +383,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -413,18 +406,18 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 60,
 					byte(bytecode.DUP),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.IS_A),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 33,
 					byte(bytecode.POP),
 					byte(bytecode.DUP),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.INT_2),
 					byte(bytecode.EQUAL_INT),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 24,
@@ -449,16 +442,16 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.TRUE),
 					byte(bytecode.JUMP_IF), 0, 3,
-					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.THROW),
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 5,
+					byte(bytecode.GET_CONST8), 4,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.ADD_INT),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 6,
+					byte(bytecode.CALL_METHOD8), 5,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 64,
 					byte(bytecode.NIL),
@@ -475,7 +468,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.Ref(&value.ArrayTuple{
 							value.SmallInt(1).ToValue(),
@@ -515,18 +507,18 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 30,
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.INT_2),
@@ -551,7 +543,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -578,23 +569,23 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 31,
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.INT_2),
 					byte(bytecode.JUMP_UNLESS_IGT), 0, 11,
-					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.LEAVE_SCOPE16), 2, 2,
 					byte(bytecode.JUMP), 0, 12,
 					byte(bytecode.JUMP), 0, 1,
@@ -614,7 +605,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -642,18 +632,18 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 30,
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.INT_2),
@@ -678,7 +668,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -705,7 +694,7 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -717,11 +706,11 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
 					byte(bytecode.LOOP), 0, 13,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 26,
 					byte(bytecode.NIL),
@@ -737,7 +726,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -764,7 +752,7 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -776,11 +764,11 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
 					byte(bytecode.LOOP), 0, 13,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 26,
 					byte(bytecode.NIL),
@@ -796,7 +784,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -825,14 +812,14 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 44,
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_3),
@@ -846,12 +833,12 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 4, 2,
 					byte(bytecode.JUMP), 0, 18,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 31,
 					byte(bytecode.NIL),
@@ -873,7 +860,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.Ref(value.String("a")),
 						value.Ref(value.String("b")),
@@ -908,14 +894,14 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 44,
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_3),
@@ -929,12 +915,12 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 4, 4,
 					byte(bytecode.JUMP), 0, 26,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 31,
 					byte(bytecode.NIL),
@@ -956,7 +942,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.Ref(value.String("a")),
 						value.Ref(value.String("b")),
@@ -991,14 +976,14 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 40,
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_3),
@@ -1010,12 +995,12 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
 					byte(bytecode.LOOP), 0, 13,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 27,
 					byte(bytecode.NIL),
@@ -1037,7 +1022,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.Ref(value.String("a")),
 						value.Ref(value.String("b")),
@@ -1072,14 +1056,14 @@ func TestForInExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 43,
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_3),
@@ -1092,12 +1076,12 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 4, 2,
 					byte(bytecode.LOOP), 0, 25,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 30,
 					byte(bytecode.NIL),
@@ -1119,7 +1103,6 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.Ref(value.String("a")),
 						value.Ref(value.String("b")),
@@ -1164,9 +1147,7 @@ func TestReturnExpression(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(7, 1, 8), P(7, 1, 8)), "values returned in void context will be ignored"),
@@ -1188,11 +1169,11 @@ func TestAwaitExpression(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INT_2),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.AWAIT_SYNC),
 					byte(bytecode.RETURN),
 				},
@@ -1201,7 +1182,6 @@ func TestAwaitExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
@@ -1372,18 +1352,18 @@ func TestModifierForIn(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 13,
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 17,
 					byte(bytecode.NIL),
@@ -1395,7 +1375,6 @@ func TestModifierForIn(t *testing.T) {
 					bytecode.NewLineInfo(1, 28),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -1415,18 +1394,18 @@ func TestModifierForIn(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.FOR_IN_BUILTIN), 0, 60,
 					byte(bytecode.DUP),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.IS_A),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 33,
 					byte(bytecode.POP),
 					byte(bytecode.DUP),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.INT_2),
 					byte(bytecode.EQUAL_INT),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 24,
@@ -1451,16 +1430,16 @@ func TestModifierForIn(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.TRUE),
 					byte(bytecode.JUMP_IF), 0, 3,
-					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.THROW),
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 5,
+					byte(bytecode.GET_CONST8), 4,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.ADD_INT),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 6,
+					byte(bytecode.CALL_METHOD8), 5,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 64,
 					byte(bytecode.NIL),
@@ -1472,7 +1451,6 @@ func TestModifierForIn(t *testing.T) {
 					bytecode.NewLineInfo(1, 74),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.Ref(&value.ArrayTuple{
 							value.SmallInt(1).ToValue(),
@@ -1524,7 +1502,7 @@ func TestIfExpression(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(3, 1, 4), P(7, 1, 8)), "this condition will always have the same result since type `false` is falsy"),
@@ -1549,7 +1527,7 @@ func TestIfExpression(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 14),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static condition with then branch": {
@@ -1570,9 +1548,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 1),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(8, 2, 8), P(11, 2, 11)), "this condition will always have the same result since type `true` is truthy"),
@@ -1596,9 +1572,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(2, 1),
 					bytecode.NewLineInfo(4, 1),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(8, 2, 8), P(12, 2, 12)), "this condition will always have the same result since type `false` is falsy"),
@@ -1625,9 +1599,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 					bytecode.NewLineInfo(6, 1),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(8, 2, 8), P(12, 2, 12)), "this condition will always have the same result since type `false` is falsy"),
@@ -1667,9 +1639,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(5, 1),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"with then and else branches": {
@@ -1710,9 +1680,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(6, 4),
 					bytecode.NewLineInfo(7, 1),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"is an expression": {
@@ -1733,7 +1701,7 @@ func TestIfExpression(t *testing.T) {
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS), 0, 4,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_2),
@@ -1752,7 +1720,6 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(8, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.String("foo")),
 				},
 			),
@@ -1780,7 +1747,7 @@ func TestUnlessExpression(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(7, 1, 8), P(10, 1, 11)), "this condition will always have the same result since type `true` is truthy"),
@@ -1805,7 +1772,7 @@ func TestUnlessExpression(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 14),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"resolve static condition with then branch": {
@@ -1826,9 +1793,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 1),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(12, 2, 12), P(16, 2, 16)), "this condition will always have the same result since type `false` is falsy"),
@@ -1852,7 +1817,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(2, 1),
 					bytecode.NewLineInfo(4, 1),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(12, 2, 12), P(15, 2, 15)), "this condition will always have the same result since type `true` is truthy"),
@@ -1879,9 +1844,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 					bytecode.NewLineInfo(6, 1),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(12, 2, 12), P(15, 2, 15)), "this condition will always have the same result since type `true` is truthy"),
@@ -1919,9 +1882,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(5, 1),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"with then and else branches": {
@@ -1962,9 +1923,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(6, 5),
 					bytecode.NewLineInfo(7, 1),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"is an expression": {
@@ -1985,7 +1944,7 @@ func TestUnlessExpression(t *testing.T) {
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_IF), 0, 4,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_2),
@@ -2004,7 +1963,6 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(8, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.String("foo")),
 				},
 			),
@@ -2154,7 +2112,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 0),
 					bytecode.NewLineInfo(3, 4),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"with a body": {
@@ -2186,9 +2144,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"with continue": {
@@ -2212,9 +2168,9 @@ func TestLoopExpression(t *testing.T) {
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.LOOP), 0, 7,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 17,
 					byte(bytecode.RETURN),
@@ -2229,7 +2185,6 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
@@ -2260,9 +2215,9 @@ func TestLoopExpression(t *testing.T) {
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.LOOP), 0, 7,
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 17,
 					byte(bytecode.RETURN),
@@ -2277,7 +2232,6 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
@@ -2349,9 +2303,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(10, 15),
 					bytecode.NewLineInfo(11, 8),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(108, 10, 6), P(125, 10, 23)), "unreachable code"),
@@ -2421,9 +2373,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(10, 15),
 					bytecode.NewLineInfo(11, 8),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(119, 10, 6), P(136, 10, 23)), "unreachable code"),
@@ -2466,9 +2416,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"with a labeled break": {
@@ -2508,9 +2456,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"break in a nested loop": {
@@ -2577,9 +2523,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(10, 16),
 					bytecode.NewLineInfo(11, 8),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"labeled break in a nested loop": {
@@ -2647,9 +2591,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(10, 16),
 					bytecode.NewLineInfo(11, 8),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(120, 10, 6), P(134, 10, 20)), "unreachable code"),
@@ -2692,9 +2634,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -2717,7 +2657,7 @@ func TestLogicalOrOperator(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_IF_NP), 0, 2,
@@ -2732,7 +2672,6 @@ func TestLogicalOrOperator(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.String("foo")),
 				},
 			),
@@ -2750,7 +2689,7 @@ func TestLogicalOrOperator(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_IF_NP), 0, 2,
@@ -2772,7 +2711,6 @@ func TestLogicalOrOperator(t *testing.T) {
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.String("foo")),
 				},
 			),
@@ -2803,7 +2741,7 @@ func TestLogicalAndOperator(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
@@ -2820,7 +2758,6 @@ func TestLogicalAndOperator(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.String("foo")),
 				},
 			),
@@ -2837,7 +2774,7 @@ func TestLogicalAndOperator(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
@@ -2859,7 +2796,6 @@ func TestLogicalAndOperator(t *testing.T) {
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.String("foo")),
 				},
 			),
@@ -2888,7 +2824,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
@@ -2903,7 +2839,6 @@ func TestNilCoalescingOperator(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.String("foo")),
 				},
 			),
@@ -2921,7 +2856,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
@@ -2939,7 +2874,6 @@ func TestNilCoalescingOperator(t *testing.T) {
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.String("foo")),
 				},
 			),
@@ -2977,7 +2911,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(1, 0),
 					bytecode.NewLineInfo(3, 4),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"for without initialiser, condition and increment": {
@@ -3009,9 +2943,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"for with break": {
@@ -3051,9 +2983,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(5, 14),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"for with labeled break": {
@@ -3093,9 +3023,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(5, 14),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"nested for with continue": {
@@ -3144,9 +3072,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(5, 3),
 					bytecode.NewLineInfo(6, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"nested for with a labeled continue": {
@@ -3195,9 +3121,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(5, 3),
 					bytecode.NewLineInfo(6, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"nested for with break": {
@@ -3246,9 +3170,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(5, 3),
 					bytecode.NewLineInfo(6, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"nested for with a labeled break": {
@@ -3298,9 +3220,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(5, 3),
 					bytecode.NewLineInfo(6, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 
@@ -3344,9 +3264,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(4, 17),
 					bytecode.NewLineInfo(5, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"for with initialiser, without condition and increment": {
@@ -3380,9 +3298,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(3, 5),
 					bytecode.NewLineInfo(4, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"for with initialiser, condition, without increment": {
@@ -3419,9 +3335,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(3, 5),
 					bytecode.NewLineInfo(4, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"for with initialiser, condition and increment": {
@@ -3467,9 +3381,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(5, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -3512,9 +3424,7 @@ func TestModifierWhile(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 15),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"multiline": {
@@ -3551,9 +3461,7 @@ func TestModifierWhile(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(5, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"with break": {
@@ -3593,9 +3501,7 @@ func TestModifierWhile(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(66, 6, 15), P(69, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
@@ -3638,9 +3544,7 @@ func TestModifierWhile(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(76, 6, 15), P(79, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
@@ -3684,9 +3588,7 @@ func TestModifierWhile(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(70, 6, 15), P(73, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
@@ -3757,9 +3659,7 @@ func TestModifierWhile(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(10, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"labeled continue in a nested loop": {
@@ -3828,9 +3728,7 @@ func TestModifierWhile(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(10, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"break in a nested loop": {
@@ -3898,9 +3796,7 @@ func TestModifierWhile(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(10, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"labeled break in a nested loop": {
@@ -3969,9 +3865,7 @@ func TestModifierWhile(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(10, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"static infinite": {
@@ -3983,9 +3877,9 @@ func TestModifierWhile(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 9,
 					byte(bytecode.RETURN),
@@ -3997,7 +3891,6 @@ func TestModifierWhile(t *testing.T) {
 					bytecode.NewLineInfo(4, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
 					value.Ref(value.NewCallSiteInfo(
@@ -4019,9 +3912,9 @@ func TestModifierWhile(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(47, 4, 20)),
@@ -4031,7 +3924,6 @@ func TestModifierWhile(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
 					value.Ref(value.NewCallSiteInfo(
@@ -4089,9 +3981,7 @@ func TestWhile(t *testing.T) {
 					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"with break": {
@@ -4131,9 +4021,7 @@ func TestWhile(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(23, 3, 11), P(26, 3, 14)), "this condition will always have the same result since type `true` is truthy"),
@@ -4176,9 +4064,7 @@ func TestWhile(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(29, 3, 17), P(32, 3, 20)), "this condition will always have the same result since type `true` is truthy"),
@@ -4221,9 +4107,7 @@ func TestWhile(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(23, 3, 11), P(26, 3, 14)), "this condition will always have the same result since type `true` is truthy"),
@@ -4295,9 +4179,7 @@ func TestWhile(t *testing.T) {
 					bytecode.NewLineInfo(9, 3),
 					bytecode.NewLineInfo(10, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"labeled continue in a nested loop": {
@@ -4365,9 +4247,7 @@ func TestWhile(t *testing.T) {
 					bytecode.NewLineInfo(9, 3),
 					bytecode.NewLineInfo(10, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"break in a nested loop": {
@@ -4435,9 +4315,7 @@ func TestWhile(t *testing.T) {
 					bytecode.NewLineInfo(9, 3),
 					bytecode.NewLineInfo(10, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 
@@ -4507,9 +4385,7 @@ func TestWhile(t *testing.T) {
 					bytecode.NewLineInfo(9, 3),
 					bytecode.NewLineInfo(10, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"without a body": {
@@ -4538,9 +4414,7 @@ func TestWhile(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 12),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"static infinite": {
@@ -4552,9 +4426,9 @@ func TestWhile(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 9,
 					byte(bytecode.RETURN),
@@ -4566,7 +4440,6 @@ func TestWhile(t *testing.T) {
 					bytecode.NewLineInfo(4, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
 					value.Ref(value.NewCallSiteInfo(
@@ -4597,7 +4470,7 @@ func TestWhile(t *testing.T) {
 					bytecode.NewLineInfo(2, 1),
 					bytecode.NewLineInfo(4, 1),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(11, 2, 11), P(15, 2, 15)), "this loop will never execute since type `false` is falsy"),
@@ -4644,9 +4517,7 @@ func TestModifierUntil(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 15),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"multiline": {
@@ -4683,9 +4554,7 @@ func TestModifierUntil(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(5, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"with break": {
@@ -4725,9 +4594,7 @@ func TestModifierUntil(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(66, 6, 15), P(70, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
@@ -4770,9 +4637,7 @@ func TestModifierUntil(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(77, 6, 15), P(81, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
@@ -4815,9 +4680,7 @@ func TestModifierUntil(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(71, 6, 15), P(75, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
@@ -4888,9 +4751,7 @@ func TestModifierUntil(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(10, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"labeled continue in a nested loop": {
@@ -4959,9 +4820,7 @@ func TestModifierUntil(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(10, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"break in a nested loop": {
@@ -5029,9 +4888,7 @@ func TestModifierUntil(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(10, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"labeled break in a nested loop": {
@@ -5100,9 +4957,7 @@ func TestModifierUntil(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(10, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"static infinite": {
@@ -5114,9 +4969,9 @@ func TestModifierUntil(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 9,
 					byte(bytecode.RETURN),
@@ -5128,7 +4983,6 @@ func TestModifierUntil(t *testing.T) {
 					bytecode.NewLineInfo(4, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
 					value.Ref(value.NewCallSiteInfo(
@@ -5150,9 +5004,9 @@ func TestModifierUntil(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(46, 4, 19)),
@@ -5162,7 +5016,6 @@ func TestModifierUntil(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
 					value.Ref(value.NewCallSiteInfo(
@@ -5220,9 +5073,7 @@ func TestUntil(t *testing.T) {
 					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"with break": {
@@ -5262,9 +5113,7 @@ func TestUntil(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(23, 3, 11), P(27, 3, 15)), "this condition will always have the same result since type `false` is falsy"),
@@ -5307,9 +5156,7 @@ func TestUntil(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(29, 3, 17), P(33, 3, 21)), "this condition will always have the same result since type `false` is falsy"),
@@ -5352,9 +5199,7 @@ func TestUntil(t *testing.T) {
 					bytecode.NewLineInfo(5, 13),
 					bytecode.NewLineInfo(6, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(23, 3, 11), P(27, 3, 15)), "this condition will always have the same result since type `false` is falsy"),
@@ -5425,9 +5270,7 @@ func TestUntil(t *testing.T) {
 					bytecode.NewLineInfo(9, 3),
 					bytecode.NewLineInfo(10, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"labeled continue in a nested loop": {
@@ -5496,9 +5339,7 @@ func TestUntil(t *testing.T) {
 					bytecode.NewLineInfo(9, 3),
 					bytecode.NewLineInfo(10, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"break in a nested loop": {
@@ -5566,9 +5407,7 @@ func TestUntil(t *testing.T) {
 					bytecode.NewLineInfo(9, 3),
 					bytecode.NewLineInfo(10, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"labeled break in a nested loop": {
@@ -5637,9 +5476,7 @@ func TestUntil(t *testing.T) {
 					bytecode.NewLineInfo(9, 3),
 					bytecode.NewLineInfo(10, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"without a body": {
@@ -5668,9 +5505,7 @@ func TestUntil(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 12),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"static infinite": {
@@ -5682,9 +5517,9 @@ func TestUntil(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 9,
 					byte(bytecode.RETURN),
@@ -5696,7 +5531,6 @@ func TestUntil(t *testing.T) {
 					bytecode.NewLineInfo(4, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
 					value.Ref(value.NewCallSiteInfo(
@@ -5727,9 +5561,7 @@ func TestUntil(t *testing.T) {
 					bytecode.NewLineInfo(2, 1),
 					bytecode.NewLineInfo(4, 1),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(11, 2, 11), P(14, 2, 14)), "this loop will never execute since type `true` is truthy"),
@@ -5767,9 +5599,7 @@ func TestMust(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -5795,7 +5625,7 @@ func TestAs(t *testing.T) {
 					byte(bytecode.INT_1),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.AS),
 					byte(bytecode.RETURN),
 				},
@@ -5806,7 +5636,6 @@ func TestAs(t *testing.T) {
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Int").ToValue(),
 				},
 			),
@@ -5827,7 +5656,7 @@ func TestThrow(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.THROW),
 					byte(bytecode.RETURN),
 				},
@@ -5836,7 +5665,6 @@ func TestThrow(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("foo").ToValue(),
 				},
 			),
@@ -5872,14 +5700,14 @@ func TestCatch(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.THROW),
 
 					byte(bytecode.JUMP), 0, 34,
 					byte(bytecode.DUP),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.DUP),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.IS_A),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
 					byte(bytecode.POP),
@@ -5913,7 +5741,6 @@ func TestCatch(t *testing.T) {
 				0,
 				0,
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("foo").ToValue(),
 					value.ToSymbol("Std::String").ToValue(),
 				},
@@ -5936,7 +5763,7 @@ func TestCatch(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.THROW),
 					byte(bytecode.JUMP), 0, 36,
 					byte(bytecode.DUP_SECOND),
@@ -5944,7 +5771,7 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.DUP),
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.DUP),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.IS_A),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
 					byte(bytecode.POP),
@@ -5979,7 +5806,6 @@ func TestCatch(t *testing.T) {
 				0,
 				0,
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("foo").ToValue(),
 					value.ToSymbol("Std::String").ToValue(),
 				},
@@ -5999,12 +5825,12 @@ func TestCatch(t *testing.T) {
 			want: vm.NewBytecodeFunctionWithCatchEntries(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 4,
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.POP),
 
 					byte(bytecode.JUMP), 0, 40,
@@ -6015,9 +5841,9 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 6,
-					byte(bytecode.CALL_METHOD8), 7,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.CALL_METHOD8), 6,
 					byte(bytecode.SWAP),
 					byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
 					byte(bytecode.POP_2),
@@ -6047,7 +5873,6 @@ func TestCatch(t *testing.T) {
 				0,
 				0,
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
