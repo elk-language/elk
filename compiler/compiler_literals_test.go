@@ -27,7 +27,7 @@ func TestClosureLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.CLOSURE), 2, 1, 0xff,
 					byte(bytecode.DUP),
 					byte(bytecode.SET_LOCAL_1),
@@ -40,7 +40,6 @@ func TestClosureLiteral(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
 						functionSymbol,
 						[]byte{
@@ -95,7 +94,7 @@ func TestStringLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(8, 1, 9)),
@@ -103,7 +102,6 @@ func TestStringLiteral(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.String("foo bar")),
 				},
 			),
@@ -118,15 +116,15 @@ func TestStringLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.INT_2),
 					byte(bytecode.ADD_INT),
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NEW_STRING8), 4,
 					byte(bytecode.RETURN),
@@ -139,7 +137,6 @@ func TestStringLiteral(t *testing.T) {
 					bytecode.NewLineInfo(4, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(15.2).ToValue(),
 					value.Ref(value.String("foo: ")),
 					value.Ref(value.String(", bar: ")),
@@ -156,18 +153,18 @@ func TestStringLiteral(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.INT_1),
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.INT_2),
 					byte(bytecode.ADD_INT),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.NEW_STRING8), 4,
 					byte(bytecode.RETURN),
 				},
@@ -179,7 +176,6 @@ func TestStringLiteral(t *testing.T) {
 					bytecode.NewLineInfo(4, 14),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(15.2).ToValue(),
 					value.Ref(value.String("foo: ")),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("inspect"), 0)),
@@ -204,7 +200,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
@@ -212,7 +208,6 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewClosedRange(value.SmallInt(2).ToValue(), value.SmallInt(5).ToValue())),
 				},
 			),
@@ -222,7 +217,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
@@ -230,7 +225,6 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewOpenRange(value.SmallInt(2).ToValue(), value.SmallInt(5).ToValue())),
 				},
 			),
@@ -240,7 +234,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
@@ -248,7 +242,6 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewLeftOpenRange(value.SmallInt(2).ToValue(), value.SmallInt(5).ToValue())),
 				},
 			),
@@ -258,7 +251,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
@@ -266,7 +259,6 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewRightOpenRange(value.SmallInt(2).ToValue(), value.SmallInt(5).ToValue())),
 				},
 			),
@@ -276,7 +268,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -284,7 +276,6 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewBeginlessClosedRange(value.SmallInt(5).ToValue())),
 				},
 			),
@@ -294,7 +285,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -302,7 +293,6 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewBeginlessOpenRange(value.SmallInt(5).ToValue())),
 				},
 			),
@@ -312,7 +302,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -320,7 +310,6 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewEndlessClosedRange(value.SmallInt(2).ToValue())),
 				},
 			),
@@ -330,7 +319,7 @@ func TestRangeLiteral(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -338,7 +327,6 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewEndlessOpenRange(value.SmallInt(2).ToValue())),
 				},
 			),
@@ -365,9 +353,7 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"open range": {
@@ -392,9 +378,7 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"left open range": {
@@ -419,9 +403,7 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"right open range": {
@@ -446,9 +428,7 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 5),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"beginless closed range": {
@@ -472,9 +452,7 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"beginless open range": {
@@ -498,9 +476,7 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"endless closed range": {
@@ -524,9 +500,7 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"endless open range": {
@@ -550,9 +524,7 @@ func TestRangeLiteral(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 4),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -578,9 +550,7 @@ func TestLiterals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"put UInt16": {
@@ -595,9 +565,7 @@ func TestLiterals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"put UInt32": {
@@ -605,7 +573,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
@@ -613,7 +581,6 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.UInt32(450200).ToValue(),
 				},
 			),
@@ -623,7 +590,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
@@ -631,7 +598,6 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.UInt64(450200).ToValue(),
 				},
 			),
@@ -648,9 +614,7 @@ func TestLiterals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"put Int16": {
@@ -665,9 +629,7 @@ func TestLiterals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"put Int32": {
@@ -675,7 +637,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
@@ -683,7 +645,6 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Int32(450200).ToValue(),
 				},
 			),
@@ -693,7 +654,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
@@ -701,7 +662,6 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Int64(450200).ToValue(),
 				},
 			),
@@ -711,7 +671,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -719,7 +679,6 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.SmallInt(450200).ToValue(),
 				},
 			),
@@ -729,7 +688,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(
@@ -744,7 +703,6 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)))),
 				},
 			),
@@ -754,7 +712,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -762,7 +720,6 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float64(45.5).ToValue(),
 				},
 			),
@@ -772,7 +729,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -780,7 +737,6 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float32(45.5).ToValue(),
 				},
 			),
@@ -790,7 +746,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -798,7 +754,6 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(45.5).ToValue(),
 				},
 			),
@@ -808,7 +763,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -816,7 +771,6 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.String(`foo\n`)),
 				},
 			),
@@ -826,7 +780,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(6, 1, 7)),
@@ -834,7 +788,6 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.String("foo\n")),
 				},
 			),
@@ -851,9 +804,7 @@ func TestLiterals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"put Char": {
@@ -868,9 +819,7 @@ func TestLiterals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"put nil": {
@@ -885,7 +834,7 @@ func TestLiterals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"put true": {
@@ -900,7 +849,7 @@ func TestLiterals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"put false": {
@@ -915,7 +864,7 @@ func TestLiterals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 		"put simple Symbol": {
@@ -923,7 +872,7 @@ func TestLiterals(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(3, 1, 4)),
@@ -931,7 +880,6 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("foo").ToValue(),
 				},
 			),
@@ -948,7 +896,7 @@ func TestLiterals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{value.Undefined},
+				[]value.Value{},
 			),
 		},
 	}
@@ -967,7 +915,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(2, 1, 3)),
@@ -975,7 +923,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{}),
 				},
 			),
@@ -985,7 +932,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(18, 1, 19)),
@@ -993,7 +940,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -1008,7 +954,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(35, 1, 36)),
@@ -1016,7 +962,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -1034,7 +979,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(21, 1, 22)),
@@ -1042,7 +987,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(1).ToValue(),
 						value.Ref(&value.ArrayTuple{
@@ -1060,9 +1004,9 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.COPY),
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
@@ -1073,7 +1017,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(1).ToValue(),
 					}),
@@ -1091,9 +1034,9 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.RETURN),
 				},
@@ -1102,7 +1045,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -1124,11 +1066,11 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.INT_5),
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 3,
 					byte(bytecode.RETURN),
 				},
@@ -1137,7 +1079,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -1156,10 +1097,10 @@ func TestArrayTuples(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.INT_5),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 3,
 					byte(bytecode.RETURN),
 				},
@@ -1168,7 +1109,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Object").ToValue(),
 					value.Ref(&value.ArrayTuple{
 						value.ToSymbol("foo").ToValue(),
@@ -1185,17 +1125,17 @@ func TestArrayTuples(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS), 0, 5,
 					byte(bytecode.INT_5),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 0,
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
 				},
@@ -1206,7 +1146,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(3, 14),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Object").ToValue(),
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(1).ToValue(),
@@ -1229,14 +1168,14 @@ func TestArrayTuples(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_IF), 0, 5,
 					byte(bytecode.INT_5),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 0,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
 				},
@@ -1247,7 +1186,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(3, 14),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(1).ToValue(),
 					}),
@@ -1265,9 +1203,9 @@ func TestArrayTuples(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -1280,7 +1218,7 @@ func TestArrayTuples(t *testing.T) {
 					byte(bytecode.APPEND),
 					byte(bytecode.LOOP), 0, 12,
 					byte(bytecode.LEAVE_SCOPE16), 2, 2,
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
 				},
@@ -1290,7 +1228,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(2, 24),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(1).ToValue(),
 					}),
@@ -1317,15 +1254,15 @@ func TestArrayTuples(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS), 0, 5,
 					byte(bytecode.INT_5),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 0,
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
 				},
@@ -1336,7 +1273,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(3, 19),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::String").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
 						value.ToSymbol("name"),
@@ -1354,16 +1290,16 @@ func TestArrayTuples(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 3,
 					byte(bytecode.INT_5),
 					byte(bytecode.INT_5),
 					byte(bytecode.APPEND_AT),
 					byte(bytecode.INT_3),
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND_AT),
 					byte(bytecode.RETURN),
 				},
@@ -1372,7 +1308,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Object").ToValue(),
 					value.Ref(value.String("foo")),
 					value.Float(5.6).ToValue(),
@@ -1406,9 +1341,7 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 14),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 
@@ -1417,7 +1350,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(30, 1, 31)),
@@ -1425,7 +1358,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -1443,7 +1375,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1452,7 +1384,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -1470,7 +1401,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
@@ -1478,7 +1409,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -1498,7 +1428,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(39, 1, 40)),
@@ -1506,7 +1436,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -1528,7 +1457,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
@@ -1536,7 +1465,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.Ref(value.String("foo")),
 						value.Ref(value.String("bar")),
@@ -1550,7 +1478,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
@@ -1558,7 +1486,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.ToSymbol("foo").ToValue(),
 						value.ToSymbol("bar").ToValue(),
@@ -1572,7 +1499,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(11, 1, 12)),
@@ -1580,7 +1507,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(0xab).ToValue(),
 						value.SmallInt(0xcd).ToValue(),
@@ -1594,7 +1520,7 @@ func TestArrayTuples(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(12, 1, 13)),
@@ -1602,7 +1528,6 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayTuple{
 						value.SmallInt(0b101).ToValue(),
 						value.SmallInt(0b11).ToValue(),
@@ -1627,7 +1552,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1636,7 +1561,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{}),
 				},
 			),
@@ -1646,7 +1570,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1655,7 +1579,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -1671,7 +1594,7 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 10,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1680,7 +1603,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -1703,7 +1625,7 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.INT_2),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1714,7 +1636,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -1729,7 +1650,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1738,7 +1659,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.Ref(value.String("foo")),
 						value.Ref(value.String("bar")),
@@ -1753,7 +1673,7 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 15,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1762,7 +1682,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.Ref(value.String("foo")),
 						value.Ref(value.String("bar")),
@@ -1776,7 +1695,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1785,7 +1704,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.ToSymbol("foo").ToValue(),
 						value.ToSymbol("bar").ToValue(),
@@ -1801,7 +1719,7 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 15,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1810,7 +1728,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.ToSymbol("foo").ToValue(),
 						value.ToSymbol("bar").ToValue(),
@@ -1824,7 +1741,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1833,7 +1750,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(0xab).ToValue(),
 						value.SmallInt(0xcd).ToValue(),
@@ -1848,7 +1764,7 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_2),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1857,7 +1773,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(0xab).ToValue(),
 						value.SmallInt(0xcd).ToValue(),
@@ -1871,7 +1786,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1880,7 +1795,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(0b101).ToValue(),
 						value.SmallInt(0b11).ToValue(),
@@ -1895,7 +1809,7 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_3),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1904,7 +1818,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(0b101).ToValue(),
 						value.SmallInt(0b11).ToValue(),
@@ -1919,7 +1832,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1928,7 +1841,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -1947,7 +1859,7 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 6,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -1956,7 +1868,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -1974,7 +1885,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -1983,7 +1894,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -2001,7 +1911,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2010,7 +1920,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -2031,8 +1940,8 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
 					byte(bytecode.LOAD_INT_8), 10,
 					byte(bytecode.NEW_ARRAY_LIST8), 2,
@@ -2043,7 +1952,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
@@ -2066,10 +1974,10 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.COPY),
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
@@ -2080,7 +1988,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 					}),
@@ -2105,7 +2012,7 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
 					byte(bytecode.RETURN),
@@ -2117,7 +2024,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -2141,7 +2047,7 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.LOAD_INT_8), 15,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
 					byte(bytecode.RETURN),
@@ -2153,7 +2059,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -2177,10 +2082,10 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.INT_3),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_5),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_ARRAY_LIST8), 3,
 					byte(bytecode.RETURN),
 				},
@@ -2191,7 +2096,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -2218,7 +2122,7 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_5),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.NEW_ARRAY_LIST8), 3,
 					byte(bytecode.RETURN),
@@ -2230,7 +2134,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.ToSymbol("foo").ToValue(),
 					}),
@@ -2250,14 +2153,14 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS), 0, 5,
 					byte(bytecode.INT_5),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 0,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
@@ -2269,7 +2172,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 17),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 					}),
@@ -2303,14 +2205,14 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_IF), 0, 5,
 					byte(bytecode.INT_5),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 0,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
@@ -2322,7 +2224,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 17),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 					}),
@@ -2341,9 +2242,9 @@ func TestArrayLists(t *testing.T) {
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -2356,7 +2257,7 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.APPEND),
 					byte(bytecode.LOOP), 0, 12,
 					byte(bytecode.LEAVE_SCOPE16), 2, 2,
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
 				},
@@ -2366,7 +2267,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(2, 26),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.SmallInt(1).ToValue(),
 					}),
@@ -2394,7 +2294,7 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
 					byte(bytecode.GET_LOCAL_1),
@@ -2402,7 +2302,7 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.INT_5),
 					byte(bytecode.APPEND),
 					byte(bytecode.JUMP), 0, 0,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
@@ -2414,7 +2314,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 21),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Object").ToValue(),
 					value.Ref(&value.ArrayList{
 						value.ToSymbol("foo").ToValue(),
@@ -2435,16 +2334,16 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_ARRAY_LIST8), 3,
 					byte(bytecode.INT_5),
 					byte(bytecode.INT_5),
 					byte(bytecode.APPEND_AT),
 					byte(bytecode.INT_3),
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND_AT),
 					byte(bytecode.RETURN),
 				},
@@ -2455,7 +2354,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 14),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{}),
 					value.Ref(value.String("foo")),
 					value.Float(5.6).ToValue(),
@@ -2474,16 +2372,16 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.INT_3),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.LOAD_INT_8), 7,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_ARRAY_LIST8), 3,
 					byte(bytecode.INT_5),
 					byte(bytecode.INT_5),
 					byte(bytecode.APPEND_AT),
 					byte(bytecode.INT_3),
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND_AT),
 					byte(bytecode.RETURN),
 				},
@@ -2494,7 +2392,6 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{}),
 					value.Ref(value.String("foo")),
 					value.Float(5.6).ToValue(),
@@ -2529,9 +2426,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 15),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -2550,7 +2445,7 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2559,7 +2454,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.HashSet{}),
 				},
 			),
@@ -2569,7 +2463,7 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2578,7 +2472,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithElements(
 						nil,
 						value.SmallInt(1).ToValue(),
@@ -2595,7 +2488,7 @@ func TestHashSet(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 10,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -2604,7 +2497,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
 						nil,
 						4,
@@ -2629,7 +2521,7 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.INT_2),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -2640,7 +2532,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
 						nil,
 						4,
@@ -2659,7 +2550,7 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2668,7 +2559,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithElements(
 						nil,
 						value.Ref(value.String("foo")),
@@ -2684,7 +2574,7 @@ func TestHashSet(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 15,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -2693,7 +2583,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithElements(
 						nil,
 						value.Ref(value.String("foo")),
@@ -2708,7 +2597,7 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2717,7 +2606,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithElements(
 						nil,
 						value.ToSymbol("foo").ToValue(),
@@ -2733,7 +2621,7 @@ func TestHashSet(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 15,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -2742,7 +2630,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithElements(
 						nil,
 						value.ToSymbol("foo").ToValue(),
@@ -2757,7 +2644,7 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2766,7 +2653,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithElements(
 						nil,
 						value.SmallInt(0xab).ToValue(),
@@ -2782,7 +2668,7 @@ func TestHashSet(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_2),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -2791,7 +2677,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithElements(
 						nil,
 						value.SmallInt(0xab).ToValue(),
@@ -2807,7 +2692,7 @@ func TestHashSet(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -2816,7 +2701,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithElements(
 						nil,
 						value.SmallInt(0b101).ToValue(),
@@ -2832,7 +2716,7 @@ func TestHashSet(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_3),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -2841,7 +2725,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithElements(
 						nil,
 						value.SmallInt(0b101).ToValue(),
@@ -2863,7 +2746,7 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_5),
 					byte(bytecode.NEW_HASH_SET8), 2,
@@ -2876,7 +2759,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
 						nil,
 						5,
@@ -2899,7 +2781,7 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_5),
 					byte(bytecode.NEW_HASH_SET8), 2,
@@ -2912,7 +2794,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
 						nil,
 						2,
@@ -2932,7 +2813,7 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS), 0, 5,
@@ -2948,7 +2829,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 14),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
 						nil,
 						2,
@@ -2981,7 +2861,7 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_SET8), 0,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_IF), 0, 5,
@@ -2997,7 +2877,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 14),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
 						nil,
 						2,
@@ -3015,9 +2894,9 @@ func TestHashSet(t *testing.T) {
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_SET8), 0,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -3040,7 +2919,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(2, 26),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
 						nil,
 						3,
@@ -3067,8 +2945,8 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.NEW_HASH_SET8), 1,
 					byte(bytecode.GET_LOCAL_1),
@@ -3085,7 +2963,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 18),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
 						nil,
 						2,
@@ -3110,7 +2987,7 @@ func TestHashMap(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -3119,7 +2996,6 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewHashMap(0)),
 				},
 			),
@@ -3136,8 +3012,8 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.INT_3),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NEW_HASH_MAP8), 1,
 					byte(bytecode.RETURN),
@@ -3149,7 +3025,6 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewHashMap(0)),
 					value.ToSymbol("foo").ToValue(),
 				},
@@ -3167,8 +3042,8 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.INT_3),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NEW_HASH_MAP8), 1,
 					byte(bytecode.RETURN),
@@ -3180,7 +3055,6 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewHashMap(0)),
 					value.ToSymbol("_foo").ToValue(),
 				},
@@ -3191,7 +3065,7 @@ func TestHashMap(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
@@ -3200,7 +3074,6 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashMapWithElements(
 						nil,
 						value.Pair{
@@ -3226,9 +3099,9 @@ func TestHashMap(t *testing.T) {
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_MAP8), 0,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -3243,7 +3116,7 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.LOOP), 0, 13,
 					byte(bytecode.LEAVE_SCOPE16), 2, 2,
 					byte(bytecode.INT_2),
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.RETURN),
 				},
@@ -3252,7 +3125,6 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 30),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashMapWithCapacityAndElements(
 						nil,
 						3,
@@ -3276,7 +3148,7 @@ func TestHashMap(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 10,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_MAP8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -3285,7 +3157,6 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashMapWithElements(
 						nil,
 						value.Pair{
@@ -3316,7 +3187,7 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.INT_2),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_MAP8), 0,
 					byte(bytecode.RETURN),
 				},
@@ -3327,7 +3198,6 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashMapWithElements(
 						nil,
 						value.Pair{
@@ -3352,12 +3222,12 @@ func TestHashMap(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.INT_1),
 					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.COPY),
 					byte(bytecode.NEW_HASH_MAP8), 1,
 					byte(bytecode.NEW_HASH_MAP8), 1,
@@ -3368,7 +3238,6 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 14),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewHashMap(1)),
 					value.Ref(value.NewHashMap(1)),
 					value.Ref(value.String("bar")),
@@ -3390,11 +3259,11 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.INT_5),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_5),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_HASH_MAP8), 2,
 					byte(bytecode.RETURN),
 				},
@@ -3405,7 +3274,6 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashMapWithCapacityAndElements(
 						nil,
 						3,
@@ -3432,7 +3300,7 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_MAP8), 0,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
@@ -3440,8 +3308,8 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.INT_5),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.COPY),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.RETURN),
@@ -3453,7 +3321,6 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 19),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashMapWithCapacityAndElements(
 						nil,
 						2,
@@ -3493,7 +3360,7 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_MAP8), 0,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_IF), 0, 6,
@@ -3502,7 +3369,7 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 0,
 					byte(bytecode.LOAD_INT_8), 9,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.RETURN),
@@ -3514,7 +3381,6 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 20),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewHashMap(2)),
 					value.Ref(&value.ArrayList{
 						value.ToSymbol("foo").ToValue(),
@@ -3534,17 +3400,17 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_MAP8), 0,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS), 0, 9,
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.INT_5),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 0,
 					byte(bytecode.INT_0),
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.RETURN),
@@ -3556,7 +3422,6 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 22),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewHashMap(2)),
 					value.ToSymbol("Std::Object").ToValue(),
 					value.Ref(&value.ArrayList{
@@ -3581,7 +3446,7 @@ func TestHashRecord(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(2, 1, 3)),
@@ -3589,7 +3454,6 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.NewHashRecord(0)),
 				},
 			),
@@ -3606,7 +3470,7 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.INT_3),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NEW_HASH_RECORD8), 1,
 					byte(bytecode.RETURN),
@@ -3618,7 +3482,6 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("foo").ToValue(),
 				},
 			),
@@ -3635,7 +3498,7 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.INT_3),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NEW_HASH_RECORD8), 1,
 					byte(bytecode.RETURN),
@@ -3647,7 +3510,6 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("_foo").ToValue(),
 				},
 			),
@@ -3657,7 +3519,7 @@ func TestHashRecord(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(36, 1, 37)),
@@ -3665,7 +3527,6 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashRecordWithElements(
 						nil,
 						value.Pair{
@@ -3690,9 +3551,9 @@ func TestHashRecord(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_RECORD8), 0,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
@@ -3707,7 +3568,7 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.LOOP), 0, 13,
 					byte(bytecode.LEAVE_SCOPE16), 2, 2,
 					byte(bytecode.INT_2),
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.RETURN),
 				},
@@ -3716,7 +3577,6 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(1, 29),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
 						nil,
 						3,
@@ -3739,11 +3599,11 @@ func TestHashRecord(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.INT_1),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.COPY),
 					byte(bytecode.NEW_HASH_RECORD8), 1,
 					byte(bytecode.NEW_HASH_RECORD8), 1,
@@ -3754,7 +3614,6 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(1, 12),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
 						nil,
 						2,
@@ -3779,11 +3638,11 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.INT_5),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_5),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.NEW_HASH_RECORD8), 2,
 					byte(bytecode.RETURN),
 				},
@@ -3794,7 +3653,6 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(3, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
 						nil,
 						3,
@@ -3820,7 +3678,7 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.NEW_HASH_RECORD8), 0,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
@@ -3828,8 +3686,8 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.INT_5),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.COPY),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.RETURN),
@@ -3841,7 +3699,6 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(3, 18),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
 						nil,
 						3,
@@ -3877,7 +3734,7 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 0,
 					byte(bytecode.LOAD_INT_8), 9,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.RETURN),
@@ -3889,7 +3746,6 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(3, 19),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(&value.ArrayList{
 						value.ToSymbol("foo").ToValue(),
 					}),
@@ -3911,13 +3767,13 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.NEW_HASH_RECORD8), 0,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS), 0, 9,
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.INT_5),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 0,
 					byte(bytecode.INT_0),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.RETURN),
@@ -3929,7 +3785,6 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(3, 21),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Object").ToValue(),
 					value.Ref(&value.ArrayList{
 						value.ToSymbol("foo").ToValue(),
@@ -3953,7 +3808,7 @@ func TestRegex(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(2, 1, 3)),
@@ -3961,7 +3816,6 @@ func TestRegex(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.MustCompileRegex("", bitfield.BitField8FromBitFlag(0))),
 				},
 			),
@@ -3971,7 +3825,7 @@ func TestRegex(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(5, 1, 6)),
@@ -3979,7 +3833,6 @@ func TestRegex(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.MustCompileRegex("", bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag|flag.MultilineFlag|flag.ExtendedFlag))),
 				},
 			),
@@ -3989,7 +3842,7 @@ func TestRegex(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
@@ -3997,7 +3850,6 @@ func TestRegex(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.MustCompileRegex(`foo \w+ bar`, bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag))),
 				},
 			),
@@ -4011,11 +3863,11 @@ func TestRegex(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.NEW_REGEX8), byte(flag.CaseInsensitiveFlag), 3,
 					byte(bytecode.RETURN),
 				},
@@ -4026,7 +3878,6 @@ func TestRegex(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Ref(value.String("baz")),
 					value.Ref(value.String("foo \\w+ ")),
 					value.Ref(value.String(" bar")),
