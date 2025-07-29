@@ -18,7 +18,7 @@ func TestBinaryExpressions(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_3),
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.IS_A),
 					byte(bytecode.RETURN),
 				},
@@ -27,7 +27,6 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Int").ToValue(),
 				},
 			),
@@ -41,7 +40,7 @@ func TestBinaryExpressions(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_3),
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INSTANCE_OF),
 					byte(bytecode.RETURN),
 				},
@@ -50,7 +49,6 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Int").ToValue(),
 				},
 			),
@@ -70,9 +68,7 @@ func TestBinaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"add int": {
@@ -92,9 +88,7 @@ func TestBinaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"add float": {
@@ -103,10 +97,10 @@ func TestBinaryExpressions(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.ADD_FLOAT),
 					byte(bytecode.RETURN),
 				},
@@ -115,7 +109,6 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(1.2).ToValue(),
 					value.Float(5.0).ToValue(),
 				},
@@ -138,9 +131,7 @@ func TestBinaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"add value": {
@@ -252,9 +243,7 @@ func TestBinaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"subtract int": {
@@ -274,9 +263,7 @@ func TestBinaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"subtract float": {
@@ -285,10 +272,10 @@ func TestBinaryExpressions(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SUBTRACT_FLOAT),
 					byte(bytecode.RETURN),
 				},
@@ -297,7 +284,6 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(1.2).ToValue(),
 					value.Float(5.0).ToValue(),
 				},
@@ -309,7 +295,7 @@ func TestBinaryExpressions(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.LOAD_INT32_8), 25,
@@ -323,7 +309,6 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 12),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Int32(151).ToValue(),
 				},
 			),
@@ -430,7 +415,7 @@ func TestBinaryExpressions(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
@@ -438,7 +423,6 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(113.75).ToValue(),
 				},
 			),
@@ -460,9 +444,7 @@ func TestBinaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"multiply float": {
@@ -471,10 +453,10 @@ func TestBinaryExpressions(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.MULTIPLY_FLOAT),
 					byte(bytecode.RETURN),
 				},
@@ -483,7 +465,6 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(1.2).ToValue(),
 					value.Float(5.0).ToValue(),
 				},
@@ -506,9 +487,7 @@ func TestBinaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"multiply value": {
@@ -613,7 +592,7 @@ func TestBinaryExpressions(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(8, 1, 9)),
@@ -621,7 +600,6 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(91).ToValue(),
 				},
 			),
@@ -643,9 +621,7 @@ func TestBinaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"divide float": {
@@ -654,10 +630,10 @@ func TestBinaryExpressions(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.DIVIDE_FLOAT),
 					byte(bytecode.RETURN),
 				},
@@ -666,7 +642,6 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(45.5).ToValue(),
 					value.Float(0.5).ToValue(),
 				},
@@ -689,9 +664,7 @@ func TestBinaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"divide value": {
@@ -803,9 +776,7 @@ func TestBinaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"exponentiate int": {
@@ -825,9 +796,7 @@ func TestBinaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 9),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"exponentiate float": {
@@ -836,10 +805,10 @@ func TestBinaryExpressions(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.ADD_FLOAT),
 					byte(bytecode.RETURN),
 				},
@@ -848,7 +817,6 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(1.2).ToValue(),
 					value.Float(5.0).ToValue(),
 				},
@@ -871,9 +839,7 @@ func TestBinaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"exponentiate value": {
@@ -995,9 +961,7 @@ func TestUnaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"negate int": {
@@ -1016,9 +980,7 @@ func TestUnaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 7),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"negate float": {
@@ -1027,7 +989,7 @@ func TestUnaryExpressions(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NEGATE_FLOAT),
@@ -1038,7 +1000,6 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.Float(5.2).ToValue(),
 				},
 			),
@@ -1059,9 +1020,7 @@ func TestUnaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"negate value": {
@@ -1172,9 +1131,7 @@ func TestUnaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"resolve static logical not": {
@@ -1189,9 +1146,7 @@ func TestUnaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"logical not": {
@@ -1210,9 +1165,7 @@ func TestUnaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"bitwise not": {
@@ -1231,9 +1184,7 @@ func TestUnaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 
@@ -1249,9 +1200,7 @@ func TestUnaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"unary plus": {
@@ -1270,9 +1219,7 @@ func TestUnaryExpressions(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -1304,9 +1251,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 9),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"decrement": {
@@ -1327,9 +1272,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 9),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"add": {
@@ -1351,9 +1294,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"subtract": {
@@ -1375,9 +1316,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"multiply": {
@@ -1399,9 +1338,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"divide": {
@@ -1423,9 +1360,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"exponentiate": {
@@ -1447,9 +1382,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"modulo": {
@@ -1471,9 +1404,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"bitwise AND": {
@@ -1495,9 +1426,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"bitwise OR": {
@@ -1519,9 +1448,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"bitwise XOR": {
@@ -1543,9 +1470,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"left bitshift": {
@@ -1567,9 +1492,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"left logical bitshift": {
@@ -1591,9 +1514,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 11),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"right bitshift": {
@@ -1615,9 +1536,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"right logical bitshift": {
@@ -1639,9 +1558,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 11),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"logic OR": {
@@ -1664,9 +1581,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 13),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"logic AND": {
@@ -1689,9 +1604,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 13),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"nil coalesce": {
@@ -1714,9 +1627,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 13),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -3782,9 +3693,7 @@ func TestBitwiseAnd(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"resolve static nested AND": {
@@ -3799,9 +3708,7 @@ func TestBitwiseAnd(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime AND": {
@@ -3823,9 +3730,7 @@ func TestBitwiseAnd(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 13),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -3851,9 +3756,7 @@ func TestBitwiseAndNot(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"resolve static nested AND NOT": {
@@ -3868,9 +3771,7 @@ func TestBitwiseAndNot(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime AND NOT": {
@@ -3892,9 +3793,7 @@ func TestBitwiseAndNot(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 13),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -3920,9 +3819,7 @@ func TestBitwiseOr(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"resolve static nested OR": {
@@ -3937,9 +3834,7 @@ func TestBitwiseOr(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime OR": {
@@ -3961,9 +3856,7 @@ func TestBitwiseOr(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 13),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -3989,9 +3882,7 @@ func TestBitwiseXor(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"resolve static nested XOR": {
@@ -4006,9 +3897,7 @@ func TestBitwiseXor(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime XOR": {
@@ -4030,9 +3919,7 @@ func TestBitwiseXor(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 13),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
@@ -4058,9 +3945,7 @@ func TestModulo(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"resolve static nested modulo": {
@@ -4075,9 +3960,7 @@ func TestModulo(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"compile runtime modulo": {
@@ -4099,9 +3982,7 @@ func TestModulo(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 13),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 	}
