@@ -162,7 +162,7 @@ func TestStringLiteral(t *testing.T) {
 					byte(bytecode.INT_2),
 					byte(bytecode.ADD_INT),
 					byte(bytecode.CALL_METHOD8), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.NEW_STRING8), 4,
@@ -173,7 +173,7 @@ func TestStringLiteral(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 2),
-					bytecode.NewLineInfo(4, 14),
+					bytecode.NewLineInfo(4, 13),
 				},
 				[]value.Value{
 					value.Float(15.2).ToValue(),
@@ -3235,7 +3235,7 @@ func TestHashMap(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(26, 1, 27)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.Ref(value.NewHashMap(1)),
@@ -3611,7 +3611,7 @@ func TestHashRecord(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(40, 1, 41)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
