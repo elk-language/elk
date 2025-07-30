@@ -516,9 +516,9 @@ func TestGetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
-								value.ToSymbol("bar"): 1,
-								value.ToSymbol("baz"): 2,
+								value.ToSymbol("bar"): 0,
+								value.ToSymbol("baz"): 1,
+								value.ToSymbol("foo"): 2,
 							}),
 						},
 					)),
@@ -720,8 +720,8 @@ func TestSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
-								value.ToSymbol("baz"): 1,
+								value.ToSymbol("baz"): 0,
+								value.ToSymbol("foo"): 1,
 							}),
 						},
 					)),
@@ -929,8 +929,8 @@ func TestAttr(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
-								value.ToSymbol("baz"): 1,
+								value.ToSymbol("baz"): 0,
+								value.ToSymbol("foo"): 1,
 							}),
 						},
 					)),
@@ -2663,8 +2663,8 @@ func TestDefMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("b"): 0,
-								value.ToSymbol("a"): 1,
+								value.ToSymbol("a"): 0,
+								value.ToSymbol("b"): 1,
 							}),
 						},
 					)),

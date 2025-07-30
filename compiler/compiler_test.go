@@ -21,6 +21,7 @@ func init() {
 
 var namespaceDefinitionsSymbol value.Symbol = value.ToSymbol("<namespaceDefinitions>")
 var methodDefinitionsSymbol value.Symbol = value.ToSymbol("<methodDefinitions>")
+var ivarIndicesSymbol value.Symbol = value.ToSymbol("<ivarIndices>")
 var mainSymbol value.Symbol = value.ToSymbol("<main>")
 var functionSymbol value.Symbol = value.ToSymbol("<closure>")
 

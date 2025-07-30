@@ -4020,7 +4020,7 @@ func (c *Checker) assignIvarIndices(class *types.Class) {
 				continue
 			}
 
-			for ivarName := range parent.InstanceVariables() {
+			for ivarName := range types.SortedOwnInstanceVariables(parent) {
 				if ivarName == symbol.S_empty {
 					continue
 				}
@@ -4034,7 +4034,7 @@ func (c *Checker) assignIvarIndices(class *types.Class) {
 
 			currentIvarIndices = maps.Clone(currentIvarIndices)
 		case *types.MixinProxy:
-			for ivarName := range parent.InstanceVariables() {
+			for ivarName := range types.SortedOwnInstanceVariables(parent) {
 				if ivarName == symbol.S_empty {
 					continue
 				}
