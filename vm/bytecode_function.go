@@ -443,7 +443,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.LESS_INT, bytecode.LESS_FLOAT, bytecode.LESS_EQUAL_FLOAT, bytecode.NOT_EQUAL_INT, bytecode.NOT_EQUAL_FLOAT,
 		bytecode.INCREMENT_INT, bytecode.DECREMENT_INT, bytecode.CLOSE_UPVALUE_1, bytecode.CLOSE_UPVALUE_2, bytecode.CLOSE_UPVALUE_3,
 		bytecode.GENERATOR, bytecode.YIELD, bytecode.STOP_ITERATION, bytecode.GO, bytecode.DUP_SECOND,
-		bytecode.PROMISE, bytecode.AWAIT, bytecode.AWAIT_RESULT, bytecode.AWAIT_SYNC, bytecode.DEF_IVARS:
+		bytecode.PROMISE, bytecode.AWAIT, bytecode.AWAIT_RESULT, bytecode.AWAIT_SYNC, bytecode.DEF_IVARS,
+		bytecode.GET_IVAR_0, bytecode.GET_IVAR_1, bytecode.GET_IVAR_2, bytecode.SET_IVAR_0, bytecode.SET_IVAR_1, bytecode.SET_IVAR_2:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
@@ -500,7 +501,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		return f._disassembleValue(output, 1, 3, offset)
 	case bytecode.LOAD_VALUE16, bytecode.CALL_METHOD16, bytecode.CALL_METHOD_TCO16,
 		bytecode.CALL_SELF16, bytecode.CALL_SELF_TCO16,
-		bytecode.GET_IVAR16, bytecode.SET_IVAR16,
+		bytecode.GET_IVAR16, bytecode.GET_IVAR_NAME16, bytecode.SET_IVAR16, bytecode.SET_IVAR_NAME16,
 		bytecode.CALL16, bytecode.GET_CONST16, bytecode.NEXT16:
 		return f.disassembleValue(output, 3, offset)
 	default:
