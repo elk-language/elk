@@ -287,16 +287,19 @@ func (c *Compiler) CompileClassInheritance(class *types.Class, location *positio
 	c.emit(location.StartPos.Line, bytecode.SET_SUPERCLASS)
 }
 
-func (c *Compiler) CompileIvarIndices(target *types.Class, location *position.Location) {
-	attachedObjectName := target.AttachedObjectName()
-	if attachedObjectName != "" {
-		c.emitGetConst(value.ToSymbol(attachedObjectName), location)
+func (c *Compiler) CompileIvarIndices(target types.NamespaceWithIvarIndices, location *position.Location) {
+	switch target := target.(type) {
+	case *types.SingletonClass:
+		c.emitGetConst(value.ToSymbol(target.AttachedObject.Name()), location)
 		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
-	} else {
+	case *types.Module:
+		c.emitGetConst(value.ToSymbol(target.Name()), location)
+		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
+	default:
 		c.emitGetConst(value.ToSymbol(target.Name()), location)
 	}
 
-	c.emitValue(value.Ref(target.IvarIndices), location)
+	c.emitValue(value.Ref(target.IvarIndices()), location)
 	c.emit(location.StartPos.Line, bytecode.DEF_IVARS)
 }
 

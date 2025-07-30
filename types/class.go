@@ -19,8 +19,16 @@ type Class struct {
 	Checked        bool
 	singleton      *SingletonClass
 	typeParameters []*TypeParameter
-	IvarIndices    *value.IvarIndices
+	ivarIndices    *value.IvarIndices
 	NamespaceBase
+}
+
+func (c *Class) IvarIndices() *value.IvarIndices {
+	return c.ivarIndices
+}
+
+func (c *Class) SetIvarIndices(in *value.IvarIndices) {
+	c.ivarIndices = in
 }
 
 func (c *Class) AttachedObjectName() string {

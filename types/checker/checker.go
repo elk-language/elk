@@ -132,7 +132,7 @@ type Checker struct {
 	typeDefinitionChecks    *typeDefinitionChecks
 	methodCache             *concurrent.Slice[*types.Method] // used in constant definition checks, the list of methods used in the current constant declaration
 	method                  *types.Method
-	classesWithIvars        *ds.OrderedMap[string, *classWithIvarsData] // classes that declare instance variables
+	namespacesWithIvars     *ds.OrderedMap[string, *namespaceWithIvarsData] // namespaces that declare instance variables
 	compiler                *compiler.Compiler
 	threadPool              *vm.ThreadPool
 }
@@ -333,7 +333,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.checkTypeDefinitions()
 
 	c.switchToMainCompiler()
-	c.classesWithIvars = ds.NewOrderedMap[string, *classWithIvarsData]()
+	c.namespacesWithIvars = ds.NewOrderedMap[string, *namespaceWithIvarsData]()
 	methodCompiler, offset := c.initMethodCompiler(node.Location())
 	c.hoistMethodDefinitionsInFile(c.Filename, node)
 	c.checkConstantPlaceholders()
@@ -423,14 +423,19 @@ func (c *Checker) checkClassesWithIvars(loc *position.Location) {
 		c.compiler = ivarCompiler
 	}
 
-	for _, classData := range c.classesWithIvars.All() {
-		if !classData.singleton {
-			c.checkNonNilableInstanceVariableForClass(classData.class, classData.locations)
+	for _, namespaceData := range c.namespacesWithIvars.All() {
+		switch namespace := namespaceData.namespace.(type) {
+		case *types.Class:
+			c.checkNonNilableInstanceVariableForClass(namespace, namespaceData.locations)
+			c.assignIvarIndices(namespace)
+		case *types.SingletonClass:
+			c.assignIvarIndices(namespace)
+		case *types.Module:
+			c.assignIvarIndices(namespace)
 		}
-		c.assignIvarIndices(classData.class)
 	}
 
-	c.classesWithIvars = nil
+	c.namespacesWithIvars = nil
 	if c.shouldCompile() {
 		c.compiler = c.compiler.FinishIvarIndicesCompiler(loc, offset)
 	}
@@ -3980,8 +3985,8 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(location *position.Loc
 	c.method.SetInstanceVariablesChecked(true)
 }
 
-func (c *Checker) assignIvarIndices(class *types.Class) {
-	if !c.IsIncremental() && class.IvarIndices != nil {
+func (c *Checker) assignIvarIndices(namespace types.NamespaceWithIvarIndices) {
+	if !c.IsIncremental() && namespace.IvarIndices() != nil {
 		return
 	}
 
@@ -3989,15 +3994,15 @@ func (c *Checker) assignIvarIndices(class *types.Class) {
 	var i int
 	firstParentWithIvars := -1
 
-	for parent := range types.Parents(class) {
+	for parent := range types.Parents(namespace) {
 		parents = append(parents, parent)
 
 		switch parent := parent.(type) {
-		case *types.Class:
-			if parent.HasInstanceVariables() {
+		case types.NamespaceWithIvarIndices:
+			if len(parent.InstanceVariables()) > 0 {
 				firstParentWithIvars = i
 			}
-			if !c.IsIncremental() && parent.IvarIndices != nil {
+			if !c.IsIncremental() && parent.IvarIndices() != nil {
 				break
 			}
 		}
@@ -4014,9 +4019,9 @@ func (c *Checker) assignIvarIndices(class *types.Class) {
 	for i := firstParentWithIvars; i >= 0; i-- {
 		parent := parents[i]
 		switch parent := parent.(type) {
-		case *types.Class:
-			if !c.IsIncremental() && parent.IvarIndices != nil {
-				currentIvarIndices = maps.Clone(*parent.IvarIndices)
+		case types.NamespaceWithIvarIndices:
+			if !c.IsIncremental() && parent.IvarIndices() != nil {
+				currentIvarIndices = maps.Clone(*parent.IvarIndices())
 				continue
 			}
 
@@ -4027,7 +4032,7 @@ func (c *Checker) assignIvarIndices(class *types.Class) {
 				currentIvarIndices[ivarName] = len(currentIvarIndices)
 			}
 
-			parent.IvarIndices = &currentIvarIndices
+			parent.SetIvarIndices(&currentIvarIndices)
 			if c.shouldCompile() && len(currentIvarIndices) != 0 {
 				c.compiler.CompileIvarIndices(parent, position.DefaultLocation)
 			}

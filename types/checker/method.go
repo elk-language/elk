@@ -230,41 +230,40 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 	c.setMode(previousMode)
 	c.selfType = previousSelf
 
-	c.registerClassWithIvars(class, false, node.Location())
 	if ok {
+		c.registerNamespaceWithIvars(class, node.Location())
 		c.popLocalConstScope()
 		c.popMethodScope()
 	}
 }
 
-type classWithIvarsData struct {
-	class     *types.Class
-	singleton bool
+type namespaceWithIvarsData struct {
+	namespace types.NamespaceWithIvarIndices
 	locations []*position.Location
 }
 
-func (c *classWithIvarsData) addLocation(loc *position.Location) {
+func (c *namespaceWithIvarsData) addLocation(loc *position.Location) {
 	c.locations = append(c.locations, loc)
 }
 
-func (c *Checker) insertClassWithIvarsData(class *types.Class, singleton bool) *classWithIvarsData {
-	data, ok := c.classesWithIvars.GetOk(class.Name())
+func (c *Checker) insertNamespaceWithIvarsData(namespace types.NamespaceWithIvarIndices) *namespaceWithIvarsData {
+	data, ok := c.namespacesWithIvars.GetOk(namespace.Name())
 	if ok {
 		return data
 	}
 
-	data = &classWithIvarsData{class: class, singleton: singleton}
-	c.classesWithIvars.Set(class.Name(), data)
+	data = &namespaceWithIvarsData{namespace: namespace}
+	c.namespacesWithIvars.Set(namespace.Name(), data)
 	return data
 }
 
-func (c *Checker) registerClassWithIvars(class *types.Class, singleton bool, loc *position.Location) {
-	if class == nil {
+func (c *Checker) registerNamespaceWithIvars(namespace types.NamespaceWithIvarIndices, loc *position.Location) {
+	if namespace == nil {
 		return
 	}
 
-	if types.NamespaceDeclaresInstanceVariables(class) {
-		classData := c.insertClassWithIvarsData(class, singleton)
+	if types.NamespaceDeclaresInstanceVariables(namespace) {
+		classData := c.insertNamespaceWithIvarsData(namespace)
 		classData.addLocation(loc)
 	}
 }
@@ -285,6 +284,7 @@ func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclaration
 	c.selfType = previousSelf
 
 	if ok {
+		c.registerNamespaceWithIvars(module, node.Location())
 		c.popLocalConstScope()
 		c.popMethodScope()
 	}
@@ -350,7 +350,7 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 	c.setMode(previousMode)
 	c.selfType = previousSelf
 
-	c.registerClassWithIvars(&singleton.Class, true, expr.Location())
+	c.registerNamespaceWithIvars(singleton, expr.Location())
 	c.popLocalConstScope()
 	c.popMethodScope()
 }

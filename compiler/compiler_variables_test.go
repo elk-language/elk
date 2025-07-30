@@ -151,12 +151,15 @@ func TestInstanceVariables(t *testing.T) {
 					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(30, 1, 31)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 5),
+					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -175,6 +178,27 @@ func TestInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Root").ToValue(),
 							value.ToSymbol("Foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<ivarIndices>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_IVARS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(30, 1, 31)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(&value.IvarIndices{
+								value.ToSymbol("a"): 0,
+							}),
 						},
 					)),
 				},
@@ -403,12 +427,15 @@ func TestInstanceVariables(t *testing.T) {
 					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(82, 8, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 9),
 					bytecode.NewLineInfo(8, 2),
 				},
 				[]value.Value{
@@ -468,6 +495,28 @@ func TestInstanceVariables(t *testing.T) {
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<ivarIndices>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_IVARS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(82, 8, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+							bytecode.NewLineInfo(8, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(&value.IvarIndices{
+								value.ToSymbol("foo"): 0,
+							}),
 						},
 					)),
 				},
@@ -1111,7 +1160,6 @@ func TestInstanceVariables(t *testing.T) {
 				},
 			),
 		},
-		// TODO: Define ivars for module singleton class
 		"set instance variable in a module": {
 			input: `
 				module Foo
@@ -1125,14 +1173,17 @@ func TestInstanceVariables(t *testing.T) {
 					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.INIT_NAMESPACE),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(53, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 6),
 					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(5, 1),
 				},
@@ -1154,6 +1205,28 @@ func TestInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Root").ToValue(),
 							value.ToSymbol("Foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<ivarIndices>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.GET_SINGLETON),
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_IVARS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(53, 5, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+							bytecode.NewLineInfo(5, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(&value.IvarIndices{
+								value.ToSymbol("a"): 0,
+							}),
 						},
 					)),
 					value.ToSymbol("Foo").ToValue(),
