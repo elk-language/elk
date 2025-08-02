@@ -4020,6 +4020,10 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 			if !c.IsIncremental() && parent.IvarIndices() != nil {
 				break
 			}
+		case *types.MixinProxy:
+			if len(parent.InstanceVariables()) > 0 {
+				firstParentWithIvars = i
+			}
 		}
 		i++
 	}

@@ -263,10 +263,8 @@ func (c *Checker) registerNamespaceWithIvars(namespace types.NamespaceWithIvarIn
 		return
 	}
 
-	if types.NamespaceDeclaresInstanceVariables(namespace) {
-		classData := c.insertNamespaceWithIvarsData(namespace)
-		classData.addLocation(loc)
-	}
+	classData := c.insertNamespaceWithIvarsData(namespace)
+	classData.addLocation(loc)
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclarationNode) {

@@ -278,18 +278,18 @@ func (vm *VM) callPromise(promise *Promise) {
 
 	vm.run()
 
-	if vm.state != awaitState {
+	switch vm.state {
+	case awaitState:
+		stack := vm.stack[vm.fpOffset():vm.spOffset()]
+		stackCopy := make([]value.Value, len(stack))
+		copy(stackCopy, stack)
+		promise.stack = stackCopy
+		promise.ip = vm.ip
+
 		vm.restoreLastFrame()
-		return
+	case errorState:
+		vm.restoreLastFrame()
 	}
-
-	stack := vm.stack[vm.fpOffset():vm.spOffset()]
-	stackCopy := make([]value.Value, len(stack))
-	copy(stackCopy, stack)
-	promise.stack = stackCopy
-	promise.ip = vm.ip
-
-	vm.restoreLastFrame()
 }
 
 func (vm *VM) CallGeneratorNext(generator *Generator) (value.Value, value.Value) {
@@ -1512,7 +1512,7 @@ func (vm *VM) spGet() *value.Value {
 }
 
 func (vm *VM) spOffsetTo(ptr *value.Value) int {
-	return int(uintptr(unsafe.Pointer(vm.sp))-uintptr(unsafe.Pointer(ptr))) / int(value.ValueSize)
+	return int(vm.sp-uintptr(unsafe.Pointer(ptr))) / int(value.ValueSize)
 }
 
 func (vm *VM) spOffset() int {
@@ -1641,7 +1641,7 @@ func (vm *VM) callFrameAddRaw(ptr uintptr, n uintptr) uintptr {
 }
 
 func (vm *VM) cfpOffset() int {
-	return int(uintptr(unsafe.Pointer(vm.cfp))-uintptr(unsafe.Pointer(&vm.callFrames[0]))) / int(CallFrameSize)
+	return int(vm.cfp-uintptr(unsafe.Pointer(&vm.callFrames[0]))) / int(CallFrameSize)
 }
 
 // Read the next byte of code

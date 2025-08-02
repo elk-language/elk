@@ -422,7 +422,7 @@ func (c *Compiler) FinishIvarIndicesCompiler(location *position.Location, execOf
 	}
 
 	// If no instructions were emitted, remove the EXEC instruction block
-	c.Parent.removeBytes(execOffset, 3)
+	c.Parent.removeLastBytes(execOffset)
 	c.Parent.removeBytecodeFunction(ivarIndicesSymbol)
 	return c.Parent
 }
@@ -436,8 +436,12 @@ func (c *Compiler) CompileMethods(location *position.Location, execOffset int) {
 	}
 
 	// If no instructions were emitted, remove the EXEC instruction block
-	c.Parent.removeBytes(execOffset, 3)
+	c.Parent.removeLastBytes(execOffset)
 	c.Parent.removeBytecodeFunction(methodDefinitionsSymbol)
+}
+
+func (c *Compiler) removeLastBytes(offset int) {
+	c.removeBytes(offset, c.nextInstructionOffset()-offset)
 }
 
 func (c *Compiler) removeBytes(offset int, count int) {
