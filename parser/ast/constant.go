@@ -43,13 +43,16 @@ type ComplexConstantNode interface {
 	complexConstantNode()
 }
 
-func (*InvalidNode) complexConstantNode()         {}
-func (*PublicConstantNode) complexConstantNode()  {}
-func (*PrivateConstantNode) complexConstantNode() {}
-func (*ConstantLookupNode) complexConstantNode()  {}
-func (*GenericConstantNode) complexConstantNode() {}
-func (*NilLiteralNode) complexConstantNode()      {}
-func (*UnquoteNode) complexConstantNode()         {}
+func (*InvalidNode) complexConstantNode()               {}
+func (*PublicConstantNode) complexConstantNode()        {}
+func (*PrivateConstantNode) complexConstantNode()       {}
+func (*ConstantLookupNode) complexConstantNode()        {}
+func (*GenericConstantNode) complexConstantNode()       {}
+func (*NilLiteralNode) complexConstantNode()            {}
+func (*UnquoteNode) complexConstantNode()               {}
+func (*MacroCallNode) complexConstantNode()             {}
+func (*ReceiverlessMacroCallNode) complexConstantNode() {}
+func (*ScopedMacroCallNode) complexConstantNode()       {}
 
 // All nodes that should be valid constants
 // should implement this interface.

@@ -6107,7 +6107,106 @@ func (p *Parser) objectAttributePattern() ast.PatternNode {
 
 // strictConstantLookupOrObjectPattern = strictConstantLookup ["(" [objectPatternAttributes] ")"]
 func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
-	constant := p.strictConstantLookup()
+	var left ast.ComplexConstantNode
+	if tok, ok := p.matchOk(token.SCOPE_RES_OP); ok {
+		if p.accept(token.PRIVATE_CONSTANT) {
+			p.errorUnexpected(privateConstantAccessMessage)
+		}
+		right := p.constant()
+		left = ast.NewConstantLookupNode(
+			tok.Location().Join(right.Location()),
+			nil,
+			right,
+		)
+	} else {
+		left = p.constant()
+	}
+
+	for p.lookahead.Type == token.SCOPE_RES_OP {
+		p.advance()
+
+		p.swallowNewlines()
+		if p.accept(token.PRIVATE_CONSTANT,
+			token.PUBLIC_CONSTANT,
+			token.UNQUOTE,
+			token.UNQUOTE_CONST,
+			token.SHORT_UNQUOTE_BEG,
+		) {
+			if p.accept(token.PRIVATE_CONSTANT) {
+				p.errorUnexpected(privateConstantAccessMessage)
+			}
+			right := p.constant()
+
+			left = ast.NewConstantLookupNode(
+				left.Location().Join(right.Location()),
+				left,
+				right,
+			)
+			continue
+		}
+
+		if p.accept(
+			token.DOLLAR_IDENTIFIER,
+			token.PUBLIC_IDENTIFIER,
+			token.UNQUOTE_IDENT,
+		) {
+			right := p.methodName()
+
+			bang, ok := p.consume(token.BANG)
+			if !ok {
+				return ast.NewInvalidNode(bang.Location(), bang)
+			}
+
+			switch right.(type) {
+			case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
+			default:
+				p.errorMessageLocation("invalid macro name", right.Location())
+			}
+
+			location := left.Location().Join(bang.Location())
+			hasParentheses := p.lookahead.Type == token.LPAREN
+			lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
+			if errToken != nil {
+				return ast.NewInvalidNode(
+					errToken.Location(),
+					errToken,
+				)
+			}
+			if lastArgSpan != nil {
+				location = location.Join(lastArgSpan)
+			}
+
+			hasTrailingClosure := p.hasTrailingClosure()
+
+			if hasTrailingClosure && (hasParentheses || len(posArgs) == 0 && len(namedArgs) == 0) {
+				function := p.closureExpression()
+				if len(namedArgs) > 0 {
+					namedArgs = append(
+						namedArgs,
+						ast.NewNamedCallArgumentNode(
+							function.Location(),
+							ast.NewPublicIdentifierNode(function.Location(), "fn"),
+							function,
+						),
+					)
+				} else {
+					posArgs = append(posArgs, function)
+				}
+				location = location.Join(function.Location())
+			}
+
+			left = ast.NewScopedMacroCallNode(
+				location,
+				left,
+				right,
+				posArgs,
+				namedArgs,
+			)
+			continue
+		}
+	}
+
+	constant := left
 	if !p.accept(token.LPAREN) {
 		return constant
 	}
@@ -6606,12 +6705,71 @@ func (p *Parser) nilLiteral() *ast.NilLiteralNode {
 	return ast.NewNilLiteralNode(tok.Location())
 }
 
+func (p *Parser) identifierOrMacroPattern() ast.PatternExpressionNode {
+	if !p.acceptSecond(token.BANG) {
+		return p.identifier()
+	}
+
+	macroName := p.advance()
+	location := macroName.Location()
+
+	p.advance() // bang !
+
+	var posArgs []ast.ExpressionNode
+	var namedArgs []ast.NamedArgumentNode
+	if p.accept(token.LPAREN) || p.lookahead.IsValidAsArgumentToNoParenFunctionCall() {
+		var lastArgSpan *position.Location
+		var errToken *token.Token
+
+		lastArgSpan, posArgs, namedArgs, errToken = p.callArgumentList()
+		if errToken != nil {
+			return ast.NewInvalidNode(
+				errToken.Location(),
+				errToken,
+			)
+		}
+		if lastArgSpan == nil {
+			p.errorExpected("macro arguments")
+			errToken = p.advance()
+			return ast.NewInvalidNode(
+				errToken.Location(),
+				errToken,
+			)
+		}
+		location = location.Join(lastArgSpan)
+	}
+
+	if p.hasTrailingClosure() {
+		function := p.closureExpression()
+		if len(namedArgs) > 0 {
+			namedArgs = append(
+				namedArgs,
+				ast.NewNamedCallArgumentNode(
+					function.Location(),
+					ast.NewPublicIdentifierNode(function.Location(), "fn"),
+					function,
+				),
+			)
+		} else {
+			posArgs = append(posArgs, function)
+		}
+		location = location.Join(function.Location())
+	}
+
+	return ast.NewReceiverlessMacroCallNode(
+		location,
+		tokenToIdentifier(macroName),
+		posArgs,
+		namedArgs,
+	)
+}
+
 func (p *Parser) simplePattern() ast.PatternExpressionNode {
 	switch p.lookahead.Type {
 	case token.REGEX_BEG:
 		return p.regexLiteral()
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		return p.identifier()
+		return p.identifierOrMacroPattern()
 	}
 
 	return p.innerLiteralPattern()

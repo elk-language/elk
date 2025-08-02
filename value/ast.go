@@ -1025,15 +1025,24 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("GenericReceiverlessMethodCallNode", Ref(GenericReceiverlessMethodCallNodeClass))
 
 	ScopedMacroCallNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	ScopedMacroCallNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ScopedMacroCallNodeClass.IncludeMixin(UsingEntryNodeMixin)
+	ScopedMacroCallNodeClass.IncludeMixin(TypeNodeMixin)
+	ScopedMacroCallNodeClass.IncludeMixin(PatternExpressionNodeMixin)
+	ScopedMacroCallNodeClass.IncludeMixin(ComplexConstantNodeMixin)
 	ElkASTModule.AddConstantString("ScopedMacroCallNode", Ref(ScopedMacroCallNodeClass))
 
 	MacroCallNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	MacroCallNodeClass.IncludeMixin(ExpressionNodeMixin)
+	MacroCallNodeClass.IncludeMixin(UsingEntryNodeMixin)
+	MacroCallNodeClass.IncludeMixin(TypeNodeMixin)
+	MacroCallNodeClass.IncludeMixin(PatternExpressionNodeMixin)
+	MacroCallNodeClass.IncludeMixin(ComplexConstantNodeMixin)
 	ElkASTModule.AddConstantString("MacroCallNode", Ref(MacroCallNodeClass))
 
 	ReceiverlessMacroCallNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	ReceiverlessMacroCallNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ReceiverlessMacroCallNodeClass.IncludeMixin(UsingEntryNodeMixin)
+	ReceiverlessMacroCallNodeClass.IncludeMixin(TypeNodeMixin)
+	ReceiverlessMacroCallNodeClass.IncludeMixin(PatternExpressionNodeMixin)
+	ReceiverlessMacroCallNodeClass.IncludeMixin(ComplexConstantNodeMixin)
 	ElkASTModule.AddConstantString("ReceiverlessMacroCallNode", Ref(ReceiverlessMacroCallNodeClass))
 
 	SplatExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))

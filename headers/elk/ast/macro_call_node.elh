@@ -3,7 +3,10 @@ module Std::Elk::AST
     Represents a macro call eg. `'123'.foo!()`
   ]##
   sealed primitive class MacroCallNode
-    include ExpressionNode
+    include UsingEntryNode
+    include TypeNode
+    include ComplexConstantNode
+    include PatternExpressionNode
 
     init(
       receiver: ExpressionNode,
