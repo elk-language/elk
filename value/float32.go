@@ -65,7 +65,7 @@ func (f Float32) Error() string {
 	return f.Inspect()
 }
 
-func (f Float32) InstanceVariables() SymbolMap {
+func (f Float32) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

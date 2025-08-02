@@ -38,6 +38,6 @@ func (n *Native) Error() string {
 	return n.Inspect()
 }
 
-func (*Native) InstanceVariables() SymbolMap {
+func (*Native) InstanceVariables() *InstanceVariables {
 	return nil
 }

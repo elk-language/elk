@@ -97,7 +97,7 @@ func (p *Promise) Error() string {
 	return p.Inspect()
 }
 
-func (*Promise) InstanceVariables() value.SymbolMap {
+func (*Promise) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 

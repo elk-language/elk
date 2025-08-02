@@ -44,7 +44,7 @@ func (r *BeginlessClosedRange) Error() string {
 	return r.Inspect()
 }
 
-func (r *BeginlessClosedRange) InstanceVariables() SymbolMap {
+func (r *BeginlessClosedRange) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

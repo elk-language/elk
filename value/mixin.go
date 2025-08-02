@@ -45,8 +45,7 @@ func NewMixin() *Mixin {
 		MethodContainer: MethodContainer{
 			Methods: make(MethodMap),
 		},
-		metaClass:         MixinClass,
-		instanceVariables: make(SymbolMap),
+		metaClass: MixinClass,
 	}
 	m.SetMixin()
 	return m
@@ -73,7 +72,7 @@ func MixinConstructor(class *Class) Value {
 			Methods: make(MethodMap),
 		},
 		metaClass:         MixinClass,
-		instanceVariables: make(SymbolMap),
+		instanceVariables: make([]Value, len(class.IvarIndices)),
 	}
 	m.SetMixin()
 

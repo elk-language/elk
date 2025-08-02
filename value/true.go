@@ -43,7 +43,7 @@ func (t TrueType) Error() string {
 	return t.Inspect()
 }
 
-func (TrueType) InstanceVariables() SymbolMap {
+func (TrueType) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

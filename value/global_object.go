@@ -35,6 +35,6 @@ func (g GlobalObjectType) Error() string {
 	return g.Inspect()
 }
 
-func (GlobalObjectType) InstanceVariables() SymbolMap {
+func (GlobalObjectType) InstanceVariables() *InstanceVariables {
 	return nil
 }

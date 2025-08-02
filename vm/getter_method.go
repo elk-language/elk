@@ -10,6 +10,7 @@ import (
 type GetterMethod struct {
 	AttributeName value.Symbol
 	Doc           value.Value
+	IvarIndex     int
 }
 
 func (g *GetterMethod) Name() value.Symbol {
@@ -60,7 +61,7 @@ func (g *GetterMethod) Error() string {
 	return g.Inspect()
 }
 
-func (*GetterMethod) InstanceVariables() value.SymbolMap {
+func (*GetterMethod) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
@@ -69,7 +70,15 @@ func (g *GetterMethod) Call(self value.Value) (value.Value, value.Value) {
 	if iv == nil {
 		return value.Undefined, value.Ref(value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect()))
 	}
-	result := iv.Get(g.AttributeName)
+
+	var ivarIndex int
+	if g.IvarIndex != -1 {
+		ivarIndex = g.IvarIndex
+	} else {
+		ivarIndex = self.DirectClass().IvarIndices[g.AttributeName]
+	}
+
+	result := iv.Get(ivarIndex)
 	if result.IsUndefined() {
 		return value.Nil, value.Undefined
 	}
@@ -77,9 +86,10 @@ func (g *GetterMethod) Call(self value.Value) (value.Value, value.Value) {
 }
 
 // Create a new getter method.
-func NewGetterMethod(attrName value.Symbol) *GetterMethod {
+func NewGetterMethod(attrName value.Symbol, index int) *GetterMethod {
 	return &GetterMethod{
 		AttributeName: attrName,
+		IvarIndex:     index,
 	}
 }
 
@@ -88,9 +98,11 @@ func NewGetterMethod(attrName value.Symbol) *GetterMethod {
 func DefineGetter(
 	container *value.MethodContainer,
 	name value.Symbol,
+	index int,
 ) {
 	getterMethod := NewGetterMethod(
 		name,
+		index,
 	)
 	container.AttachMethod(name, getterMethod)
 }
@@ -105,6 +117,7 @@ func Getter(
 	nameSymbol := value.ToSymbol(name)
 	getterMethod := NewGetterMethod(
 		nameSymbol,
+		-1,
 	)
 	container.AttachMethod(nameSymbol, getterMethod)
 }

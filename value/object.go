@@ -4,7 +4,7 @@ package value
 
 import (
 	"fmt"
-	"maps"
+	"slices"
 	"strings"
 
 	"github.com/google/go-cmp/cmp"
@@ -14,7 +14,7 @@ var ObjectClass *Class // ::Std::Object
 
 type Object struct {
 	class             *Class
-	instanceVariables SymbolMap // Map that stores instance variables of the value
+	instanceVariables InstanceVariables // Slice that stores instance variables of the value
 }
 
 func NewObjectComparer(opts *cmp.Options) cmp.Option {
@@ -45,24 +45,36 @@ type ObjectOption = func(*Object)
 func ObjectWithClass(class *Class) ObjectOption {
 	return func(o *Object) {
 		o.class = class
+		o.instanceVariables = make([]Value, len(class.IvarIndices))
 	}
 }
 
-func ObjectWithInstanceVariables(ivars SymbolMap) ObjectOption {
+func ObjectWithInstanceVariables(ivars []Value) ObjectOption {
 	return func(o *Object) {
 		o.instanceVariables = ivars
+	}
+}
+
+func ObjectWithInstanceVariablesByName(ivars SymbolMap) ObjectOption {
+	return func(o *Object) {
+		for key, value := range ivars {
+			SetInstanceVariableByName(Ref(o), key, value)
+		}
 	}
 }
 
 // Create a new value.
 func NewObject(opts ...ObjectOption) *Object {
 	o := &Object{
-		class:             ObjectClass,
-		instanceVariables: make(SymbolMap),
+		class: ObjectClass,
 	}
 
 	for _, opt := range opts {
 		opt(o)
+	}
+
+	if o.instanceVariables == nil {
+		o.instanceVariables = make([]Value, len(ObjectClass.IvarIndices))
 	}
 
 	return o
@@ -72,24 +84,21 @@ func NewObject(opts ...ObjectOption) *Object {
 func ObjectConstructor(class *Class) Value {
 	return Ref(&Object{
 		class:             class,
-		instanceVariables: make(SymbolMap),
+		instanceVariables: make([]Value, len(class.IvarIndices)),
 	})
 }
 
 func (o *Object) Copy() Reference {
-	newInstanceVariables := make(SymbolMap, len(o.instanceVariables))
-	maps.Copy(newInstanceVariables, o.instanceVariables)
-
 	newObject := &Object{
 		class:             o.class,
-		instanceVariables: newInstanceVariables,
+		instanceVariables: slices.Clone(o.instanceVariables),
 	}
 
 	return newObject
 }
 
-func (o *Object) InstanceVariables() SymbolMap {
-	return o.instanceVariables
+func (o *Object) InstanceVariables() *InstanceVariables {
+	return &o.instanceVariables
 }
 
 func (o *Object) Class() *Class {
@@ -120,8 +129,17 @@ func (o *Object) Inspect() string {
 	var buff strings.Builder
 	fmt.Fprintf(&buff, "%s{&: %p", o.class.PrintableName(), o)
 
-	for symbol, val := range o.instanceVariables {
-		fmt.Fprintf(&buff, ", %s: %s", symbol.InspectContent(), val.Inspect())
+	for ivarIndex, val := range o.instanceVariables {
+		if val.IsUndefined() {
+			continue
+		}
+
+		ivarName, ok := o.class.GetIvarName(ivarIndex)
+		if !ok {
+			panic(fmt.Sprintf("could not find ivar for class `%s` with index `%d`", o.class.Inspect(), ivarIndex))
+		}
+
+		fmt.Fprintf(&buff, ", %s: %s", ivarName.InspectContent(), val.Inspect())
 	}
 
 	buff.WriteRune('}')

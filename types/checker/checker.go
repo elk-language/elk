@@ -178,6 +178,10 @@ func NewWithEnv(env *types.GlobalEnvironment) *Checker {
 	return newChecker("", env, false, vm.DefaultThreadPool)
 }
 
+func (c *Checker) SelfType() types.Type {
+	return c.selfType
+}
+
 func (c *Checker) IsHeader() bool {
 	return c.flags.HasFlag(headerFlag)
 }
@@ -334,8 +338,9 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 
 	c.switchToMainCompiler()
 	c.namespacesWithIvars = ds.NewOrderedMap[string, *namespaceWithIvarsData]()
-	methodCompiler, offset := c.initMethodCompiler(node.Location())
 	c.hoistMethodDefinitionsInFile(c.Filename, node)
+	c.assignIvarIndices(node.Location())
+	methodCompiler, offset := c.initMethodCompiler(node.Location())
 	c.checkConstantPlaceholders()
 	c.checkMethodPlaceholders()
 	c.checkConstants()
@@ -414,8 +419,8 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 	c.compiler = mainCompiler.InitGlobalEnv()
 }
 
-// Check if instance variable definitions in classes are valid
-func (c *Checker) checkClassesWithIvars(loc *position.Location) {
+// Assign instance variable indices to classes and modules
+func (c *Checker) assignIvarIndices(loc *position.Location) {
 	var offset int
 	if c.shouldCompile() {
 		var ivarCompiler *compiler.Compiler
@@ -426,19 +431,29 @@ func (c *Checker) checkClassesWithIvars(loc *position.Location) {
 	for _, namespaceData := range c.namespacesWithIvars.All() {
 		switch namespace := namespaceData.namespace.(type) {
 		case *types.Class:
-			c.checkNonNilableInstanceVariableForClass(namespace, namespaceData.locations)
-			c.assignIvarIndices(namespace)
+			c.assignIvarIndicesForNamespace(namespace)
 		case *types.SingletonClass:
-			c.assignIvarIndices(namespace)
+			c.assignIvarIndicesForNamespace(namespace)
 		case *types.Module:
-			c.assignIvarIndices(namespace)
+			c.assignIvarIndicesForNamespace(namespace)
+		}
+	}
+
+	if c.shouldCompile() {
+		c.compiler = c.compiler.FinishIvarIndicesCompiler(loc, offset)
+	}
+}
+
+// Check if instance variable definitions in classes are valid
+func (c *Checker) checkClassesWithIvars(loc *position.Location) {
+	for _, namespaceData := range c.namespacesWithIvars.All() {
+		switch namespace := namespaceData.namespace.(type) {
+		case *types.Class:
+			c.checkNonNilableInstanceVariableForClass(namespace, namespaceData.locations)
 		}
 	}
 
 	c.namespacesWithIvars = nil
-	if c.shouldCompile() {
-		c.compiler = c.compiler.FinishIvarIndicesCompiler(loc, offset)
-	}
 }
 
 func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
@@ -3985,7 +4000,7 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(location *position.Loc
 	c.method.SetInstanceVariablesChecked(true)
 }
 
-func (c *Checker) assignIvarIndices(namespace types.NamespaceWithIvarIndices) {
+func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIvarIndices) {
 	if !c.IsIncremental() && namespace.IvarIndices() != nil {
 		return
 	}

@@ -48,7 +48,7 @@ func (r *OpenRange) Inspect() string {
 	return buff.String()
 }
 
-func (r *OpenRange) InstanceVariables() SymbolMap {
+func (r *OpenRange) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -109,7 +109,7 @@ func (r *OpenRangeIterator) Error() string {
 	return r.Inspect()
 }
 
-func (*OpenRangeIterator) InstanceVariables() SymbolMap {
+func (*OpenRangeIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

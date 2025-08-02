@@ -166,7 +166,7 @@ func (f Float) Error() string {
 	return f.Inspect()
 }
 
-func (f Float) InstanceVariables() SymbolMap {
+func (f Float) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

@@ -100,7 +100,7 @@ func (r *Regex) Error() string {
 	return r.Inspect()
 }
 
-func (r *Regex) InstanceVariables() SymbolMap {
+func (r *Regex) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

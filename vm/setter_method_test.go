@@ -24,6 +24,7 @@ func TestDefineSetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -33,6 +34,7 @@ func TestDefineSetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -41,9 +43,11 @@ func TestDefineSetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -53,6 +57,7 @@ func TestDefineSetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -61,6 +66,7 @@ func TestDefineSetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -69,7 +75,7 @@ func TestDefineSetter(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vm.DefineSetter(tc.container, value.ToSymbol(tc.attrName))
+			vm.DefineSetter(tc.container, value.ToSymbol(tc.attrName), -1)
 			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Options()); diff != "" {
 				t.Fatal(diff)
 			}
@@ -92,9 +98,11 @@ func TestDefineAccessor(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -108,9 +116,11 @@ func TestDefineAccessor(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -120,6 +130,7 @@ func TestDefineAccessor(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("bar"): vm.NewGetterMethod(
 						value.ToSymbol("bar"),
+						-1,
 					),
 				},
 			},
@@ -128,12 +139,15 @@ func TestDefineAccessor(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("bar"): vm.NewGetterMethod(
 						value.ToSymbol("bar"),
+						-1,
 					),
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -143,6 +157,7 @@ func TestDefineAccessor(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -151,9 +166,11 @@ func TestDefineAccessor(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 					value.ToSymbol("foo="): vm.NewSetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -162,7 +179,7 @@ func TestDefineAccessor(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vm.DefineAccessor(tc.container, value.ToSymbol(tc.attrName))
+			vm.DefineAccessor(tc.container, value.ToSymbol(tc.attrName), -1)
 			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Options()); diff != "" {
 				t.Fatal(diff)
 			}

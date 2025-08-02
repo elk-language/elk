@@ -44,7 +44,7 @@ func (r *BeginlessOpenRange) Error() string {
 	return r.Inspect()
 }
 
-func (r *BeginlessOpenRange) InstanceVariables() SymbolMap {
+func (r *BeginlessOpenRange) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

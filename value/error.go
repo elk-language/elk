@@ -126,11 +126,12 @@ var NotBuiltinError *Object
 
 // Create a new Elk error.
 func NewError(class *Class, message string) *Object {
+	ivars := make([]Value, len(class.IvarIndices))
+	ivars[class.IvarIndices[SymbolTable.Add("message")]] = Ref(String(message))
+
 	return &Object{
-		class: class,
-		instanceVariables: SymbolMap{
-			SymbolTable.Add("message"): Ref(String(message)),
-		},
+		class:             class,
+		instanceVariables: ivars,
 	}
 }
 
@@ -476,18 +477,26 @@ func (e *Object) Error() string {
 	}
 }
 
+var messageSymbol = ToSymbol("message")
+
 // Set the error message.
 func (e *Object) SetMessage(message string) {
-	e.instanceVariables.SetString("message", Ref(String(message)))
+	msgIndex := e.class.IvarIndices[messageSymbol]
+	e.instanceVariables[msgIndex] = Ref(String(message))
 }
 
 // Get the error message.
 func (e *Object) Message() Value {
-	return e.instanceVariables.GetString("message")
+	msgIndex := e.class.IvarIndices[messageSymbol]
+	return e.instanceVariables[msgIndex]
 }
 
 func initError() {
-	ErrorClass = NewClass()
+	ErrorClass = NewClassWithOptions(
+		ClassWithIvarIndices(IvarIndices{
+			messageSymbol: 0,
+		}),
+	)
 	StdModule.AddConstantString("Error", Ref(ErrorClass))
 
 	UnexpectedNilErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))

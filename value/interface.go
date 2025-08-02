@@ -88,7 +88,7 @@ func (i *Interface) Error() string {
 	return i.Inspect()
 }
 
-func (i *Interface) InstanceVariables() SymbolMap {
+func (i *Interface) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

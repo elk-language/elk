@@ -130,7 +130,7 @@ func (s Symbol) Error() string {
 	return s.Inspect()
 }
 
-func (s Symbol) InstanceVariables() SymbolMap {
+func (s Symbol) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

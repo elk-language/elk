@@ -31,7 +31,7 @@ func (p *Position) Copy() Reference {
 	return p
 }
 
-func (*Position) InstanceVariables() SymbolMap {
+func (*Position) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

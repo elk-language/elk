@@ -50,7 +50,7 @@ func (p *Pair) Error() string {
 	return p.Inspect()
 }
 
-func (*Pair) InstanceVariables() SymbolMap {
+func (*Pair) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -159,7 +159,7 @@ func (l *PairIterator) Error() string {
 	return l.Inspect()
 }
 
-func (*PairIterator) InstanceVariables() SymbolMap {
+func (*PairIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

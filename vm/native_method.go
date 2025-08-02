@@ -63,7 +63,7 @@ func (n *NativeMethod) Error() string {
 	return n.Inspect()
 }
 
-func (*NativeMethod) InstanceVariables() value.SymbolMap {
+func (*NativeMethod) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 

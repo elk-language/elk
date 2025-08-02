@@ -38,7 +38,7 @@ func (t *Timezone) Inspect() string {
 	return fmt.Sprintf("Std::Timezone['%s']", t.Name())
 }
 
-func (t *Timezone) InstanceVariables() SymbolMap {
+func (t *Timezone) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

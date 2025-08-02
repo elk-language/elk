@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
@@ -469,6 +470,7 @@ func (c *Checker) newMethodChecker(
 	throwType types.Type,
 	mode mode,
 	threadPool *vm.ThreadPool,
+	loc *position.Location,
 ) *Checker {
 	checker := &Checker{
 		env:            c.env,
@@ -487,9 +489,10 @@ func (c *Checker) newMethodChecker(
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),
-		compiler:             c.compiler,
 		threadPool:           threadPool,
 	}
+	checker.compiler = compiler.CreateCompiler(c.compiler, checker, loc, c.Errors)
+
 	return checker
 }
 
@@ -554,6 +557,7 @@ func (c *Checker) checkMethods() {
 				method.ThrowType,
 				mode,
 				c.threadPool,
+				node.Location(),
 			)
 
 			methodChecker.checkMethodDefinition(node, method)

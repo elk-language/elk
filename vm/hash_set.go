@@ -590,7 +590,7 @@ func (DeletedHashSetValueType) SingletonClass() *value.Class {
 func (DeletedHashSetValueType) Inspect() string {
 	return "<empty_hash_set_slot>"
 }
-func (DeletedHashSetValueType) InstanceVariables() value.SymbolMap {
+func (DeletedHashSetValueType) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 func (e DeletedHashSetValueType) Copy() value.Reference {

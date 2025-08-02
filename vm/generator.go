@@ -65,7 +65,7 @@ func (c *Generator) Error() string {
 	return c.Inspect()
 }
 
-func (*Generator) InstanceVariables() value.SymbolMap {
+func (*Generator) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 

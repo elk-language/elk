@@ -99,7 +99,7 @@ func (i Int8) Error() string {
 	return i.Inspect()
 }
 
-func (i Int8) InstanceVariables() SymbolMap {
+func (i Int8) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

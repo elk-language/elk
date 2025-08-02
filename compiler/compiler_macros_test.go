@@ -975,53 +975,6 @@ func TestMacroExpansion(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.DEF_GETTER),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.DEF_SETTER),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(298, 16, 12)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 10),
-							bytecode.NewLineInfo(16, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("BoxString").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
-								[]byte{
-									byte(bytecode.GET_LOCAL_1),
-									byte(bytecode.DUP),
-									byte(bytecode.SET_IVAR8), 0,
-									byte(bytecode.POP),
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_SELF),
-								},
-								L(P(230, 13, 5), P(258, 13, 33)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(13, 8),
-								},
-								1,
-								0,
-								[]value.Value{
-									value.ToSymbol("value").ToValue(),
-								},
-							)),
-							value.ToSymbol("#init").ToValue(),
-							value.ToSymbol("value").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
 						ivarIndicesSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1040,6 +993,53 @@ func TestMacroExpansion(t *testing.T) {
 							value.Ref(&value.IvarIndices{
 								value.ToSymbol("value"): 0,
 							}),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						methodDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.LOAD_VALUE_3),
+							byte(bytecode.INT_0),
+							byte(bytecode.DEF_GETTER),
+							byte(bytecode.LOAD_VALUE_3),
+							byte(bytecode.INT_0),
+							byte(bytecode.DEF_SETTER),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(298, 16, 12)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 12),
+							bytecode.NewLineInfo(16, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("BoxString").ToValue(),
+							value.Ref(vm.NewBytecodeFunction(
+								value.ToSymbol("#init"),
+								[]byte{
+									byte(bytecode.GET_LOCAL_1),
+									byte(bytecode.DUP),
+									byte(bytecode.SET_IVAR_0),
+									byte(bytecode.POP),
+									byte(bytecode.NIL),
+									byte(bytecode.POP),
+									byte(bytecode.RETURN_SELF),
+								},
+								L(P(230, 13, 5), P(258, 13, 33)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(13, 7),
+								},
+								1,
+								0,
+								nil,
+							)),
+							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("value").ToValue(),
 						},
 					)),
 					value.ToSymbol("BoxString").ToValue(),
@@ -1129,6 +1129,27 @@ func TestMacroExpansion(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						ivarIndicesSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_IVARS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(367, 20, 10)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 4),
+							bytecode.NewLineInfo(20, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(&value.IvarIndices{
+								value.ToSymbol("bar"): 0,
+							}),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1149,41 +1170,18 @@ func TestMacroExpansion(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("bar"),
 								[]byte{
-									byte(bytecode.GET_IVAR8), 0,
+									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
 								},
 								L(P(302, 16, 6), P(332, 16, 36)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(16, 3),
+									bytecode.NewLineInfo(16, 2),
 								},
 								0,
 								0,
-								[]value.Value{
-									value.ToSymbol("bar").ToValue(),
-								},
+								nil,
 							)),
 							value.ToSymbol("bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						ivarIndicesSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_IVARS),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(367, 20, 10)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 4),
-							bytecode.NewLineInfo(20, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(&value.IvarIndices{
-								value.ToSymbol("bar"): 0,
-							}),
 						},
 					)),
 					value.ToSymbol("Foo").ToValue(),

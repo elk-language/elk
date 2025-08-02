@@ -31,7 +31,7 @@ func (s *Span) Copy() Reference {
 	return s
 }
 
-func (*Span) InstanceVariables() SymbolMap {
+func (*Span) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

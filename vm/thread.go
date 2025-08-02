@@ -28,7 +28,7 @@ func (vm *VM) Error() string {
 	return vm.Inspect()
 }
 
-func (vm *VM) InstanceVariables() value.SymbolMap {
+func (vm *VM) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 

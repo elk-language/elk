@@ -62,7 +62,7 @@ func (f Float64) Error() string {
 	return f.Inspect()
 }
 
-func (f Float64) InstanceVariables() SymbolMap {
+func (f Float64) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

@@ -10,6 +10,34 @@ import (
 // Maps instance variable names to their indices
 type IvarIndices map[Symbol]int
 
+func (n IvarIndices) SetIndex(name Symbol, i int) {
+	n[name] = i
+}
+
+func (n IvarIndices) GetIndex(name Symbol) int {
+	return n[name]
+}
+
+func (n IvarIndices) GetIndexOk(name Symbol) (int, bool) {
+	val, ok := n[name]
+	return val, ok
+}
+
+func (n IvarIndices) GetName(index int) Symbol {
+	name, _ := n.GetNameOk(index)
+	return name
+}
+
+func (n IvarIndices) GetNameOk(index int) (Symbol, bool) {
+	for ivarName, i := range n {
+		if i == index {
+			return ivarName, true
+		}
+	}
+
+	return 0, false
+}
+
 func (n *IvarIndices) Copy() Reference {
 	return n
 }
@@ -113,6 +141,6 @@ func (n *IvarIndices) Error() string {
 	return n.Inspect()
 }
 
-func (*IvarIndices) InstanceVariables() SymbolMap {
+func (*IvarIndices) InstanceVariables() *InstanceVariables {
 	return nil
 }

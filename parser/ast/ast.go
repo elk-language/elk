@@ -410,7 +410,7 @@ func (t *TypedNodeBase) SingletonClass() *value.Class {
 	return nil
 }
 
-func (t *TypedNodeBase) InstanceVariables() value.SymbolMap {
+func (t *TypedNodeBase) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
@@ -469,7 +469,7 @@ func (n *NodeBase) SingletonClass() *value.Class {
 	return nil
 }
 
-func (n *NodeBase) InstanceVariables() value.SymbolMap {
+func (n *NodeBase) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 

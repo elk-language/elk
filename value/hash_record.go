@@ -125,7 +125,7 @@ func (h *HashRecord) Inspect() string {
 	return buff.String()
 }
 
-func (*HashRecord) InstanceVariables() SymbolMap {
+func (*HashRecord) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -178,7 +178,7 @@ func (h *HashRecordIterator) Inspect() string {
 	return fmt.Sprintf("Std::HashRecord::Iterator{hash_record: %s}", h.HashRecord.Inspect())
 }
 
-func (*HashRecordIterator) InstanceVariables() SymbolMap {
+func (*HashRecordIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

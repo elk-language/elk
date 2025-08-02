@@ -47,7 +47,7 @@ func (r *Result) SingletonClass() *value.Class {
 	return nil
 }
 
-func (r *Result) InstanceVariables() value.SymbolMap {
+func (r *Result) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 

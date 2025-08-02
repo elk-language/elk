@@ -100,7 +100,7 @@ func (i Int32) Error() string {
 	return i.Inspect()
 }
 
-func (i Int32) InstanceVariables() SymbolMap {
+func (i Int32) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

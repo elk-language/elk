@@ -83,7 +83,7 @@ func (c Char) Inspect() string {
 	return buff.String()
 }
 
-func (Char) InstanceVariables() SymbolMap {
+func (Char) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

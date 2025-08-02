@@ -42,7 +42,7 @@ func (t *Token) Copy() value.Reference {
 	return t
 }
 
-func (t *Token) InstanceVariables() value.SymbolMap {
+func (t *Token) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 

@@ -45,7 +45,7 @@ func (m *Mutex) Error() string {
 	return m.Inspect()
 }
 
-func (*Mutex) InstanceVariables() SymbolMap {
+func (*Mutex) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

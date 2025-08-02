@@ -39,7 +39,7 @@ func (FalseType) Inspect() string {
 	return "false"
 }
 
-func (FalseType) InstanceVariables() SymbolMap {
+func (FalseType) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

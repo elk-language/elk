@@ -69,7 +69,7 @@ func (d Duration) Inspect() string {
 	return fmt.Sprintf("Std::Duration('%s')", d.String())
 }
 
-func (Duration) InstanceVariables() SymbolMap {
+func (Duration) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

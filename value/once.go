@@ -44,7 +44,7 @@ func (o *Once) Error() string {
 	return o.Inspect()
 }
 
-func (*Once) InstanceVariables() SymbolMap {
+func (*Once) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

@@ -41,7 +41,7 @@ func (ch *Channel) Error() string {
 	return ch.Inspect()
 }
 
-func (*Channel) InstanceVariables() SymbolMap {
+func (*Channel) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

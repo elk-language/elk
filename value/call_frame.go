@@ -61,7 +61,7 @@ func (c *CallFrame) Error() string {
 	return c.Inspect()
 }
 
-func (*CallFrame) InstanceVariables() SymbolMap {
+func (*CallFrame) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

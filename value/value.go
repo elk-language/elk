@@ -272,7 +272,7 @@ func (v Value) SingletonClass() *Class {
 	}
 }
 
-func (v Value) InstanceVariables() SymbolMap {
+func (v Value) InstanceVariables() *InstanceVariables {
 	if v.IsReference() {
 		return v.AsReference().InstanceVariables()
 	}
@@ -776,15 +776,41 @@ func (v Value) MustUndefined() UndefinedType {
 	return v.AsUndefined()
 }
 
+// Set an object's instance variable with the given name to the given value
+func SetInstanceVariableByName(object Value, name Symbol, val Value) (err Value) {
+	class := object.DirectClass()
+	ivars := object.InstanceVariables()
+	if ivars == nil {
+		return Ref(NewCantSetInstanceVariablesOnPrimitiveError(object.Inspect()))
+	}
+
+	ivarIndex := class.IvarIndices[name]
+	ivars.Set(ivarIndex, val)
+	return Undefined
+}
+
+// Get an object's instance variable with the given name
+func GetInstanceVariableByName(object Value, name Symbol) (val, err Value) {
+	class := object.DirectClass()
+	ivars := object.InstanceVariables()
+	if ivars == nil {
+		return Undefined, Ref(NewCantSetInstanceVariablesOnPrimitiveError(object.Inspect()))
+	}
+
+	ivarIndex := class.IvarIndices[name]
+	val = ivars.Get(ivarIndex)
+	return val, Undefined
+}
+
 // Elk Reference Value
 type Reference interface {
-	Class() *Class                // Return the class of the value
-	DirectClass() *Class          // Return the direct class of this value that will be searched for methods first
-	SingletonClass() *Class       // Return the singleton class of this value that holds methods unique to this object
-	InstanceVariables() SymbolMap // Returns the map of instance vars of this value, nil if value doesn't support instance vars
-	Copy() Reference              // Creates a shallow copy of the reference. If the value is immutable, no copying should be done, the same value should be returned.
-	Inspect() string              // Returns the string representation of the value
-	Error() string                // Implements the error interface
+	Class() *Class                         // Return the class of the value
+	DirectClass() *Class                   // Return the direct class of this value that will be searched for methods first
+	SingletonClass() *Class                // Return the singleton class of this value that holds methods unique to this object
+	InstanceVariables() *InstanceVariables // Returns a pointer to the slice of instance vars of this value, nil if value doesn't support instance vars
+	Copy() Reference                       // Creates a shallow copy of the reference. If the value is immutable, no copying should be done, the same value should be returned.
+	Inspect() string                       // Returns the string representation of the value
+	Error() string                         // Implements the error interface
 }
 
 func IsMutableCollection(val Value) bool {

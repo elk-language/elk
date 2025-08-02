@@ -45,7 +45,7 @@ func (m *RWMutex) Error() string {
 	return m.Inspect()
 }
 
-func (*RWMutex) InstanceVariables() SymbolMap {
+func (*RWMutex) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

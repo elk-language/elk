@@ -52,7 +52,7 @@ func (b *Box) Copy() Reference {
 	return b
 }
 
-func (*Box) InstanceVariables() SymbolMap {
+func (*Box) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

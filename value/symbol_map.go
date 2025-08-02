@@ -23,14 +23,12 @@ func (SymbolMap) SingletonClass() *Class {
 	return nil
 }
 
-func (s SymbolMap) InstanceVariables() SymbolMap {
+func (s SymbolMap) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
 func (s SymbolMap) Copy() Reference {
-	newMap := make(SymbolMap, len(s))
-	maps.Copy(newMap, s)
-	return newMap
+	return maps.Clone(s)
 }
 
 func (s SymbolMap) Error() string {
