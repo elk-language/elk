@@ -1447,6 +1447,73 @@ end`,
 
 func TestScopedMacroCall(t *testing.T) {
 	tests := testTable{
+		"can be a part of a pattern": {
+			input: `
+				switch a
+				case String || Foo::bar!()
+				end
+			`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(52, 4, 8))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(
+						L(S(P(0, 1, 1), P(0, 1, 1))),
+					),
+					ast.NewExpressionStatementNode(
+						L(S(P(5, 2, 5), P(52, 4, 8))),
+						ast.NewSwitchExpressionNode(
+							L(S(P(5, 2, 5), P(51, 4, 7))),
+							ast.NewPublicIdentifierNode(L(S(P(12, 2, 12), P(12, 2, 12))), "a"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									L(S(P(18, 3, 5), P(51, 4, 7))),
+									ast.NewBinaryPatternNode(
+										L(S(P(23, 3, 10), P(43, 3, 30))),
+										T(L(S(P(30, 3, 17), P(31, 3, 18))), token.OR_OR),
+										ast.NewPublicConstantNode(L(S(P(23, 3, 10), P(28, 3, 15))), "String"),
+										ast.NewScopedMacroCallNode(
+											L(S(P(33, 3, 20), P(43, 3, 30))),
+											ast.NewPublicConstantNode(L(S(P(33, 3, 20), P(35, 3, 22))), "Foo"),
+											ast.NewPublicIdentifierNode(L(S(P(38, 3, 25), P(40, 3, 27))), "bar"),
+											nil,
+											nil,
+										),
+									),
+									nil,
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a part of a type": {
+			input: `type String | Foo::bar!()`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(24, 1, 25))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(24, 1, 25))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(24, 1, 25))),
+							ast.NewBinaryTypeNode(
+								L(S(P(5, 1, 6), P(24, 1, 25))),
+								T(L(S(P(12, 1, 13), P(12, 1, 13))), token.OR),
+								ast.NewPublicConstantNode(L(S(P(5, 1, 6), P(10, 1, 11))), "String"),
+								ast.NewScopedMacroCallNode(
+									L(S(P(14, 1, 15), P(24, 1, 25))),
+									ast.NewPublicConstantNode(L(S(P(14, 1, 15), P(16, 1, 17))), "Foo"),
+									ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "bar"),
+									nil,
+									nil,
+								),
+							),
+						),
+					),
+				},
+			),
+		},
 		"can be a part of an expression": {
 			input: "foo = Foo::bar!()",
 			want: ast.NewProgramNode(
@@ -2251,47 +2318,6 @@ func TestScopedMacroCall(t *testing.T) {
 
 func TestMacroCall(t *testing.T) {
 	tests := testTable{
-		"scoped macro can be a part of a pattern": {
-			input: `
-				switch a
-				case String || Foo::bar!()
-				end
-			`,
-			want: ast.NewProgramNode(
-				L(S(P(0, 1, 1), P(52, 4, 8))),
-				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(
-						L(S(P(0, 1, 1), P(0, 1, 1))),
-					),
-					ast.NewExpressionStatementNode(
-						L(S(P(5, 2, 5), P(52, 4, 8))),
-						ast.NewSwitchExpressionNode(
-							L(S(P(5, 2, 5), P(51, 4, 7))),
-							ast.NewPublicIdentifierNode(L(S(P(12, 2, 12), P(12, 2, 12))), "a"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
-									L(S(P(18, 3, 5), P(51, 4, 7))),
-									ast.NewBinaryPatternNode(
-										L(S(P(23, 3, 10), P(43, 3, 30))),
-										T(L(S(P(30, 3, 17), P(31, 3, 18))), token.OR_OR),
-										ast.NewPublicConstantNode(L(S(P(23, 3, 10), P(28, 3, 15))), "String"),
-										ast.NewScopedMacroCallNode(
-											L(S(P(33, 3, 20), P(43, 3, 30))),
-											ast.NewPublicConstantNode(L(S(P(33, 3, 20), P(35, 3, 22))), "Foo"),
-											ast.NewPublicIdentifierNode(L(S(P(38, 3, 25), P(40, 3, 27))), "bar"),
-											nil,
-											nil,
-										),
-									),
-									nil,
-								),
-							},
-							nil,
-						),
-					),
-				},
-			),
-		},
 		"can be a part of a pattern": {
 			input: `
 				switch a
@@ -2327,6 +2353,36 @@ func TestMacroCall(t *testing.T) {
 								),
 							},
 							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a part of a type": {
+			input: `
+				type String | bar!()
+			`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(25, 2, 25))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(
+						L(S(P(0, 1, 1), P(0, 1, 1))),
+					),
+					ast.NewExpressionStatementNode(
+						L(S(P(5, 2, 5), P(25, 2, 25))),
+						ast.NewTypeExpressionNode(
+							L(S(P(5, 2, 5), P(24, 2, 24))),
+							ast.NewBinaryTypeNode(
+								L(S(P(10, 2, 10), P(24, 2, 24))),
+								T(L(S(P(17, 2, 17), P(17, 2, 17))), token.OR),
+								ast.NewPublicConstantNode(L(S(P(10, 2, 10), P(15, 2, 15))), "String"),
+								ast.NewReceiverlessMacroCallNode(
+									L(S(P(19, 2, 19), P(24, 2, 24))),
+									ast.NewPublicIdentifierNode(L(S(P(19, 2, 19), P(21, 2, 21))), "bar"),
+									nil,
+									nil,
+								),
+							),
 						),
 					),
 				},

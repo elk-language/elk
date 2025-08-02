@@ -4810,6 +4810,8 @@ func (p *Parser) primaryType() ast.TypeNode {
 		return p.unquoteType()
 	case token.SHORT_UNQUOTE_BEG:
 		return p.shortUnquoteType()
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		return p.receiverlessMacroCall()
 	case token.BOOL:
 		tok := p.advance()
 		return ast.NewBoolLiteralNode(tok.Location())
@@ -4937,7 +4939,7 @@ func (p *Parser) genericConstantOrNil() ast.ComplexConstantNode {
 
 // genericConstant = strictConstantLookup | strictConstantLookup "[" [typeAnnotationList] "]"
 func (p *Parser) genericConstant() ast.ComplexConstantNode {
-	constant := p.strictConstantLookup()
+	constant := p.strictConstantLookupOrScopedMacro()
 	if !p.match(token.LBRACKET) {
 		return constant
 	}
@@ -6105,8 +6107,7 @@ func (p *Parser) objectAttributePattern() ast.PatternNode {
 	}
 }
 
-// strictConstantLookupOrObjectPattern = strictConstantLookup ["(" [objectPatternAttributes] ")"]
-func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
+func (p *Parser) strictConstantLookupOrScopedMacro() ast.ComplexConstantNode {
 	var left ast.ComplexConstantNode
 	if tok, ok := p.matchOk(token.SCOPE_RES_OP); ok {
 		if p.accept(token.PRIVATE_CONSTANT) {
@@ -6206,7 +6207,12 @@ func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
 		}
 	}
 
-	constant := left
+	return left
+}
+
+// strictConstantLookupOrObjectPattern = strictConstantLookup ["(" [objectPatternAttributes] ")"]
+func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
+	constant := p.strictConstantLookupOrScopedMacro()
 	if !p.accept(token.LPAREN) {
 		return constant
 	}
@@ -6705,11 +6711,7 @@ func (p *Parser) nilLiteral() *ast.NilLiteralNode {
 	return ast.NewNilLiteralNode(tok.Location())
 }
 
-func (p *Parser) identifierOrMacroPattern() ast.PatternExpressionNode {
-	if !p.acceptSecond(token.BANG) {
-		return p.identifier()
-	}
-
+func (p *Parser) receiverlessMacroCall() ast.PatternTypeExpressionNode {
 	macroName := p.advance()
 	location := macroName.Location()
 
@@ -6762,6 +6764,14 @@ func (p *Parser) identifierOrMacroPattern() ast.PatternExpressionNode {
 		posArgs,
 		namedArgs,
 	)
+}
+
+func (p *Parser) identifierOrMacroPattern() ast.PatternExpressionNode {
+	if !p.acceptSecond(token.BANG) {
+		return p.identifier()
+	}
+
+	return p.receiverlessMacroCall()
 }
 
 func (p *Parser) simplePattern() ast.PatternExpressionNode {

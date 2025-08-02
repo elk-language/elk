@@ -116,3 +116,10 @@ type PatternExpressionNode interface {
 	ExpressionNode
 	PatternNode
 }
+
+type PatternTypeExpressionNode interface {
+	Node
+	ExpressionNode
+	PatternNode
+	TypeNode
+}
