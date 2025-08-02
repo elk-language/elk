@@ -365,6 +365,6 @@ func (c Char) StrictEqualVal(other Value) Value {
 }
 
 func initChar() {
-	CharClass = NewClassWithOptions(ClassWithParent(ValueClass))
+	CharClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Char", Ref(CharClass))
 }

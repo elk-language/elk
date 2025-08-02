@@ -13,7 +13,7 @@ var UndefinedClass *Class
 func initUndefined() {
 	UndefinedClass = NewClassWithOptions(
 		ClassWithName("Undefined"),
-		ClassWithParent(ValueClass),
+		ClassWithSuperclass(ValueClass),
 	)
 }
 

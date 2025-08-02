@@ -97,6 +97,6 @@ func initChannel() {
 	ChannelClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	StdModule.AddConstantString("Channel", Ref(ChannelClass))
 
-	ChannelClosedErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	ChannelClosedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	ChannelClass.AddConstantString("ClosedError", Ref(ChannelClosedErrorClass))
 }

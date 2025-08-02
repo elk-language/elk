@@ -240,6 +240,6 @@ func (d Duration) InYears() Float {
 }
 
 func initDuration() {
-	DurationClass = NewClassWithOptions(ClassWithParent(ValueClass))
+	DurationClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Duration", Ref(DurationClass))
 }

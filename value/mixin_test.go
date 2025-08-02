@@ -72,7 +72,7 @@ func TestMixin_IncludeMixin(t *testing.T) {
 					value.NewClassWithOptions(
 						value.ClassWithMixinProxy(),
 						value.ClassWithName("BarParent"),
-						value.ClassWithParent(nil),
+						value.ClassWithSuperclass(nil),
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("bar_parent"): nil,
 						}),
@@ -80,7 +80,7 @@ func TestMixin_IncludeMixin(t *testing.T) {
 							value.NewClassWithOptions(
 								value.ClassWithMixin(),
 								value.ClassWithName("BarParent"),
-								value.ClassWithParent(nil),
+								value.ClassWithSuperclass(nil),
 								value.ClassWithMethods(value.MethodMap{
 									value.ToSymbol("bar_parent"): nil,
 								}),
@@ -101,7 +101,7 @@ func TestMixin_IncludeMixin(t *testing.T) {
 					value.NewClassWithOptions(
 						value.ClassWithMixinProxy(),
 						value.ClassWithName("FooParent"),
-						value.ClassWithParent(nil),
+						value.ClassWithSuperclass(nil),
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("foo_parent"): nil,
 						}),
@@ -109,7 +109,7 @@ func TestMixin_IncludeMixin(t *testing.T) {
 							value.NewClassWithOptions(
 								value.ClassWithMixin(),
 								value.ClassWithName("FooParent"),
-								value.ClassWithParent(nil),
+								value.ClassWithSuperclass(nil),
 								value.ClassWithMethods(value.MethodMap{
 									value.ToSymbol("foo_parent"): nil,
 								}),
@@ -169,7 +169,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 			mixin: value.NewMixinWithOptions(
 				value.MixinWithParent(
 					value.NewClassWithOptions(
-						value.ClassWithParent(
+						value.ClassWithSuperclass(
 							value.NewClassWithOptions(
 								value.ClassWithMethods(value.MethodMap{
 									value.ToSymbol("foo"): vm.NewBytecodeFunctionSimple(

@@ -17,7 +17,7 @@ type UnsignedInt interface {
 }
 
 func initInt() {
-	IntClass = NewClassWithOptions(ClassWithParent(ValueClass))
+	IntClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Int", Ref(IntClass))
 
 	IntIteratorClass = NewClass()

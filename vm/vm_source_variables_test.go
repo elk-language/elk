@@ -377,6 +377,155 @@ func TestVMSource_InstanceVariables(t *testing.T) {
 			`,
 			wantStackTop: value.Ref(value.String("bar value")),
 		},
+		"read an inherited instance variable from a superclass method": {
+			source: `
+				class Bar
+					setter bar: String?
+
+					def bar: String? then @bar
+				end
+
+				class Foo < Bar; end
+
+				f := ::Foo()
+				f.bar = "bar value"
+				f.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"set an instance variable from a superclass method": {
+			source: `
+				class Bar
+				 	getter bar: String?
+
+					def bar=(arg: String?) then @bar = arg
+				end
+
+				class Foo < Bar; end
+
+				f := ::Foo()
+				f.bar = "bar value"
+				f.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"read an inherited instance variable from a superclass": {
+			source: `
+				class Bar
+					setter bar: String?
+				end
+
+				class Foo < Bar
+					def bar: String? then @bar
+				end
+
+				f := ::Foo()
+				f.bar = "bar value"
+				f.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"set an instance variable from a superclass": {
+			source: `
+				class Bar
+				 	getter bar: String?
+				end
+
+				class Foo < Bar
+					def bar=(arg: String?) then @bar = arg
+				end
+
+				f := ::Foo()
+				f.bar = "bar value"
+				f.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"read an inherited instance variable from a mixin method": {
+			source: `
+				mixin Bar
+					setter bar: String?
+
+					def bar: String? then @bar
+				end
+
+				class Foo
+					include Bar
+				end
+
+				f := ::Foo()
+				f.bar = "bar value"
+				f.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"set an instance variable from a mixin method": {
+			source: `
+				mixin Bar
+				 	getter bar: String?
+
+					def bar=(arg: String?) then @bar = arg
+				end
+
+				class Foo
+					include Bar
+				end
+
+				f := ::Foo()
+				f.bar = "bar value"
+				f.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"read an inherited instance variable from a mixin": {
+			source: `
+				mixin Bar
+					setter bar: String?
+				end
+
+				class Foo
+					include Bar
+					def bar: String? then @bar
+				end
+
+				f := ::Foo()
+				f.bar = "bar value"
+				f.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"set an instance variable from a mixin": {
+			source: `
+				mixin Bar
+				 	getter bar: String?
+				end
+
+				class Foo
+					include Bar
+					def bar=(arg: String?) then @bar = arg
+				end
+
+				f := ::Foo()
+				f.bar = "bar value"
+				f.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"read an instance variable of a class": {
+			source: `
+				class Foo
+				  singleton
+				 		setter bar: String?
+
+						def bar: String? then @bar
+					end
+				end
+
+				::Foo.bar = "bar value"
+				::Foo.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
 		"set an instance variable of a class": {
 			source: `
 				class Foo
@@ -386,6 +535,112 @@ func TestVMSource_InstanceVariables(t *testing.T) {
 						def bar=(arg: String?) then @bar = arg
 					end
 				end
+
+				::Foo.bar = "bar value"
+				::Foo.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"read an instance variable of a class inherited from a mixin method": {
+			source: `
+				mixin Bar
+					setter bar: String?
+				end
+
+				class Foo
+				  singleton
+						include Bar
+
+						def bar: String? then @bar
+					end
+				end
+
+				::Foo.bar = "bar value"
+				::Foo.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"set an instance variable of a class inherited from a mixin method": {
+			source: `
+				mixin Bar
+					getter bar: String?
+				end
+
+				class Foo
+				  singleton
+						include Bar
+
+						def bar=(arg: String?) then @bar = arg
+					end
+				end
+
+				::Foo.bar = "bar value"
+				::Foo.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"read an instance variable of a class inherited from a mixin": {
+			source: `
+				mixin Bar
+					setter bar: String?
+					def bar: String? then @bar
+				end
+
+				class Foo
+				  singleton
+						include Bar
+					end
+				end
+
+				::Foo.bar = "bar value"
+				::Foo.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"set an instance variable of a class inherited from a mixin": {
+			source: `
+				mixin Bar
+					getter bar: String?
+					def bar=(arg: String?) then @bar = arg
+				end
+
+				class Foo
+				  singleton
+						include Bar
+					end
+				end
+
+				::Foo.bar = "bar value"
+				::Foo.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"read an instance variable of a class inherited from a superclass": {
+			source: `
+				class Bar
+					singleton
+						setter bar: String?
+						def bar: String? then @bar
+					end
+				end
+
+				class Foo < Bar; end
+
+				::Foo.bar = "bar value"
+				::Foo.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"set an instance variable of a class inherited from a superclass": {
+			source: `
+				class Bar
+					singleton
+						getter bar: String?
+						def bar=(arg: String?) then @bar = arg
+					end
+				end
+
+				class Foo < Bar; end
 
 				::Foo.bar = "bar value"
 				::Foo.bar

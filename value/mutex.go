@@ -70,6 +70,6 @@ func initMutex() {
 	)
 	SyncModule.AddConstantString("Mutex", Ref(MutexClass))
 
-	MutexUnlockedErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	MutexUnlockedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	MutexClass.AddConstantString("UnlockedError", Ref(MutexUnlockedErrorClass))
 }

@@ -656,7 +656,7 @@ func (f Float) Years() Duration {
 }
 
 func initFloat() {
-	FloatClass = NewClassWithOptions(ClassWithParent(ValueClass))
+	FloatClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Float", Ref(FloatClass))
 	FloatClass.AddConstantString("NAN", FloatNaN().ToValue())
 	FloatClass.AddConstantString("INF", FloatInf().ToValue())

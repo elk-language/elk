@@ -1705,7 +1705,7 @@ func (vm *VM) opDefNamespace() {
 	case bytecode.DEF_MODULE_FLAG:
 		newNamespace = value.Ref(value.NewModule())
 	case bytecode.DEF_CLASS_FLAG:
-		newNamespace = value.Ref(value.NewClassWithOptions(value.ClassWithParent(nil)))
+		newNamespace = value.Ref(value.NewClassWithOptions(value.ClassWithSuperclass(nil)))
 	case bytecode.DEF_MIXIN_FLAG:
 		newNamespace = value.Ref(value.NewMixin())
 	case bytecode.DEF_INTERFACE_FLAG:
@@ -2410,7 +2410,7 @@ func (vm *VM) opSetSuperclass() {
 		return
 	}
 
-	class.Parent = newSuperclass
+	class.SetSuperclass(newSuperclass)
 }
 
 // Look for a constant with the given name.

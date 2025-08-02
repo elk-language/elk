@@ -61,9 +61,9 @@ func ClassWithDefinedIvars(names []Symbol) ClassOption {
 	}
 }
 
-func ClassWithParent(parent *Class) ClassOption {
+func ClassWithSuperclass(parent *Class) ClassOption {
 	return func(c *Class) {
-		c.Parent = parent
+		c.SetSuperclass(parent)
 		if parent != nil {
 			c.IvarIndices = maps.Clone(parent.IvarIndices)
 		}
@@ -258,6 +258,19 @@ func (c *Class) SetSingletonName(name string) {
 	if name != "" {
 		c.Name = "&" + name
 	}
+}
+
+func (c *Class) SetSuperclass(superclass *Class) {
+	classSingleton := c.SingletonClass()
+	if superclass == nil {
+		c.Parent = nil
+		classSingleton.Parent = nil
+		return
+	}
+
+	superclassSingleton := superclass.SingletonClass()
+	c.Parent = superclass
+	classSingleton.Parent = superclassSingleton
 }
 
 func (c *Class) SingletonClass() *Class {

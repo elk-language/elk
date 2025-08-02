@@ -85,6 +85,6 @@ func initRWMutex() {
 	)
 	SyncModule.AddConstantString("RWMutex", Ref(RWMutexClass))
 
-	RWMutexUnlockedErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	RWMutexUnlockedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	RWMutexClass.AddConstantString("UnlockedError", Ref(RWMutexUnlockedErrorClass))
 }

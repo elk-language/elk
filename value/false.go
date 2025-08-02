@@ -49,7 +49,7 @@ func (f FalseType) Error() string {
 
 func initFalse() {
 	FalseClass = NewClassWithOptions(
-		ClassWithParent(BoolClass),
+		ClassWithSuperclass(BoolClass),
 	)
 	StdModule.AddConstantString("False", Ref(FalseClass))
 }

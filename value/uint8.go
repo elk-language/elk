@@ -305,6 +305,6 @@ func (i UInt8) StrictEqualVal(other Value) Value {
 }
 
 func initUInt8() {
-	UInt8Class = NewClassWithOptions(ClassWithParent(ValueClass))
+	UInt8Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("UInt8", Ref(UInt8Class))
 }

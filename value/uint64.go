@@ -305,7 +305,7 @@ func (i UInt64) StrictEqualVal(other Value) Value {
 }
 
 func initUInt64() {
-	UInt64Class = NewClassWithOptions(ClassWithParent(ValueClass))
+	UInt64Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("UInt64", Ref(UInt64Class))
 
 	UInt64Class.AddConstantString("Convertible", Ref(NewInterface()))

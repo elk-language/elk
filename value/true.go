@@ -49,7 +49,7 @@ func (TrueType) InstanceVariables() *InstanceVariables {
 
 func initTrue() {
 	TrueClass = NewClassWithOptions(
-		ClassWithParent(BoolClass),
+		ClassWithSuperclass(BoolClass),
 	)
 	StdModule.AddConstantString("True", Ref(TrueClass))
 }
