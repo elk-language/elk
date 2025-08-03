@@ -11,7 +11,8 @@ module Std::Elk::AST
     ```
   ]##
   sealed primitive class MacroBoundaryNode
-    include ExpressionNode
+    include TypeNode
+    include PatternExpressionNode
 
     init(
       body: ArrayTuple[StatementNode] = loop; end,

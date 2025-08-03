@@ -3481,7 +3481,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})

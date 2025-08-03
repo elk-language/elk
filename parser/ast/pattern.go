@@ -70,6 +70,7 @@ func (*ScopedMacroCallNode) patternNode()            {}
 func (*UninterpolatedRegexLiteralNode) patternNode() {}
 func (*InterpolatedRegexLiteralNode) patternNode()   {}
 func (*UnquoteNode) patternNode()                    {}
+func (*MacroBoundaryNode) patternNode()              {}
 
 func anyPatternDeclaresVariables(patterns []PatternNode) bool {
 	return slices.ContainsFunc(patterns, PatternDeclaresVariables)

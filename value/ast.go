@@ -761,7 +761,8 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("DoExpressionNode", Ref(DoExpressionNodeClass))
 
 	MacroBoundaryNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	MacroBoundaryNodeClass.IncludeMixin(ExpressionNodeMixin)
+	MacroBoundaryNodeClass.IncludeMixin(PatternExpressionNodeMixin)
+	MacroBoundaryNodeClass.IncludeMixin(TypeNodeMixin)
 	ElkASTModule.AddConstantString("MacroBoundaryNode", Ref(MacroBoundaryNodeClass))
 
 	QuoteExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))

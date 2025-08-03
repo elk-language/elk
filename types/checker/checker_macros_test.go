@@ -932,7 +932,16 @@ func TestMacroDefinition(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(59, 5, 16), P(66, 5, 23)), "type `Std::Float` does not inherit from `Std::Elk::AST::ExpressionNode`, macro parameters must be expression nodes"),
 			},
 		},
-		"returned value must inherit from ExpressionNode": {
+		"returned value must inherit from ExpressionNode when no return type - success": {
+			input: `
+				module Foo
+					macro baz
+						5.to_ast_node
+					end
+				end
+			`,
+		},
+		"returned value must inherit from ExpressionNode when no return type - fail": {
 			input: `
 				module Foo
 					macro baz
@@ -942,6 +951,87 @@ func TestMacroDefinition(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(37, 4, 7), P(37, 4, 7)), "type `5` cannot be assigned to type `Std::Elk::AST::ExpressionNode`"),
+			},
+		},
+		"returned value must inherit from ExpressionNode - success": {
+			input: `
+				module Foo
+					macro baz: Std::Elk::AST::ExpressionNode
+						5.to_ast_node
+					end
+				end
+			`,
+		},
+		"returned value must inherit from ExpressionNode - fail": {
+			input: `
+				module Foo
+					macro baz: Std::Elk::AST::ExpressionNode
+						5
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(68, 4, 7), P(68, 4, 7)), "type `5` cannot be assigned to type `Std::Elk::AST::ExpressionNode`"),
+			},
+		},
+		"returned value must inherit from TypeNode - success": {
+			input: `
+				module Foo
+					macro baz: Std::Elk::AST::TypeNode
+						Std::Elk::AST::NilableTypeNode(
+							5.to_ast_node
+						)
+					end
+				end
+			`,
+		},
+		"returned value must inherit from TypeNode - fail": {
+			input: `
+				module Foo
+					macro baz: Std::Elk::AST::TypeNode
+						5
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(62, 4, 7), P(62, 4, 7)), "type `5` cannot be assigned to type `Std::Elk::AST::TypeNode`"),
+			},
+		},
+		"returned value must inherit from PatternNode - success": {
+			input: `
+				module Foo
+					macro baz: Std::Elk::AST::PatternNode
+						Std::Elk::AST::AsPatternNode(
+							5.to_ast_node,
+							"foo".to_ast_ident_node,
+						)
+					end
+				end
+			`,
+		},
+		"returned value must inherit from PatternNode - fail": {
+			input: `
+				module Foo
+					macro baz: Std::Elk::AST::PatternNode
+						5
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(65, 4, 7), P(65, 4, 7)), "type `5` cannot be assigned to type `Std::Elk::AST::PatternNode`"),
+			},
+		},
+		"invalid return type": {
+			input: `
+				module Foo
+					macro baz: Std::Elk::AST::StatementNode
+						5.to_ast_node
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 3, 17), P(59, 3, 44)), "invalid macro return type, got Std::Elk::AST::StatementNode, should be Std::Elk::AST::ExpressionNode, Std::Elk::AST::PatternNode or Std::Elk::AST::TypeNode"),
+				diagnostic.NewFailure(L("<main>", P(67, 4, 7), P(79, 4, 19)), "type `Std::Elk::AST::IntLiteralNode` cannot be assigned to type `Std::Elk::AST::StatementNode`"),
 			},
 		},
 		"positional rest params have tuple types": {
