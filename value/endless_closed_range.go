@@ -45,7 +45,7 @@ func (r *EndlessClosedRange) Inspect() string {
 	return buff.String()
 }
 
-func (r *EndlessClosedRange) InstanceVariables() SymbolMap {
+func (r *EndlessClosedRange) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -106,7 +106,7 @@ func (r *EndlessClosedRangeIterator) Inspect() string {
 	return fmt.Sprintf("Std::EndlessClosedRange::Iterator{range: %s, current_element: %s}", r.Range.Inspect(), r.CurrentElement.Inspect())
 }
 
-func (*EndlessClosedRangeIterator) InstanceVariables() SymbolMap {
+func (*EndlessClosedRangeIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

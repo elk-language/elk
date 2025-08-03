@@ -37,7 +37,7 @@ func (d *SyncDiagnosticList) Copy() Reference {
 	}
 }
 
-func (*SyncDiagnosticList) InstanceVariables() SymbolMap {
+func (*SyncDiagnosticList) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -333,7 +333,7 @@ func (l *SyncDiagnosticListIterator) Error() string {
 	return l.Inspect()
 }
 
-func (*SyncDiagnosticListIterator) InstanceVariables() SymbolMap {
+func (*SyncDiagnosticListIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

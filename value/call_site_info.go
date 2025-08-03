@@ -37,7 +37,7 @@ func (*CallSiteInfo) SingletonClass() *Class {
 	return nil
 }
 
-func (*CallSiteInfo) InstanceVariables() SymbolMap {
+func (*CallSiteInfo) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

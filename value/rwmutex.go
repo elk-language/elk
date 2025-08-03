@@ -45,7 +45,7 @@ func (m *RWMutex) Error() string {
 	return m.Inspect()
 }
 
-func (*RWMutex) InstanceVariables() SymbolMap {
+func (*RWMutex) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -85,6 +85,6 @@ func initRWMutex() {
 	)
 	SyncModule.AddConstantString("RWMutex", Ref(RWMutexClass))
 
-	RWMutexUnlockedErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	RWMutexUnlockedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	RWMutexClass.AddConstantString("UnlockedError", Ref(RWMutexUnlockedErrorClass))
 }

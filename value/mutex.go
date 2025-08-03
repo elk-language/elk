@@ -45,7 +45,7 @@ func (m *Mutex) Error() string {
 	return m.Inspect()
 }
 
-func (*Mutex) InstanceVariables() SymbolMap {
+func (*Mutex) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -70,6 +70,6 @@ func initMutex() {
 	)
 	SyncModule.AddConstantString("Mutex", Ref(MutexClass))
 
-	MutexUnlockedErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	MutexUnlockedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	MutexClass.AddConstantString("UnlockedError", Ref(MutexUnlockedErrorClass))
 }

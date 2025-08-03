@@ -21,9 +21,9 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(29, 4, 8)),
@@ -33,7 +33,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewBinaryExpressionNode(
@@ -57,13 +56,13 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.INT_5),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(38, 4, 8)),
@@ -76,7 +75,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewBinaryExpressionNode(
@@ -104,13 +102,13 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.INT_5),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(32, 4, 8)),
@@ -123,7 +121,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewBinaryExpressionNode(
@@ -152,13 +149,13 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(49, 4, 8)),
@@ -171,7 +168,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewVariableDeclarationNode(
@@ -201,13 +197,13 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(43, 4, 8)),
@@ -220,7 +216,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewVariableDeclarationNode(
@@ -250,13 +245,13 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(55, 4, 8)),
@@ -269,7 +264,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewVariableDeclarationNode(
@@ -300,13 +294,13 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.INT_1),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(49, 4, 8)),
@@ -319,7 +313,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewVariablePatternDeclarationNode(
@@ -351,13 +344,13 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.INT_1),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(43, 4, 8)),
@@ -370,7 +363,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewVariablePatternDeclarationNode(
@@ -403,16 +395,16 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.INSTANTIATE8), 2,
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(74, 4, 8)),
@@ -425,7 +417,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewVariablePatternDeclarationNode(
@@ -469,16 +460,16 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.INSTANTIATE8), 2,
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(82, 4, 8)),
@@ -491,7 +482,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewVariablePatternDeclarationNode(
@@ -535,16 +525,16 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.GET_CONST8), 2,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.INSTANTIATE8), 2,
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(68, 4, 8)),
@@ -557,7 +547,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewVariablePatternDeclarationNode(
@@ -602,13 +591,13 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(51, 4, 8)),
@@ -621,7 +610,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewConstantDeclarationNode(
@@ -651,13 +639,13 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(57, 4, 8)),
@@ -670,7 +658,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewConstantDeclarationNode(
@@ -700,13 +687,13 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(45, 4, 8)),
@@ -719,7 +706,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewConstantDeclarationNode(
@@ -750,13 +736,13 @@ func TestQuote(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(55, 4, 8)),
@@ -769,7 +755,6 @@ func TestQuote(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					value.Undefined,
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(
 						ast.NewInstanceVariableDeclarationNode(
@@ -830,9 +815,7 @@ func TestMacroExpansion(t *testing.T) {
 					bytecode.NewLineInfo(1, 0),
 					bytecode.NewLineInfo(14, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"call a scoped macro": {
@@ -887,7 +870,6 @@ func TestMacroExpansion(t *testing.T) {
 							value.ToSymbol("Math").ToValue(),
 						},
 					)),
-					value.Undefined,
 				},
 			),
 		},
@@ -917,9 +899,7 @@ func TestMacroExpansion(t *testing.T) {
 					bytecode.NewLineInfo(1, 0),
 					bytecode.NewLineInfo(13, 3),
 				},
-				[]value.Value{
-					value.Undefined,
-				},
+				[]value.Value{},
 			),
 		},
 		"define a class": {
@@ -950,21 +930,24 @@ func TestMacroExpansion(t *testing.T) {
 					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.INSTANTIATE8), 1,
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 5,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(298, 16, 12)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 11),
 					bytecode.NewLineInfo(13, 1),
-					bytecode.NewLineInfo(15, 7),
+					bytecode.NewLineInfo(15, 8),
 					bytecode.NewLineInfo(16, 4),
 				},
 				[]value.Value{
@@ -992,6 +975,27 @@ func TestMacroExpansion(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						ivarIndicesSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_IVARS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(298, 16, 12)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 4),
+							bytecode.NewLineInfo(16, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("BoxString").ToValue(),
+							value.Ref(&value.IvarIndices{
+								value.ToSymbol("value"): 0,
+							}),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -999,8 +1003,10 @@ func TestMacroExpansion(t *testing.T) {
 							byte(bytecode.LOAD_VALUE_2),
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.LOAD_VALUE_3),
+							byte(bytecode.INT_0),
 							byte(bytecode.DEF_GETTER),
 							byte(bytecode.LOAD_VALUE_3),
+							byte(bytecode.INT_0),
 							byte(bytecode.DEF_SETTER),
 							byte(bytecode.POP),
 							byte(bytecode.NIL),
@@ -1008,7 +1014,7 @@ func TestMacroExpansion(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(298, 16, 12)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 10),
+							bytecode.NewLineInfo(1, 12),
 							bytecode.NewLineInfo(16, 2),
 						},
 						[]value.Value{
@@ -1018,7 +1024,7 @@ func TestMacroExpansion(t *testing.T) {
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
-									byte(bytecode.SET_IVAR8), 0,
+									byte(bytecode.SET_IVAR_0),
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -1026,13 +1032,11 @@ func TestMacroExpansion(t *testing.T) {
 								},
 								L(P(230, 13, 5), P(258, 13, 33)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(13, 8),
+									bytecode.NewLineInfo(13, 7),
 								},
 								1,
 								0,
-								[]value.Value{
-									value.ToSymbol("value").ToValue(),
-								},
+								nil,
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.ToSymbol("value").ToValue(),
@@ -1079,21 +1083,24 @@ func TestMacroExpansion(t *testing.T) {
 					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.INIT_NAMESPACE),
 					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.GET_CONST8), 3,
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD8), 5,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(367, 20, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(15, 4),
+					bytecode.NewLineInfo(1, 11),
+					bytecode.NewLineInfo(15, 5),
 					bytecode.NewLineInfo(19, 6),
 					bytecode.NewLineInfo(20, 4),
 				},
@@ -1122,6 +1129,27 @@ func TestMacroExpansion(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						ivarIndicesSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_IVARS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(367, 20, 10)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 4),
+							bytecode.NewLineInfo(20, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(&value.IvarIndices{
+								value.ToSymbol("bar"): 0,
+							}),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
 						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1142,18 +1170,16 @@ func TestMacroExpansion(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("bar"),
 								[]byte{
-									byte(bytecode.GET_IVAR8), 0,
+									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
 								},
 								L(P(302, 16, 6), P(332, 16, 36)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(16, 3),
+									bytecode.NewLineInfo(16, 2),
 								},
 								0,
 								0,
-								[]value.Value{
-									value.ToSymbol("bar").ToValue(),
-								},
+								nil,
 							)),
 							value.ToSymbol("bar").ToValue(),
 						},

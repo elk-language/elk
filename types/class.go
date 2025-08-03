@@ -19,7 +19,27 @@ type Class struct {
 	Checked        bool
 	singleton      *SingletonClass
 	typeParameters []*TypeParameter
+	ivarIndices    *value.IvarIndices
 	NamespaceBase
+}
+
+func (c *Class) IvarIndices() *value.IvarIndices {
+	return c.ivarIndices
+}
+
+func (c *Class) SetIvarIndices(in *value.IvarIndices) {
+	c.ivarIndices = in
+}
+
+func (c *Class) AttachedObjectName() string {
+	if len(c.name) < 1 {
+		return ""
+	}
+	if c.name[0] != '&' {
+		return ""
+	}
+
+	return c.name[1:]
 }
 
 func (c *Class) IsGeneric() bool {

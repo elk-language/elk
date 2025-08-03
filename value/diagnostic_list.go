@@ -37,7 +37,7 @@ func (d *DiagnosticList) Copy() Reference {
 	return &newList
 }
 
-func (*DiagnosticList) InstanceVariables() SymbolMap {
+func (*DiagnosticList) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -266,7 +266,7 @@ func (l *DiagnosticListIterator) Error() string {
 	return l.Inspect()
 }
 
-func (*DiagnosticListIterator) InstanceVariables() SymbolMap {
+func (*DiagnosticListIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

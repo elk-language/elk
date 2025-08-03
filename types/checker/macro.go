@@ -609,6 +609,7 @@ func (c *Checker) checkMacros() {
 				macro.ThrowType,
 				macroMode,
 				c.threadPool,
+				node.Location(),
 			)
 			macroChecker.checkMacroDefinition(node, macro)
 		},

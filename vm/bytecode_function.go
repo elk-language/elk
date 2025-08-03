@@ -86,7 +86,7 @@ func (b *BytecodeFunction) Error() string {
 	return b.Inspect()
 }
 
-func (*BytecodeFunction) InstanceVariables() value.SymbolMap {
+func (*BytecodeFunction) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
@@ -443,7 +443,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.LESS_INT, bytecode.LESS_FLOAT, bytecode.LESS_EQUAL_FLOAT, bytecode.NOT_EQUAL_INT, bytecode.NOT_EQUAL_FLOAT,
 		bytecode.INCREMENT_INT, bytecode.DECREMENT_INT, bytecode.CLOSE_UPVALUE_1, bytecode.CLOSE_UPVALUE_2, bytecode.CLOSE_UPVALUE_3,
 		bytecode.GENERATOR, bytecode.YIELD, bytecode.STOP_ITERATION, bytecode.GO, bytecode.DUP_SECOND,
-		bytecode.PROMISE, bytecode.AWAIT, bytecode.AWAIT_RESULT, bytecode.AWAIT_SYNC:
+		bytecode.PROMISE, bytecode.AWAIT, bytecode.AWAIT_RESULT, bytecode.AWAIT_SYNC, bytecode.DEF_IVARS,
+		bytecode.GET_IVAR_0, bytecode.GET_IVAR_1, bytecode.GET_IVAR_2, bytecode.SET_IVAR_0, bytecode.SET_IVAR_1, bytecode.SET_IVAR_2:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
@@ -451,7 +452,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.NEW_HASH_SET8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUE8,
 		bytecode.INSTANTIATE8, bytecode.LOAD_UINT64_8,
 		bytecode.LOAD_UINT32_8, bytecode.LOAD_UINT16_8,
-		bytecode.LOAD_UINT8:
+		bytecode.LOAD_UINT8, bytecode.GET_IVAR8, bytecode.SET_IVAR8:
 		return f.disassembleUnsignedNumericOperands(output, 1, 1, offset)
 	case bytecode.LOAD_INT_8, bytecode.LOAD_INT64_8,
 		bytecode.LOAD_INT32_8, bytecode.LOAD_INT16_8, bytecode.LOAD_INT8:
@@ -467,7 +468,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.JUMP_UNLESS_IGT, bytecode.JUMP_UNLESS_ILT, bytecode.JUMP_UNLESS_ILE, bytecode.JUMP_UNLESS_NIL,
 		bytecode.JUMP_IF_NP, bytecode.JUMP_UNLESS_NP, bytecode.JUMP_IF_NIL_NP, bytecode.JUMP_UNLESS_NNP,
 		bytecode.JUMP_IF_EQ, bytecode.JUMP_UNLESS_EQ, bytecode.JUMP_UNLESS_GE,
-		bytecode.JUMP_UNLESS_GT, bytecode.JUMP_UNLESS_LT, bytecode.JUMP_UNLESS_LE, bytecode.JUMP_UNLESS_UNDEF:
+		bytecode.JUMP_UNLESS_GT, bytecode.JUMP_UNLESS_LT, bytecode.JUMP_UNLESS_LE, bytecode.JUMP_UNLESS_UNDEF,
+		bytecode.GET_IVAR16, bytecode.SET_IVAR16:
 		return f.disassembleUnsignedNumericOperands(output, 1, 2, offset)
 	case bytecode.LOAD_INT_16:
 		return f.disassembleSignedNumericOperands(output, 1, 2, offset)
@@ -487,7 +489,6 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		return f.disassembleNewRange(output, offset)
 	case bytecode.LOAD_VALUE8, bytecode.CALL_METHOD8, bytecode.CALL_METHOD_TCO8,
 		bytecode.CALL_SELF8, bytecode.CALL_SELF_TCO8,
-		bytecode.GET_IVAR8, bytecode.SET_IVAR8,
 		bytecode.CALL8, bytecode.GET_CONST8, bytecode.NEXT8:
 		return f.disassembleValue(output, 2, offset)
 	case bytecode.LOAD_VALUE_0:
@@ -500,7 +501,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		return f._disassembleValue(output, 1, 3, offset)
 	case bytecode.LOAD_VALUE16, bytecode.CALL_METHOD16, bytecode.CALL_METHOD_TCO16,
 		bytecode.CALL_SELF16, bytecode.CALL_SELF_TCO16,
-		bytecode.GET_IVAR16, bytecode.SET_IVAR16,
+		bytecode.GET_IVAR_NAME16, bytecode.SET_IVAR_NAME16,
 		bytecode.CALL16, bytecode.GET_CONST16, bytecode.NEXT16:
 		return f.disassembleValue(output, 3, offset)
 	default:

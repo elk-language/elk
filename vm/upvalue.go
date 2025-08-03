@@ -55,7 +55,7 @@ func (u *Upvalue) Error() string {
 	return u.Inspect()
 }
 
-func (*Upvalue) InstanceVariables() value.SymbolMap {
+func (*Upvalue) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 

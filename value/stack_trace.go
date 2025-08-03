@@ -36,7 +36,7 @@ func (s *StackTrace) Error() string {
 	return s.String()
 }
 
-func (*StackTrace) InstanceVariables() SymbolMap {
+func (*StackTrace) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -123,7 +123,7 @@ func (s *StackTraceIterator) Error() string {
 	return s.Inspect()
 }
 
-func (*StackTraceIterator) InstanceVariables() SymbolMap {
+func (*StackTraceIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

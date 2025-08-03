@@ -99,7 +99,7 @@ func (i UInt8) Error() string {
 	return i.Inspect()
 }
 
-func (i UInt8) InstanceVariables() SymbolMap {
+func (i UInt8) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -305,6 +305,6 @@ func (i UInt8) StrictEqualVal(other Value) Value {
 }
 
 func initUInt8() {
-	UInt8Class = NewClassWithOptions(ClassWithParent(ValueClass))
+	UInt8Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("UInt8", Ref(UInt8Class))
 }

@@ -43,13 +43,13 @@ func (t TrueType) Error() string {
 	return t.Inspect()
 }
 
-func (TrueType) InstanceVariables() SymbolMap {
+func (TrueType) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
 func initTrue() {
 	TrueClass = NewClassWithOptions(
-		ClassWithParent(BoolClass),
+		ClassWithSuperclass(BoolClass),
 	)
 	StdModule.AddConstantString("True", Ref(TrueClass))
 }

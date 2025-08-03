@@ -101,7 +101,7 @@ func (n NilType) Error() string {
 	return n.Inspect()
 }
 
-func (NilType) InstanceVariables() SymbolMap {
+func (NilType) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -112,6 +112,6 @@ func (NilType) Hash() UInt64 {
 }
 
 func initNil() {
-	NilClass = NewClassWithOptions(ClassWithParent(ValueClass))
+	NilClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Nil", Ref(NilClass))
 }

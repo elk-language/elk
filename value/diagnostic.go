@@ -31,7 +31,7 @@ func (d *Diagnostic) Copy() Reference {
 	return d
 }
 
-func (*Diagnostic) InstanceVariables() SymbolMap {
+func (*Diagnostic) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

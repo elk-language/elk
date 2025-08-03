@@ -39,7 +39,7 @@ func (w *WaitGroup) Error() string {
 	return w.Inspect()
 }
 
-func (w *WaitGroup) InstanceVariables() SymbolMap {
+func (w *WaitGroup) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

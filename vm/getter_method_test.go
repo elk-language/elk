@@ -24,6 +24,7 @@ func TestDefineGetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -33,6 +34,7 @@ func TestDefineGetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("bar"): vm.NewGetterMethod(
 						value.ToSymbol("bar"),
+						-1,
 					),
 				},
 			},
@@ -41,9 +43,11 @@ func TestDefineGetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 					value.ToSymbol("bar"): vm.NewGetterMethod(
 						value.ToSymbol("bar"),
+						-1,
 					),
 				},
 			},
@@ -53,6 +57,7 @@ func TestDefineGetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -61,6 +66,7 @@ func TestDefineGetter(t *testing.T) {
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
 						value.ToSymbol("foo"),
+						-1,
 					),
 				},
 			},
@@ -69,7 +75,7 @@ func TestDefineGetter(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vm.DefineGetter(tc.container, value.ToSymbol(tc.attrName))
+			vm.DefineGetter(tc.container, value.ToSymbol(tc.attrName), -1)
 			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Options()); diff != "" {
 				t.Fatal(diff)
 			}

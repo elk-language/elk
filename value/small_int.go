@@ -52,7 +52,7 @@ func (i SmallInt) Error() string {
 	return i.Inspect()
 }
 
-func (i SmallInt) InstanceVariables() SymbolMap {
+func (i SmallInt) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -1087,7 +1087,7 @@ func (l *SmallIntIterator) Error() string {
 	return l.Inspect()
 }
 
-func (*SmallIntIterator) InstanceVariables() SymbolMap {
+func (*SmallIntIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

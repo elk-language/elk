@@ -39,7 +39,7 @@ func (FalseType) Inspect() string {
 	return "false"
 }
 
-func (FalseType) InstanceVariables() SymbolMap {
+func (FalseType) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -49,7 +49,7 @@ func (f FalseType) Error() string {
 
 func initFalse() {
 	FalseClass = NewClassWithOptions(
-		ClassWithParent(BoolClass),
+		ClassWithSuperclass(BoolClass),
 	)
 	StdModule.AddConstantString("False", Ref(FalseClass))
 }

@@ -48,7 +48,7 @@ func (r *RightOpenRange) Error() string {
 	return r.Inspect()
 }
 
-func (r *RightOpenRange) InstanceVariables() SymbolMap {
+func (r *RightOpenRange) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -109,7 +109,7 @@ func (r *RightOpenRangeIterator) Error() string {
 	return r.Inspect()
 }
 
-func (*RightOpenRangeIterator) InstanceVariables() SymbolMap {
+func (*RightOpenRangeIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

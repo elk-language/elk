@@ -186,7 +186,7 @@ func (l *Lexer) SingletonClass() *value.Class {
 	return nil
 }
 
-func (l *Lexer) InstanceVariables() value.SymbolMap {
+func (l *Lexer) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 

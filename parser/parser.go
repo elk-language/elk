@@ -81,7 +81,7 @@ func (p *Parser) SingletonClass() *value.Class {
 	return nil
 }
 
-func (p *Parser) InstanceVariables() value.SymbolMap {
+func (p *Parser) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 

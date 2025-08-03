@@ -131,7 +131,7 @@ func (l *ArrayList) Inspect() string {
 	return buff.String()
 }
 
-func (*ArrayList) InstanceVariables() SymbolMap {
+func (*ArrayList) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -362,7 +362,7 @@ func (l *ArrayListIterator) Error() string {
 	return l.Inspect()
 }
 
-func (*ArrayListIterator) InstanceVariables() SymbolMap {
+func (*ArrayListIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

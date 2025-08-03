@@ -49,6 +49,6 @@ func (c *Closure) Error() string {
 	return c.Inspect()
 }
 
-func (*Closure) InstanceVariables() value.SymbolMap {
+func (*Closure) InstanceVariables() *value.InstanceVariables {
 	return nil
 }

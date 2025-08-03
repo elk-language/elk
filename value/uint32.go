@@ -100,7 +100,7 @@ func (i UInt32) Error() string {
 	return i.Inspect()
 }
 
-func (i UInt32) InstanceVariables() SymbolMap {
+func (i UInt32) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -308,6 +308,6 @@ func (i UInt32) StrictEqualVal(other Value) Value {
 }
 
 func initUInt32() {
-	UInt32Class = NewClassWithOptions(ClassWithParent(ValueClass))
+	UInt32Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("UInt32", Ref(UInt32Class))
 }

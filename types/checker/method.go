@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
@@ -230,73 +231,40 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 	c.setMode(previousMode)
 	c.selfType = previousSelf
 
-	c.registerClassWithIvars(class, node)
 	if ok {
+		c.registerNamespaceWithIvars(class, node.Location())
 		c.popLocalConstScope()
 		c.popMethodScope()
 	}
 }
 
-type classWithIvarsData struct {
-	class     *types.Class
+type namespaceWithIvarsData struct {
+	namespace types.NamespaceWithIvarIndices
 	locations []*position.Location
 }
 
-func (c *classWithIvarsData) addLocation(loc *position.Location) {
+func (c *namespaceWithIvarsData) addLocation(loc *position.Location) {
 	c.locations = append(c.locations, loc)
 }
 
-func (c *Checker) insertClassWithIvarsData(class *types.Class) *classWithIvarsData {
-	data, ok := c.classesWithIvars.GetOk(class.Name())
+func (c *Checker) insertNamespaceWithIvarsData(namespace types.NamespaceWithIvarIndices) *namespaceWithIvarsData {
+	data, ok := c.namespacesWithIvars.GetOk(namespace.Name())
 	if ok {
 		return data
 	}
 
-	data = &classWithIvarsData{class: class}
-	c.classesWithIvars.Set(class.Name(), data)
+	data = &namespaceWithIvarsData{namespace: namespace}
+	c.namespacesWithIvars.Set(namespace.Name(), data)
 	return data
 }
 
-func (c *Checker) registerClassWithIvars(class *types.Class, node *ast.ClassDeclarationNode) {
-	if class == nil {
+func (c *Checker) registerNamespaceWithIvars(namespace types.NamespaceWithIvarIndices, loc *position.Location) {
+	if namespace == nil {
 		return
 	}
 
-	var parents []types.Namespace
-	for parent := range types.DirectParents(class.Parent()) {
-		if c.classesWithIvars.Includes(parent.Name()) {
-			break
-		}
-		parents = append(parents, parent)
-	}
-
-	var hasIvars bool
-	for i := len(parents) - 1; i >= 0; i-- {
-		parent := parents[i]
-		switch parent := parent.(type) {
-		case *types.MixinProxy:
-			if !hasIvars && parent.HasInstanceVariables() {
-				hasIvars = true
-			}
-		case *types.Class:
-			if hasIvars {
-				c.insertClassWithIvarsData(parent)
-				continue
-			}
-
-			if !parent.HasInstanceVariables() {
-				continue
-			}
-
-			hasIvars = true
-			c.insertClassWithIvarsData(parent)
-		}
-	}
-
-	if hasIvars || class.HasInstanceVariables() {
-		classData := c.insertClassWithIvarsData(class)
-		classData.addLocation(node.Location())
-	}
+	classData := c.insertNamespaceWithIvarsData(namespace)
+	classData.addLocation(loc)
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclarationNode) {
@@ -315,6 +283,7 @@ func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclaration
 	c.selfType = previousSelf
 
 	if ok {
+		c.registerNamespaceWithIvars(module, node.Location())
 		c.popLocalConstScope()
 		c.popMethodScope()
 	}
@@ -380,6 +349,7 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 	c.setMode(previousMode)
 	c.selfType = previousSelf
 
+	c.registerNamespaceWithIvars(singleton, expr.Location())
 	c.popLocalConstScope()
 	c.popMethodScope()
 }
@@ -498,6 +468,7 @@ func (c *Checker) newMethodChecker(
 	throwType types.Type,
 	mode mode,
 	threadPool *vm.ThreadPool,
+	loc *position.Location,
 ) *Checker {
 	checker := &Checker{
 		env:            c.env,
@@ -516,9 +487,10 @@ func (c *Checker) newMethodChecker(
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),
-		compiler:             c.compiler,
 		threadPool:           threadPool,
 	}
+	checker.compiler = compiler.CreateCompiler(c.compiler, checker, loc, c.Errors)
+
 	return checker
 }
 
@@ -583,6 +555,7 @@ func (c *Checker) checkMethods() {
 				method.ThrowType,
 				mode,
 				c.threadPool,
+				node.Location(),
 			)
 
 			methodChecker.checkMethodDefinition(node, method)

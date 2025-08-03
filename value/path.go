@@ -58,7 +58,7 @@ func (p *Path) Error() string {
 	return p.Inspect()
 }
 
-func (*Path) InstanceVariables() SymbolMap {
+func (*Path) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

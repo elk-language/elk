@@ -126,7 +126,7 @@ func (t *ArrayTuple) Inspect() string {
 	return buff.String()
 }
 
-func (*ArrayTuple) InstanceVariables() SymbolMap {
+func (*ArrayTuple) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -306,7 +306,7 @@ func (t *ArrayTupleIterator) Error() string {
 	return t.Inspect()
 }
 
-func (*ArrayTupleIterator) InstanceVariables() SymbolMap {
+func (*ArrayTupleIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

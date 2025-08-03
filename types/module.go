@@ -7,9 +7,18 @@ import (
 )
 
 type Module struct {
-	defined bool
-	parent  Namespace
+	defined     bool
+	parent      Namespace
+	ivarIndices *value.IvarIndices
 	NamespaceBase
+}
+
+func (m *Module) IvarIndices() *value.IvarIndices {
+	return m.ivarIndices
+}
+
+func (m *Module) SetIvarIndices(in *value.IvarIndices) {
+	m.ivarIndices = in
 }
 
 func (m *Module) IsGeneric() bool {

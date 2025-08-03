@@ -48,7 +48,7 @@ func (r *LeftOpenRange) Inspect() string {
 	return buff.String()
 }
 
-func (r *LeftOpenRange) InstanceVariables() SymbolMap {
+func (r *LeftOpenRange) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -109,7 +109,7 @@ func (r *LeftOpenRangeIterator) Error() string {
 	return r.Inspect()
 }
 
-func (*LeftOpenRangeIterator) InstanceVariables() SymbolMap {
+func (*LeftOpenRangeIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

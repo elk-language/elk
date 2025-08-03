@@ -278,18 +278,18 @@ func (vm *VM) callPromise(promise *Promise) {
 
 	vm.run()
 
-	if vm.state != awaitState {
+	switch vm.state {
+	case awaitState:
+		stack := vm.stack[vm.fpOffset():vm.spOffset()]
+		stackCopy := make([]value.Value, len(stack))
+		copy(stackCopy, stack)
+		promise.stack = stackCopy
+		promise.ip = vm.ip
+
 		vm.restoreLastFrame()
-		return
+	case errorState:
+		vm.restoreLastFrame()
 	}
-
-	stack := vm.stack[vm.fpOffset():vm.spOffset()]
-	stackCopy := make([]value.Value, len(stack))
-	copy(stackCopy, stack)
-	promise.stack = stackCopy
-	promise.ip = vm.ip
-
-	vm.restoreLastFrame()
 }
 
 func (vm *VM) CallGeneratorNext(generator *Generator) (value.Value, value.Value) {
@@ -667,6 +667,8 @@ func (vm *VM) run() {
 			vm.opDefMethodAlias()
 		case bytecode.INCLUDE:
 			vm.throwIfErr(vm.opInclude())
+		case bytecode.DEF_IVARS:
+			vm.throwIfErr(vm.opDefIvars())
 		case bytecode.APPEND:
 			vm.opAppend()
 		case bytecode.MAP_SET:
@@ -687,21 +689,33 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.opInstantiate(int(vm.readUint16())),
 			)
+		case bytecode.GET_IVAR_0:
+			vm.opGetIvar(0)
+		case bytecode.GET_IVAR_1:
+			vm.opGetIvar(1)
+		case bytecode.GET_IVAR_2:
+			vm.opGetIvar(2)
 		case bytecode.GET_IVAR8:
-			vm.throwIfErr(
-				vm.opGetIvar(int(vm.readByte())),
-			)
+			vm.opGetIvar(int(vm.readByte()))
 		case bytecode.GET_IVAR16:
+			vm.opGetIvar(int(vm.readUint16()))
+		case bytecode.GET_IVAR_NAME16:
 			vm.throwIfErr(
-				vm.opGetIvar(int(vm.readUint16())),
+				vm.opGetIvarName(int(vm.readUint16())),
 			)
+		case bytecode.SET_IVAR_0:
+			vm.opSetIvar(0)
+		case bytecode.SET_IVAR_1:
+			vm.opSetIvar(1)
+		case bytecode.SET_IVAR_2:
+			vm.opSetIvar(2)
 		case bytecode.SET_IVAR8:
-			vm.throwIfErr(
-				vm.opSetIvar(int(vm.readByte())),
-			)
+			vm.opSetIvar(int(vm.readByte()))
 		case bytecode.SET_IVAR16:
+			vm.opSetIvar(int(vm.readUint16()))
+		case bytecode.SET_IVAR_NAME16:
 			vm.throwIfErr(
-				vm.opSetIvar(int(vm.readUint16())),
+				vm.opSetIvarName(int(vm.readUint16())),
 			)
 		case bytecode.CALL_METHOD_TCO8:
 			vm.throwIfErr(
@@ -1498,7 +1512,7 @@ func (vm *VM) spGet() *value.Value {
 }
 
 func (vm *VM) spOffsetTo(ptr *value.Value) int {
-	return int(uintptr(unsafe.Pointer(vm.sp))-uintptr(unsafe.Pointer(ptr))) / int(value.ValueSize)
+	return int(vm.sp-uintptr(unsafe.Pointer(ptr))) / int(value.ValueSize)
 }
 
 func (vm *VM) spOffset() int {
@@ -1627,7 +1641,7 @@ func (vm *VM) callFrameAddRaw(ptr uintptr, n uintptr) uintptr {
 }
 
 func (vm *VM) cfpOffset() int {
-	return int(uintptr(unsafe.Pointer(vm.cfp))-uintptr(unsafe.Pointer(&vm.callFrames[0]))) / int(CallFrameSize)
+	return int(vm.cfp-uintptr(unsafe.Pointer(&vm.callFrames[0]))) / int(CallFrameSize)
 }
 
 // Read the next byte of code
@@ -1691,7 +1705,7 @@ func (vm *VM) opDefNamespace() {
 	case bytecode.DEF_MODULE_FLAG:
 		newNamespace = value.Ref(value.NewModule())
 	case bytecode.DEF_CLASS_FLAG:
-		newNamespace = value.Ref(value.NewClassWithOptions(value.ClassWithParent(nil)))
+		newNamespace = value.Ref(value.NewClassWithOptions(value.ClassWithSuperclass(nil)))
 	case bytecode.DEF_MIXIN_FLAG:
 		newNamespace = value.Ref(value.NewMixin())
 	case bytecode.DEF_INTERFACE_FLAG:
@@ -1846,32 +1860,30 @@ func (vm *VM) callSetterMethod(method *SetterMethod) value.Value {
 	return value.Undefined
 }
 
-// Set the value of an instance variable
-func (vm *VM) opSetIvar(nameIndex int) (err value.Value) {
+// Set the value of an instance variable by name
+func (vm *VM) opSetIvarName(nameIndex int) (err value.Value) {
 	name := vm.bytecode.Values[nameIndex].AsInlineSymbol()
 	val := vm.popGet()
-
 	self := vm.selfValue()
-	ivars := self.InstanceVariables()
-	if ivars == nil {
-		return value.Ref(value.NewCantSetInstanceVariablesOnPrimitiveError(self.Inspect()))
-	}
-
-	ivars.Set(name, val)
-	return value.Undefined
+	return value.SetInstanceVariableByName(self, name, val)
 }
 
-// Get the value of an instance variable
-func (vm *VM) opGetIvar(nameIndex int) (err value.Value) {
-	name := vm.bytecode.Values[nameIndex].AsInlineSymbol()
-
+// Set the value of an instance variable by index
+func (vm *VM) opSetIvar(index int) {
+	val := vm.popGet()
 	self := vm.selfValue()
-	ivars := self.InstanceVariables()
-	if ivars == nil {
-		return value.Ref(value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect()))
+	self.InstanceVariables().Set(index, val)
+}
+
+// Get the value of an instance variable by name
+func (vm *VM) opGetIvarName(nameIndex int) (err value.Value) {
+	name := vm.bytecode.Values[nameIndex].AsInlineSymbol()
+	self := vm.selfValue()
+	val, err := value.GetInstanceVariableByName(self, name)
+	if !err.IsUndefined() {
+		return err
 	}
 
-	val := ivars.Get(name)
 	if val.IsUndefined() {
 		vm.push(value.Nil)
 	} else {
@@ -1879,6 +1891,18 @@ func (vm *VM) opGetIvar(nameIndex int) (err value.Value) {
 	}
 
 	return value.Undefined
+}
+
+// Get the value of an instance variable by name
+func (vm *VM) opGetIvar(index int) {
+	self := vm.selfValue()
+	val := self.InstanceVariables().Get(index)
+
+	if val.IsUndefined() {
+		vm.push(value.Nil)
+	} else {
+		vm.push(val)
+	}
 }
 
 // Create a new generator
@@ -2159,6 +2183,26 @@ func (vm *VM) populateMissingParameters(paramCount, argumentCount int) {
 	}
 }
 
+// Define instance variables in a class
+func (vm *VM) opDefIvars() (err value.Value) {
+	ivarIndices := (*value.IvarIndices)(vm.popGet().Pointer())
+	classVal := vm.popGet()
+
+	switch class := classVal.SafeAsReference().(type) {
+	case *value.Class:
+		class.IvarIndices = *ivarIndices
+	default:
+		return value.Ref(value.Errorf(
+			value.TypeErrorClass,
+			"cannot define instance variables in %s: `%s`",
+			classVal.Class().PrintableName(),
+			classVal.Inspect(),
+		))
+	}
+
+	return value.Undefined
+}
+
 // Include a mixin in a class/mixin.
 func (vm *VM) opInclude() (err value.Value) {
 	mixinVal := vm.popGet()
@@ -2227,12 +2271,13 @@ func (vm *VM) opExec() {
 
 // Define a getter method
 func (vm *VM) opDefGetter() {
+	index := vm.popGet().AsSmallInt()
 	name := vm.popGet().AsInlineSymbol()
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {
 	case *value.Class:
-		DefineGetter(&m.MethodContainer, name)
+		DefineGetter(&m.MethodContainer, name, int(index))
 	default:
 		panic(fmt.Sprintf("cannot define a getter in an invalid method container: %s", methodContainer.Inspect()))
 	}
@@ -2240,12 +2285,13 @@ func (vm *VM) opDefGetter() {
 
 // Define a setter method
 func (vm *VM) opDefSetter() {
+	index := vm.popGet().AsSmallInt()
 	name := vm.popGet().AsInlineSymbol()
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {
 	case *value.Class:
-		DefineSetter(&m.MethodContainer, name)
+		DefineSetter(&m.MethodContainer, name, int(index))
 	default:
 		panic(fmt.Sprintf("cannot define a setter in an invalid method container: %s", methodContainer.Inspect()))
 	}
@@ -2364,7 +2410,7 @@ func (vm *VM) opSetSuperclass() {
 		return
 	}
 
-	class.Parent = newSuperclass
+	class.SetSuperclass(newSuperclass)
 }
 
 // Look for a constant with the given name.

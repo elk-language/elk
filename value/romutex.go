@@ -45,7 +45,7 @@ func (m *ROMutex) Error() string {
 	return m.Inspect()
 }
 
-func (*ROMutex) InstanceVariables() SymbolMap {
+func (*ROMutex) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

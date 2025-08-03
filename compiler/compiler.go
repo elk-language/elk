@@ -287,6 +287,22 @@ func (c *Compiler) CompileClassInheritance(class *types.Class, location *positio
 	c.emit(location.StartPos.Line, bytecode.SET_SUPERCLASS)
 }
 
+func (c *Compiler) CompileIvarIndices(target types.NamespaceWithIvarIndices, location *position.Location) {
+	switch target := target.(type) {
+	case *types.SingletonClass:
+		c.emitGetConst(value.ToSymbol(target.AttachedObject.Name()), location)
+		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
+	case *types.Module:
+		c.emitGetConst(value.ToSymbol(target.Name()), location)
+		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
+	default:
+		c.emitGetConst(value.ToSymbol(target.Name()), location)
+	}
+
+	c.emitValue(value.Ref(target.IvarIndices()), location)
+	c.emit(location.StartPos.Line, bytecode.DEF_IVARS)
+}
+
 func (c *Compiler) CompileInclude(target types.Namespace, mixin *types.Mixin, location *position.Location) {
 	switch t := target.(type) {
 	case *types.SingletonClass:
@@ -383,6 +399,34 @@ func (c *Compiler) InitMethodCompiler(location *position.Location) (*Compiler, i
 	return methodCompiler, offset
 }
 
+var ivarIndicesSymbol = value.ToSymbol("<ivarIndices>")
+
+func (c *Compiler) InitIvarIndicesCompiler(location *position.Location) (*Compiler, int) {
+	ivarCompiler := New(ivarIndicesSymbol.String(), topLevelMode, c.Bytecode.Location, c.checker)
+	ivarCompiler.Errors = c.Errors
+	ivarCompiler.Parent = c
+
+	offset := c.nextInstructionOffset()
+	c.emitValue(value.Ref(ivarCompiler.Bytecode), location)
+	c.emit(location.StartPos.Line, bytecode.EXEC)
+	c.emit(location.StartPos.Line, bytecode.POP)
+
+	return ivarCompiler, offset
+}
+
+func (c *Compiler) FinishIvarIndicesCompiler(location *position.Location, execOffset int) *Compiler {
+	if len(c.Bytecode.Instructions) > 0 {
+		c.emit(location.EndPos.Line, bytecode.NIL)
+		c.emit(location.EndPos.Line, bytecode.RETURN)
+		return c.Parent
+	}
+
+	// If no instructions were emitted, remove the EXEC instruction block
+	c.Parent.removeLastBytes(execOffset)
+	c.Parent.removeBytecodeFunction(ivarIndicesSymbol)
+	return c.Parent
+}
+
 func (c *Compiler) CompileMethods(location *position.Location, execOffset int) {
 	c.compileMethodsWithinModule(c.checker.Env().Root, location)
 	if len(c.Bytecode.Instructions) > 0 {
@@ -392,8 +436,12 @@ func (c *Compiler) CompileMethods(location *position.Location, execOffset int) {
 	}
 
 	// If no instructions were emitted, remove the EXEC instruction block
-	c.Parent.removeBytes(execOffset, 3)
-	c.Parent.removeMethodDefinitionsBytecodeFunction()
+	c.Parent.removeLastBytes(execOffset)
+	c.Parent.removeBytecodeFunction(methodDefinitionsSymbol)
+}
+
+func (c *Compiler) removeLastBytes(offset int) {
+	c.removeBytes(offset, c.nextInstructionOffset()-offset)
 }
 
 func (c *Compiler) removeBytes(offset int, count int) {
@@ -404,15 +452,18 @@ func (c *Compiler) removeBytes(offset int, count int) {
 
 var methodDefinitionsSymbol = value.ToSymbol("<methodDefinitions>")
 
-func (c *Compiler) removeMethodDefinitionsBytecodeFunction() {
+func (c *Compiler) removeBytecodeFunction(name value.Symbol) {
 	for i, val := range c.Bytecode.Values {
 		val, ok := val.SafeAsReference().(*vm.BytecodeFunction)
 		if !ok {
 			continue
 		}
 
-		if val.Name() == methodDefinitionsSymbol {
+		if val.Name() == name {
 			c.Bytecode.Values[i] = value.Undefined
+			if i == len(c.Bytecode.Values)-1 {
+				c.Bytecode.Values = c.Bytecode.Values[:len(c.Bytecode.Values)-1]
+			}
 			break
 		}
 	}
@@ -461,13 +512,56 @@ func (c *Compiler) compileMethodDefinition(name value.Symbol, method *types.Meth
 	if method.IsAttribute() {
 		if method.IsSetter() {
 			nameStr := name.String()
-			c.emitValue(value.ToSymbol(nameStr[:len(nameStr)-1]).ToValue(), location)
+			ivarName := value.ToSymbol(nameStr[:len(nameStr)-1])
+			c.emitValue(ivarName.ToValue(), location)
+			namespace := method.DefinedUnder
+
+			var index int
+			var ok bool
+
+			switch n := namespace.(type) {
+			case *types.Class:
+				index, ok = n.IvarIndices().GetIndexOk(ivarName)
+			case *types.SingletonClass:
+				index, ok = n.IvarIndices().GetIndexOk(ivarName)
+			case *types.Module:
+				index, ok = n.IvarIndices().GetIndexOk(ivarName)
+			default:
+				index = -1
+				ok = true
+			}
+
+			if !ok {
+				panic(fmt.Sprintf("cannot get index of ivar `%s` in `%s`", ivarName.String(), namespace.Name()))
+			}
+			c.emitSmallInt(value.SmallInt(index), location)
 			c.emit(location.StartPos.Line, bytecode.DEF_SETTER)
 			method.SetCompiled(true)
 			return
 		}
 
 		c.emitValue(name.ToValue(), location)
+		namespace := method.DefinedUnder
+
+		var index int
+		var ok bool
+
+		switch n := namespace.(type) {
+		case *types.Class:
+			index, ok = n.IvarIndices().GetIndexOk(name)
+		case *types.SingletonClass:
+			index, ok = n.IvarIndices().GetIndexOk(name)
+		case *types.Module:
+			index, ok = n.IvarIndices().GetIndexOk(name)
+		default:
+			index = -1
+			ok = true
+		}
+
+		if !ok {
+			panic(fmt.Sprintf("cannot get index of ivar `%s` in `%s`", name.String(), namespace.Name()))
+		}
+		c.emitSmallInt(value.SmallInt(index), location)
 		c.emit(location.StartPos.Line, bytecode.DEF_GETTER)
 		method.SetCompiled(true)
 		return
@@ -1020,11 +1114,32 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	case *ast.MacroBoundaryNode:
 		c.compileMacroBoundaryNode(node)
 	case *ast.IfExpressionNode:
-		return c.compileIfExpression(false, node.Condition, node.ThenBody, node.ElseBody, node.Location(), valueIsIgnored)
+		return c.compileIfExpression(
+			false,
+			node.Condition,
+			node.ThenBody,
+			node.ElseBody,
+			node.Location(),
+			valueIsIgnored,
+		)
 	case *ast.UnlessExpressionNode:
-		return c.compileIfExpression(true, node.Condition, node.ThenBody, node.ElseBody, node.Location(), valueIsIgnored)
+		return c.compileIfExpression(
+			true,
+			node.Condition,
+			node.ThenBody,
+			node.ElseBody,
+			node.Location(),
+			valueIsIgnored,
+		)
 	case *ast.ModifierIfElseNode:
-		return c.compileModifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Location(), valueIsIgnored)
+		return c.compileModifierIfExpression(
+			false,
+			node.Condition,
+			node.ThenExpression,
+			node.ElseExpression,
+			node.Location(),
+			valueIsIgnored,
+		)
 	case *ast.ModifierNode:
 		return c.compileModifierExpressionNode("", node, valueIsIgnored)
 	case *ast.BreakExpressionNode:
@@ -2510,7 +2625,7 @@ func (c *Compiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode,
 		}
 		// get value
 		ivarSymbol := value.ToSymbol(n.Value)
-		c.emitGetInstanceVariable(ivarSymbol, n.Location())
+		c.emitGetInstanceVariableByName(ivarSymbol, n.Location())
 
 		switch node.Op.Type {
 		case token.PLUS_PLUS:
@@ -7081,37 +7196,143 @@ func (c *Compiler) emitInstantiate(args int, location *position.Location) {
 }
 
 // Emit an instruction that sets the value of an instance variable
-func (c *Compiler) emitSetInstanceVariable(name value.Symbol, location *position.Location, valueIsIgnored bool) int {
+func (c *Compiler) emitSetInstanceVariable(name value.Symbol, location *position.Location, valueIsIgnored bool) {
 	if valueIsIgnored {
-		return c.emitSetInstanceVariablePop(name, location)
+		c.emitSetInstanceVariablePop(name, location)
+		return
 	}
-	return c.emitSetInstanceVariableNoPop(name, location)
+
+	c.emitSetInstanceVariableNoPop(name, location)
 }
 
 // Emit an instruction that sets the value of an instance variable and pops it
-func (c *Compiler) emitSetInstanceVariablePop(name value.Symbol, location *position.Location) int {
-	return c.emitAddValue(
-		name.ToValue(),
+func (c *Compiler) emitSetInstanceVariablePop(name value.Symbol, location *position.Location) {
+	self := c.checker.SelfType()
+
+	switch self := self.(type) {
+	case types.NamespaceWithIvarIndices:
+		index := self.IvarIndices().GetIndex(name)
+		c.emitSetInstanceVariableByIndex(index, location)
+	default:
+		c.emitSetInstanceVariableByName(name, location)
+	}
+}
+
+// Emit an instruction that sets the value of an instance variable by its index
+func (c *Compiler) emitSetInstanceVariableByIndex(index int, location *position.Location) {
+	line := location.StartPos.Line
+	switch index {
+	case 0:
+		c.emit(line, bytecode.SET_IVAR_0)
+		return
+	case 1:
+		c.emit(line, bytecode.SET_IVAR_1)
+		return
+	case 2:
+		c.emit(line, bytecode.SET_IVAR_2)
+		return
+	}
+
+	if index >= math.MinInt8 && index <= math.MaxInt8 {
+		c.emit(line, bytecode.SET_IVAR8, byte(index))
+		return
+	}
+	if index >= math.MinInt16 && index <= math.MaxInt16 {
+		bytes := make([]byte, 2)
+		binary.BigEndian.PutUint16(bytes, uint16(index))
+		c.emit(line, bytecode.SET_IVAR16, bytes...)
+		return
+	}
+
+	c.Errors.AddFailure(
+		fmt.Sprintf("too big instance variable index: %d", index),
 		location,
-		bytecode.SET_IVAR8,
-		bytecode.SET_IVAR16,
 	)
+}
+
+// Emit an instruction that sets the value of an instance variable by name
+func (c *Compiler) emitSetInstanceVariableByName(name value.Symbol, location *position.Location) {
+	id, size := c.Bytecode.AddValue(name.ToValue())
+	switch size {
+	case bytecode.UINT8_SIZE, bytecode.UINT16_SIZE:
+		bytes := make([]byte, 2)
+		binary.BigEndian.PutUint16(bytes, uint16(id))
+		c.Bytecode.AddInstruction(location.StartPos.Line, bytecode.SET_IVAR_NAME16, bytes...)
+	default:
+		c.Errors.AddFailure(
+			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
+			location,
+		)
+	}
 }
 
 // Emit an instruction that sets the value of an instance variable without popping
-func (c *Compiler) emitSetInstanceVariableNoPop(name value.Symbol, location *position.Location) int {
+func (c *Compiler) emitSetInstanceVariableNoPop(name value.Symbol, location *position.Location) {
 	c.emit(location.StartPos.Line, bytecode.DUP)
-	return c.emitSetInstanceVariablePop(name, location)
+	c.emitSetInstanceVariablePop(name, location)
 }
 
-// Emit an instruction that reads the value of an instance variable.
-func (c *Compiler) emitGetInstanceVariable(name value.Symbol, location *position.Location) int {
-	return c.emitAddValue(
-		name.ToValue(),
+func (c *Compiler) emitGetInstanceVariable(name value.Symbol, location *position.Location) {
+	self := c.checker.SelfType()
+	switch self := self.(type) {
+	case types.NamespaceWithIvarIndices:
+		ivarIndices := self.IvarIndices()
+		index := ivarIndices.GetIndex(name)
+		c.emitGetInstanceVariableByIndex(index, location)
+	default:
+		c.emitGetInstanceVariableByName(name, location)
+	}
+}
+
+// Emit an instruction that reads the value of an instance variable by index.
+func (c *Compiler) emitGetInstanceVariableByIndex(index int, location *position.Location) {
+	line := location.StartPos.Line
+	switch index {
+	case 0:
+		c.emit(line, bytecode.GET_IVAR_0)
+		return
+	case 1:
+		c.emit(line, bytecode.GET_IVAR_1)
+		return
+	case 2:
+		c.emit(line, bytecode.GET_IVAR_2)
+		return
+	}
+
+	if index >= math.MinInt8 && index <= math.MaxInt8 {
+		c.emit(line, bytecode.GET_IVAR8, byte(index))
+		return
+	}
+	if index >= math.MinInt16 && index <= math.MaxInt16 {
+		bytes := make([]byte, 2)
+		binary.BigEndian.PutUint16(bytes, uint16(index))
+		c.emit(line, bytecode.GET_IVAR16, bytes...)
+		return
+	}
+
+	c.Errors.AddFailure(
+		fmt.Sprintf("too big instance variable index: %d", index),
 		location,
-		bytecode.GET_IVAR8,
-		bytecode.GET_IVAR16,
 	)
+}
+
+// Emit an instruction that reads the value of an instance variable by name.
+func (c *Compiler) emitGetInstanceVariableByName(name value.Symbol, location *position.Location) int {
+	id, size := c.Bytecode.AddValue(name.ToValue())
+	switch size {
+	case bytecode.UINT8_SIZE, bytecode.UINT16_SIZE:
+		bytes := make([]byte, 2)
+		binary.BigEndian.PutUint16(bytes, uint16(id))
+		c.Bytecode.AddInstruction(location.StartPos.Line, bytecode.GET_IVAR_NAME16, bytes...)
+	default:
+		c.Errors.AddFailure(
+			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
+			location,
+		)
+		return -1
+	}
+
+	return id
 }
 
 // Emit an instruction that calls a method on self

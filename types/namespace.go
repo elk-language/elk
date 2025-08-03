@@ -12,6 +12,12 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+type NamespaceWithIvarIndices interface {
+	Namespace
+	IvarIndices() *value.IvarIndices
+	SetIvarIndices(*value.IvarIndices)
+}
+
 type Namespace interface {
 	Type
 	Name() string

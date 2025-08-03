@@ -28,11 +28,11 @@ func TestClass_Inspect(t *testing.T) {
 			want:  "class <anonymous> < Std::Object",
 		},
 		"with name and parent": {
-			class: value.NewClassWithOptions(value.ClassWithName("FooError"), value.ClassWithParent(value.ErrorClass)),
+			class: value.NewClassWithOptions(value.ClassWithName("FooError"), value.ClassWithSuperclass(value.ErrorClass)),
 			want:  "class FooError < Std::Error",
 		},
 		"with name and anonymous parent": {
-			class: value.NewClassWithOptions(value.ClassWithName("FooError"), value.ClassWithParent(value.NewClass())),
+			class: value.NewClassWithOptions(value.ClassWithName("FooError"), value.ClassWithSuperclass(value.NewClass())),
 			want:  "class FooError < <anonymous>",
 		},
 	}
@@ -55,7 +55,7 @@ func TestClass_LookupMethod(t *testing.T) {
 	}{
 		"get method from parent": {
 			class: value.NewClassWithOptions(
-				value.ClassWithParent(
+				value.ClassWithSuperclass(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("foo"): vm.NewBytecodeFunctionSimple(
@@ -76,9 +76,9 @@ func TestClass_LookupMethod(t *testing.T) {
 		},
 		"get method from parents parent": {
 			class: value.NewClassWithOptions(
-				value.ClassWithParent(
+				value.ClassWithSuperclass(
 					value.NewClassWithOptions(
-						value.ClassWithParent(
+						value.ClassWithSuperclass(
 							value.NewClassWithOptions(
 								value.ClassWithMethods(value.MethodMap{
 									value.ToSymbol("foo"): vm.NewBytecodeFunctionSimple(
@@ -170,7 +170,7 @@ func TestClass_IncludeMixin(t *testing.T) {
 					value.NewClassWithOptions(
 						value.ClassWithMixinProxy(),
 						value.ClassWithName("BarParent"),
-						value.ClassWithParent(nil),
+						value.ClassWithSuperclass(nil),
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("bar_parent"): nil,
 						}),
@@ -194,10 +194,10 @@ func TestClass_IncludeMixin(t *testing.T) {
 				value.ClassWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): nil,
 				}),
-				value.ClassWithParent(
+				value.ClassWithSuperclass(
 					value.NewClassWithOptions(
 						value.ClassWithName("FooParent"),
-						value.ClassWithParent(value.ObjectClass),
+						value.ClassWithSuperclass(value.ObjectClass),
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("foo_parent"): nil,
 						}),
@@ -218,19 +218,19 @@ func TestClass_IncludeMixin(t *testing.T) {
 				value.ClassWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): nil,
 				}),
-				value.ClassWithParent(
+				value.ClassWithSuperclass(
 					value.NewClassWithOptions(
 						value.ClassWithName("FooParent"),
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("foo_parent"): nil,
 						}),
-						value.ClassWithParent(
+						value.ClassWithSuperclass(
 							value.NewClassWithOptions(
 								value.ClassWithName("FooGrandParent"),
 								value.ClassWithMethods(value.MethodMap{
 									value.ToSymbol("foo_grand_parent"): nil,
 								}),
-								value.ClassWithParent(value.ObjectClass),
+								value.ClassWithSuperclass(value.ObjectClass),
 							),
 						),
 					),
@@ -248,7 +248,7 @@ func TestClass_IncludeMixin(t *testing.T) {
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("bar_parent"): nil,
 						}),
-						value.ClassWithParent(nil),
+						value.ClassWithSuperclass(nil),
 						value.ClassWithMetaClass(
 							value.NewMixinWithOptions(
 								value.MixinWithName("BarParent"),
@@ -259,7 +259,7 @@ func TestClass_IncludeMixin(t *testing.T) {
 									value.NewClassWithOptions(
 										value.ClassWithMixinProxy(),
 										value.ClassWithName("BarGrandParent"),
-										value.ClassWithParent(nil),
+										value.ClassWithSuperclass(nil),
 										value.ClassWithMethods(value.MethodMap{
 											value.ToSymbol("bar_grand_parent"): nil,
 										}),

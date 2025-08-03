@@ -83,7 +83,7 @@ func (c Char) Inspect() string {
 	return buff.String()
 }
 
-func (Char) InstanceVariables() SymbolMap {
+func (Char) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -365,6 +365,6 @@ func (c Char) StrictEqualVal(other Value) Value {
 }
 
 func initChar() {
-	CharClass = NewClassWithOptions(ClassWithParent(ValueClass))
+	CharClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Char", Ref(CharClass))
 }

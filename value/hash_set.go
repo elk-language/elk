@@ -118,7 +118,7 @@ func (h *HashSet) Inspect() string {
 	return buff.String()
 }
 
-func (*HashSet) InstanceVariables() SymbolMap {
+func (*HashSet) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -179,7 +179,7 @@ func (h *HashSetIterator) Inspect() string {
 	return fmt.Sprintf("Std::HashSet::Iterator{hash_set: %s}", h.HashSet.Inspect())
 }
 
-func (*HashSetIterator) InstanceVariables() SymbolMap {
+func (*HashSetIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

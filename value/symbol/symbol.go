@@ -105,6 +105,7 @@ var (
 	L_to_ast_type_node         = value.ToSymbol("to_ast_type_node")
 	L_to_ast_ident_node        = value.ToSymbol("to_ast_ident_node")
 	L_to_ast_ivar_node         = value.ToSymbol("to_ast_ivar_node")
+	L_message                  = value.ToSymbol("message")
 )
 
 // special symbols

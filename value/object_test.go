@@ -23,7 +23,7 @@ func TestObjectInspect(t *testing.T) {
 		"named class and ivars": {
 			obj: value.NewObject(
 				value.ObjectWithClass(value.ErrorClass),
-				value.ObjectWithInstanceVariables(
+				value.ObjectWithInstanceVariablesByName(
 					value.SymbolMap{
 						value.ToSymbol("message"): value.Ref(value.String("foo bar!")),
 					},
@@ -33,8 +33,16 @@ func TestObjectInspect(t *testing.T) {
 		},
 		"anonymous class and ivars": {
 			obj: value.NewObject(
-				value.ObjectWithClass(value.NewClass()),
-				value.ObjectWithInstanceVariables(
+				value.ObjectWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithIvarIndices(
+							value.IvarIndices{
+								value.ToSymbol("message"): 0,
+							},
+						),
+					),
+				),
+				value.ObjectWithInstanceVariablesByName(
 					value.SymbolMap{
 						value.ToSymbol("message"): value.Ref(value.String("foo bar!")),
 					},

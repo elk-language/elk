@@ -3,6 +3,7 @@ package value
 import (
 	"iter"
 	"maps"
+	"slices"
 	"strings"
 
 	"github.com/elk-language/elk/bitfield"
@@ -29,7 +30,8 @@ type Class struct {
 	MethodContainer
 	ConstructorFunc   ConstructorFunc
 	Flags             bitfield.BitField8
-	instanceVariables SymbolMap
+	IvarIndices       IvarIndices
+	instanceVariables InstanceVariables
 }
 
 // Class constructor option function
@@ -41,9 +43,30 @@ func ClassWithName(name string) ClassOption {
 	}
 }
 
-func ClassWithParent(parent *Class) ClassOption {
+func ClassWithIvarIndices(ivarIndices IvarIndices) ClassOption {
 	return func(c *Class) {
-		c.Parent = parent
+		c.IvarIndices = ivarIndices
+	}
+}
+
+func ClassWithDefinedIvars(names []Symbol) ClassOption {
+	return func(c *Class) {
+		if c.IvarIndices == nil {
+			c.IvarIndices = make(IvarIndices, len(names))
+		}
+
+		for _, name := range names {
+			c.IvarIndices[name] = len(c.IvarIndices)
+		}
+	}
+}
+
+func ClassWithSuperclass(parent *Class) ClassOption {
+	return func(c *Class) {
+		c.SetSuperclass(parent)
+		if parent != nil {
+			c.IvarIndices = maps.Clone(parent.IvarIndices)
+		}
 	}
 }
 
@@ -98,9 +121,8 @@ func NewClass() *Class {
 			Parent:  ObjectClass,
 			Methods: make(MethodMap),
 		},
-		ConstructorFunc:   ObjectConstructor,
-		metaClass:         ClassClass,
-		instanceVariables: make(SymbolMap),
+		ConstructorFunc: ObjectConstructor,
+		metaClass:       ClassClass,
 	}
 }
 
@@ -134,13 +156,21 @@ func ClassConstructor(metaClass *Class) Value {
 		},
 		ConstructorFunc:   ObjectConstructor,
 		metaClass:         metaClass,
-		instanceVariables: make(SymbolMap),
+		instanceVariables: make([]Value, len(metaClass.instanceVariables)),
 	}
 
 	return Ref(c)
 }
 
 var docSymbol = SymbolTable.Add("doc")
+
+func (c *Class) GetIvarName(ivarIndex int) (Symbol, bool) {
+	if c.IvarIndices == nil {
+		return 0, false
+	}
+
+	return c.IvarIndices.GetNameOk(ivarIndex)
+}
 
 // Iterates over every parent of the class/mixin (including itself)
 func (c *Class) Parents() iter.Seq[*Class] {
@@ -230,6 +260,19 @@ func (c *Class) SetSingletonName(name string) {
 	}
 }
 
+func (c *Class) SetSuperclass(superclass *Class) {
+	classSingleton := c.SingletonClass()
+	if superclass == nil {
+		c.Parent = nil
+		classSingleton.Parent = nil
+		return
+	}
+
+	superclassSingleton := superclass.SingletonClass()
+	c.Parent = superclass
+	classSingleton.Parent = superclassSingleton
+}
+
 func (c *Class) SingletonClass() *Class {
 	if c.metaClass.IsSingleton() {
 		return c.metaClass
@@ -241,26 +284,17 @@ func (c *Class) SingletonClass() *Class {
 }
 
 func (c *Class) Copy() Reference {
-	newConstants := make(SymbolMap, len(c.Constants))
-	maps.Copy(newConstants, c.Constants)
-
-	newMethods := make(MethodMap, len(c.Methods))
-	maps.Copy(newMethods, c.Methods)
-
-	newInstanceVariables := make(SymbolMap, len(c.instanceVariables))
-	maps.Copy(newInstanceVariables, c.instanceVariables)
-
 	newClass := &Class{
 		ConstantContainer: ConstantContainer{
-			Constants: newConstants,
+			Constants: maps.Clone(c.Constants),
 			Name:      c.Name,
 		},
 		MethodContainer: MethodContainer{
-			Methods: newMethods,
+			Methods: maps.Clone(c.Methods),
 			Parent:  c.Parent,
 		},
 		metaClass:         c.metaClass,
-		instanceVariables: newInstanceVariables,
+		instanceVariables: slices.Clone(c.instanceVariables),
 		Flags:             c.Flags,
 		ConstructorFunc:   c.ConstructorFunc,
 	}
@@ -335,8 +369,8 @@ func (c *Class) Error() string {
 	return c.Inspect()
 }
 
-func (c *Class) InstanceVariables() SymbolMap {
-	return c.instanceVariables
+func (c *Class) InstanceVariables() *InstanceVariables {
+	return &c.instanceVariables
 }
 
 func NewClassComparer(opts *cmp.Options) cmp.Option {

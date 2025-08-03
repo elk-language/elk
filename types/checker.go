@@ -31,4 +31,5 @@ type Checker interface {
 	StdFalse() *Class
 	GetIteratorElementType(Type) (Type, Type)
 	GetIteratorType(Type) Type
+	SelfType() Type
 }

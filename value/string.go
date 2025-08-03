@@ -98,7 +98,7 @@ func (s String) Inspect() string {
 	return buffer.String()
 }
 
-func (s String) InstanceVariables() SymbolMap {
+func (s String) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -628,7 +628,7 @@ func (s *StringCharIterator) Error() string {
 	return s.Inspect()
 }
 
-func (*StringCharIterator) InstanceVariables() SymbolMap {
+func (*StringCharIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -691,7 +691,7 @@ func (s *StringByteIterator) Inspect() string {
 	return fmt.Sprintf("Std::String::ByteIterator{string: %s, byte_offset: %d}", s.String.Inspect(), s.ByteOffset)
 }
 
-func (*StringByteIterator) InstanceVariables() SymbolMap {
+func (*StringByteIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -758,7 +758,7 @@ func (s *StringGraphemeIterator) Inspect() string {
 	return fmt.Sprintf("Std::String::GraphemeIterator{string: %s}", s.String.Inspect())
 }
 
-func (*StringGraphemeIterator) InstanceVariables() SymbolMap {
+func (*StringGraphemeIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

@@ -12,7 +12,7 @@ var MethodClass *Class // ::Std::Method
 
 func initMethod() {
 	MethodClass = NewClassWithOptions(
-		ClassWithParent(FunctionClass),
+		ClassWithSuperclass(FunctionClass),
 	)
 	StdModule.AddConstantString("Method", Ref(MethodClass))
 }

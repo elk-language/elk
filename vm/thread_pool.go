@@ -94,7 +94,7 @@ func (t *ThreadPool) Error() string {
 	return t.Inspect()
 }
 
-func (*ThreadPool) InstanceVariables() value.SymbolMap {
+func (*ThreadPool) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 

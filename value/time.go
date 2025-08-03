@@ -43,7 +43,7 @@ func (t *Time) Error() string {
 	return t.Inspect()
 }
 
-func (t *Time) InstanceVariables() SymbolMap {
+func (t *Time) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

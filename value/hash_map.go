@@ -145,7 +145,7 @@ func (h *HashMap) Inspect() string {
 	return buff.String()
 }
 
-func (*HashMap) InstanceVariables() SymbolMap {
+func (*HashMap) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -206,7 +206,7 @@ func (h *HashMapIterator) Inspect() string {
 	return fmt.Sprintf("Std::HashMap::Iterator{hash_map: %s}", h.HashMap.Inspect())
 }
 
-func (*HashMapIterator) InstanceVariables() SymbolMap {
+func (*HashMapIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

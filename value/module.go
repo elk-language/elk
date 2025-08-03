@@ -3,6 +3,7 @@ package value
 import (
 	"fmt"
 	"maps"
+	"slices"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -10,7 +11,7 @@ import (
 // Represents an Elk Module.
 type Module struct {
 	class             *Class // The class that this module is an instance of
-	instanceVariables SymbolMap
+	instanceVariables InstanceVariables
 	ConstantContainer
 }
 
@@ -48,7 +49,6 @@ func NewModule() *Module {
 		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
-		instanceVariables: make(SymbolMap),
 	}
 }
 
@@ -70,16 +70,13 @@ func ModuleConstructor(class *Class) Value {
 		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
-		instanceVariables: make(SymbolMap),
+		instanceVariables: make([]Value, len(class.IvarIndices)),
 	})
 }
 
 func (m *Module) Copy() Reference {
-	newConstants := make(SymbolMap, len(m.Constants))
-	maps.Copy(newConstants, m.Constants)
-
-	newInstanceVariables := make(SymbolMap, len(m.instanceVariables))
-	maps.Copy(newInstanceVariables, m.instanceVariables)
+	newConstants := maps.Clone(m.Constants)
+	newInstanceVariables := slices.Clone(m.instanceVariables)
 
 	newModule := &Module{
 		ConstantContainer: ConstantContainer{
@@ -127,8 +124,8 @@ func (m *Module) Error() string {
 	return m.Inspect()
 }
 
-func (m *Module) InstanceVariables() SymbolMap {
-	return m.instanceVariables
+func (m *Module) InstanceVariables() *InstanceVariables {
+	return &m.instanceVariables
 }
 
 func NewModuleComparer(opts *cmp.Options) cmp.Option {

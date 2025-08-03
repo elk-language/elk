@@ -13,7 +13,7 @@ var UndefinedClass *Class
 func initUndefined() {
 	UndefinedClass = NewClassWithOptions(
 		ClassWithName("Undefined"),
-		ClassWithParent(ValueClass),
+		ClassWithSuperclass(ValueClass),
 	)
 }
 
@@ -43,6 +43,6 @@ func (u UndefinedType) Error() string {
 	return u.Inspect()
 }
 
-func (UndefinedType) InstanceVariables() SymbolMap {
+func (UndefinedType) InstanceVariables() *InstanceVariables {
 	return nil
 }

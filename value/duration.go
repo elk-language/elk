@@ -69,7 +69,7 @@ func (d Duration) Inspect() string {
 	return fmt.Sprintf("Std::Duration('%s')", d.String())
 }
 
-func (Duration) InstanceVariables() SymbolMap {
+func (Duration) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -240,6 +240,6 @@ func (d Duration) InYears() Float {
 }
 
 func initDuration() {
-	DurationClass = NewClassWithOptions(ClassWithParent(ValueClass))
+	DurationClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Duration", Ref(DurationClass))
 }

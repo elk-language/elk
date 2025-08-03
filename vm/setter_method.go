@@ -11,6 +11,7 @@ type SetterMethod struct {
 	Doc           value.Value
 	AttributeName value.Symbol
 	name          value.Symbol
+	IvarIndex     int
 }
 
 func (s *SetterMethod) Name() value.Symbol {
@@ -63,7 +64,7 @@ func (s *SetterMethod) Error() string {
 	return s.Inspect()
 }
 
-func (*SetterMethod) InstanceVariables() value.SymbolMap {
+func (*SetterMethod) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
@@ -72,15 +73,24 @@ func (s *SetterMethod) Call(self value.Value, val value.Value) (value.Value, val
 	if iv == nil {
 		return value.Undefined, value.Ref(value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect()))
 	}
-	iv.Set(s.AttributeName, val)
+
+	var ivarIndex int
+	if s.IvarIndex != -1 {
+		ivarIndex = s.IvarIndex
+	} else {
+		ivarIndex = self.DirectClass().IvarIndices[s.AttributeName]
+	}
+
+	iv.Set(ivarIndex, val)
 	return val, value.Undefined
 }
 
 // Create a new getter method.
-func NewSetterMethod(attrName value.Symbol) *SetterMethod {
+func NewSetterMethod(attrName value.Symbol, index int) *SetterMethod {
 	return &SetterMethod{
 		AttributeName: attrName,
 		name:          value.ToSymbol(attrName.ToString() + "="),
+		IvarIndex:     index,
 	}
 }
 
@@ -89,9 +99,11 @@ func NewSetterMethod(attrName value.Symbol) *SetterMethod {
 func DefineSetter(
 	container *value.MethodContainer,
 	attrName value.Symbol,
+	index int,
 ) {
 	setterMethod := NewSetterMethod(
 		attrName,
+		index,
 	)
 	container.AttachMethod(setterMethod.name, setterMethod)
 }
@@ -101,9 +113,10 @@ func DefineSetter(
 func DefineAccessor(
 	container *value.MethodContainer,
 	attrName value.Symbol,
+	index int,
 ) {
-	DefineGetter(container, attrName)
-	DefineSetter(container, attrName)
+	DefineGetter(container, attrName, index)
+	DefineSetter(container, attrName, index)
 }
 
 // Utility method that creates a new setter method and
@@ -114,7 +127,7 @@ func Setter(
 	attrName string,
 ) {
 	attrNameSymbol := value.ToSymbol(attrName)
-	setterMethod := NewSetterMethod(attrNameSymbol)
+	setterMethod := NewSetterMethod(attrNameSymbol, -1)
 
 	container.AttachMethod(setterMethod.name, setterMethod)
 }

@@ -372,7 +372,7 @@ func (f *BigFloat) Inspect() string {
 	return fmt.Sprintf("%sbf", f.AsGoBigFloat().Text('g', -1))
 }
 
-func (f *BigFloat) InstanceVariables() SymbolMap {
+func (f *BigFloat) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

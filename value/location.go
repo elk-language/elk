@@ -31,7 +31,7 @@ func (l *Location) Copy() Reference {
 	return l
 }
 
-func (*Location) InstanceVariables() SymbolMap {
+func (*Location) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

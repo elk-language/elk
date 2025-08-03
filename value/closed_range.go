@@ -48,7 +48,7 @@ func (r *ClosedRange) Inspect() string {
 	return buff.String()
 }
 
-func (r *ClosedRange) InstanceVariables() SymbolMap {
+func (r *ClosedRange) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -109,7 +109,7 @@ func (r *ClosedRangeIterator) Inspect() string {
 	return fmt.Sprintf("Std::ClosedRange::Iterator{range: %s, current_element: %s}", r.Range.Inspect(), r.CurrentElement.Inspect())
 }
 
-func (*ClosedRangeIterator) InstanceVariables() SymbolMap {
+func (*ClosedRangeIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

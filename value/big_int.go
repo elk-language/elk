@@ -949,7 +949,7 @@ func (i *BigInt) Copy() Reference {
 	return i
 }
 
-func (i *BigInt) InstanceVariables() SymbolMap {
+func (i *BigInt) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
@@ -1185,7 +1185,7 @@ func (l *BigIntIterator) Error() string {
 	return l.Inspect()
 }
 
-func (*BigIntIterator) InstanceVariables() SymbolMap {
+func (*BigIntIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

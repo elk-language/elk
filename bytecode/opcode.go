@@ -174,10 +174,18 @@ const (
 	INSTANTIATE8                    // Create a new instance of a class (8 bit operand)
 	INSTANTIATE16                   // Create a new instance of a class (16 bit operand)
 	RETURN_SELF                     // Push self and return
+	GET_IVAR_0                      // Get the value of an instance variable with index 0
+	GET_IVAR_1                      // Get the value of an instance variable with index 1
+	GET_IVAR_2                      // Get the value of an instance variable with index 2
 	GET_IVAR8                       // Get the value of an instance variable (8 bit operand)
 	GET_IVAR16                      // Get the value of an instance variable (16 bit operand)
+	GET_IVAR_NAME16                 // Get the value of an instance variable by name (16 bit operand)
+	SET_IVAR_0                      // Set the value of an instance variable with index 0
+	SET_IVAR_1                      // Set the value of an instance variable with index 1
+	SET_IVAR_2                      // Set the value of an instance variable with index 2
 	SET_IVAR8                       // Set the value of an instance variable (8 bit operand)
 	SET_IVAR16                      // Set the value of an instance variable (16 bit operand)
+	SET_IVAR_NAME16                 // Set the value of an instance variable by name (16 bit operand)
 	NEW_ARRAY_TUPLE8                // Create a new arrayTuple (8 bit operand)
 	NEW_ARRAY_TUPLE16               // Create a new arrayTuple (16 bit operand)
 	APPEND                          // Append an element to a list or arrayTuple, pops the element and leaves the collection on the stack
@@ -279,6 +287,7 @@ const (
 	AWAIT                           // Await the promise on top of the stack
 	AWAIT_RESULT                    // Handle the result of an awaited promise
 	AWAIT_SYNC                      // Await the promise on top of the stack synchronously
+	DEF_IVARS                       // Define instance variables in a class
 )
 
 var opCodeNames = [...]string{
@@ -414,10 +423,18 @@ var opCodeNames = [...]string{
 	INSTANTIATE8:      "INSTANTIATE8",
 	INSTANTIATE16:     "INSTANTIATE16",
 	RETURN_SELF:       "RETURN_SELF",
+	GET_IVAR_0:        "GET_IVAR_0",
+	GET_IVAR_1:        "GET_IVAR_1",
+	GET_IVAR_2:        "GET_IVAR_2",
 	GET_IVAR8:         "GET_IVAR8",
 	GET_IVAR16:        "GET_IVAR16",
+	GET_IVAR_NAME16:   "GET_IVAR_NAME16",
+	SET_IVAR_0:        "SET_IVAR_0",
+	SET_IVAR_1:        "SET_IVAR_1",
+	SET_IVAR_2:        "SET_IVAR_2",
 	SET_IVAR8:         "SET_IVAR8",
 	SET_IVAR16:        "SET_IVAR16",
+	SET_IVAR_NAME16:   "SET_IVAR_NAME16",
 	NEW_ARRAY_TUPLE8:  "NEW_ARRAY_TUPLE8",
 	NEW_ARRAY_TUPLE16: "NEW_ARRAY_TUPLE16",
 	APPEND:            "APPEND",
@@ -519,4 +536,5 @@ var opCodeNames = [...]string{
 	AWAIT:             "AWAIT",
 	AWAIT_RESULT:      "AWAIT_RESULT",
 	AWAIT_SYNC:        "AWAIT_SYNC",
+	DEF_IVARS:         "DEF_IVARS",
 }
