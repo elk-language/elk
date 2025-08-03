@@ -3409,6 +3409,7 @@ func (p *Parser) functionName() ast.IdentifierNode {
 // macroDefinition = "macro" macroName ["(" formalParameterList ")"] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
 	var params []ast.ParameterNode
+	var returnType ast.TypeNode
 	var body []ast.StatementNode
 	var location *position.Location
 
@@ -3436,6 +3437,12 @@ func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
 			}
 			location = location.Join(rparen.Location())
 		}
+	}
+
+	// return type
+	if p.match(token.COLON) {
+		returnType = p.typeAnnotation()
+		location = location.Join(returnType.Location())
 	}
 
 	lastLocation, body, multiline := p.statementBlockWithThen(token.END)
@@ -3469,6 +3476,7 @@ func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
 		false,
 		macroName,
 		params,
+		returnType,
 		body,
 	)
 }

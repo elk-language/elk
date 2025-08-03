@@ -23,6 +23,7 @@ type MacroDefinitionNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
 	sealed     bool
+	ReturnType TypeNode
 	Name       IdentifierNode
 	Parameters []ParameterNode // formal parameters
 	Body       []StatementNode // body of the method
@@ -38,6 +39,7 @@ func (n *MacroDefinitionNode) splice(loc *position.Location, args *[]Node, unquo
 		Name:                   n.Name.splice(loc, args, unquote).(IdentifierNode),
 		Parameters:             params,
 		Body:                   body,
+		ReturnType:             n.ReturnType,
 		sealed:                 n.sealed,
 	}
 }
@@ -60,6 +62,12 @@ func (n *MacroDefinitionNode) traverse(parent Node, enter func(node, parent Node
 
 	for _, param := range n.Parameters {
 		if param.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
+	}
+
+	if n.ReturnType != nil {
+		if n.ReturnType.traverse(n, enter, leave) == TraverseBreak {
 			return TraverseBreak
 		}
 	}
@@ -97,6 +105,13 @@ func (n *MacroDefinitionNode) Equal(other value.Value) bool {
 		}
 	}
 
+	if n.ReturnType == o.ReturnType {
+	} else if n.ReturnType == nil || o.ReturnType == nil {
+		return false
+	} else if !n.ReturnType.Equal(value.Ref(o.ReturnType)) {
+		return false
+	}
+
 	return n.loc.Equal(o.loc) &&
 		n.Name.Equal(value.Ref(o.Name)) &&
 		n.sealed == o.sealed
@@ -120,6 +135,11 @@ func (n *MacroDefinitionNode) String() string {
 		buff.WriteString(param.String())
 	}
 	buff.WriteString(")")
+
+	if n.ReturnType != nil {
+		buff.WriteString(": ")
+		buff.WriteString(n.ReturnType.String())
+	}
 
 	buff.WriteRune('\n')
 	for _, stmt := range n.Body {
@@ -164,6 +184,13 @@ func (n *MacroDefinitionNode) Inspect() string {
 	buff.WriteString(",\n  name: ")
 	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
 
+	buff.WriteString(",\n  return_type: ")
+	if n.ReturnType == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
+	}
+
 	buff.WriteString(",\n  parameters: %[\n")
 	for i, element := range n.Parameters {
 		if i != 0 {
@@ -198,6 +225,7 @@ func NewMacroDefinitionNode(
 	sealed bool,
 	name IdentifierNode,
 	params []ParameterNode,
+	returnType TypeNode,
 	body []StatementNode,
 ) *MacroDefinitionNode {
 	return &MacroDefinitionNode{
@@ -208,6 +236,7 @@ func NewMacroDefinitionNode(
 		sealed:     sealed,
 		Name:       name,
 		Parameters: params,
+		ReturnType: returnType,
 		Body:       body,
 	}
 }

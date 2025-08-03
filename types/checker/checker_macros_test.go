@@ -986,16 +986,6 @@ func TestMacroDefinition(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(17, 2, 17), P(17, 2, 17)), "unexpected (, expected a statement separator `\\n`, `;`"),
 			},
 		},
-		"cannot declare with a return type": {
-			input: `
-				macro foo: String
-					5
-				end
-			`,
-			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(14, 2, 14), P(14, 2, 14)), "unexpected :, expected a statement separator `\\n`, `;`"),
-			},
-		},
 		"redeclare the macro in the same class": {
 			input: `
 				using Std::Elk::AST::*
