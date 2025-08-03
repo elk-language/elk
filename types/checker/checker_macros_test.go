@@ -448,6 +448,61 @@ func TestExpandMacro(t *testing.T) {
 				timeout := fib!(15) + 2
 			`,
 		},
+		"generate a type": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro foo(t: TypeNode): TypeNode
+					NilableTypeNode(t)
+				end
+
+				class Bar
+					var @a: foo!(String)
+				end
+			`,
+		},
+		"use a type macro in an expression": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro foo(t: TypeNode): TypeNode
+					NilableTypeNode(t)
+				end
+
+				foo!(5)
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(103, 8, 5), P(109, 8, 11)), "type `Std::Elk::AST::TypeNode` cannot be assigned to type `Std::Elk::AST::ExpressionNode`"),
+			},
+		},
+		"generate a pattern": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro foo(c: ConstantNode): PatternNode
+					ObjectPatternNode(c)
+				end
+
+				a := 5
+				switch a
+				case foo!(Int)
+				end
+			`,
+		},
+		"use a pattern macro in an expression": {
+			input: `
+				using Std::Elk::AST::*
+
+				macro foo(c: ConstantNode): PatternNode
+					ObjectPatternNode(c)
+				end
+
+				foo!(Int)
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(112, 8, 5), P(120, 8, 13)), "type `Std::Elk::AST::PatternNode` cannot be assigned to type `Std::Elk::AST::ExpressionNode`"),
+			},
+		},
 		"use a scoped macro": {
 			input: `
 				using Std::Elk::AST::*
@@ -918,7 +973,7 @@ func TestMacroDefinition(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(20, 3, 6), P(33, 3, 19)), "macro definitions cannot appear in this context"),
 			},
 		},
-		"param types must inherit from ExpressionNode": {
+		"param types must inherit from Node": {
 			input: `
 				using Std::Elk::AST::*
 
@@ -929,7 +984,7 @@ func TestMacroDefinition(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(59, 5, 16), P(66, 5, 23)), "type `Std::Float` does not inherit from `Std::Elk::AST::ExpressionNode`, macro parameters must be expression nodes"),
+				diagnostic.NewFailure(L("<main>", P(59, 5, 16), P(66, 5, 23)), "type `Std::Float` does not inherit from `Std::Elk::AST::Node`, macro parameters must be nodes"),
 			},
 		},
 		"returned value must inherit from ExpressionNode when no return type - success": {

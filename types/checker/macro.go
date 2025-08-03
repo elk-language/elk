@@ -97,6 +97,7 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 
 		result := c.expandMacroByName(
 			c.identifierToName(expr.MacroName),
+			expr.Kind,
 			append(posArgs, expr.PositionalArguments...),
 			expr.NamedArguments,
 			expr.Location(),
@@ -109,6 +110,7 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 	case *ast.ReceiverlessMacroCallNode:
 		result := c.expandMacroByName(
 			c.identifierToName(expr.MacroName),
+			expr.Kind,
 			expr.PositionalArguments,
 			expr.NamedArguments,
 			expr.Location(),
@@ -190,18 +192,34 @@ func (c *Checker) macroMethodName(macroName string) value.Symbol {
 	return value.ToSymbol(macroName + "!")
 }
 
-func (c *Checker) expandMacroByName(name string, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.Node {
+func (c *Checker) expandMacroByName(name string, kind ast.MacroKind, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.Node {
 	macroName := c.macroMethodName(name)
 	macro := c.getMacro(macroName, loc)
 	if macro == nil {
 		return nil
 	}
 
-	return c.expandMacro(macro, posArgs, namedArgs, loc)
+	return c.expandMacro(macro, kind, posArgs, namedArgs, loc)
 }
 
-func (c *Checker) expandMacro(macro *types.Method, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.Node {
+func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.Node {
+	exprNodeType := c.StdExpressionNode()
+	patternNodeType := c.StdPatternNode()
+	typeNodeType := c.StdTypeNode()
+
 	checkedArgs := c.checkMacroArguments(macro, posArgs, namedArgs, loc)
+
+	var expectedReturnType types.Type
+	switch kind {
+	case ast.MACRO_EXPRESSION_KIND:
+		expectedReturnType = exprNodeType
+	case ast.MACRO_PATTERN_KIND:
+		expectedReturnType = patternNodeType
+	case ast.MACRO_TYPE_KIND:
+		expectedReturnType = typeNodeType
+	}
+	c.checkCanAssign(macro.ReturnType, expectedReturnType, loc)
+
 	if c.Errors.IsFailure() {
 		return nil
 	}
@@ -239,7 +257,7 @@ func (c *Checker) expandMacro(macro *types.Method, posArgs []ast.ExpressionNode,
 	resultNode := result.AsReference().(ast.Node)
 
 	switch macro.ReturnType {
-	case c.StdExpressionNode():
+	case exprNodeType:
 		switch r := resultNode.(type) {
 		case *ast.DoExpressionNode:
 			if r.HasSingleScope() {
@@ -264,14 +282,14 @@ func (c *Checker) expandMacro(macro *types.Method, posArgs []ast.ExpressionNode,
 		default:
 			panic(fmt.Sprintf("invalid expression macro result type: %T", resultNode))
 		}
-	case c.StdPatternNode():
+	case patternNodeType:
 		r := resultNode.(ast.PatternNode)
 		resultNode = ast.NewMacroBoundaryNode(
 			resultNode.Location(),
 			ast.PatternToStatements(r),
 			types.Inspect(macro),
 		)
-	case c.StdTypeNode():
+	case typeNodeType:
 		r := resultNode.(ast.TypeNode)
 		resultNode = ast.NewMacroBoundaryNode(
 			resultNode.Location(),
@@ -675,6 +693,7 @@ func (c *Checker) declareMacro(
 	returnTypeNode ast.TypeNode,
 	location *position.Location,
 ) *types.Method {
+	nodeType := c.StdNode()
 	exprNodeType := c.StdExpressionNode()
 	typeNodeType := c.StdTypeNode()
 	patternNodeType := c.StdPatternNode()
@@ -707,12 +726,12 @@ func (c *Checker) declareMacro(
 				kind = types.DefaultValueParameterKind
 			}
 
-			if !c.isSubtype(declaredType, exprNodeType, p.Location()) {
+			if !c.isSubtype(declaredType, nodeType, p.Location()) {
 				c.addFailure(
 					fmt.Sprintf(
-						"type `%s` does not inherit from `%s`, macro parameters must be expression nodes",
+						"type `%s` does not inherit from `%s`, macro parameters must be nodes",
 						types.InspectWithColor(declaredType),
-						types.InspectWithColor(exprNodeType),
+						types.InspectWithColor(nodeType),
 					),
 					p.Location(),
 				)
@@ -791,6 +810,7 @@ func (c *Checker) checkMacroCallNode(node *ast.MacroCallNode) ast.Node {
 	posArgs := []ast.ExpressionNode{node.Receiver}
 	result := c.expandMacroByName(
 		c.identifierToName(node.MacroName),
+		node.Kind,
 		append(posArgs, node.PositionalArguments...),
 		node.NamedArguments,
 		node.Location(),
@@ -865,6 +885,7 @@ func (c *Checker) checkScopedMacroCallNode(node *ast.ScopedMacroCallNode) ast.No
 
 	result := c.expandMacro(
 		macro,
+		node.Kind,
 		node.PositionalArguments,
 		node.NamedArguments,
 		node.Location(),
@@ -909,6 +930,7 @@ func (c *Checker) checkReceiverlessMacroCallNode(node *ast.ReceiverlessMacroCall
 
 	result := c.expandMacroByName(
 		c.identifierToName(node.MacroName),
+		node.Kind,
 		node.PositionalArguments,
 		node.NamedArguments,
 		node.Location(),
