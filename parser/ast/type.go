@@ -50,6 +50,10 @@ func (*Float64LiteralNode) typeNode()            {}
 func (*Float32LiteralNode) typeNode()            {}
 func (*BigFloatLiteralNode) typeNode()           {}
 func (*UnquoteNode) typeNode()                   {}
+func (*MacroCallNode) typeNode()                 {}
+func (*ReceiverlessMacroCallNode) typeNode()     {}
+func (*ScopedMacroCallNode) typeNode()           {}
+func (*MacroBoundaryNode) typeNode()             {}
 
 type StringTypeNode interface {
 	Node

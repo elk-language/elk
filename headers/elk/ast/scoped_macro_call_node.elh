@@ -3,11 +3,15 @@ module Std::Elk::AST
     Represents a scoped macro call eg. `Foo::bar!(5)`
   ]##
   sealed primitive class ScopedMacroCallNode
-    include ExpressionNode
+    include UsingEntryNode
+    include TypeNode
+    include ComplexConstantNode
+    include PatternExpressionNode
 
     init(
       receiver: ExpressionNode,
       macro_name: IdentifierNode,
+      kind: UInt8 = loop; end,
       positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
       named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
       location: FS::Location = loop; end,
@@ -15,6 +19,7 @@ module Std::Elk::AST
 
     def receiver: ExpressionNode; end
     def macro_name: IdentifierNode; end
+    def kind: UInt8; end
     def positional_arguments: ArrayTuple[ExpressionNode]; end
     def named_arguments: ArrayTuple[NamedArgumentNode]; end
     def location: FS::Location; end

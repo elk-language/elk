@@ -3,16 +3,21 @@ module Std::Elk::AST
     Represents a function-like macro call eg. `foo!(123)`
   ]##
   sealed primitive class ReceiverlessMacroCallNode
-    include ExpressionNode
+    include UsingEntryNode
+    include TypeNode
+    include ComplexConstantNode
+    include PatternExpressionNode
 
     init(
       macro_name: IdentifierNode,
+      kind: UInt8 = loop; end,
       positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
       named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
       location: FS::Location = loop; end
     ); end
 
     def macro_name: IdentifierNode; end
+    def kind: UInt8; end
     def positional_arguments: ArrayTuple[ExpressionNode]; end
     def named_arguments: ArrayTuple[NamedArgumentNode]; end
     def location: FS::Location; end

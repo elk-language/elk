@@ -294,18 +294,30 @@ func (p *Parser) swallowNewlines() {
 // Checks if the given slice of token types contains
 // the given token type.
 func containsToken(slice []token.Type, v token.Type) bool {
-	for _, s := range slice {
-		if v == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(slice, v)
 }
 
 // Consume a block of statements, like in `else` expressions,
 // that terminates with `end`.
 func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Location, []ast.StatementNode, bool) {
-	var thenBody []ast.StatementNode
+	return genericStatementBlock(
+		p,
+		p.statements,
+		p.expressionWithoutModifier,
+		ast.NewExpressionStatementNodeI,
+		stopTokens...,
+	)
+}
+
+// Consume a block of generic statements.
+func genericStatementBlock[Expression, Statement ast.Node](
+	p *Parser,
+	statementsProduction statementsProduction[Statement],
+	expressionProduction func() Expression,
+	statementConstructor statementConstructor[Expression, Statement],
+	stopTokens ...token.Type,
+) (*position.Location, []Statement, bool) {
+	var thenBody []Statement
 	var lastLocation *position.Location
 	var multiline bool
 
@@ -316,8 +328,8 @@ func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Location, [
 	}
 
 	if !p.lookahead.IsStatementSeparator() {
-		expr := p.expressionWithoutModifier()
-		thenBody = append(thenBody, ast.NewExpressionStatementNode(
+		expr := expressionProduction()
+		thenBody = append(thenBody, statementConstructor(
 			expr.Location(),
 			expr,
 		))
@@ -329,7 +341,7 @@ func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Location, [
 		if p.accept(token.END) {
 			lastLocation = p.lookahead.Location()
 		} else if !containsToken(stopTokens, p.lookahead.Type) {
-			thenBody = p.statements(stopTokens...)
+			thenBody = statementsProduction(stopTokens...)
 			if len(thenBody) > 0 {
 				lastLocation = position.LocationOfLastElement(thenBody)
 			}
@@ -1552,6 +1564,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 
 		receiver = ast.NewReceiverlessMacroCallNode(
 			location,
+			ast.MACRO_EXPRESSION_KIND,
 			tokenToIdentifier(macroName),
 			posArgs,
 			namedArgs,
@@ -1850,6 +1863,7 @@ methodCallLoop:
 		if isMacro {
 			receiver = ast.NewMacroCallNode(
 				location,
+				ast.MACRO_EXPRESSION_KIND,
 				receiver,
 				methodName,
 				posArgs,
@@ -2139,6 +2153,7 @@ func (p *Parser) constantOrMethodLookup() ast.ExpressionNode {
 
 					left = ast.NewScopedMacroCallNode(
 						location,
+						ast.MACRO_EXPRESSION_KIND,
 						left,
 						right,
 						posArgs,
@@ -2384,8 +2399,12 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.switchExpression()
 	case token.IF:
 		return p.ifExpression()
-	case token.QUOTE:
+	case token.QUOTE, token.QUOTE_EXPR:
 		return p.quoteExpression()
+	case token.QUOTE_TYPE:
+		return p.quoteTypeExpression()
+	case token.QUOTE_PATTERN:
+		return p.quotePatternExpression()
 	case token.SHORT_UNQUOTE_BEG:
 		return p.shortUnquoteExpression()
 	case token.UNQUOTE, token.UNQUOTE_EXPR:
@@ -3390,6 +3409,7 @@ func (p *Parser) functionName() ast.IdentifierNode {
 // macroDefinition = "macro" macroName ["(" formalParameterList ")"] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
 	var params []ast.ParameterNode
+	var returnType ast.TypeNode
 	var body []ast.StatementNode
 	var location *position.Location
 
@@ -3417,6 +3437,12 @@ func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
 			}
 			location = location.Join(rparen.Location())
 		}
+	}
+
+	// return type
+	if p.match(token.COLON) {
+		returnType = p.typeAnnotation()
+		location = location.Join(returnType.Location())
 	}
 
 	lastLocation, body, multiline := p.statementBlockWithThen(token.END)
@@ -3450,6 +3476,7 @@ func (p *Parser) macroDefinition(allowed bool) ast.ExpressionNode {
 		false,
 		macroName,
 		params,
+		returnType,
 		body,
 	)
 }
@@ -4810,6 +4837,8 @@ func (p *Parser) primaryType() ast.TypeNode {
 		return p.unquoteType()
 	case token.SHORT_UNQUOTE_BEG:
 		return p.shortUnquoteType()
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		return p.receiverlessMacroCall(ast.MACRO_TYPE_KIND)
 	case token.BOOL:
 		tok := p.advance()
 		return ast.NewBoolLiteralNode(tok.Location())
@@ -4924,7 +4953,7 @@ func (p *Parser) closureType() ast.TypeNode {
 
 // namedType = genericConstant
 func (p *Parser) namedType() ast.TypeNode {
-	return p.genericConstant()
+	return p.genericConstantType()
 }
 
 // genericConstantOrNil = genericConstant | "nil"
@@ -4933,6 +4962,31 @@ func (p *Parser) genericConstantOrNil() ast.ComplexConstantNode {
 		return p.nilLiteral()
 	}
 	return p.genericConstant()
+}
+
+// genericConstant = strictConstantLookup | strictConstantLookup "[" [typeAnnotationList] "]"
+func (p *Parser) genericConstantType() ast.ComplexConstantNode {
+	constant := p.strictConstantLookupOrScopedMacro(ast.MACRO_TYPE_KIND)
+	if !p.match(token.LBRACKET) {
+		return constant
+	}
+
+	if p.match(token.RBRACKET) {
+		p.errorExpected("a constant")
+		return constant
+	}
+
+	typeList := p.typeAnnotationList(token.RBRACKET)
+	rbracket, ok := p.consume(token.RBRACKET)
+	if !ok {
+		return ast.NewInvalidNode(rbracket.Location(), rbracket)
+	}
+
+	return ast.NewGenericConstantNode(
+		constant.Location().Join(rbracket.Location()),
+		constant,
+		typeList,
+	)
 }
 
 // genericConstant = strictConstantLookup | strictConstantLookup "[" [typeAnnotationList] "]"
@@ -5187,7 +5241,7 @@ func (p *Parser) shortUnquote(kind ast.UnquoteKind) ast.UnquoteOrInvalidNode {
 	)
 }
 
-// quoteExpression = "quote" ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))
+// quoteExpression = ("quote" | "quote_expr") ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))
 func (p *Parser) quoteExpression() ast.ExpressionNode {
 	quoteTok := p.advance()
 
@@ -5202,6 +5256,7 @@ func (p *Parser) quoteExpression() ast.ExpressionNode {
 
 	quoteExpression := ast.NewQuoteExpressionNode(
 		location,
+		ast.QUOTE_EXPRESSION_KIND,
 		body,
 	)
 
@@ -5219,6 +5274,32 @@ func (p *Parser) quoteExpression() ast.ExpressionNode {
 	}
 
 	return quoteExpression
+}
+
+// quoteTypeExpression = "quote_type" [SEPARATOR] typeAnnotation
+func (p *Parser) quoteTypeExpression() ast.ExpressionNode {
+	quoteTok := p.advance()
+	p.swallowNewlines()
+	typeNode := p.typeAnnotation()
+
+	return ast.NewQuoteExpressionNode(
+		quoteTok.Location().Join(typeNode.Location()),
+		ast.QUOTE_TYPE_KIND,
+		ast.TypeToStatements(typeNode),
+	)
+}
+
+// quotePatternExpression = "quote_pattern" [SEPARATOR] pattern
+func (p *Parser) quotePatternExpression() ast.ExpressionNode {
+	quoteTok := p.advance()
+	p.swallowNewlines()
+	pattern := p.pattern()
+
+	return ast.NewQuoteExpressionNode(
+		quoteTok.Location().Join(pattern.Location()),
+		ast.QUOTE_PATTERN_KIND,
+		ast.PatternToStatements(pattern),
+	)
 }
 
 // macroBoundary = "do" "macro" [RAW_STRING] ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))
@@ -6105,9 +6186,113 @@ func (p *Parser) objectAttributePattern() ast.PatternNode {
 	}
 }
 
+func (p *Parser) strictConstantLookupOrScopedMacro(kind ast.MacroKind) ast.ComplexConstantNode {
+	var left ast.ComplexConstantNode
+	if tok, ok := p.matchOk(token.SCOPE_RES_OP); ok {
+		if p.accept(token.PRIVATE_CONSTANT) {
+			p.errorUnexpected(privateConstantAccessMessage)
+		}
+		right := p.constant()
+		left = ast.NewConstantLookupNode(
+			tok.Location().Join(right.Location()),
+			nil,
+			right,
+		)
+	} else {
+		left = p.constant()
+	}
+
+	for p.lookahead.Type == token.SCOPE_RES_OP {
+		p.advance()
+
+		p.swallowNewlines()
+		if p.accept(token.PRIVATE_CONSTANT,
+			token.PUBLIC_CONSTANT,
+			token.UNQUOTE,
+			token.UNQUOTE_CONST,
+			token.SHORT_UNQUOTE_BEG,
+		) {
+			if p.accept(token.PRIVATE_CONSTANT) {
+				p.errorUnexpected(privateConstantAccessMessage)
+			}
+			right := p.constant()
+
+			left = ast.NewConstantLookupNode(
+				left.Location().Join(right.Location()),
+				left,
+				right,
+			)
+			continue
+		}
+
+		if p.accept(
+			token.DOLLAR_IDENTIFIER,
+			token.PUBLIC_IDENTIFIER,
+			token.UNQUOTE_IDENT,
+		) {
+			right := p.methodName()
+
+			bang, ok := p.consume(token.BANG)
+			if !ok {
+				return ast.NewInvalidNode(bang.Location(), bang)
+			}
+
+			switch right.(type) {
+			case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
+			default:
+				p.errorMessageLocation("invalid macro name", right.Location())
+			}
+
+			location := left.Location().Join(bang.Location())
+			hasParentheses := p.lookahead.Type == token.LPAREN
+			lastArgSpan, posArgs, namedArgs, errToken := p.callArgumentList()
+			if errToken != nil {
+				return ast.NewInvalidNode(
+					errToken.Location(),
+					errToken,
+				)
+			}
+			if lastArgSpan != nil {
+				location = location.Join(lastArgSpan)
+			}
+
+			hasTrailingClosure := p.hasTrailingClosure()
+
+			if hasTrailingClosure && (hasParentheses || len(posArgs) == 0 && len(namedArgs) == 0) {
+				function := p.closureExpression()
+				if len(namedArgs) > 0 {
+					namedArgs = append(
+						namedArgs,
+						ast.NewNamedCallArgumentNode(
+							function.Location(),
+							ast.NewPublicIdentifierNode(function.Location(), "fn"),
+							function,
+						),
+					)
+				} else {
+					posArgs = append(posArgs, function)
+				}
+				location = location.Join(function.Location())
+			}
+
+			left = ast.NewScopedMacroCallNode(
+				location,
+				kind,
+				left,
+				right,
+				posArgs,
+				namedArgs,
+			)
+			continue
+		}
+	}
+
+	return left
+}
+
 // strictConstantLookupOrObjectPattern = strictConstantLookup ["(" [objectPatternAttributes] ")"]
 func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
-	constant := p.strictConstantLookup()
+	constant := p.strictConstantLookupOrScopedMacro(ast.MACRO_PATTERN_KIND)
 	if !p.accept(token.LPAREN) {
 		return constant
 	}
@@ -6606,12 +6791,76 @@ func (p *Parser) nilLiteral() *ast.NilLiteralNode {
 	return ast.NewNilLiteralNode(tok.Location())
 }
 
+func (p *Parser) receiverlessMacroCall(kind ast.MacroKind) ast.PatternTypeExpressionNode {
+	macroName := p.advance()
+	location := macroName.Location()
+
+	p.advance() // bang !
+
+	var posArgs []ast.ExpressionNode
+	var namedArgs []ast.NamedArgumentNode
+	if p.accept(token.LPAREN) || p.lookahead.IsValidAsArgumentToNoParenFunctionCall() {
+		var lastArgSpan *position.Location
+		var errToken *token.Token
+
+		lastArgSpan, posArgs, namedArgs, errToken = p.callArgumentList()
+		if errToken != nil {
+			return ast.NewInvalidNode(
+				errToken.Location(),
+				errToken,
+			)
+		}
+		if lastArgSpan == nil {
+			p.errorExpected("macro arguments")
+			errToken = p.advance()
+			return ast.NewInvalidNode(
+				errToken.Location(),
+				errToken,
+			)
+		}
+		location = location.Join(lastArgSpan)
+	}
+
+	if p.hasTrailingClosure() {
+		function := p.closureExpression()
+		if len(namedArgs) > 0 {
+			namedArgs = append(
+				namedArgs,
+				ast.NewNamedCallArgumentNode(
+					function.Location(),
+					ast.NewPublicIdentifierNode(function.Location(), "fn"),
+					function,
+				),
+			)
+		} else {
+			posArgs = append(posArgs, function)
+		}
+		location = location.Join(function.Location())
+	}
+
+	return ast.NewReceiverlessMacroCallNode(
+		location,
+		kind,
+		tokenToIdentifier(macroName),
+		posArgs,
+		namedArgs,
+	)
+}
+
+func (p *Parser) identifierOrMacroPattern() ast.PatternExpressionNode {
+	if !p.acceptSecond(token.BANG) {
+		return p.identifier()
+	}
+
+	return p.receiverlessMacroCall(ast.MACRO_PATTERN_KIND)
+}
+
 func (p *Parser) simplePattern() ast.PatternExpressionNode {
 	switch p.lookahead.Type {
 	case token.REGEX_BEG:
 		return p.regexLiteral()
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		return p.identifier()
+		return p.identifierOrMacroPattern()
 	}
 
 	return p.innerLiteralPattern()

@@ -186,6 +186,19 @@ func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) (re
 		return c.checkUnaryPattern(n, matchedType)
 	case *ast.BinaryPatternNode:
 		return c.checkBinaryPattern(n, matchedType)
+	case *ast.MacroBoundaryNode:
+		stmt := n.Body[0].(*ast.PatternStatementNode)
+		pattern, fullyCapturedType := c.checkPattern(stmt.Pattern, matchedType)
+		stmt.Pattern = pattern
+		n.SetType(c.TypeOf(pattern))
+
+		return n, fullyCapturedType
+	case *ast.ReceiverlessMacroCallNode:
+		return c.checkReceiverlessMacroCallNodeForPattern(n, matchedType)
+	case *ast.MacroCallNode:
+		return c.checkMacroCallNodeForPattern(n, matchedType)
+	case *ast.ScopedMacroCallNode:
+		return c.checkScopedMacroCallNodeForPattern(n, matchedType)
 	default:
 		panic(fmt.Sprintf("invalid pattern node %T", node))
 	}

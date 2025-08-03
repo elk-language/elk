@@ -11,12 +11,29 @@ module Std::Elk::AST
   sealed primitive class QuoteExpressionNode
     include ExpressionNode
 
+    ##[
+      Default kind of quote for expression nodes
+    ]##
+    const QUOTE_EXPRESSION_KIND: UInt8
+
+    ##[
+      Quote kind for pattern nodes
+    ]##
+    const QUOTE_PATTERN_KIND: UInt8
+
+    ##[
+      Quote kind for type nodes
+    ]##
+    const QUOTE_TYPE_KIND: UInt8
+
     init(
       body: ArrayTuple[StatementNode] = loop; end,
+      kind: UInt8 = loop; end,
       location: FS::Location = loop; end,
     ); end
 
     def body: ArrayTuple[StatementNode]; end
+    def kind: UInt8; end
     def location: FS::Location; end
   end
 end

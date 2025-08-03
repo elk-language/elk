@@ -16,9 +16,14 @@ func initScopedMacroCallNode() {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
 			argMacroName := args[2].MustReference().(ast.IdentifierNode)
 
-			var argPositionalArguments []ast.ExpressionNode
+			var argKind ast.MacroKind
 			if !args[3].IsUndefined() {
-				argPositionalArgumentsTuple := args[3].MustReference().(*value.ArrayTuple)
+				argKind = ast.MacroKind(args[3].AsUInt8())
+			}
+
+			var argPositionalArguments []ast.ExpressionNode
+			if !args[4].IsUndefined() {
+				argPositionalArgumentsTuple := args[4].MustReference().(*value.ArrayTuple)
 				argPositionalArguments = make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
 				for i, el := range *argPositionalArgumentsTuple {
 					argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
@@ -26,8 +31,8 @@ func initScopedMacroCallNode() {
 			}
 
 			var argNamedArguments []ast.NamedArgumentNode
-			if !args[4].IsUndefined() {
-				argNamedArgumentsTuple := args[4].MustReference().(*value.ArrayTuple)
+			if !args[5].IsUndefined() {
+				argNamedArgumentsTuple := args[5].MustReference().(*value.ArrayTuple)
 				argNamedArguments = make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
 				for i, el := range *argNamedArgumentsTuple {
 					argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -35,13 +40,14 @@ func initScopedMacroCallNode() {
 			}
 
 			var argLoc *position.Location
-			if args[5].IsUndefined() {
+			if args[6].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[5].Pointer())
+				argLoc = (*position.Location)(args[6].Pointer())
 			}
 			self := ast.NewScopedMacroCallNode(
 				argLoc,
+				argKind,
 				argReceiver,
 				argMacroName,
 				argPositionalArguments,
@@ -50,7 +56,17 @@ func initScopedMacroCallNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(5),
+		vm.DefWithParameters(6),
+	)
+
+	vm.Def(
+		c,
+		"kind",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ScopedMacroCallNode)
+			result := value.UInt8(self.Kind)
+			return result.ToValue(), value.Undefined
+		},
 	)
 
 	vm.Def(

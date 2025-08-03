@@ -50,6 +50,8 @@ func InitGlobalEnvironment() {
 	initDoubleSplatExpressionNode()
 	initEmptyStatementNode()
 	initExpressionStatementNode()
+	initTypeStatementNode()
+	initPatternStatementNode()
 	initExtendWhereBlockExpressionNode()
 	initTrueLiteralNode()
 	initFalseLiteralNode()

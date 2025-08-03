@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Pattern optionally terminated with a newline or a semicolon.
+  ]##
+  sealed primitive class PatternStatementNode
+    include StatementNode
+
+    init(pattern: PatternNode, location: FS::Location = loop; end); end
+    def pattern: PatternNode; end
+    def location: FS::Location; end
+  end
+end

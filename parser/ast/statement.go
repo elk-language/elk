@@ -23,6 +23,8 @@ func (*ExpressionStatementNode) statementNode() {}
 func (*EmptyStatementNode) statementNode()      {}
 func (*ImportStatementNode) statementNode()     {}
 func (*ParameterStatementNode) statementNode()  {}
+func (*TypeStatementNode) statementNode()       {}
+func (*PatternStatementNode) statementNode()    {}
 
 // Expression optionally terminated with a newline or a semicolon.
 type ExpressionStatementNode struct {
@@ -353,5 +355,173 @@ func NewParameterStatementNodeI(loc *position.Location, param ParameterNode) Str
 	return &ParameterStatementNode{
 		NodeBase:  NodeBase{loc: loc},
 		Parameter: param,
+	}
+}
+
+// Type optionally terminated with a newline or a semicolon.
+type TypeStatementNode struct {
+	NodeBase
+	TypeNode TypeNode
+}
+
+func (n *TypeStatementNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	return &TypeStatementNode{
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		TypeNode: n.TypeNode.splice(loc, args, unquote).(TypeNode),
+	}
+}
+
+func (n *TypeStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::TypeStatementNode", env)
+}
+
+func (n *TypeStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	if n.TypeNode.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
+}
+
+func (n *TypeStatementNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TypeStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
+		n.loc.Equal(o.loc)
+}
+
+// Return a string representation of the node.
+func (n *TypeStatementNode) String() string {
+	return n.TypeNode.String()
+}
+
+func (*TypeStatementNode) IsStatic() bool {
+	return false
+}
+
+func (*TypeStatementNode) Class() *value.Class {
+	return value.TypeStatementNodeClass
+}
+
+func (*TypeStatementNode) DirectClass() *value.Class {
+	return value.TypeStatementNodeClass
+}
+
+func (n *TypeStatementNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::Elk::AST::TypeStatementNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+
+	buff.WriteString(",\n  type_node: ")
+	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (e *TypeStatementNode) Error() string {
+	return e.Inspect()
+}
+
+// Create a new type statement node eg. `Bar | Foo\n`
+func NewTypeStatementNode(loc *position.Location, typeNode TypeNode) *TypeStatementNode {
+	return &TypeStatementNode{
+		NodeBase: NodeBase{loc: loc},
+		TypeNode: typeNode,
+	}
+}
+
+// Pattern optionally terminated with a newline or a semicolon.
+type PatternStatementNode struct {
+	NodeBase
+	Pattern PatternNode
+}
+
+func (n *PatternStatementNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	return &PatternStatementNode{
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Pattern:  n.Pattern.splice(loc, args, unquote).(PatternNode),
+	}
+}
+
+func (n *PatternStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::PatternStatementNode", env)
+}
+
+func (n *PatternStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	if n.Pattern.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
+}
+
+func (n *PatternStatementNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PatternStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.Pattern.Equal(value.Ref(o.Pattern)) &&
+		n.loc.Equal(o.loc)
+}
+
+// Return a string representation of the node.
+func (n *PatternStatementNode) String() string {
+	return n.Pattern.String()
+}
+
+func (*PatternStatementNode) IsStatic() bool {
+	return false
+}
+
+func (*PatternStatementNode) Class() *value.Class {
+	return value.PatternStatementNodeClass
+}
+
+func (*PatternStatementNode) DirectClass() *value.Class {
+	return value.PatternStatementNodeClass
+}
+
+func (n *PatternStatementNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::Elk::AST::PatternStatementNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+
+	buff.WriteString(",\n  pattern: ")
+	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (e *PatternStatementNode) Error() string {
+	return e.Inspect()
+}
+
+// Create a new pattern statement node eg. `Foo(n: 1 || nil)\n`
+func NewPatternStatementNode(loc *position.Location, pattern PatternNode) *PatternStatementNode {
+	return &PatternStatementNode{
+		NodeBase: NodeBase{loc: loc},
+		Pattern:  pattern,
 	}
 }

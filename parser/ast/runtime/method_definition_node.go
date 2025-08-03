@@ -141,6 +141,7 @@ func initMethodDefinitionNode() {
 
 		},
 	)
+
 	vm.Def(
 		c,
 		"return_type",

@@ -64,9 +64,13 @@ func (*FloatLiteralNode) patternNode()               {}
 func (*Float32LiteralNode) patternNode()             {}
 func (*Float64LiteralNode) patternNode()             {}
 func (*BigFloatLiteralNode) patternNode()            {}
+func (*ReceiverlessMacroCallNode) patternNode()      {}
+func (*MacroCallNode) patternNode()                  {}
+func (*ScopedMacroCallNode) patternNode()            {}
 func (*UninterpolatedRegexLiteralNode) patternNode() {}
 func (*InterpolatedRegexLiteralNode) patternNode()   {}
 func (*UnquoteNode) patternNode()                    {}
+func (*MacroBoundaryNode) patternNode()              {}
 
 func anyPatternDeclaresVariables(patterns []PatternNode) bool {
 	return slices.ContainsFunc(patterns, PatternDeclaresVariables)
@@ -112,4 +116,11 @@ type PatternExpressionNode interface {
 	Node
 	ExpressionNode
 	PatternNode
+}
+
+type PatternTypeExpressionNode interface {
+	Node
+	ExpressionNode
+	PatternNode
+	TypeNode
 }

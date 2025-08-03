@@ -15,9 +15,14 @@ func initReceiverlessMacroCallNode() {
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			argMethodName := args[1].MustReference().(ast.IdentifierNode)
 
-			var argPositionalArguments []ast.ExpressionNode
+			var argKind ast.MacroKind
 			if !args[2].IsUndefined() {
-				argPositionalArgumentsTuple := args[2].MustReference().(*value.ArrayTuple)
+				argKind = ast.MacroKind(args[2].AsUInt8())
+			}
+
+			var argPositionalArguments []ast.ExpressionNode
+			if !args[3].IsUndefined() {
+				argPositionalArgumentsTuple := args[3].MustReference().(*value.ArrayTuple)
 				argPositionalArguments = make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
 				for i, el := range *argPositionalArgumentsTuple {
 					argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
@@ -25,8 +30,8 @@ func initReceiverlessMacroCallNode() {
 			}
 
 			var argNamedArguments []ast.NamedArgumentNode
-			if !args[3].IsUndefined() {
-				argNamedArgumentsTuple := args[3].MustReference().(*value.ArrayTuple)
+			if !args[4].IsUndefined() {
+				argNamedArgumentsTuple := args[4].MustReference().(*value.ArrayTuple)
 				argNamedArguments = make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
 				for i, el := range *argNamedArgumentsTuple {
 					argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -34,13 +39,14 @@ func initReceiverlessMacroCallNode() {
 			}
 
 			var argLoc *position.Location
-			if args[4].IsUndefined() {
+			if args[5].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[4].Pointer())
+				argLoc = (*position.Location)(args[5].Pointer())
 			}
 			self := ast.NewReceiverlessMacroCallNode(
 				argLoc,
+				argKind,
 				argMethodName,
 				argPositionalArguments,
 				argNamedArguments,
@@ -48,7 +54,7 @@ func initReceiverlessMacroCallNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(4),
+		vm.DefWithParameters(5),
 	)
 
 	vm.Def(
@@ -76,6 +82,16 @@ func initReceiverlessMacroCallNode() {
 			result := value.Ref(arrayTuple)
 			return result, value.Undefined
 
+		},
+	)
+
+	vm.Def(
+		c,
+		"kind",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ReceiverlessMacroCallNode)
+			result := value.UInt8(self.Kind)
+			return result.ToValue(), value.Undefined
 		},
 	)
 

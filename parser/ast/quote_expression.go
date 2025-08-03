@@ -10,9 +10,18 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+type QuoteKind uint8
+
+const (
+	QUOTE_EXPRESSION_KIND QuoteKind = iota // Default kind of quote for expression nodes
+	QUOTE_PATTERN_KIND                     // Quote kind for pattern nodes
+	QUOTE_TYPE_KIND                        // Quote kind for type nodes
+)
+
 // Represents a quoted piecie of AST
 type QuoteExpressionNode struct {
 	TypedNodeBase
+	Kind QuoteKind
 	Body []StatementNode
 }
 
@@ -20,6 +29,10 @@ type QuoteExpressionNode struct {
 // statement, if so retrieves it and returns the expression.
 // Otherwise returns nil.
 func (n *QuoteExpressionNode) SingleExpression() ExpressionNode {
+	if n.Kind != QUOTE_EXPRESSION_KIND {
+		return nil
+	}
+
 	var stmtCount int
 	var exprStmt *ExpressionStatementNode
 
@@ -50,6 +63,7 @@ func (n *QuoteExpressionNode) SingleExpression() ExpressionNode {
 func (n *QuoteExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &QuoteExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Kind:          n.Kind,
 		Body:          SpliceSlice(n.Body, loc, args, unquote),
 	}
 }
@@ -82,7 +96,7 @@ func (n *QuoteExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if len(n.Body) != len(o.Body) {
+	if len(n.Body) != len(o.Body) || n.Kind != o.Kind {
 		return false
 	}
 
@@ -99,7 +113,14 @@ func (n *QuoteExpressionNode) Equal(other value.Value) bool {
 func (n *QuoteExpressionNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString("quote\n")
+	switch n.Kind {
+	case QUOTE_EXPRESSION_KIND:
+		buff.WriteString("quote\n")
+	case QUOTE_TYPE_KIND:
+		buff.WriteString("quote_type\n")
+	case QUOTE_PATTERN_KIND:
+		buff.WriteString("quote_pattern\n")
+	}
 
 	for _, stmt := range n.Body {
 		indent.IndentString(&buff, stmt.String(), 1)
@@ -137,6 +158,8 @@ func (n *QuoteExpressionNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
+	fmt.Fprintf(&buff, ",\n  kind: %s", value.UInt8(n.Kind).Inspect())
+
 	buff.WriteString("\n}")
 
 	return buff.String()
@@ -151,9 +174,10 @@ func (n *QuoteExpressionNode) Error() string {
 //	quote
 //		print("awesome!")
 //	end
-func NewQuoteExpressionNode(loc *position.Location, body []StatementNode) *QuoteExpressionNode {
+func NewQuoteExpressionNode(loc *position.Location, kind QuoteKind, body []StatementNode) *QuoteExpressionNode {
 	return &QuoteExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
+		Kind:          kind,
 		Body:          body,
 	}
 }

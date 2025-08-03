@@ -22,20 +22,26 @@ func initQuoteExpressionNode() {
 				}
 			}
 
+			var argKind ast.QuoteKind
+			if !args[2].IsUndefined() {
+				argKind = ast.QuoteKind(args[2].AsUInt8())
+			}
+
 			var argLoc *position.Location
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[2].Pointer())
+				argLoc = (*position.Location)(args[3].Pointer())
 			}
 			self := ast.NewQuoteExpressionNode(
 				argLoc,
+				argKind,
 				argBody,
 			)
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(2),
+		vm.DefWithParameters(3),
 	)
 
 	vm.Def(
@@ -52,6 +58,16 @@ func initQuoteExpressionNode() {
 			result := value.Ref(arrayTuple)
 			return result, value.Undefined
 
+		},
+	)
+
+	vm.Def(
+		c,
+		"kind",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.QuoteExpressionNode)
+			result := value.UInt8(self.Kind)
+			return result.ToValue(), value.Undefined
 		},
 	)
 

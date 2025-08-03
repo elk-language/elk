@@ -8,6 +8,7 @@ module Std::Elk::AST
     init(
       name: IdentifierNode,
       parameters: ArrayTuple[ParameterNode] = loop; end,
+      return_type: TypeNode? = nil,
       body: ArrayTuple[StatementNode] = loop; end,
       is_sealed: bool = false,
       doc_comment: String = "",
@@ -17,6 +18,7 @@ module Std::Elk::AST
     def doc_comment: String; end
     def name: IdentifierNode; end
     def parameters: ArrayTuple[ParameterNode]; end
+    def return_type: TypeNode; end
     def body: ArrayTuple[StatementNode]; end
     def location: FS::Location; end
 

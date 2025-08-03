@@ -1192,11 +1192,11 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		n.SetType(types.Untyped{})
 		return n
 	case *ast.MacroCallNode:
-		return c.checkMacroCallNode(n)
+		return c.checkMacroCallNodeForExpression(n)
 	case *ast.ReceiverlessMacroCallNode:
-		return c.checkReceiverlessMacroCallNode(n)
+		return c.checkReceiverlessMacroCallNodeForExpression(n)
 	case *ast.ScopedMacroCallNode:
-		return c.checkScopedMacroCallNode(n)
+		return c.checkScopedMacroCallNodeForExpression(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -6305,6 +6305,18 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 	case *ast.Float32LiteralNode:
 		n.SetType(types.NewFloat32Literal(n.Value))
 		return n
+	case *ast.MacroBoundaryNode:
+		stmt := n.Body[0].(*ast.TypeStatementNode)
+		typeNode := c.checkTypeNode(stmt.TypeNode)
+		stmt.TypeNode = typeNode
+		n.SetType(c.TypeOf(typeNode))
+		return n
+	case *ast.ReceiverlessMacroCallNode:
+		return c.checkReceiverlessMacroCallNodeForType(n)
+	case *ast.MacroCallNode:
+		return c.checkMacroCallNodeForType(n)
+	case *ast.ScopedMacroCallNode:
+		return c.checkScopedMacroCallNodeForType(n)
 	case *ast.SelfLiteralNode:
 		switch c.mode {
 		case methodMode, initMode, outputPositionTypeMode, inheritanceMode:

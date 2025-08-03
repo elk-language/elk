@@ -24,9 +24,14 @@ func initMacroDefinitionNode() {
 				}
 			}
 
-			var argBody []ast.StatementNode
+			var argReturnType ast.TypeNode
 			if !args[3].IsUndefined() {
-				argBodyTuple := args[3].MustReference().(*value.ArrayTuple)
+				argReturnType = args[3].MustReference().(ast.TypeNode)
+			}
+
+			var argBody []ast.StatementNode
+			if !args[4].IsUndefined() {
+				argBodyTuple := args[4].MustReference().(*value.ArrayTuple)
 				argBody = make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -34,20 +39,20 @@ func initMacroDefinitionNode() {
 			}
 
 			var argSealed bool
-			if !args[4].IsUndefined() {
-				argSealed = value.Truthy(args[4])
+			if !args[5].IsUndefined() {
+				argSealed = value.Truthy(args[5])
 			}
 
 			var argDocComment string
-			if !args[5].IsUndefined() {
-				argDocComment = string(args[5].MustReference().(value.String))
+			if !args[6].IsUndefined() {
+				argDocComment = string(args[6].MustReference().(value.String))
 			}
 
 			var argLocation *position.Location
-			if args[6].IsUndefined() {
+			if args[7].IsUndefined() {
 				argLocation = position.ZeroLocation
 			} else {
-				argLocation = (*position.Location)(args[6].Pointer())
+				argLocation = (*position.Location)(args[7].Pointer())
 			}
 			self := ast.NewMacroDefinitionNode(
 				argLocation,
@@ -55,12 +60,13 @@ func initMacroDefinitionNode() {
 				argSealed,
 				argName,
 				argParameters,
+				argReturnType,
 				argBody,
 			)
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(6),
+		vm.DefWithParameters(7),
 	)
 
 	vm.Def(
@@ -99,6 +105,19 @@ func initMacroDefinitionNode() {
 			result := value.Ref(arrayTuple)
 			return result, value.Undefined
 
+		},
+	)
+
+	vm.Def(
+		c,
+		"return_type",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.MacroDefinitionNode)
+			if self.ReturnType == nil {
+				return value.Nil, value.Undefined
+			}
+
+			return value.Ref(self.ReturnType), value.Undefined
 		},
 	)
 

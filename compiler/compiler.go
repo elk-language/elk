@@ -3693,6 +3693,9 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		*ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode,
 		*ast.WordHashSetLiteralNode, *ast.SymbolHashSetLiteralNode, *ast.BinHashSetLiteralNode, *ast.HexHashSetLiteralNode:
 		c.specialCollectionPattern(pat)
+	case *ast.MacroBoundaryNode:
+		stmt := pat.Body[0].(*ast.PatternStatementNode)
+		c.pattern(stmt.Pattern)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("compilation of this pattern has not been implemented: %T", pattern),
