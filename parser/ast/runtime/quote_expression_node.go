@@ -28,10 +28,10 @@ func initQuoteExpressionNode() {
 			}
 
 			var argLoc *position.Location
-			if args[2].IsUndefined() {
+			if args[3].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[2].Pointer())
+				argLoc = (*position.Location)(args[3].Pointer())
 			}
 			self := ast.NewQuoteExpressionNode(
 				argLoc,
@@ -41,7 +41,7 @@ func initQuoteExpressionNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(2),
+		vm.DefWithParameters(3),
 	)
 
 	vm.Def(

@@ -10,6 +10,14 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+type MacroKind uint8
+
+const (
+	MACRO_EXPRESSION_KIND MacroKind = iota // Default kind of macro for expression nodes
+	MACRO_PATTERN_KIND                     // Macro kind for pattern nodes
+	MACRO_TYPE_KIND                        // Macro kind for type nodes
+)
+
 // Represents a macro definition eg. `macro foo(a: Elk::AST::StringLiteralNode); a; end`
 type MacroDefinitionNode struct {
 	TypedNodeBase
@@ -207,6 +215,7 @@ func NewMacroDefinitionNode(
 // Represents a method call eg. `Foo::bar!(5)`
 type ScopedMacroCallNode struct {
 	TypedNodeBase
+	Kind                MacroKind
 	Receiver            ExpressionNode
 	MacroName           IdentifierNode
 	PositionalArguments []ExpressionNode
@@ -220,6 +229,7 @@ func (n *ScopedMacroCallNode) splice(loc *position.Location, args *[]Node, unquo
 		MacroName:           n.MacroName.splice(loc, args, unquote).(IdentifierNode),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
+		Kind:                n.Kind,
 	}
 }
 
@@ -265,7 +275,8 @@ func (n *ScopedMacroCallNode) Equal(other value.Value) bool {
 	}
 
 	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
-		len(n.NamedArguments) != len(o.NamedArguments) {
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		n.Kind != o.Kind {
 		return false
 	}
 
@@ -385,6 +396,8 @@ func (n *ScopedMacroCallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
+	fmt.Fprintf(&buff, ",\n  kind: %s", value.UInt8(n.Kind).Inspect())
+
 	buff.WriteString("\n}")
 
 	return buff.String()
@@ -395,9 +408,17 @@ func (n *ScopedMacroCallNode) Error() string {
 }
 
 // Create a macro call node eg. `'123'.to_int!()`
-func NewScopedMacroCallNode(loc *position.Location, recv ExpressionNode, macroName IdentifierNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ScopedMacroCallNode {
+func NewScopedMacroCallNode(
+	loc *position.Location,
+	kind MacroKind,
+	recv ExpressionNode,
+	macroName IdentifierNode,
+	posArgs []ExpressionNode,
+	namedArgs []NamedArgumentNode,
+) *ScopedMacroCallNode {
 	return &ScopedMacroCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: loc},
+		Kind:                kind,
 		Receiver:            recv,
 		MacroName:           macroName,
 		PositionalArguments: posArgs,
@@ -408,6 +429,7 @@ func NewScopedMacroCallNode(loc *position.Location, recv ExpressionNode, macroNa
 // Represents a method call eg. `'123'.to_int!()`
 type MacroCallNode struct {
 	TypedNodeBase
+	Kind                MacroKind
 	Receiver            ExpressionNode
 	MacroName           IdentifierNode
 	PositionalArguments []ExpressionNode
@@ -421,6 +443,7 @@ func (n *MacroCallNode) splice(loc *position.Location, args *[]Node, unquote boo
 		MacroName:           n.MacroName.splice(loc, args, unquote).(IdentifierNode),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
+		Kind:                n.Kind,
 	}
 }
 
@@ -466,7 +489,8 @@ func (n *MacroCallNode) Equal(other value.Value) bool {
 	}
 
 	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
-		len(n.NamedArguments) != len(o.NamedArguments) {
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		n.Kind != o.Kind {
 		return false
 	}
 
@@ -586,6 +610,8 @@ func (n *MacroCallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
+	fmt.Fprintf(&buff, ",\n  kind: %s", value.UInt8(n.Kind).Inspect())
+
 	buff.WriteString("\n}")
 
 	return buff.String()
@@ -596,9 +622,17 @@ func (n *MacroCallNode) Error() string {
 }
 
 // Create a macro call node eg. `'123'.to_int!()`
-func NewMacroCallNode(loc *position.Location, recv ExpressionNode, macroName IdentifierNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MacroCallNode {
+func NewMacroCallNode(
+	loc *position.Location,
+	kind MacroKind,
+	recv ExpressionNode,
+	macroName IdentifierNode,
+	posArgs []ExpressionNode,
+	namedArgs []NamedArgumentNode,
+) *MacroCallNode {
 	return &MacroCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: loc},
+		Kind:                kind,
 		Receiver:            recv,
 		MacroName:           macroName,
 		PositionalArguments: posArgs,
@@ -609,6 +643,7 @@ func NewMacroCallNode(loc *position.Location, recv ExpressionNode, macroName Ide
 // Represents a function-like macro call eg. `foo!(123)`
 type ReceiverlessMacroCallNode struct {
 	TypedNodeBase
+	Kind                MacroKind
 	MacroName           IdentifierNode
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
@@ -620,6 +655,7 @@ func (n *ReceiverlessMacroCallNode) splice(loc *position.Location, args *[]Node,
 		MacroName:           n.MacroName.splice(loc, args, unquote).(IdentifierNode),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
+		Kind:                n.Kind,
 	}
 }
 
@@ -659,7 +695,8 @@ func (n *ReceiverlessMacroCallNode) Equal(other value.Value) bool {
 	if n.MacroName != o.MacroName ||
 		len(n.PositionalArguments) != len(o.PositionalArguments) ||
 		len(n.NamedArguments) != len(o.NamedArguments) ||
-		!n.loc.Equal(o.loc) {
+		!n.loc.Equal(o.loc) ||
+		n.Kind != o.Kind {
 		return false
 	}
 
@@ -763,6 +800,8 @@ func (n *ReceiverlessMacroCallNode) Inspect() string {
 	}
 	buff.WriteString("\n  ]")
 
+	fmt.Fprintf(&buff, ",\n  kind: %s", value.UInt8(n.Kind).Inspect())
+
 	buff.WriteString("\n}")
 
 	return buff.String()
@@ -773,9 +812,16 @@ func (n *ReceiverlessMacroCallNode) Error() string {
 }
 
 // Create a function call node eg. `to_string(123)`
-func NewReceiverlessMacroCallNode(loc *position.Location, macroName IdentifierNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ReceiverlessMacroCallNode {
+func NewReceiverlessMacroCallNode(
+	loc *position.Location,
+	kind MacroKind,
+	macroName IdentifierNode,
+	posArgs []ExpressionNode,
+	namedArgs []NamedArgumentNode,
+) *ReceiverlessMacroCallNode {
 	return &ReceiverlessMacroCallNode{
 		TypedNodeBase:       TypedNodeBase{loc: loc},
+		Kind:                kind,
 		MacroName:           macroName,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,

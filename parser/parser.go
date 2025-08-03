@@ -1564,6 +1564,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 
 		receiver = ast.NewReceiverlessMacroCallNode(
 			location,
+			ast.MACRO_EXPRESSION_KIND,
 			tokenToIdentifier(macroName),
 			posArgs,
 			namedArgs,
@@ -1862,6 +1863,7 @@ methodCallLoop:
 		if isMacro {
 			receiver = ast.NewMacroCallNode(
 				location,
+				ast.MACRO_EXPRESSION_KIND,
 				receiver,
 				methodName,
 				posArgs,
@@ -2151,6 +2153,7 @@ func (p *Parser) constantOrMethodLookup() ast.ExpressionNode {
 
 					left = ast.NewScopedMacroCallNode(
 						location,
+						ast.MACRO_EXPRESSION_KIND,
 						left,
 						right,
 						posArgs,
@@ -4827,7 +4830,7 @@ func (p *Parser) primaryType() ast.TypeNode {
 	case token.SHORT_UNQUOTE_BEG:
 		return p.shortUnquoteType()
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		return p.receiverlessMacroCall()
+		return p.receiverlessMacroCall(ast.MACRO_TYPE_KIND)
 	case token.BOOL:
 		tok := p.advance()
 		return ast.NewBoolLiteralNode(tok.Location())
@@ -4942,7 +4945,7 @@ func (p *Parser) closureType() ast.TypeNode {
 
 // namedType = genericConstant
 func (p *Parser) namedType() ast.TypeNode {
-	return p.genericConstant()
+	return p.genericConstantType()
 }
 
 // genericConstantOrNil = genericConstant | "nil"
@@ -4954,8 +4957,33 @@ func (p *Parser) genericConstantOrNil() ast.ComplexConstantNode {
 }
 
 // genericConstant = strictConstantLookup | strictConstantLookup "[" [typeAnnotationList] "]"
+func (p *Parser) genericConstantType() ast.ComplexConstantNode {
+	constant := p.strictConstantLookupOrScopedMacro(ast.MACRO_TYPE_KIND)
+	if !p.match(token.LBRACKET) {
+		return constant
+	}
+
+	if p.match(token.RBRACKET) {
+		p.errorExpected("a constant")
+		return constant
+	}
+
+	typeList := p.typeAnnotationList(token.RBRACKET)
+	rbracket, ok := p.consume(token.RBRACKET)
+	if !ok {
+		return ast.NewInvalidNode(rbracket.Location(), rbracket)
+	}
+
+	return ast.NewGenericConstantNode(
+		constant.Location().Join(rbracket.Location()),
+		constant,
+		typeList,
+	)
+}
+
+// genericConstant = strictConstantLookup | strictConstantLookup "[" [typeAnnotationList] "]"
 func (p *Parser) genericConstant() ast.ComplexConstantNode {
-	constant := p.strictConstantLookupOrScopedMacro()
+	constant := p.strictConstantLookup()
 	if !p.match(token.LBRACKET) {
 		return constant
 	}
@@ -6150,7 +6178,7 @@ func (p *Parser) objectAttributePattern() ast.PatternNode {
 	}
 }
 
-func (p *Parser) strictConstantLookupOrScopedMacro() ast.ComplexConstantNode {
+func (p *Parser) strictConstantLookupOrScopedMacro(kind ast.MacroKind) ast.ComplexConstantNode {
 	var left ast.ComplexConstantNode
 	if tok, ok := p.matchOk(token.SCOPE_RES_OP); ok {
 		if p.accept(token.PRIVATE_CONSTANT) {
@@ -6241,6 +6269,7 @@ func (p *Parser) strictConstantLookupOrScopedMacro() ast.ComplexConstantNode {
 
 			left = ast.NewScopedMacroCallNode(
 				location,
+				kind,
 				left,
 				right,
 				posArgs,
@@ -6255,7 +6284,7 @@ func (p *Parser) strictConstantLookupOrScopedMacro() ast.ComplexConstantNode {
 
 // strictConstantLookupOrObjectPattern = strictConstantLookup ["(" [objectPatternAttributes] ")"]
 func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
-	constant := p.strictConstantLookupOrScopedMacro()
+	constant := p.strictConstantLookupOrScopedMacro(ast.MACRO_PATTERN_KIND)
 	if !p.accept(token.LPAREN) {
 		return constant
 	}
@@ -6754,7 +6783,7 @@ func (p *Parser) nilLiteral() *ast.NilLiteralNode {
 	return ast.NewNilLiteralNode(tok.Location())
 }
 
-func (p *Parser) receiverlessMacroCall() ast.PatternTypeExpressionNode {
+func (p *Parser) receiverlessMacroCall(kind ast.MacroKind) ast.PatternTypeExpressionNode {
 	macroName := p.advance()
 	location := macroName.Location()
 
@@ -6803,6 +6832,7 @@ func (p *Parser) receiverlessMacroCall() ast.PatternTypeExpressionNode {
 
 	return ast.NewReceiverlessMacroCallNode(
 		location,
+		kind,
 		tokenToIdentifier(macroName),
 		posArgs,
 		namedArgs,
@@ -6814,7 +6844,7 @@ func (p *Parser) identifierOrMacroPattern() ast.PatternExpressionNode {
 		return p.identifier()
 	}
 
-	return p.receiverlessMacroCall()
+	return p.receiverlessMacroCall(ast.MACRO_PATTERN_KIND)
 }
 
 func (p *Parser) simplePattern() ast.PatternExpressionNode {

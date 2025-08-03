@@ -63,6 +63,7 @@ func (n *QuoteExpressionNode) SingleExpression() ExpressionNode {
 func (n *QuoteExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &QuoteExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Kind:          n.Kind,
 		Body:          SpliceSlice(n.Body, loc, args, unquote),
 	}
 }
@@ -95,7 +96,7 @@ func (n *QuoteExpressionNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if len(n.Body) != len(o.Body) {
+	if len(n.Body) != len(o.Body) || n.Kind != o.Kind {
 		return false
 	}
 
@@ -156,6 +157,8 @@ func (n *QuoteExpressionNode) Inspect() string {
 		indent.IndentString(&buff, stmt.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
+
+	fmt.Fprintf(&buff, ",\n  kind: %s", value.UInt8(n.Kind).Inspect())
 
 	buff.WriteString("\n}")
 
