@@ -294,18 +294,30 @@ func (p *Parser) swallowNewlines() {
 // Checks if the given slice of token types contains
 // the given token type.
 func containsToken(slice []token.Type, v token.Type) bool {
-	for _, s := range slice {
-		if v == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(slice, v)
 }
 
 // Consume a block of statements, like in `else` expressions,
 // that terminates with `end`.
 func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Location, []ast.StatementNode, bool) {
-	var thenBody []ast.StatementNode
+	return genericStatementBlock(
+		p,
+		p.statements,
+		p.expressionWithoutModifier,
+		ast.NewExpressionStatementNodeI,
+		stopTokens...,
+	)
+}
+
+// Consume a block of generic statements.
+func genericStatementBlock[Expression, Statement ast.Node](
+	p *Parser,
+	statementsProduction statementsProduction[Statement],
+	expressionProduction func() Expression,
+	statementConstructor statementConstructor[Expression, Statement],
+	stopTokens ...token.Type,
+) (*position.Location, []Statement, bool) {
+	var thenBody []Statement
 	var lastLocation *position.Location
 	var multiline bool
 
@@ -316,8 +328,8 @@ func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Location, [
 	}
 
 	if !p.lookahead.IsStatementSeparator() {
-		expr := p.expressionWithoutModifier()
-		thenBody = append(thenBody, ast.NewExpressionStatementNode(
+		expr := expressionProduction()
+		thenBody = append(thenBody, statementConstructor(
 			expr.Location(),
 			expr,
 		))
@@ -329,7 +341,7 @@ func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Location, [
 		if p.accept(token.END) {
 			lastLocation = p.lookahead.Location()
 		} else if !containsToken(stopTokens, p.lookahead.Type) {
-			thenBody = p.statements(stopTokens...)
+			thenBody = statementsProduction(stopTokens...)
 			if len(thenBody) > 0 {
 				lastLocation = position.LocationOfLastElement(thenBody)
 			}
@@ -2384,8 +2396,12 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.switchExpression()
 	case token.IF:
 		return p.ifExpression()
-	case token.QUOTE:
+	case token.QUOTE, token.QUOTE_EXPR:
 		return p.quoteExpression()
+	case token.QUOTE_TYPE:
+		return p.quoteTypeExpression()
+	case token.QUOTE_PATTERN:
+		return p.quotePatternExpression()
 	case token.SHORT_UNQUOTE_BEG:
 		return p.shortUnquoteExpression()
 	case token.UNQUOTE, token.UNQUOTE_EXPR:
@@ -5189,7 +5205,7 @@ func (p *Parser) shortUnquote(kind ast.UnquoteKind) ast.UnquoteOrInvalidNode {
 	)
 }
 
-// quoteExpression = "quote" ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))
+// quoteExpression = ("quote" | "quote_expr") ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))
 func (p *Parser) quoteExpression() ast.ExpressionNode {
 	quoteTok := p.advance()
 
@@ -5204,6 +5220,7 @@ func (p *Parser) quoteExpression() ast.ExpressionNode {
 
 	quoteExpression := ast.NewQuoteExpressionNode(
 		location,
+		ast.QUOTE_EXPRESSION_KIND,
 		body,
 	)
 
@@ -5221,6 +5238,32 @@ func (p *Parser) quoteExpression() ast.ExpressionNode {
 	}
 
 	return quoteExpression
+}
+
+// quoteTypeExpression = "quote_type" [SEPARATOR] typeAnnotation
+func (p *Parser) quoteTypeExpression() ast.ExpressionNode {
+	quoteTok := p.advance()
+	p.swallowNewlines()
+	typeNode := p.typeAnnotation()
+
+	return ast.NewQuoteExpressionNode(
+		quoteTok.Location().Join(typeNode.Location()),
+		ast.QUOTE_TYPE_KIND,
+		ast.TypeToStatements(typeNode),
+	)
+}
+
+// quotePatternExpression = "quote_pattern" [SEPARATOR] pattern
+func (p *Parser) quotePatternExpression() ast.ExpressionNode {
+	quoteTok := p.advance()
+	p.swallowNewlines()
+	pattern := p.pattern()
+
+	return ast.NewQuoteExpressionNode(
+		quoteTok.Location().Join(pattern.Location()),
+		ast.QUOTE_PATTERN_KIND,
+		ast.PatternToStatements(pattern),
+	)
 }
 
 // macroBoundary = "do" "macro" [RAW_STRING] ((SEPARATOR [statements]) "end" | (expressionWithoutModifier))

@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Type optionally terminated with a newline or a semicolon.
+  ]##
+  sealed primitive class TypeStatementNode
+    include StatementNode
+
+    init(type_node: TypeNode, location: FS::Location = loop; end); end
+    def type_node: TypeNode; end
+    def location: FS::Location; end
+  end
+end

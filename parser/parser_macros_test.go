@@ -3811,6 +3811,7 @@ end
 						L(S(P(1, 2, 1), P(25, 5, 4))),
 						ast.NewQuoteExpressionNode(
 							L(S(P(1, 2, 1), P(24, 5, 3))),
+							ast.QUOTE_EXPRESSION_KIND,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									L(S(P(8, 3, 2), P(16, 3, 10))),
@@ -3844,6 +3845,7 @@ end
 						L(S(P(5, 2, 5), P(18, 3, 8))),
 						ast.NewQuoteExpressionNode(
 							L(S(P(5, 2, 5), P(17, 3, 7))),
+							ast.QUOTE_EXPRESSION_KIND,
 							nil,
 						),
 					),
@@ -3859,6 +3861,7 @@ end
 						L(S(P(0, 1, 1), P(6, 1, 7))),
 						ast.NewQuoteExpressionNode(
 							L(S(P(0, 1, 1), P(6, 1, 7))),
+							ast.QUOTE_EXPRESSION_KIND,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									L(S(P(6, 1, 7), P(6, 1, 7))),
@@ -3893,6 +3896,7 @@ end
 							ast.NewPublicIdentifierNode(L(S(P(5, 2, 5), P(7, 2, 7))), "bar"),
 							ast.NewQuoteExpressionNode(
 								L(S(P(16, 3, 6), P(44, 5, 8))),
+								ast.QUOTE_EXPRESSION_KIND,
 								[]ast.StatementNode{
 									ast.NewExpressionStatementNode(
 										L(S(P(28, 4, 7), P(36, 4, 15))),
@@ -3910,6 +3914,223 @@ end
 					ast.NewExpressionStatementNode(
 						L(S(P(50, 6, 5), P(53, 6, 8))),
 						ast.NewNilLiteralNode(L(S(P(50, 6, 5), P(52, 6, 7)))),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestQuoteTypeExpression(t *testing.T) {
+	tests := testTable{
+		"can be a one-liner": {
+			input: "quote_type String | 5",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(20, 1, 21))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(20, 1, 21))),
+						ast.NewQuoteExpressionNode(
+							L(S(P(0, 1, 1), P(20, 1, 21))),
+							ast.QUOTE_TYPE_KIND,
+							[]ast.StatementNode{
+								ast.NewTypeStatementNode(
+									L(S(P(11, 1, 12), P(20, 1, 21))),
+									ast.NewBinaryTypeNode(
+										L(S(P(11, 1, 12), P(20, 1, 21))),
+										T(L(S(P(18, 1, 19), P(18, 1, 19))), token.OR),
+										ast.NewPublicConstantNode(L(S(P(11, 1, 12), P(16, 1, 17))), "String"),
+										ast.NewIntLiteralNode(L(S(P(20, 1, 21), P(20, 1, 21))), "5"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be multiline": {
+			input: `
+				quote_type
+					String |
+					5
+			`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(36, 4, 7))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(L(S(P(0, 1, 1), P(0, 1, 1)))),
+					ast.NewExpressionStatementNode(
+						L(S(P(5, 2, 5), P(36, 4, 7))),
+						ast.NewQuoteExpressionNode(
+							L(S(P(5, 2, 5), P(35, 4, 6))),
+							ast.QUOTE_TYPE_KIND,
+							[]ast.StatementNode{
+								ast.NewTypeStatementNode(
+									L(S(P(21, 3, 6), P(35, 4, 6))),
+									ast.NewBinaryTypeNode(
+										L(S(P(21, 3, 6), P(35, 4, 6))),
+										T(L(S(P(28, 3, 13), P(28, 3, 13))), token.OR),
+										ast.NewPublicConstantNode(L(S(P(21, 3, 6), P(26, 3, 11))), "String"),
+										ast.NewIntLiteralNode(L(S(P(35, 4, 6), P(35, 4, 6))), "5"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `
+				bar =
+					quote_type Foo?
+				nil
+			`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(39, 4, 8))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(L(S(P(0, 1, 1), P(0, 1, 1)))),
+					ast.NewExpressionStatementNode(
+						L(S(P(5, 2, 5), P(31, 3, 21))),
+						ast.NewAssignmentExpressionNode(
+							L(S(P(5, 2, 5), P(30, 3, 20))),
+							T(L(S(P(9, 2, 9), P(9, 2, 9))), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(L(S(P(5, 2, 5), P(7, 2, 7))), "bar"),
+							ast.NewQuoteExpressionNode(
+								L(S(P(16, 3, 6), P(30, 3, 20))),
+								ast.QUOTE_TYPE_KIND,
+								[]ast.StatementNode{
+									ast.NewTypeStatementNode(
+										L(S(P(27, 3, 17), P(30, 3, 20))),
+										ast.NewNilableTypeNode(
+											L(S(P(27, 3, 17), P(30, 3, 20))),
+											ast.NewPublicConstantNode(L(S(P(27, 3, 17), P(29, 3, 19))), "Foo"),
+										),
+									),
+								},
+							),
+						),
+					),
+					ast.NewExpressionStatementNode(
+						L(S(P(36, 4, 5), P(39, 4, 8))),
+						ast.NewNilLiteralNode(L(S(P(36, 4, 5), P(38, 4, 7)))),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestQuotePatternExpression(t *testing.T) {
+	tests := testTable{
+		"can be a one-liner": {
+			input: "quote_pattern String() || 5",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(26, 1, 27))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(26, 1, 27))),
+						ast.NewQuoteExpressionNode(
+							L(S(P(0, 1, 1), P(26, 1, 27))),
+							ast.QUOTE_PATTERN_KIND,
+							[]ast.StatementNode{
+								ast.NewPatternStatementNode(
+									L(S(P(14, 1, 15), P(26, 1, 27))),
+									ast.NewBinaryPatternNode(
+										L(S(P(14, 1, 15), P(26, 1, 27))),
+										T(L(S(P(23, 1, 24), P(24, 1, 25))), token.OR_OR),
+										ast.NewObjectPatternNode(
+											L(S(P(14, 1, 15), P(21, 1, 22))),
+											ast.NewPublicConstantNode(L(S(P(14, 1, 15), P(19, 1, 20))), "String"),
+											nil,
+										),
+										ast.NewIntLiteralNode(L(S(P(26, 1, 27), P(26, 1, 27))), "5"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be multiline": {
+			input: `
+				quote_pattern
+					String() ||
+					5
+			`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(42, 4, 7))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(L(S(P(0, 1, 1), P(0, 1, 1)))),
+					ast.NewExpressionStatementNode(
+						L(S(P(5, 2, 5), P(42, 4, 7))),
+						ast.NewQuoteExpressionNode(
+							L(S(P(5, 2, 5), P(41, 4, 6))),
+							ast.QUOTE_PATTERN_KIND,
+							[]ast.StatementNode{
+								ast.NewPatternStatementNode(
+									L(S(P(24, 3, 6), P(41, 4, 6))),
+									ast.NewBinaryPatternNode(
+										L(S(P(24, 3, 6), P(41, 4, 6))),
+										T(L(S(P(33, 3, 15), P(34, 3, 16))), token.OR_OR),
+										ast.NewObjectPatternNode(
+											L(S(P(24, 3, 6), P(31, 3, 13))),
+											ast.NewPublicConstantNode(L(S(P(24, 3, 6), P(29, 3, 11))), "String"),
+											nil,
+										),
+										ast.NewIntLiteralNode(L(S(P(41, 4, 6), P(41, 4, 6))), "5"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `
+				bar =
+					quote_pattern Foo
+				nil
+			`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(41, 4, 8))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(L(S(P(0, 1, 1), P(0, 1, 1)))),
+					ast.NewExpressionStatementNode(
+						L(S(P(5, 2, 5), P(33, 3, 23))),
+						ast.NewAssignmentExpressionNode(
+							L(S(P(5, 2, 5), P(32, 3, 22))),
+							T(L(S(P(9, 2, 9), P(9, 2, 9))), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(L(S(P(5, 2, 5), P(7, 2, 7))), "bar"),
+							ast.NewQuoteExpressionNode(
+								L(S(P(16, 3, 6), P(32, 3, 22))),
+								ast.QUOTE_PATTERN_KIND,
+								[]ast.StatementNode{
+									ast.NewPatternStatementNode(
+										L(S(P(30, 3, 20), P(32, 3, 22))),
+										ast.NewPublicConstantNode(L(S(P(30, 3, 20), P(32, 3, 22))), "Foo"),
+									),
+								},
+							),
+						),
+					),
+					ast.NewExpressionStatementNode(
+						L(S(P(38, 4, 5), P(41, 4, 8))),
+						ast.NewNilLiteralNode(L(S(P(38, 4, 5), P(40, 4, 7)))),
 					),
 				},
 			),

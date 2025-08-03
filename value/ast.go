@@ -55,6 +55,8 @@ var ExpressionStatementNodeClass *Class // Std::Elk::AST::ExpressionStatementNod
 var EmptyStatementNodeClass *Class      // Std::Elk::AST::EmptyStatementNode
 var ImportStatementNodeClass *Class     // Std::Elk::AST::ImportStatementNode
 var ParameterStatementNodeClass *Class  // Std::Elk::AST::ParameterStatementNode
+var TypeStatementNodeClass *Class       // Std::Elk::AST::TypeStatementNode
+var PatternStatementNodeClass *Class    // Std::Elk::AST::PatternStatementNode
 
 var ProgramNodeClass *Class                       // Std::Elk::AST::ProgramNode
 var InvalidNodeClass *Class                       // Std::Elk::AST::InvalidNode
@@ -288,6 +290,14 @@ func initElkAST() {
 	ParameterStatementNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	ParameterStatementNodeClass.IncludeMixin(StructBodyStatementNodeMixin)
 	ElkASTModule.AddConstantString("ParameterStatementNode", Ref(ParameterStatementNodeClass))
+
+	TypeStatementNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	TypeStatementNodeClass.IncludeMixin(StatementNodeMixin)
+	ElkASTModule.AddConstantString("TypeStatementNode", Ref(TypeStatementNodeClass))
+
+	PatternStatementNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	PatternStatementNodeClass.IncludeMixin(StatementNodeMixin)
+	ElkASTModule.AddConstantString("PatternStatementNode", Ref(PatternStatementNodeClass))
 
 	ProgramNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	ProgramNodeClass.IncludeMixin(NodeMixin)
@@ -756,6 +766,9 @@ func initElkAST() {
 
 	QuoteExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	QuoteExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	QuoteExpressionNodeClass.AddConstantString("QUOTE_EXPRESSION_KIND", UInt8(0).ToValue())
+	QuoteExpressionNodeClass.AddConstantString("QUOTE_PATTERN_KIND", UInt8(1).ToValue())
+	QuoteExpressionNodeClass.AddConstantString("QUOTE_TYPE_KIND", UInt8(2).ToValue())
 	ElkASTModule.AddConstantString("QuoteExpressionNode", Ref(QuoteExpressionNodeClass))
 
 	UnquoteNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
@@ -763,6 +776,13 @@ func initElkAST() {
 	UnquoteNodeClass.IncludeMixin(TypeNodeMixin)
 	UnquoteNodeClass.IncludeMixin(ConstantNodeMixin)
 	UnquoteNodeClass.IncludeMixin(IdentifierNodeMixin)
+	UnquoteNodeClass.AddConstantString("UNQUOTE_EXPRESSION_KIND", UInt8(0).ToValue())
+	UnquoteNodeClass.AddConstantString("UNQUOTE_PATTERN_KIND", UInt8(1).ToValue())
+	UnquoteNodeClass.AddConstantString("UNQUOTE_PATTERN_EXPRESSION_KIND", UInt8(2).ToValue())
+	UnquoteNodeClass.AddConstantString("UNQUOTE_TYPE_KIND", UInt8(3).ToValue())
+	UnquoteNodeClass.AddConstantString("UNQUOTE_CONSTANT_KIND", UInt8(4).ToValue())
+	UnquoteNodeClass.AddConstantString("UNQUOTE_IDENTIFIER_KIND", UInt8(5).ToValue())
+	UnquoteNodeClass.AddConstantString("UNQUOTE_INSTANCE_VARIABLE_KIND", UInt8(6).ToValue())
 	ElkASTModule.AddConstantString("UnquoteNode", Ref(UnquoteNodeClass))
 
 	SingletonBlockExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))

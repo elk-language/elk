@@ -58,6 +58,26 @@ func areNodesStatic(elements ...Node) bool {
 	return true
 }
 
+// Turn a type to a statement
+func TypeToStatement(typ TypeNode) StatementNode {
+	return NewTypeStatementNode(typ.Location(), typ)
+}
+
+// Turn a type to a collection of statements.
+func TypeToStatements(typ TypeNode) []StatementNode {
+	return []StatementNode{TypeToStatement(typ)}
+}
+
+// Turn a pattern to a statement
+func PatternToStatement(pattern PatternNode) StatementNode {
+	return NewPatternStatementNode(pattern.Location(), pattern)
+}
+
+// Turn a pattern to a collection of statements.
+func PatternToStatements(pattern PatternNode) []StatementNode {
+	return []StatementNode{PatternToStatement(pattern)}
+}
+
 // Turn an expression to a statement
 func ExpressionToStatement(expr ExpressionNode) StatementNode {
 	return NewExpressionStatementNode(expr.Location(), expr)

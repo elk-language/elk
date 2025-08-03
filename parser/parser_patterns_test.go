@@ -85,7 +85,7 @@ nil
 				},
 			),
 		},
-		"cannot have only have else": {
+		"cannot have only else": {
 			input: `
 switch foo
 else

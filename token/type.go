@@ -526,6 +526,9 @@ const (
 	UNCHECKED         // Keyword `unchecked`
 	GOTO              // Keyword `goto`
 	QUOTE             // Keyword `quote`
+	QUOTE_EXPR        // Keyword `quote_expr`
+	QUOTE_TYPE        // Keyword `quote_type`
+	QUOTE_PATTERN     // Keyword `quote_pattern`
 	UNQUOTE           // Keyword `unquote`
 	UNQUOTE_EXPR      // Keyword `unquote_expr`
 	UNQUOTE_TYPE      // Keyword `unquote_type`
@@ -628,6 +631,9 @@ var Keywords = map[string]Type{
 	"unchecked":       UNCHECKED,
 	"goto":            GOTO,
 	"quote":           QUOTE,
+	"quote_expr":      QUOTE_EXPR,
+	"quote_type":      QUOTE_TYPE,
+	"quote_pattern":   QUOTE_PATTERN,
 	"unquote":         UNQUOTE,
 	"unquote_expr":    UNQUOTE_EXPR,
 	"unquote_type":    UNQUOTE_TYPE,
@@ -895,6 +901,9 @@ var tokenNames = [...]string{
 	UNCHECKED:       "unchecked",
 	GOTO:            "goto",
 	QUOTE:           "quote",
+	QUOTE_EXPR:      "quote_expr",
+	QUOTE_TYPE:      "quote_type",
+	QUOTE_PATTERN:   "quote_pattern",
 	UNQUOTE:         "unquote",
 	UNQUOTE_EXPR:    "unquote_expr",
 	UNQUOTE_TYPE:    "unquote_type",
