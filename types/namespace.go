@@ -10,6 +10,7 @@ import (
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
 )
 
 type NamespaceWithIvarIndices interface {
@@ -70,6 +71,28 @@ type Namespace interface {
 	DefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module
 	DefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin
 	DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface
+}
+
+// Define a native macro
+func DefMacro(namespace Namespace, docComment string, name string, params []*Parameter, returnType Type, fn vm.NativeFunction) *Method {
+	symbolName := value.ToSymbol(name)
+	macro := namespace.DefineMethod(
+		docComment,
+		METHOD_MACRO_FLAG,
+		symbolName,
+		nil,
+		params,
+		returnType,
+		Never{},
+	)
+
+	macro.Body = vm.NewNativeMethod(
+		symbolName,
+		len(params),
+		0,
+		fn,
+	)
+	return macro
 }
 
 func TypeParametersDeepCopyEnv(typeParameters []*TypeParameter, oldEnv, newEnv *GlobalEnvironment) []*TypeParameter {

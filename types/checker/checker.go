@@ -24,6 +24,7 @@ import (
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/macros"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 	"github.com/rivo/uniseg"
@@ -161,7 +162,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		c.SetHeader(headerMode)
 	}
 	if globalEnv == nil {
-		globalEnv = types.NewGlobalEnvironment()
+		globalEnv = macros.NewGlobalEnvironment()
 	}
 
 	c.setGlobalEnv(globalEnv)

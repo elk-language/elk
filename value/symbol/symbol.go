@@ -48,6 +48,7 @@ var (
 	HashSet               = value.ToSymbol("HashSet")
 	Set                   = value.ToSymbol("Set")
 	Pair                  = value.ToSymbol("Pair")
+	Result                = value.ToSymbol("Result")
 	Convertible           = value.ToSymbol("Convertible")
 	Inspectable           = value.ToSymbol("Inspectable")
 	AnyInt                = value.ToSymbol("AnyInt")

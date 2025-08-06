@@ -7,8 +7,27 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+type NativePromiseBody struct {
+	Function NativeFunction
+	Args     []value.Value
+}
+
+func NewNativePromiseBody(fn NativeFunction, args ...value.Value) *NativePromiseBody {
+	return &NativePromiseBody{
+		Function: fn,
+		Args:     args,
+	}
+}
+
+type PromiseBody interface {
+	promiseBody()
+}
+
+func (*Generator) promiseBody()         {}
+func (*NativePromiseBody) promiseBody() {}
+
 type Promise struct {
-	*Generator
+	Body          PromiseBody
 	ThreadPool    *ThreadPool
 	continuations []*Promise
 	result        value.Value
@@ -19,10 +38,10 @@ type Promise struct {
 }
 
 // Create a new promise executed by the VM
-func newPromise(threadPool *ThreadPool, generator *Generator) *Promise {
+func NewPromise(threadPool *ThreadPool, generator *Generator) *Promise {
 	p := &Promise{
 		ThreadPool: threadPool,
-		Generator:  generator,
+		Body:       generator,
 	}
 	p.wg.Add(1)
 
@@ -31,12 +50,12 @@ func newPromise(threadPool *ThreadPool, generator *Generator) *Promise {
 }
 
 // Create a new promise for a piece of bytecode executed by the VM
-func NewPromiseForBytecode(threadPool *ThreadPool, bytecode *BytecodeFunction, args ...value.Value) *Promise {
+func NewBytecodePromise(threadPool *ThreadPool, bytecode *BytecodeFunction, args ...value.Value) *Promise {
 	generator := NewGeneratorForBytecode(bytecode, args...)
 
 	p := &Promise{
 		ThreadPool: threadPool,
-		Generator:  generator,
+		Body:       generator,
 	}
 	p.wg.Add(1)
 
@@ -44,8 +63,22 @@ func NewPromiseForBytecode(threadPool *ThreadPool, bytecode *BytecodeFunction, a
 	return p
 }
 
-// Returns a new native promise handled by Go code instead of the VM
-func NewNativePromise(threadPool *ThreadPool) *Promise {
+// Create a new native promise.
+func NewNativePromise(threadPool *ThreadPool, fn NativeFunction, args ...value.Value) *Promise {
+	p := &Promise{
+		ThreadPool: threadPool,
+		Body:       NewNativePromiseBody(fn, args...),
+	}
+	p.wg.Add(1)
+
+	threadPool.AddTask(p)
+	return p
+}
+
+// Returns a new husk promise.
+// It does not contain any code and
+// is supposed to be resolved or rejected externally.
+func NewExternalPromise(threadPool *ThreadPool) *Promise {
 	p := &Promise{
 		ThreadPool: threadPool,
 	}
@@ -125,7 +158,7 @@ func (p *Promise) ResolveReject(result, err value.Value) {
 	p.m.Lock()
 
 	queue := p.ThreadPool.TaskQueue
-	p.Generator = nil
+	p.Body = nil
 	p.ThreadPool = nil
 	p.result = result
 	p.err = err
@@ -139,7 +172,7 @@ func (p *Promise) Resolve(result value.Value) {
 	p.m.Lock()
 
 	queue := p.ThreadPool.TaskQueue
-	p.Generator = nil
+	p.Body = nil
 	p.ThreadPool = nil
 	p.result = result
 	p.wg.Done()
@@ -148,13 +181,14 @@ func (p *Promise) Resolve(result value.Value) {
 	p.m.Unlock()
 }
 
-func (p *Promise) Reject(err value.Value) {
+func (p *Promise) Reject(err value.Value, stackTrace *value.StackTrace) {
 	p.m.Lock()
 
 	queue := p.ThreadPool.TaskQueue
-	p.Generator = nil
+	p.Body = nil
 	p.ThreadPool = nil
 	p.err = err
+	p.stackTrace = stackTrace
 	p.wg.Done()
 	p.enqueueContinuations(queue)
 
@@ -195,17 +229,17 @@ func initPromise() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			collectionValue := args[1]
 
-			p := NewNativePromise(vm.threadPool)
+			p := NewExternalPromise(vm.threadPool)
 			go func(vm *VM, p *Promise, collection value.Value) {
 				for val, err := range Iterate(vm, collection) {
 					promise := (*Promise)(val.Pointer())
 					if !err.IsUndefined() {
-						p.Reject(err)
+						p.Reject(err, nil)
 						return
 					}
 					_, _, err = promise.AwaitSync()
 					if !err.IsUndefined() {
-						p.Reject(err)
+						p.Reject(err, nil)
 						return
 					}
 				}

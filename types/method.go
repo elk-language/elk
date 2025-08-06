@@ -166,7 +166,7 @@ type Method struct {
 	ReturnType     Type
 	ThrowType      Type
 	DefinedUnder   Namespace
-	Bytecode       *vm.BytecodeFunction
+	Body           value.Method
 	location       *position.Location
 	// used to detect methods that circularly reference constants
 	UsedInConstants              ds.Set[value.Symbol] // set of constants in which this method is called
@@ -200,7 +200,7 @@ func (m *Method) Copy() *Method {
 		ReturnType:                   m.ReturnType,
 		ThrowType:                    m.ThrowType,
 		DefinedUnder:                 m.DefinedUnder,
-		Bytecode:                     m.Bytecode,
+		Body:                         m.Body,
 		location:                     m.location,
 		UsedInConstants:              m.UsedInConstants,
 		UsedConstants:                m.UsedConstants,
@@ -227,7 +227,7 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 		OptionalParamCount:           m.OptionalParamCount,
 		PostParamCount:               m.PostParamCount,
 		Flags:                        m.Flags,
-		Bytecode:                     m.Bytecode,
+		Body:                         m.Body,
 		location:                     m.location,
 		UsedInConstants:              m.UsedInConstants,
 		UsedConstants:                m.UsedConstants,
@@ -360,7 +360,13 @@ func (m *Method) SetAbstract(abstract bool) *Method {
 }
 
 func (m *Method) IsDefinable() bool {
-	return !m.IsCompiled() && !m.IsMacro() && (m.Bytecode != nil || m.IsAttribute())
+	if m.IsCompiled() || m.IsMacro() {
+		return false
+	}
+
+	_, hasBytecode := m.Body.(*vm.BytecodeFunction)
+
+	return hasBytecode || m.IsAttribute()
 }
 
 func (m *Method) IsSetter() bool {

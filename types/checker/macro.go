@@ -239,7 +239,14 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 		}
 	}
 
-	promise := vm.NewPromiseForBytecode(c.threadPool, macro.Bytecode, runtimeArgs...)
+	var promise *vm.Promise
+	switch body := macro.Body.(type) {
+	case *vm.NativeMethod:
+		promise = vm.NewNativePromise(c.threadPool, body.Function, runtimeArgs...)
+	case *vm.BytecodeFunction:
+		promise = vm.NewBytecodePromise(c.threadPool, body, runtimeArgs...)
+	}
+
 	result, stackTrace, err := promise.AwaitSync()
 	if !err.IsUndefined() {
 		c.addFailure(
@@ -681,7 +688,7 @@ func (c *Checker) checkMacroDefinition(node *ast.MacroDefinitionNode, macro *typ
 	c.method = nil
 
 	if c.shouldCompile() && macro.IsCompilable() {
-		macro.Bytecode = c.compiler.CompileMacroBody(node, macro.Name)
+		macro.Body = c.compiler.CompileMacroBody(node, macro.Name)
 	}
 }
 

@@ -130,6 +130,7 @@ func InitGlobalEnvironment() {
 	initThreadPool()
 	initChannel()
 	initBox()
+	initResult()
 	initColorizer()
 	initDiagnostic()
 	initDiagnosticList()

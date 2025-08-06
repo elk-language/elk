@@ -85,7 +85,7 @@ func initKernel() {
 				duration = durationVal.AsInlineDuration()
 			}
 
-			p := NewNativePromise(vm.threadPool)
+			p := NewExternalPromise(vm.threadPool)
 
 			go func(p *Promise, d time.Duration) {
 				<-time.After(d)

@@ -25,6 +25,16 @@ func (c *Checker) IsNil(typ types.Type) bool {
 	return types.IsNil(typ, c.env)
 }
 
+// Type is always `false`
+func (c *Checker) IsFalse(typ types.Type) bool {
+	return types.IsFalse(typ, c.env)
+}
+
+// Type is always `false`
+func (c *Checker) IsTrue(typ types.Type) bool {
+	return types.IsTrue(typ, c.env)
+}
+
 // Type is always falsy.
 func (c *Checker) IsFalsy(typ types.Type) bool {
 	return !c.CanBeTruthy(typ)
@@ -546,9 +556,9 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 	case types.Bool:
 		return types.IsBool(b) || b == c.StdBool()
 	case types.True:
-		return types.IsTrue(b) || b == c.StdTrue()
+		return c.IsTrue(b)
 	case types.False:
-		return types.IsFalse(b) || b == c.StdFalse()
+		return c.IsFalse(b)
 	case *types.SingletonClass:
 		return c.singletonClassIsSubtype(a, b, errLoc)
 	case *types.Class:

@@ -75,6 +75,7 @@ func init() {
 		vm.NewHashMapComparer(Comparer),
 		vm.NewHashRecordComparer(Comparer),
 		cmp.AllowUnexported(
+			value.Result{},
 			ast.NodeBase{},
 			ast.TypedNodeBase{},
 			token.Token{},

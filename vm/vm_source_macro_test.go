@@ -82,6 +82,46 @@ func TestVMSource_Quote(t *testing.T) {
 
 func TestVMSource_ExpandMacro(t *testing.T) {
 	tests := sourceTestTable{
+		"ok result": {
+			source: `
+				def divide(x: Int, y: Int): Result[Int, String]
+					if y == 0
+						Result.err("division by zero")
+					else
+						Result.ok(x / y)
+					end
+				end
+
+				switch divide(10, 2)
+				case Result::ok!
+					puts "ok: #value"
+				case Result::err!
+					puts "err: #err"
+				end
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "ok: 5\n",
+		},
+		"err result": {
+			source: `
+				def divide(x: Int, y: Int): Result[Int, String]
+					if y == 0
+						Result.err("division by zero")
+					else
+						Result.ok(x / y)
+					end
+				end
+
+				switch divide(10, 0)
+				case Result::ok!
+					puts "ok: #value"
+				case Result::err!
+					puts "err: #err"
+				end
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "err: \"division by zero\"\n",
+		},
 		"compile-time fibonacci": {
 			source: `
 				using Std::Elk::AST::*

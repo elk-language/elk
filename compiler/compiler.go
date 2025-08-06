@@ -567,7 +567,7 @@ func (c *Compiler) compileMethodDefinition(name value.Symbol, method *types.Meth
 		return
 	}
 
-	c.emitValue(value.Ref(method.Bytecode), location)
+	c.emitValue(value.Ref(method.Body), location)
 	c.emitValue(name.ToValue(), location)
 	c.emit(location.StartPos.Line, bytecode.DEF_METHOD)
 	method.SetCompiled(true)

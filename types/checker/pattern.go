@@ -268,6 +268,22 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 		rightType := c.TypeOf(node.Right)
 		c.checkCanMatch(matchedType, rightType, node.Right.Location())
 		node.SetType(matchedType)
+		if c.IsNil(rightType) {
+			nonNilable := c.ToNonNilable(matchedType)
+			node.SetType(nonNilable)
+			return node, nonNilable
+		}
+		if c.IsTrue(rightType) {
+			nonTrue := c.differenceType(matchedType, types.True{})
+			node.SetType(nonTrue)
+			return node, nonTrue
+		}
+		if c.IsFalse(rightType) {
+			nonFalse := c.differenceType(matchedType, types.False{})
+			node.SetType(nonFalse)
+			return node, nonFalse
+		}
+		node.SetType(matchedType)
 		return node, types.Never{}
 	case token.LAX_EQUAL, token.LAX_NOT_EQUAL:
 		node.Right = c.checkExpression(node.Right)

@@ -32,42 +32,48 @@ func (tp *ThreadPool) initThreadPool(threadCount, queueSize int, opts ...Option)
 
 func threadWorker(thread *VM, queue chan *Promise) {
 	for task := range queue {
-		thread.callPromise(task)
-
-		switch thread.state {
-		case awaitState:
-			awaitedPromise := (*Promise)(thread.peek().Pointer())
-			awaitedPromise.RegisterContinuationUnsafe(task)
-
-			// promise has been locked in the VM
-			awaitedPromise.m.Unlock()
-		case errorState:
-			err := thread.popGet()
-			task.m.Lock()
-
-			task.Generator = nil
-			task.ThreadPool = nil
-			task.err = err
-			task.stackTrace = thread.GetStackTrace()
-			task.wg.Done()
-			task.enqueueContinuations(queue)
-
-			task.m.Unlock()
+		switch body := task.Body.(type) {
+		case *Generator:
+			executeBytecodePromise(thread, queue, task)
+		case *NativePromiseBody:
+			executeNativePromise(thread, queue, task, body)
 		default:
-			result := thread.popGet()
-			task.m.Lock()
-
-			task.Generator = nil
-			task.ThreadPool = nil
-			task.result = result
-			task.wg.Done()
-			task.enqueueContinuations(queue)
-
-			task.m.Unlock()
+			panic(fmt.Sprintf("invalid promise body: %T", task.Body))
 		}
 
 		thread.state = idleState
 	}
+}
+
+func executeNativePromise(thread *VM, queue chan *Promise, task *Promise, body *NativePromiseBody) {
+	result, err := body.Function(thread, body.Args)
+	if !err.IsUndefined() {
+		task.Reject(err, nil)
+		return
+	}
+
+	task.Resolve(result)
+}
+
+func executeBytecodePromise(thread *VM, queue chan *Promise, task *Promise) {
+	thread.callBytecodePromise(task)
+
+	switch thread.state {
+	case awaitState:
+		awaitedPromise := (*Promise)(thread.peek().Pointer())
+		awaitedPromise.RegisterContinuationUnsafe(task)
+
+		// promise has been locked in the VM
+		awaitedPromise.m.Unlock()
+	case errorState:
+		err := thread.popGet()
+		stackTrace := thread.GetStackTrace()
+		task.Reject(err, stackTrace)
+	default:
+		result := thread.popGet()
+		task.Resolve(result)
+	}
+
 }
 
 func (*ThreadPool) Class() *value.Class {

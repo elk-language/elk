@@ -12,7 +12,11 @@ func (True) IsLiteral() bool {
 	return true
 }
 
-func IsTrue(t Type) bool {
+func IsTrue(t Type, env *GlobalEnvironment) bool {
+	return IsTrueLiteral(t) || t == env.StdSubtype(symbol.True)
+}
+
+func IsTrueLiteral(t Type) bool {
 	_, ok := t.(True)
 	return ok
 }

@@ -1,0 +1,52 @@
+##[
+  Result is a type used for value-based error handling.
+  It represents either a successful computation containing a value,
+  or a failed computation containing an error.
+
+  The type parameters are:
+  - Val: The type of the success value
+  - Err: The type of the error value (defaults to never)
+
+  Example:
+
+    def divide(x: Int, y: Int): Result[Int, String]
+      if y == 0
+        Result.err("division by zero")
+      else
+        Result.ok(x / y)
+      end
+    end
+]##
+sealed primitive class ::Std::Result[+Val, +Err = never]
+	singleton
+		##[
+			Create a new Result that represents success with the given value.
+		]##
+		def ok[V](value: V): Result[V]; end
+
+		##[
+			Create a new Result that represents failure with the given error value.
+		]##
+		def err[E](err: E): Result[never, E]; end
+	end
+
+	init(value: Val? = nil, err: Err? = nil); end
+
+	##[
+		Returns the success value if this Result represents success.
+		Returns `nil` if this Result represents failure.
+	]##
+	def value: Val?; end
+
+	##[
+		Returns the error value if this Result represents failure.
+		Returns `nil` if this Result represents success.
+	]##
+	def err: Err?; end
+
+	##[
+		Returns `true` if this Result represents success (contains a value).
+		Returns `false` if this Result represents failure (contains an error).
+	]##
+	def ok: bool; end
+end

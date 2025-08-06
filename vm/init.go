@@ -80,4 +80,5 @@ func InitGlobalEnvironment() {
 	initLocation()
 	initPath()
 	initBox()
+	initResult()
 }

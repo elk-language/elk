@@ -630,6 +630,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
+			namespace := namespace.TryDefineClass("Result is a type used for value-based error handling.\nIt represents either a successful computation containing a value,\nor a failed computation containing an error.\n\nThe type parameters are:\n- Val: The type of the success value\n- Err: The type of the error value (defaults to never)\n\nExample:\n\n  def divide(x: Int, y: Int): Result[Int, String]\n    if y == 0\n      Result.err(\"division by zero\")\n    else\n      Result.ok(x / y)\n    end\n  end", false, true, true, false, value.ToSymbol("Result"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
 			namespace := namespace.TryDefineClass("Represents a right-open range from `start` to `end` *[start, end)*", false, true, true, false, value.ToSymbol("RightOpenRange"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
@@ -8217,6 +8221,56 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ResettableIterator::Base::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::ResettableIterator::Base::Err", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
+			{
+				namespace := namespace.MustSubtypeString("Result").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 2)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Val"), namespace, Never{}, Any{}, nil, COVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
+
+				typeParam = NewTypeParameter(value.ToSymbol("Err"), namespace, Never{}, Any{}, nil, COVARIANT)
+				typeParams[1] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Err"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Err"), NoValue{})
+				typeParam.Default = Never{}
+
+				namespace.SetTypeParameters(typeParams)
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewNilable(NameToType("Std::Result::Val", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("err"), NewNilable(NameToType("Std::Result::Err", env)), DefaultValueParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Returns the error value if this Result represents failure.\nReturns `nil` if this Result represents success.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("err"), nil, nil, NewNilable(NameToType("Std::Result::Err", env)), Never{})
+				namespace.DefineMethod("Returns `true` if this Result represents success (contains a value).\nReturns `false` if this Result represents failure (contains an error).", 0|METHOD_NATIVE_FLAG, value.ToSymbol("ok"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Returns the success value if this Result represents success.\nReturns `nil` if this Result represents failure.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NewNilable(NameToType("Std::Result::Val", env)), Never{})
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Create a new Result that represents failure with the given error value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("err"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :err", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("err"), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :err", true), Never{}, Any{}, nil, INVARIANT), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Result", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(Never{}, COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :err", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), Never{})
+					namespace.DefineMethod("Create a new Result that represents success with the given value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("ok"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :ok", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :ok", true), Never{}, Any{}, nil, INVARIANT), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Result", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :ok", true), Never{}, Any{}, nil, INVARIANT), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), Never{})
 
 					// Define constants
 

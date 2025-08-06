@@ -260,17 +260,19 @@ func (vm *VM) throwIfErr(err value.Value) {
 	}
 }
 
-func (vm *VM) callPromise(promise *Promise) {
+func (vm *VM) callBytecodePromise(promise *Promise) {
 	vm.state = runningState
 	vm.createCurrentCallFrame(true)
-	vm.bytecode = promise.Bytecode
-	vm.fp = vm.sp
-	vm.ip = promise.ip
-	vm.localCount = promise.Bytecode.parameterCount + 1
-	vm.upvalues = promise.upvalues
 
-	baseStack := &promise.stack[0]
-	stackLen := len(promise.stack)
+	generator := promise.Body.(*Generator)
+	vm.bytecode = generator.Bytecode
+	vm.fp = vm.sp
+	vm.ip = generator.ip
+	vm.localCount = generator.Bytecode.parameterCount + 1
+	vm.upvalues = generator.upvalues
+
+	baseStack := &generator.stack[0]
+	stackLen := len(generator.stack)
 	for i := range stackLen {
 		*vm.spAdd(i) = *vm.stackAdd(baseStack, i)
 	}
@@ -283,8 +285,8 @@ func (vm *VM) callPromise(promise *Promise) {
 		stack := vm.stack[vm.fpOffset():vm.spOffset()]
 		stackCopy := make([]value.Value, len(stack))
 		copy(stackCopy, stack)
-		promise.stack = stackCopy
-		promise.ip = vm.ip
+		generator.stack = stackCopy
+		generator.ip = vm.ip
 
 		vm.restoreLastFrame()
 	case errorState:
@@ -1933,7 +1935,7 @@ func (vm *VM) opPromise() {
 		threadPool = (*ThreadPool)(arg.Pointer())
 	}
 
-	promise := newPromise(threadPool, generator)
+	promise := NewPromise(threadPool, generator)
 	vm.push(value.Ref(promise))
 }
 
