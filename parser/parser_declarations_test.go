@@ -668,17 +668,17 @@ func TestUsingExpression(t *testing.T) {
 			),
 		},
 		"can specify members of a namespace": {
-			input: "using Enumerable::{Foo, bar}",
+			input: "using Enumerable::{Foo, bar, baz!}",
 			want: ast.NewProgramNode(
-				L(S(P(0, 1, 1), P(27, 1, 28))),
+				L(S(P(0, 1, 1), P(33, 1, 34))),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						L(S(P(0, 1, 1), P(27, 1, 28))),
+						L(S(P(0, 1, 1), P(33, 1, 34))),
 						ast.NewUsingExpressionNode(
-							L(S(P(0, 1, 1), P(27, 1, 28))),
+							L(S(P(0, 1, 1), P(33, 1, 34))),
 							[]ast.UsingEntryNode{
 								ast.NewUsingEntryWithSubentriesNode(
-									L(S(P(6, 1, 7), P(27, 1, 28))),
+									L(S(P(6, 1, 7), P(33, 1, 34))),
 									ast.NewPublicConstantNode(
 										L(S(P(6, 1, 7), P(15, 1, 16))),
 										"Enumerable",
@@ -692,6 +692,10 @@ func TestUsingExpression(t *testing.T) {
 											L(S(P(24, 1, 25), P(26, 1, 27))),
 											"bar",
 										),
+										ast.NewMacroNameNode(
+											L(S(P(29, 1, 30), P(32, 1, 33))),
+											"baz",
+										),
 									},
 								),
 							},
@@ -701,17 +705,17 @@ func TestUsingExpression(t *testing.T) {
 			),
 		},
 		"can specify members of a namespace with changed names": {
-			input: "using Enumerable::{Foo as F, bar as b}",
+			input: "using Enumerable::{Foo as F, bar as b, baz! as z!}",
 			want: ast.NewProgramNode(
-				L(S(P(0, 1, 1), P(37, 1, 38))),
+				L(S(P(0, 1, 1), P(49, 1, 50))),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						L(S(P(0, 1, 1), P(37, 1, 38))),
+						L(S(P(0, 1, 1), P(49, 1, 50))),
 						ast.NewUsingExpressionNode(
-							L(S(P(0, 1, 1), P(37, 1, 38))),
+							L(S(P(0, 1, 1), P(49, 1, 50))),
 							[]ast.UsingEntryNode{
 								ast.NewUsingEntryWithSubentriesNode(
-									L(S(P(6, 1, 7), P(37, 1, 38))),
+									L(S(P(6, 1, 7), P(49, 1, 50))),
 									ast.NewPublicConstantNode(
 										L(S(P(6, 1, 7), P(15, 1, 16))),
 										"Enumerable",
@@ -731,7 +735,21 @@ func TestUsingExpression(t *testing.T) {
 												L(S(P(29, 1, 30), P(31, 1, 32))),
 												"bar",
 											),
-											"b",
+											ast.NewPublicIdentifierNode(
+												L(S(P(36, 1, 37), P(36, 1, 37))),
+												"b",
+											),
+										),
+										ast.NewUsingSubentryAsNode(
+											L(S(P(39, 1, 40), P(48, 1, 49))),
+											ast.NewMacroNameNode(
+												L(S(P(39, 1, 40), P(42, 1, 43))),
+												"baz",
+											),
+											ast.NewMacroNameNode(
+												L(S(P(47, 1, 48), P(48, 1, 49))),
+												"z",
+											),
 										),
 									},
 								),
@@ -953,6 +971,40 @@ func TestUsingExpression(t *testing.T) {
 				},
 			),
 		},
+		"can have a macro lookup as the argument": {
+			input: "using Std::Memoizable::memo!",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(27, 1, 28))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(27, 1, 28))),
+						ast.NewUsingExpressionNode(
+							L(S(P(0, 1, 1), P(27, 1, 28))),
+							[]ast.UsingEntryNode{
+								ast.NewMethodLookupNode(
+									L(S(P(6, 1, 7), P(27, 1, 28))),
+									ast.NewConstantLookupNode(
+										L(S(P(6, 1, 7), P(20, 1, 21))),
+										ast.NewPublicConstantNode(
+											L(S(P(6, 1, 7), P(8, 1, 9))),
+											"Std",
+										),
+										ast.NewPublicConstantNode(
+											L(S(P(11, 1, 12), P(20, 1, 21))),
+											"Memoizable",
+										),
+									),
+									ast.NewMacroNameNode(
+										L(S(P(23, 1, 24), P(27, 1, 28))),
+										"memo",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can have a method lookup with as and public identifier": {
 			input: "using Std::Memoizable::memo as m",
 			want: ast.NewProgramNode(
@@ -961,10 +1013,10 @@ func TestUsingExpression(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						L(S(P(0, 1, 1), P(31, 1, 32))),
 						ast.NewUsingExpressionNode(
-							L(S(P(0, 1, 1), P(20, 1, 21))),
+							L(S(P(0, 1, 1), P(31, 1, 32))),
 							[]ast.UsingEntryNode{
 								ast.NewMethodLookupAsNode(
-									L(S(P(6, 1, 7), P(20, 1, 21))),
+									L(S(P(6, 1, 7), P(31, 1, 32))),
 									ast.NewMethodLookupNode(
 										L(S(P(6, 1, 7), P(26, 1, 27))),
 										ast.NewConstantLookupNode(
@@ -994,6 +1046,135 @@ func TestUsingExpression(t *testing.T) {
 				},
 			),
 		},
+		"can have a macro lookup with as and public identifier": {
+			input: "using Std::Memoizable::memo! as m!",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(33, 1, 34))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(33, 1, 34))),
+						ast.NewUsingExpressionNode(
+							L(S(P(0, 1, 1), P(33, 1, 34))),
+							[]ast.UsingEntryNode{
+								ast.NewMethodLookupAsNode(
+									L(S(P(6, 1, 7), P(33, 1, 34))),
+									ast.NewMethodLookupNode(
+										L(S(P(6, 1, 7), P(27, 1, 28))),
+										ast.NewConstantLookupNode(
+											L(S(P(6, 1, 7), P(20, 1, 21))),
+											ast.NewPublicConstantNode(
+												L(S(P(6, 1, 7), P(8, 1, 9))),
+												"Std",
+											),
+											ast.NewPublicConstantNode(
+												L(S(P(11, 1, 12), P(20, 1, 21))),
+												"Memoizable",
+											),
+										),
+										ast.NewMacroNameNode(
+											L(S(P(23, 1, 24), P(27, 1, 28))),
+											"memo",
+										),
+									),
+									ast.NewMacroNameNode(
+										L(S(P(32, 1, 33), P(33, 1, 34))),
+										"m",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"cannot rename a method to a macro": {
+			input: "using Std::Memoizable::memo as m!",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(32, 1, 33))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(32, 1, 33))),
+						ast.NewUsingExpressionNode(
+							L(S(P(0, 1, 1), P(32, 1, 33))),
+							[]ast.UsingEntryNode{
+								ast.NewMethodLookupAsNode(
+									L(S(P(6, 1, 7), P(32, 1, 33))),
+									ast.NewMethodLookupNode(
+										L(S(P(6, 1, 7), P(26, 1, 27))),
+										ast.NewConstantLookupNode(
+											L(S(P(6, 1, 7), P(20, 1, 21))),
+											ast.NewPublicConstantNode(
+												L(S(P(6, 1, 7), P(8, 1, 9))),
+												"Std",
+											),
+											ast.NewPublicConstantNode(
+												L(S(P(11, 1, 12), P(20, 1, 21))),
+												"Memoizable",
+											),
+										),
+										ast.NewPublicIdentifierNode(
+											L(S(P(23, 1, 24), P(26, 1, 27))),
+											"memo",
+										),
+									),
+									ast.NewMacroNameNode(
+										L(S(P(31, 1, 32), P(32, 1, 33))),
+										"m",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(6, 1, 7), P(32, 1, 33))), "mismatched as name in using (one is a macro the other one is a method)"),
+			},
+		},
+		"cannot rename a macro to a method": {
+			input: "using Std::Memoizable::memo! as m",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(32, 1, 33))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(32, 1, 33))),
+						ast.NewUsingExpressionNode(
+							L(S(P(0, 1, 1), P(32, 1, 33))),
+							[]ast.UsingEntryNode{
+								ast.NewMethodLookupAsNode(
+									L(S(P(6, 1, 7), P(32, 1, 33))),
+									ast.NewMethodLookupNode(
+										L(S(P(6, 1, 7), P(27, 1, 28))),
+										ast.NewConstantLookupNode(
+											L(S(P(6, 1, 7), P(20, 1, 21))),
+											ast.NewPublicConstantNode(
+												L(S(P(6, 1, 7), P(8, 1, 9))),
+												"Std",
+											),
+											ast.NewPublicConstantNode(
+												L(S(P(11, 1, 12), P(20, 1, 21))),
+												"Memoizable",
+											),
+										),
+										ast.NewMacroNameNode(
+											L(S(P(23, 1, 24), P(27, 1, 28))),
+											"memo",
+										),
+									),
+									ast.NewPublicIdentifierNode(
+										L(S(P(32, 1, 33), P(32, 1, 33))),
+										"m",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(6, 1, 7), P(32, 1, 33))), "mismatched as name in using (one is a macro the other one is a method)"),
+			},
+		},
 		"cannot have a method lookup with as and constant": {
 			input: "using Std::Memoizable::memo as M",
 			want: ast.NewProgramNode(
@@ -1004,9 +1185,30 @@ func TestUsingExpression(t *testing.T) {
 						ast.NewUsingExpressionNode(
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							[]ast.UsingEntryNode{
-								ast.NewInvalidNode(
-									L(S(P(31, 1, 32), P(31, 1, 32))),
-									V(L(S(P(31, 1, 32), P(31, 1, 32))), token.PUBLIC_CONSTANT, "M"),
+								ast.NewMethodLookupAsNode(
+									L(S(P(6, 1, 7), P(31, 1, 32))),
+									ast.NewMethodLookupNode(
+										L(S(P(6, 1, 7), P(26, 1, 27))),
+										ast.NewConstantLookupNode(
+											L(S(P(6, 1, 7), P(20, 1, 21))),
+											ast.NewPublicConstantNode(
+												L(S(P(6, 1, 7), P(8, 1, 9))),
+												"Std",
+											),
+											ast.NewPublicConstantNode(
+												L(S(P(11, 1, 12), P(20, 1, 21))),
+												"Memoizable",
+											),
+										),
+										ast.NewPublicIdentifierNode(
+											L(S(P(23, 1, 24), P(26, 1, 27))),
+											"memo",
+										),
+									),
+									ast.NewInvalidNode(
+										L(S(P(31, 1, 32), P(31, 1, 32))),
+										V(L(S(P(31, 1, 32), P(31, 1, 32))), token.PUBLIC_CONSTANT, "M"),
+									),
 								),
 							},
 						),
@@ -1014,7 +1216,7 @@ func TestUsingExpression(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(31, 1, 32), P(31, 1, 32))), "unexpected PUBLIC_CONSTANT, expected PUBLIC_IDENTIFIER"),
+				diagnostic.NewFailure(L(S(P(31, 1, 32), P(31, 1, 32))), "unexpected PUBLIC_CONSTANT, expected method or macro name identifier"),
 			},
 		},
 		"can have a generic constant as the argument": {

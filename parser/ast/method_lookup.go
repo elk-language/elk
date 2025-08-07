@@ -126,6 +126,11 @@ type MethodLookupNode struct {
 	Name     IdentifierNode
 }
 
+func (n *MethodLookupNode) IsMacro() bool {
+	_, ok := n.Name.(*MacroNameNode)
+	return ok
+}
+
 func (n *MethodLookupNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MethodLookupNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
@@ -234,6 +239,11 @@ type MethodLookupAsNode struct {
 	NodeBase
 	MethodLookup *MethodLookupNode
 	AsName       IdentifierNode
+}
+
+func (n *MethodLookupAsNode) IsMacro() bool {
+	_, ok := n.AsName.(*MacroNameNode)
+	return ok
 }
 
 func (n *MethodLookupAsNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {

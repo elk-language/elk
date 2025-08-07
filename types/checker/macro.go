@@ -35,6 +35,55 @@ func (c *Checker) expandTopLevelMacrosInFile(filename string, node *ast.ProgramN
 	node.State = ast.EXPANDED_TOP_LEVEL_MACROS
 }
 
+func (c *Checker) checkUsingExpressionForMacros(node *ast.UsingExpressionNode) {
+	for _, entry := range node.Entries {
+		c.resolveUsingEntry(entry, false)
+		switch e := entry.(type) {
+		case *ast.MethodLookupNode:
+			if !e.IsMacro() {
+				continue
+			}
+			c.checkUsingMethodLookupEntryNode(
+				e.Receiver,
+				c.identifierToName(e.Name),
+				"",
+				e.Location(),
+			)
+		case *ast.MethodLookupAsNode:
+			if !e.IsMacro() {
+				continue
+			}
+			c.checkUsingMethodLookupEntryNode(
+				e.MethodLookup.Receiver,
+				c.identifierToName(e.MethodLookup.Name),
+				c.identifierToName(e.AsName),
+				e.Location(),
+			)
+		case *ast.UsingEntryWithSubentriesNode:
+			c.checkUsingEntryWithSubentriesForMacros(e)
+		}
+	}
+}
+
+func (c *Checker) checkUsingEntryWithSubentriesForMacros(node *ast.UsingEntryWithSubentriesNode) {
+	for _, subentry := range node.Subentries {
+		switch s := subentry.(type) {
+		case *ast.MacroNameNode:
+			c.checkUsingMethodLookupEntryNode(node.Namespace, c.identifierToName(s), "", s.Location())
+		case *ast.UsingSubentryAsNode:
+			if !s.IsMacro() {
+				continue
+			}
+			value := c.identifierToName(s.Target)
+			asName := c.identifierToName(s.AsName)
+			c.checkUsingMethodLookupEntryNode(node.Namespace, value, asName, s.Location())
+		case *ast.PublicConstantNode, *ast.PublicConstantAsNode, *ast.PublicIdentifierNode:
+		default:
+			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))
+		}
+	}
+}
+
 func (c *Checker) expandTopLevelMacros(statements []ast.StatementNode) {
 	for _, statement := range statements {
 		switch stmt := statement.(type) {
@@ -76,6 +125,8 @@ func (c *Checker) hoistClassDeclarationAndExpandMacros(node *ast.ClassDeclaratio
 
 func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.ExpressionNode {
 	switch expr := expr.(type) {
+	case *ast.UsingExpressionNode:
+		c.checkUsingExpressionForMacros(expr)
 	case *ast.MacroBoundaryNode:
 		c.expandTopLevelMacros(expr.Body)
 	case *ast.ModuleDeclarationNode:
@@ -142,9 +193,7 @@ func (c *Checker) resolveMacroForNamespace(namespace types.Namespace, name value
 		namespace = n.Singleton()
 	case *types.Mixin:
 		namespace = n.Singleton()
-	case *types.Module:
-		namespace = n
-	case *types.SingletonClass:
+	case *types.Module, *types.SingletonClass, *types.UsingBufferNamespace:
 		namespace = n
 	default:
 		return nil
@@ -196,6 +245,9 @@ func (c *Checker) expandMacroByName(name string, kind ast.MacroKind, posArgs []a
 	macroName := c.macroMethodName(name)
 	macro := c.getMacro(macroName, loc)
 	if macro == nil {
+		return nil
+	}
+	if macro.IsPlaceholder() {
 		return nil
 	}
 
@@ -950,6 +1002,7 @@ func (c *Checker) checkReceiverlessMacroCallNode(node *ast.ReceiverlessMacroCall
 
 func (c *Checker) checkReceiverlessMacroCallNodeForExpression(node *ast.ReceiverlessMacroCallNode) ast.ExpressionNode {
 	result := c.checkReceiverlessMacroCallNode(node)
+
 	if result == nil {
 		return node
 	}

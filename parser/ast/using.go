@@ -383,14 +383,19 @@ func NewUsingExpressionNode(loc *position.Location, consts []UsingEntryNode) *Us
 type UsingSubentryAsNode struct {
 	NodeBase
 	Target IdentifierNode
-	AsName string
+	AsName IdentifierNode
+}
+
+func (n *UsingSubentryAsNode) IsMacro() bool {
+	_, ok := n.Target.(*MacroNameNode)
+	return ok
 }
 
 func (n *UsingSubentryAsNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UsingSubentryAsNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Target:   n.Target.splice(loc, args, unquote).(*PublicIdentifierNode),
-		AsName:   n.AsName,
+		Target:   n.Target.splice(loc, args, unquote).(IdentifierNode),
+		AsName:   n.AsName.splice(loc, args, unquote).(IdentifierNode),
 	}
 }
 
@@ -410,6 +415,10 @@ func (n *UsingSubentryAsNode) traverse(parent Node, enter func(node, parent Node
 		return TraverseBreak
 	}
 
+	if n.AsName.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	return leave(n, parent)
 }
 
@@ -420,12 +429,12 @@ func (n *UsingSubentryAsNode) Equal(other value.Value) bool {
 	}
 
 	return n.Target.Equal(value.Ref(o.Target)) &&
-		n.AsName == o.AsName &&
+		n.AsName.Equal(value.Ref(o.AsName)) &&
 		n.loc.Equal(o.loc)
 }
 
 func (n *UsingSubentryAsNode) String() string {
-	return fmt.Sprintf("%s as %s", n.Target.String(), n.AsName)
+	return fmt.Sprintf("%s as %s", n.Target.String(), n.AsName.String())
 }
 
 func (*UsingSubentryAsNode) IsStatic() bool {
@@ -433,11 +442,11 @@ func (*UsingSubentryAsNode) IsStatic() bool {
 }
 
 func (*UsingSubentryAsNode) Class() *value.Class {
-	return value.ConstantAsNodeClass
+	return value.UsingSubentryAsNodeClass
 }
 
 func (*UsingSubentryAsNode) DirectClass() *value.Class {
-	return value.ConstantAsNodeClass
+	return value.UsingSubentryAsNodeClass
 }
 
 func (n *UsingSubentryAsNode) Inspect() string {
@@ -449,7 +458,7 @@ func (n *UsingSubentryAsNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, n.Target.Inspect(), 1)
 
 	buff.WriteString(",\n  as_name: ")
-	buff.WriteString(n.AsName)
+	indent.IndentStringFromSecondLine(&buff, n.AsName.Inspect(), 1)
 
 	buff.WriteString("\n}")
 
@@ -461,7 +470,7 @@ func (n *UsingSubentryAsNode) Error() string {
 }
 
 // Create a new identifier with as eg. `foo as bar`.
-func NewUsingSubentryAsNode(loc *position.Location, target IdentifierNode, as string) *UsingSubentryAsNode {
+func NewUsingSubentryAsNode(loc *position.Location, target IdentifierNode, as IdentifierNode) *UsingSubentryAsNode {
 	return &UsingSubentryAsNode{
 		NodeBase: NodeBase{loc: loc},
 		Target:   target,

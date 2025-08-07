@@ -184,11 +184,11 @@ func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNod
 
 func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
 	for _, entry := range node.Entries {
-		c.resolveUsingEntry(entry)
+		c.resolveUsingEntry(entry, true)
 	}
 }
 
-func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode) {
+func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode, pushPlaceholderLocation bool) {
 	typ := c.TypeOf(entry)
 	switch t := typ.(type) {
 	case *types.Module:
@@ -206,7 +206,9 @@ func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode) {
 	case *types.NamespacePlaceholder:
 		c.pushConstScope(makeUsingConstantScope(t))
 		c.pushMethodScope(makeUsingMethodScope(t))
-		t.Locations.Push(entry.Location())
+		if pushPlaceholderLocation {
+			t.Locations.Push(entry.Location())
+		}
 	case *types.UsingBufferNamespace:
 		if c.enclosingScopeIsAUsingBuffer() {
 			return
@@ -374,9 +376,12 @@ func (c *Checker) hoistMethodDefinitionsWithinExtendWhere(node *ast.ExtendWhereB
 
 func (c *Checker) checkUsingExpressionForMethods(node *ast.UsingExpressionNode) {
 	for _, entry := range node.Entries {
-		c.resolveUsingEntry(entry)
+		c.resolveUsingEntry(entry, true)
 		switch e := entry.(type) {
 		case *ast.MethodLookupNode:
+			if e.IsMacro() {
+				continue
+			}
 			c.checkUsingMethodLookupEntryNode(
 				e.Receiver,
 				c.identifierToName(e.Name),
@@ -384,6 +389,9 @@ func (c *Checker) checkUsingExpressionForMethods(node *ast.UsingExpressionNode) 
 				e.Location(),
 			)
 		case *ast.MethodLookupAsNode:
+			if e.IsMacro() {
+				continue
+			}
 			c.checkUsingMethodLookupEntryNode(
 				e.MethodLookup.Receiver,
 				c.identifierToName(e.MethodLookup.Name),
@@ -400,11 +408,15 @@ func (c *Checker) checkUsingEntryWithSubentriesForMethods(node *ast.UsingEntryWi
 	for _, subentry := range node.Subentries {
 		switch s := subentry.(type) {
 		case *ast.PublicIdentifierNode:
-			c.checkUsingMethodLookupEntryNode(node.Namespace, s.Value, "", s.Location())
+			c.checkUsingMethodLookupEntryNode(node.Namespace, c.identifierToName(s), "", s.Location())
 		case *ast.UsingSubentryAsNode:
+			if s.IsMacro() {
+				continue
+			}
 			value := c.identifierToName(s.Target)
-			c.checkUsingMethodLookupEntryNode(node.Namespace, value, s.AsName, s.Location())
-		case *ast.PublicConstantNode, *ast.PublicConstantAsNode:
+			asName := c.identifierToName(s.AsName)
+			c.checkUsingMethodLookupEntryNode(node.Namespace, value, asName, s.Location())
+		case *ast.PublicConstantNode, *ast.PublicConstantAsNode, *ast.MacroNameNode:
 		default:
 			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))
 		}

@@ -307,7 +307,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents a single Elk program (usually a single file).", false, true, true, false, value.ToSymbol("ProgramNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a constant with as in using declarations\neg. `Foo as Bar`.", false, true, true, false, value.ToSymbol("PublicConstantAsNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a public constant eg. `Foo`.", false, true, true, false, value.ToSymbol("PublicConstantNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an identifier with as in using declarations\neg. `foo as bar`.", false, true, true, false, value.ToSymbol("PublicIdentifierAsNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a public identifier eg. `foo`.", false, true, true, false, value.ToSymbol("PublicIdentifierNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an instance variable eg. `@foo`", false, true, true, false, value.ToSymbol("PublicInstanceVariableNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a quoted block of AST eg.\n\n```\nquote\n  print(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("QuoteExpressionNode"), objectClass, env)
@@ -396,6 +395,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineMixin("Represents all nodes that are valid in using declarations", false, value.ToSymbol("UsingEntryNode"), env)
 				namespace.TryDefineClass("Represents a using entry node with subentries eg. `Foo::{Bar, baz}`, `A::B::C::{lol, foo as epic, Gro as Moe}`", false, true, true, false, value.ToSymbol("UsingEntryWithSubentriesNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a using expression eg. `using Foo`", false, true, true, false, value.ToSymbol("UsingExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an identifier with as in using declarations\neg. `foo as bar`.", false, true, true, false, value.ToSymbol("UsingSubentryAsNode"), objectClass, env)
 				namespace.TryDefineMixin("Represents all nodes that are valid in using subentries\nin `UsingEntryWithSubentriesNode`", false, value.ToSymbol("UsingSubentryNode"), env)
 				namespace.TryDefineClass("Represents a value declaration eg. `val foo: String`", false, true, true, false, value.ToSymbol("ValueDeclarationNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a value pattern declaration eg. `val [foo, { bar }] = baz()`", false, true, true, false, value.ToSymbol("ValuePatternDeclarationNode"), objectClass, env)
@@ -4335,25 +4335,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtypeString("PublicIdentifierAsNode").(*Class)
-
-						namespace.Name() // noop - avoid unused variable error
-
-						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingSubentryNode", env).(*Mixin))
-
-						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("target"), NameToType("Std::Elk::AST::PublicIdentifierNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("as_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("as_name"), nil, nil, NameToType("Std::String", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("target"), nil, nil, NameToType("Std::Elk::AST::PublicIdentifierNode", env), Never{})
-
-						// Define constants
-
-						// Define instance variables
-					}
-					{
 						namespace := namespace.MustSubtypeString("PublicIdentifierNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
@@ -5648,6 +5629,25 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("entries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::UsingEntryNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("entries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::UsingEntryNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("UsingSubentryAsNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingSubentryNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("target"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("as_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("as_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("target"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 
 						// Define constants
 

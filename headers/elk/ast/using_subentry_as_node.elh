@@ -3,13 +3,13 @@ module Std::Elk::AST
     Represents an identifier with as in using declarations
     eg. `foo as bar`.
   ]##
-  sealed primitive class PublicIdentifierAsNode
+  sealed primitive class UsingSubentryAsNode
     include ExpressionNode,
             UsingSubentryNode
 
-    init(target: PublicIdentifierNode, as_name: String, location: FS::Location = loop; end); end
-    def target: PublicIdentifierNode; end
-    def as_name: String; end
+    init(target: IdentifierNode, as_name: IdentifierNode, location: FS::Location = loop; end); end
+    def target: IdentifierNode; end
+    def as_name: IdentifierNode; end
     def location: FS::Location; end
   end
 end

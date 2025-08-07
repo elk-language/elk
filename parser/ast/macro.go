@@ -436,7 +436,7 @@ func (n *ScopedMacroCallNode) Error() string {
 	return n.Inspect()
 }
 
-// Create a macro call node eg. `'123'.to_int!()`
+// Create a macro call node eg. `Foo::bar!(5)`
 func NewScopedMacroCallNode(
 	loc *position.Location,
 	kind MacroKind,

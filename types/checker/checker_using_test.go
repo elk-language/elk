@@ -214,6 +214,74 @@ func TestUsing(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(74, 8, 12), P(76, 8, 14)), "undefined type `Foo::Bar`"),
 			},
 		},
+		"using with a single macro in braces": {
+			input: `
+				using Foo::{bar!}
+
+				class Foo
+					macro bar
+						3.to_ast_expr_node
+					end
+				end
+
+				var a: nil = bar!
+				var c: 3 = bar!
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(113, 10, 18), P(115, 10, 20)), "type `3` cannot be assigned to type `nil`"),
+			},
+		},
+		"using with a single macro in braces with as": {
+			input: `
+				using Foo::{bar! as b!}
+
+				class Foo
+					macro bar
+						3.to_ast_expr_node
+					end
+				end
+
+				var a: nil = b!
+				var c: 3 = b!
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(119, 10, 18), P(119, 10, 18)), "type `3` cannot be assigned to type `nil`"),
+			},
+		},
+		"using with a single macro": {
+			input: `
+				using Foo::bar!
+
+				class Foo
+					macro bar
+						3.to_ast_expr_node
+					end
+				end
+
+				var a: nil = bar!
+				var c: 3 = bar!
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(111, 10, 18), P(113, 10, 20)), "type `3` cannot be assigned to type `nil`"),
+			},
+		},
+		"using with a single macro and as": {
+			input: `
+				using Foo::bar! as b!
+
+				class Foo
+					macro bar
+						3.to_ast_expr_node
+					end
+				end
+
+				var a: nil = b!
+				var c: 3 = b!
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(117, 10, 18), P(117, 10, 18)), "type `3` cannot be assigned to type `nil`"),
+			},
+		},
 		"using with a single constant and as": {
 			input: `
 				using Foo::Bar as B
@@ -410,6 +478,17 @@ func TestUsing(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(18, 2, 18)), "undefined method `Foo::bar`"),
+			},
+		},
+		"using with a single nonexistent macro": {
+			input: `
+				using Foo::bar!
+				module Foo; end
+
+				var a: Int = bar!()
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(19, 2, 19)), "undefined method `Foo::bar!`"),
 			},
 		},
 		"using with a few methods": {

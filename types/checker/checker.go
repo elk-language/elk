@@ -4315,6 +4315,8 @@ func (c *Checker) identifierToName(node ast.IdentifierNode) string {
 		return node.Value
 	case *ast.PublicIdentifierNode:
 		return node.Value
+	case *ast.MacroNameNode:
+		return node.Value + "!"
 	case nil:
 		return ""
 	default:
@@ -7747,7 +7749,7 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 			)
 			c.checkUsingConstantLookupEntryNodeForNamespace(newNode, s.AsName)
 			s.SetType(c.TypeOf(newNode))
-		case *ast.PublicIdentifierNode, *ast.UsingSubentryAsNode:
+		case *ast.PublicIdentifierNode, *ast.UsingSubentryAsNode, *ast.MacroNameNode:
 		default:
 			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))
 		}

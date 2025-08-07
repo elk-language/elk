@@ -3933,31 +3933,30 @@ func (p *Parser) attrDeclaration(allowed bool) ast.ExpressionNode {
 func (p *Parser) usingSubentry() ast.UsingSubentryNode {
 	switch p.lookahead.Type {
 	case token.PUBLIC_IDENTIFIER:
-		identTok := p.advance()
-
-		var identNode ast.IdentifierNode
-		if bang, ok := p.matchOk(token.BANG); ok {
-			identNode = ast.NewMacroNameNode(
-				identTok.Location().Join(bang.Location()),
-				identTok.Value,
-			)
-		} else {
-			identNode = ast.NewPublicIdentifierNode(identTok.Location(), identTok.Value)
-		}
+		identNode := p.methodOrMacroIdentifier()
+		_, identIsMacro := identNode.(*ast.MacroNameNode)
 
 		if !p.accept(token.AS) {
 			return identNode.(ast.UsingSubentryNode)
 		}
 
 		p.advance() // as
-		asIdentTok, ok := p.consume(token.PUBLIC_IDENTIFIER)
-		if !ok {
-			return ast.NewInvalidNode(asIdentTok.Location(), asIdentTok)
+
+		asName := p.methodOrMacroIdentifier()
+		_, asNameIsMacro := asName.(*ast.MacroNameNode)
+
+		span := identNode.Location().Join(asName.Location())
+		if identIsMacro != asNameIsMacro {
+			p.errorMessageLocation(
+				mismatchedAsNameMessage,
+				span,
+			)
 		}
+
 		return ast.NewUsingSubentryAsNode(
-			identTok.Location().Join(asIdentTok.Location()),
+			span,
 			identNode,
-			asIdentTok.Value,
+			asName,
 		)
 	case token.PUBLIC_CONSTANT:
 		constTok := p.advance()
@@ -3985,6 +3984,8 @@ func (p *Parser) usingSubentry() ast.UsingSubentryNode {
 	}
 }
 
+const mismatchedAsNameMessage = "mismatched as name in using (one is a macro the other one is a method)"
+
 // usingEntry = strictConstantLookup ["::" (publicIdentifier | "*" | "{" usingSubentryList "}")]
 func (p *Parser) usingEntry() ast.UsingEntryNode {
 	var left ast.ComplexConstantNode
@@ -4007,25 +4008,29 @@ func (p *Parser) usingEntry() ast.UsingEntryNode {
 
 		p.swallowNewlines()
 		if p.accept(token.PUBLIC_IDENTIFIER) {
-			nameTok := p.publicIdentifier()
+			nameNode := p.methodOrMacroIdentifier()
 			methodLookup := ast.NewMethodLookupNode(
-				left.Location().Join(nameTok.Location()),
+				left.Location().Join(nameNode.Location()),
 				left,
-				nameTok,
+				nameNode,
 			)
 			if p.match(token.AS) {
-				asNameTok, ok := p.consume(token.PUBLIC_IDENTIFIER)
-				if !ok {
-					return ast.NewInvalidNode(
-						asNameTok.Location(),
-						asNameTok,
+				asName := p.methodOrMacroIdentifier()
+				_, nameIsMacro := nameNode.(*ast.MacroNameNode)
+				_, asNameIsMacro := asName.(*ast.MacroNameNode)
+
+				span := left.Location().Join(asName.Location())
+				if nameIsMacro != asNameIsMacro {
+					p.errorMessageLocation(
+						mismatchedAsNameMessage,
+						span,
 					)
 				}
 
 				return ast.NewMethodLookupAsNode(
-					left.Location(),
+					span,
 					methodLookup,
-					tokenToIdentifier(asNameTok),
+					asName,
 				)
 			}
 			return methodLookup
@@ -7593,6 +7598,27 @@ func (p *Parser) docComment(allowed bool) ast.ExpressionNode {
 		docCommentableExpr.SetDocComment(docComment.Value)
 	}
 	return expr
+}
+
+func (p *Parser) methodOrMacroIdentifier() ast.IdentifierNode {
+	if !p.accept(token.PUBLIC_IDENTIFIER, token.DOLLAR_IDENTIFIER) {
+		p.errorExpected("method or macro name identifier")
+		tok := p.advance()
+		return ast.NewInvalidNode(tok.Location(), tok)
+	}
+
+	identTok := p.advance()
+	if bang, ok := p.matchOk(token.BANG); ok {
+		return ast.NewMacroNameNode(
+			identTok.Location().Join(bang.Location()),
+			identTok.Value,
+		)
+	}
+
+	return ast.NewPublicIdentifierNode(
+		identTok.Location(),
+		identTok.Value,
+	)
 }
 
 func (p *Parser) publicIdentifier() *ast.PublicIdentifierNode {

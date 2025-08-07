@@ -13,8 +13,8 @@ func initUsingSubentryAsNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argTarget := args[1].MustReference().(*ast.PublicIdentifierNode)
-			argAsName := (string)(args[2].MustReference().(value.String))
+			argTarget := args[1].MustReference().(ast.IdentifierNode)
+			argAsName := args[2].MustReference().(ast.IdentifierNode)
 
 			var argLoc *position.Location
 			if args[3].IsUndefined() {
@@ -49,7 +49,7 @@ func initUsingSubentryAsNode() {
 		"as_name",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UsingSubentryAsNode)
-			result := value.Ref(value.String(self.AsName))
+			result := value.Ref(self.AsName)
 			return result, value.Undefined
 
 		},
