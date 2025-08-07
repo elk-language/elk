@@ -16,8 +16,21 @@
         Result.ok(x / y)
       end
     end
+
+		# Use pattern matching to handle success and failure
+		result := divide(10, 2)
+		switch result
+		case Result::ok!
+			puts "ok: #value"
+		case Result::err!
+			puts "err: #err"
+		end
+
+		result.value # read the success value
+		result.err # read the error value
+		result.ok # check if the result contains a value or an error
 ]##
-sealed primitive class ::Std::Result[+Val, +Err = never]
+sealed primitive noinit class ::Std::Result[+Val, +Err = never]
 	singleton
 		##[
 			Create a new Result that represents success with the given value.
@@ -29,8 +42,6 @@ sealed primitive class ::Std::Result[+Val, +Err = never]
 		]##
 		def err[E](err: E): Result[never, E]; end
 	end
-
-	init(value: Val? = nil, err: Err? = nil); end
 
 	##[
 		Returns the success value if this Result represents success.

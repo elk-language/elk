@@ -630,7 +630,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Result is a type used for value-based error handling.\nIt represents either a successful computation containing a value,\nor a failed computation containing an error.\n\nThe type parameters are:\n- Val: The type of the success value\n- Err: The type of the error value (defaults to never)\n\nExample:\n\n  def divide(x: Int, y: Int): Result[Int, String]\n    if y == 0\n      Result.err(\"division by zero\")\n    else\n      Result.ok(x / y)\n    end\n  end", false, true, true, false, value.ToSymbol("Result"), objectClass, env)
+			namespace := namespace.TryDefineClass("Result is a type used for value-based error handling.\nIt represents either a successful computation containing a value,\nor a failed computation containing an error.\n\nThe type parameters are:\n- Val: The type of the success value\n- Err: The type of the error value (defaults to never)\n\nExample:\n\n  def divide(x: Int, y: Int): Result[Int, String]\n    if y == 0\n      Result.err(\"division by zero\")\n    else\n      Result.ok(x / y)\n    end\n  end\n\n# Use pattern matching to handle success and failure\nresult := divide(10, 2)\nswitch result\ncase Result::ok!\n\tputs \"ok: #value\"\ncase Result::err!\n\tputs \"err: #err\"\nend\n\nresult.value # read the success value\nresult.err # read the error value\nresult.ok # check if the result contains a value or an error", false, true, true, true, value.ToSymbol("Result"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -8252,7 +8252,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins and implement interfaces
 
 				// Define methods
-				method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NewNilable(NameToType("Std::Result::Val", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("err"), NewNilable(NameToType("Std::Result::Err", env)), DefaultValueParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Returns the error value if this Result represents failure.\nReturns `nil` if this Result represents success.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("err"), nil, nil, NewNilable(NameToType("Std::Result::Err", env)), Never{})
 				namespace.DefineMethod("Returns `true` if this Result represents success (contains a value).\nReturns `false` if this Result represents failure (contains an error).", 0|METHOD_NATIVE_FLAG, value.ToSymbol("ok"), nil, nil, Bool{}, Never{})
 				namespace.DefineMethod("Returns the success value if this Result represents success.\nReturns `nil` if this Result represents failure.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NewNilable(NameToType("Std::Result::Val", env)), Never{})

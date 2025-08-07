@@ -317,6 +317,8 @@ func (c *Checker) checkNamespacePlaceholders() {
 		}
 		placeholder.Locations.Slice = nil
 	}
+
+	c.namespacePlaceholders = nil
 }
 
 func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
