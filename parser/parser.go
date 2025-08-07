@@ -3946,7 +3946,7 @@ func (p *Parser) usingSubentry() ast.UsingSubentryNode {
 		if !ok {
 			return ast.NewInvalidNode(asIdentTok.Location(), asIdentTok)
 		}
-		return ast.NewPublicIdentifierAsNode(
+		return ast.NewUsingSubentryAsNode(
 			identTok.Location().Join(asIdentTok.Location()),
 			ast.NewPublicIdentifierNode(identTok.Location(), identTok.Value),
 			asIdentTok.Value,

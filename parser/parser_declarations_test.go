@@ -725,7 +725,7 @@ func TestUsingExpression(t *testing.T) {
 											),
 											"F",
 										),
-										ast.NewPublicIdentifierAsNode(
+										ast.NewUsingSubentryAsNode(
 											L(S(P(29, 1, 30), P(36, 1, 37))),
 											ast.NewPublicIdentifierNode(
 												L(S(P(29, 1, 30), P(31, 1, 32))),

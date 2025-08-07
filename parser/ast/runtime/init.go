@@ -132,7 +132,7 @@ func InitGlobalEnvironment() {
 	initProgramNode()
 	initPublicConstantAsNode()
 	initPublicConstantNode()
-	initPublicIdentifierAsNode()
+	initUsingSubentryAsNode()
 	initPublicIdentifierNode()
 	initRangeLiteralNode()
 	initRawCharLiteralNode()
@@ -193,6 +193,7 @@ func InitGlobalEnvironment() {
 	initWordArrayTupleLiteralNode()
 	initWordHashSetLiteralNode()
 	initYieldExpressionNode()
+	initMacroNameNode()
 }
 
 func init() {

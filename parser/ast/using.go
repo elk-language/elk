@@ -41,11 +41,12 @@ type UsingSubentryNode interface {
 	usingSubentryNode()
 }
 
-func (*InvalidNode) usingSubentryNode()            {}
-func (*PublicConstantNode) usingSubentryNode()     {}
-func (*PublicConstantAsNode) usingSubentryNode()   {}
-func (*PublicIdentifierNode) usingSubentryNode()   {}
-func (*PublicIdentifierAsNode) usingSubentryNode() {}
+func (*InvalidNode) usingSubentryNode()          {}
+func (*PublicConstantNode) usingSubentryNode()   {}
+func (*PublicConstantAsNode) usingSubentryNode() {}
+func (*MacroNameNode) usingSubentryNode()        {}
+func (*PublicIdentifierNode) usingSubentryNode() {}
+func (*UsingSubentryAsNode) usingSubentryNode()  {}
 
 // Represents a using all entry node eg. `Foo::*`, `A::B::C::*`
 type UsingAllEntryNode struct {
@@ -374,5 +375,184 @@ func NewUsingExpressionNode(loc *position.Location, consts []UsingEntryNode) *Us
 	return &UsingExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Entries:       consts,
+	}
+}
+
+// Represents an identifier with as in using declarations
+// eg. `foo as bar`.
+type UsingSubentryAsNode struct {
+	NodeBase
+	Target IdentifierNode
+	AsName string
+}
+
+func (n *UsingSubentryAsNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	return &UsingSubentryAsNode{
+		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Target:   n.Target.splice(loc, args, unquote).(*PublicIdentifierNode),
+		AsName:   n.AsName,
+	}
+}
+
+func (n *UsingSubentryAsNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UsingSubentryAsNode", env)
+}
+
+func (n *UsingSubentryAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	if n.Target.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
+}
+
+func (n *UsingSubentryAsNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UsingSubentryAsNode)
+	if !ok {
+		return false
+	}
+
+	return n.Target.Equal(value.Ref(o.Target)) &&
+		n.AsName == o.AsName &&
+		n.loc.Equal(o.loc)
+}
+
+func (n *UsingSubentryAsNode) String() string {
+	return fmt.Sprintf("%s as %s", n.Target.String(), n.AsName)
+}
+
+func (*UsingSubentryAsNode) IsStatic() bool {
+	return false
+}
+
+func (*UsingSubentryAsNode) Class() *value.Class {
+	return value.ConstantAsNodeClass
+}
+
+func (*UsingSubentryAsNode) DirectClass() *value.Class {
+	return value.ConstantAsNodeClass
+}
+
+func (n *UsingSubentryAsNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::Elk::AST::UsingSubentryAsNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+
+	buff.WriteString(",\n  target: ")
+	indent.IndentStringFromSecondLine(&buff, n.Target.Inspect(), 1)
+
+	buff.WriteString(",\n  as_name: ")
+	buff.WriteString(n.AsName)
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (n *UsingSubentryAsNode) Error() string {
+	return n.Inspect()
+}
+
+// Create a new identifier with as eg. `foo as bar`.
+func NewUsingSubentryAsNode(loc *position.Location, target IdentifierNode, as string) *UsingSubentryAsNode {
+	return &UsingSubentryAsNode{
+		NodeBase: NodeBase{loc: loc},
+		Target:   target,
+		AsName:   as,
+	}
+}
+
+// Represents a macro name eg. `foo!`.
+type MacroNameNode struct {
+	TypedNodeBase
+	Value string
+}
+
+func (n *MacroNameNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	return &MacroNameNode{
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Value:         n.Value,
+	}
+}
+
+func (n *MacroNameNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::MacroNameNode", env)
+}
+
+func (n *MacroNameNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
+}
+
+func (n *MacroNameNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MacroNameNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.loc.Equal(o.loc)
+}
+
+func (n *MacroNameNode) String() string {
+	if IdentifierRegexp.MatchString(n.Value) {
+		return n.Value
+	}
+
+	var buff strings.Builder
+	buff.WriteByte('$')
+
+	if PrefixedIdentifierRegexp.MatchString(n.Value) {
+		buff.WriteString(n.Value)
+		return buff.String()
+	}
+
+	buff.WriteString(value.String(n.Value).Inspect())
+	buff.WriteByte('!')
+	return buff.String()
+}
+
+func (*MacroNameNode) IsStatic() bool {
+	return false
+}
+
+func (*MacroNameNode) Class() *value.Class {
+	return value.MacroNameNodeClass
+}
+
+func (*MacroNameNode) DirectClass() *value.Class {
+	return value.MacroNameNodeClass
+}
+
+func (n *MacroNameNode) Inspect() string {
+	return fmt.Sprintf(
+		"Std::Elk::AST::MacroNameNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
+}
+
+func (n *MacroNameNode) Error() string {
+	return n.Inspect()
+}
+
+// Create a new macro name node eg. `foo!`.
+func NewMacroNameNode(loc *position.Location, val string) *MacroNameNode {
+	return &MacroNameNode{
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		Value:         val,
 	}
 }

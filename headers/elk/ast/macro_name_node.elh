@@ -1,0 +1,14 @@
+module Std::Elk::AST
+  ##[
+    Represents a macro name eg. `foo!`.
+  ]##
+  sealed primitive class MacroNameNode
+    include UsingSubentryNode,
+            IdentifierNode
+
+    init(value: String, location: FS::Location = loop; end); end
+    def value: String; end
+    def location: FS::Location; end
+    def to_symbol: Symbol; end
+  end
+end

@@ -109,8 +109,9 @@ var DoubleQuotedStringLiteralNodeClass *Class     // Std::Elk::AST::DoubleQuoted
 var InterpolatedSymbolLiteralNodeClass *Class     // Std::Elk::AST::InterpolatedSymbolLiteralNode
 var ConstantAsNodeClass *Class                    // Std::Elk::AST::ConstantAsNode
 var MethodLookupAsNodeClass *Class                // Std::Elk::AST::MethodLookupAsNode
+var MacroNameNodeClass *Class                     // Std::Elk::AST::MacroNameNode
 var PublicIdentifierNodeClass *Class              // Std::Elk::AST::PublicIdentifierNode
-var PublicIdentifierAsNodeClass *Class            // Std::Elk::AST::PublicIdentifierAsNode
+var UsingSubentryAsNodeClass *Class               // Std::Elk::AST::UsingSubentryAsNode
 var PrivateIdentifierNodeClass *Class             // Std::Elk::AST::PrivateIdentifierNode
 var PublicConstantAsNodeClass *Class              // Std::Elk::AST::PublicConstantAsNode
 var PublicConstantNodeClass *Class                // Std::Elk::AST::PublicConstantNode
@@ -708,16 +709,21 @@ func initElkAST() {
 	MethodLookupAsNodeClass.IncludeMixin(UsingEntryNodeMixin)
 	ElkASTModule.AddConstantString("MethodLookupAsNode", Ref(MethodLookupAsNodeClass))
 
+	MacroNameNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	MacroNameNodeClass.IncludeMixin(UsingSubentryNodeMixin)
+	MacroNameNodeClass.IncludeMixin(IdentifierNodeMixin)
+	ElkASTModule.AddConstantString("MacroNameNode", Ref(MacroNameNodeClass))
+
 	PublicIdentifierNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	PublicIdentifierNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	PublicIdentifierNodeClass.IncludeMixin(UsingSubentryNodeMixin)
 	PublicIdentifierNodeClass.IncludeMixin(IdentifierNodeMixin)
 	ElkASTModule.AddConstantString("PublicIdentifierNode", Ref(PublicIdentifierNodeClass))
 
-	PublicIdentifierAsNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	PublicIdentifierAsNodeClass.IncludeMixin(ExpressionNodeMixin)
-	PublicIdentifierAsNodeClass.IncludeMixin(UsingSubentryNodeMixin)
-	ElkASTModule.AddConstantString("PublicIdentifierAsNode", Ref(PublicIdentifierAsNodeClass))
+	UsingSubentryAsNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	UsingSubentryAsNodeClass.IncludeMixin(ExpressionNodeMixin)
+	UsingSubentryAsNodeClass.IncludeMixin(UsingSubentryNodeMixin)
+	ElkASTModule.AddConstantString("UsingSubentryAsNode", Ref(UsingSubentryAsNodeClass))
 
 	PrivateIdentifierNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	PrivateIdentifierNodeClass.IncludeMixin(PatternExpressionNodeMixin)

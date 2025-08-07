@@ -51,7 +51,7 @@ func (*ValueDeclarationNode) expressionNode()              {}
 func (*ConstantAsNode) expressionNode()                    {}
 func (*MethodLookupAsNode) expressionNode()                {}
 func (*PublicIdentifierNode) expressionNode()              {}
-func (*PublicIdentifierAsNode) expressionNode()            {}
+func (*UsingSubentryAsNode) expressionNode()               {}
 func (*PrivateIdentifierNode) expressionNode()             {}
 func (*PublicConstantNode) expressionNode()                {}
 func (*PublicConstantAsNode) expressionNode()              {}

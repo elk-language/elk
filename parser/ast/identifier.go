@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
@@ -198,96 +197,5 @@ func NewPrivateIdentifierNode(loc *position.Location, val string) *PrivateIdenti
 	return &PrivateIdentifierNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
-	}
-}
-
-// Represents an identifier with as in using declarations
-// eg. `foo as bar`.
-type PublicIdentifierAsNode struct {
-	NodeBase
-	Target *PublicIdentifierNode
-	AsName string
-}
-
-func (n *PublicIdentifierAsNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
-	return &PublicIdentifierAsNode{
-		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Target:   n.Target.splice(loc, args, unquote).(*PublicIdentifierNode),
-		AsName:   n.AsName,
-	}
-}
-
-func (n *PublicIdentifierAsNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::PublicIdentifierAsNode", env)
-}
-
-func (n *PublicIdentifierAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
-	switch enter(n, parent) {
-	case TraverseBreak:
-		return TraverseBreak
-	case TraverseSkip:
-		return leave(n, parent)
-	}
-
-	if n.Target.traverse(n, enter, leave) == TraverseBreak {
-		return TraverseBreak
-	}
-
-	return leave(n, parent)
-}
-
-func (n *PublicIdentifierAsNode) Equal(other value.Value) bool {
-	o, ok := other.SafeAsReference().(*PublicIdentifierAsNode)
-	if !ok {
-		return false
-	}
-
-	return n.Target.Equal(value.Ref(o.Target)) &&
-		n.AsName == o.AsName &&
-		n.loc.Equal(o.loc)
-}
-
-func (n *PublicIdentifierAsNode) String() string {
-	return fmt.Sprintf("%s as %s", n.Target.String(), n.AsName)
-}
-
-func (*PublicIdentifierAsNode) IsStatic() bool {
-	return false
-}
-
-func (*PublicIdentifierAsNode) Class() *value.Class {
-	return value.ConstantAsNodeClass
-}
-
-func (*PublicIdentifierAsNode) DirectClass() *value.Class {
-	return value.ConstantAsNodeClass
-}
-
-func (n *PublicIdentifierAsNode) Inspect() string {
-	var buff strings.Builder
-
-	fmt.Fprintf(&buff, "Std::Elk::AST::PublicIdentifierAsNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
-
-	buff.WriteString(",\n  target: ")
-	indent.IndentStringFromSecondLine(&buff, n.Target.Inspect(), 1)
-
-	buff.WriteString(",\n  as_name: ")
-	buff.WriteString(n.AsName)
-
-	buff.WriteString("\n}")
-
-	return buff.String()
-}
-
-func (n *PublicIdentifierAsNode) Error() string {
-	return n.Inspect()
-}
-
-// Create a new identifier with as eg. `foo as bar`.
-func NewPublicIdentifierAsNode(loc *position.Location, target *PublicIdentifierNode, as string) *PublicIdentifierAsNode {
-	return &PublicIdentifierAsNode{
-		NodeBase: NodeBase{loc: loc},
-		Target:   target,
-		AsName:   as,
 	}
 }

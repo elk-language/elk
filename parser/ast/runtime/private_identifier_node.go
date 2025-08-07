@@ -89,7 +89,7 @@ func initPrivateIdentifierNode() {
 		"to_symbol",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PrivateIdentifierNode)
-			return value.ToSymbol(self.String()).ToValue(), value.Undefined
+			return value.ToSymbol(self.Value).ToValue(), value.Undefined
 		},
 	)
 

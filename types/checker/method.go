@@ -401,8 +401,9 @@ func (c *Checker) checkUsingEntryWithSubentriesForMethods(node *ast.UsingEntryWi
 		switch s := subentry.(type) {
 		case *ast.PublicIdentifierNode:
 			c.checkUsingMethodLookupEntryNode(node.Namespace, s.Value, "", s.Location())
-		case *ast.PublicIdentifierAsNode:
-			c.checkUsingMethodLookupEntryNode(node.Namespace, s.Target.Value, s.AsName, s.Location())
+		case *ast.UsingSubentryAsNode:
+			value := c.identifierToName(s.Target)
+			c.checkUsingMethodLookupEntryNode(node.Namespace, value, s.AsName, s.Location())
 		case *ast.PublicConstantNode, *ast.PublicConstantAsNode:
 		default:
 			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))

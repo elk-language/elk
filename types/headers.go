@@ -250,6 +250,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Create a new macro boundary node.\nIt's a block of code with an isolated scope\neg.\n\n```\ndo macro 'Dupa'\n  print(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("MacroBoundaryNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a macro call eg. `'123'.foo!()`", false, true, true, false, value.ToSymbol("MacroCallNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a macro definition eg. `macro foo(a: Elk::AST::StringLiteralNode); a; end`", false, true, true, false, value.ToSymbol("MacroDefinitionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a macro name eg. `foo!`.", false, true, true, false, value.ToSymbol("MacroNameNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a Map pattern eg. `{ foo: 5, bar: a, 5 => >= 10 }`", false, true, true, false, value.ToSymbol("MapPatternNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a method call eg. `'123'.to_int()`", false, true, true, false, value.ToSymbol("MethodCallNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a method definition eg. `def foo: String then 'hello world'`", false, true, true, false, value.ToSymbol("MethodDefinitionNode"), objectClass, env)
@@ -3538,6 +3539,25 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("return_type"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("MacroNameNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingSubentryNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::IdentifierNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
 						// Define constants
 

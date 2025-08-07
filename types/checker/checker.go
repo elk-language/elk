@@ -7747,7 +7747,7 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 			)
 			c.checkUsingConstantLookupEntryNodeForNamespace(newNode, s.AsName)
 			s.SetType(c.TypeOf(newNode))
-		case *ast.PublicIdentifierNode, *ast.PublicIdentifierAsNode:
+		case *ast.PublicIdentifierNode, *ast.UsingSubentryAsNode:
 		default:
 			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))
 		}
