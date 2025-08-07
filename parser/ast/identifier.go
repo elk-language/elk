@@ -19,6 +19,7 @@ type IdentifierNode interface {
 }
 
 func (*InvalidNode) identifierNode()           {}
+func (*MacroNameNode) identifierNode()         {}
 func (*PublicIdentifierNode) identifierNode()  {}
 func (*PrivateIdentifierNode) identifierNode() {}
 func (*UnquoteNode) identifierNode()           {}

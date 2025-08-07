@@ -710,6 +710,7 @@ func initElkAST() {
 	ElkASTModule.AddConstantString("MethodLookupAsNode", Ref(MethodLookupAsNodeClass))
 
 	MacroNameNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	MacroNameNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	MacroNameNodeClass.IncludeMixin(UsingSubentryNodeMixin)
 	MacroNameNodeClass.IncludeMixin(IdentifierNodeMixin)
 	ElkASTModule.AddConstantString("MacroNameNode", Ref(MacroNameNodeClass))

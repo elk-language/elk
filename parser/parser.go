@@ -3934,11 +3934,19 @@ func (p *Parser) usingSubentry() ast.UsingSubentryNode {
 	switch p.lookahead.Type {
 	case token.PUBLIC_IDENTIFIER:
 		identTok := p.advance()
-		if !p.accept(token.AS) {
-			return ast.NewPublicIdentifierNode(
-				identTok.Location(),
+
+		var identNode ast.IdentifierNode
+		if bang, ok := p.matchOk(token.BANG); ok {
+			identNode = ast.NewMacroNameNode(
+				identTok.Location().Join(bang.Location()),
 				identTok.Value,
 			)
+		} else {
+			identNode = ast.NewPublicIdentifierNode(identTok.Location(), identTok.Value)
+		}
+
+		if !p.accept(token.AS) {
+			return identNode.(ast.UsingSubentryNode)
 		}
 
 		p.advance() // as
@@ -3948,7 +3956,7 @@ func (p *Parser) usingSubentry() ast.UsingSubentryNode {
 		}
 		return ast.NewUsingSubentryAsNode(
 			identTok.Location().Join(asIdentTok.Location()),
-			ast.NewPublicIdentifierNode(identTok.Location(), identTok.Value),
+			identNode,
 			asIdentTok.Value,
 		)
 	case token.PUBLIC_CONSTANT:

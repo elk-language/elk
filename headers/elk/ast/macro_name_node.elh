@@ -4,7 +4,8 @@ module Std::Elk::AST
   ]##
   sealed primitive class MacroNameNode
     include UsingSubentryNode,
-            IdentifierNode
+            IdentifierNode,
+            PatternExpressionNode
 
     init(value: String, location: FS::Location = loop; end); end
     def value: String; end

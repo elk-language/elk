@@ -10,6 +10,7 @@ type PatternNode interface {
 }
 
 func (*InvalidNode) patternNode()                    {}
+func (*MacroNameNode) patternNode()                  {}
 func (*AsPatternNode) patternNode()                  {}
 func (*BinHashSetLiteralNode) patternNode()          {}
 func (*BinArrayTupleLiteralNode) patternNode()       {}
