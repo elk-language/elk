@@ -38,7 +38,11 @@ func init() {
 
 	elkPathEnv := os.Getenv("ELKPATH")
 	if elkPathEnv == "" {
-		ELKPATH = ELKROOT
+		path, err := os.Getwd()
+		if err != nil {
+			panic(fmt.Sprintf("could not get the working directory: %s", err))
+		}
+		ELKPATH = path
 	} else {
 		ELKPATH = elkPathEnv
 	}

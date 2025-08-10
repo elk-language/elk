@@ -29,9 +29,16 @@ func (c *Checker) expandTopLevelMacrosInFile(filename string, node *ast.ProgramN
 	}
 
 	prevFilename := c.Filename
+	prevIsHeader := c.IsHeader()
+
 	c.Filename = filename
+	c.setIsHeaderForPath(filename)
+
 	c.expandTopLevelMacros(node.Body)
+
 	c.Filename = prevFilename
+	c.SetHeader(prevIsHeader)
+
 	node.State = ast.EXPANDED_TOP_LEVEL_MACROS
 }
 

@@ -6,6 +6,7 @@ import (
 	"iter"
 	"maps"
 	"os"
+	"path"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -134,6 +135,7 @@ type Checker struct {
 	constantChecks          *constantDefinitionChecks
 	typeDefinitionChecks    *typeDefinitionChecks
 	methodCache             *concurrent.Slice[*types.Method] // used in constant definition checks, the list of methods used in the current constant declaration
+	extensions              *concurrent.Slice[*ext.Extension]
 	method                  *types.Method
 	namespacesWithIvars     *ds.OrderedMap[string, *namespaceWithIvarsData] // namespaces that declare instance variables
 	compiler                *compiler.Compiler
@@ -155,6 +157,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		constantChecks:       newConstantDefinitionChecks(),
 		ASTCache:             concurrent.NewMap[string, *ast.ProgramNode](),
 		methodCache:          concurrent.NewSlice[*types.Method](),
+		extensions:           concurrent.NewSlice[*ext.Extension](),
 		threadPool:           threadPool,
 	}
 	if threadPool == nil {
@@ -323,11 +326,21 @@ func (c *Checker) checkNamespacePlaceholders() {
 	c.namespacePlaceholders = nil
 }
 
+func (c *Checker) initExtensions() {
+	c.env.Init = true
+	for _, extension := range c.extensions.Slice {
+		extension.Init(c)
+	}
+	c.env.Init = false
+	c.extensions = nil
+}
+
 func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	var wg sync.WaitGroup
 	// parse all files of the project concurrently
 	c.checkImportsForFile(c.Filename, node, &wg)
 	wg.Wait()
+	c.initExtensions()
 
 	c.initMacroCompiler(node.Location())
 	c.hoistNamespaceDefinitionsAndMacrosInFile(c.Filename, node)
@@ -375,7 +388,7 @@ func (c *Checker) compileMethods(methodCompiler *compiler.Compiler, offset int, 
 
 // Whether the typechecker should compile the checked code
 func (c *Checker) shouldCompile() bool {
-	return c.compiler != nil && !c.Errors.IsFailure()
+	return !c.IsHeader() && c.compiler != nil && !c.Errors.IsFailure()
 }
 
 // Create a new compiler that will define all methods
@@ -483,6 +496,13 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 	return c.checkProgram(ast)
 }
 
+func (c *Checker) setIsHeaderForPath(filePath string) {
+	if path.Ext(filePath) == ".elh" {
+		c.SetHeader(true)
+		c.env.Init = true
+	}
+}
+
 // Scans the AST of the project registering all namespaces, types and macro definitions.
 // Type definitions that require other types (like classes with superclasses or mixins)
 // are collected to a buffer and will be typechecked in a separate stage once all
@@ -502,9 +522,17 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacrosInFile(filename string, node
 	}
 
 	prevFilename := c.Filename
+	prevIsHeader := c.IsHeader()
+
 	c.Filename = filename
+	c.setIsHeaderForPath(filename)
+
 	c.hoistNamespaceDefinitionsAndMacros(node.Body)
+
 	c.Filename = prevFilename
+	c.SetHeader(prevIsHeader)
+	c.env.Init = false
+
 	node.State = ast.CHECKED_NAMESPACES
 }
 
@@ -526,9 +554,17 @@ func (c *Checker) hoistMethodDefinitionsInFile(filename string, node *ast.Progra
 	}
 
 	prevFilename := c.Filename
+	prevIsHeader := c.IsHeader()
+
 	c.Filename = filename
+	c.setIsHeaderForPath(filename)
+
 	c.hoistMethodDefinitions(node.Body)
+
 	c.Filename = prevFilename
+	c.SetHeader(prevIsHeader)
+	c.env.Init = false
+
 	node.State = ast.CHECKED_METHODS
 }
 
@@ -546,29 +582,36 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 			continue
 		}
 		prevCompiler := c.compiler
+		prevIsHeader := c.IsHeader()
+		c.setIsHeaderForPath(filename)
+
 		if c.shouldCompile() {
 			c.compiler = c.compiler.InitExpressionCompiler(filename, node.Location())
 		}
 		c.checkExpressionsInFile(importPath, importedAst)
+
 		c.compiler = prevCompiler
+		c.SetHeader(prevIsHeader)
+		c.env.Init = false
 	}
 
 	prevFilename := c.Filename
 	c.Filename = filename
+
 	c.checkStatements(node.Body, false)
-	c.Filename = prevFilename
 
 	node.State = ast.CHECKED_EXPRESSIONS
 
 	if c.shouldCompile() {
 		c.compiler.CompileExpressionsInFile(node)
 	}
+	c.Filename = prevFilename
 }
 
 func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg *sync.WaitGroup) {
 	c.ASTCache.Set(fileName, ast)
 
-	imports := c.hoistImports(ast.Body)
+	imports := c.hoistImports(ast.Body, fileName)
 	for _, importStmt := range imports {
 		ast.ImportPaths = append(ast.ImportPaths, importStmt.FsPaths...)
 		for _, importPath := range importStmt.FsPaths {
@@ -7629,14 +7672,14 @@ func (c *Checker) hoistSingletonDeclarationWithFunc(node *ast.SingletonBlockExpr
 	c.mode = prevMode
 }
 
-func (c *Checker) hoistImports(statements []ast.StatementNode) []*ast.ImportStatementNode {
+func (c *Checker) hoistImports(statements []ast.StatementNode, fileName string) []*ast.ImportStatementNode {
 	var imports []*ast.ImportStatementNode
 
 	for _, statement := range statements {
 		switch stmt := statement.(type) {
 		case *ast.ImportStatementNode:
 			imports = append(imports, stmt)
-			c.checkImport(stmt)
+			c.checkImport(stmt, fileName)
 		}
 	}
 
@@ -7875,7 +7918,7 @@ func isLibPath(path string) bool {
 	return !strings.HasPrefix(path, ".") && !strings.HasPrefix(path, "/")
 }
 
-func (c *Checker) checkImport(node *ast.ImportStatementNode) {
+func (c *Checker) checkImport(node *ast.ImportStatementNode, checkedFileName string) {
 	var path string
 
 	switch pathNode := node.Path.(type) {
@@ -7897,15 +7940,15 @@ func (c *Checker) checkImport(node *ast.ImportStatementNode) {
 		}
 		extension, ok := ext.Map[dirPath]
 		if ok {
-			extension.Init(c)
+			c.extensions.Push(extension)
 		}
 	} else if !filepath.IsAbs(path) {
-		dirPath := filepath.Dir(c.Filename)
+		dirPath := filepath.Dir(checkedFileName)
 		path = filepath.Join(dirPath, path)
 	}
 
-	base, pattern := doublestar.SplitPattern(path)
-	fsys := os.DirFS(base)
+	baseDir, pattern := doublestar.SplitPattern(path)
+	fsys := os.DirFS(baseDir)
 	filePaths, err := doublestar.Glob(fsys, pattern)
 	if err != nil {
 		c.addFailure(
@@ -7919,8 +7962,19 @@ func (c *Checker) checkImport(node *ast.ImportStatementNode) {
 		return
 	}
 
+	if len(filePaths) == 0 {
+		c.addFailure(
+			fmt.Sprintf(
+				"no matched files for import: %s",
+				path,
+			),
+			node.Location(),
+		)
+		return
+	}
+
 	for _, filename := range filePaths {
-		filename := filepath.Join(base, filename)
+		filename := filepath.Join(baseDir, filename)
 		info, err := os.Stat(filename)
 		if os.IsNotExist(err) {
 			c.addFailure(

@@ -899,7 +899,8 @@ func (c *Compiler) nodeIsCompilable(node ast.Node) bool {
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
 		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
-		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
+		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode,
+		*ast.ImportStatementNode:
 		return false
 	case *ast.ExpressionStatementNode:
 		return c.nodeIsCompilable(node.Expression)

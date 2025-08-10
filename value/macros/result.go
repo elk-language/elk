@@ -32,40 +32,40 @@ Example:
 		patternNode,
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 			val := ast.NewObjectPatternNode(
-				position.DefaultLocation,
+				position.ZeroLocation,
 				ast.NewConstantLookupNode(
-					position.DefaultLocation,
+					position.ZeroLocation,
 					ast.NewConstantLookupNode(
-						position.DefaultLocation,
+						position.ZeroLocation,
 						nil,
-						ast.NewPublicConstantNode(position.DefaultLocation, "Std"),
+						ast.NewPublicConstantNode(position.ZeroLocation, "Std"),
 					),
-					ast.NewPublicConstantNode(position.DefaultLocation, "Result"),
+					ast.NewPublicConstantNode(position.ZeroLocation, "Result"),
 				),
 				[]ast.PatternNode{
 					ast.NewSymbolKeyValuePatternNode(
-						position.DefaultLocation,
+						position.ZeroLocation,
 						"value",
 						ast.NewAsPatternNode(
-							position.DefaultLocation,
+							position.ZeroLocation,
 							ast.NewUnaryExpressionNode(
-								position.DefaultLocation,
+								position.ZeroLocation,
 								token.New(
-									position.DefaultLocation,
+									position.ZeroLocation,
 									token.NOT_EQUAL,
 								),
-								ast.NewNilLiteralNode(position.DefaultLocation),
+								ast.NewNilLiteralNode(position.ZeroLocation),
 							),
-							ast.NewPublicIdentifierNode(position.DefaultLocation, "value"),
+							ast.NewPublicIdentifierNode(position.ZeroLocation, "value"),
 						),
 					),
 					ast.NewSymbolKeyValuePatternNode(
-						position.DefaultLocation,
+						position.ZeroLocation,
 						"err",
 						ast.NewAsPatternNode(
-							position.DefaultLocation,
-							ast.NewNilLiteralNode(position.DefaultLocation),
-							ast.NewPublicIdentifierNode(position.DefaultLocation, "err"),
+							position.ZeroLocation,
+							ast.NewNilLiteralNode(position.ZeroLocation),
+							ast.NewPublicIdentifierNode(position.ZeroLocation, "err"),
 						),
 					),
 				},
@@ -92,40 +92,40 @@ Example:
 		patternNode,
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 			val := ast.NewObjectPatternNode(
-				position.DefaultLocation,
+				position.ZeroLocation,
 				ast.NewConstantLookupNode(
-					position.DefaultLocation,
+					position.ZeroLocation,
 					ast.NewConstantLookupNode(
-						position.DefaultLocation,
+						position.ZeroLocation,
 						nil,
-						ast.NewPublicConstantNode(position.DefaultLocation, "Std"),
+						ast.NewPublicConstantNode(position.ZeroLocation, "Std"),
 					),
-					ast.NewPublicConstantNode(position.DefaultLocation, "Result"),
+					ast.NewPublicConstantNode(position.ZeroLocation, "Result"),
 				),
 				[]ast.PatternNode{
 					ast.NewSymbolKeyValuePatternNode(
-						position.DefaultLocation,
+						position.ZeroLocation,
 						"err",
 						ast.NewAsPatternNode(
-							position.DefaultLocation,
+							position.ZeroLocation,
 							ast.NewUnaryExpressionNode(
-								position.DefaultLocation,
+								position.ZeroLocation,
 								token.New(
-									position.DefaultLocation,
+									position.ZeroLocation,
 									token.NOT_EQUAL,
 								),
-								ast.NewNilLiteralNode(position.DefaultLocation),
+								ast.NewNilLiteralNode(position.ZeroLocation),
 							),
-							ast.NewPublicIdentifierNode(position.DefaultLocation, "err"),
+							ast.NewPublicIdentifierNode(position.ZeroLocation, "err"),
 						),
 					),
 					ast.NewSymbolKeyValuePatternNode(
-						position.DefaultLocation,
+						position.ZeroLocation,
 						"value",
 						ast.NewAsPatternNode(
-							position.DefaultLocation,
-							ast.NewNilLiteralNode(position.DefaultLocation),
-							ast.NewPublicIdentifierNode(position.DefaultLocation, "value"),
+							position.ZeroLocation,
+							ast.NewNilLiteralNode(position.ZeroLocation),
+							ast.NewPublicIdentifierNode(position.ZeroLocation, "value"),
 						),
 					),
 				},

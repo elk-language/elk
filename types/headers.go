@@ -886,7 +886,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParams[0] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::BeginlessClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::BeginlessClosedRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
 
@@ -916,7 +916,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParams[0] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::BeginlessOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::BeginlessOpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
 
@@ -1115,7 +1115,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				// Define methods
 				namespace.DefineMethod("Creates a new `String` that contains the\ncontent of `self` repeated `n` times.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
@@ -1196,7 +1196,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParams[0] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
 
@@ -1208,12 +1208,12 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				{
 					namespace := mixin
 					namespace.Name() // noop - avoid unused variable error
-					namespace.DefineSubtype(value.ToSymbol("Val"), NewTypeParameter(value.ToSymbol("Val"), NameToType("Std::ClosedRange", env).(*Class), Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT))
+					namespace.DefineSubtype(value.ToSymbol("Val"), NewTypeParameter(value.ToSymbol("Val"), NameToType("Std::ClosedRange", env).(*Class), Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT))
 
 					// Define methods
 					namespace.DefineMethod("Returns the iterator for this range.\nOnly ranges of incrementable values can be iterated over.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::ClosedRange::Iterator", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				}
-				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Val"), mixin, Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT)})
+				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Val"), mixin, Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT)})
 
 				// Define methods
 				namespace.DefineMethod("Check whether the given `value` is present in this range.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::ClosedRange::Val", env), NameToType("Std::ClosedRange::Val", env), NameToType("Std::ClosedRange::Val", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::ClosedRange::Val", env), NameToType("Std::ClosedRange::Val", env), NameToType("Std::ClosedRange::Val", env), INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
@@ -1239,7 +1239,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					typeParams[0] = typeParam
 					namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 					namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-					typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+					typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::ClosedRange::Iterator::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 					namespace.SetTypeParameters(typeParams)
 
@@ -1343,7 +1343,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				var typeParam *TypeParameter
 				typeParams := make([]*TypeParameter, 1)
 
-				typeParam = NewTypeParameter(value.ToSymbol("T"), namespace, Never{}, Any{}, nil, INVARIANT)
+				typeParam = NewTypeParameter(value.ToSymbol("T"), namespace, Never{}, Any{}, nil, CONTRAVARIANT)
 				typeParams[0] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("T"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("T"), NoValue{})
@@ -6010,7 +6010,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParams[0] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
 
@@ -6022,12 +6022,12 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				{
 					namespace := mixin
 					namespace.Name() // noop - avoid unused variable error
-					namespace.DefineSubtype(value.ToSymbol("Val"), NewTypeParameter(value.ToSymbol("Val"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT))
+					namespace.DefineSubtype(value.ToSymbol("Val"), NewTypeParameter(value.ToSymbol("Val"), NameToType("Std::EndlessClosedRange", env).(*Class), Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT))
 
 					// Define methods
 					namespace.DefineMethod("Returns the iterator for this range.\nOnly ranges of incrementable values can be iterated over.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::EndlessClosedRange::Iterator", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				}
-				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Val"), mixin, Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT)})
+				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Val"), mixin, Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT)})
 
 				// Define methods
 				namespace.DefineMethod("Check whether the given `value` is present in this range.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::EndlessClosedRange::Val", env), NameToType("Std::EndlessClosedRange::Val", env), NameToType("Std::EndlessClosedRange::Val", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::EndlessClosedRange::Val", env), NameToType("Std::EndlessClosedRange::Val", env), NameToType("Std::EndlessClosedRange::Val", env), INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
@@ -6052,7 +6052,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					typeParams[0] = typeParam
 					namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 					namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-					typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+					typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessClosedRange::Iterator::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 					namespace.SetTypeParameters(typeParams)
 
@@ -6082,7 +6082,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParams[0] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
 
@@ -6094,12 +6094,12 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				{
 					namespace := mixin
 					namespace.Name() // noop - avoid unused variable error
-					namespace.DefineSubtype(value.ToSymbol("Val"), NewTypeParameter(value.ToSymbol("Val"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT))
+					namespace.DefineSubtype(value.ToSymbol("Val"), NewTypeParameter(value.ToSymbol("Val"), NameToType("Std::EndlessOpenRange", env).(*Class), Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT))
 
 					// Define methods
 					namespace.DefineMethod("Returns the iterator for this range.\nOnly ranges of incrementable values can be iterated over.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::EndlessOpenRange::Iterator", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				}
-				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Val"), mixin, Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT)})
+				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Val"), mixin, Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT)})
 
 				// Define methods
 				namespace.DefineMethod("Check whether the given `value` is present in this range.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::EndlessOpenRange::Val", env), NameToType("Std::EndlessOpenRange::Val", env), NameToType("Std::EndlessOpenRange::Val", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::EndlessOpenRange::Val", env), NameToType("Std::EndlessOpenRange::Val", env), NameToType("Std::EndlessOpenRange::Val", env), INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
@@ -6124,7 +6124,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					typeParams[0] = typeParam
 					namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 					namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-					typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+					typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::EndlessOpenRange::Iterator::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 					namespace.SetTypeParameters(typeParams)
 
@@ -6376,7 +6376,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10\n\tvar b = 3\n\ta % b #=> 1\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float32", env), NormalParameterKind, false)}, NameToType("Std::Float32", env), Never{})
@@ -6440,7 +6440,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10\n\tvar b = 3\n\ta % b #=> 1\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float64", env), NormalParameterKind, false)}, NameToType("Std::Float64", env), Never{})
@@ -7037,7 +7037,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10i16\n\tvar b = 3i16\n\ta % b #=> 1i16\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int16", env), NormalParameterKind, false)}, NameToType("Std::Int16", env), Never{})
@@ -7111,7 +7111,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10i32\n\tvar b = 3i32\n\ta % b #=> 1i32\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int32", env), NormalParameterKind, false)}, NameToType("Std::Int32", env), Never{})
@@ -7185,7 +7185,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10i64\n\tvar b = 3i64\n\ta % b #=> 1i64\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int64", env), NormalParameterKind, false)}, NameToType("Std::Int64", env), Never{})
@@ -7259,7 +7259,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10i8\n\tvar b = 3i8\n\ta % b #=> 1i8\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int8", env), NormalParameterKind, false)}, NameToType("Std::Int8", env), Never{})
@@ -7517,7 +7517,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParams[0] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-				typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::IterableRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::IterableRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::IterableRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::IterableRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				namespace.SetTypeParameters(typeParams)
 
@@ -7635,7 +7635,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParams[0] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
 
@@ -7647,12 +7647,12 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				{
 					namespace := mixin
 					namespace.Name() // noop - avoid unused variable error
-					namespace.DefineSubtype(value.ToSymbol("Val"), NewTypeParameter(value.ToSymbol("Val"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT))
+					namespace.DefineSubtype(value.ToSymbol("Val"), NewTypeParameter(value.ToSymbol("Val"), NameToType("Std::LeftOpenRange", env).(*Class), Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT))
 
 					// Define methods
 					namespace.DefineMethod("Returns the iterator for this range.\nOnly ranges of incrementable values can be iterated over.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::LeftOpenRange::Iterator", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::LeftOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				}
-				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Val"), mixin, Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT)})
+				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Val"), mixin, Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT)})
 
 				// Define methods
 				namespace.DefineMethod("Check whether the given `value` is present in this range.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::LeftOpenRange::Val", env), NameToType("Std::LeftOpenRange::Val", env), NameToType("Std::LeftOpenRange::Val", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::LeftOpenRange::Val", env), NameToType("Std::LeftOpenRange::Val", env), NameToType("Std::LeftOpenRange::Val", env), INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
@@ -7678,7 +7678,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					typeParams[0] = typeParam
 					namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 					namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-					typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+					typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::LeftOpenRange::Iterator::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 					namespace.SetTypeParameters(typeParams)
 
@@ -7865,7 +7865,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParams[0] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
 
@@ -7877,12 +7877,12 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				{
 					namespace := mixin
 					namespace.Name() // noop - avoid unused variable error
-					namespace.DefineSubtype(value.ToSymbol("Val"), NewTypeParameter(value.ToSymbol("Val"), NameToType("Std::OpenRange", env).(*Class), Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT))
+					namespace.DefineSubtype(value.ToSymbol("Val"), NewTypeParameter(value.ToSymbol("Val"), NameToType("Std::OpenRange", env).(*Class), Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT))
 
 					// Define methods
 					namespace.DefineMethod("Returns the iterator for this range.\nOnly ranges of incrementable values can be iterated over.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::OpenRange::Iterator", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				}
-				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Val"), mixin, Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT)})
+				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Val"), mixin, Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT)})
 
 				// Define methods
 				namespace.DefineMethod("Check whether the given `value` is present in this range.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::OpenRange::Val", env), NameToType("Std::OpenRange::Val", env), NameToType("Std::OpenRange::Val", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::OpenRange::Val", env), NameToType("Std::OpenRange::Val", env), NameToType("Std::OpenRange::Val", env), INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
@@ -7908,7 +7908,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					typeParams[0] = typeParam
 					namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 					namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-					typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+					typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::OpenRange::Iterator::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 					namespace.SetTypeParameters(typeParams)
 
@@ -8102,7 +8102,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParams[0] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("Element"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("Element"), NoValue{})
-				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::Range::Element", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::Range::Element", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
 
@@ -8309,7 +8309,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				typeParams[0] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
+				typeParam.UpperBound = NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))
 
 				namespace.SetTypeParameters(typeParams)
 
@@ -8321,12 +8321,12 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				{
 					namespace := mixin
 					namespace.Name() // noop - avoid unused variable error
-					namespace.DefineSubtype(value.ToSymbol("Val"), NewTypeParameter(value.ToSymbol("Val"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT))
+					namespace.DefineSubtype(value.ToSymbol("Val"), NewTypeParameter(value.ToSymbol("Val"), NameToType("Std::RightOpenRange", env).(*Class), Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT))
 
 					// Define methods
 					namespace.DefineMethod("Returns the iterator for this range.\nOnly ranges of incrementable values can be iterated over.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::RightOpenRange::Iterator", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				}
-				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Val"), mixin, Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT)})
+				IncludeMixinWithWhere(namespace, mixin, []*TypeParameter{NewTypeParameter(value.ToSymbol("Val"), mixin, Never{}, NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")}))), nil, INVARIANT)})
 
 				// Define methods
 				namespace.DefineMethod("Check whether the given `value` is present in this range.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::RightOpenRange::Val", env), NameToType("Std::RightOpenRange::Val", env), NameToType("Std::RightOpenRange::Val", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::RightOpenRange::Val", env), NameToType("Std::RightOpenRange::Val", env), NameToType("Std::RightOpenRange::Val", env), INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
@@ -8352,7 +8352,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					typeParams[0] = typeParam
 					namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 					namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
-					typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Iterator::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+					typeParam.UpperBound = NewIntersection(NewGeneric(NameToType("Std::Incrementable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Iterator::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("T")})), NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(NameToType("Std::RightOpenRange::Iterator::Val", env), CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 					namespace.SetTypeParameters(typeParams)
 
@@ -8446,7 +8446,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				// Define methods
 				namespace.DefineMethod("Creates a new `String` that contains the\ncontent of `self` repeated `n` times.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
@@ -8995,7 +8995,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10u16\n\tvar b = 3u16\n\ta % b #=> 1u16\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt16", env), NormalParameterKind, false)}, NameToType("Std::UInt16", env), Never{})
@@ -9069,7 +9069,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10u32\n\tvar b = 3u32\n\ta % b #=> 1u32\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt32", env), NormalParameterKind, false)}, NameToType("Std::UInt32", env), Never{})
@@ -9143,7 +9143,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10u64\n\tvar b = 3u64\n\ta % b #=> 1u64\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt64", env), NormalParameterKind, false)}, NameToType("Std::UInt64", env), Never{})
@@ -9217,7 +9217,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
-				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, INVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
 
 				// Define methods
 				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10u8\n\tvar b = 3u8\n\ta % b #=> 1u8\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt8", env), NormalParameterKind, false)}, NameToType("Std::UInt8", env), Never{})

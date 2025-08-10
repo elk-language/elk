@@ -531,6 +531,7 @@ type methodCheckEntry struct {
 	constantScopes []constantScope
 	methodScopes   []methodScope
 	node           *ast.MethodDefinitionNode
+	headerMode     bool
 }
 
 func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
@@ -539,6 +540,7 @@ func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefi
 		constantScopes: c.constantScopesCopy(),
 		methodScopes:   c.methodScopesCopy(),
 		node:           node,
+		headerMode:     c.IsHeader(),
 	})
 }
 
@@ -570,6 +572,7 @@ func (c *Checker) checkMethods() {
 				c.threadPool,
 				node.Location(),
 			)
+			methodChecker.SetHeader(methodCheck.headerMode)
 
 			methodChecker.checkMethodDefinition(node, method)
 
@@ -1961,6 +1964,7 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *
 	c.methodCache.Slice = nil
 
 	if c.shouldCompile() && method.IsCompilable() {
+		fmt.Printf("header: %t\n", c.IsHeader())
 		method.Body = c.compiler.CompileMethodBody(node, method.Name)
 	}
 }
