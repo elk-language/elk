@@ -16,6 +16,8 @@ import (
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
+	"github.com/elk-language/elk/env"
+	"github.com/elk-language/elk/ext"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
@@ -7869,6 +7871,10 @@ func (c *Checker) checkUsingAllEntryNode(node *ast.UsingAllEntryNode) *ast.Using
 	return node
 }
 
+func isLibPath(path string) bool {
+	return !strings.HasPrefix(path, ".") && !strings.HasPrefix(path, "/")
+}
+
 func (c *Checker) checkImport(node *ast.ImportStatementNode) {
 	var path string
 
@@ -7879,7 +7885,21 @@ func (c *Checker) checkImport(node *ast.ImportStatementNode) {
 		path = pathNode.Value
 	}
 
-	if !filepath.IsAbs(path) {
+	if isLibPath(path) {
+		// library
+		path = filepath.Join(env.ELKPATH, "lib", path)
+		var dirPath string
+		if filepath.Ext(path) == "" {
+			dirPath = path
+			path = filepath.Join(path, "init.{elk,elh}")
+		} else {
+			dirPath = filepath.Dir(path)
+		}
+		extension, ok := ext.Map[dirPath]
+		if ok {
+			extension.Init(c)
+		}
+	} else if !filepath.IsAbs(path) {
 		dirPath := filepath.Dir(c.Filename)
 		path = filepath.Join(dirPath, path)
 	}

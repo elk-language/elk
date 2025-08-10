@@ -85,6 +85,7 @@ var (
 	IdentifierNode        = value.ToSymbol("IdentifierNode")
 	InstanceVariableNode  = value.ToSymbol("InstanceVariableNode")
 	AST                   = value.ToSymbol("AST")
+	Test                  = value.ToSymbol("Test")
 )
 
 // lowercase symbols
@@ -95,6 +96,7 @@ var (
 	L_length                   = value.ToSymbol("length")
 	L_hash                     = value.ToSymbol("hash")
 	L_iter                     = value.ToSymbol("iter")
+	L_inspect                  = value.ToSymbol("inspect")
 	L_next                     = value.ToSymbol("next")
 	L_stop_iteration           = value.ToSymbol("stop_iteration")
 	L_channel_closed           = value.ToSymbol("channel_closed")

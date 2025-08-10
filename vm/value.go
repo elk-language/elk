@@ -119,6 +119,11 @@ func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
 	return result, value.Undefined
 }
 
+// Return the string representation of a value for debugging
+func Inspect(vm *VM, val value.Value) (value.Value, value.Value) {
+	return vm.CallMethodByName(symbol.L_inspect, val)
+}
+
 // Check whether two values are equal
 func Equal(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	result := value.EqualVal(left, right)

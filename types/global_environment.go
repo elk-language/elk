@@ -46,6 +46,24 @@ func (g *GlobalEnvironment) StdConst(name value.Symbol) Type {
 	return s.Type
 }
 
+func (g *GlobalEnvironment) ASTSubtype(name value.Symbol) Type {
+	astMod := g.StdSubtypeModule(symbol.AST)
+	exprConst, _ := astMod.Subtype(name)
+	return exprConst.Type
+}
+
+func (g *GlobalEnvironment) ExpressionNode() *Mixin {
+	return g.ASTSubtype(symbol.ExpressionNode).(*Mixin)
+}
+
+func (g *GlobalEnvironment) PatternNode() *Mixin {
+	return g.ASTSubtype(symbol.PatternNode).(*Mixin)
+}
+
+func (g *GlobalEnvironment) TypeNode() *Mixin {
+	return g.ASTSubtype(symbol.TypeNode).(*Mixin)
+}
+
 func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	// -- Bootstrapping --
 

@@ -1,0 +1,13 @@
+module ::Std::Test
+  mixin Assertions
+    ##[
+      Checks whether the given value is truthy.
+    ]##
+    def assert_truthy(got: Value, message: String? = nil); end
+
+    ##[
+      Checks whether the given value is falsy.
+    ]##
+    def assert_falsy(got: Value, message: String? = nil); end
+  end
+end

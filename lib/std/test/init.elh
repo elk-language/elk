@@ -1,0 +1,9 @@
+import "./*.elh"
+
+# TODO: test types
+module ::Std::Test
+  ##[
+    Thrown when an assertion failed.
+  ]##
+  class AssertionError < Error; end
+end

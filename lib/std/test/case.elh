@@ -1,0 +1,5 @@
+module ::Std::Test
+  class Case
+    include Assertions
+  end
+end
