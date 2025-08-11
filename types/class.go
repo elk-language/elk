@@ -14,6 +14,7 @@ type Class struct {
 	abstract       bool
 	sealed         bool
 	primitive      bool
+	native         bool
 	defined        bool
 	compiled       bool
 	Checked        bool
@@ -79,6 +80,15 @@ func (c *Class) SetSealed(sealed bool) *Class {
 
 func (c *Class) IsSealed() bool {
 	return c.sealed
+}
+
+func (c *Class) SetNative(native bool) *Class {
+	c.native = native
+	return c
+}
+
+func (c *Class) IsNative() bool {
+	return c.native
 }
 
 func (c *Class) SetPrimitive(primitive bool) *Class {
@@ -178,7 +188,7 @@ func NewClass(
 		sealed:        sealed,
 		abstract:      abstract,
 		noinit:        noinit,
-		defined:       env.Init,
+		native:        env.Init,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.Class))
@@ -203,7 +213,7 @@ func NewClassWithDetails(
 		primitive: primitive,
 		abstract:  abstract,
 		sealed:    sealed,
-		defined:   env.Init,
+		native:    env.Init,
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
 			name:       name,
@@ -244,6 +254,7 @@ func (c *Class) Copy() *Class {
 		sealed:         c.sealed,
 		abstract:       c.abstract,
 		defined:        c.defined,
+		native:         c.native,
 		compiled:       c.compiled,
 		singleton:      c.singleton,
 		typeParameters: c.typeParameters,
@@ -271,6 +282,7 @@ func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 		sealed:        c.sealed,
 		primitive:     c.primitive,
 		defined:       c.defined,
+		native:        c.native,
 		compiled:      c.compiled,
 		NamespaceBase: MakeNamespaceBase(c.docComment, c.name),
 	}

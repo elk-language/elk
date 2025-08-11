@@ -95,6 +95,10 @@ func (t *TypeParamNamespace) IsPrimitive() bool {
 	return true
 }
 
+func (t *TypeParamNamespace) IsNative() bool {
+	return false
+}
+
 func (t *TypeParamNamespace) IsGeneric() bool {
 	return false
 }

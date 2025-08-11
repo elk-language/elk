@@ -93,6 +93,10 @@ func (c *Closure) IsDefined() bool {
 	return false
 }
 
+func (c *Closure) IsNative() bool {
+	return false
+}
+
 func (c *Closure) SetDefined(bool) {
 	panic("cannot set `compiled` in closure")
 }

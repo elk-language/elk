@@ -59,13 +59,15 @@ type typeDefinitionCheckEntry struct {
 	filename       string
 	constantScopes []constantScope
 	node           ast.ExpressionNode
+	isNative       bool
 }
 
-func newTypeDefinitionCheckEntry(filename string, constScopes []constantScope, node ast.ExpressionNode) *typeDefinitionCheckEntry {
+func newTypeDefinitionCheckEntry(filename string, constScopes []constantScope, node ast.ExpressionNode, isNative bool) *typeDefinitionCheckEntry {
 	return &typeDefinitionCheckEntry{
 		filename:       filename,
 		constantScopes: constScopes,
 		node:           node,
+		isNative:       isNative,
 	}
 }
 
@@ -86,7 +88,7 @@ func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.ConstantP
 	}
 }
 
-func (c *Checker) registerNamespaceDeclarationCheck(name string, node ast.ExpressionNode, typ types.Type) {
+func (c *Checker) registerNamespaceDeclarationCheck(name string, node ast.ExpressionNode, typ types.Type, isNative bool) {
 	c.typeDefinitionChecks.addEntry(
 		name,
 		typ,
@@ -94,6 +96,7 @@ func (c *Checker) registerNamespaceDeclarationCheck(name string, node ast.Expres
 			c.Filename,
 			c.constantScopesCopy(),
 			node,
+			isNative,
 		),
 	)
 }
@@ -137,6 +140,7 @@ func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 			c.Filename,
 			c.constantScopesCopy(),
 			node,
+			false,
 		),
 	)
 }
@@ -168,6 +172,7 @@ func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionN
 			c.Filename,
 			c.constantScopesCopyWithoutCache(),
 			node,
+			false,
 		),
 	)
 }
@@ -349,7 +354,7 @@ func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, locatio
 			c.checkGenericNamedType(n)
 		case *ast.IncludeExpressionNode:
 			for _, constant := range n.Constants {
-				c.includeMixin(constant)
+				c.includeMixin(constant, entry.isNative)
 			}
 			n.SetType(types.Untyped{})
 		case *ast.ImplementExpressionNode:
@@ -358,7 +363,7 @@ func (c *Checker) checkTypeDefinition(typedefCheck *typeDefinitionCheck, locatio
 			}
 			n.SetType(types.Untyped{})
 		case *ast.ClassDeclarationNode:
-			c.checkClassInheritance(n)
+			c.checkClassInheritance(n, entry.isNative)
 		case *ast.MixinDeclarationNode:
 			c.checkMixinTypeParameters(n)
 		case *ast.InterfaceDeclarationNode:
@@ -411,7 +416,7 @@ func (c *Checker) includeMixinForMacro(node ast.ComplexConstantNode) {
 	}
 }
 
-func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
+func (c *Checker) includeMixin(node ast.ComplexConstantNode, isNative bool) {
 	prevMode := c.mode
 	c.mode = inheritanceMode
 
@@ -494,7 +499,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 		return
 	}
 
-	if c.shouldCompile() {
+	if c.shouldCompile() && !isNative {
 		c.compiler.CompileInclude(target, mixin, position.DefaultLocation)
 	}
 }
@@ -732,7 +737,7 @@ superclassSwitch:
 	class.SetParent(temp)
 }
 
-func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode) {
+func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode, isNative bool) {
 	class, ok := c.TypeOf(node).(*types.Class)
 	if !ok {
 		return
@@ -829,7 +834,7 @@ superclassSwitch:
 		)
 	}
 	class.Checked = true
-	if c.shouldCompile() {
+	if c.shouldCompile() && !isNative {
 		c.compiler.CompileClassInheritance(class, position.DefaultLocation)
 	}
 

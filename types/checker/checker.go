@@ -332,7 +332,7 @@ func (c *Checker) initExtensions() {
 		extension.Init(c)
 	}
 	c.env.Init = false
-	c.extensions = nil
+	c.extensions = concurrent.NewSlice[*ext.Extension]()
 }
 
 func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
@@ -4100,7 +4100,7 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 			}
 
 			parent.SetIvarIndices(&currentIvarIndices)
-			if c.shouldCompile() && len(currentIvarIndices) != 0 {
+			if c.shouldCompile() && !parent.IsNative() && len(currentIvarIndices) != 0 {
 				c.compiler.CompileIvarIndices(parent, position.DefaultLocation)
 			}
 
@@ -7369,6 +7369,9 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		constantName,
 		structNode.Location(),
 	)
+	if c.IsHeader() {
+		class.SetNative(true)
+	}
 	structNode.SetType(class)
 	structNode.Constant = ast.NewPublicConstantNode(structNode.Constant.Location(), fullConstantName)
 
@@ -7442,7 +7445,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		newStatements,
 	)
 	classNode.SetType(class)
-	c.registerNamespaceDeclarationCheck(fullConstantName, classNode, class)
+	c.registerNamespaceDeclarationCheck(fullConstantName, classNode, class, c.IsHeader())
 	return classNode
 }
 
@@ -7472,6 +7475,9 @@ func (c *Checker) hoistModuleDeclarationWithFunc(node *ast.ModuleDeclarationNode
 			constantName,
 			node.Location(),
 		)
+		if c.IsHeader() {
+			module.SetNative(true)
+		}
 		node.SetType(module)
 		node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 	}
@@ -7518,8 +7524,11 @@ func (c *Checker) hoistClassDeclarationWithFunc(node *ast.ClassDeclarationNode, 
 			constantName,
 			node.Location(),
 		)
+		if c.IsHeader() {
+			class.SetNative(true)
+		}
 		node.SetType(class)
-		c.registerNamespaceDeclarationCheck(fullConstantName, node, class)
+		c.registerNamespaceDeclarationCheck(fullConstantName, node, class, c.IsHeader())
 		node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 	}
 
@@ -7563,7 +7572,10 @@ func (c *Checker) hoistMixinDeclarationWithFunc(node *ast.MixinDeclarationNode, 
 			node.Location(),
 		)
 		node.SetType(mixin)
-		c.registerNamespaceDeclarationCheck(fullConstantName, node, mixin)
+		if c.IsHeader() {
+			mixin.SetNative(true)
+		}
+		c.registerNamespaceDeclarationCheck(fullConstantName, node, mixin, c.IsHeader())
 		node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 	}
 
@@ -7606,7 +7618,7 @@ func (c *Checker) hoistInterfaceDeclarationWithFunc(node *ast.InterfaceDeclarati
 			node.Location(),
 		)
 		node.SetType(iface)
-		c.registerNamespaceDeclarationCheck(fullConstantName, node, iface)
+		c.registerNamespaceDeclarationCheck(fullConstantName, node, iface, c.IsHeader())
 		node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 	}
 
@@ -7630,7 +7642,7 @@ func (c *Checker) hoistExtendWhereDeclaration(node *ast.ExtendWhereBlockExpressi
 	}
 
 	currentNamespace := c.currentConstScope().container
-	c.registerNamespaceDeclarationCheck(currentNamespace.Name(), node, nil)
+	c.registerNamespaceDeclarationCheck(currentNamespace.Name(), node, nil, c.IsHeader())
 
 	prevMode := c.mode
 	c.mode = extendWhereMode
@@ -7725,7 +7737,7 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 				}
 				namespace := c.currentMethodScope().container
 				expr.SetType(types.Untyped{})
-				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace)
+				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace, c.IsHeader())
 			case *ast.IncludeExpressionNode:
 				switch c.mode {
 				case classMode, mixinMode, singletonMode:
@@ -7734,7 +7746,7 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 				}
 				namespace := c.currentMethodScope().container
 				expr.SetType(types.Untyped{})
-				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace)
+				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace, c.IsHeader())
 			case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
 				*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 				namespace := c.currentMethodScope().container

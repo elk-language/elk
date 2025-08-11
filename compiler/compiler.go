@@ -217,7 +217,7 @@ func (c *Compiler) compileGlobalEnv() {
 }
 
 func (c *Compiler) compileNamespaceDefinition(parentNamespace, namespace types.Namespace, namespaceType byte, constName value.Symbol, location *position.Location) {
-	if !namespace.IsDefined() {
+	if !namespace.IsDefined() && !namespace.IsNative() {
 		switch p := parentNamespace.(type) {
 		case *types.SingletonClass:
 			c.emitGetConst(value.ToSymbol(p.AttachedObject.Name()), location)

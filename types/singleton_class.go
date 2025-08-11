@@ -59,6 +59,7 @@ func (s *SingletonClass) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Singlet
 			sealed:        s.sealed,
 			abstract:      s.abstract,
 			defined:       s.defined,
+			native:        s.native,
 			compiled:      s.compiled,
 			NamespaceBase: MakeNamespaceBase(s.docComment, s.name),
 		},

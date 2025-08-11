@@ -69,7 +69,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	rootModule := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Root"),
-		defined:       true,
+		native:        true,
 	}
 	env := &GlobalEnvironment{
 		Root: rootModule,
@@ -78,7 +78,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	stdModule := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Std"),
-		defined:       true,
+		native:        true,
 	}
 	rootModule.DefineConstant(symbol.Root, rootModule)
 	rootModule.DefineSubtype(symbol.Root, rootModule)
@@ -88,7 +88,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	valueClass := &Class{
 		NamespaceBase: MakeNamespaceBase("", "Std::Value"),
-		defined:       true,
+		native:        true,
 	}
 	valueClass.primitive = true
 	stdModule.DefineSubtype(symbol.Value, valueClass)
@@ -96,14 +96,14 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	objectClass := &Class{
 		parent:        valueClass,
 		NamespaceBase: MakeNamespaceBase("", "Std::Object"),
-		defined:       true,
+		native:        true,
 	}
 	stdModule.DefineSubtype(symbol.Object, objectClass)
 
 	classClass := &Class{
 		parent:        objectClass,
 		NamespaceBase: MakeNamespaceBase("", "Std::Class"),
-		defined:       true,
+		native:        true,
 		noinit:        true,
 	}
 	stdModule.DefineSubtype(symbol.Class, classClass)

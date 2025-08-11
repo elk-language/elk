@@ -52,6 +52,10 @@ func (*Interface) IsAbstract() bool {
 	return true
 }
 
+func (*Interface) IsNative() bool {
+	return false
+}
+
 func (*Interface) IsSealed() bool {
 	return false
 }

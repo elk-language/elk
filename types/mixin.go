@@ -10,6 +10,7 @@ type Mixin struct {
 	parent         Namespace
 	abstract       bool
 	defined        bool
+	native         bool
 	Checked        bool
 	singleton      *SingletonClass
 	typeParameters []*TypeParameter
@@ -52,6 +53,14 @@ func (m *Mixin) IsAbstract() bool {
 
 func (m *Mixin) IsSealed() bool {
 	return false
+}
+
+func (m *Mixin) IsNative() bool {
+	return m.native
+}
+
+func (m *Mixin) SetNative(native bool) {
+	m.native = native
 }
 
 func (m *Mixin) IsDefined() bool {

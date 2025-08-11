@@ -17,6 +17,7 @@ type NamespaceWithIvarIndices interface {
 	Namespace
 	IvarIndices() *value.IvarIndices
 	SetIvarIndices(*value.IvarIndices)
+	IsNative() bool
 }
 
 type Namespace interface {
@@ -35,6 +36,7 @@ type Namespace interface {
 	IsGeneric() bool
 	IsDefined() bool
 	SetDefined(bool)
+	IsNative() bool
 
 	TypeParameters() []*TypeParameter
 	SetTypeParameters([]*TypeParameter)
