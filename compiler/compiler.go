@@ -320,8 +320,8 @@ func (c *Compiler) CompileInclude(target types.Namespace, mixin *types.Mixin, lo
 	c.emit(location.StartPos.Line, bytecode.INCLUDE)
 }
 
-func (c *Compiler) InitExpressionCompiler(filename string, location *position.Location) *Compiler {
-	exprCompiler := New(filename, topLevelMode, c.Bytecode.Location, c.checker)
+func (c *Compiler) InitExpressionCompiler(location *position.Location) *Compiler {
+	exprCompiler := New("<file>", topLevelMode, location, c.checker)
 	exprCompiler.Errors = c.Errors
 
 	c.emitValue(value.Ref(exprCompiler.Bytecode), location)

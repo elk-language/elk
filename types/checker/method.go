@@ -1335,6 +1335,12 @@ func (c *Checker) addToThrowType(typ types.Type) {
 	c.throwType = c.NewNormalisedUnion(c.throwType, typ)
 }
 
+type inferArg struct {
+	typedArg ast.ExpressionNode
+	param    *types.Parameter
+	retry    bool
+}
+
 func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	method *types.Method,
 	positionalArguments []ast.ExpressionNode,
@@ -1374,6 +1380,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		)
 	}
 
+	var inferArgs []inferArg
 	var currentParamIndex int
 	// check all positional argument before the rest parameter
 	for ; currentParamIndex < len(positionalArguments); currentParamIndex++ {
@@ -1395,14 +1402,38 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		posArgType := c.TypeOf(typedPosArg)
 
 		inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
+		var retry bool
 		if inferredParamType == nil {
 			param.Type = types.Untyped{}
-		} else if inferredParamType != param.Type {
+		} else if inferredParamType == param.Type {
+			retry = true
+		} else {
 			param.Type = inferredParamType
 		}
+		inferArgs = append(inferArgs, inferArg{
+			typedArg: typedPosArg,
+			param:    param,
+			retry:    retry,
+		})
+	}
+
+	for _, inferArg := range inferArgs {
+		typedPosArg := inferArg.typedArg
+		posArgType := c.TypeOf(typedPosArg)
+		param := inferArg.param
+
+		if inferArg.retry {
+			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
+			if inferredParamType == nil {
+				param.Type = types.Untyped{}
+			} else if inferredParamType != param.Type {
+				param.Type = inferredParamType
+			}
+		}
+
 		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 
-		if !c.isSubtype(posArgType, param.Type, posArg.Location()) {
+		if !c.isSubtype(posArgType, param.Type, typedPosArg.Location()) {
 			c.addFailure(
 				fmt.Sprintf(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
@@ -1411,7 +1442,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					types.InspectWithColor(method),
 					types.InspectWithColor(posArgType),
 				),
-				posArg.Location(),
+				typedPosArg.Location(),
 			)
 		}
 	}
@@ -1964,7 +1995,6 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *
 	c.methodCache.Slice = nil
 
 	if c.shouldCompile() && method.IsCompilable() {
-		fmt.Printf("header: %t\n", c.IsHeader())
 		method.Body = c.compiler.CompileMethodBody(node, method.Name)
 	}
 }

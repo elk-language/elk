@@ -47,9 +47,9 @@ func (g *GlobalEnvironment) StdConst(name value.Symbol) Type {
 }
 
 func (g *GlobalEnvironment) ASTSubtype(name value.Symbol) Type {
-	astMod := g.StdSubtypeModule(symbol.AST)
-	exprConst, _ := astMod.Subtype(name)
-	return exprConst.Type
+	elkMod := g.StdSubtypeModule(symbol.Elk)
+	astMod := elkMod.MustSubtype(symbol.AST).(*Module)
+	return astMod.MustSubtype(name)
 }
 
 func (g *GlobalEnvironment) ExpressionNode() *Mixin {

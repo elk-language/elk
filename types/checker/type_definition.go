@@ -317,6 +317,8 @@ func (c *Checker) removeTemporaryParents(typ types.Type) {
 		typ.RemoveTemporaryParents(c.env)
 	case *types.Module:
 		typ.RemoveTemporaryParents()
+	case *types.SingletonClass:
+		typ.RemoveTemporaryParents(c.env)
 	}
 }
 

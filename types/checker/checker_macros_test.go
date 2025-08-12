@@ -550,7 +550,7 @@ func TestExpandMacro(t *testing.T) {
 				timeout := Foo::fib!(15) + 2
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(41, 3, 21), P(43, 3, 23)), "undefined macro `fib!`"),
+				diagnostic.NewFailure(L("<main>", P(41, 3, 21), P(43, 3, 23)), "undefined macro `Foo::fib!`"),
 			},
 		},
 		"inherit a macro": {

@@ -284,6 +284,7 @@ func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 		defined:       c.defined,
 		native:        c.native,
 		compiled:      c.compiled,
+		Checked:       c.Checked,
 		NamespaceBase: MakeNamespaceBase(c.docComment, c.name),
 	}
 	classConstantName := classConstantPath[len(classConstantPath)-1]

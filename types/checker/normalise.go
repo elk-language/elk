@@ -88,6 +88,9 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		if typeArg != nil {
 			return typeArg.Type
 		}
+		if givenType == nil {
+			return nil
+		}
 
 		inferredType := c.ToNonLiteral(givenType, false)
 		if !c.isSubtype(givenType, p.UpperBound, nil) {
@@ -109,7 +112,22 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 	case *types.Generic:
 		g, ok := givenType.(*types.Generic)
 		if !ok {
-			return p
+			newArgMap := make(types.TypeArgumentMap, len(p.ArgumentMap))
+			for _, argName := range p.ArgumentOrder {
+				pArg := p.ArgumentMap[argName]
+				result := c.inferTypeArguments(nil, pArg.Type, typeArgMap, errLocation)
+				if result == nil {
+					return p
+				}
+				newArgMap[argName] = types.NewTypeArgument(result, pArg.Variance)
+			}
+			return types.NewGeneric(
+				p.Namespace,
+				types.NewTypeArguments(
+					newArgMap,
+					p.ArgumentOrder,
+				),
+			)
 		}
 		if !c.isSubtype(g.Namespace, p.Namespace, nil) {
 			return p

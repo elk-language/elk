@@ -216,10 +216,21 @@ func (c *Checker) resolveMacroForNamespace(namespace types.Namespace, name value
 	return nil
 }
 
+func macroName(namespace types.Namespace, name string) string {
+	var namespaceName string
+	switch n := namespace.(type) {
+	case *types.SingletonClass:
+		namespaceName = n.AttachedObject.Name()
+	default:
+		namespaceName = namespace.Name()
+	}
+	return fmt.Sprintf("%s::%s", namespaceName, name)
+}
+
 func (c *Checker) getMacroForNamespace(namespace types.Namespace, name value.Symbol, loc *position.Location) *types.Method {
 	macro := c.resolveMacroForNamespace(namespace, name)
 	if macro == nil {
-		c.addUndefinedMacroError(name.String(), loc)
+		c.addUndefinedMacroError(macroName(namespace, name.String()), loc)
 	}
 
 	return macro
@@ -229,7 +240,7 @@ func (c *Checker) addUndefinedMacroError(name string, loc *position.Location) {
 	c.addFailure(
 		fmt.Sprintf(
 			"undefined macro `%s`",
-			name,
+			lexer.Colorize(name),
 		),
 		loc,
 	)

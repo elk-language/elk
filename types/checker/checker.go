@@ -583,10 +583,10 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 		}
 		prevCompiler := c.compiler
 		prevIsHeader := c.IsHeader()
-		c.setIsHeaderForPath(filename)
+		c.setIsHeaderForPath(importPath)
 
 		if c.shouldCompile() {
-			c.compiler = c.compiler.InitExpressionCompiler(filename, node.Location())
+			c.compiler = c.compiler.InitExpressionCompiler(importedAst.Location())
 		}
 		c.checkExpressionsInFile(importPath, importedAst)
 
@@ -7941,16 +7941,14 @@ func (c *Checker) checkImport(node *ast.ImportStatementNode, checkedFileName str
 	}
 
 	if isLibPath(path) {
+		shortPath := path
 		// library
 		path = filepath.Join(env.ELKPATH, "lib", path)
-		var dirPath string
 		if filepath.Ext(path) == "" {
-			dirPath = path
 			path = filepath.Join(path, "init.{elk,elh}")
 		} else {
-			dirPath = filepath.Dir(path)
 		}
-		extension, ok := ext.Map[dirPath]
+		extension, ok := ext.Map[shortPath]
 		if ok {
 			c.extensions.Push(extension)
 		}

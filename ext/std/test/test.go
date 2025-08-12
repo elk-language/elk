@@ -14,7 +14,7 @@ import (
 )
 
 func Init() {
-	ext.Register("test", runtimeInit, typecheckerInit)
+	ext.Register("std/test", runtimeInit, typecheckerInit)
 }
 
 func runtimeInit() {
@@ -28,6 +28,7 @@ func runtimeInit() {
 	assertionErrorClass := value.NewClassWithOptions(
 		value.ClassWithSuperclass(value.ErrorClass),
 	)
+	testModule.AddConstantString("AssertionError", value.Ref(assertionErrorClass))
 
 	c := &assertionsMixin.MethodContainer
 	vm.Def(
@@ -355,7 +356,7 @@ func runtimeInit() {
 					return value.Undefined, err
 				}
 				message = fmt.Sprintf(
-					"value `%s` should not equal to `%s`",
+					"value `%s` should not be equal to `%s`",
 					gotInspect,
 					expectedInspect,
 				)
@@ -555,12 +556,13 @@ func runtimeInit() {
 // TODO: test macros
 func typecheckerInit(checker types.Checker) {
 	env := checker.Env()
-	testModule := env.Root.DefineModule("", symbol.Test, env)
+	testModule := env.Std().DefineModule("", symbol.Test, env)
 	assertionsMixin := testModule.DefineMixin("", false, value.ToSymbol("Assertions"), env)
 	expressionNodeMixin := env.ExpressionNode()
 
+	n := assertionsMixin.Singleton()
 	types.DefMacro(
-		assertionsMixin,
+		n,
 		"",
 		"assert!",
 		[]*types.Parameter{
@@ -577,24 +579,24 @@ func typecheckerInit(checker types.Checker) {
 
 			assertionsConstant := ast.NewConstantLookupNode(
 				position.ZeroLocation,
-				nil,
 				ast.NewConstantLookupNode(
 					position.ZeroLocation,
 					ast.NewConstantLookupNode(
 						position.ZeroLocation,
+						nil,
 						ast.NewPublicConstantNode(
 							position.ZeroLocation,
 							"Std",
 						),
-						ast.NewPublicConstantNode(
-							position.ZeroLocation,
-							"Test",
-						),
 					),
 					ast.NewPublicConstantNode(
 						position.ZeroLocation,
-						"Assertions",
+						"Test",
 					),
+				),
+				ast.NewPublicConstantNode(
+					position.ZeroLocation,
+					"Assertions",
 				),
 			)
 

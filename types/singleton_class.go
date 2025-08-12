@@ -15,6 +15,14 @@ func (c *SingletonClass) SetParent(parent Namespace) {
 	c.parent = parent
 }
 
+func (c *SingletonClass) RemoveTemporaryParents(env *GlobalEnvironment) {
+	if _, ok := c.parent.(*TemporaryParent); !ok {
+		return
+	}
+
+	c.parent = c.Superclass()
+}
+
 func NewSingletonClass(attached Namespace, parent Namespace) *SingletonClass {
 	singleton := &SingletonClass{
 		AttachedObject: attached,
