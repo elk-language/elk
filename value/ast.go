@@ -119,6 +119,7 @@ var PrivateConstantNodeClass *Class               // Std::Elk::AST::PrivateConst
 var AsExpressionNodeClass *Class                  // Std::Elk::AST::AsExpressionNode
 var DoExpressionNodeClass *Class                  // Std::Elk::AST::DoExpressionNode
 var MacroBoundaryNodeClass *Class                 // Std::Elk::AST::MacroBoundaryNode
+var UnhygienicNodeClass *Class                    // Std::Elk::AST::UnhygienicNode
 var QuoteExpressionNodeClass *Class               // Std::Elk::AST::QuoteExpressionNode
 var UnquoteNodeClass *Class                       // Std::Elk::AST::UnquoteNode
 var SingletonBlockExpressionNodeClass *Class      // Std::Elk::AST::SingletonBlockExpressionNode
@@ -771,6 +772,11 @@ func initElkAST() {
 	MacroBoundaryNodeClass.IncludeMixin(PatternExpressionNodeMixin)
 	MacroBoundaryNodeClass.IncludeMixin(TypeNodeMixin)
 	ElkASTModule.AddConstantString("MacroBoundaryNode", Ref(MacroBoundaryNodeClass))
+
+	UnhygienicNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	UnhygienicNodeClass.IncludeMixin(PatternExpressionNodeMixin)
+	UnhygienicNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("UnhygienicNode", Ref(UnhygienicNodeClass))
 
 	QuoteExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	QuoteExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)

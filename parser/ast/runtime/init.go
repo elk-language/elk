@@ -44,6 +44,7 @@ func InitGlobalEnvironment() {
 	initContinueExpressionNode()
 	initDoExpressionNode()
 	initMacroBoundaryNode()
+	initUnhygienicNode()
 	initQuoteExpressionNode()
 	initUnquoteNode()
 	initDoubleQuotedStringLiteralNode()
