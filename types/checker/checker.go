@@ -95,6 +95,7 @@ const (
 	inferClosureReturnTypeFlag
 	inferClosureThrowTypeFlag
 	generatorFlag
+	unhygienicFlag
 	definedMacrosFlag // indicates that the typechecker has defined some macros
 	incrementalFlag   // indicates the typechecker should check and compiler code incrementally (REPL)
 )
@@ -151,7 +152,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		mode:       topLevelMode,
 		Errors:     new(diagnostic.SyncDiagnosticList),
 		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil),
+			newLocalEnvironment(nil, false),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		constantChecks:       newConstantDefinitionChecks(),
@@ -221,6 +222,18 @@ func (c *Checker) setGenerator(val bool) {
 		c.flags.SetFlag(generatorFlag)
 	} else {
 		c.flags.UnsetFlag(generatorFlag)
+	}
+}
+
+func (c *Checker) isUnhygienic() bool {
+	return c.flags.HasFlag(unhygienicFlag)
+}
+
+func (c *Checker) setUnhygienic(val bool) {
+	if val {
+		c.flags.SetFlag(unhygienicFlag)
+	} else {
+		c.flags.UnsetFlag(unhygienicFlag)
 	}
 }
 
@@ -1154,6 +1167,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkDoExpressionNode(n)
 	case *ast.MacroBoundaryNode:
 		return c.checkMacroBoundaryNode(n)
+	case *ast.UnhygienicNode:
+		return c.checkExpressionUnhygienicNode(n)
 	case *ast.TypeofExpressionNode:
 		return c.checkTypeofExpressionNode(n)
 	case *ast.IfExpressionNode:
@@ -3432,12 +3447,46 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 }
 
 func (c *Checker) checkMacroBoundaryNode(node *ast.MacroBoundaryNode) ast.ExpressionNode {
-	c.pushIsolatedLocalEnv()
+	c.pushMacroBoundaryLocalEnv()
 	resultType, _ := c.checkStatements(node.Body, false)
 	c.popLocalEnv()
 
 	node.SetType(resultType)
 	return node
+}
+
+func (c *Checker) checkExpressionUnhygienicNode(node *ast.UnhygienicNode) *ast.UnhygienicNode {
+	prevUnhygienic := c.isUnhygienic()
+	c.setUnhygienic(true)
+
+	node.Node = c.checkExpression(node.Node.(ast.ExpressionNode))
+
+	c.setUnhygienic(prevUnhygienic)
+	node.SetType(c.TypeOf(node.Node))
+	return node
+}
+
+func (c *Checker) checkTypeUnhygienicNode(node *ast.UnhygienicNode) *ast.UnhygienicNode {
+	prevUnhygienic := c.isUnhygienic()
+	c.setUnhygienic(true)
+
+	node.Node = c.checkTypeNode(node.Node.(ast.TypeNode))
+
+	c.setUnhygienic(prevUnhygienic)
+	node.SetType(c.TypeOf(node.Node))
+	return node
+}
+
+func (c *Checker) checkPatternUnhygienicNode(node *ast.UnhygienicNode, matchedType types.Type) (result ast.PatternNode, fullyCapturedType types.Type) {
+	prevUnhygienic := c.isUnhygienic()
+	c.setUnhygienic(true)
+
+	patternNode, fullyCapturedType := c.checkPattern(node.Node.(ast.PatternNode), matchedType)
+	node.Node = patternNode
+
+	c.setUnhygienic(prevUnhygienic)
+	node.SetType(c.TypeOf(node.Node))
+	return node, fullyCapturedType
 }
 
 func (c *Checker) checkPostfixExpressionNode(node *ast.PostfixExpressionNode) ast.ExpressionNode {
@@ -6399,6 +6448,8 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return c.checkSingletonTypeNode(n)
 	case *ast.InstanceOfTypeNode:
 		return c.checkInstanceOfTypeNode(n)
+	case *ast.UnhygienicNode:
+		return c.checkTypeUnhygienicNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid type node %T", node),

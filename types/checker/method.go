@@ -496,7 +496,7 @@ func (c *Checker) newMethodChecker(
 		Errors:         c.Errors,
 		flags:          c.flags,
 		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil),
+			newLocalEnvironment(nil, false),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),

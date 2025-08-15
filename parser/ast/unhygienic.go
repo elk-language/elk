@@ -101,3 +101,7 @@ func NewUnhygienicNode(loc *position.Location, node Node) *UnhygienicNode {
 		Node:          node,
 	}
 }
+
+func Unhygienic(node Node) *UnhygienicNode {
+	return NewUnhygienicNode(node.Location(), node)
+}

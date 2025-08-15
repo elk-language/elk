@@ -158,6 +158,7 @@ type Compiler struct {
 	mode               mode
 	isGenerator        bool
 	isAsync            bool
+	unhygienic         bool
 	secondToLastOpCode bytecode.OpCode
 	lastOpCode         bytecode.OpCode
 	patternNesting     int
@@ -1114,6 +1115,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		c.compileDoExpressionNode(node)
 	case *ast.MacroBoundaryNode:
 		c.compileMacroBoundaryNode(node)
+	case *ast.UnhygienicNode:
+		c.compileUnhygienicNode(node, valueIsIgnored)
 	case *ast.IfExpressionNode:
 		return c.compileIfExpression(
 			false,
@@ -1563,6 +1566,15 @@ func (c *Compiler) compileMacroBoundaryNode(node *ast.MacroBoundaryNode) {
 	c.enterScope("", defaultScopeType)
 	c.compileStatementsWithResult(node.Body, location)
 	c.leaveScope(location.EndPos.Line)
+}
+
+func (c *Compiler) compileUnhygienicNode(node *ast.UnhygienicNode, valueIsIgnored bool) {
+	prevUnhygienic := c.unhygienic
+	c.unhygienic = true
+
+	c.compileNode(node.Node, valueIsIgnored)
+
+	c.unhygienic = prevUnhygienic
 }
 
 // Count `finally` blocks we are currently nested in under
@@ -7527,7 +7539,7 @@ func (c *Compiler) resolveLocal(name string) (*local, bool) {
 			found = true
 			break
 		}
-		if varScope.typ == macroBoundaryScopeType {
+		if !c.unhygienic && varScope.typ == macroBoundaryScopeType {
 			break
 		}
 	}

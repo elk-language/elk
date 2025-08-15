@@ -610,7 +610,7 @@ func typecheckerInit(checker types.Checker) {
 						position.ZeroLocation,
 						"assert_truthy",
 					),
-					[]ast.ExpressionNode{expr},
+					[]ast.ExpressionNode{ast.Unhygienic(expr)},
 					nil,
 				)
 				return value.Ref(result), value.Undefined
@@ -626,7 +626,10 @@ func typecheckerInit(checker types.Checker) {
 						position.ZeroLocation,
 						"assert_equal",
 					),
-					[]ast.ExpressionNode{binExpr.Left, binExpr.Right},
+					[]ast.ExpressionNode{
+						ast.Unhygienic(binExpr.Left),
+						ast.Unhygienic(binExpr.Right),
+					},
 					nil,
 				)
 				return value.Ref(result), value.Undefined
@@ -639,7 +642,10 @@ func typecheckerInit(checker types.Checker) {
 						position.ZeroLocation,
 						"assert_not_equal",
 					),
-					[]ast.ExpressionNode{binExpr.Left, binExpr.Right},
+					[]ast.ExpressionNode{
+						ast.Unhygienic(binExpr.Left),
+						ast.Unhygienic(binExpr.Right),
+					},
 					nil,
 				)
 				return value.Ref(result), value.Undefined
@@ -652,7 +658,10 @@ func typecheckerInit(checker types.Checker) {
 						position.ZeroLocation,
 						"assert_greater",
 					),
-					[]ast.ExpressionNode{binExpr.Left, binExpr.Right},
+					[]ast.ExpressionNode{
+						ast.Unhygienic(binExpr.Left),
+						ast.Unhygienic(binExpr.Right),
+					},
 					nil,
 				)
 				return value.Ref(result), value.Undefined
@@ -665,7 +674,10 @@ func typecheckerInit(checker types.Checker) {
 						position.ZeroLocation,
 						"assert_greater_equal",
 					),
-					[]ast.ExpressionNode{binExpr.Left, binExpr.Right},
+					[]ast.ExpressionNode{
+						ast.Unhygienic(binExpr.Left),
+						ast.Unhygienic(binExpr.Right),
+					},
 					nil,
 				)
 				return value.Ref(result), value.Undefined
@@ -678,7 +690,10 @@ func typecheckerInit(checker types.Checker) {
 						position.ZeroLocation,
 						"assert_less",
 					),
-					[]ast.ExpressionNode{binExpr.Left, binExpr.Right},
+					[]ast.ExpressionNode{
+						ast.Unhygienic(binExpr.Left),
+						ast.Unhygienic(binExpr.Right),
+					},
 					nil,
 				)
 				return value.Ref(result), value.Undefined
@@ -691,7 +706,10 @@ func typecheckerInit(checker types.Checker) {
 						position.ZeroLocation,
 						"assert_less_equal",
 					),
-					[]ast.ExpressionNode{binExpr.Left, binExpr.Right},
+					[]ast.ExpressionNode{
+						ast.Unhygienic(binExpr.Left),
+						ast.Unhygienic(binExpr.Right),
+					},
 					nil,
 				)
 				return value.Ref(result), value.Undefined
@@ -704,7 +722,10 @@ func typecheckerInit(checker types.Checker) {
 						position.ZeroLocation,
 						"assert_is_a",
 					),
-					[]ast.ExpressionNode{binExpr.Left, binExpr.Right},
+					[]ast.ExpressionNode{
+						ast.Unhygienic(binExpr.Left),
+						ast.Unhygienic(binExpr.Right),
+					},
 					nil,
 				)
 				return value.Ref(result), value.Undefined
@@ -717,7 +738,10 @@ func typecheckerInit(checker types.Checker) {
 						position.ZeroLocation,
 						"assert_is_a",
 					),
-					[]ast.ExpressionNode{binExpr.Right, binExpr.Left},
+					[]ast.ExpressionNode{
+						ast.Unhygienic(binExpr.Right),
+						ast.Unhygienic(binExpr.Left),
+					},
 					nil,
 				)
 				return value.Ref(result), value.Undefined
@@ -730,7 +754,10 @@ func typecheckerInit(checker types.Checker) {
 						position.ZeroLocation,
 						"assert_instance_of",
 					),
-					[]ast.ExpressionNode{binExpr.Left, binExpr.Right},
+					[]ast.ExpressionNode{
+						ast.Unhygienic(binExpr.Left),
+						ast.Unhygienic(binExpr.Right),
+					},
 					nil,
 				)
 				return value.Ref(result), value.Undefined
@@ -743,7 +770,10 @@ func typecheckerInit(checker types.Checker) {
 						position.ZeroLocation,
 						"assert_instance_of",
 					),
-					[]ast.ExpressionNode{binExpr.Right, binExpr.Left},
+					[]ast.ExpressionNode{
+						ast.Unhygienic(binExpr.Right),
+						ast.Unhygienic(binExpr.Left),
+					},
 					nil,
 				)
 				return value.Ref(result), value.Undefined
@@ -756,7 +786,7 @@ func typecheckerInit(checker types.Checker) {
 						position.ZeroLocation,
 						"assert_truthy",
 					),
-					[]ast.ExpressionNode{expr},
+					[]ast.ExpressionNode{ast.Unhygienic(expr)},
 					nil,
 				)
 				return value.Ref(result), value.Undefined

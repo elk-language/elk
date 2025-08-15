@@ -54,6 +54,7 @@ func (*MacroCallNode) typeNode()                 {}
 func (*ReceiverlessMacroCallNode) typeNode()     {}
 func (*ScopedMacroCallNode) typeNode()           {}
 func (*MacroBoundaryNode) typeNode()             {}
+func (*UnhygienicNode) typeNode()                {}
 
 type StringTypeNode interface {
 	Node
