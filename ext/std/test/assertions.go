@@ -7,15 +7,17 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+var AssertionErrorClass *value.Class // Std::Test::AssertionError
+
 func initAssertions(testModule *value.Module) {
 	assertionsMixin := value.NewMixin()
 	testModule.AddConstantString("Assertions", value.Ref(assertionsMixin))
 	assertionsMixin.SingletonClass().IncludeMixin(assertionsMixin)
 
-	assertionErrorClass := value.NewClassWithOptions(
+	AssertionErrorClass := value.NewClassWithOptions(
 		value.ClassWithSuperclass(value.ErrorClass),
 	)
-	testModule.AddConstantString("AssertionError", value.Ref(assertionErrorClass))
+	testModule.AddConstantString("AssertionError", value.Ref(AssertionErrorClass))
 
 	c := &assertionsMixin.MethodContainer
 	vm.Def(
@@ -41,7 +43,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -72,7 +74,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -104,7 +106,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -135,7 +137,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -166,7 +168,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -193,7 +195,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -229,7 +231,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -265,7 +267,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -309,7 +311,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -353,7 +355,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -398,7 +400,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -442,7 +444,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -486,7 +488,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)
@@ -530,7 +532,7 @@ func initAssertions(testModule *value.Module) {
 
 			err = value.Ref(
 				value.NewError(
-					assertionErrorClass,
+					AssertionErrorClass,
 					message,
 				),
 			)

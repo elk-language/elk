@@ -23,6 +23,8 @@ import (
 var DefaultThreadPool = &ThreadPool{}
 var INIT_VALUE_STACK_SIZE int
 var MAX_VALUE_STACK_SIZE int
+var DEFAULT_THREAD_POOL_SIZE int
+var DEFAULT_THREAD_POOL_QUEUE_SIZE int
 
 func init() {
 	val, ok := config.IntFromEnvVar("ELK_INIT_VALUE_STACK_SIZE")
@@ -39,7 +41,20 @@ func init() {
 		MAX_VALUE_STACK_SIZE = 100_000_000 / int(value.ValueSize) // 100MB by default
 	}
 
-	DefaultThreadPool.initThreadPool(4, 256)
+	val, ok = config.IntFromEnvVar("ELK_DEFAULT_THREAD_POOL_SIZE")
+	if ok {
+		DEFAULT_THREAD_POOL_SIZE = val
+	} else {
+		DEFAULT_THREAD_POOL_SIZE = 4
+	}
+	val, ok = config.IntFromEnvVar("ELK_DEFAULT_THREAD_POOL_QUEUE_SIZE")
+	if ok {
+		DEFAULT_THREAD_POOL_QUEUE_SIZE = val
+	} else {
+		DEFAULT_THREAD_POOL_QUEUE_SIZE = 256
+	}
+
+	DefaultThreadPool.initThreadPool(DEFAULT_THREAD_POOL_SIZE, DEFAULT_THREAD_POOL_QUEUE_SIZE)
 }
 
 // VM state

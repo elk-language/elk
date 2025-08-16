@@ -8,9 +8,15 @@ import (
 
 // Contains the result of running a test case
 type CaseReport struct {
-	Case     *Case
-	Failure  value.Value   // Failed assertion, test executed successfully bute expectations were not met
-	Error    value.Value   // Runtime error, when executing the test an unexpected runtime error occurred
-	Duration time.Duration // The amount of time it took to run the test
-	Status   TestStatus
+	Case       *Case
+	Error      value.Value // Assertion failure or runtime error
+	StackTrace *value.StackTrace
+	Duration   time.Duration // The amount of time it took to run the test
+	Status     TestStatus
+}
+
+func NewCaseReport(cas *Case) *CaseReport {
+	return &CaseReport{
+		Case: cas,
+	}
 }

@@ -2,6 +2,8 @@ package test
 
 import (
 	"fmt"
+	"math/rand/v2"
+	"time"
 
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -14,8 +16,21 @@ const (
 	TEST_FAILED
 	TEST_ERROR
 	TEST_SKIPPED
+	TEST_RUNNING
 	TEST_SUCCESS
 )
+
+func Run(v *vm.VM, events chan *ReportEvent) *SuiteReport {
+	return RunWith(v, events, uint64(time.Now().UnixNano()))
+}
+
+// Run the all tests under the root suite
+func RunWith(v *vm.VM, events chan *ReportEvent, seed uint64) *SuiteReport {
+	rng := rand.New(rand.NewPCG(seed, ^seed+1))
+	report := RootSuite.Run(v, events, rng)
+
+	return report
+}
 
 var RootSuite = NewSuite("", nil)
 var CurrentSuite = RootSuite
@@ -30,12 +45,12 @@ func initTest() *value.Module {
 		"describe",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 			argName := args[1].AsReference().(value.String)
-			argFn := args[2]
+			argFn := args[2].AsReference().(*vm.Closure)
 
 			prevSuite := CurrentSuite
 			CurrentSuite = CurrentSuite.NewSubSuite(string(argName))
 
-			_, err = v.CallCallable(argFn)
+			_, err = v.CallClosure(argFn)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
