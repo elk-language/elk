@@ -2157,19 +2157,25 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			}
 			fallthrough
 		case '%':
-			if l.matchChar('/') {
+			switch l.peekChar() {
+			case '|':
+				l.advanceChar()
+				return l.token(token.CLOSURE_TYPE_BEG)
+			case '/':
+				l.advanceChar()
 				l.pushMode(regexLiteralMode)
 				return l.token(token.REGEX_BEG)
-			}
-			if l.matchChar('[') {
+			case '[':
+				l.advanceChar()
 				return l.token(token.TUPLE_LITERAL_BEG)
-			}
-			if l.matchChar('{') {
+			case '{':
+				l.advanceChar()
 				return l.token(token.RECORD_LITERAL_BEG)
-			}
-			if l.matchChar('=') {
+			case '=':
+				l.advanceChar()
 				return l.token(token.PERCENT_EQUAL)
 			}
+
 			if l.acceptChar('w') {
 				if l.acceptNextChar('[') {
 					l.advanceChars(2)

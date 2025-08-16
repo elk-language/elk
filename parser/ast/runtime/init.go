@@ -35,7 +35,7 @@ func InitGlobalEnvironment() {
 	initCatchNode()
 	initCharLiteralNode()
 	initClassDeclarationNode()
-	initClosureTypeNode()
+	initCallableTypeNode()
 	initClosureLiteralNode()
 	initConstantAsNode()
 	initConstantDeclarationNode()

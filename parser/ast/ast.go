@@ -212,7 +212,7 @@ func TypeAssociativity(expr TypeNode) Associativity {
 		*IntersectionTypeNode, *UnionTypeNode:
 		return LEFT_ASSOCIATIVE
 	case *NotTypeNode, *SingletonTypeNode, *InstanceOfTypeNode,
-		*UnaryTypeNode, *ClosureTypeNode:
+		*UnaryTypeNode, *CallableTypeNode:
 		return RIGHT_ASSOCIATIVE
 	}
 
@@ -221,7 +221,7 @@ func TypeAssociativity(expr TypeNode) Associativity {
 
 func TypePrecedence(expr TypeNode) uint8 {
 	switch e := expr.(type) {
-	case *ClosureTypeNode:
+	case *CallableTypeNode:
 		return 10
 	case *UnionTypeNode:
 		return 20

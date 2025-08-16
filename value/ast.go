@@ -225,7 +225,7 @@ var NilableTypeNodeClass *Class                   // Std::Elk::AST::NilableTypeN
 var InstanceOfTypeNodeClass *Class                // Std::Elk::AST::InstanceOfTypeNode
 var SingletonTypeNodeClass *Class                 // Std::Elk::AST::SingletonTypeNode
 var NotTypeNodeClass *Class                       // Std::Elk::AST::NotTypeNode
-var ClosureTypeNodeClass *Class                   // Std::Elk::AST::ClosureTypeNode
+var CallableTypeNodeClass *Class                  // Std::Elk::AST::CallableTypeNode
 var UnaryTypeNodeClass *Class                     // Std::Elk::AST::UnaryTypeNode
 var AsPatternNodeClass *Class                     // Std::Elk::AST::AsPatternNode
 var SymbolKeyValuePatternNodeClass *Class         // Std::Elk::AST::SymbolKeyValuePatternNode
@@ -1235,9 +1235,9 @@ func initElkAST() {
 	NotTypeNodeClass.IncludeMixin(TypeNodeMixin)
 	ElkASTModule.AddConstantString("NotTypeNode", Ref(NotTypeNodeClass))
 
-	ClosureTypeNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	ClosureTypeNodeClass.IncludeMixin(TypeNodeMixin)
-	ElkASTModule.AddConstantString("ClosureTypeNode", Ref(ClosureTypeNodeClass))
+	CallableTypeNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	CallableTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("CallableTypeNode", Ref(CallableTypeNodeClass))
 
 	UnaryTypeNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	UnaryTypeNodeClass.IncludeMixin(TypeNodeMixin)

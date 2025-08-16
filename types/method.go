@@ -213,7 +213,7 @@ func (m *Method) Copy() *Method {
 func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 	var newDefinedUnder Namespace
 
-	if m.DefinedUnder != nil && !IsClosure(m.DefinedUnder) {
+	if m.DefinedUnder != nil && !IsCallable(m.DefinedUnder) {
 		newDefinedUnder = DeepCopyEnv(m.DefinedUnder, oldEnv, newEnv).(Namespace)
 		if newMethod := newDefinedUnder.Method(m.Name); newMethod != nil {
 			return newMethod
@@ -540,7 +540,7 @@ func inspectMethod(namespace Namespace, methodName value.Symbol) string {
 		return fmt.Sprintf("%s::%s", scope.Name(), methodName.String())
 	case *SingletonClass:
 		return fmt.Sprintf("%s::%s", scope.AttachedObject.Name(), methodName.String())
-	case *Closure:
+	case *Callable:
 		return "call"
 	case *MixinWithWhere:
 		return inspectMethod(scope.Namespace, methodName)

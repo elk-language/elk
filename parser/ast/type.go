@@ -18,7 +18,7 @@ func (*BinaryTypeNode) typeNode()                {}
 func (*NilableTypeNode) typeNode()               {}
 func (*InstanceOfTypeNode) typeNode()            {}
 func (*SingletonTypeNode) typeNode()             {}
-func (*ClosureTypeNode) typeNode()               {}
+func (*CallableTypeNode) typeNode()              {}
 func (*NotTypeNode) typeNode()                   {}
 func (*UnaryTypeNode) typeNode()                 {}
 func (*PublicConstantNode) typeNode()            {}

@@ -377,6 +377,7 @@ const (
 
 	LABEL_SPECIAL_COLLECTION_LITERAL_END // Special collection literals end here
 
+	CLOSURE_TYPE_BEG     // Beginning of a closure type `%|`
 	HASH_SET_LITERAL_BEG // HashHashSet literal beginning `^[`
 	TUPLE_LITERAL_BEG    // ArrayTuple literal beginning `%[`
 	RECORD_LITERAL_BEG   // Record literal beginning `%{`
@@ -779,6 +780,7 @@ var tokenNames = [...]string{
 	RAW_STRING:                     "RAW_STRING",
 	CHAR_LITERAL:                   "CHAR_LITERAL",
 	RAW_CHAR_LITERAL:               "RAW_CHAR_LITERAL",
+	CLOSURE_TYPE_BEG:               "%|",
 	REGEX_BEG:                      "%/",
 	REGEX_CONTENT:                  "REGEX_CONTENT",
 	REGEX_INTERP_BEG:               "${ (REGEX_INTERP_BEG)",

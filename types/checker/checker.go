@@ -870,7 +870,7 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 		switch t := typ.(type) {
 		case *types.NamedType:
 			return c.checkExpressionWithType(node, t.Type)
-		case *types.Closure:
+		case *types.Callable:
 			return c.checkClosureLiteralNodeWithType(n, t)
 		}
 	case *ast.ArrayListLiteralNode:
@@ -5056,7 +5056,7 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, ta
 }
 
 func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.ClosureLiteralNode, name string) ast.ExpressionNode {
-	closure := types.NewClosure(nil)
+	closure := types.NewCallable(nil, true)
 	method, mod := c.declareMethod(
 		nil,
 		closure,
@@ -5097,7 +5097,7 @@ func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.Closure
 }
 
 func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, baseMethod *types.Method) ast.ExpressionNode {
-	closure := types.NewClosure(nil)
+	closure := types.NewCallable(nil, true)
 	method, mod := c.declareMethod(
 		baseMethod,
 		closure,
@@ -5133,7 +5133,7 @@ func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, 
 	return node
 }
 
-func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Closure) ast.ExpressionNode {
+func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Callable) ast.ExpressionNode {
 	baseMethod := closureType.Method(symbol.L_call)
 	return c.checkClosureLiteralNodeWithBase(node, baseMethod)
 }
@@ -6349,8 +6349,8 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return typeNode
 	case *ast.ConstantLookupNode:
 		return c.constantLookupType(n)
-	case *ast.ClosureTypeNode:
-		return c.checkClosureTypeNode(n)
+	case *ast.CallableTypeNode:
+		return c.checkCallableTypeNode(n)
 	case *ast.RawStringLiteralNode:
 		n.SetType(types.NewStringLiteral(n.Value))
 		return n
@@ -6635,11 +6635,11 @@ func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeNode) ast.Ty
 	}
 }
 
-func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
-	closure := types.NewClosure(nil)
+func (c *Checker) checkCallableTypeNode(node *ast.CallableTypeNode) ast.TypeNode {
+	callable := types.NewCallable(nil, node.IsClosure)
 	method, mod := c.declareMethod(
 		nil,
-		closure,
+		callable,
 		"",
 		false,
 		false,
@@ -6656,8 +6656,8 @@ func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 	if mod != nil {
 		c.popConstScope()
 	}
-	closure.Body = method
-	node.SetType(closure)
+	callable.Body = method
+	node.SetType(callable)
 	return node
 }
 

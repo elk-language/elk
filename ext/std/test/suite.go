@@ -3,7 +3,7 @@ package test
 import (
 	"fmt"
 
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 )
 
 // Represents a test suite, a group of tests like `describe` or `context`
@@ -12,10 +12,10 @@ type Suite struct {
 	Parent     *Suite
 	SubSuites  []*Suite
 	Cases      []*Case
-	BeforeEach []value.Value
-	AfterEach  []value.Value
-	BeforeAll  []value.Value
-	AfterAll   []value.Value
+	BeforeEach []*vm.Closure
+	AfterEach  []*vm.Closure
+	BeforeAll  []*vm.Closure
+	AfterAll   []*vm.Closure
 }
 
 // Create a new tests suite
@@ -32,7 +32,7 @@ func (s *Suite) NewSubSuite(name string) *Suite {
 	return newSuite
 }
 
-func (s *Suite) NewCase(name string, fn value.Value) *Case {
+func (s *Suite) NewCase(name string, fn *vm.Closure) *Case {
 	newCase := NewCase(name, fn, s)
 	s.Cases = append(s.Cases, newCase)
 	return newCase
@@ -46,18 +46,18 @@ func (s *Suite) FullName() string {
 	return fmt.Sprintf("%s %s", s.Parent.FullName(), s.Name)
 }
 
-func (s *Suite) RegisterBeforeEach(fn value.Value) {
+func (s *Suite) RegisterBeforeEach(fn *vm.Closure) {
 	s.BeforeEach = append(s.BeforeEach, fn)
 }
 
-func (s *Suite) RegisterBeforeAll(fn value.Value) {
+func (s *Suite) RegisterBeforeAll(fn *vm.Closure) {
 	s.BeforeAll = append(s.BeforeAll, fn)
 }
 
-func (s *Suite) RegisterAfterEach(fn value.Value) {
+func (s *Suite) RegisterAfterEach(fn *vm.Closure) {
 	s.AfterEach = append(s.AfterEach, fn)
 }
 
-func (s *Suite) RegisterAfterAll(fn value.Value) {
+func (s *Suite) RegisterAfterAll(fn *vm.Closure) {
 	s.AfterAll = append(s.AfterAll, fn)
 }

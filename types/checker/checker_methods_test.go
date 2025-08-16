@@ -3119,8 +3119,8 @@ func TestGenericMethodCalls(t *testing.T) {
 				c.map -> {}
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(40, 3, 11), P(44, 3, 15)), "type `||: nil` does not implement closure `|element: Std::String|: nil`:\n\n  - incorrect implementation of `call`\n      is:        `def call(): nil`\n      should be: `def call(element: Std::String): nil`\n"),
-				diagnostic.NewFailure(L("<main>", P(40, 3, 11), P(44, 3, 15)), "expected type `|element: Std::String|: nil` for parameter `fn` in call to `Std::Iterable::FiniteBase.:map`, got type `||: nil`"),
+				diagnostic.NewFailure(L("<main>", P(40, 3, 11), P(44, 3, 15)), "type `%||: nil` does not implement callable `|element: Std::String|: nil`:\n\n  - incorrect implementation of `call`\n      is:        `def call(): nil`\n      should be: `def call(element: Std::String): nil`\n"),
+				diagnostic.NewFailure(L("<main>", P(40, 3, 11), P(44, 3, 15)), "expected type `|element: Std::String|: nil` for parameter `fn` in call to `Std::Iterable::FiniteBase.:map`, got type `%||: nil`"),
 			},
 		},
 	}
@@ -3870,7 +3870,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo("foo")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(77, 5, 20), P(81, 5, 24)), "type `Std::String` does not implement closure `|a: V|: void`:\n\n  - missing method `call` with signature: `def call(a: V): void`\n"),
+				diagnostic.NewFailure(L("<main>", P(77, 5, 20), P(81, 5, 24)), "type `Std::String` does not implement callable `|a: V|: void`:\n\n  - missing method `call` with signature: `def call(a: V): void`\n"),
 				diagnostic.NewFailure(L("<main>", P(77, 5, 20), P(81, 5, 24)), "expected type `|a: V|: void` for parameter `a` in call to `Foo.:#init`, got type `\"foo\"`"),
 				diagnostic.NewFailure(L("<main>", P(73, 5, 16), P(82, 5, 25)), "type `Foo[any]` cannot be assigned to type `9`"),
 			},
@@ -4199,7 +4199,7 @@ func TestClosureLiteral(t *testing.T) {
 				var a: 8 = |a: Int| -> 9.2
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(30, 2, 30)), "type `|a: Std::Int|: 9.2` cannot be assigned to type `8`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(30, 2, 30)), "type `%|a: Std::Int|: 9.2` cannot be assigned to type `8`"),
 			},
 		},
 		"infer throw type": {
@@ -4211,7 +4211,7 @@ func TestClosureLiteral(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(74, 6, 7)), "type `|a: Std::Int|: Std::Int ! \"dupa\"` cannot be assigned to type `8`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(74, 6, 7)), "type `%|a: Std::Int|: Std::Int ! \"dupa\"` cannot be assigned to type `8`"),
 			},
 		},
 		"infer return type in multiline closure": {
@@ -4223,7 +4223,7 @@ func TestClosureLiteral(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(70, 6, 7)), "type `|a: Std::Int|: 9.2 | nil` cannot be assigned to type `8`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(70, 6, 7)), "type `%|a: Std::Int|: 9.2 | nil` cannot be assigned to type `8`"),
 			},
 		},
 		"invalid parameter default value and return value": {
@@ -4257,15 +4257,49 @@ func TestClosureLiteral(t *testing.T) {
 				a = 3
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(37, 3, 9), P(37, 3, 9)), "type `Std::Int` does not implement closure `|a: Std::Int|: Std::Int`:\n\n  - missing method `call` with signature: `def call(a: Std::Int): Std::Int`\n"),
-				diagnostic.NewFailure(L("<main>", P(37, 3, 9), P(37, 3, 9)), "type `3` cannot be assigned to type `|a: Std::Int|: Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(37, 3, 9), P(37, 3, 9)), "type `Std::Int` is not closure `%|a: Std::Int|: Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(37, 3, 9), P(37, 3, 9)), "type `3` cannot be assigned to type `%|a: Std::Int|: Std::Int`"),
 			},
 		},
-		"assign a compatible value to a closure type": {
+		"assign a compatible closure to a callable type": {
 			input: `
 				var a: |a: Int|: String
 				a = |a: Int, b: String = "foo"|: String -> b
 			`,
+		},
+		"assign a non-closure callable to a callable type": {
+			input: `
+				var a: |a: Int|: String
+				module Foo
+					def call(a: Int): String
+					  "5"
+					end
+				end
+
+				a = Foo
+			`,
+		},
+		"assign a compatible closure to a closure type": {
+			input: `
+				var a: %|a: Int|: String
+				a = |a: Int, b: String = "foo"|: String -> b
+			`,
+		},
+		"assign a non-closure callable to a closure type": {
+			input: `
+				var a: %|a: Int|: String
+				module Foo
+					def call(a: Int): String
+					  "5"
+					end
+				end
+
+				a = Foo
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(112, 9, 9), P(114, 9, 11)), "type `Foo` is not closure `%|a: Std::Int|: Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(112, 9, 9), P(114, 9, 11)), "type `Foo` cannot be assigned to type `%|a: Std::Int|: Std::String`"),
+			},
 		},
 		"infer types from local assignment": {
 			input: `
@@ -4296,8 +4330,8 @@ func TestClosureLiteral(t *testing.T) {
 				a = |a: Float, b: String = "foo"|: String -> b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(37, 3, 9), P(78, 3, 50)), "type `|a: Std::Float, b?: Std::String|: Std::String` does not implement closure `|a: Std::Int|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(a: Std::Float, b?: Std::String): Std::String`\n      should be: `def call(a: Std::Int): Std::Int`\n"),
-				diagnostic.NewFailure(L("<main>", P(37, 3, 9), P(78, 3, 50)), "type `|a: Std::Float, b?: Std::String|: Std::String` cannot be assigned to type `|a: Std::Int|: Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(37, 3, 9), P(78, 3, 50)), "type `%|a: Std::Float, b?: Std::String|: Std::String` does not implement closure `%|a: Std::Int|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(a: Std::Float, b?: Std::String): Std::String`\n      should be: `def call(a: Std::Int): Std::Int`\n"),
+				diagnostic.NewFailure(L("<main>", P(37, 3, 9), P(78, 3, 50)), "type `%|a: Std::Float, b?: Std::String|: Std::String` cannot be assigned to type `%|a: Std::Int|: Std::Int`"),
 			},
 		},
 		"take param and return types from closure defined as a method parameter": {
@@ -4318,8 +4352,8 @@ func TestClosureLiteral(t *testing.T) {
 				foo() |i| -> 2.5
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "type `|i: Std::String|: 2.5` does not implement closure `|a: Std::String|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(i: Std::String): 2.5`\n      should be: `def call(a: Std::String): Std::Int`\n"),
-				diagnostic.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "expected type `|a: Std::String|: Std::Int` for parameter `fn` in call to `Std::Kernel::foo`, got type `|i: Std::String|: 2.5`"),
+				diagnostic.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "type `%|i: Std::String|: 2.5` does not implement callable `|a: Std::String|: Std::Int`:\n\n  - incorrect implementation of `call`\n      is:        `def call(i: Std::String): 2.5`\n      should be: `def call(a: Std::String): Std::Int`\n"),
+				diagnostic.NewFailure(L("<main>", P(50, 3, 11), P(59, 3, 20)), "expected type `|a: Std::String|: Std::Int` for parameter `fn` in call to `Std::Kernel::foo`, got type `%|i: Std::String|: 2.5`"),
 			},
 		},
 		"accept closure argument with different param names": {

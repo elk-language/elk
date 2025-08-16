@@ -3,17 +3,17 @@ package test
 import (
 	"fmt"
 
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 )
 
 // Represents a single test case
 type Case struct {
 	Name   string
-	Fn     value.Value
+	Fn     *vm.Closure
 	Parent *Suite
 }
 
-func NewCase(name string, fn value.Value, parent *Suite) *Case {
+func NewCase(name string, fn *vm.Closure, parent *Suite) *Case {
 	return &Case{
 		Name:   name,
 		Fn:     fn,

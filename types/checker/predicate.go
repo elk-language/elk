@@ -10,6 +10,10 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+func (c *Checker) IsClosure(typ types.Namespace) bool {
+	return types.IsClosure(typ)
+}
+
 // Type can be `nil`
 func (c *Checker) IsNilable(typ types.Type) bool {
 	return c.isSubtype(types.Nil{}, typ, nil)
@@ -378,7 +382,7 @@ func (c *Checker) containsTypeParameters(typ types.Type) bool {
 		return c.containsTypeParameters(t.Type)
 	case *types.InstanceOf:
 		return c.containsTypeParameters(t.Type)
-	case *types.Closure:
+	case *types.Callable:
 		for _, param := range t.Body.Params {
 			if c.containsTypeParameters(param.Type) {
 				return true
@@ -573,8 +577,8 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 		return c.interfaceIsSubtype(a, b, errLoc)
 	case *types.InterfaceProxy:
 		return c.interfaceIsSubtype(a.Interface, b, errLoc)
-	case *types.Closure:
-		return c.closureIsSubtype(a, b, errLoc)
+	case *types.Callable:
+		return c.callableIsSubtype(a, b, errLoc)
 	case *types.InstanceOf:
 		switch narrowB := b.(type) {
 		case *types.InstanceOf:
@@ -840,8 +844,8 @@ func (c *Checker) singletonClassIsSubtype(a *types.SingletonClass, b types.Type,
 		return c.isSubtypeOfGeneric(a, b, errLoc)
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, b, errLoc)
-	case *types.Closure:
-		return c.isSubtypeOfClosure(a, b, errLoc)
+	case *types.Callable:
+		return c.isSubtypeOfCallable(a, b, errLoc)
 	default:
 		return false
 	}
@@ -861,8 +865,8 @@ func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errLoc *position.
 		return c.isSubtypeOfInterface(a, b, errLoc)
 	case *types.InterfaceProxy:
 		return c.isSubtypeOfInterface(a, b.Interface, errLoc)
-	case *types.Closure:
-		return c.isSubtypeOfClosure(a, b, errLoc)
+	case *types.Callable:
+		return c.isSubtypeOfCallable(a, b, errLoc)
 	default:
 		return false
 	}
@@ -882,8 +886,8 @@ func (c *Checker) moduleIsSubtype(a *types.Module, b types.Type, errLoc *positio
 		return c.isSubtypeOfInterface(a, b, errLoc)
 	case *types.InterfaceProxy:
 		return c.isSubtypeOfInterface(a, b.Interface, errLoc)
-	case *types.Closure:
-		return c.isSubtypeOfClosure(a, b, errLoc)
+	case *types.Callable:
+		return c.isSubtypeOfCallable(a, b, errLoc)
 	case *types.Module:
 		return a == b
 	default:
@@ -905,8 +909,8 @@ func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errLoc *position.
 		return c.isSubtypeOfInterface(a, b, errLoc)
 	case *types.InterfaceProxy:
 		return c.isSubtypeOfInterface(a, b.Interface, errLoc)
-	case *types.Closure:
-		return c.isSubtypeOfClosure(a, b, errLoc)
+	case *types.Callable:
+		return c.isSubtypeOfCallable(a, b, errLoc)
 	default:
 		return false
 	}
@@ -1130,9 +1134,20 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 	return true
 }
 
-func (c *Checker) isSubtypeOfClosure(a types.Namespace, b *types.Closure, errLoc *position.Location) bool {
+func (c *Checker) isSubtypeOfCallable(a types.Namespace, b *types.Callable, errLoc *position.Location) bool {
 	abstractMethod := b.Body
 	method := c.resolveMethodInNamespace(a, symbol.L_call)
+	if b.IsClosure && !c.IsClosure(a) {
+		c.addFailure(
+			fmt.Sprintf(
+				"type `%s` is not closure `%s`",
+				types.InspectWithColor(a),
+				types.InspectWithColor(b),
+			),
+			errLoc,
+		)
+		return false
+	}
 
 	if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil, false) {
 		methodDetailsBuff := new(strings.Builder)
@@ -1153,10 +1168,17 @@ func (c *Checker) isSubtypeOfClosure(a types.Namespace, b *types.Closure, errLoc
 			)
 		}
 
+		var name string
+		if b.IsClosure {
+			name = "closure"
+		} else {
+			name = "callable"
+		}
 		c.addFailure(
 			fmt.Sprintf(
-				"type `%s` does not implement closure `%s`:\n%s",
+				"type `%s` does not implement %s `%s`:\n%s",
 				types.InspectWithColor(a),
+				name,
 				types.InspectWithColor(b),
 				methodDetailsBuff.String(),
 			),
@@ -1175,8 +1197,8 @@ func (c *Checker) interfaceIsSubtype(a *types.Interface, b types.Type, errLoc *p
 		return c.isSubtypeOfInterface(a, narrowedB, errLoc)
 	case *types.InterfaceProxy:
 		return c.isSubtypeOfInterface(a, narrowedB.Interface, errLoc)
-	case *types.Closure:
-		return c.isSubtypeOfClosure(a, narrowedB, errLoc)
+	case *types.Callable:
+		return c.isSubtypeOfCallable(a, narrowedB, errLoc)
 	case *types.Generic:
 		return c.isSubtypeOfGeneric(a, narrowedB, errLoc)
 	default:
@@ -1184,14 +1206,14 @@ func (c *Checker) interfaceIsSubtype(a *types.Interface, b types.Type, errLoc *p
 	}
 }
 
-func (c *Checker) closureIsSubtype(a *types.Closure, b types.Type, errLoc *position.Location) bool {
+func (c *Checker) callableIsSubtype(a *types.Callable, b types.Type, errLoc *position.Location) bool {
 	switch narrowedB := b.(type) {
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, narrowedB, errLoc)
 	case *types.InterfaceProxy:
 		return c.isSubtypeOfInterface(a, narrowedB.Interface, errLoc)
-	case *types.Closure:
-		return c.isSubtypeOfClosure(a, narrowedB, errLoc)
+	case *types.Callable:
+		return c.isSubtypeOfCallable(a, narrowedB, errLoc)
 	default:
 		return false
 	}

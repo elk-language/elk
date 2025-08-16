@@ -4905,21 +4905,25 @@ func (p *Parser) primaryType() ast.TypeNode {
 	case token.ANY:
 		tok := p.advance()
 		return ast.NewAnyTypeNode(tok.Location())
-	case token.OR, token.OR_OR:
-		return p.closureType()
+	case token.OR, token.OR_OR, token.CLOSURE_TYPE_BEG:
+		return p.callableType()
 	default:
 		return p.namedType()
 	}
 }
 
-// closureType = (("|" signatureParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation]
-func (p *Parser) closureType() ast.TypeNode {
+// callableType = (("|" signatureParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation]
+func (p *Parser) callableType() ast.TypeNode {
 	var params []ast.ParameterNode
 	var location *position.Location
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
+	var isClosure bool
 
-	if p.accept(token.OR) {
+	if p.accept(token.CLOSURE_TYPE_BEG) {
+		isClosure = true
+	}
+	if p.accept(token.CLOSURE_TYPE_BEG, token.OR) {
 		location = p.advance().Location()
 		if !p.accept(token.OR) {
 			p.mode = withoutUnionTypeMode
@@ -4956,11 +4960,12 @@ func (p *Parser) closureType() ast.TypeNode {
 		location = location.Join(throwType.Location())
 	}
 
-	return ast.NewClosureTypeNode(
+	return ast.NewCallableTypeNode(
 		location,
 		params,
 		returnType,
 		throwType,
+		isClosure,
 	)
 }
 

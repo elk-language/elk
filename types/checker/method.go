@@ -950,7 +950,7 @@ func (c *Checker) checkMethod(
 	name := checkedMethod.Name
 	prevMode := c.mode
 	prevFlags := c.flags
-	isClosure := types.IsClosure(methodNamespace)
+	isClosure := types.IsCallable(methodNamespace)
 
 	if methodNamespace != nil {
 		currentMethod := c.resolveMethodInNamespace(methodNamespace, name)
@@ -2978,7 +2978,7 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typ, errSpan, inParent, inSelf)
 	case *types.Interface:
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typ, errSpan, inParent, inSelf)
-	case *types.Closure:
+	case *types.Callable:
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typ, errSpan, inParent, inSelf)
 	case *types.SingletonClass:
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typ, errSpan, inParent, inSelf)
@@ -3060,7 +3060,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
 	case *types.Interface:
 		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
-	case *types.Closure:
+	case *types.Callable:
 		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
 	case *types.InterfaceProxy:
 		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)

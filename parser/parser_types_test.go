@@ -37,9 +37,9 @@ func TestTypeof(t *testing.T) {
 	}
 }
 
-func TestClosureType(t *testing.T) {
+func TestCallableType(t *testing.T) {
 	tests := testTable{
-		"void closure without arguments": {
+		"void callable without arguments": {
 			input: "type ||",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(6, 1, 7))),
@@ -48,18 +48,19 @@ func TestClosureType(t *testing.T) {
 						L(S(P(0, 1, 1), P(6, 1, 7))),
 						ast.NewTypeExpressionNode(
 							L(S(P(0, 1, 1), P(6, 1, 7))),
-							ast.NewClosureTypeNode(
+							ast.NewCallableTypeNode(
 								L(S(P(5, 1, 6), P(6, 1, 7))),
 								nil,
 								nil,
 								nil,
+								false,
 							),
 						),
 					),
 				},
 			),
 		},
-		"closure with arguments, return type and throw type": {
+		"callable with arguments, return type and throw type": {
 			input: "type |a: String, b?: Int|: Int ! :dupa",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(37, 1, 38))),
@@ -68,7 +69,7 @@ func TestClosureType(t *testing.T) {
 						L(S(P(0, 1, 1), P(37, 1, 38))),
 						ast.NewTypeExpressionNode(
 							L(S(P(0, 1, 1), P(37, 1, 38))),
-							ast.NewClosureTypeNode(
+							ast.NewCallableTypeNode(
 								L(S(P(5, 1, 6), P(37, 1, 38))),
 								[]ast.ParameterNode{
 									ast.NewSignatureParameterNode(
@@ -88,6 +89,43 @@ func TestClosureType(t *testing.T) {
 								},
 								ast.NewPublicConstantNode(L(S(P(27, 1, 28), P(29, 1, 30))), "Int"),
 								ast.NewSimpleSymbolLiteralNode(L(S(P(33, 1, 34), P(37, 1, 38))), "dupa"),
+								false,
+							),
+						),
+					),
+				},
+			),
+		},
+		"closure with arguments, return type and throw type": {
+			input: "type %|a: String, b?: Int|: Int ! :dupa",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(38, 1, 39))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(38, 1, 39))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(38, 1, 39))),
+							ast.NewCallableTypeNode(
+								L(S(P(5, 1, 6), P(38, 1, 39))),
+								[]ast.ParameterNode{
+									ast.NewSignatureParameterNode(
+										L(S(P(7, 1, 8), P(15, 1, 16))),
+										ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(7, 1, 8))), "a"),
+										ast.NewPublicConstantNode(L(S(P(10, 1, 11), P(15, 1, 16))), "String"),
+										false,
+										ast.NormalParameterKind,
+									),
+									ast.NewSignatureParameterNode(
+										L(S(P(18, 1, 19), P(24, 1, 25))),
+										ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(18, 1, 19))), "b"),
+										ast.NewPublicConstantNode(L(S(P(22, 1, 23), P(24, 1, 25))), "Int"),
+										true,
+										ast.NormalParameterKind,
+									),
+								},
+								ast.NewPublicConstantNode(L(S(P(28, 1, 29), P(30, 1, 31))), "Int"),
+								ast.NewSimpleSymbolLiteralNode(L(S(P(34, 1, 35), P(38, 1, 39))), "dupa"),
+								true,
 							),
 						),
 					),

@@ -7,8 +7,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func initClosureTypeNode() {
-	c := &value.ClosureTypeNodeClass.MethodContainer
+func initCallableTypeNode() {
+	c := &value.CallableTypeNodeClass.MethodContainer
 	vm.Def(
 		c,
 		"#init",
@@ -38,23 +38,29 @@ func initClosureTypeNode() {
 			} else {
 				argLoc = (*position.Location)(args[4].Pointer())
 			}
-			self := ast.NewClosureTypeNode(
+
+			var argClosure bool
+			if !args[5].IsUndefined() {
+				argClosure = value.Truthy(args[5])
+			}
+			self := ast.NewCallableTypeNode(
 				argLoc,
 				argParams,
 				argReturnType,
 				argThrowType,
+				argClosure,
 			)
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(4),
+		vm.DefWithParameters(5),
 	)
 
 	vm.Def(
 		c,
 		"parameters",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.ClosureTypeNode)
+			self := args[0].MustReference().(*ast.CallableTypeNode)
 
 			collection := self.Parameters
 			arrayTuple := value.NewArrayTupleWithLength(len(collection))
@@ -71,7 +77,7 @@ func initClosureTypeNode() {
 		c,
 		"return_type",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.ClosureTypeNode)
+			self := args[0].MustReference().(*ast.CallableTypeNode)
 			if self.ReturnType == nil {
 				return value.Nil, value.Undefined
 			}
@@ -84,7 +90,7 @@ func initClosureTypeNode() {
 		c,
 		"throw_type",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.ClosureTypeNode)
+			self := args[0].MustReference().(*ast.CallableTypeNode)
 			if !args[0].IsUndefined() {
 				return value.Nil, value.Undefined
 			}
@@ -97,8 +103,17 @@ func initClosureTypeNode() {
 		c,
 		"location",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.ClosureTypeNode)
+			self := args[0].MustReference().(*ast.CallableTypeNode)
 			result := value.Ref((*value.Location)(self.Location()))
+			return result, value.Undefined
+		},
+	)
+	vm.Def(
+		c,
+		"is_closure",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.CallableTypeNode)
+			result := value.ToElkBool(self.IsClosure)
 			return result, value.Undefined
 		},
 	)
@@ -106,7 +121,7 @@ func initClosureTypeNode() {
 		c,
 		"==",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.ClosureTypeNode)
+			self := args[0].MustReference().(*ast.CallableTypeNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
 		},
@@ -117,7 +132,7 @@ func initClosureTypeNode() {
 		c,
 		"to_string",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.ClosureTypeNode)
+			self := args[0].MustReference().(*ast.CallableTypeNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
 	)

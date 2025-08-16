@@ -10,15 +10,16 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Represents a closure type eg. `|i: Int|: String`
-type ClosureTypeNode struct {
+// Represents a callable type eg. `|i: Int|: String`
+type CallableTypeNode struct {
 	TypedNodeBase
-	Parameters []ParameterNode // formal parameters of the closure separated by semicolons
+	Parameters []ParameterNode // formal parameters of the callable separated by semicolons
 	ReturnType TypeNode
 	ThrowType  TypeNode
+	IsClosure  bool
 }
 
-func (n *ClosureTypeNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+func (n *CallableTypeNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	params := SpliceSlice(n.Parameters, loc, args, unquote)
 
 	var returnType TypeNode
@@ -31,19 +32,20 @@ func (n *ClosureTypeNode) splice(loc *position.Location, args *[]Node, unquote b
 		throwType = n.ThrowType.splice(loc, args, unquote).(TypeNode)
 	}
 
-	return &ClosureTypeNode{
+	return &CallableTypeNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Parameters:    params,
 		ReturnType:    returnType,
 		ThrowType:     throwType,
+		IsClosure:     n.IsClosure,
 	}
 }
 
-func (n *ClosureTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ClosureTypeNode", env)
+func (n *CallableTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::CallableTypeNode", env)
 }
 
-func (n *ClosureTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+func (n *CallableTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
 		return TraverseBreak
@@ -73,8 +75,8 @@ func (n *ClosureTypeNode) traverse(parent Node, enter func(node, parent Node) Tr
 }
 
 // Check if this node equals another node.
-func (n *ClosureTypeNode) Equal(other value.Value) bool {
-	o, ok := other.SafeAsReference().(*ClosureTypeNode)
+func (n *CallableTypeNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*CallableTypeNode)
 	if !ok {
 		return false
 	}
@@ -103,14 +105,18 @@ func (n *ClosureTypeNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.loc.Equal(o.loc)
+	return n.loc.Equal(o.loc) && n.IsClosure == o.IsClosure
 }
 
 // Return a string representation of the node.
-func (n *ClosureTypeNode) String() string {
+func (n *CallableTypeNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString("|")
+	if n.IsClosure {
+		buff.WriteString("%|")
+	} else {
+		buff.WriteString("|")
+	}
 	for i, param := range n.Parameters {
 		if i != 0 {
 			buff.WriteString(", ")
@@ -148,18 +154,23 @@ func (n *ClosureTypeNode) String() string {
 	return buff.String()
 }
 
-func (*ClosureTypeNode) Class() *value.Class {
-	return value.ClosureTypeNodeClass
+func (*CallableTypeNode) Class() *value.Class {
+	return value.CallableTypeNodeClass
 }
 
-func (*ClosureTypeNode) DirectClass() *value.Class {
-	return value.ClosureTypeNodeClass
+func (*CallableTypeNode) DirectClass() *value.Class {
+	return value.CallableTypeNodeClass
 }
 
-func (n *ClosureTypeNode) Inspect() string {
+func (n *CallableTypeNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureTypeNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+	fmt.Fprintf(
+		&buff,
+		"Std::Elk::AST::CallableTypeNode{\n  location: %s, is_closure: %t",
+		(*value.Location)(n.loc).Inspect(),
+		n.IsClosure,
+	)
 
 	buff.WriteString(",\n  return_type: ")
 	indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
@@ -181,20 +192,21 @@ func (n *ClosureTypeNode) Inspect() string {
 	return buff.String()
 }
 
-func (n *ClosureTypeNode) Error() string {
+func (n *CallableTypeNode) Error() string {
 	return n.Inspect()
 }
 
-func (*ClosureTypeNode) IsStatic() bool {
+func (*CallableTypeNode) IsStatic() bool {
 	return false
 }
 
 // Create a new closure type node eg. `|i: Int|: String`
-func NewClosureTypeNode(loc *position.Location, params []ParameterNode, retType TypeNode, throwType TypeNode) *ClosureTypeNode {
-	return &ClosureTypeNode{
+func NewCallableTypeNode(loc *position.Location, params []ParameterNode, retType TypeNode, throwType TypeNode, closure bool) *CallableTypeNode {
+	return &CallableTypeNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Parameters:    params,
 		ReturnType:    retType,
 		ThrowType:     throwType,
+		IsClosure:     closure,
 	}
 }

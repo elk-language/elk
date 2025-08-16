@@ -7,6 +7,16 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+type TestStatus uint8
+
+const (
+	TEST_PENDING TestStatus = iota
+	TEST_FAILED
+	TEST_ERROR
+	TEST_SKIPPED
+	TEST_SUCCESS
+)
+
 var RootSuite = NewSuite("", nil)
 var CurrentSuite = RootSuite
 
@@ -42,7 +52,7 @@ func initTest() *value.Module {
 		"test",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 			argName := args[1].AsReference().(value.String)
-			argFn := args[2]
+			argFn := args[2].AsReference().(*vm.Closure)
 
 			CurrentSuite.NewCase(string(argName), argFn)
 			return value.Nil, value.Undefined
@@ -54,7 +64,7 @@ func initTest() *value.Module {
 		"it",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 			argName := args[1].AsReference().(value.String)
-			argFn := args[2]
+			argFn := args[2].AsReference().(*vm.Closure)
 
 			CurrentSuite.NewCase(fmt.Sprintf("it %s", string(argName)), argFn)
 			return value.Nil, value.Undefined
@@ -66,7 +76,7 @@ func initTest() *value.Module {
 		"should",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 			argName := args[1].AsReference().(value.String)
-			argFn := args[2]
+			argFn := args[2].AsReference().(*vm.Closure)
 
 			CurrentSuite.NewCase(fmt.Sprintf("should %s", string(argName)), argFn)
 			return value.Nil, value.Undefined
@@ -77,7 +87,7 @@ func initTest() *value.Module {
 		c,
 		"before_each",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-			argFn := args[2]
+			argFn := args[2].AsReference().(*vm.Closure)
 			CurrentSuite.RegisterBeforeEach(argFn)
 			return value.Nil, value.Undefined
 		},
@@ -87,7 +97,7 @@ func initTest() *value.Module {
 		c,
 		"before_all",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-			argFn := args[2]
+			argFn := args[2].AsReference().(*vm.Closure)
 			CurrentSuite.RegisterBeforeAll(argFn)
 			return value.Nil, value.Undefined
 		},
@@ -97,7 +107,7 @@ func initTest() *value.Module {
 		c,
 		"after_each",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-			argFn := args[2]
+			argFn := args[2].AsReference().(*vm.Closure)
 			CurrentSuite.RegisterAfterEach(argFn)
 			return value.Nil, value.Undefined
 		},
@@ -107,7 +117,7 @@ func initTest() *value.Module {
 		c,
 		"after_all",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-			argFn := args[2]
+			argFn := args[2].AsReference().(*vm.Closure)
 			CurrentSuite.RegisterAfterAll(argFn)
 			return value.Nil, value.Undefined
 		},

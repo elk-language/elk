@@ -625,7 +625,7 @@ func namespaceToCode(typ types.Namespace) string {
 		return typeToCode(typ, false)
 	case *types.TypeParamNamespace:
 		return fmt.Sprintf("NewTypeParamNamespace(%q, %t)", t.DocComment(), t.ForMethod)
-	case *types.Closure:
+	case *types.Callable:
 		return typeToCode(typ, false)
 	default:
 		panic(
@@ -812,11 +812,11 @@ func typeToCode(typ types.Type, init bool) string {
 		return buff.String()
 	case *types.TypeParamNamespace:
 		return fmt.Sprintf("NewTypeParamNamespace(%q, %t)", t.DocComment(), t.ForMethod)
-	case *types.Closure:
+	case *types.Callable:
 		buff := new(strings.Builder)
 		fmt.Fprintf(
 			buff,
-			"NewClosureWithMethod(%q, 0",
+			"NewCallableWithMethod(%q, 0",
 			t.Body.DocComment,
 		)
 
@@ -875,9 +875,10 @@ func typeToCode(typ types.Type, init bool) string {
 
 		fmt.Fprintf(
 			buff,
-			"%s, %s)",
+			"%s, %s, %t)",
 			typeToCode(t.Body.ReturnType, false),
 			typeToCode(t.Body.ThrowType, false),
+			t.IsClosure,
 		)
 		return buff.String()
 	default:

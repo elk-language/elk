@@ -1,8 +1,8 @@
 module Std::Elk::AST
   ##[
-    Represents a closure type eg. `|i: Int|: String`
+    Represents a callable type eg. `|i: Int|: String`
   ]##
-  sealed primitive class ClosureTypeNode
+  sealed primitive class CallableTypeNode
     include TypeNode
 
     init(
@@ -10,11 +10,13 @@ module Std::Elk::AST
       return_type: TypeNode? = nil,
       throw_type: TypeNode? = nil,
       location: FS::Location = loop; end,
+      is_closure: bool = false,
     ); end
 
     def parameters: ArrayTuple[ParameterNode]; end
     def return_type: TypeNode?; end
     def throw_type: TypeNode?; end
+    def is_closure: bool; end
     def location: FS::Location; end
   end
 end
