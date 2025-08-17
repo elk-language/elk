@@ -59,12 +59,12 @@ module ::Std::Test
     ##[
       Checks whether `a` is greater than `b`, `a > b`
     ]##
-    def assert_greater[T](a: Comparable[T], b: any, message: String? = nil); end
+    def assert_greater[T](a: Comparable[T], b: T, message: String? = nil); end
 
     ##[
       Checks whether `a` is greater or equal to `b`, `a >= b`
     ]##
-    def assert_greater_equal[T](a: Comparable[T], b: any, message: String? = nil); end
+    def assert_greater_equal[T](a: Comparable[T], b: T, message: String? = nil); end
 
     ##[
       Checks whether `a` is less than `b`, `a > b`

@@ -720,7 +720,7 @@ func (c *Checker) registerMacroCheck(macro *types.Method, node *ast.MacroDefinit
 // Check macro definition bodies
 func (c *Checker) checkMacros() {
 	concurrent.Foreach(
-		concurrencyLimit,
+		MethodCheckConcurrencyLimit,
 		c.macroChecks,
 		func(macroCheck macroCheckEntry) {
 			macro := macroCheck.macro

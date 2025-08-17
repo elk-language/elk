@@ -544,11 +544,11 @@ func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefi
 	})
 }
 
-var concurrencyLimit = 1000
+var MethodCheckConcurrencyLimit = 100
 
 func (c *Checker) checkMethods() {
 	concurrent.Foreach(
-		concurrencyLimit,
+		MethodCheckConcurrencyLimit,
 		c.methodChecks,
 		func(methodCheck methodCheckEntry) {
 			method := methodCheck.method
@@ -2740,6 +2740,9 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name value
 			case *types.Module:
 				parent = n
 			default:
+				if n.Singleton() == nil {
+					continue
+				}
 				parent = n.Singleton()
 			}
 		}
@@ -3007,18 +3010,18 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 	}
 }
 
-func (c *Checker) getReceiverlessMethod(name value.Symbol, location *position.Location) (_ *types.Method, fromLocal bool) {
+func (c *Checker) getReceiverlessMethod(name value.Symbol, location *position.Location) (_ *types.Method, namespace types.Namespace, fromLocal bool) {
 	nameStr := name.String()
 	local, _ := c.resolveLocal(nameStr, nil)
 	if local != nil {
 		if !local.initialised {
 			c.addUninitialisedLocalError(nameStr, location)
 		}
-		return c.getMethod(local.typ, symbol.L_call, location), true
+		return c.getMethod(local.typ, symbol.L_call, location), nil, true
 	}
 	method := c.getMethod(c.selfType, name, nil)
 	if method != nil {
-		return method, false
+		return method, nil, false
 	}
 
 	for _, methodScope := range c.methodScopes {
@@ -3031,13 +3034,13 @@ func (c *Checker) getReceiverlessMethod(name value.Symbol, location *position.Lo
 		namespace := methodScope.container
 		method := c.getMethod(namespace, name, nil)
 		if method != nil {
-			return method, false
+			return method, namespace, false
 		}
 	}
 
 	c.addMissingMethodError(c.selfType, name.String(), location)
 
-	return nil, false
+	return nil, nil, false
 }
 
 func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *position.Location, inParent, inSelf bool) *types.Method {

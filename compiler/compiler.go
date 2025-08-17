@@ -333,7 +333,7 @@ func (c *Compiler) InitExpressionCompiler(location *position.Location) *Compiler
 }
 
 func (c *Compiler) CompileExpressionsInFile(node *ast.ProgramNode) {
-	c.compileNode(node, false)
+	c.compileProgram(node)
 }
 
 // Entry point to the compilation process
@@ -959,7 +959,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
 		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
-		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
+		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode,
+		*ast.ImportStatementNode:
 		return expressionIgnored
 	case *ast.ProgramNode:
 		return c.compileStatements(node.Body, node.Location(), valueIsIgnored)

@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 
+	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -14,7 +15,7 @@ func initAssertions(testModule *value.Module) {
 	testModule.AddConstantString("Assertions", value.Ref(assertionsMixin))
 	assertionsMixin.SingletonClass().IncludeMixin(assertionsMixin)
 
-	AssertionErrorClass := value.NewClassWithOptions(
+	AssertionErrorClass = value.NewClassWithOptions(
 		value.ClassWithSuperclass(value.ErrorClass),
 	)
 	testModule.AddConstantString("AssertionError", value.Ref(AssertionErrorClass))
@@ -32,13 +33,13 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[2].IsUndefined() {
-				gotInspect, err := vm.Inspect(v, argGot)
+				gotInspect, err := vm.InspectWithColor(v, argGot)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
 				message = fmt.Sprintf("value `%s` is not truthy", gotInspect)
 			} else {
-				message = args[2].AsReference().(value.String).String()
+				message = args[2].AsString().String()
 			}
 
 			err = value.Ref(
@@ -63,13 +64,13 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[2].IsUndefined() {
-				gotInspect, err := vm.Inspect(v, argGot)
+				gotInspect, err := vm.InspectWithColor(v, argGot)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
 				message = fmt.Sprintf("value `%s` is not falsy", gotInspect)
 			} else {
-				message = args[2].AsReference().(value.String).String()
+				message = args[2].AsString().String()
 			}
 
 			err = value.Ref(
@@ -95,13 +96,13 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[2].IsUndefined() {
-				gotInspect, err := vm.Inspect(v, argGot)
+				gotInspect, err := vm.InspectWithColor(v, argGot)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				message = fmt.Sprintf("value `%s` is not `true`", gotInspect)
+				message = fmt.Sprintf("value `%s` is not `%s`", gotInspect, lexer.Colorize("true"))
 			} else {
-				message = args[2].AsReference().(value.String).String()
+				message = args[2].AsString().String()
 			}
 
 			err = value.Ref(
@@ -126,13 +127,13 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[2].IsUndefined() {
-				gotInspect, err := vm.Inspect(v, argGot)
+				gotInspect, err := vm.InspectWithColor(v, argGot)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				message = fmt.Sprintf("value `%s` is not `false`", gotInspect)
+				message = fmt.Sprintf("value `%s` is not `%s`", gotInspect, lexer.Colorize("false"))
 			} else {
-				message = args[2].AsReference().(value.String).String()
+				message = args[2].AsString().String()
 			}
 
 			err = value.Ref(
@@ -157,13 +158,13 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[2].IsUndefined() {
-				gotInspect, err := vm.Inspect(v, argGot)
+				gotInspect, err := vm.InspectWithColor(v, argGot)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				message = fmt.Sprintf("value `%s` is not `nil`", gotInspect)
+				message = fmt.Sprintf("value `%s` is not `%s`", gotInspect, lexer.Colorize("nil"))
 			} else {
-				message = args[2].AsReference().(value.String).String()
+				message = args[2].AsString().String()
 			}
 
 			err = value.Ref(
@@ -188,9 +189,9 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[2].IsUndefined() {
-				message = "value should not be `nil`"
+				message = fmt.Sprintf("value should not be `%s`", lexer.Colorize("nil"))
 			} else {
-				message = args[2].AsReference().(value.String).String()
+				message = args[2].AsString().String()
 			}
 
 			err = value.Ref(
@@ -216,17 +217,17 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[3].IsUndefined() {
-				gotInspect, err := vm.Inspect(v, argGot)
+				gotInspect, err := vm.InspectWithColor(v, argGot)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
 				message = fmt.Sprintf(
 					"value `%s` is not an instance of `%s` or its parents",
 					gotInspect,
-					argClass.Name,
+					lexer.Colorize(argClass.Name),
 				)
 			} else {
-				message = args[3].AsReference().(value.String).String()
+				message = args[3].AsString().String()
 			}
 
 			err = value.Ref(
@@ -252,17 +253,17 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[3].IsUndefined() {
-				gotInspect, err := vm.Inspect(v, argGot)
+				gotInspect, err := vm.InspectWithColor(v, argGot)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
 				message = fmt.Sprintf(
 					"value `%s` is not an instance of `%s`",
 					gotInspect,
-					argClass.Name,
+					lexer.Colorize(argClass.Name),
 				)
 			} else {
-				message = args[3].AsReference().(value.String).String()
+				message = args[3].AsString().String()
 			}
 
 			err = value.Ref(
@@ -292,11 +293,11 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[3].IsUndefined() {
-				gotInspect, err := vm.Inspect(v, argGot)
+				gotInspect, err := vm.InspectWithColor(v, argGot)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				expectedInspect, err := vm.Inspect(v, argExpected)
+				expectedInspect, err := vm.InspectWithColor(v, argExpected)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -306,7 +307,7 @@ func initAssertions(testModule *value.Module) {
 					expectedInspect,
 				)
 			} else {
-				message = args[3].AsReference().(value.String).String()
+				message = args[3].AsString().String()
 			}
 
 			err = value.Ref(
@@ -336,11 +337,11 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[3].IsUndefined() {
-				gotInspect, err := vm.Inspect(v, argGot)
+				gotInspect, err := vm.InspectWithColor(v, argGot)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				expectedInspect, err := vm.Inspect(v, argExpected)
+				expectedInspect, err := vm.InspectWithColor(v, argExpected)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -350,7 +351,7 @@ func initAssertions(testModule *value.Module) {
 					expectedInspect,
 				)
 			} else {
-				message = args[3].AsReference().(value.String).String()
+				message = args[3].AsString().String()
 			}
 
 			err = value.Ref(
@@ -381,11 +382,11 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[3].IsUndefined() {
-				aInspect, err := vm.Inspect(v, argA)
+				aInspect, err := vm.InspectWithColor(v, argA)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				bInspect, err := vm.Inspect(v, argB)
+				bInspect, err := vm.InspectWithColor(v, argB)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -395,7 +396,7 @@ func initAssertions(testModule *value.Module) {
 					bInspect,
 				)
 			} else {
-				message = args[3].AsReference().(value.String).String()
+				message = args[3].AsString().String()
 			}
 
 			err = value.Ref(
@@ -425,11 +426,11 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[3].IsUndefined() {
-				aInspect, err := vm.Inspect(v, argA)
+				aInspect, err := vm.InspectWithColor(v, argA)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				bInspect, err := vm.Inspect(v, argB)
+				bInspect, err := vm.InspectWithColor(v, argB)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -439,7 +440,7 @@ func initAssertions(testModule *value.Module) {
 					bInspect,
 				)
 			} else {
-				message = args[3].AsReference().(value.String).String()
+				message = args[3].AsString().String()
 			}
 
 			err = value.Ref(
@@ -469,11 +470,11 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[3].IsUndefined() {
-				aInspect, err := vm.Inspect(v, argA)
+				aInspect, err := vm.InspectWithColor(v, argA)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				bInspect, err := vm.Inspect(v, argB)
+				bInspect, err := vm.InspectWithColor(v, argB)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -483,7 +484,7 @@ func initAssertions(testModule *value.Module) {
 					bInspect,
 				)
 			} else {
-				message = args[3].AsReference().(value.String).String()
+				message = args[3].AsString().String()
 			}
 
 			err = value.Ref(
@@ -513,11 +514,11 @@ func initAssertions(testModule *value.Module) {
 
 			var message string
 			if args[3].IsUndefined() {
-				aInspect, err := vm.Inspect(v, argA)
+				aInspect, err := vm.InspectWithColor(v, argA)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				bInspect, err := vm.Inspect(v, argB)
+				bInspect, err := vm.InspectWithColor(v, argB)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -527,7 +528,7 @@ func initAssertions(testModule *value.Module) {
 					bInspect,
 				)
 			} else {
-				message = args[3].AsReference().(value.String).String()
+				message = args[3].AsString().String()
 			}
 
 			err = value.Ref(

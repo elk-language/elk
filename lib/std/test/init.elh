@@ -6,103 +6,101 @@ module ::Std::Test
   ]##
   class AssertionError < Error; end
 
-  singleton
-    ##[
-      Creates a test suite with the given name.
-      All test cases defined in the given block will belong to this suite.
+  ##[
+    Creates a test suite with the given name.
+    All test cases defined in the given block will belong to this suite.
 
-      Example:
+    Example:
 
-        describe "Calculator", ->
-          test "adds two numbers", ->
-            # ...
-          end
-        end
-    ]##
-    def describe(name: String, fn: %||: void); end
-    alias context describe
-
-    ##[
-      Creates a test case with the given name.
-
-      Example:
-
+      describe "Calculator", ->
         test "adds two numbers", ->
-          calc := Calculator()
-          assert! calc.add(2, 2) == 4
+          # ...
         end
-    ]##
-    def test(name: String, fn: %||: void); end
+      end
+  ]##
+  def describe(name: String, fn: %||: void); end
+  alias context describe
 
-    ##[
-      Creates a test case with the given name prefixed with "it".
+  ##[
+    Creates a test case with the given name.
 
-      Example:
-        it "adds two numbers correctly", ->
-          calc := Calculator()
-          assert! calc.add(2, 2) == 4
-        end
-    ]##
-    def it(name: String, fn: %||: void); end
+    Example:
 
-    ##[
-      Creates a test case with the given name prefixed with "should".
+      test "adds two numbers", ->
+        calc := Calculator()
+        assert! calc.add(2, 2) == 4
+      end
+  ]##
+  def test(name: String, fn: %||: void); end
 
-      Example:
+  ##[
+    Creates a test case with the given name prefixed with "it".
 
-        should "add two numbers correctly", ->
-          calc := Calculator()
-          assert! calc.add(2, 2) == 4
-        end
-    ]##
-    def should(name: String, fn: %||: void); end
+    Example:
+      it "adds two numbers correctly", ->
+        calc := Calculator()
+        assert! calc.add(2, 2) == 4
+      end
+  ]##
+  def it(name: String, fn: %||: void); end
 
-    ##[
-      Registers a closure that will run before each test case
-      in the current suite.
+  ##[
+    Creates a test case with the given name prefixed with "should".
 
-      Example:
+    Example:
 
-        before_each ->
-          println "test case start"
-        end
-    ]##
-    def before_each(fn: %||: void); end
+      should "add two numbers correctly", ->
+        calc := Calculator()
+        assert! calc.add(2, 2) == 4
+      end
+  ]##
+  def should(name: String, fn: %||: void); end
 
-    ##[
-      Registers a closure that will run once before all test cases
-      in the current suite.
+  ##[
+    Registers a closure that will run before each test case
+    in the current suite.
 
-      Example:
+    Example:
 
-        before_all ->
-          Database.connect
-        end
-    ]##
-    def before_all(fn: %||: void); end
+      before_each ->
+        println "test case start"
+      end
+  ]##
+  def before_each(fn: %||: void); end
 
-    ##[
-      Registers a closure that will run after each test case
-      in the current suite.
+  ##[
+    Registers a closure that will run once before all test cases
+    in the current suite.
 
-      Example:
+    Example:
 
-        after_each ->
-          println "test case finished"
-        end
-    ]##
-    def after_each(fn: %||: void); end
+      before_all ->
+        Database.connect
+      end
+  ]##
+  def before_all(fn: %||: void); end
 
-    ##[
-      Registers a closure that will run once after all test cases
-      in the current suite.
+  ##[
+    Registers a closure that will run after each test case
+    in the current suite.
 
-      Example:
+    Example:
 
-        after_all ->
-          Database.disconnect
-        end
-    ]##
-    def after_all(fn: %||: void); end
-  end
+      after_each ->
+        println "test case finished"
+      end
+  ]##
+  def after_each(fn: %||: void); end
+
+  ##[
+    Registers a closure that will run once after all test cases
+    in the current suite.
+
+    Example:
+
+      after_all ->
+        Database.disconnect
+      end
+  ]##
+  def after_all(fn: %||: void); end
 end

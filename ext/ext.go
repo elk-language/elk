@@ -16,14 +16,19 @@ type Extension struct {
 	Name            string
 	RuntimeInit     RuntimeInitialiser
 	TypecheckerInit TypecheckerInitialiser
+	Initialised     bool
 }
 
 func (e *Extension) Init(checker types.Checker) {
-	if e.TypecheckerInit != nil {
-		e.TypecheckerInit(checker)
+	if e.Initialised {
+		return
 	}
+
 	if e.RuntimeInit != nil {
 		e.RuntimeInit()
+	}
+	if e.TypecheckerInit != nil {
+		e.TypecheckerInit(checker)
 	}
 }
 

@@ -387,7 +387,6 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	if !c.shouldCompile() {
 		return nil
 	}
-	c.compiler.EmitReturn()
 	return c.compiler.Bytecode
 }
 
@@ -502,7 +501,7 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 	source := string(bytes)
 	ast, errList := parser.Parse(filename, source)
 	if errList != nil {
-		c.Errors.DiagnosticList.Join(errList)
+		c.Errors.DiagnosticList.Append(errList...)
 		return nil
 	}
 
@@ -4435,9 +4434,37 @@ func (c *Checker) instanceVariableToName(node ast.InstanceVariableNode) string {
 	}
 }
 
+func (c *Checker) getReceiverlessMethodReceiver(methodName string, method *types.Method, methodNamespace types.Namespace, fromLocal bool, loc *position.Location) ast.ExpressionNode {
+	var receiver ast.ExpressionNode
+	if fromLocal {
+		receiver = ast.NewPublicIdentifierNode(loc, methodName)
+	} else {
+		switch under := methodNamespace.(type) {
+		case *types.Module:
+			// from using
+			receiver = ast.NewPublicConstantNode(loc, under.Name())
+		case *types.SingletonClass:
+			// from using
+			receiver = ast.NewPublicConstantNode(loc, under.AttachedObject.Name())
+		case *types.UsingBufferNamespace:
+			return c.getReceiverlessMethodReceiver(methodName, method, method.DefinedUnder, false, loc)
+		case *types.NamespacePlaceholder:
+			receiver = ast.NewPublicConstantNode(loc, under.Name())
+		case nil:
+			// from self
+			receiver = ast.NewSelfLiteralNode(loc)
+			c.checkNonNilableInstanceVariablesForSelf(loc)
+		default:
+			panic(fmt.Sprintf("unexpected method namespace returned from getReceiverlessMethod: %T", under))
+		}
+	}
+
+	return receiver
+}
+
 func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	name := c.identifierToName(node.MethodName)
-	method, fromLocal := c.getReceiverlessMethod(value.ToSymbol(name), node.MethodName.Location())
+	method, methodNamespace, fromLocal := c.getReceiverlessMethod(value.ToSymbol(name), node.MethodName.Location())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -4462,23 +4489,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 
 	method = c.replaceTypeParametersInMethod(c.deepCopyMethod(method), typeArgs.ArgumentMap, true)
 
-	var receiver ast.ExpressionNode
-	if fromLocal {
-		receiver = ast.NewPublicIdentifierNode(node.Location(), name)
-	} else {
-		switch under := method.DefinedUnder.(type) {
-		case *types.Module:
-			// from using or self
-			receiver = ast.NewPublicConstantNode(node.Location(), under.Name())
-		case *types.SingletonClass:
-			// from using or self
-			receiver = ast.NewPublicConstantNode(node.Location(), under.AttachedObject.Name())
-		default:
-			// from self
-			receiver = ast.NewSelfLiteralNode(node.Location())
-			c.checkNonNilableInstanceVariablesForSelf(node.MethodName.Location())
-		}
-	}
+	receiver := c.getReceiverlessMethodReceiver(name, method, methodNamespace, fromLocal, node.MethodName.Location())
 
 	typedPositionalArguments := c.checkNonGenericMethodArguments(
 		method,
@@ -4506,7 +4517,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	methodName := c.identifierToName(node.MethodName)
 	methodNameSymbol := value.ToSymbol(methodName)
-	method, fromLocal := c.getReceiverlessMethod(methodNameSymbol, node.MethodName.Location())
+	method, methodNamespace, fromLocal := c.getReceiverlessMethod(methodNameSymbol, node.MethodName.Location())
 	if method == nil || method.IsPlaceholder() {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -4546,33 +4557,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		)
 	}
 
-	var receiver ast.ExpressionNode
-	if fromLocal {
-		receiver = ast.NewPublicIdentifierNode(node.Location(), methodName)
-	} else {
-		switch under := method.DefinedUnder.(type) {
-		case *types.Module:
-			if under == c.selfType {
-				receiver = ast.NewSelfLiteralNode(node.Location())
-				c.checkNonNilableInstanceVariablesForSelf(node.MethodName.Location())
-			} else {
-				// from using
-				receiver = ast.NewPublicConstantNode(node.Location(), under.Name())
-			}
-		case *types.SingletonClass:
-			if under == c.selfType {
-				receiver = ast.NewSelfLiteralNode(node.Location())
-				c.checkNonNilableInstanceVariablesForSelf(node.MethodName.Location())
-			} else {
-				// from using
-				receiver = ast.NewPublicConstantNode(node.Location(), under.AttachedObject.Name())
-			}
-		default:
-			// from self
-			receiver = ast.NewSelfLiteralNode(node.Location())
-			c.checkNonNilableInstanceVariablesForSelf(node.MethodName.Location())
-		}
-	}
+	receiver := c.getReceiverlessMethodReceiver(methodName, method, methodNamespace, fromLocal, node.MethodName.Location())
 
 	newNode := ast.NewMethodCallNode(
 		node.Location(),

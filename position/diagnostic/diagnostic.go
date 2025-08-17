@@ -161,8 +161,8 @@ func (e DiagnosticList) Join(other DiagnosticList) DiagnosticList {
 }
 
 // Add a new diagnostic.
-func (dl *DiagnosticList) Append(d *Diagnostic) {
-	*dl = append(*dl, d)
+func (dl *DiagnosticList) Append(d ...*Diagnostic) {
+	*dl = append(*dl, d...)
 }
 
 // Create and add a new diagnostic.

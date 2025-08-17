@@ -1,0 +1,14 @@
+using Std::Test::Assertions::*
+using Std::Test::{describe, context, should}
+
+describe "Time", ->
+	context "now", ->
+		should "return current time", ->
+			puts "PIPA"
+			t := Time.now
+			assert! t <: Time
+			assert_greater 2024, t.year
+			assert! t.year > 2024
+		end
+	end
+end

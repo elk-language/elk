@@ -189,8 +189,8 @@ func typecheckerInit(checker types.Checker) {
 						"assert_is_a",
 					),
 					[]ast.ExpressionNode{
-						ast.Unhygienic(binExpr.Left),
 						ast.Unhygienic(binExpr.Right),
+						ast.Unhygienic(binExpr.Left),
 					},
 					nil,
 				)
@@ -205,8 +205,8 @@ func typecheckerInit(checker types.Checker) {
 						"assert_is_a",
 					),
 					[]ast.ExpressionNode{
-						ast.Unhygienic(binExpr.Right),
 						ast.Unhygienic(binExpr.Left),
+						ast.Unhygienic(binExpr.Right),
 					},
 					nil,
 				)
@@ -221,8 +221,8 @@ func typecheckerInit(checker types.Checker) {
 						"assert_instance_of",
 					),
 					[]ast.ExpressionNode{
-						ast.Unhygienic(binExpr.Left),
 						ast.Unhygienic(binExpr.Right),
+						ast.Unhygienic(binExpr.Left),
 					},
 					nil,
 				)
@@ -237,8 +237,8 @@ func typecheckerInit(checker types.Checker) {
 						"assert_instance_of",
 					),
 					[]ast.ExpressionNode{
-						ast.Unhygienic(binExpr.Right),
 						ast.Unhygienic(binExpr.Left),
+						ast.Unhygienic(binExpr.Right),
 					},
 					nil,
 				)

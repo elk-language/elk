@@ -50,6 +50,14 @@ func (s *Suite) FullName() string {
 	return fmt.Sprintf("%s %s", s.Parent.FullName(), s.Name)
 }
 
+func (s *Suite) FullNameWithSeparator() string {
+	if s.Parent == nil {
+		return s.Name
+	}
+
+	return fmt.Sprintf("%s › %s", s.Parent.FullName(), s.Name)
+}
+
 func (s *Suite) RegisterBeforeEach(fn *vm.Closure) {
 	s.BeforeEach = append(s.BeforeEach, fn)
 }
@@ -80,16 +88,16 @@ func (s *Suite) Run(v *vm.VM, events chan *ReportEvent, rng *rand.Rand) *SuiteRe
 	startTime := time.Now()
 
 	suiteReport := NewSuiteReport(s)
-	suiteReport.Status = TEST_RUNNING
+	suiteReport.status = TEST_RUNNING
 	events <- NewSuiteReportEvent(suiteReport, REPORT_START_SUITE)
 
 	for _, hook := range s.BeforeAll {
 		_, err = v.CallClosure(hook)
 		if !err.IsUndefined() {
-			suiteReport.Status = TEST_ERROR
-			suiteReport.Error = err
-			suiteReport.StackTrace = v.ErrStackTrace()
-			suiteReport.Duration = time.Since(startTime)
+			suiteReport.status = TEST_ERROR
+			suiteReport.err = err
+			suiteReport.stackTrace = v.GetStackTrace()
+			suiteReport.duration = time.Since(startTime)
 			events <- NewSuiteReportEvent(suiteReport, REPORT_FINISH_SUITE)
 			return suiteReport
 		}
@@ -108,17 +116,17 @@ func (s *Suite) Run(v *vm.VM, events chan *ReportEvent, rng *rand.Rand) *SuiteRe
 	for _, hook := range s.AfterAll {
 		_, err = v.CallClosure(hook)
 		if !err.IsUndefined() {
-			suiteReport.Status = TEST_ERROR
-			suiteReport.Error = err
-			suiteReport.StackTrace = v.ErrStackTrace()
-			suiteReport.Duration = time.Since(startTime)
+			suiteReport.status = TEST_ERROR
+			suiteReport.err = err
+			suiteReport.stackTrace = v.GetStackTrace()
+			suiteReport.duration = time.Since(startTime)
 			events <- NewSuiteReportEvent(suiteReport, REPORT_FINISH_SUITE)
 			return suiteReport
 		}
 	}
 
-	suiteReport.Status = TEST_SUCCESS
-	suiteReport.Duration = time.Since(startTime)
+	suiteReport.UpdateStatus(TEST_SUCCESS)
+	suiteReport.duration = time.Since(startTime)
 	events <- NewSuiteReportEvent(suiteReport, REPORT_FINISH_SUITE)
 	return suiteReport
 }

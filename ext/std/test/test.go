@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"math/rand/v2"
+	"sync"
 	"time"
 
 	"github.com/elk-language/elk/value"
@@ -20,14 +21,27 @@ const (
 	TEST_SUCCESS
 )
 
-func Run(v *vm.VM, events chan *ReportEvent) *SuiteReport {
-	return RunWith(v, events, uint64(time.Now().UnixNano()))
+func Run() *SuiteReport {
+	v := vm.New()
+	events := make(chan *ReportEvent, 50)
+	reporter := NewSimpleReporter()
+	seed := uint64(time.Now().UnixNano())
+	return RunWith(v, reporter, events, seed)
 }
 
 // Run the all tests under the root suite
-func RunWith(v *vm.VM, events chan *ReportEvent, seed uint64) *SuiteReport {
+func RunWith(v *vm.VM, reporter Reporter, events chan *ReportEvent, seed uint64) *SuiteReport {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		reporter.Report(events)
+		wg.Done()
+	}()
+
 	rng := rand.New(rand.NewPCG(seed, ^seed+1))
 	report := RootSuite.Run(v, events, rng)
+	close(events)
+	wg.Wait()
 
 	return report
 }

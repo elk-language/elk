@@ -192,13 +192,17 @@ func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	return vm.peek(), value.Undefined
 }
 
-func (vm *VM) PrintError() {
-	fmt.Fprint(vm.Stderr, vm.ErrStackTrace().String())
+func PrintError(stderr io.Writer, stackTrace *value.StackTrace, err value.Value) {
+	fmt.Fprint(stderr, stackTrace.String())
 	c := color.New(color.FgRed, color.Bold)
-	c.Fprint(vm.Stderr, "Error! Uncaught thrown value:")
-	fmt.Fprint(vm.Stderr, " ")
-	fmt.Fprintln(vm.Stderr, lexer.Colorize(vm.Err().Inspect()))
-	fmt.Fprintln(vm.Stderr)
+	c.Fprint(stderr, "Error! Uncaught thrown value:")
+	fmt.Fprint(stderr, " ")
+	fmt.Fprintln(stderr, lexer.Colorize(err.Inspect()))
+	fmt.Fprintln(stderr)
+}
+
+func (vm *VM) PrintError() {
+	PrintError(vm.Stderr, vm.ErrStackTrace(), vm.Err())
 }
 
 func (vm *VM) runWithState() {
@@ -477,6 +481,9 @@ func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
 	self := *vm.spAdd(-args - 1)
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
+	if method == nil {
+		fmt.Printf("name: %s, self: %s\n", name.String(), self.Inspect())
+	}
 	return vm.callMethodOnStack(method, args)
 }
 
@@ -1848,10 +1855,11 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 
 	panic(
 		fmt.Sprintf(
-			"tried to call a method that is neither bytecode nor native: %#v, %s in %s",
+			"tried to call a method that is neither bytecode nor native: %#v, %s in %s (%s)",
 			method,
 			callInfo.Name,
 			class.Name,
+			self.Inspect(),
 		),
 	)
 }

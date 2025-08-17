@@ -378,6 +378,10 @@ func (v Value) IsReference() bool {
 	return v.flag == REFERENCE_FLAG
 }
 
+func (v Value) AsString() String {
+	return v.AsReference().(String)
+}
+
 // Returns `nil` when the value is not a reference
 func (v Value) SafeAsReference() Reference {
 	if !v.IsReference() {

@@ -31,6 +31,14 @@ func (c *Case) FullName() string {
 	return fmt.Sprintf("%s %s", c.Parent.FullName(), c.Name)
 }
 
+func (c *Case) FullNameWithSeparator() string {
+	if c.Parent == nil {
+		return c.Name
+	}
+
+	return fmt.Sprintf("%s › %s", c.Parent.FullNameWithSeparator(), c.Name)
+}
+
 func callCaseClosure(v *vm.VM, caseReport *CaseReport, events chan *ReportEvent, startTime time.Time, closure *vm.Closure) bool {
 	var err value.Value
 	_, err = v.CallClosure(closure)
@@ -42,10 +50,10 @@ func callCaseClosure(v *vm.VM, caseReport *CaseReport, events chan *ReportEvent,
 			status = TEST_ERROR
 		}
 
-		caseReport.Status = status
-		caseReport.Error = err
-		caseReport.StackTrace = v.ErrStackTrace()
-		caseReport.Duration = time.Since(startTime)
+		caseReport.status = status
+		caseReport.err = err
+		caseReport.stackTrace = v.GetStackTrace()
+		caseReport.duration = time.Since(startTime)
 		events <- NewCaseReportEvent(caseReport, REPORT_FINISH_CASE)
 		return false
 	}
@@ -57,8 +65,19 @@ func (c *Case) Run(v *vm.VM, events chan *ReportEvent) *CaseReport {
 	startTime := time.Now()
 
 	caseReport := NewCaseReport(c)
-	caseReport.Status = TEST_RUNNING
+	caseReport.status = TEST_RUNNING
 	events <- NewCaseReportEvent(caseReport, REPORT_START_CASE)
+
+	prevStdout := v.Stdout
+	prevStderr := v.Stderr
+
+	v.Stdout = &caseReport.stdout
+	v.Stderr = &caseReport.stderr
+
+	defer func() {
+		v.Stdout = prevStdout
+		v.Stderr = prevStderr
+	}()
 
 	if c.Parent != nil {
 		for _, hook := range c.Parent.BeforeEach {
@@ -80,8 +99,8 @@ func (c *Case) Run(v *vm.VM, events chan *ReportEvent) *CaseReport {
 		}
 	}
 
-	caseReport.Status = TEST_SUCCESS
-	caseReport.Duration = time.Since(startTime)
+	caseReport.status = TEST_SUCCESS
+	caseReport.duration = time.Since(startTime)
 	events <- NewCaseReportEvent(caseReport, REPORT_FINISH_CASE)
 	return caseReport
 }
