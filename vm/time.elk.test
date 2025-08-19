@@ -4,11 +4,24 @@ using Std::Test::{describe, context, should}
 describe "Time", ->
 	context "now", ->
 		should "return current time", ->
-			puts "PIPA"
 			t := Time.now
+			sleep 1.second
 			assert! t <: Time
-			assert_greater 2024, t.year
 			assert! t.year > 2024
+		end
+
+		should "return current time", ->
+			t := Time.now
+			sleep 2.second
+			assert! t <: Time
+			assert! t.year > 2026
+		end
+
+		should "wait", ->
+			puts "PIPA"
+
+			sleep 2.seconds
+			throw unchecked Error("foo `Elo.melo + 2`")
 		end
 	end
 end

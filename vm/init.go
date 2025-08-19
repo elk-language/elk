@@ -9,6 +9,7 @@ func init() {
 }
 
 func InitGlobalEnvironment() {
+	initError()
 	initIterator()
 	initArrayList()
 	initArrayListIterator()

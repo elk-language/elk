@@ -480,7 +480,13 @@ func (e *Object) Error() string {
 var messageSymbol = ToSymbol("message")
 
 // Set the error message.
-func (e *Object) SetMessage(message string) {
+func (e *Object) SetMessage(message Value) {
+	msgIndex := e.class.IvarIndices[messageSymbol]
+	e.instanceVariables[msgIndex] = message
+}
+
+// Set the error message.
+func (e *Object) SetMessageString(message string) {
 	msgIndex := e.class.IvarIndices[messageSymbol]
 	e.instanceVariables[msgIndex] = Ref(String(message))
 }

@@ -15,6 +15,17 @@ type Case struct {
 	Parent *Suite
 }
 
+func (c *Case) traverse(enter func(test SuiteOrCase) TraverseOption, leave func(test SuiteOrCase) TraverseOption) TraverseOption {
+	switch enter(c) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(c)
+	}
+
+	return leave(c)
+}
+
 func NewCase(name string, fn *vm.Closure, parent *Suite) *Case {
 	return &Case{
 		Name:   name,

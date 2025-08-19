@@ -25,14 +25,14 @@ const (
 	TraverseBreak
 )
 
-func noopTraverse(report Report) TraverseOption { return TraverseContinue }
+func noopTraverseReport(report Report) TraverseOption { return TraverseContinue }
 
 func TraverseReport(report Report, enter func(report Report) TraverseOption, leave func(report Report) TraverseOption) {
 	if enter == nil {
-		enter = noopTraverse
+		enter = noopTraverseReport
 	}
 	if leave == nil {
-		leave = noopTraverse
+		leave = noopTraverseReport
 	}
 	report.traverse(enter, leave)
 }

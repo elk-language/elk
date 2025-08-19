@@ -10,6 +10,10 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+type SuiteOrCase interface {
+	traverse(enter func(test SuiteOrCase) TraverseOption, leave func(test SuiteOrCase) TraverseOption) TraverseOption
+}
+
 // Represents a test suite, a group of tests like `describe` or `context`
 type Suite struct {
 	Name       string
@@ -20,6 +24,29 @@ type Suite struct {
 	AfterEach  []*vm.Closure
 	BeforeAll  []*vm.Closure
 	AfterAll   []*vm.Closure
+}
+
+func (s *Suite) traverse(enter func(test SuiteOrCase) TraverseOption, leave func(test SuiteOrCase) TraverseOption) TraverseOption {
+	switch enter(s) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(s)
+	}
+
+	for _, testCase := range s.Cases {
+		if testCase.traverse(enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
+	}
+
+	for _, subSuite := range s.SubSuites {
+		if subSuite.traverse(enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
+	}
+
+	return leave(s)
 }
 
 // Create a new tests suite
@@ -129,4 +156,16 @@ func (s *Suite) Run(v *vm.VM, events chan *ReportEvent, rng *rand.Rand) *SuiteRe
 	suiteReport.duration = time.Since(startTime)
 	events <- NewSuiteReportEvent(suiteReport, REPORT_FINISH_SUITE)
 	return suiteReport
+}
+
+func noopTraverseSuite(test SuiteOrCase) TraverseOption { return TraverseContinue }
+
+func TraverseSuite(test SuiteOrCase, enter func(test SuiteOrCase) TraverseOption, leave func(test SuiteOrCase) TraverseOption) {
+	if enter == nil {
+		enter = noopTraverseSuite
+	}
+	if leave == nil {
+		leave = noopTraverseSuite
+	}
+	test.traverse(enter, leave)
 }

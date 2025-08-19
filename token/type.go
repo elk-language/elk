@@ -230,6 +230,7 @@ const (
 	ZERO_VALUE       Type = iota // Zero value for Type
 	ERROR                        // ERROR Token with a message
 	END_OF_FILE                  // End Of File has been reached
+	TEXT                         // Plain text
 	NEWLINE                      // Newline `\n`, `\r\n`
 	SEMICOLON                    // SEMICOLON `;`
 	COMMA                        // Comma `,`

@@ -24,7 +24,7 @@ const (
 func Run() *SuiteReport {
 	v := vm.New()
 	events := make(chan *ReportEvent, 50)
-	reporter := NewSimpleReporter()
+	reporter := NewRichReporter()
 	seed := uint64(time.Now().UnixNano())
 	return RunWith(v, reporter, events, seed)
 }
