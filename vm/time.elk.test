@@ -10,7 +10,7 @@ describe "Time", ->
 			assert! t.year > 2024
 		end
 
-		should "return current time", ->
+		should "return current ti", ->
 			t := Time.now
 			sleep 2.second
 			assert! t <: Time

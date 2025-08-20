@@ -102,7 +102,7 @@ func runTestFile(fileName string) {
 	}
 
 	report := test.Run()
-	if report.Status() != test.TEST_SUCCESS {
+	if report == nil || report.Status() != test.TEST_SUCCESS {
 		os.Exit(1)
 	}
 }

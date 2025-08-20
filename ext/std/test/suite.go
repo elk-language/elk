@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"math/rand/v2"
 	"slices"
@@ -110,7 +111,11 @@ func shuffleCases(cases []*Case, rng *rand.Rand) []*Case {
 	return shuffled
 }
 
-func (s *Suite) Run(v *vm.VM, events chan *ReportEvent, rng *rand.Rand) *SuiteReport {
+func (s *Suite) Run(v *vm.VM, events chan<- *ReportEvent, rng *rand.Rand, ctx context.Context) *SuiteReport {
+	if isDone(ctx) {
+		return nil
+	}
+
 	var err value.Value
 	startTime := time.Now()
 
@@ -119,37 +124,55 @@ func (s *Suite) Run(v *vm.VM, events chan *ReportEvent, rng *rand.Rand) *SuiteRe
 	events <- NewSuiteReportEvent(suiteReport, REPORT_START_SUITE)
 
 	for _, hook := range s.BeforeAll {
+		if isDone(ctx) {
+			return nil
+		}
 		_, err = v.CallClosure(hook)
 		if !err.IsUndefined() {
 			suiteReport.status = TEST_ERROR
 			suiteReport.err = err
 			suiteReport.stackTrace = v.GetStackTrace()
 			suiteReport.duration = time.Since(startTime)
+			v.ResetError()
 			events <- NewSuiteReportEvent(suiteReport, REPORT_FINISH_SUITE)
 			return suiteReport
 		}
 	}
 
 	for _, testCase := range shuffleCases(s.Cases, rng) {
-		caseReport := testCase.Run(v, events)
+		caseReport := testCase.Run(v, events, ctx)
+		if caseReport == nil {
+			return nil
+		}
 		suiteReport.RegisterCaseReport(caseReport)
 	}
 
 	for _, subSuite := range s.SubSuites {
-		subSuiteReport := subSuite.Run(v, events, rng)
+		subSuiteReport := subSuite.Run(v, events, rng, ctx)
+		if subSuiteReport == nil {
+			return nil
+		}
 		suiteReport.RegisterSubSuiteReport(subSuiteReport)
 	}
 
 	for _, hook := range s.AfterAll {
+		if isDone(ctx) {
+			return nil
+		}
 		_, err = v.CallClosure(hook)
 		if !err.IsUndefined() {
 			suiteReport.status = TEST_ERROR
 			suiteReport.err = err
 			suiteReport.stackTrace = v.GetStackTrace()
 			suiteReport.duration = time.Since(startTime)
+			v.ResetError()
 			events <- NewSuiteReportEvent(suiteReport, REPORT_FINISH_SUITE)
 			return suiteReport
 		}
+	}
+
+	if isDone(ctx) {
+		return nil
 	}
 
 	suiteReport.UpdateStatus(TEST_SUCCESS)

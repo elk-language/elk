@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"math/rand/v2"
 	"sync"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
+	"github.com/fatih/color"
 )
 
 type TestStatus uint8
@@ -24,7 +26,14 @@ const (
 func Run() *SuiteReport {
 	v := vm.New()
 	events := make(chan *ReportEvent, 50)
-	reporter := NewRichReporter()
+
+	var reporter Reporter
+	if color.NoColor {
+		reporter = NewPlainReporter()
+	} else {
+		reporter = NewRichReporter()
+	}
+
 	seed := uint64(time.Now().UnixNano())
 	return RunWith(v, reporter, events, seed)
 }
@@ -33,13 +42,15 @@ func Run() *SuiteReport {
 func RunWith(v *vm.VM, reporter Reporter, events chan *ReportEvent, seed uint64) *SuiteReport {
 	var wg sync.WaitGroup
 	wg.Add(1)
+	shutdownCtx, shutdown := context.WithCancel(context.Background())
+
 	go func() {
-		reporter.Report(events)
+		reporter.Report(events, shutdown)
 		wg.Done()
 	}()
 
 	rng := rand.New(rand.NewPCG(seed, ^seed+1))
-	report := RootSuite.Run(v, events, rng)
+	report := RootSuite.Run(v, events, rng, shutdownCtx)
 	close(events)
 	wg.Wait()
 

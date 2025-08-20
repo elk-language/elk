@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -50,7 +51,7 @@ func (c *Case) FullNameWithSeparator() string {
 	return fmt.Sprintf("%s › %s", c.Parent.FullNameWithSeparator(), c.Name)
 }
 
-func callCaseClosure(v *vm.VM, caseReport *CaseReport, events chan *ReportEvent, startTime time.Time, closure *vm.Closure) bool {
+func callCaseClosure(v *vm.VM, caseReport *CaseReport, events chan<- *ReportEvent, startTime time.Time, closure *vm.Closure) bool {
 	var err value.Value
 	_, err = v.CallClosure(closure)
 	if !err.IsUndefined() {
@@ -65,6 +66,7 @@ func callCaseClosure(v *vm.VM, caseReport *CaseReport, events chan *ReportEvent,
 		caseReport.err = err
 		caseReport.stackTrace = v.GetStackTrace()
 		caseReport.duration = time.Since(startTime)
+		v.ResetError()
 		events <- NewCaseReportEvent(caseReport, REPORT_FINISH_CASE)
 		return false
 	}
@@ -72,7 +74,20 @@ func callCaseClosure(v *vm.VM, caseReport *CaseReport, events chan *ReportEvent,
 	return true
 }
 
-func (c *Case) Run(v *vm.VM, events chan *ReportEvent) *CaseReport {
+func isDone(ctx context.Context) bool {
+	select {
+	case <-ctx.Done():
+		return true
+	default:
+		return false
+	}
+}
+
+func (c *Case) Run(v *vm.VM, events chan<- *ReportEvent, ctx context.Context) *CaseReport {
+	if isDone(ctx) {
+		return nil
+	}
+
 	startTime := time.Now()
 
 	caseReport := NewCaseReport(c)
@@ -92,24 +107,36 @@ func (c *Case) Run(v *vm.VM, events chan *ReportEvent) *CaseReport {
 
 	if c.Parent != nil {
 		for _, hook := range c.Parent.BeforeEach {
+			if isDone(ctx) {
+				return nil
+			}
 			if !callCaseClosure(v, caseReport, events, startTime, hook) {
 				return caseReport
 			}
 		}
 	}
 
+	if isDone(ctx) {
+		return nil
+	}
 	if !callCaseClosure(v, caseReport, events, startTime, c.Fn) {
 		return caseReport
 	}
 
 	if c.Parent != nil {
 		for _, hook := range c.Parent.AfterEach {
+			if isDone(ctx) {
+				return nil
+			}
 			if !callCaseClosure(v, caseReport, events, startTime, hook) {
 				return caseReport
 			}
 		}
 	}
 
+	if isDone(ctx) {
+		return nil
+	}
 	caseReport.status = TEST_SUCCESS
 	caseReport.duration = time.Since(startTime)
 	events <- NewCaseReportEvent(caseReport, REPORT_FINISH_CASE)

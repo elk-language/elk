@@ -1,8 +1,11 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/lexer"
@@ -22,7 +25,23 @@ func NewPlainReporter() *PlainReporter {
 	return &PlainReporter{}
 }
 
-func (s *PlainReporter) Report(events chan *ReportEvent) {
+func ListenForInterrupt(
+	shutdown context.CancelFunc,
+) {
+	// Create context that listens for the interrupt signal from the OS.
+	signalCtx, signalCancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer signalCancel()
+
+	// Wait for the interrupt signal.
+	<-signalCtx.Done()
+
+	signalCancel() // Stop listening for interrupt signals, allow Ctrl+C to force shutdown
+	shutdown()
+}
+
+func (s *PlainReporter) Report(events chan *ReportEvent, shutdown context.CancelFunc) {
+	go ListenForInterrupt(shutdown)
+
 	for event := range events {
 		switch event.Type {
 		case REPORT_FINISH_SUITE:
@@ -128,15 +147,15 @@ func (s *PlainReporter) finishReport(report *SuiteReport) {
 	}
 
 	fmt.Printf(
-		"\n\nSummary: %d cases, %d passed, %d skipped, %d failed, %d errors\n",
+		"\n\nFinished in %s\n",
+		report.duration.String(),
+	)
+	fmt.Printf(
+		"Summary: %d cases, %d passed, %d skipped, %d failed, %d errors\n",
 		s.caseCounter,
 		s.successCounter,
 		s.skippedCounter,
 		s.failedCounter,
 		s.errorCounter,
-	)
-	fmt.Printf(
-		"Finished in %s\n",
-		report.duration.String(),
 	)
 }
