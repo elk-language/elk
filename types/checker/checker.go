@@ -5604,14 +5604,28 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 }
 
 // Get the type of the constant with the given name
-func (c *Checker) resolveConstantForDeclaration(constantExpression ast.ExpressionNode) (types.Namespace, types.Type, string) {
+func (c *Checker) resolveConstantForNamespaceDeclaration(constantExpression ast.ExpressionNode) (types.Namespace, types.Type, string) {
 	switch constant := constantExpression.(type) {
 	case *ast.PublicConstantNode:
 		return c.resolveSimpleConstantForSetter(constant.Value)
 	case *ast.PrivateConstantNode:
 		return c.resolveSimpleConstantForSetter(constant.Value)
 	case *ast.ConstantLookupNode:
-		return c.resolveConstantLookupForDeclaration(constant)
+		return c.resolveConstantLookupForNamespaceDeclaration(constant)
+	default:
+		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
+	}
+}
+
+// Get the type of the constant with the given name
+func (c *Checker) resolveConstantForConstantDeclaration(constantExpression ast.ExpressionNode) (types.Namespace, types.Type, string) {
+	switch constant := constantExpression.(type) {
+	case *ast.PublicConstantNode:
+		return c.resolveSimpleConstantForSetter(constant.Value)
+	case *ast.PrivateConstantNode:
+		return c.resolveSimpleConstantForSetter(constant.Value)
+	case *ast.ConstantLookupNode:
+		return c.resolveConstantLookupForConstantDeclaration(constant)
 	default:
 		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
 	}
@@ -5629,11 +5643,25 @@ func (c *Checker) registerMethodPlaceholder(placeholder *types.Method) {
 	c.methodPlaceholders = append(c.methodPlaceholders, placeholder)
 }
 
-func (c *Checker) resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string) {
-	return c._resolveConstantLookupForDeclaration(node, true)
+func (c *Checker) resolveConstantLookupForNamespaceDeclaration(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string) {
+	return c._resolveConstantLookupForNamespaceDeclaration(node, true)
 }
 
-func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode, firstCall bool) (types.Namespace, types.Type, string) {
+func (c *Checker) resolveConstantLookupForConstantDeclaration(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string) {
+	return c._resolveConstantLookupForConstantDeclaration(node, true)
+}
+
+func (c *Checker) addUndefinedNamespaceError(name string, loc *position.Location) {
+	c.addFailure(
+		fmt.Sprintf(
+			"undefined namespace `%s`",
+			lexer.Colorize(name),
+		),
+		loc,
+	)
+}
+
+func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.ConstantLookupNode, firstCall bool) (types.Namespace, types.Type, string) {
 	var leftContainerType types.Type
 	var leftContainerName string
 
@@ -5669,7 +5697,7 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 	case nil:
 		leftContainerType = c.env.Root
 	case *ast.ConstantLookupNode:
-		_, leftContainerType, leftContainerName = c._resolveConstantLookupForDeclaration(l, false)
+		_, leftContainerType, leftContainerName = c._resolveConstantLookupForNamespaceDeclaration(l, false)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid constant node %T", node),
@@ -5733,6 +5761,105 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 		leftContainer.DefineConstant(rightSymbol, types.NewSingletonClass(placeholder, nil))
 	} else if placeholder, ok := constantType.(*types.NamespacePlaceholder); ok {
 		placeholder.Locations.Push(node.Right.Location())
+
+	}
+
+	return leftContainer, constantType, constantName
+}
+
+func (c *Checker) _resolveConstantLookupForConstantDeclaration(node *ast.ConstantLookupNode, firstCall bool) (types.Namespace, types.Type, string) {
+	var leftContainerType types.Type
+	var leftContainerName string
+
+	switch l := node.Left.(type) {
+	case *ast.PublicConstantNode:
+		namespace := c.currentConstScope().container
+		leftConstant, ok := namespace.ConstantString(l.Value)
+		leftContainerType = leftConstant.Type
+		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
+		if !ok {
+			c.addUndefinedNamespaceError(leftContainerName, l.Location())
+			node.SetType(types.Untyped{})
+			return nil, nil, ""
+		}
+	case *ast.PrivateConstantNode:
+		namespace := c.currentConstScope().container
+		leftConstant, ok := namespace.ConstantString(l.Value)
+		leftContainerType = leftConstant.Type
+		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
+		if !ok {
+			c.addUndefinedNamespaceError(leftContainerName, l.Location())
+			node.SetType(types.Untyped{})
+			return nil, nil, ""
+		}
+	case nil:
+		leftContainerType = c.env.Root
+	case *ast.ConstantLookupNode:
+		var container types.Namespace
+		container, leftContainerType, leftContainerName = c._resolveConstantLookupForConstantDeclaration(l, false)
+		if container == nil {
+			node.SetType(types.Untyped{})
+			return nil, nil, ""
+		}
+	default:
+		c.addFailure(
+			fmt.Sprintf("invalid constant node %T", node),
+			node.Location(),
+		)
+		return nil, nil, ""
+	}
+
+	var rightName string
+	switch r := node.Right.(type) {
+	case *ast.PublicConstantNode:
+		rightName = r.Value
+	case *ast.PrivateConstantNode:
+		rightName = r.Value
+		c.addFailure(
+			fmt.Sprintf("cannot read private constant `%s`", rightName),
+			node.Location(),
+		)
+	default:
+		c.addFailure(
+			fmt.Sprintf("invalid constant node %T", node),
+			node.Location(),
+		)
+		return nil, nil, ""
+	}
+
+	constantName := types.MakeFullConstantName(leftContainerName, rightName)
+	if leftContainerType == nil {
+		return nil, nil, constantName
+	}
+	var leftContainer types.Namespace
+	switch l := leftContainerType.(type) {
+	case *types.Module:
+		leftContainer = l
+	case *types.Class:
+		leftContainer = l
+	case *types.Mixin:
+		leftContainer = l
+	case *types.Interface:
+		leftContainer = l
+	case *types.NamespacePlaceholder:
+		leftContainer = l
+	case *types.SingletonClass:
+		leftContainer = l.AttachedObject
+	default:
+		c.addFailure(
+			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
+			node.Location(),
+		)
+		return nil, nil, constantName
+	}
+
+	rightSymbol := value.ToSymbol(rightName)
+	constant, ok := leftContainer.Constant(rightSymbol)
+	constantType := constant.Type
+	if !ok && !firstCall {
+		c.addUndefinedNamespaceError(rightName, node.Right.Location())
+		node.SetType(types.Untyped{})
+		return nil, nil, ""
 	}
 
 	return leftContainer, constantType, constantName
@@ -7391,7 +7518,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		return structNode
 	}
 
-	container, constant, fullConstantName := c.resolveConstantForDeclaration(structNode.Constant)
+	container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(structNode.Constant)
 	constantName := value.ToSymbol(extractConstantName(structNode.Constant))
 	class := c.declareClass(
 		structNode.DocComment(),
@@ -7501,7 +7628,7 @@ func (c *Checker) hoistModuleDeclarationWithFunc(node *ast.ModuleDeclarationNode
 
 	module, ok := c.TypeOf(node).(*types.Module)
 	if !ok {
-		container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+		container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(node.Constant)
 		constantName := value.ToSymbol(extractConstantName(node.Constant))
 		module = c.declareModule(
 			node.DocComment(),
@@ -7546,7 +7673,7 @@ func (c *Checker) hoistClassDeclarationWithFunc(node *ast.ClassDeclarationNode, 
 
 	class, ok := c.TypeOf(node).(*types.Class)
 	if !ok {
-		container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+		container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(node.Constant)
 		constantName := value.ToSymbol(extractConstantName(node.Constant))
 		class = c.declareClass(
 			node.DocComment(),
@@ -7596,7 +7723,7 @@ func (c *Checker) hoistMixinDeclarationWithFunc(node *ast.MixinDeclarationNode, 
 
 	mixin, ok := c.TypeOf(node).(*types.Mixin)
 	if !ok {
-		container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+		container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(node.Constant)
 		constantName := value.ToSymbol(extractConstantName(node.Constant))
 		mixin = c.declareMixin(
 			node.DocComment(),
@@ -7643,7 +7770,7 @@ func (c *Checker) hoistInterfaceDeclarationWithFunc(node *ast.InterfaceDeclarati
 
 	iface, ok := c.TypeOf(node).(*types.Interface)
 	if !ok {
-		container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+		container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(node.Constant)
 		constantName := value.ToSymbol(extractConstantName(node.Constant))
 		iface = c.declareInterface(
 			node.DocComment(),

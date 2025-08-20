@@ -105,7 +105,12 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 		)
 		return
 	}
-	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+	container, constant, fullConstantName := c.resolveConstantForConstantDeclaration(node.Constant)
+	if container == nil {
+		node.SetType(types.Untyped{})
+		return
+	}
+
 	constantName := value.ToSymbol(extractConstantName(node.Constant))
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 

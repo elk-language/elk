@@ -61,11 +61,33 @@ func TestConstantDeclarations(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(51, 4, 7), P(61, 4, 17)), "constants cannot be declared in this context"),
 			},
 		},
+		"declare externally in nonexistent namespace": {
+			input: `
+				const F::D::C = 3
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(11, 2, 11)), "undefined namespace `F`"),
+			},
+		},
+		"declare externally in nonexistent namespace under a valid one": {
+			input: `
+				const Std::D::C = 3
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(16, 2, 16)), "undefined namespace `D`"),
+			},
+		},
 		"declare in a module": {
 			input: `
 				module F
 					const D = 3
 				end
+			`,
+		},
+		"declare outside of a module": {
+			input: `
+				module F; end
+				const F::D = 3
 			`,
 		},
 		"declare in a mixin": {

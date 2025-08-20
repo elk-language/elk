@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -39,7 +41,7 @@ func (*Module) Singleton() *SingletonClass {
 }
 
 func (m *Module) SetSingleton(*SingletonClass) {
-	panic("cannot set singleton class of a module")
+	panic(fmt.Sprintf("cannot set singleton class of a module: %s", m.Name()))
 }
 
 func (m *Module) Parent() Namespace {
