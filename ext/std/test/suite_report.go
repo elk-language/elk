@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bytes"
 	"time"
 
 	"github.com/elk-language/elk/value"
@@ -11,16 +12,49 @@ type SuiteReport struct {
 	Suite           *Suite
 	CaseReports     []*CaseReport
 	SubSuiteReports []*SuiteReport
-	err             value.Value
-	stackTrace      *value.StackTrace
+	err             []Err
 	duration        time.Duration
 	status          TestStatus
+	stdout          bytes.Buffer
+	stderr          bytes.Buffer
+}
+
+type ErrTyp uint8
+
+const (
+	ErrCase ErrTyp = iota
+	ErrBeforeAll
+	ErrBeforeEach
+	ErrAfterAll
+	ErrAfterEach
+)
+
+func (e ErrTyp) String() string {
+	return errString[e]
+}
+
+var errString = []string{
+	ErrCase:       "case",
+	ErrBeforeAll:  "before_all",
+	ErrBeforeEach: "before_each",
+	ErrAfterAll:   "after_all",
+	ErrAfterEach:  "after_each",
+}
+
+type Err struct {
+	Typ        ErrTyp
+	Err        value.Value
+	StackTrace *value.StackTrace
 }
 
 func NewSuiteReport(suite *Suite) *SuiteReport {
 	return &SuiteReport{
 		Suite: suite,
 	}
+}
+
+func (s *SuiteReport) FullNameWithSeparator() string {
+	return s.Suite.FullNameWithSeparator()
 }
 
 func (s *SuiteReport) traverse(enter func(report Report) TraverseOption, leave func(report Report) TraverseOption) TraverseOption {
@@ -46,20 +80,28 @@ func (s *SuiteReport) traverse(enter func(report Report) TraverseOption, leave f
 	return leave(s)
 }
 
-func (s *SuiteReport) Error() value.Value {
-	return s.err
-}
-
-func (s *SuiteReport) StackTrace() *value.StackTrace {
-	return s.stackTrace
-}
-
 func (s *SuiteReport) Duration() time.Duration {
 	return s.duration
 }
 
 func (s *SuiteReport) Status() TestStatus {
 	return s.status
+}
+
+func (s *SuiteReport) Err() []Err {
+	return s.err
+}
+
+func (s *SuiteReport) Stdout() *bytes.Buffer {
+	return &s.stdout
+}
+
+func (s *SuiteReport) Stderr() *bytes.Buffer {
+	return &s.stderr
+}
+
+func (s *SuiteReport) RegisterErr(err Err) {
+	s.err = append(s.err, err)
 }
 
 func (s *SuiteReport) RegisterSubSuiteReport(subSuiteReport *SuiteReport) {

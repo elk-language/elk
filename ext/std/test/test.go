@@ -127,7 +127,7 @@ func initTest() *value.Module {
 		c,
 		"before_each",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-			argFn := args[2].AsReference().(*vm.Closure)
+			argFn := args[1].AsReference().(*vm.Closure)
 			CurrentSuite.RegisterBeforeEach(argFn)
 			return value.Nil, value.Undefined
 		},
@@ -137,7 +137,7 @@ func initTest() *value.Module {
 		c,
 		"before_all",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-			argFn := args[2].AsReference().(*vm.Closure)
+			argFn := args[1].AsReference().(*vm.Closure)
 			CurrentSuite.RegisterBeforeAll(argFn)
 			return value.Nil, value.Undefined
 		},
@@ -147,7 +147,7 @@ func initTest() *value.Module {
 		c,
 		"after_each",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-			argFn := args[2].AsReference().(*vm.Closure)
+			argFn := args[1].AsReference().(*vm.Closure)
 			CurrentSuite.RegisterAfterEach(argFn)
 			return value.Nil, value.Undefined
 		},
@@ -157,7 +157,7 @@ func initTest() *value.Module {
 		c,
 		"after_all",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-			argFn := args[2].AsReference().(*vm.Closure)
+			argFn := args[1].AsReference().(*vm.Closure)
 			CurrentSuite.RegisterAfterAll(argFn)
 			return value.Nil, value.Undefined
 		},

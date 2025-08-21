@@ -1,8 +1,12 @@
 using Std::Test::Assertions::*
-using Std::Test::{describe, context, should}
+using Std::Test::*
 
 describe "Time", ->
 	context "now", ->
+		after_all() ->
+			assert! false
+		end
+
 		should "return current time", ->
 			t := Time.now
 			sleep 1.second
@@ -14,14 +18,14 @@ describe "Time", ->
 			t := Time.now
 			sleep 2.second
 			assert! t <: Time
-			assert! t.year > 2026
+			assert! t.year > 2024
 		end
 
 		should "wait", ->
 			puts "PIPA"
 
 			sleep 2.seconds
-			throw unchecked Error("foo `Elo.melo + 2`")
+			//throw unchecked Error("foo `Elo.melo + 2`")
 		end
 	end
 end

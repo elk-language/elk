@@ -1,16 +1,17 @@
 package test
 
 import (
+	"bytes"
 	"time"
-
-	"github.com/elk-language/elk/value"
 )
 
 type Report interface {
-	Error() value.Value
-	StackTrace() *value.StackTrace
 	Duration() time.Duration
+	Err() []Err
 	Status() TestStatus
+	Stdout() *bytes.Buffer
+	Stderr() *bytes.Buffer
+	FullNameWithSeparator() string
 	traverse(enter func(report Report) TraverseOption, leave func(report Report) TraverseOption) TraverseOption
 }
 

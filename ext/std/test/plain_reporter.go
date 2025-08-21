@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"slices"
+	"strings"
 	"syscall"
 
 	"github.com/elk-language/elk/indent"
@@ -45,6 +47,27 @@ func (s *PlainReporter) Report(events chan *ReportEvent, shutdown context.Cancel
 	for event := range events {
 		switch event.Type {
 		case REPORT_FINISH_SUITE:
+			hasBeforeAllErr := slices.ContainsFunc(
+				event.SuiteReport.err,
+				func(e Err) bool {
+					return e.Typ == ErrBeforeAll
+				},
+			)
+
+			if hasBeforeAllErr {
+				suite := event.SuiteReport.Suite
+				suiteCases := suite.CountCases()
+				s.caseCounter += suiteCases
+				switch event.SuiteReport.Status() {
+				case TEST_ERROR:
+					s.errorCounter += suiteCases
+					fmt.Print(color.RedString(strings.Repeat("E", suiteCases)))
+				case TEST_FAILED:
+					s.failedCounter += suiteCases
+					fmt.Print(color.RedString(strings.Repeat("F", suiteCases)))
+				}
+			}
+
 			if event.SuiteReport.Suite == RootSuite {
 				s.finishReport(event.SuiteReport)
 			}
@@ -80,65 +103,7 @@ func (s *PlainReporter) finishReport(report *SuiteReport) {
 					return TraverseSkip
 				}
 
-				r, ok := report.(*CaseReport)
-				if !ok {
-					return TraverseContinue
-				}
-
-				fmt.Printf("  %s:\n", r.Case.FullNameWithSeparator())
-				switch r.status {
-				case TEST_FAILED:
-					assertionErr := r.err.AsReference().(*value.Object)
-					frame, err := r.stackTrace.Get(-1)
-					if !err.IsUndefined() {
-						panic(err)
-					}
-
-					fmt.Printf(
-						"    failure: %s\n    at: %s:%d\n",
-						lexer.ColorizeEmbellishedText(assertionErr.Message().AsString().String()),
-						frame.FileName,
-						frame.LineNumber,
-					)
-
-					if r.stdout.Len() > 0 {
-						fmt.Println("\n    --- stdout ---")
-						indent.IndentString(os.Stdout, r.stdout.String(), 2)
-					}
-
-					if r.stderr.Len() > 0 {
-						fmt.Println("\n\n    --- stderr ---")
-						indent.IndentString(os.Stdout, r.stderr.String(), 2)
-					}
-					fmt.Println()
-				case TEST_ERROR:
-					if value.IsA(r.err, value.ErrorClass) {
-						err := r.err.AsReference().(*value.Object)
-						fmt.Printf(
-							"    error: %s,\n    message: %s\n\n",
-							lexer.Colorize(r.err.Class().Name),
-							lexer.ColorizeEmbellishedText(err.Message().AsString().String()),
-						)
-					} else {
-						fmt.Printf(
-							"    error: %s\n\n",
-							lexer.Colorize(r.err.Inspect()),
-						)
-					}
-
-					indent.IndentString(os.Stdout, r.stackTrace.String(), 2)
-
-					if r.stdout.Len() > 0 {
-						fmt.Println("\n\n    --- stdout ---")
-						indent.IndentString(os.Stdout, r.stdout.String(), 2)
-					}
-
-					if r.stderr.Len() > 0 {
-						fmt.Println("\n\n    --- stderr ---")
-						indent.IndentString(os.Stdout, r.stderr.String(), 2)
-					}
-					fmt.Println()
-				}
+				s.reportFailure(report)
 
 				return TraverseContinue
 			},
@@ -147,7 +112,7 @@ func (s *PlainReporter) finishReport(report *SuiteReport) {
 	}
 
 	fmt.Printf(
-		"\n\nFinished in %s\n",
+		"Finished in %s\n",
 		report.duration.String(),
 	)
 	fmt.Printf(
@@ -158,4 +123,63 @@ func (s *PlainReporter) finishReport(report *SuiteReport) {
 		s.failedCounter,
 		s.errorCounter,
 	)
+}
+
+func (s *PlainReporter) reportFailure(report Report) {
+	if len(report.Err()) == 0 {
+		return
+	}
+
+	fmt.Printf("%s:\n", report.FullNameWithSeparator())
+	switch report.Status() {
+	case TEST_FAILED, TEST_ERROR:
+		for i, testErr := range report.Err() {
+			if i != 0 {
+				fmt.Println()
+			}
+
+			fmt.Printf("   %s:\n", testErr.Typ.String())
+			if value.IsA(testErr.Err, AssertionErrorClass) {
+				assertionErr := testErr.Err.AsReference().(*value.Object)
+				frame, err := testErr.StackTrace.Get(-1)
+				if !err.IsUndefined() {
+					panic(err)
+				}
+
+				fmt.Printf(
+					"    failure: %s\n    at: %s:%d",
+					lexer.ColorizeEmbellishedText(assertionErr.Message().AsString().String()),
+					frame.FileName,
+					frame.LineNumber,
+				)
+			} else if value.IsA(testErr.Err, value.ErrorClass) {
+				err := testErr.Err.AsReference().(*value.Object)
+				fmt.Printf(
+					"    error: %s,\n    message: %s\n",
+					lexer.Colorize(testErr.Err.Class().Name),
+					lexer.ColorizeEmbellishedText(err.Message().AsString().String()),
+				)
+				indent.IndentString(os.Stdout, testErr.StackTrace.String(), 2)
+			} else {
+				fmt.Printf(
+					"    error: %s\n",
+					lexer.Colorize(testErr.Err.Inspect()),
+				)
+				indent.IndentString(os.Stdout, testErr.StackTrace.String(), 2)
+			}
+		}
+
+		stdout := report.Stdout()
+		if stdout.Len() > 0 {
+			fmt.Println("\n\n    --- stdout ---")
+			indent.IndentString(os.Stdout, stdout.String(), 2)
+		}
+
+		stderr := report.Stdout()
+		if stderr.Len() > 0 {
+			fmt.Println("\n\n    --- stderr ---")
+			indent.IndentString(os.Stdout, stderr.String(), 2)
+		}
+		fmt.Print("\n\n")
+	}
 }

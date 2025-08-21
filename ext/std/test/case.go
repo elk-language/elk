@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"fmt"
+	"iter"
 	"time"
 
 	"github.com/elk-language/elk/value"
@@ -51,29 +52,6 @@ func (c *Case) FullNameWithSeparator() string {
 	return fmt.Sprintf("%s › %s", c.Parent.FullNameWithSeparator(), c.Name)
 }
 
-func callCaseClosure(v *vm.VM, caseReport *CaseReport, events chan<- *ReportEvent, startTime time.Time, closure *vm.Closure) bool {
-	var err value.Value
-	_, err = v.CallClosure(closure)
-	if !err.IsUndefined() {
-		var status TestStatus
-		if err.Class() == AssertionErrorClass {
-			status = TEST_FAILED
-		} else {
-			status = TEST_ERROR
-		}
-
-		caseReport.status = status
-		caseReport.err = err
-		caseReport.stackTrace = v.GetStackTrace()
-		caseReport.duration = time.Since(startTime)
-		v.ResetError()
-		events <- NewCaseReportEvent(caseReport, REPORT_FINISH_CASE)
-		return false
-	}
-
-	return true
-}
-
 func isDone(ctx context.Context) bool {
 	select {
 	case <-ctx.Done():
@@ -83,11 +61,59 @@ func isDone(ctx context.Context) bool {
 	}
 }
 
+func (c *Case) Parents() iter.Seq[*Suite] {
+	return func(yield func(*Suite) bool) {
+		currentParent := c.Parent
+
+		for currentParent != nil {
+			if !yield(currentParent) {
+				return
+			}
+
+			currentParent = currentParent.Parent
+		}
+	}
+}
+
+func callCaseClosure(
+	v *vm.VM,
+	caseReport *CaseReport,
+	startTime time.Time,
+	closure *vm.Closure,
+	typ ErrTyp,
+) bool {
+	var err value.Value
+	_, err = v.CallClosure(closure)
+	if !err.IsUndefined() {
+		var status TestStatus
+		if value.IsA(err, AssertionErrorClass) {
+			status = TEST_FAILED
+		} else {
+			status = TEST_ERROR
+		}
+
+		caseReport.status = status
+		caseReport.RegisterErr(
+			Err{
+				Typ:        typ,
+				Err:        err,
+				StackTrace: v.GetStackTrace(),
+			},
+		)
+		caseReport.duration = time.Since(startTime)
+		v.ResetError()
+		return false
+	}
+
+	return true
+}
+
 func (c *Case) Run(v *vm.VM, events chan<- *ReportEvent, ctx context.Context) *CaseReport {
 	if isDone(ctx) {
 		return nil
 	}
 
+	var ok bool
 	startTime := time.Now()
 
 	caseReport := NewCaseReport(c)
@@ -105,40 +131,47 @@ func (c *Case) Run(v *vm.VM, events chan<- *ReportEvent, ctx context.Context) *C
 		v.Stderr = prevStderr
 	}()
 
-	if c.Parent != nil {
-		for _, hook := range c.Parent.BeforeEach {
-			if isDone(ctx) {
-				return nil
-			}
-			if !callCaseClosure(v, caseReport, events, startTime, hook) {
-				return caseReport
-			}
-		}
-	}
-
-	if isDone(ctx) {
-		return nil
-	}
-	if !callCaseClosure(v, caseReport, events, startTime, c.Fn) {
+	caseReport, ok = c.runBeforeEach(startTime, caseReport, v, events, ctx)
+	if !ok {
+		c.runAfterEach(startTime, caseReport, v)
 		return caseReport
 	}
 
-	if c.Parent != nil {
-		for _, hook := range c.Parent.AfterEach {
-			if isDone(ctx) {
-				return nil
-			}
-			if !callCaseClosure(v, caseReport, events, startTime, hook) {
-				return caseReport
-			}
-		}
+	if isDone(ctx) {
+		return nil
 	}
+	callCaseClosure(v, caseReport, startTime, c.Fn, ErrCase)
+
+	c.runAfterEach(startTime, caseReport, v)
 
 	if isDone(ctx) {
 		return nil
 	}
-	caseReport.status = TEST_SUCCESS
+	caseReport.UpdateStatus(TEST_SUCCESS)
 	caseReport.duration = time.Since(startTime)
 	events <- NewCaseReportEvent(caseReport, REPORT_FINISH_CASE)
 	return caseReport
+}
+
+func (c *Case) runBeforeEach(startTime time.Time, report *CaseReport, v *vm.VM, events chan<- *ReportEvent, ctx context.Context) (*CaseReport, bool) {
+	for parent := range c.Parents() {
+		for _, hook := range parent.BeforeEach {
+			if isDone(ctx) {
+				return nil, false
+			}
+			if !callCaseClosure(v, report, startTime, hook, ErrBeforeEach) {
+				return report, false
+			}
+		}
+	}
+
+	return report, true
+}
+
+func (c *Case) runAfterEach(startTime time.Time, report *CaseReport, v *vm.VM) {
+	for parent := range c.Parents() {
+		for _, hook := range parent.AfterEach {
+			callCaseClosure(v, report, startTime, hook, ErrAfterEach)
+		}
+	}
 }

@@ -27,6 +27,25 @@ type Suite struct {
 	AfterAll   []*vm.Closure
 }
 
+func (s *Suite) CountCases() int {
+	var counter int
+
+	TraverseSuite(
+		RootSuite,
+		func(test SuiteOrCase) TraverseOption {
+			switch test.(type) {
+			case *Case:
+				counter++
+			}
+
+			return TraverseContinue
+		},
+		nil,
+	)
+
+	return counter
+}
+
 func (s *Suite) traverse(enter func(test SuiteOrCase) TraverseOption, leave func(test SuiteOrCase) TraverseOption) TraverseOption {
 	switch enter(s) {
 	case TraverseBreak:
@@ -116,32 +135,22 @@ func (s *Suite) Run(v *vm.VM, events chan<- *ReportEvent, rng *rand.Rand, ctx co
 		return nil
 	}
 
-	var err value.Value
+	var ok bool
 	startTime := time.Now()
 
 	suiteReport := NewSuiteReport(s)
 	suiteReport.status = TEST_RUNNING
 	events <- NewSuiteReportEvent(suiteReport, REPORT_START_SUITE)
 
-	for _, hook := range s.BeforeAll {
-		if isDone(ctx) {
-			return nil
-		}
-		_, err = v.CallClosure(hook)
-		if !err.IsUndefined() {
-			suiteReport.status = TEST_ERROR
-			suiteReport.err = err
-			suiteReport.stackTrace = v.GetStackTrace()
-			suiteReport.duration = time.Since(startTime)
-			v.ResetError()
-			events <- NewSuiteReportEvent(suiteReport, REPORT_FINISH_SUITE)
-			return suiteReport
-		}
+	suiteReport, ok = s.runBeforeAll(startTime, suiteReport, v, events, ctx)
+	if !ok {
+		return suiteReport
 	}
 
 	for _, testCase := range shuffleCases(s.Cases, rng) {
 		caseReport := testCase.Run(v, events, ctx)
 		if caseReport == nil {
+			s.runAfterAll(startTime, suiteReport, v)
 			return nil
 		}
 		suiteReport.RegisterCaseReport(caseReport)
@@ -155,22 +164,7 @@ func (s *Suite) Run(v *vm.VM, events chan<- *ReportEvent, rng *rand.Rand, ctx co
 		suiteReport.RegisterSubSuiteReport(subSuiteReport)
 	}
 
-	for _, hook := range s.AfterAll {
-		if isDone(ctx) {
-			return nil
-		}
-		_, err = v.CallClosure(hook)
-		if !err.IsUndefined() {
-			suiteReport.status = TEST_ERROR
-			suiteReport.err = err
-			suiteReport.stackTrace = v.GetStackTrace()
-			suiteReport.duration = time.Since(startTime)
-			v.ResetError()
-			events <- NewSuiteReportEvent(suiteReport, REPORT_FINISH_SUITE)
-			return suiteReport
-		}
-	}
-
+	s.runAfterAll(startTime, suiteReport, v)
 	if isDone(ctx) {
 		return nil
 	}
@@ -179,6 +173,61 @@ func (s *Suite) Run(v *vm.VM, events chan<- *ReportEvent, rng *rand.Rand, ctx co
 	suiteReport.duration = time.Since(startTime)
 	events <- NewSuiteReportEvent(suiteReport, REPORT_FINISH_SUITE)
 	return suiteReport
+}
+
+func (s *Suite) runBeforeAll(startTime time.Time, report *SuiteReport, v *vm.VM, events chan<- *ReportEvent, ctx context.Context) (*SuiteReport, bool) {
+	for _, hook := range s.BeforeAll {
+		if isDone(ctx) {
+			return nil, false
+		}
+		_, err := v.CallClosure(hook)
+		if !err.IsUndefined() {
+			var status TestStatus
+			if value.IsA(err, AssertionErrorClass) {
+				status = TEST_FAILED
+			} else {
+				status = TEST_ERROR
+			}
+			report.status = status
+			report.RegisterErr(
+				Err{
+					Typ:        ErrBeforeAll,
+					Err:        err,
+					StackTrace: v.GetStackTrace(),
+				},
+			)
+			report.duration = time.Since(startTime)
+			v.ResetError()
+			events <- NewSuiteReportEvent(report, REPORT_FINISH_SUITE)
+			return report, false
+		}
+	}
+
+	return report, true
+}
+
+func (s *Suite) runAfterAll(startTime time.Time, report *SuiteReport, v *vm.VM) {
+	for _, hook := range s.AfterAll {
+		_, err := v.CallClosure(hook)
+		if !err.IsUndefined() {
+			var status TestStatus
+			if value.IsA(err, AssertionErrorClass) {
+				status = TEST_FAILED
+			} else {
+				status = TEST_ERROR
+			}
+			report.status = status
+			report.RegisterErr(
+				Err{
+					Typ:        ErrAfterAll,
+					Err:        err,
+					StackTrace: v.GetStackTrace(),
+				},
+			)
+			report.duration = time.Since(startTime)
+			v.ResetError()
+		}
+	}
 }
 
 func noopTraverseSuite(test SuiteOrCase) TraverseOption { return TraverseContinue }

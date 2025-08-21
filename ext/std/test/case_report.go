@@ -3,19 +3,16 @@ package test
 import (
 	"bytes"
 	"time"
-
-	"github.com/elk-language/elk/value"
 )
 
 // Contains the result of running a test case
 type CaseReport struct {
-	Case       *Case
-	err        value.Value // Assertion failure or runtime error
-	stackTrace *value.StackTrace
-	duration   time.Duration // The amount of time it took to run the test
-	status     TestStatus
-	stdout     bytes.Buffer
-	stderr     bytes.Buffer
+	Case     *Case
+	err      []Err
+	duration time.Duration // The amount of time it took to run the test
+	status   TestStatus
+	stdout   bytes.Buffer
+	stderr   bytes.Buffer
 }
 
 func (c *CaseReport) traverse(enter func(report Report) TraverseOption, leave func(report Report) TraverseOption) TraverseOption {
@@ -29,12 +26,24 @@ func (c *CaseReport) traverse(enter func(report Report) TraverseOption, leave fu
 	return leave(c)
 }
 
-func (c *CaseReport) Error() value.Value {
+func (c *CaseReport) FullNameWithSeparator() string {
+	return c.Case.FullNameWithSeparator()
+}
+
+func (c *CaseReport) Err() []Err {
 	return c.err
 }
 
-func (c *CaseReport) StackTrace() *value.StackTrace {
-	return c.stackTrace
+func (c *CaseReport) Stdout() *bytes.Buffer {
+	return &c.stdout
+}
+
+func (c *CaseReport) Stderr() *bytes.Buffer {
+	return &c.stderr
+}
+
+func (c *CaseReport) RegisterErr(err Err) {
+	c.err = append(c.err, err)
 }
 
 func (c *CaseReport) Duration() time.Duration {
@@ -48,5 +57,20 @@ func (c *CaseReport) Status() TestStatus {
 func NewCaseReport(cas *Case) *CaseReport {
 	return &CaseReport{
 		Case: cas,
+	}
+}
+
+func (c *CaseReport) UpdateStatus(newStatus TestStatus) {
+	switch newStatus {
+	case TEST_ERROR:
+		c.status = TEST_ERROR
+	case TEST_FAILED:
+		if c.status != TEST_ERROR {
+			c.status = TEST_FAILED
+		}
+	case TEST_SUCCESS:
+		if c.status == TEST_RUNNING {
+			c.status = TEST_SUCCESS
+		}
 	}
 }
