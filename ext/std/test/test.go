@@ -57,7 +57,7 @@ func RunWith(v *vm.VM, reporter Reporter, events chan *ReportEvent, seed uint64)
 	return report
 }
 
-var RootSuite = NewSuite("", nil)
+var RootSuite = NewSuite("", nil, nil)
 var CurrentSuite = RootSuite
 
 func initTest() *value.Module {
@@ -69,11 +69,22 @@ func initTest() *value.Module {
 		c,
 		"describe",
 		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-			argName := args[1].AsReference().(value.String)
+			argName := args[1].AsReference().(value.String).String()
 			argFn := args[2].AsReference().(*vm.Closure)
 
+			loc := argFn.Bytecode.Location
+			subSuite := CurrentSuite.NewSubSuite(argName, loc)
+			suiteMatch := SuiteMatchesFilters(subSuite)
+			switch suiteMatch {
+			case SUITE_MATCH_FULL:
+				subSuite.FullMatch = true
+			case SUITE_MATCH_FALSE:
+				return value.Nil, value.Undefined
+			}
+
 			prevSuite := CurrentSuite
-			CurrentSuite = CurrentSuite.NewSubSuite(string(argName))
+			CurrentSuite.RegisterSubSuite(subSuite)
+			CurrentSuite = subSuite
 
 			_, err = v.CallClosure(argFn)
 			if !err.IsUndefined() {
@@ -94,7 +105,12 @@ func initTest() *value.Module {
 			argName := args[1].AsReference().(value.String)
 			argFn := args[2].AsReference().(*vm.Closure)
 
-			CurrentSuite.NewCase(string(argName), argFn)
+			testCase := CurrentSuite.NewCase(string(argName), argFn)
+			if !CaseMatchesFilters(testCase) {
+				return value.Nil, value.Undefined
+			}
+
+			CurrentSuite.RegisterCase(testCase)
 			return value.Nil, value.Undefined
 		},
 		vm.DefWithParameters(2),
@@ -106,7 +122,13 @@ func initTest() *value.Module {
 			argName := args[1].AsReference().(value.String)
 			argFn := args[2].AsReference().(*vm.Closure)
 
-			CurrentSuite.NewCase(fmt.Sprintf("it %s", string(argName)), argFn)
+			testCase := CurrentSuite.NewCase(fmt.Sprintf("it %s", string(argName)), argFn)
+
+			if !CaseMatchesFilters(testCase) {
+				return value.Nil, value.Undefined
+			}
+
+			CurrentSuite.RegisterCase(testCase)
 			return value.Nil, value.Undefined
 		},
 		vm.DefWithParameters(2),
@@ -118,7 +140,13 @@ func initTest() *value.Module {
 			argName := args[1].AsReference().(value.String)
 			argFn := args[2].AsReference().(*vm.Closure)
 
-			CurrentSuite.NewCase(fmt.Sprintf("should %s", string(argName)), argFn)
+			testCase := CurrentSuite.NewCase(fmt.Sprintf("should %s", string(argName)), argFn)
+
+			if !CaseMatchesFilters(testCase) {
+				return value.Nil, value.Undefined
+			}
+
+			CurrentSuite.RegisterCase(testCase)
 			return value.Nil, value.Undefined
 		},
 		vm.DefWithParameters(2),

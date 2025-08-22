@@ -197,6 +197,11 @@ func (r *Regex) Matches(other Value) (Value, Value) {
 	}
 }
 
+// Check whether the regex matches the given string
+func (r *Regex) MatchesString(other string) bool {
+	return r.Re.MatchString(other)
+}
+
 func NewRegexComparer(opts *cmp.Options) cmp.Option {
 	return cmp.Comparer(func(x, y *Regex) bool {
 		if x == y {

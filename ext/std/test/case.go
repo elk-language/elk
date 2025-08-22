@@ -6,6 +6,7 @@ import (
 	"iter"
 	"time"
 
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -15,6 +16,10 @@ type Case struct {
 	Name   string
 	Fn     *vm.Closure
 	Parent *Suite
+}
+
+func (c *Case) FullMatch() bool {
+	return c.Parent.FullMatch
 }
 
 func (c *Case) traverse(enter func(test SuiteOrCase) TraverseOption, leave func(test SuiteOrCase) TraverseOption) TraverseOption {
@@ -36,6 +41,10 @@ func NewCase(name string, fn *vm.Closure, parent *Suite) *Case {
 	}
 }
 
+func (c *Case) Location() *position.Location {
+	return c.Fn.Bytecode.Location
+}
+
 func (c *Case) FullName() string {
 	if c.Parent == nil {
 		return c.Name
@@ -49,7 +58,7 @@ func (c *Case) FullNameWithSeparator() string {
 		return c.Name
 	}
 
-	return fmt.Sprintf("%s › %s", c.Parent.FullNameWithSeparator(), c.Name)
+	return fmt.Sprintf("%s > %s", c.Parent.FullNameWithSeparator(), c.Name)
 }
 
 func isDone(ctx context.Context) bool {

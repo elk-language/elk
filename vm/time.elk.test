@@ -3,29 +3,15 @@ using Std::Test::*
 
 describe "Time", ->
 	context "now", ->
-		after_all() ->
-			assert! false
-		end
-
 		should "return current time", ->
 			t := Time.now
-			sleep 1.second
 			assert! t <: Time
 			assert! t.year > 2024
-		end
-
-		should "return current ti", ->
-			t := Time.now
-			sleep 2.second
-			assert! t <: Time
-			assert! t.year > 2024
-		end
-
-		should "wait", ->
-			puts "PIPA"
-
-			sleep 2.seconds
-			//throw unchecked Error("foo `Elo.melo + 2`")
+			assert! t.month > 0
+			assert! t.day > 0
+			assert! t.hour >= 0
+			assert! t.minute >= 0
+			assert! t.second >= 0
 		end
 	end
 end

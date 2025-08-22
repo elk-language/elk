@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"path"
@@ -15,6 +14,7 @@ import (
 	"github.com/elk-language/elk/repl"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/vm"
+	"github.com/spf13/pflag"
 )
 
 // Main entry point to the interpreter.
@@ -22,7 +22,7 @@ func main() {
 	command := os.Args[1]
 	switch command {
 	case "repl":
-		fs := flag.NewFlagSet("repl", flag.ContinueOnError)
+		fs := pflag.NewFlagSet("repl", pflag.ExitOnError)
 		disassemble := fs.Bool("disassemble", false, "run the REPL in disassembler mode")
 		inspectStack := fs.Bool("inspect-stack", false, "print the stack after each iteration of the REPL")
 		parse := fs.Bool("parse", false, "run the REPL in parser mode")
@@ -38,11 +38,13 @@ func main() {
 			runFile(os.Args[2])
 		}
 	case "test":
-		if len(os.Args) < 3 {
-			runMainTestFile()
-		} else {
-			runTestFile(os.Args[2])
-		}
+		fs := pflag.NewFlagSet("test", pflag.ExitOnError)
+		main := fs.String("main", "main.elk.test", "specify the main test file that loads tests")
+		grep := fs.String("grep", "", "test name filter regex pattern")
+		path := fs.StringSliceP("path", "p", []string{}, "test file name glob with an optional line number")
+		fs.Parse(os.Args[2:])
+
+		runTest(*main, *grep, *path)
 	default:
 		os.Exit(64)
 	}
@@ -94,6 +96,26 @@ func runMain() {
 	runFile(mainPath)
 }
 
+func runTest(main string, grep string, paths []string) {
+	if grep != "" {
+		regexFilter, err := test.NewRegexFilter(grep)
+		if err != nil {
+			fmt.Printf("invalid grep: %s\n", err)
+			os.Exit(1)
+		}
+		test.RegisterFilter(regexFilter)
+	}
+	for _, path := range paths {
+		pathFilter, err := test.NewPathFilter(path)
+		if err != nil {
+			fmt.Printf("invalid path: %s\n", err)
+			os.Exit(1)
+		}
+		test.RegisterFilter(pathFilter)
+	}
+	runTestFile(main)
+}
+
 func runTestFile(fileName string) {
 	runFile(fileName)
 	testExt := ext.Map["std/test"]
@@ -105,14 +127,4 @@ func runTestFile(fileName string) {
 	if report == nil || report.Status() != test.TEST_SUCCESS {
 		os.Exit(1)
 	}
-}
-
-func runMainTestFile() {
-	cwd, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	mainPath := path.Join(cwd, "main.elk.test")
-	runTestFile(mainPath)
 }

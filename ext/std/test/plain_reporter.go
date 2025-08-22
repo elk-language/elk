@@ -56,7 +56,7 @@ func (s *PlainReporter) Report(events chan *ReportEvent, shutdown context.Cancel
 
 			if hasBeforeAllErr {
 				suite := event.SuiteReport.Suite
-				suiteCases := suite.CountCases()
+				suiteCases := suite.CaseCount()
 				s.caseCounter += suiteCases
 				switch event.SuiteReport.Status() {
 				case TEST_ERROR:

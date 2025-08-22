@@ -40,3 +40,10 @@ expand: fmt
 
 inspect: fmt
 	go run ./cmd/elk repl --inspect-stack
+
+3rd-party-licenses:
+	rm -rf licenses/
+	go-licenses save ./... --save_path="licenses/"
+
+tidy: 3rd-party-licenses
+	go mod tidy

@@ -7,6 +7,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -18,6 +19,7 @@ type SuiteOrCase interface {
 // Represents a test suite, a group of tests like `describe` or `context`
 type Suite struct {
 	Name       string
+	Location   *position.Location
 	Parent     *Suite
 	SubSuites  []*Suite
 	Cases      []*Case
@@ -25,25 +27,28 @@ type Suite struct {
 	AfterEach  []*vm.Closure
 	BeforeAll  []*vm.Closure
 	AfterAll   []*vm.Closure
+	FullMatch  bool
+	caseCount  int
 }
 
-func (s *Suite) CountCases() int {
+func (s *Suite) countCases() int {
 	var counter int
 
-	TraverseSuite(
-		RootSuite,
-		func(test SuiteOrCase) TraverseOption {
-			switch test.(type) {
-			case *Case:
-				counter++
-			}
-
-			return TraverseContinue
-		},
-		nil,
-	)
+	counter += len(s.Cases)
+	for _, subSuite := range s.SubSuites {
+		counter += subSuite.CaseCount()
+	}
 
 	return counter
+}
+
+func (s *Suite) CaseCount() int {
+	if s.caseCount >= 0 {
+		return s.caseCount
+	}
+
+	s.caseCount = s.countCases()
+	return s.caseCount
 }
 
 func (s *Suite) traverse(enter func(test SuiteOrCase) TraverseOption, leave func(test SuiteOrCase) TraverseOption) TraverseOption {
@@ -70,39 +75,58 @@ func (s *Suite) traverse(enter func(test SuiteOrCase) TraverseOption, leave func
 }
 
 // Create a new tests suite
-func NewSuite(name string, parent *Suite) *Suite {
+func NewSuite(name string, parent *Suite, loc *position.Location) *Suite {
 	return &Suite{
-		Name:   name,
-		Parent: parent,
+		Name:      name,
+		Parent:    parent,
+		Location:  loc,
+		caseCount: -1,
 	}
 }
 
-func (s *Suite) NewSubSuite(name string) *Suite {
-	newSuite := NewSuite(name, s)
-	s.SubSuites = append(s.SubSuites, newSuite)
-	return newSuite
+func (s *Suite) NewSubSuite(name string, loc *position.Location) *Suite {
+	subSuite := NewSuite(name, s, loc)
+	subSuite.FullMatch = s.FullMatch
+	return subSuite
+}
+
+func (s *Suite) RegisterSubSuite(subSuite *Suite) {
+	if !subSuite.FullMatch {
+		subSuite.FullMatch = s.FullMatch
+	}
+	s.SubSuites = append(s.SubSuites, subSuite)
 }
 
 func (s *Suite) NewCase(name string, fn *vm.Closure) *Case {
-	newCase := NewCase(name, fn, s)
-	s.Cases = append(s.Cases, newCase)
-	return newCase
+	return NewCase(name, fn, s)
+}
+
+func (s *Suite) RegisterCase(testCase *Case) {
+	s.Cases = append(s.Cases, testCase)
 }
 
 func (s *Suite) FullName() string {
 	if s.Parent == nil {
 		return s.Name
 	}
+	parentFullName := s.Parent.FullName()
+	if parentFullName == "" {
+		return s.Name
+	}
 
-	return fmt.Sprintf("%s %s", s.Parent.FullName(), s.Name)
+	return fmt.Sprintf("%s %s", parentFullName, s.Name)
 }
 
 func (s *Suite) FullNameWithSeparator() string {
 	if s.Parent == nil {
 		return s.Name
 	}
+	parentFullName := s.Parent.FullName()
+	if parentFullName == "" {
+		return s.Name
+	}
 
-	return fmt.Sprintf("%s › %s", s.Parent.FullName(), s.Name)
+	return fmt.Sprintf("%s > %s", parentFullName, s.Name)
 }
 
 func (s *Suite) RegisterBeforeEach(fn *vm.Closure) {
@@ -141,6 +165,12 @@ func (s *Suite) Run(v *vm.VM, events chan<- *ReportEvent, rng *rand.Rand, ctx co
 	suiteReport := NewSuiteReport(s)
 	suiteReport.status = TEST_RUNNING
 	events <- NewSuiteReportEvent(suiteReport, REPORT_START_SUITE)
+
+	if s.CaseCount() == 0 {
+		suiteReport.status = TEST_SKIPPED
+		events <- NewSuiteReportEvent(suiteReport, REPORT_FINISH_SUITE)
+		return suiteReport
+	}
 
 	suiteReport, ok = s.runBeforeAll(startTime, suiteReport, v, events, ctx)
 	if !ok {

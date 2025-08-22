@@ -28,7 +28,7 @@ func main() {
 	}
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Oh no!", err)
+		fmt.Println("Test reporter err", err)
 		os.Exit(1)
 	}
 }
@@ -115,7 +115,7 @@ func (r *RichReporter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				setPercentCmd = r.progress.SetPercent(r.Percent())
 			}
 
-			return r, tea.Sequence(printCmd, setPercentCmd)
+			return r, tea.Sequence(printCmd, setPercentCmd, waitForEvent(r.events))
 		case REPORT_FINISH_CASE:
 			r.finishedCaseCount++
 
@@ -282,7 +282,7 @@ func (r *RichReporter) ETA() time.Duration {
 func (r *RichReporter) Report(events chan *ReportEvent, shutdown context.CancelFunc) {
 	r.events = events
 	r.shutdown = shutdown
-	r.totalCaseCount = RootSuite.CountCases()
+	r.totalCaseCount = RootSuite.CaseCount()
 
 	if _, err := tea.NewProgram(r).Run(); err != nil {
 		os.Exit(1)
@@ -294,9 +294,10 @@ func (r *RichReporter) reportFailure(report Report, typ string) tea.Cmd {
 		return nil
 	}
 
+	r.setFailed()
 	var result strings.Builder
 	result.WriteByte('\n')
-	fmt.Fprintf(&result, " %s%s:\n", color.RedString(typ), report.FullNameWithSeparator())
+	fmt.Fprintf(&result, " %s %s:\n", color.RedString(typ), report.FullNameWithSeparator())
 
 	var beforeAllErr bool
 	for i, testErr := range report.Err() {
@@ -339,14 +340,15 @@ func (r *RichReporter) reportFailure(report Report, typ string) tea.Cmd {
 			indent.IndentString(&result, testErr.StackTrace.String(), 2)
 		}
 
-		if testErr.Typ == ErrBeforeAll {
+		switch testErr.Typ {
+		case ErrBeforeAll:
 			beforeAllErr = true
 		}
 	}
 
 	if beforeAllErr {
 		suite := report.(*SuiteReport).Suite
-		suiteCases := suite.CountCases()
+		suiteCases := suite.CaseCount()
 		r.finishedCaseCount += suiteCases
 		switch report.Status() {
 		case TEST_ERROR:
@@ -354,7 +356,6 @@ func (r *RichReporter) reportFailure(report Report, typ string) tea.Cmd {
 		case TEST_FAILED:
 			r.failedCounter += suiteCases
 		}
-		r.setFailed()
 	}
 
 	stdout := report.Stdout()
