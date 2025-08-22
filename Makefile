@@ -17,8 +17,13 @@ vet:
 build: fmt
 	go build -ldflags "-s -w"
 
-test: header
+go-test: header
 	go test ./... -timeout 40s
+
+elk-test: header
+	go run ./cmd/elk test
+
+test: go-test elk-test
 
 repl: fmt
 	go run ./cmd/elk repl
