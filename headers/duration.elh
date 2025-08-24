@@ -43,6 +43,12 @@ sealed primitive class ::Std::Duration < Value
 	def nanoseconds: Int; end
 
 	##[
+		Returns the count of nanoseconds in this duration modulo 1000 as an Int.
+		Range of values: 0...999
+	]##
+	def nanoseconds_mod: Int; end
+
+	##[
 		Returns the count of microseconds in this duration as an Int.
 	]##
 	def in_microseconds: Float; end
@@ -51,6 +57,12 @@ sealed primitive class ::Std::Duration < Value
 		Returns the count of microseconds in this duration as a Float.
 	]##
 	def microseconds: Int; end
+
+	##[
+		Returns the count of microseconds in this duration modulo 1000 as a Float.
+		Range of values: 0...999
+	]##
+	def microseconds_mod: Int; end
 
 	##[
 		Returns the count of milliseconds in this duration as a Float.
@@ -63,6 +75,12 @@ sealed primitive class ::Std::Duration < Value
 	def milliseconds: Int; end
 
 	##[
+		Returns the count of milliseconds in this duration modulo 1000 as an Int.
+		Range of values: 0...999
+	]##
+	def milliseconds_mod: Int; end
+
+	##[
 		Returns the count of seconds in this duration as a Float.
 	]##
 	def in_seconds: Float; end
@@ -71,6 +89,12 @@ sealed primitive class ::Std::Duration < Value
 		Returns the count of seconds in this duration as an Int.
 	]##
 	def seconds: Int; end
+
+	##[
+		Returns the count of seconds in this duration modulo 60 as an Int.
+		Range of values: 0...59
+	]##
+	def seconds_mod: Int; end
 
 	##[
 		Returns the count of minutes in this duration as a Float.
@@ -83,6 +107,12 @@ sealed primitive class ::Std::Duration < Value
 	def minutes: Int; end
 
 	##[
+		Returns the count of minutes in this duration modulo 60 as an Int.
+		Range of values: 0...59
+	]##
+	def minutes_mod: Int; end
+
+	##[
 		Returns the count of hours in this duration as a Float.
 	]##
 	def in_hours: Float; end
@@ -91,6 +121,12 @@ sealed primitive class ::Std::Duration < Value
 		Returns the count of hours in this duration as an Int.
 	]##
 	def hours: Int; end
+
+	##[
+		Returns the count of hours in this duration modulo 24 as an Int.
+		Range of values: 0...23
+	]##
+	def hours_mod: Int; end
 
 	##[
 		Returns the count of days in this duration as a Float.

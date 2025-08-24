@@ -82,4 +82,6 @@ func InitGlobalEnvironment() {
 	initPath()
 	initBox()
 	initResult()
+	initDate()
+	initDateSpan()
 }

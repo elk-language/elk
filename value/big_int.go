@@ -52,7 +52,7 @@ func (i *BigInt) ToSmallInt() SmallInt {
 
 // Convert to Elk Int64
 func (i *BigInt) ToInt64() Int64 {
-	return i.ToSmallInt().ToInt64()
+	return Int64(i.ToGoBigInt().Int64())
 }
 
 // Convert to Elk Int32

@@ -78,6 +78,14 @@ func initDuration() {
 	)
 	Def(
 		c,
+		"nanoseconds_mod",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustDuration()
+			return self.NanosecondsMod(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"in_nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
@@ -90,6 +98,14 @@ func initDuration() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
 			return self.Microseconds(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"microseconds_mod",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustDuration()
+			return self.MicrosecondsMod(), value.Undefined
 		},
 	)
 	Def(
@@ -110,6 +126,14 @@ func initDuration() {
 	)
 	Def(
 		c,
+		"milliseconds_mod",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustDuration()
+			return self.MillisecondsMod(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"in_milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
@@ -122,6 +146,14 @@ func initDuration() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
 			return self.Seconds(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"seconds_mod",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustDuration()
+			return self.SecondsMod(), value.Undefined
 		},
 	)
 	Def(
@@ -142,6 +174,14 @@ func initDuration() {
 	)
 	Def(
 		c,
+		"minutes_mod",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustDuration()
+			return self.MinutesMod(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"in_minutes",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
@@ -154,6 +194,14 @@ func initDuration() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
 			return self.Hours(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"hours_mod",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustDuration()
+			return self.HoursMod(), value.Undefined
 		},
 	)
 	Def(

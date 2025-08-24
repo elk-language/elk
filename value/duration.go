@@ -165,12 +165,20 @@ func (d Duration) Nanoseconds() Value {
 	return ToElkInt(d.Go().Nanoseconds())
 }
 
+func (d Duration) NanosecondsMod() Value {
+	return ToElkInt(d.Go().Nanoseconds() % 1000)
+}
+
 func (d Duration) InNanoseconds() Float {
 	return Float(d.Go().Nanoseconds())
 }
 
 func (d Duration) Microseconds() Value {
 	return ToElkInt(d.Go().Microseconds())
+}
+
+func (d Duration) MicrosecondsMod() Value {
+	return ToElkInt(d.Go().Microseconds() % 1000)
 }
 
 func (d Duration) InMicroseconds() Float {
@@ -181,12 +189,20 @@ func (d Duration) Milliseconds() Value {
 	return ToElkInt(d.Go().Milliseconds())
 }
 
+func (d Duration) MillisecondsMod() Value {
+	return ToElkInt(d.Go().Milliseconds() % 1000)
+}
+
 func (d Duration) InMilliseconds() Float {
 	return Float(d.Go().Milliseconds())
 }
 
 func (d Duration) Seconds() Value {
 	return ToElkInt(int64(d / Second))
+}
+
+func (d Duration) SecondsMod() Value {
+	return ToElkInt(int64(d/Second) % 60)
 }
 
 func (d Duration) InSeconds() Float {
@@ -197,12 +213,20 @@ func (d Duration) Minutes() Value {
 	return ToElkInt(int64(d / Minute))
 }
 
+func (d Duration) MinutesMod() Value {
+	return ToElkInt(int64(d/Minute) % 60)
+}
+
 func (d Duration) InMinutes() Float {
 	return Float(d.Go().Minutes())
 }
 
 func (d Duration) Hours() Value {
 	return ToElkInt(int64(d / Hour))
+}
+
+func (d Duration) HoursMod() Value {
+	return ToElkInt(int64(d/Hour) % 24)
 }
 
 func (d Duration) InHours() Float {

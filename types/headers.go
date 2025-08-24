@@ -88,6 +88,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineInterface("Represents a data structure that\ncan be used to check if it contains\na value.", value.ToSymbol("Container"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		{
+			namespace := namespace.TryDefineClass("Represents a calendar date (year, month, day).\n It is an inline value on both 32bit and 64bit systems.\n The year range is from `-4_194_304` to `4_194_303`.", false, true, true, false, value.ToSymbol("Date"), objectClass, env)
+			namespace.TryDefineClass("Represents a calendar date (year, month, day).\n It is an inline value on both 32bit and 64bit systems.\n The year range is from `-4_194_304` to `4_194_303`.", false, true, true, false, value.ToSymbol("Span"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.TryDefineModule("Contains various debugging utilities.", value.ToSymbol("Debug"), env)
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be decremented using\nthe `--` operator like `a--`", value.ToSymbol("Decrementable"), env)
@@ -1390,6 +1395,64 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtypeString("Date").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("year"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("month"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("day"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
+				namespace.DefineMethod("Returns the day in range `1...31`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("day"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the month in range `1...12`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("month"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the string representation of the date in the format \"2025-12-27\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the year.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year"), nil, nil, NameToType("Std::Int", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Returns the current date.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("now"), nil, nil, Void{}, Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtypeString("Span").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+					namespace.SetParent(NameToNamespace("Std::Value", env))
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("years"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("months"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("days"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+					namespace.DefineMethod("Returns the count of days in this date span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("days"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of months in this date span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("months"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of months in this date span modulo 12 as an Int.\nRange of values: 0...11", 0|METHOD_NATIVE_FLAG, value.ToSymbol("months_mod"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the string representation of the date span in the format \"5Y2M10D\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+					namespace.DefineMethod("Returns the count of years in this date span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year"), nil, nil, NameToType("Std::Int", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
+			{
 				namespace := namespace.MustSubtypeString("Debug").(*Module)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -1524,6 +1587,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
 				namespace.DefineMethod("Returns the count of days in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("days"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the count of hours in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hours"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the count of hours in this duration modulo 24 as an Int.\nRange of values: 0...23", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hours_mod"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the count of days in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_days"), nil, nil, NameToType("Std::Float", env), Never{})
 				namespace.DefineMethod("Returns the count of hours in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_hours"), nil, nil, NameToType("Std::Float", env), Never{})
 				namespace.DefineMethod("Returns the count of microseconds in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_microseconds"), nil, nil, NameToType("Std::Float", env), Never{})
@@ -1534,10 +1598,15 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the count of weeks in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_weeks"), nil, nil, NameToType("Std::Float", env), Never{})
 				namespace.DefineMethod("Returns the count of years in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_years"), nil, nil, NameToType("Std::Float", env), Never{})
 				namespace.DefineMethod("Returns the count of microseconds in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the count of microseconds in this duration modulo 1000 as a Float.\nRange of values: 0...999", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microseconds_mod"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the count of milliseconds in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the count of milliseconds in this duration modulo 1000 as an Int.\nRange of values: 0...999", 0|METHOD_NATIVE_FLAG, value.ToSymbol("milliseconds_mod"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the count of minutes in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("minutes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the count of minutes in this duration modulo 60 as an Int.\nRange of values: 0...59", 0|METHOD_NATIVE_FLAG, value.ToSymbol("minutes_mod"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the count of nanoseconds in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the count of nanoseconds in this duration modulo 1000 as an Int.\nRange of values: 0...999", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanoseconds_mod"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the count of seconds in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the count of seconds in this duration modulo 60 as an Int.\nRange of values: 0...59", 0|METHOD_NATIVE_FLAG, value.ToSymbol("seconds_mod"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the string representation of the duration in the format \"51h15m0.12s\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Returns the count of weeks in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weeks"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the count of years in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("years"), nil, nil, NameToType("Std::Int", env), Never{})

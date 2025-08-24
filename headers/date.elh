@@ -1,0 +1,41 @@
+##[
+	Represents a calendar date (year, month, day).
+  It is an inline value on both 32bit and 64bit systems.
+  The year range is from `-4_194_304` to `4_194_303`.
+]##
+sealed primitive class ::Std::Date < Value
+	singleton
+		##[
+			Returns the current date.
+		]##
+		def now; end
+	end
+
+	init(year: Int = 0, month: Int = 1, day: Int = 1); end
+
+	def +(other: Duration): Duration; end
+	def -(other: Duration): Duration; end
+	def *(other: CoercibleNumeric): Duration; end
+	def /(other: CoercibleNumeric): Duration; end
+
+	##[
+		Returns the string representation of the date in the format "2025-12-27".
+	]##
+	def to_string: String; end
+
+	##[
+		Returns the year.
+	]##
+	def year: Int; end
+
+	##[
+		Returns the month in range `1...12`
+	]##
+	def month: Int; end
+
+	##[
+		Returns the day in range `1...31`
+	]##
+	def day: Int; end
+
+end

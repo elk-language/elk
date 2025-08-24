@@ -46,6 +46,8 @@ const (
 	UINT32_FLAG
 	CHAR_FLAG
 	SYMBOL_FLAG
+	DATE_FLAG
+	DATE_SPAN_FLAG
 
 	// only 64 bit systems
 	INT64_FLAG
@@ -112,6 +114,10 @@ func (v Value) Inspect() string {
 		return v.AsChar().Inspect()
 	case DURATION_FLAG:
 		return v.AsInlineDuration().Inspect()
+	case DATE_FLAG:
+		return v.AsDate().Inspect()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan().Inspect()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -169,6 +175,10 @@ func (v Value) Class() *Class {
 		return v.AsChar().Class()
 	case DURATION_FLAG:
 		return v.AsInlineDuration().Class()
+	case DATE_FLAG:
+		return v.AsDate().Class()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan().Class()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -218,6 +228,10 @@ func (v Value) DirectClass() *Class {
 		return v.AsChar().DirectClass()
 	case DURATION_FLAG:
 		return v.AsInlineDuration().DirectClass()
+	case DATE_FLAG:
+		return v.AsDate().DirectClass()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan().DirectClass()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -267,6 +281,10 @@ func (v Value) SingletonClass() *Class {
 		return v.AsChar().SingletonClass()
 	case DURATION_FLAG:
 		return v.AsInlineDuration().SingletonClass()
+	case DATE_FLAG:
+		return v.AsDate().SingletonClass()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan().SingletonClass()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -316,6 +334,10 @@ func (v Value) InstanceVariables() *InstanceVariables {
 		return v.AsChar().InstanceVariables()
 	case DURATION_FLAG:
 		return v.AsInlineDuration().InstanceVariables()
+	case DATE_FLAG:
+		return v.AsDate().InstanceVariables()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan().InstanceVariables()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -365,6 +387,10 @@ func (v Value) Error() string {
 		return v.AsChar().Error()
 	case DURATION_FLAG:
 		return v.AsInlineDuration().Error()
+	case DATE_FLAG:
+		return v.AsDate().Error()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan().Error()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -380,6 +406,14 @@ func (v Value) IsReference() bool {
 
 func (v Value) AsString() String {
 	return v.AsReference().(String)
+}
+
+func (v Value) AsBigInt() *BigInt {
+	return (*BigInt)(v.Pointer())
+}
+
+func (v Value) MustBigInt() *BigInt {
+	return v.MustReference().(*BigInt)
 }
 
 // Returns `nil` when the value is not a reference
@@ -703,6 +737,38 @@ func (v Value) MustInlineDuration() Duration {
 		panic(fmt.Sprintf("value `%s` is not an inline Duration", v.Inspect()))
 	}
 	return v.AsInlineDuration()
+}
+
+func (v Value) IsDate() bool {
+	return v.flag == DATE_FLAG
+}
+
+func (v Value) AsDate() Date {
+	return Date{bits: uint32(v.data)}
+}
+
+func (v Value) MustDate() Date {
+	if !v.IsDate() {
+		panic(fmt.Sprintf("value `%s` is not a Date", v.Inspect()))
+	}
+	return v.AsDate()
+}
+
+func (v Value) IsDateSpan() bool {
+	return v.flag == DATE_SPAN_FLAG
+}
+
+func (v Value) AsDateSpan() DateSpan {
+	months := int32(v.data >> 32)
+	days := int32(v.data & 0xFFFFFFFF)
+	return DateSpan{months: months, days: days}
+}
+
+func (v Value) MustDateSpan() DateSpan {
+	if !v.IsDateSpan() {
+		panic(fmt.Sprintf("value `%s` is not a DateSpan", v.Inspect()))
+	}
+	return v.AsDateSpan()
 }
 
 func (v Value) IsInlineSymbol() bool {

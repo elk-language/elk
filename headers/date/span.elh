@@ -1,0 +1,35 @@
+##[
+	Represents a calendar date (year, month, day).
+  It is an inline value on both 32bit and 64bit systems.
+  The year range is from `-4_194_304` to `4_194_303`.
+]##
+sealed primitive class ::Std::Date::Span < Value
+	init(years: Int = 0, months: Int = 0, days: Int = 0); end
+
+	##[
+		Returns the string representation of the date span in the format "5Y2M10D".
+	]##
+	def to_string: String; end
+
+	##[
+		Returns the count of years in this date span as an Int.
+	]##
+	def year: Int; end
+
+	##[
+		Returns the count of months in this date span as an Int.
+	]##
+	def months: Int; end
+
+	##[
+		Returns the count of months in this date span modulo 12 as an Int.
+		Range of values: 0...11
+	]##
+	def months_mod: Int; end
+
+	##[
+		Returns the count of days in this date span as an Int.
+	]##
+	def days: Int; end
+
+end
