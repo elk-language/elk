@@ -1,11 +1,11 @@
 using Std::Test::Assertions::*
 using Std::Test::*
 
-describe "Time", ->
+describe "DateTime", ->
 	context "now", ->
 		should "return current time", ->
-			t := Time.now
-			assert! t <: Time
+			t := DateTime.now
+			assert! t <: DateTime
 			assert! t.year > 2024
 			assert! t.month > 0
 			assert! t.day > 0

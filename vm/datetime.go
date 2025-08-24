@@ -4,10 +4,10 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Std::Time
+// Std::DateTime
 func initTime() {
 	// Class methods
-	c := &value.TimeClass.SingletonClass().MethodContainer
+	c := &value.DateTimeClass.SingletonClass().MethodContainer
 	Def(
 		c,
 		"now",
@@ -17,12 +17,12 @@ func initTime() {
 	)
 
 	// Instance methods
-	c = &value.TimeClass.MethodContainer
+	c = &value.DateTimeClass.MethodContainer
 	Def(
 		c,
 		"format",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			arg := args[1]
 			switch a := arg.SafeAsReference().(type) {
 			case value.String:
@@ -47,7 +47,7 @@ func initTime() {
 		c,
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			dur := args[1].MustInlineDuration()
 			return value.Ref(self.Subtract(dur)), value.Undefined
 		},
@@ -57,7 +57,7 @@ func initTime() {
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			dur := args[1].MustInlineDuration()
 			return value.Ref(self.Add(dur)), value.Undefined
 		},
@@ -67,8 +67,8 @@ func initTime() {
 		c,
 		"diff",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
-			other := args[1].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
+			other := args[1].MustReference().(*value.DateTime)
 			return self.Diff(other).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
@@ -78,7 +78,7 @@ func initTime() {
 		c,
 		"zone",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(self.Zone()), value.Undefined
 		},
 	)
@@ -88,7 +88,7 @@ func initTime() {
 		c,
 		"zone_name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.String(self.ZoneName())), value.Undefined
 		},
 	)
@@ -98,7 +98,7 @@ func initTime() {
 		c,
 		"zone_offset_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.ZoneOffsetSeconds()).ToValue(), value.Undefined
 		},
 	)
@@ -108,7 +108,7 @@ func initTime() {
 		c,
 		"zone_offset_hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.ZoneOffsetHours()).ToValue(), value.Undefined
 		},
 	)
@@ -118,7 +118,7 @@ func initTime() {
 		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(self.ToString()), value.Undefined
 		},
 	)
@@ -127,7 +127,7 @@ func initTime() {
 		c,
 		"year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.Year()).ToValue(), value.Undefined
 		},
 	)
@@ -135,7 +135,7 @@ func initTime() {
 		c,
 		"iso_year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.ISOYear()).ToValue(), value.Undefined
 		},
 	)
@@ -143,7 +143,7 @@ func initTime() {
 		c,
 		"month",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.Month()).ToValue(), value.Undefined
 		},
 	)
@@ -151,7 +151,7 @@ func initTime() {
 		c,
 		"week_from_monday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.WeekFromMonday()).ToValue(), value.Undefined
 		},
 	)
@@ -160,7 +160,7 @@ func initTime() {
 		c,
 		"week_from_sunday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.WeekFromSunday()).ToValue(), value.Undefined
 		},
 	)
@@ -168,7 +168,7 @@ func initTime() {
 		c,
 		"iso_week",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.ISOWeek()).ToValue(), value.Undefined
 		},
 	)
@@ -176,7 +176,7 @@ func initTime() {
 		c,
 		"day",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.Day()).ToValue(), value.Undefined
 		},
 	)
@@ -186,7 +186,7 @@ func initTime() {
 		c,
 		"year_day",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.YearDay()).ToValue(), value.Undefined
 		},
 	)
@@ -194,7 +194,7 @@ func initTime() {
 		c,
 		"weekday_name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.String(self.WeekdayName())), value.Undefined
 		},
 	)
@@ -202,7 +202,7 @@ func initTime() {
 		c,
 		"weekday_from_monday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.WeekdayFromMonday()).ToValue(), value.Undefined
 		},
 	)
@@ -212,7 +212,7 @@ func initTime() {
 		c,
 		"weekday_from_sunday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.WeekdayFromSunday()).ToValue(), value.Undefined
 		},
 	)
@@ -220,7 +220,7 @@ func initTime() {
 		c,
 		"hour",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.Hour()).ToValue(), value.Undefined
 		},
 	)
@@ -228,7 +228,7 @@ func initTime() {
 		c,
 		"minute",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.Minute()).ToValue(), value.Undefined
 		},
 	)
@@ -236,7 +236,7 @@ func initTime() {
 		c,
 		"second",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.Second()).ToValue(), value.Undefined
 		},
 	)
@@ -244,7 +244,7 @@ func initTime() {
 		c,
 		"millisecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.Millisecond()).ToValue(), value.Undefined
 		},
 	)
@@ -252,7 +252,7 @@ func initTime() {
 		c,
 		"microsecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.Microsecond()).ToValue(), value.Undefined
 		},
 	)
@@ -260,7 +260,7 @@ func initTime() {
 		c,
 		"nanosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.Nanosecond()).ToValue(), value.Undefined
 		},
 	)
@@ -268,7 +268,7 @@ func initTime() {
 		c,
 		"picosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkInt(self.Picosecond()), value.Undefined
 		},
 	)
@@ -276,7 +276,7 @@ func initTime() {
 		c,
 		"femtosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkInt(self.Femtosecond()), value.Undefined
 		},
 	)
@@ -284,7 +284,7 @@ func initTime() {
 		c,
 		"attosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkInt(self.Attosecond()), value.Undefined
 		},
 	)
@@ -292,7 +292,7 @@ func initTime() {
 		c,
 		"zeptosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.ToElkBigInt(self.Zeptosecond())), value.Undefined
 		},
 	)
@@ -300,7 +300,7 @@ func initTime() {
 		c,
 		"yoctosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.ToElkBigInt(self.Yoctosecond())), value.Undefined
 		},
 	)
@@ -308,7 +308,7 @@ func initTime() {
 		c,
 		"unix_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkInt(self.UnixSeconds()), value.Undefined
 		},
 	)
@@ -317,7 +317,7 @@ func initTime() {
 		c,
 		"unix_milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkInt(self.UnixMilliseconds()), value.Undefined
 		},
 	)
@@ -325,7 +325,7 @@ func initTime() {
 		c,
 		"unix_microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.ToElkBigInt(self.UnixMicroseconds())), value.Undefined
 		},
 	)
@@ -333,7 +333,7 @@ func initTime() {
 		c,
 		"unix_nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.ToElkBigInt(self.UnixNanoseconds())), value.Undefined
 		},
 	)
@@ -341,7 +341,7 @@ func initTime() {
 		c,
 		"unix_picoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.ToElkBigInt(self.UnixPicoseconds())), value.Undefined
 		},
 	)
@@ -349,7 +349,7 @@ func initTime() {
 		c,
 		"unix_femtoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.ToElkBigInt(self.UnixFemtoseconds())), value.Undefined
 		},
 	)
@@ -357,7 +357,7 @@ func initTime() {
 		c,
 		"unix_attoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.ToElkBigInt(self.UnixAttoseconds())), value.Undefined
 		},
 	)
@@ -365,7 +365,7 @@ func initTime() {
 		c,
 		"unix_zeptoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.ToElkBigInt(self.UnixZeptoseconds())), value.Undefined
 		},
 	)
@@ -373,7 +373,7 @@ func initTime() {
 		c,
 		"unix_yoctoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.ToElkBigInt(self.UnixYoctoseconds())), value.Undefined
 		},
 	)
@@ -382,7 +382,7 @@ func initTime() {
 		c,
 		"to_utc",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(self.UTC()), value.Undefined
 		},
 	)
@@ -392,7 +392,7 @@ func initTime() {
 		c,
 		"to_local",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(self.Local()), value.Undefined
 		},
 	)
@@ -401,7 +401,7 @@ func initTime() {
 		c,
 		"is_utc",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkBool(self.IsUTC()), value.Undefined
 		},
 	)
@@ -409,7 +409,7 @@ func initTime() {
 		c,
 		"is_local",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkBool(self.IsLocal()), value.Undefined
 		},
 	)
@@ -418,7 +418,7 @@ func initTime() {
 		c,
 		"is_monday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkBool(self.IsMonday()), value.Undefined
 		},
 	)
@@ -426,7 +426,7 @@ func initTime() {
 		c,
 		"is_tuesday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkBool(self.IsTuesday()), value.Undefined
 		},
 	)
@@ -434,7 +434,7 @@ func initTime() {
 		c,
 		"is_wednesday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkBool(self.IsWednesday()), value.Undefined
 		},
 	)
@@ -442,7 +442,7 @@ func initTime() {
 		c,
 		"is_thursday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkBool(self.IsThursday()), value.Undefined
 		},
 	)
@@ -450,7 +450,7 @@ func initTime() {
 		c,
 		"is_friday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkBool(self.IsFriday()), value.Undefined
 		},
 	)
@@ -458,7 +458,7 @@ func initTime() {
 		c,
 		"is_saturday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkBool(self.IsSaturday()), value.Undefined
 		},
 	)
@@ -466,7 +466,7 @@ func initTime() {
 		c,
 		"is_sunday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkBool(self.IsSunday()), value.Undefined
 		},
 	)
@@ -475,7 +475,7 @@ func initTime() {
 		c,
 		"is_am",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkBool(self.IsAM()), value.Undefined
 		},
 	)
@@ -483,7 +483,7 @@ func initTime() {
 		c,
 		"is_pm",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.ToElkBool(self.IsPM()), value.Undefined
 		},
 	)
@@ -491,7 +491,7 @@ func initTime() {
 		c,
 		"meridiem",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.String(self.Meridiem())), value.Undefined
 		},
 	)
@@ -500,7 +500,7 @@ func initTime() {
 		c,
 		"hour12",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.Hour12()).ToValue(), value.Undefined
 		},
 	)
@@ -509,7 +509,7 @@ func initTime() {
 		c,
 		">",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			other := args[1]
 			return self.GreaterThan(other)
 		},
@@ -519,7 +519,7 @@ func initTime() {
 		c,
 		">=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			other := args[1]
 			return self.GreaterThanEqual(other)
 		},
@@ -529,7 +529,7 @@ func initTime() {
 		c,
 		"<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			other := args[1]
 			return self.LessThan(other)
 		},
@@ -539,7 +539,7 @@ func initTime() {
 		c,
 		"<=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			other := args[1]
 			return self.LessThanEqual(other)
 		},
@@ -549,7 +549,7 @@ func initTime() {
 		c,
 		"==",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.Time)
+			self := args[0].MustReference().(*value.DateTime)
 			other := args[1]
 			return self.Equal(other), value.Undefined
 		},

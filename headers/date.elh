@@ -8,15 +8,22 @@ sealed primitive class ::Std::Date < Value
 		##[
 			Returns the current date.
 		]##
-		def now; end
+		def now: Date; end
 	end
 
 	init(year: Int = 0, month: Int = 1, day: Int = 1); end
 
-	def +(other: Duration): Duration; end
-	def -(other: Duration): Duration; end
-	def *(other: CoercibleNumeric): Duration; end
-	def /(other: CoercibleNumeric): Duration; end
+	##[
+		Calculates the difference between two date objects.
+		Returns a date span.
+	]##
+	def diff(other: Date): Span; end
+
+	##[
+		Create a string formatted according to the given format string.
+	]##
+	def strftime(fmt: String): String; end
+	alias format strftime
 
 	##[
 		Returns the string representation of the date in the format "2025-12-27".
@@ -29,7 +36,7 @@ sealed primitive class ::Std::Date < Value
 	def year: Int; end
 
 	##[
-		Returns the month in range `1...12`
+		Returns the day of the month in range `1...12`
 	]##
 	def month: Int; end
 
@@ -37,5 +44,96 @@ sealed primitive class ::Std::Date < Value
 		Returns the day in range `1...31`
 	]##
 	def day: Int; end
+	alias month_day day
 
+	##[
+		Returns the ISO 8601 year in which `self` occurs.
+	]##
+	def iso_year: Int; end
+
+	##[
+		The week number of the current year as a decimal number,
+		range 0 to 53, starting with the first Monday
+		as the first day of week 1.
+	]##
+	def week_from_monday: Int; end
+	alias week week_from_monday
+
+
+	##[
+		The week number of the current year as a decimal number,
+		range 0 to 53, starting with the first Sunday
+		as the first day of week 01.
+	]##
+	def week_from_sunday: Int; end
+
+	##[
+		Returns the ISO 8601 week number in which `self` occurs.
+		Week ranges from 1 to 53. Jan 01 to Jan 03 of year n might belong to week 52 or 53 of year n-1, and Dec 29 to Dec 31 might belong to week 1 of year n+1.
+	]##
+	def iso_week: Int; end
+
+	##[
+		Returns the day of the year.
+	]##
+	def year_day: Int; end
+
+	##[
+		Returns the name of the day of the week.
+	]##
+	def weekday_name: String; end
+
+	##[
+		Returns the number of the day of the week, where 1 is Monday, 7 is Sunday
+	]##
+	def weekday_from_monday: Int; end
+	alias weekday weekday_from_monday
+
+	##[
+		Returns the number of the day of the week, where 0 is Sunday, 6 is Saturday
+	]##
+	def weekday_from_sunday: Int; end
+
+	##[
+		Checks whether the day of the week is monday.
+	]##
+	def is_monday: bool; end
+
+	##[
+		Checks whether the day of the week is tuesday.
+	]##
+	def is_tuesday: bool; end
+
+	##[
+		Checks whether the day of the week is wednesday.
+	]##
+	def is_wednesday: bool; end
+
+	##[
+		Checks whether the day of the week is thursday.
+	]##
+	def is_thursday: bool; end
+
+	##[
+		Checks whether the day of the week is friday.
+	]##
+	def is_friday: bool; end
+
+	##[
+		Checks whether the day of the week is saturday.
+	]##
+	def is_saturday: bool; end
+
+	##[
+		Checks whether the day of the week is sunday.
+	]##
+	def is_sunday: bool; end
+
+	sealed def >=(other: Date): bool; end
+
+	sealed def >(other: Date): bool; end
+
+	sealed def <=(other: Date): bool; end
+
+	sealed def <(other: Date): bool; end
 end

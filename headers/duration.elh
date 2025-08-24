@@ -12,14 +12,14 @@ sealed primitive class ::Std::Duration < Value
 		def parse(s: String): Duration; end
 
 		##[
-			Returns the amount of elapsed since the given `Time`.
+			Returns the amount of elapsed since the given `DateTime`.
 		]##
-		def since(time: Time): Duration; end
+		def since(datetime: DateTime): Duration; end
 
 		##[
-			Returns the amount of time that is left until the given `Time`.
+			Returns the amount of time that is left until the given `DateTime`.
 		]##
-		def until(time: Time): Duration; end
+		def until(datetime: DateTime): Duration; end
 	end
 
 	def +(other: Duration): Duration; end

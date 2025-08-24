@@ -110,7 +110,7 @@ func InitGlobalEnvironment() {
 	initEndlessOpenRange()
 	initDuration()
 	initTimezone()
-	initTime()
+	initDateTime()
 	initPosition()
 	initSpan()
 	initElk()

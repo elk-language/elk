@@ -2,6 +2,10 @@ package value
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
+	"github.com/elk-language/elk/value/timescanner"
 )
 
 const dateYearBias = 1 << 22
@@ -135,6 +139,248 @@ func (d Date) Month() int {
 func (d Date) Day() int {
 	m := int32(d.bits & 0b11111)
 	return int(m)
+}
+
+func (d Date) ToGoTime() time.Time {
+	return time.Date(d.Year(), time.Month(d.Month()), d.Day(), 0, 0, 0, 0, time.UTC)
+}
+
+func (d Date) ToTime() *DateTime {
+	return ToElkTime(d.ToGoTime())
+}
+
+func (d Date) ToTimeValue() DateTime {
+	return ToElkTimeValue(d.ToGoTime())
+}
+
+func (d Date) ISOYear() int {
+	return d.ToTimeValue().ISOYear()
+}
+
+func (d Date) ISOYearLastTwo() int {
+	return d.ToTimeValue().ISOYearLastTwo()
+}
+
+func (d Date) YearLastTwo() int {
+	return d.Year() / 100
+}
+
+func (d Date) Century() int {
+	return d.Year() / 100
+}
+
+func (d Date) MonthName() string {
+	return time.Month(d.Month()).String()
+}
+
+func (d Date) AbbreviatedMonthName() string {
+	return d.MonthName()[0:3]
+}
+
+// Day of the year.
+func (d Date) YearDay() int {
+	return d.ToTimeValue().YearDay()
+}
+
+func (d Date) WeekdayName() string {
+	return d.ToTimeValue().WeekdayName()
+}
+
+func (d Date) AbbreviatedWeekdayName() string {
+	return d.ToTimeValue().AbbreviatedWeekdayName()
+}
+
+// Specifies the day of the week (Monday = 1, ...).
+func (d Date) WeekdayFromMonday() int {
+	return d.ToTimeValue().WeekdayFromMonday()
+}
+
+func (d Date) ISOWeek() int {
+	return d.ToTimeValue().ISOWeek()
+}
+
+// Specifies the day of the week (Sunday = 0, ...).
+func (d Date) WeekdayFromSunday() int {
+	return d.ToTimeValue().WeekdayFromSunday()
+}
+
+// The week number of the current year as a decimal number,
+// range 00 to 53, starting with the first Monday
+// as the first day of week 01.
+func (d Date) WeekFromMonday() int {
+	return d.ToTimeValue().WeekFromMonday()
+}
+
+// The week number of the current year as a decimal number,
+// range 00 to 53, starting with the first Sunday
+// as the first day of week 01.
+func (d Date) WeekFromSunday() int {
+	return d.ToTimeValue().WeekFromSunday()
+}
+
+func (d Date) IsSunday() bool {
+	return d.ToTimeValue().IsSunday()
+}
+
+func (d Date) IsMonday() bool {
+	return d.ToTimeValue().IsMonday()
+}
+
+func (d Date) IsTuesday() bool {
+	return d.ToTimeValue().IsTuesday()
+}
+
+func (d Date) IsWednesday() bool {
+	return d.ToTimeValue().IsWednesday()
+}
+
+func (d Date) IsThursday() bool {
+	return d.ToTimeValue().IsThursday()
+}
+
+func (d Date) IsFriday() bool {
+	return d.ToTimeValue().IsFriday()
+}
+
+func (d Date) IsSaturday() bool {
+	return d.ToTimeValue().IsSaturday()
+}
+
+func (d Date) MustFormat(formatString string) string {
+	result, err := d.Format(formatString)
+	if !err.IsUndefined() {
+		panic(err)
+	}
+
+	return result
+}
+
+// Create a string formatted according to the given format string.
+func (d Date) Format(formatString string) (_ string, err Value) {
+	scanner := timescanner.New(formatString)
+	var buffer strings.Builder
+
+tokenLoop:
+	for {
+		token, value := scanner.Next()
+		switch token {
+		case timescanner.END_OF_FILE:
+			break tokenLoop
+		case timescanner.INVALID_FORMAT_DIRECTIVE:
+			return "", Ref(Errorf(
+				FormatErrorClass,
+				"invalid format directive: %s",
+				value,
+			))
+		case timescanner.PERCENT:
+			buffer.WriteByte('%')
+		case timescanner.NEWLINE:
+			buffer.WriteByte('\n')
+		case timescanner.TAB:
+			buffer.WriteByte('\t')
+		case timescanner.TEXT:
+			buffer.WriteString(value)
+		case timescanner.FULL_YEAR_WEEK_BASED:
+			fmt.Fprintf(&buffer, "%d", d.ISOYear())
+		case timescanner.FULL_YEAR_WEEK_BASED_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%4d", d.ISOYear())
+		case timescanner.FULL_YEAR_WEEK_BASED_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%04d", d.ISOYear())
+		case timescanner.FULL_YEAR:
+			fmt.Fprintf(&buffer, "%d", d.Year())
+		case timescanner.FULL_YEAR_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%4d", d.Year())
+		case timescanner.FULL_YEAR_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%04d", d.Year())
+		case timescanner.CENTURY:
+			fmt.Fprintf(&buffer, "%d", d.Century())
+		case timescanner.CENTURY_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%2d", d.Century())
+		case timescanner.CENTURY_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%02d", d.Century())
+		case timescanner.YEAR_LAST_TWO_WEEK_BASED:
+			fmt.Fprintf(&buffer, "%d", d.ISOYearLastTwo())
+		case timescanner.YEAR_LAST_TWO_WEEK_BASED_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%2d", d.ISOYearLastTwo())
+		case timescanner.YEAR_LAST_TWO_WEEK_BASED_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%02d", d.ISOYearLastTwo())
+		case timescanner.YEAR_LAST_TWO:
+			fmt.Fprintf(&buffer, "%d", d.YearLastTwo())
+		case timescanner.YEAR_LAST_TWO_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%2d", d.YearLastTwo())
+		case timescanner.YEAR_LAST_TWO_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%02d", d.YearLastTwo())
+		case timescanner.MONTH:
+			fmt.Fprintf(&buffer, "%d", d.Month())
+		case timescanner.MONTH_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%2d", d.Month())
+		case timescanner.MONTH_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%02d", d.Month())
+		case timescanner.MONTH_FULL_NAME:
+			buffer.WriteString(d.MonthName())
+		case timescanner.MONTH_FULL_NAME_UPPERCASE:
+			buffer.WriteString(strings.ToUpper(d.MonthName()))
+		case timescanner.MONTH_ABBREVIATED_NAME:
+			buffer.WriteString(d.AbbreviatedMonthName())
+		case timescanner.MONTH_ABBREVIATED_NAME_UPPERCASE:
+			buffer.WriteString(strings.ToUpper(d.AbbreviatedMonthName()))
+		case timescanner.DAY_OF_MONTH:
+			fmt.Fprintf(&buffer, "%d", d.Day())
+		case timescanner.DAY_OF_MONTH_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%2d", d.Day())
+		case timescanner.DAY_OF_MONTH_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%02d", d.Day())
+		case timescanner.DAY_OF_YEAR:
+			fmt.Fprintf(&buffer, "%d", d.YearDay())
+		case timescanner.DAY_OF_YEAR_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%3d", d.YearDay())
+		case timescanner.DAY_OF_YEAR_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%03d", d.YearDay())
+		case timescanner.DAY_OF_WEEK_FULL_NAME:
+			buffer.WriteString(d.WeekdayName())
+		case timescanner.DAY_OF_WEEK_FULL_NAME_UPPERCASE:
+			buffer.WriteString(strings.ToUpper(d.WeekdayName()))
+		case timescanner.DAY_OF_WEEK_ABBREVIATED_NAME:
+			buffer.WriteString(d.AbbreviatedWeekdayName())
+		case timescanner.DAY_OF_WEEK_ABBREVIATED_NAME_UPPERCASE:
+			buffer.WriteString(strings.ToUpper(d.AbbreviatedWeekdayName()))
+		case timescanner.DAY_OF_WEEK_NUMBER:
+			fmt.Fprintf(&buffer, "%d", d.WeekdayFromMonday())
+		case timescanner.DAY_OF_WEEK_NUMBER_ALT:
+			fmt.Fprintf(&buffer, "%d", d.WeekdayFromSunday())
+		case timescanner.WEEK_OF_WEEK_BASED_YEAR:
+			fmt.Fprintf(&buffer, "%d", d.ISOWeek())
+		case timescanner.WEEK_OF_WEEK_BASED_YEAR_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%2d", d.ISOWeek())
+		case timescanner.WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%02d", d.ISOWeek())
+		case timescanner.WEEK_OF_YEAR:
+			fmt.Fprintf(&buffer, "%d", d.WeekFromMonday())
+		case timescanner.WEEK_OF_YEAR_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%2d", d.WeekFromMonday())
+		case timescanner.WEEK_OF_YEAR_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%02d", d.WeekFromMonday())
+		case timescanner.WEEK_OF_YEAR_ALT:
+			fmt.Fprintf(&buffer, "%d", d.WeekFromSunday())
+		case timescanner.WEEK_OF_YEAR_ALT_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%2d", d.WeekFromSunday())
+		case timescanner.WEEK_OF_YEAR_ALT_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%02d", d.WeekFromSunday())
+		case timescanner.DATE:
+			fmt.Fprintf(&buffer, "%02d/%02d/%02d", d.Month(), d.Day(), d.YearLastTwo())
+		case timescanner.ISO8601_DATE:
+			fmt.Fprintf(&buffer, "%04d-%02d-%02d", d.Year(), d.Month(), d.Day())
+		default:
+			return "", Ref(Errorf(
+				FormatErrorClass,
+				"unsupported format directive: %s",
+				token.String(),
+			))
+		}
+
+	}
+
+	return buffer.String(), err
 }
 
 func initDate() {

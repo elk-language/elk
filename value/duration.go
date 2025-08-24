@@ -37,11 +37,11 @@ func ParseDuration(s String) (result Duration, err Value) {
 	return Duration(dur), Undefined
 }
 
-func DurationSince(t Time) Duration {
+func DurationSince(t DateTime) Duration {
 	return Duration(time.Since(t.Go))
 }
 
-func DurationUntil(t Time) Duration {
+func DurationUntil(t DateTime) Duration {
 	return Duration(time.Until(t.Go))
 }
 

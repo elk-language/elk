@@ -93,6 +93,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.TryDefineClass("Represents a calendar date (year, month, day).\n It is an inline value on both 32bit and 64bit systems.\n The year range is from `-4_194_304` to `4_194_303`.", false, true, true, false, value.ToSymbol("Span"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineClass("Represents a moment in datetime with nanosecond precision.", false, true, true, false, value.ToSymbol("DateTime"), objectClass, env)
 		namespace.TryDefineModule("Contains various debugging utilities.", value.ToSymbol("Debug"), env)
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be decremented using\nthe `--` operator like `a--`", value.ToSymbol("Decrementable"), env)
@@ -684,7 +685,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineClass("Represents a single Elk thread of execution.", false, true, true, true, value.ToSymbol("Thread"), objectClass, env)
 		namespace.TryDefineClass("A pool of thread workers with a task queue.", false, true, true, true, value.ToSymbol("ThreadPool"), objectClass, env)
-		namespace.TryDefineClass("Represents a moment in time with nanosecond precision.", false, true, true, false, value.ToSymbol("Time"), objectClass, env)
 		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, false, value.ToSymbol("Timezone"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("True"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Truthy"), NewNamedType("Std::Truthy", NewNot(NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))))
@@ -1404,14 +1404,35 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Define methods
 				method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("year"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("month"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("day"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Date", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Date", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Date", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Date", env), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Returns the day in range `1...31`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("day"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the month in range `1...12`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("month"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Calculates the difference between two date objects.\nReturns a date span.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("diff"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Date", env), NormalParameterKind, false)}, NameToType("Std::Date::Span", env), Never{})
+				namespace.DefineMethod("Create a string formatted according to the given format string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("format"), nil, []*Parameter{NewParameter(value.ToSymbol("fmt"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Checks whether the day of the week is friday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_friday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is monday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_monday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is saturday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_saturday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is sunday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_sunday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is thursday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_thursday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is tuesday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_tuesday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is wednesday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_wednesday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Returns the ISO 8601 week number in which `self` occurs.\nWeek ranges from 1 to 53. Jan 01 to Jan 03 of year n might belong to week 52 or 53 of year n-1, and Dec 29 to Dec 31 might belong to week 1 of year n+1.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iso_week"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the ISO 8601 year in which `self` occurs.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iso_year"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the day of the month in range `1...12`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("month"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the day in range `1...31`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("month_day"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Create a string formatted according to the given format string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("strftime"), nil, []*Parameter{NewParameter(value.ToSymbol("fmt"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Returns the string representation of the date in the format \"2025-12-27\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("The week number of the current year as a decimal number,\nrange 0 to 53, starting with the first Monday\nas the first day of week 1.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("week"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("The week number of the current year as a decimal number,\nrange 0 to 53, starting with the first Monday\nas the first day of week 1.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("week_from_monday"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("The week number of the current year as a decimal number,\nrange 0 to 53, starting with the first Sunday\nas the first day of week 01.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("week_from_sunday"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of the day of the week, where 1 is Monday, 7 is Sunday", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of the day of the week, where 1 is Monday, 7 is Sunday", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday_from_monday"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of the day of the week, where 0 is Sunday, 6 is Saturday", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday_from_sunday"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the name of the day of the week.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday_name"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Returns the year.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the day of the year.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year_day"), nil, nil, NameToType("Std::Int", env), Never{})
 
 				// Define constants
 
@@ -1425,7 +1446,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Include mixins and implement interfaces
 
 					// Define methods
-					namespace.DefineMethod("Returns the current date.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("now"), nil, nil, Void{}, Never{})
+					namespace.DefineMethod("Returns the current date.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("now"), nil, nil, NameToType("Std::Date", env), Never{})
 
 					// Define constants
 
@@ -1446,6 +1467,104 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.DefineMethod("Returns the count of months in this date span modulo 12 as an Int.\nRange of values: 0...11", 0|METHOD_NATIVE_FLAG, value.ToSymbol("months_mod"), nil, nil, NameToType("Std::Int", env), Never{})
 					namespace.DefineMethod("Returns the string representation of the date span in the format \"5Y2M10D\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 					namespace.DefineMethod("Returns the count of years in this date span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year"), nil, nil, NameToType("Std::Int", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
+			{
+				namespace := namespace.MustSubtypeString("DateTime").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Adds the given duration to the datetime.\nReturns a new datetime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::DateTime", env), Never{})
+				namespace.DefineMethod("Subtracts the given duration from the datetime.\nReturns a new datetime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::DateTime", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the attosecond offset within the second specified by `self` in the range `0...999999999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("attosecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the day of the month in range `1...12`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("day"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Calculates the difference between two datetime objects.\nReturns a duration.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("diff"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
+				namespace.DefineMethod("Returns the femtosecond offset within the second specified by `self` in the range `0...999999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("femtosecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Create a string formatted according to the given format string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("format"), nil, []*Parameter{NewParameter(value.ToSymbol("fmt"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the hour offset within the day specified by `self` in the range `0...23`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hour"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the hour of the day in a twelve hour clock.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hour12"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Whether the current hour is AM.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_am"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is friday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_friday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the timezone it local (the same as the system timezone).", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_local"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is monday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_monday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Whether the current hour is PM.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_pm"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is saturday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_saturday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is sunday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_sunday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is thursday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_thursday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is tuesday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_tuesday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the timezone it UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_utc"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Checks whether the day of the week is wednesday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_wednesday"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Returns the ISO 8601 week number in which `self` occurs.\nWeek ranges from 1 to 53. Jan 01 to Jan 03 of year n might belong to week 52 or 53 of year n-1, and Dec 29 to Dec 31 might belong to week 1 of year n+1.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iso_week"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the ISO 8601 year in which `self` occurs.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iso_year"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Convert the datetime to the local timezone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("local"), nil, nil, NameToType("Std::DateTime", env), Never{})
+				namespace.DefineMethod("Returns `\"AM\"` or `\"PM\"` based on the hour.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("meridiem"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the microsecond offset within the second specified by `self` in the range `0...999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microsecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the millisecond offset within the second specified by `self` in the range `0...999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("millisecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the minute offset within the hour specified by `self` in the range `0...59`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("minute"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the month in which `self` occurs.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("month"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the day of the month in range `1...12`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("month_day"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the nanosecond offset within the second specified by `self` in the range `0...999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanosecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the picosecond offset within the second specified by `self` in the range `0...999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("picosecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the second offset within the minute specified by `self` in the range `0...59`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("second"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Create a string formatted according to the given format string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("strftime"), nil, []*Parameter{NewParameter(value.ToSymbol("fmt"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Return the timezone associated with this DateTime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone"), nil, nil, NameToType("Std::Timezone", env), Never{})
+				namespace.DefineMethod("Return the name of the timezone associated with this DateTime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone_name"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the offset of the timezone in hours east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone_offset_hours"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the offset of the timezone in seconds east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone_offset_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Convert the datetime to the local timezone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_local"), nil, nil, NameToType("Std::DateTime", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Convert the datetime to the UTC zone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_utc"), nil, nil, NameToType("Std::DateTime", env), Never{})
+				namespace.DefineMethod("Returns the number of attoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_attoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of femtoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_femtoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of microseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of milliseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of nanoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of picoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_picoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of seconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of yoctoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_yoctoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of zeptoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_zeptoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Convert the datetime to the UTC zone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("utc"), nil, nil, NameToType("Std::DateTime", env), Never{})
+				namespace.DefineMethod("The week number of the current year as a decimal number,\nrange 0 to 53, starting with the first Monday\nas the first day of week 1.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("week"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("The week number of the current year as a decimal number,\nrange 0 to 53, starting with the first Monday\nas the first day of week 1.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("week_from_monday"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("The week number of the current year as a decimal number,\nrange 0 to 53, starting with the first Sunday\nas the first day of week 01.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("week_from_sunday"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of the day of the week, where 1 is Monday, 7 is Sunday", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of the day of the week, where 1 is Monday, 7 is Sunday", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday_from_monday"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of the day of the week, where 0 is Sunday, 6 is Saturday", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday_from_sunday"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the name of the day of the week.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday_name"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the year in which `self` occurs.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the day of the year.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year_day"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the yoctosecond offset within the second specified by `self` in the range `0...999999999999999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("yoctosecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the zeptosecond offset within the second specified by `self` in the range `0...999999999999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zeptosecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Return the timezone associated with this DateTime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone"), nil, nil, NameToType("Std::Timezone", env), Never{})
+				namespace.DefineMethod("Return the name of the timezone associated with this DateTime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone_name"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the offset of the timezone in hours east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone_offset_hours"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the offset of the timezone in seconds east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone_offset_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+
+				// Define constants
+				namespace.DefineConstant(value.ToSymbol("DEFAULT_FORMAT"), NameToType("Std::String", env))
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Returns the current datetime.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("now"), nil, nil, NameToType("Std::DateTime", env), Never{})
 
 					// Define constants
 
@@ -1624,8 +1743,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define methods
 					namespace.DefineMethod("Parses a duration string and creates a Duration value.\nA duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"300ms\", \"-1.5h\" or \"2h45m\".\nValid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("s"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-					namespace.DefineMethod("Returns the amount of elapsed since the given `Time`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("since"), nil, []*Parameter{NewParameter(value.ToSymbol("time"), NameToType("Std::Time", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-					namespace.DefineMethod("Returns the amount of time that is left until the given `Time`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("until"), nil, []*Parameter{NewParameter(value.ToSymbol("time"), NameToType("Std::Time", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
+					namespace.DefineMethod("Returns the amount of elapsed since the given `DateTime`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("since"), nil, []*Parameter{NewParameter(value.ToSymbol("datetime"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
+					namespace.DefineMethod("Returns the amount of time that is left until the given `DateTime`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("until"), nil, []*Parameter{NewParameter(value.ToSymbol("datetime"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
 
 					// Define constants
 
@@ -8893,104 +9012,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
-			}
-			{
-				namespace := namespace.MustSubtypeString("Time").(*Class)
-
-				namespace.Name() // noop - avoid unused variable error
-
-				// Include mixins and implement interfaces
-
-				// Define methods
-				namespace.DefineMethod("Adds the given duration to the time.\nReturns a new time object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::Time", env), Never{})
-				namespace.DefineMethod("Subtracts the given duration from the time.\nReturns a new time object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::Time", env), Never{})
-				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns the attosecond offset within the second specified by `self` in the range `0...999999999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("attosecond"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the day of the month.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("day"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Calculates the difference between two time objects.\nReturns a duration.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("diff"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-				namespace.DefineMethod("Returns the femtosecond offset within the second specified by `self` in the range `0...999999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("femtosecond"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Create a string formatted according to the given format string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("format"), nil, []*Parameter{NewParameter(value.ToSymbol("fmt"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
-				namespace.DefineMethod("Returns the hour offset within the day specified by `self` in the range `0...23`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hour"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the hour of the day in a twelve hour clock.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hour12"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Whether the current hour is AM.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_am"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Checks whether the day of the week is friday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_friday"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Checks whether the timezone it local (the same as the system timezone).", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_local"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Checks whether the day of the week is monday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_monday"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Whether the current hour is PM.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_pm"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Checks whether the day of the week is saturday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_saturday"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Checks whether the day of the week is sunday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_sunday"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Checks whether the day of the week is thursday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_thursday"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Checks whether the day of the week is tuesday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_tuesday"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Checks whether the timezone it UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_utc"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Checks whether the day of the week is wednesday.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_wednesday"), nil, nil, Bool{}, Never{})
-				namespace.DefineMethod("Returns the ISO 8601 week number in which `self` occurs.\nWeek ranges from 1 to 53. Jan 01 to Jan 03 of year n might belong to week 52 or 53 of year n-1, and Dec 29 to Dec 31 might belong to week 1 of year n+1.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iso_week"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the ISO 8601 year in which `self` occurs.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iso_year"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Convert the time to the local timezone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("local"), nil, nil, NameToType("Std::Time", env), Never{})
-				namespace.DefineMethod("Returns `\"AM\"` or `\"PM\"` based on the hour.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("meridiem"), nil, nil, NameToType("Std::String", env), Never{})
-				namespace.DefineMethod("Returns the microsecond offset within the second specified by `self` in the range `0...999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microsecond"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the millisecond offset within the second specified by `self` in the range `0...999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("millisecond"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the minute offset within the hour specified by `self` in the range `0...59`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("minute"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the month in which `self` occurs.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("month"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the day of the month.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("month_day"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the nanosecond offset within the second specified by `self` in the range `0...999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanosecond"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the picosecond offset within the second specified by `self` in the range `0...999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("picosecond"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the second offset within the minute specified by `self` in the range `0...59`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("second"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Create a string formatted according to the given format string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("strftime"), nil, []*Parameter{NewParameter(value.ToSymbol("fmt"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
-				namespace.DefineMethod("Return the timezone associated with this Time object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone"), nil, nil, NameToType("Std::Timezone", env), Never{})
-				namespace.DefineMethod("Return the name of the timezone associated with this Time object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone_name"), nil, nil, NameToType("Std::String", env), Never{})
-				namespace.DefineMethod("Returns the offset of the timezone in hours east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone_offset_hours"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the offset of the timezone in seconds east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone_offset_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Convert the time to the local timezone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_local"), nil, nil, NameToType("Std::Time", env), Never{})
-				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
-				namespace.DefineMethod("Convert the time to the UTC zone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_utc"), nil, nil, NameToType("Std::Time", env), Never{})
-				namespace.DefineMethod("Returns the number of attoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_attoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the number of femtoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_femtoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the number of microseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the number of milliseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the number of nanoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the number of picoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_picoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the number of seconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the number of yoctoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_yoctoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the number of zeptoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_zeptoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Convert the time to the UTC zone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("utc"), nil, nil, NameToType("Std::Time", env), Never{})
-				namespace.DefineMethod("The week number of the current year as a decimal number,\nrange 0 to 53, starting with the first Monday\nas the first day of week 1.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("week"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("The week number of the current year as a decimal number,\nrange 0 to 53, starting with the first Monday\nas the first day of week 1.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("week_from_monday"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("The week number of the current year as a decimal number,\nrange 0 to 53, starting with the first Sunday\nas the first day of week 01.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("week_from_sunday"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the number of the day of the week, where 1 is Monday, 7 is Sunday", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the number of the day of the week, where 1 is Monday, 7 is Sunday", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday_from_monday"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the number of the day of the week, where 0 is Sunday, 6 is Saturday", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday_from_sunday"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the name of the day of the week.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday_name"), nil, nil, NameToType("Std::String", env), Never{})
-				namespace.DefineMethod("Returns the year in which `self` occurs.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the day of the year.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year_day"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the yoctosecond offset within the second specified by `self` in the range `0...999999999999999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("yoctosecond"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the zeptosecond offset within the second specified by `self` in the range `0...999999999999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zeptosecond"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Return the timezone associated with this Time object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone"), nil, nil, NameToType("Std::Timezone", env), Never{})
-				namespace.DefineMethod("Return the name of the timezone associated with this Time object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone_name"), nil, nil, NameToType("Std::String", env), Never{})
-				namespace.DefineMethod("Returns the offset of the timezone in hours east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone_offset_hours"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the offset of the timezone in seconds east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone_offset_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
-
-				// Define constants
-				namespace.DefineConstant(value.ToSymbol("DEFAULT_FORMAT"), NameToType("Std::String", env))
-
-				// Define instance variables
-
-				{
-					namespace := namespace.Singleton()
-
-					namespace.Name() // noop - avoid unused variable error
-
-					// Include mixins and implement interfaces
-
-					// Define methods
-					namespace.DefineMethod("Returns the current time.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("now"), nil, nil, NameToType("Std::Time", env), Never{})
-
-					// Define constants
-
-					// Define instance variables
-				}
 			}
 			{
 				namespace := namespace.MustSubtypeString("Timezone").(*Class)

@@ -1,33 +1,33 @@
 ##[
-	Represents a moment in time with nanosecond precision.
+	Represents a moment in datetime with nanosecond precision.
 ]##
-sealed primitive class ::Std::Time
+sealed primitive class ::Std::DateTime
 	singleton
 		##[
-			Returns the current time.
+			Returns the current datetime.
 		]##
-		def now: Time; end
+		def now: DateTime; end
 	end
 
 	const DEFAULT_FORMAT: String
 
 	##[
-		Adds the given duration to the time.
-		Returns a new time object.
+		Adds the given duration to the datetime.
+		Returns a new datetime object.
 	]##
-	def +(other: Duration): Time; end
+	def +(other: Duration): DateTime; end
 
 	##[
-		Subtracts the given duration from the time.
-		Returns a new time object.
+		Subtracts the given duration from the datetime.
+		Returns a new datetime object.
 	]##
-	def -(other: Duration): Time; end
+	def -(other: Duration): DateTime; end
 
 	##[
-		Calculates the difference between two time objects.
+		Calculates the difference between two datetime objects.
 		Returns a duration.
 	]##
-	def diff(other: Time): Duration; end
+	def diff(other: DateTime): Duration; end
 
 	##[
 		Create a string formatted according to the given format string.
@@ -36,13 +36,13 @@ sealed primitive class ::Std::Time
 	alias format strftime
 
 	##[
-		Return the timezone associated with this Time object.
+		Return the timezone associated with this DateTime object.
 	]##
 	def zone: Timezone; end
 	alias timezone zone
 
 	##[
-		Return the name of the timezone associated with this Time object.
+		Return the name of the timezone associated with this DateTime object.
 	]##
 	def zone_name: String; end
 	alias timezone_name zone_name
@@ -98,7 +98,7 @@ sealed primitive class ::Std::Time
 	def iso_week: Int; end
 
 	##[
-		Returns the day of the month.
+		Returns the day of the month in range `1...12`
 	]##
 	def month_day: Int; end
 	alias day month_day
@@ -225,15 +225,15 @@ sealed primitive class ::Std::Time
 	def unix_yoctoseconds: Int; end
 
 	##[
-		Convert the time to the UTC zone.
+		Convert the datetime to the UTC zone.
 	]##
-	def to_utc: Time; end
+	def to_utc: DateTime; end
 	alias utc to_utc
 
 	##[
-		Convert the time to the local timezone.
+		Convert the datetime to the local timezone.
 	]##
-	def to_local: Time; end
+	def to_local: DateTime; end
 	alias local to_local
 
 	##[
@@ -301,12 +301,12 @@ sealed primitive class ::Std::Time
 	]##
 	def hour12: Int; end
 
-	sealed def >=(other: Time): bool; end
+	sealed def >=(other: DateTime): bool; end
 
-	sealed def >(other: Time): bool; end
+	sealed def >(other: DateTime): bool; end
 
-	sealed def <=(other: Time): bool; end
+	sealed def <=(other: DateTime): bool; end
 
-	sealed def <(other: Time): bool; end
+	sealed def <(other: DateTime): bool; end
 
 end
