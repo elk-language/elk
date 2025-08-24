@@ -33,7 +33,7 @@ func (DateTime) SingletonClass() *Class {
 	return nil
 }
 
-const DefaultTimeFormat = "%Y-%m-%d %H:%M:%S.%9N %:z"
+const DefaultDateTimeFormat = "%Y-%m-%d %H:%M:%S.%9N %:z"
 
 func (t DateTime) Inspect() string {
 	return fmt.Sprintf("Std::DateTime('%s')", t.ToString().String())
@@ -47,11 +47,11 @@ func (t DateTime) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func ToElkTime(time time.Time) *DateTime {
+func ToElkDateTime(time time.Time) *DateTime {
 	return &DateTime{Go: time}
 }
 
-func ToElkTimeValue(time time.Time) DateTime {
+func ToElkDateTimeValue(time time.Time) DateTime {
 	return DateTime{Go: time}
 }
 
@@ -60,17 +60,17 @@ func (t DateTime) ToString() String {
 }
 
 func (t DateTime) String() string {
-	return t.MustFormat(DefaultTimeFormat)
+	return t.MustFormat(DefaultDateTimeFormat)
 }
 
-// Create a new Time object.
-func NewTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) *DateTime {
-	t := MakeTime(year, month, day, hour, min, sec, nsec, zone)
+// Create a new DateTime object.
+func NewDateTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) *DateTime {
+	t := MakeDateTime(year, month, day, hour, min, sec, nsec, zone)
 	return &t
 }
 
-// Create a new Time value.
-func MakeTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) DateTime {
+// Create a new DateTime value.
+func MakeDateTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) DateTime {
 	var location *time.Location
 	if zone == nil {
 		location = time.UTC
@@ -82,20 +82,20 @@ func MakeTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) DateTi
 	}
 }
 
-func TimeNow() *DateTime {
-	return ToElkTime(time.Now())
+func DateTimeNow() *DateTime {
+	return ToElkDateTime(time.Now())
 }
 
 // Adds the given duration to the time.
 // Returns a new time structure.
 func (t *DateTime) Add(val Duration) *DateTime {
-	return ToElkTime(t.Go.Add(val.Go()))
+	return ToElkDateTime(t.Go.Add(val.Go()))
 }
 
 // Subtracts the given duration from the time.
 // Returns a new time structure.
 func (t *DateTime) Subtract(val Duration) *DateTime {
-	return ToElkTime(t.Go.Add(-val.Go()))
+	return ToElkDateTime(t.Go.Add(-val.Go()))
 }
 
 // Calculates the difference between two time objects.
@@ -212,37 +212,45 @@ func (t DateTime) Second() int {
 }
 
 func (t DateTime) Millisecond() int {
-	return t.Nanosecond() / 1000_000
+	return t.NanosecondsInSecond() / 1000_000
 }
 
 func (t DateTime) Microsecond() int {
-	return t.Nanosecond() / 1000
+	return t.MicrosecondsInSecond() % 1000
+}
+
+func (t DateTime) MicrosecondsInSecond() int {
+	return t.NanosecondsInSecond() / 1000
 }
 
 func (t DateTime) Nanosecond() int {
+	return t.NanosecondsInSecond() % 1000
+}
+
+func (t DateTime) NanosecondsInSecond() int {
 	return t.Go.Nanosecond()
 }
 
-func (t DateTime) Picosecond() int64 {
-	return int64(t.Nanosecond()) * 1000
+func (t DateTime) PicosecondsInSecond() int64 {
+	return int64(t.NanosecondsInSecond()) * 1000
 }
 
-func (t DateTime) Femtosecond() int64 {
-	return int64(t.Nanosecond()) * 1000_000
+func (t DateTime) FemtosecondsInSecond() int64 {
+	return int64(t.NanosecondsInSecond()) * 1000_000
 }
 
-func (t DateTime) Attosecond() int64 {
-	return int64(t.Nanosecond()) * 1000_000_000
+func (t DateTime) AttosecondsInSecond() int64 {
+	return int64(t.NanosecondsInSecond()) * 1000_000_000
 }
 
-func (t DateTime) Zeptosecond() *big.Int {
-	i := big.NewInt(int64(t.Nanosecond()))
+func (t DateTime) ZeptosecondsInSecond() *big.Int {
+	i := big.NewInt(int64(t.NanosecondsInSecond()))
 	i.Mul(i, big.NewInt(1000_000_000_000))
 	return i
 }
 
-func (t DateTime) Yoctosecond() *big.Int {
-	i := big.NewInt(int64(t.Nanosecond()))
+func (t DateTime) YoctosecondsInSecond() *big.Int {
+	i := big.NewInt(int64(t.NanosecondsInSecond()))
 	i.Mul(i, big.NewInt(1000_000_000_000_000))
 	return i
 }
@@ -305,31 +313,31 @@ func (t DateTime) UnixMilliseconds() int64 {
 func (t DateTime) UnixMicroseconds() *big.Int {
 	i := big.NewInt(t.UnixSeconds())
 	i = i.Mul(i, big.NewInt(1000_000))
-	return i.Add(i, big.NewInt(int64(t.Microsecond())))
+	return i.Add(i, big.NewInt(int64(t.MicrosecondsInSecond())))
 }
 
 func (t DateTime) UnixNanoseconds() *big.Int {
 	i := big.NewInt(t.UnixSeconds())
 	i = i.Mul(i, big.NewInt(1000_000_000))
-	return i.Add(i, big.NewInt(int64(t.Nanosecond())))
+	return i.Add(i, big.NewInt(int64(t.NanosecondsInSecond())))
 }
 
 func (t DateTime) UnixPicoseconds() *big.Int {
 	i := big.NewInt(t.UnixSeconds())
 	i = i.Mul(i, big.NewInt(1000_000_000_000))
-	return i.Add(i, big.NewInt(t.Picosecond()))
+	return i.Add(i, big.NewInt(t.PicosecondsInSecond()))
 }
 
 func (t DateTime) UnixFemtoseconds() *big.Int {
 	i := big.NewInt(t.UnixSeconds())
 	i = i.Mul(i, big.NewInt(1000_000_000_000_000))
-	return i.Add(i, big.NewInt(t.Femtosecond()))
+	return i.Add(i, big.NewInt(t.FemtosecondsInSecond()))
 }
 
 func (t DateTime) UnixAttoseconds() *big.Int {
 	i := big.NewInt(t.UnixSeconds())
 	i = i.Mul(i, big.NewInt(1000_000_000_000_000_000))
-	return i.Add(i, big.NewInt(t.Attosecond()))
+	return i.Add(i, big.NewInt(t.AttosecondsInSecond()))
 }
 
 func (t DateTime) UnixZeptoseconds() *big.Int {
@@ -417,12 +425,12 @@ func (t DateTime) IsLocal() bool {
 
 // Convert the time to the UTC zone.
 func (t *DateTime) UTC() *DateTime {
-	return ToElkTime(t.Go.UTC())
+	return ToElkDateTime(t.Go.UTC())
 }
 
 // Convert the time to the local timezone.
 func (t *DateTime) Local() *DateTime {
-	return ToElkTime(t.Go.Local())
+	return ToElkDateTime(t.Go.Local())
 }
 
 // Cmp compares x and y and returns:
@@ -597,19 +605,19 @@ tokenLoop:
 		case timescanner.UNIX_MILLISECONDS:
 			fmt.Fprintf(&buffer, "%d", t.UnixMilliseconds())
 		case timescanner.UNIX_MICROSECONDS:
-			fmt.Fprintf(&buffer, "%d%06d", t.UnixSeconds(), t.Microsecond())
+			fmt.Fprintf(&buffer, "%d%06d", t.UnixSeconds(), t.MicrosecondsInSecond())
 		case timescanner.UNIX_NANOSECONDS:
-			fmt.Fprintf(&buffer, "%d%09d", t.UnixSeconds(), t.Nanosecond())
+			fmt.Fprintf(&buffer, "%d%09d", t.UnixSeconds(), t.NanosecondsInSecond())
 		case timescanner.UNIX_PICOSECONDS:
-			fmt.Fprintf(&buffer, "%d%012d", t.UnixSeconds(), t.Picosecond())
+			fmt.Fprintf(&buffer, "%d%012d", t.UnixSeconds(), t.PicosecondsInSecond())
 		case timescanner.UNIX_FEMTOSECONDS:
-			fmt.Fprintf(&buffer, "%d%015d", t.UnixSeconds(), t.Femtosecond())
+			fmt.Fprintf(&buffer, "%d%015d", t.UnixSeconds(), t.FemtosecondsInSecond())
 		case timescanner.UNIX_ATTOSECONDS:
-			fmt.Fprintf(&buffer, "%d%018d", t.UnixSeconds(), t.Attosecond())
+			fmt.Fprintf(&buffer, "%d%018d", t.UnixSeconds(), t.AttosecondsInSecond())
 		case timescanner.UNIX_ZEPTOSECONDS:
-			fmt.Fprintf(&buffer, "%d%018d000", t.UnixSeconds(), t.Attosecond())
+			fmt.Fprintf(&buffer, "%d%018d000", t.UnixSeconds(), t.AttosecondsInSecond())
 		case timescanner.UNIX_YOCTOSECONDS:
-			fmt.Fprintf(&buffer, "%d%018d000000", t.UnixSeconds(), t.Attosecond())
+			fmt.Fprintf(&buffer, "%d%018d000000", t.UnixSeconds(), t.AttosecondsInSecond())
 		case timescanner.WEEK_OF_WEEK_BASED_YEAR:
 			fmt.Fprintf(&buffer, "%d", t.ISOWeek())
 		case timescanner.WEEK_OF_WEEK_BASED_YEAR_SPACE_PADDED:
@@ -629,47 +637,47 @@ tokenLoop:
 		case timescanner.WEEK_OF_YEAR_ALT_ZERO_PADDED:
 			fmt.Fprintf(&buffer, "%02d", t.WeekFromSunday())
 		case timescanner.MICROSECOND_OF_SECOND:
-			fmt.Fprintf(&buffer, "%d", t.Microsecond())
+			fmt.Fprintf(&buffer, "%d", t.MicrosecondsInSecond())
 		case timescanner.MICROSECOND_OF_SECOND_SPACE_PADDED:
-			fmt.Fprintf(&buffer, "%6d", t.Microsecond())
+			fmt.Fprintf(&buffer, "%6d", t.MicrosecondsInSecond())
 		case timescanner.MICROSECOND_OF_SECOND_ZERO_PADDED:
-			fmt.Fprintf(&buffer, "%06d", t.Microsecond())
+			fmt.Fprintf(&buffer, "%06d", t.MicrosecondsInSecond())
 		case timescanner.NANOSECOND_OF_SECOND:
-			fmt.Fprintf(&buffer, "%d", t.Nanosecond())
+			fmt.Fprintf(&buffer, "%d", t.NanosecondsInSecond())
 		case timescanner.NANOSECOND_OF_SECOND_SPACE_PADDED:
-			fmt.Fprintf(&buffer, "%9d", t.Nanosecond())
+			fmt.Fprintf(&buffer, "%9d", t.NanosecondsInSecond())
 		case timescanner.NANOSECOND_OF_SECOND_ZERO_PADDED:
-			fmt.Fprintf(&buffer, "%09d", t.Nanosecond())
+			fmt.Fprintf(&buffer, "%09d", t.NanosecondsInSecond())
 		case timescanner.PICOSECOND_OF_SECOND:
-			fmt.Fprintf(&buffer, "%d", t.Picosecond())
+			fmt.Fprintf(&buffer, "%d", t.PicosecondsInSecond())
 		case timescanner.PICOSECOND_OF_SECOND_SPACE_PADDED:
-			fmt.Fprintf(&buffer, "%12d", t.Picosecond())
+			fmt.Fprintf(&buffer, "%12d", t.PicosecondsInSecond())
 		case timescanner.PICOSECOND_OF_SECOND_ZERO_PADDED:
-			fmt.Fprintf(&buffer, "%012d", t.Picosecond())
+			fmt.Fprintf(&buffer, "%012d", t.PicosecondsInSecond())
 		case timescanner.FEMTOSECOND_OF_SECOND:
-			fmt.Fprintf(&buffer, "%d", t.Femtosecond())
+			fmt.Fprintf(&buffer, "%d", t.FemtosecondsInSecond())
 		case timescanner.FEMTOSECOND_OF_SECOND_SPACE_PADDED:
-			fmt.Fprintf(&buffer, "%15d", t.Femtosecond())
+			fmt.Fprintf(&buffer, "%15d", t.FemtosecondsInSecond())
 		case timescanner.FEMTOSECOND_OF_SECOND_ZERO_PADDED:
-			fmt.Fprintf(&buffer, "%015d", t.Femtosecond())
+			fmt.Fprintf(&buffer, "%015d", t.FemtosecondsInSecond())
 		case timescanner.ATTOSECOND_OF_SECOND:
-			fmt.Fprintf(&buffer, "%d", t.Attosecond())
+			fmt.Fprintf(&buffer, "%d", t.AttosecondsInSecond())
 		case timescanner.ATTOSECOND_OF_SECOND_SPACE_PADDED:
-			fmt.Fprintf(&buffer, "%18d", t.Attosecond())
+			fmt.Fprintf(&buffer, "%18d", t.AttosecondsInSecond())
 		case timescanner.ATTOSECOND_OF_SECOND_ZERO_PADDED:
-			fmt.Fprintf(&buffer, "%018d", t.Attosecond())
+			fmt.Fprintf(&buffer, "%018d", t.AttosecondsInSecond())
 		case timescanner.ZEPTOSECOND_OF_SECOND:
-			fmt.Fprintf(&buffer, "%d000", t.Attosecond())
+			fmt.Fprintf(&buffer, "%d000", t.AttosecondsInSecond())
 		case timescanner.ZEPTOSECOND_OF_SECOND_SPACE_PADDED:
-			fmt.Fprintf(&buffer, "%18d000", t.Attosecond())
+			fmt.Fprintf(&buffer, "%18d000", t.AttosecondsInSecond())
 		case timescanner.ZEPTOSECOND_OF_SECOND_ZERO_PADDED:
-			fmt.Fprintf(&buffer, "%018d000", t.Attosecond())
+			fmt.Fprintf(&buffer, "%018d000", t.AttosecondsInSecond())
 		case timescanner.YOCTOSECOND_OF_SECOND:
-			fmt.Fprintf(&buffer, "%d000000", t.Attosecond())
+			fmt.Fprintf(&buffer, "%d000000", t.AttosecondsInSecond())
 		case timescanner.YOCTOSECOND_OF_SECOND_SPACE_PADDED:
-			fmt.Fprintf(&buffer, "%18d000000", t.Attosecond())
+			fmt.Fprintf(&buffer, "%18d000000", t.AttosecondsInSecond())
 		case timescanner.YOCTOSECOND_OF_SECOND_ZERO_PADDED:
-			fmt.Fprintf(&buffer, "%018d000000", t.Attosecond())
+			fmt.Fprintf(&buffer, "%018d000000", t.AttosecondsInSecond())
 		case timescanner.DATE_AND_TIME:
 			fmt.Fprintf(
 				&buffer,
@@ -831,5 +839,5 @@ func (t *DateTime) StrictEqual(other Value) Value {
 func initDateTime() {
 	DateTimeClass = NewClass()
 	StdModule.AddConstantString("DateTime", Ref(DateTimeClass))
-	DateTimeClass.AddConstantString("DEFAULT_FORMAT", Ref(String(DefaultTimeFormat)))
+	DateTimeClass.AddConstantString("DEFAULT_FORMAT", Ref(String(DefaultDateTimeFormat)))
 }

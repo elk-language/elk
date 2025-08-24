@@ -5,14 +5,14 @@ import (
 )
 
 // Std::DateTime
-func initTime() {
+func initDateTime() {
 	// Class methods
 	c := &value.DateTimeClass.SingletonClass().MethodContainer
 	Def(
 		c,
 		"now",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			return value.Ref(value.TimeNow()), value.Undefined
+			return value.Ref(value.DateTimeNow()), value.Undefined
 		},
 	)
 
@@ -258,6 +258,14 @@ func initTime() {
 	)
 	Def(
 		c,
+		"microseconds_in_second",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return value.SmallInt(self.MicrosecondsInSecond()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"nanosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
@@ -266,42 +274,50 @@ func initTime() {
 	)
 	Def(
 		c,
-		"picosecond",
+		"nanoseconds_in_second",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkInt(self.Picosecond()), value.Undefined
+			return value.SmallInt(self.NanosecondsInSecond()).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
-		"femtosecond",
+		"picoseconds_in_second",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkInt(self.Femtosecond()), value.Undefined
+			return value.ToElkInt(self.PicosecondsInSecond()), value.Undefined
 		},
 	)
 	Def(
 		c,
-		"attosecond",
+		"femtoseconds_in_second",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkInt(self.Attosecond()), value.Undefined
+			return value.ToElkInt(self.FemtosecondsInSecond()), value.Undefined
 		},
 	)
 	Def(
 		c,
-		"zeptosecond",
+		"attoseconds_in_second",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.Ref(value.ToElkBigInt(self.Zeptosecond())), value.Undefined
+			return value.ToElkInt(self.AttosecondsInSecond()), value.Undefined
 		},
 	)
 	Def(
 		c,
-		"yoctosecond",
+		"zeptoseconds_in_second",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.Ref(value.ToElkBigInt(self.Yoctosecond())), value.Undefined
+			return value.Ref(value.ToElkBigInt(self.ZeptosecondsInSecond())), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"yoctoseconds_in_second",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return value.Ref(value.ToElkBigInt(self.YoctosecondsInSecond())), value.Undefined
 		},
 	)
 	Def(

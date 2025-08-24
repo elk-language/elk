@@ -685,6 +685,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineClass("Represents a single Elk thread of execution.", false, true, true, true, value.ToSymbol("Thread"), objectClass, env)
 		namespace.TryDefineClass("A pool of thread workers with a task queue.", false, true, true, true, value.ToSymbol("ThreadPool"), objectClass, env)
+		namespace.TryDefineClass("Represents a time of day with nanosecond precision.", false, true, true, false, value.ToSymbol("Time"), objectClass, env)
 		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, false, value.ToSymbol("Timezone"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("True"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Truthy"), NewNamedType("Std::Truthy", NewNot(NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))))
@@ -1487,10 +1488,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns the attosecond offset within the second specified by `self` in the range `0...999999999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("attosecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the attosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("attoseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the day of the month in range `1...12`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("day"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Calculates the difference between two datetime objects.\nReturns a duration.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("diff"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-				namespace.DefineMethod("Returns the femtosecond offset within the second specified by `self` in the range `0...999999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("femtosecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the femtosecond offset within the second specified by `self` in the range `0...999_999_999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("femtoseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Create a string formatted according to the given format string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("format"), nil, []*Parameter{NewParameter(value.ToSymbol("fmt"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Returns the hour offset within the day specified by `self` in the range `0...23`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hour"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the hour of the day in a twelve hour clock.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hour12"), nil, nil, NameToType("Std::Int", env), Never{})
@@ -1509,13 +1510,15 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the ISO 8601 year in which `self` occurs.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iso_year"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Convert the datetime to the local timezone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("local"), nil, nil, NameToType("Std::DateTime", env), Never{})
 				namespace.DefineMethod("Returns `\"AM\"` or `\"PM\"` based on the hour.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("meridiem"), nil, nil, NameToType("Std::String", env), Never{})
-				namespace.DefineMethod("Returns the microsecond offset within the second specified by `self` in the range `0...999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microsecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the microsecond offset within the millisecond specified by `self` in the range `0...999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microsecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the microsecond offset within the second specified by `self` in the range `0...999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the millisecond offset within the second specified by `self` in the range `0...999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("millisecond"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the minute offset within the hour specified by `self` in the range `0...59`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("minute"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the month in which `self` occurs.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("month"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the day of the month in range `1...12`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("month_day"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the nanosecond offset within the second specified by `self` in the range `0...999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanosecond"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the picosecond offset within the second specified by `self` in the range `0...999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("picosecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the nanosecond offset within the microsecond specified by `self` in the range `0...999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanosecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the nanosecond offset within the second specified by `self` in the range `0...999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanoseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the picosecond offset within the second specified by `self` in the range `0...999_999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("picoseconds_in_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the second offset within the minute specified by `self` in the range `0...59`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("second"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Create a string formatted according to the given format string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("strftime"), nil, []*Parameter{NewParameter(value.ToSymbol("fmt"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Return the timezone associated with this DateTime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone"), nil, nil, NameToType("Std::Timezone", env), Never{})
@@ -1544,8 +1547,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the name of the day of the week.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weekday_name"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Returns the year in which `self` occurs.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the day of the year.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year_day"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the yoctosecond offset within the second specified by `self` in the range `0...999999999999999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("yoctosecond"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the zeptosecond offset within the second specified by `self` in the range `0...999999999999999999999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zeptosecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the yoctosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("yoctoseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the zeptosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zeptoseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Return the timezone associated with this DateTime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone"), nil, nil, NameToType("Std::Timezone", env), Never{})
 				namespace.DefineMethod("Return the name of the timezone associated with this DateTime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone_name"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Returns the offset of the timezone in hours east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone_offset_hours"), nil, nil, NameToType("Std::Int", env), Never{})
@@ -9012,6 +9015,67 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtypeString("Time").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the attosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("attoseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the femtosecond offset within the second specified by `self` in the range `0...999_999_999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("femtoseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Create a string formatted according to the given format string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("format"), nil, []*Parameter{NewParameter(value.ToSymbol("fmt"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the hour offset within the day specified by `self` in the range `0...23`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hour"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the hour of the day in a twelve hour clock.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hour12"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns `\"AM\"` or `\"PM\"` based on the hour.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("meridiem"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the microsecond offset within the millisecond specified by `self` in the range `0...999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microsecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the microsecond offset within the second specified by `self` in the range `0...999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the millisecond offset within the second specified by `self` in the range `0...999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("millisecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the minute offset within the hour specified by `self` in the range `0...59`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("minute"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the nanosecond offset within the microsecond specified by `self` in the range `0...999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanosecond"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the nanosecond offset within the second specified by `self` in the range `0...999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanoseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the picosecond offset within the second specified by `self` in the range `0...999_999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("picoseconds_in_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the second offset within the minute specified by `self` in the range `0...59`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("second"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Create a string formatted according to the given format string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("strftime"), nil, []*Parameter{NewParameter(value.ToSymbol("fmt"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_duration"), nil, nil, NameToType("Std::Duration", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the number of attoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_attoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of femtoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_femtoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of microseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of milliseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of nanoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of picoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_picoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of seconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of yoctoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_yoctoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the number of zeptoseconds elapsed since January 1, 1970 UTC", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unix_zeptoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the yoctosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("yoctoseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the zeptosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zeptoseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
+
+				// Define constants
+				namespace.DefineConstant(value.ToSymbol("DEFAULT_FORMAT"), NameToType("Std::String", env))
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Returns the current time.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("now"), nil, nil, NameToType("Std::Time", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtypeString("Timezone").(*Class)

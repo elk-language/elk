@@ -81,7 +81,7 @@ func initDuration() {
 		"nanoseconds_mod",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.NanosecondsMod(), value.Undefined
+			return value.SmallInt(self.NanosecondsMod()).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -105,7 +105,7 @@ func initDuration() {
 		"microseconds_mod",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.MicrosecondsMod(), value.Undefined
+			return value.SmallInt(self.MicrosecondsMod()).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -129,7 +129,7 @@ func initDuration() {
 		"milliseconds_mod",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.MillisecondsMod(), value.Undefined
+			return value.SmallInt(self.MillisecondsMod()).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -153,7 +153,7 @@ func initDuration() {
 		"seconds_mod",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.SecondsMod(), value.Undefined
+			return value.SmallInt(self.SecondsMod()).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -177,7 +177,7 @@ func initDuration() {
 		"minutes_mod",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.MinutesMod(), value.Undefined
+			return value.SmallInt(self.MinutesMod()).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -201,7 +201,7 @@ func initDuration() {
 		"hours_mod",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDuration()
-			return self.HoursMod(), value.Undefined
+			return value.SmallInt(self.HoursMod()).ToValue(), value.Undefined
 		},
 	)
 	Def(

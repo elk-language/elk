@@ -46,6 +46,7 @@ const (
 	UINT32_FLAG
 	CHAR_FLAG
 	SYMBOL_FLAG
+	TIME_FLAG
 	DATE_FLAG
 	DATE_SPAN_FLAG
 
@@ -118,6 +119,8 @@ func (v Value) Inspect() string {
 		return v.AsDate().Inspect()
 	case DATE_SPAN_FLAG:
 		return v.AsDateSpan().Inspect()
+	case TIME_FLAG:
+		return v.AsTime().Inspect()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -179,6 +182,8 @@ func (v Value) Class() *Class {
 		return v.AsDate().Class()
 	case DATE_SPAN_FLAG:
 		return v.AsDateSpan().Class()
+	case TIME_FLAG:
+		return v.AsTime().Class()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -232,6 +237,8 @@ func (v Value) DirectClass() *Class {
 		return v.AsDate().DirectClass()
 	case DATE_SPAN_FLAG:
 		return v.AsDateSpan().DirectClass()
+	case TIME_FLAG:
+		return v.AsTime().DirectClass()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -285,6 +292,8 @@ func (v Value) SingletonClass() *Class {
 		return v.AsDate().SingletonClass()
 	case DATE_SPAN_FLAG:
 		return v.AsDateSpan().SingletonClass()
+	case TIME_FLAG:
+		return v.AsTime().SingletonClass()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -338,6 +347,8 @@ func (v Value) InstanceVariables() *InstanceVariables {
 		return v.AsDate().InstanceVariables()
 	case DATE_SPAN_FLAG:
 		return v.AsDateSpan().InstanceVariables()
+	case TIME_FLAG:
+		return v.AsTime().InstanceVariables()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -391,6 +402,8 @@ func (v Value) Error() string {
 		return v.AsDate().Error()
 	case DATE_SPAN_FLAG:
 		return v.AsDateSpan().Error()
+	case TIME_FLAG:
+		return v.AsTime().Error()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -752,6 +765,39 @@ func (v Value) MustDate() Date {
 		panic(fmt.Sprintf("value `%s` is not a Date", v.Inspect()))
 	}
 	return v.AsDate()
+}
+
+func (v Value) IsInlineTime() bool {
+	return v.flag == TIME_FLAG
+}
+
+func (v Value) AsInlineTime() Time {
+	return Time{
+		duration: Duration(v.data),
+	}
+}
+
+func (v Value) MustInlineTime() Time {
+	if !v.IsInlineTime() {
+		panic(fmt.Sprintf("value `%s` is not an inline Time", v.Inspect()))
+	}
+	return v.AsInlineTime()
+}
+
+func (v Value) AsTime() Time {
+	if v.IsReference() {
+		return v.AsReference().(Time)
+	} else {
+		return v.AsInlineTime()
+	}
+}
+
+func (v Value) MustTime() Time {
+	if v.IsReference() {
+		return v.AsReference().(Time)
+	} else {
+		return v.MustInlineTime()
+	}
 }
 
 func (v Value) IsDateSpan() bool {

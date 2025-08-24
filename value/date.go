@@ -8,6 +8,8 @@ import (
 	"github.com/elk-language/elk/value/timescanner"
 )
 
+const DefaultDateFormat = "%Y-%m-%d"
+
 const dateYearBias = 1 << 22
 
 const DateMaxYear = (1 << 22) - 1
@@ -30,6 +32,11 @@ var DateInvalidDayErrorClass *Class   // ::Std::Date::InvalidDayError
 // The year range is from `-4_194_304` to `4_194_303`
 type Date struct {
 	bits uint32
+}
+
+func DateNow() Date {
+	t := time.Now()
+	return MakeDate(t.Year(), int(t.Month()), t.Day())
 }
 
 // Make and validate a new date
@@ -145,24 +152,24 @@ func (d Date) ToGoTime() time.Time {
 	return time.Date(d.Year(), time.Month(d.Month()), d.Day(), 0, 0, 0, 0, time.UTC)
 }
 
-func (d Date) ToTime() *DateTime {
-	return ToElkTime(d.ToGoTime())
+func (d Date) ToDateTime() *DateTime {
+	return ToElkDateTime(d.ToGoTime())
 }
 
-func (d Date) ToTimeValue() DateTime {
-	return ToElkTimeValue(d.ToGoTime())
+func (d Date) ToDateTimeValue() DateTime {
+	return ToElkDateTimeValue(d.ToGoTime())
 }
 
 func (d Date) ISOYear() int {
-	return d.ToTimeValue().ISOYear()
+	return d.ToDateTimeValue().ISOYear()
 }
 
 func (d Date) ISOYearLastTwo() int {
-	return d.ToTimeValue().ISOYearLastTwo()
+	return d.ToDateTimeValue().ISOYearLastTwo()
 }
 
 func (d Date) YearLastTwo() int {
-	return d.Year() / 100
+	return d.Year() % 100
 }
 
 func (d Date) Century() int {
@@ -179,71 +186,71 @@ func (d Date) AbbreviatedMonthName() string {
 
 // Day of the year.
 func (d Date) YearDay() int {
-	return d.ToTimeValue().YearDay()
+	return d.ToDateTimeValue().YearDay()
 }
 
 func (d Date) WeekdayName() string {
-	return d.ToTimeValue().WeekdayName()
+	return d.ToDateTimeValue().WeekdayName()
 }
 
 func (d Date) AbbreviatedWeekdayName() string {
-	return d.ToTimeValue().AbbreviatedWeekdayName()
+	return d.ToDateTimeValue().AbbreviatedWeekdayName()
 }
 
 // Specifies the day of the week (Monday = 1, ...).
 func (d Date) WeekdayFromMonday() int {
-	return d.ToTimeValue().WeekdayFromMonday()
+	return d.ToDateTimeValue().WeekdayFromMonday()
 }
 
 func (d Date) ISOWeek() int {
-	return d.ToTimeValue().ISOWeek()
+	return d.ToDateTimeValue().ISOWeek()
 }
 
 // Specifies the day of the week (Sunday = 0, ...).
 func (d Date) WeekdayFromSunday() int {
-	return d.ToTimeValue().WeekdayFromSunday()
+	return d.ToDateTimeValue().WeekdayFromSunday()
 }
 
 // The week number of the current year as a decimal number,
 // range 00 to 53, starting with the first Monday
 // as the first day of week 01.
 func (d Date) WeekFromMonday() int {
-	return d.ToTimeValue().WeekFromMonday()
+	return d.ToDateTimeValue().WeekFromMonday()
 }
 
 // The week number of the current year as a decimal number,
 // range 00 to 53, starting with the first Sunday
 // as the first day of week 01.
 func (d Date) WeekFromSunday() int {
-	return d.ToTimeValue().WeekFromSunday()
+	return d.ToDateTimeValue().WeekFromSunday()
 }
 
 func (d Date) IsSunday() bool {
-	return d.ToTimeValue().IsSunday()
+	return d.ToDateTimeValue().IsSunday()
 }
 
 func (d Date) IsMonday() bool {
-	return d.ToTimeValue().IsMonday()
+	return d.ToDateTimeValue().IsMonday()
 }
 
 func (d Date) IsTuesday() bool {
-	return d.ToTimeValue().IsTuesday()
+	return d.ToDateTimeValue().IsTuesday()
 }
 
 func (d Date) IsWednesday() bool {
-	return d.ToTimeValue().IsWednesday()
+	return d.ToDateTimeValue().IsWednesday()
 }
 
 func (d Date) IsThursday() bool {
-	return d.ToTimeValue().IsThursday()
+	return d.ToDateTimeValue().IsThursday()
 }
 
 func (d Date) IsFriday() bool {
-	return d.ToTimeValue().IsFriday()
+	return d.ToDateTimeValue().IsFriday()
 }
 
 func (d Date) IsSaturday() bool {
-	return d.ToTimeValue().IsSaturday()
+	return d.ToDateTimeValue().IsSaturday()
 }
 
 func (d Date) MustFormat(formatString string) string {
@@ -386,6 +393,7 @@ tokenLoop:
 func initDate() {
 	DateClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Date", Ref(DateClass))
+	DateClass.AddConstantString("DEFAULT_FORMAT", Ref(String(DefaultDateFormat)))
 
 	DateErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	DateClass.AddConstantString("Error", Ref(DateErrorClass))

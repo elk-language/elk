@@ -145,39 +145,49 @@ sealed primitive class ::Std::DateTime
 	def millisecond: Int; end
 
 	##[
-		Returns the microsecond offset within the second specified by `self` in the range `0...999999`
+		Returns the microsecond offset within the millisecond specified by `self` in the range `0...999`
 	]##
 	def microsecond: Int; end
 
 	##[
-		Returns the nanosecond offset within the second specified by `self` in the range `0...999999999`
+		Returns the microsecond offset within the second specified by `self` in the range `0...999_999`
+	]##
+	def microseconds_in_second: Int; end
+
+	##[
+		Returns the nanosecond offset within the microsecond specified by `self` in the range `0...999`
 	]##
 	def nanosecond: Int; end
 
 	##[
-		Returns the picosecond offset within the second specified by `self` in the range `0...999999999999`
+		Returns the nanosecond offset within the second specified by `self` in the range `0...999_999_999`
 	]##
-	def picosecond: Int; end
+	def nanoseconds_in_second: Int; end
 
 	##[
-		Returns the femtosecond offset within the second specified by `self` in the range `0...999999999999999`
+		Returns the picosecond offset within the second specified by `self` in the range `0...999_999_999_999`
 	]##
-	def femtosecond: Int; end
+	def picoseconds_in_seconds: Int; end
 
 	##[
-		Returns the attosecond offset within the second specified by `self` in the range `0...999999999999999999`
+		Returns the femtosecond offset within the second specified by `self` in the range `0...999_999_999_999_999`
 	]##
-	def attosecond: Int; end
+	def femtoseconds_in_second: Int; end
 
 	##[
-		Returns the zeptosecond offset within the second specified by `self` in the range `0...999999999999999999999`
+		Returns the attosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999`
 	]##
-	def zeptosecond: Int; end
+	def attoseconds_in_second: Int; end
 
 	##[
-		Returns the yoctosecond offset within the second specified by `self` in the range `0...999999999999999999999999`
+		Returns the zeptosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999_999`
 	]##
-	def yoctosecond: Int; end
+	def zeptoseconds_in_second: Int; end
+
+	##[
+		Returns the yoctosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999_999_999`
+	]##
+	def yoctoseconds_in_second: Int; end
 
 	##[
 		Returns the number of seconds elapsed since January 1, 1970 UTC
