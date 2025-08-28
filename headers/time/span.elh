@@ -3,6 +3,8 @@
 	The representation limits the largest representable span to approximately 290 years.
 ]##
 sealed primitive class ::Std::Time::Span < Value
+	include Duration
+
 	singleton
 		##[
 			Parses a time span string and creates a `Time::Span` value.
@@ -137,6 +139,12 @@ sealed primitive class ::Std::Time::Span < Value
 		Returns the count of days in this span as an Int.
 	]##
 	def total_days: Int; end
+
+	##[
+		Returns the day component of this span as an Int.
+		Range of values: 0...30
+	]##
+	def days: Int; end
 
 	##[
 		Returns the count of weeks in this span as a Float.

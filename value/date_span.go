@@ -186,5 +186,6 @@ func (d DateSpan) InYears() Float {
 
 func initDateSpan() {
 	DateSpanClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
+	DateSpanClass.IncludeMixin(DurationMixin)
 	DateClass.AddConstantString("Span", Ref(DateSpanClass))
 }

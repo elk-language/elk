@@ -139,6 +139,13 @@ func initDateSpan() {
 	)
 	Def(
 		c,
+		"hours",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return value.SmallInt(0).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"total_hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
@@ -151,6 +158,13 @@ func initDateSpan() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
 			return self.InHours().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"minutes",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return value.SmallInt(0).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -171,6 +185,13 @@ func initDateSpan() {
 	)
 	Def(
 		c,
+		"seconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return value.SmallInt(0).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"total_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
@@ -183,6 +204,13 @@ func initDateSpan() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
 			return self.InSeconds().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"milliseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return value.SmallInt(0).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -203,6 +231,13 @@ func initDateSpan() {
 	)
 	Def(
 		c,
+		"microseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return value.SmallInt(0).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"total_microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
@@ -215,6 +250,13 @@ func initDateSpan() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
 			return self.InMicroseconds().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"nanoseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return value.SmallInt(0).ToValue(), value.Undefined
 		},
 	)
 	Def(

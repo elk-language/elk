@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"math"
 	"math/big"
 	"time"
 )
@@ -247,6 +248,10 @@ func (t TimeSpan) InDays() Float {
 	return Float(day) + Float(nsec)/(24*60*60*1e9)
 }
 
+func (t TimeSpan) Days() int {
+	return int(math.Mod(float64(t)/float64(Day), MonthDays))
+}
+
 func (t TimeSpan) TotalWeeks() Value {
 	return ToElkInt(int64(t / Week))
 }
@@ -283,5 +288,6 @@ func (t TimeSpan) InYears() Float {
 
 func initTimeSpan() {
 	TimeSpanClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
+	TimeSpanClass.IncludeMixin(DurationMixin)
 	TimeClass.AddConstantString("Span", Ref(TimeSpanClass))
 }

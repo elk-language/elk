@@ -13,6 +13,8 @@
 	and max amount of days is `2_147_483_647`.
 ]##
 sealed primitive class ::Std::Date::Span < Value
+	include Duration
+
 	init(years: Int = 0, months: Int = 0, days: Int = 0); end
 
 	##[
@@ -33,7 +35,6 @@ sealed primitive class ::Std::Date::Span < Value
 		One year is `365.25` days.
 	]##
 	def total_years: Int; end
-	alias years total_years
 
 	##[
 		Returns the year component of this span as an Int.
@@ -93,6 +94,12 @@ sealed primitive class ::Std::Date::Span < Value
 	def total_days: Int; end
 
 	##[
+		Returns the hour component of this span as an Int.
+		Always `0`.
+	]##
+	def hours: Int; end
+
+	##[
 		Returns the approximate count of hours in this span as a Float.
 		One year is `365.25` days, one month is `30.4375` days.
 	]##
@@ -103,6 +110,12 @@ sealed primitive class ::Std::Date::Span < Value
 		One year is `365.25` days, one month is `30.4375` days.
 	]##
 	def total_hours: Int; end
+
+	##[
+		Returns the minute component of this span as an Int.
+		Always `0`.
+	]##
+	def minutes: Int; end
 
 	##[
 		Returns the approximate count of minutes in this span as a Float.
@@ -117,6 +130,12 @@ sealed primitive class ::Std::Date::Span < Value
 	def total_minutes: Int; end
 
 	##[
+		Returns the second component of this span as an Int.
+		Always `0`.
+	]##
+	def seconds: Int; end
+
+	##[
 		Returns the approximate count of seconds in this span as a Float.
 		One year is `365.25` days, one month is `30.4375` days.
 	]##
@@ -127,6 +146,12 @@ sealed primitive class ::Std::Date::Span < Value
 		One year is `365.25` days, one month is `30.4375` days.
 	]##
 	def total_seconds: Int; end
+
+	##[
+		Returns the millisecond component of this span as an Int.
+		Always `0`.
+	]##
+	def milliseconds: Int; end
 
 	##[
 		Returns the approximate count of milliseconds in this span as a Float.
@@ -141,6 +166,12 @@ sealed primitive class ::Std::Date::Span < Value
 	def total_milliseconds: Int; end
 
 	##[
+		Returns the microsecond component of this span as an Int.
+		Always `0`.
+	]##
+	def microseconds: Int; end
+
+	##[
 		Returns the approximate count of microseconds in this span as a Float.
 		One year is `365.25` days, one month is `30.4375` days.
 	]##
@@ -151,6 +182,12 @@ sealed primitive class ::Std::Date::Span < Value
 		One year is `365.25` days, one month is `30.4375` days.
 	]##
 	def total_microseconds: Int; end
+
+	##[
+		Returns the nanosecond component of this span as an Int.
+		Always `0`.
+	]##
+	def nanoseconds: Int; end
 
 	##[
 		Returns the approximate count of nanoseconds in this span as a Float.

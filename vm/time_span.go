@@ -230,6 +230,14 @@ func initTimeSpan() {
 	)
 	Def(
 		c,
+		"days",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustTimeSpan()
+			return value.SmallInt(self.Days()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"total_weeks",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()

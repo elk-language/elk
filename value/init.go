@@ -135,6 +135,7 @@ func InitGlobalEnvironment() {
 	initElkLexer()
 	initElkParser()
 	initLocation()
+	initDuration()
 	initDate()
 	initDateSpan()
 	initTime()

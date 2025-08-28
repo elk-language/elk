@@ -90,10 +90,14 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		{
 			namespace := namespace.TryDefineClass("Represents a calendar date (year, month, day).\n It is an inline value on both 32bit and 64bit systems.\n The year range is from `-4_194_304` to `4_194_303`.", false, true, true, false, value.ToSymbol("Date"), objectClass, env)
-			namespace.TryDefineClass("Represents a calendar date (year, month, day).\n It is an inline value on both 32bit and 64bit systems.\n The year range is from `-4_194_304` to `4_194_303`.", false, true, true, false, value.ToSymbol("Span"), objectClass, env)
+			namespace.TryDefineClass("Represents an accurate difference between two calendar dates (year, month, day).\nIt is represented bt Int32 for months and Int32 for days.\n\nMonths/years are split from days because it is impossible to\naccurately convert months into days without knowing the starting\ndate it is meant to be applied to.\n\nAs such the conversion is done only when subtracted/added to a\ndate/datetime.\n\nThe max amount of years is `178_956_970`,\nand max amount of days is `2_147_483_647`.", false, true, true, false, value.ToSymbol("Span"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents a moment in datetime with nanosecond precision.", false, true, true, false, value.ToSymbol("DateTime"), objectClass, env)
+		{
+			namespace := namespace.TryDefineClass("Represents a moment in datetime with nanosecond precision.", false, true, true, false, value.ToSymbol("DateTime"), objectClass, env)
+			namespace.TryDefineClass("Represents an accurate difference between two DateTime's.\n\nIt is made up of a `Date::Span` and a `Time::Span`.", false, true, true, false, value.ToSymbol("Span"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.TryDefineModule("Contains various debugging utilities.", value.ToSymbol("Debug"), env)
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be decremented using\nthe `--` operator like `a--`", value.ToSymbol("Decrementable"), env)
@@ -105,7 +109,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents the elapsed time between two Times as an int64 nanosecond count.\n The representation limits the largest representable duration to approximately 290 years.", false, true, true, false, value.ToSymbol("Duration"), objectClass, env)
+		namespace.TryDefineMixin("Represents a difference between two points in time.", true, value.ToSymbol("Duration"), env)
 		{
 			namespace := namespace.TryDefineModule("Contains utilities for dealing with Elk\nsource code.", value.ToSymbol("Elk"), env)
 			{
@@ -685,7 +689,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineClass("Represents a single Elk thread of execution.", false, true, true, true, value.ToSymbol("Thread"), objectClass, env)
 		namespace.TryDefineClass("A pool of thread workers with a task queue.", false, true, true, true, value.ToSymbol("ThreadPool"), objectClass, env)
-		namespace.TryDefineClass("Represents a time of day with nanosecond precision.", false, true, true, false, value.ToSymbol("Time"), objectClass, env)
+		{
+			namespace := namespace.TryDefineClass("Represents a time of day with nanosecond precision.", false, true, true, false, value.ToSymbol("Time"), objectClass, env)
+			namespace.TryDefineClass("Represents the elapsed time between two Times as an int64 nanosecond count.\nThe representation limits the largest representable span to approximately 290 years.", false, true, true, false, value.ToSymbol("Span"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, false, value.ToSymbol("Timezone"), objectClass, env)
 		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("True"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Truthy"), NewNamedType("Std::Truthy", NewNot(NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))))
@@ -1460,14 +1468,40 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetParent(NameToNamespace("Std::Value", env))
 
 					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NameToType("Std::Duration", env).(*Mixin))
 
 					// Define methods
 					method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("years"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("months"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("days"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-					namespace.DefineMethod("Returns the count of days in this date span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("days"), nil, nil, NameToType("Std::Int", env), Never{})
-					namespace.DefineMethod("Returns the count of months in this date span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("months"), nil, nil, NameToType("Std::Int", env), Never{})
-					namespace.DefineMethod("Returns the count of months in this date span modulo 12 as an Int.\nRange of values: 0...11", 0|METHOD_NATIVE_FLAG, value.ToSymbol("months_mod"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the day component of this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("days"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the hour component of this span as an Int.\nAlways `0`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hours"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of days in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_days"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of hours in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_hours"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of microseconds in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_microseconds"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of milliseconds in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_milliseconds"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of minutes in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_minutes"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of months in this span as a Float.\nOne month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_months"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of nanoseconds in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_nanoseconds"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of seconds in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_seconds"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of weeks in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_weeks"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of years in this span as a Float.\nOne year is `365.25` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_years"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the microsecond component of this span as an Int.\nAlways `0`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the millisecond component of this span as an Int.\nAlways `0`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the minute component of this span as an Int.\nAlways `0`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("minutes"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the month component of this span as an Int.\n\nRange of values: 0...11", 0|METHOD_NATIVE_FLAG, value.ToSymbol("months"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the nanosecond component of this span as an Int.\nAlways `0`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the second component of this span as an Int.\nAlways `0`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("seconds"), nil, nil, NameToType("Std::Int", env), Never{})
 					namespace.DefineMethod("Returns the string representation of the date span in the format \"5Y2M10D\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
-					namespace.DefineMethod("Returns the count of years in this date span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of days in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_days"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of hours in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_hours"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of microseconds in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of milliseconds in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of minutes in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_minutes"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of weeks in this span as an Int.\nThis is a sum of the months component and the approximate amount of months\nfrom the day component.\nOne month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_months"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of nanoseconds in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of seconds in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of weeks in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_weeks"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of years in this span as an Int.\nThis is a sum of the year component and the approximate amount of years\nfrom the day component.\nOne year is `365.25` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_years"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the year component of this span as an Int.\nDoes not include years from days stored in this span,\nif it contains 2 years and 500 days, it will return `2`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("years"), nil, nil, NameToType("Std::Int", env), Never{})
 
 					// Define constants
 
@@ -1568,6 +1602,51 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define methods
 					namespace.DefineMethod("Returns the current datetime.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("now"), nil, nil, NameToType("Std::DateTime", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtypeString("Span").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+					namespace.SetParent(NameToNamespace("Std::Value", env))
+
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NameToType("Std::Duration", env).(*Mixin))
+
+					// Define methods
+					namespace.DefineMethod("Returns the day component of this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("days"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the hour component of this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hours"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of days in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_days"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of hours in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_hours"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of microseconds in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_microseconds"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of milliseconds in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_milliseconds"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of minutes in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_minutes"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of months in this span as a Float.\nOne month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_months"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of nanoseconds in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_nanoseconds"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of seconds in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_seconds"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of weeks in this span as a Float.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_weeks"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of years in this span as a Float.\nOne year is `365.25` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_years"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the microsecond component of this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the millisecond component of this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the minute component of this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("minutes"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the month component of this span as an Int.\n\nRange of values: 0...11", 0|METHOD_NATIVE_FLAG, value.ToSymbol("months"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the nanosecond component of this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the second component of this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the string representation of the date span in the format \"5Y2M10D51h15m0.12s\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of days in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_days"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of hours in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_hours"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of microseconds in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of milliseconds in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of minutes in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_minutes"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of weeks in this span as an Int.\nThis is a sum of the months component and the approximate amount of months\nfrom the day component.\nOne month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_months"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of nanoseconds in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of seconds in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of weeks in this span as an Int.\nOne year is `365.25` days, one month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_weeks"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of years in this span as an Int.\nThis is a sum of the year component and the approximate amount of years\nfrom the day component.\nOne year is `365.25` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_years"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the year component of this span as an Int.\nDoes not include years from days stored in this span,\nif it contains 2 years and 500 days, it will return `2`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("years"), nil, nil, NameToType("Std::Int", env), Never{})
 
 					// Define constants
 
@@ -1695,64 +1774,47 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
-				namespace := namespace.MustSubtypeString("Duration").(*Class)
+				namespace := namespace.MustSubtypeString("Duration").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
 
 				// Include mixins and implement interfaces
 
 				// Define methods
-				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Duration", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-				namespace.DefineMethod("Returns the count of days in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("days"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of hours in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hours"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of hours in this duration modulo 24 as an Int.\nRange of values: 0...23", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hours_mod"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of days in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_days"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the count of hours in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_hours"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the count of microseconds in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_microseconds"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the count of milliseconds in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_milliseconds"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the count of minutes in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_minutes"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the count of nanoseconds in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_nanoseconds"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the count of seconds in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_seconds"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the count of weeks in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_weeks"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the count of years in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_years"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the count of microseconds in this duration as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of microseconds in this duration modulo 1000 as a Float.\nRange of values: 0...999", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microseconds_mod"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of milliseconds in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of milliseconds in this duration modulo 1000 as an Int.\nRange of values: 0...999", 0|METHOD_NATIVE_FLAG, value.ToSymbol("milliseconds_mod"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of minutes in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("minutes"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of minutes in this duration modulo 60 as an Int.\nRange of values: 0...59", 0|METHOD_NATIVE_FLAG, value.ToSymbol("minutes_mod"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of nanoseconds in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of nanoseconds in this duration modulo 1000 as an Int.\nRange of values: 0...999", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanoseconds_mod"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of seconds in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("seconds"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of seconds in this duration modulo 60 as an Int.\nRange of values: 0...59", 0|METHOD_NATIVE_FLAG, value.ToSymbol("seconds_mod"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the string representation of the duration in the format \"51h15m0.12s\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
-				namespace.DefineMethod("Returns the count of weeks in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("weeks"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the count of years in this duration as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("years"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the day component of this duration as an Int.\n\nRange of values: 0...30", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("days"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the hour component of this duration as an Int.\n\nRange of values: 0...23", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("hours"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of days in this duration as a Float.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("in_days"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of hours in this duration as a Float.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("in_hours"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of microseconds in this span as a Float.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("in_microseconds"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of milliseconds in this duration as a Float.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("in_milliseconds"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of minutes in this duration as a Float.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("in_minutes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of months in this duration as a Float.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("in_months"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of nanoseconds in this span as a Float.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("in_nanoseconds"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of seconds in this duration as a Float.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("in_seconds"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of weeks in this duration as a Float.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("in_weeks"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of years in this duration as a Float.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("in_years"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the microsecond component of this duration as an Int.\n\nRange of values: 0...999", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the millisecond component of this duration as an Int.\n\nRange of values: 0...999", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the minute component of this duration as an Int.\n\nRange of values: 0...59", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("minutes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the month component of this duration as an Int.\n\nRange of values: 0...11", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("months"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the nanosecond component of this duration as an Int.\n\nRange of values: 0...999", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the second component of this duration as an Int.\n\nRange of values: 0...59", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the string representation of the duration.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of days in this duration as an Int.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("total_days"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of hours in this duration as an Int.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("total_hours"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of microseconds in this span as an Int.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("total_microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of milliseconds in this span as an Int.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("total_milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of minutes in this duration as an Int.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("total_minutes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of weeks in this duration as an Int.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("total_months"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of nanoseconds in this span as an Int.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("total_nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of seconds in this duration as an Int.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("total_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of weeks in this duration as an Int.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("total_weeks"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of years in this span as an Int.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("total_years"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the year component of this duration as an Int.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("years"), nil, nil, NameToType("Std::Int", env), Never{})
 
 				// Define constants
 
 				// Define instance variables
-
-				{
-					namespace := namespace.Singleton()
-
-					namespace.Name() // noop - avoid unused variable error
-
-					// Include mixins and implement interfaces
-
-					// Define methods
-					namespace.DefineMethod("Parses a duration string and creates a Duration value.\nA duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"300ms\", \"-1.5h\" or \"2h45m\".\nValid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("s"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-					namespace.DefineMethod("Returns the amount of elapsed since the given `DateTime`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("since"), nil, []*Parameter{NewParameter(value.ToSymbol("datetime"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-					namespace.DefineMethod("Returns the amount of time that is left until the given `DateTime`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("until"), nil, []*Parameter{NewParameter(value.ToSymbol("datetime"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, NameToType("Std::Duration", env), Never{})
-
-					// Define constants
-
-					// Define instance variables
-				}
 			}
 			{
 				namespace := namespace.MustSubtypeString("Elk").(*Module)
@@ -9075,6 +9137,72 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define constants
 
 					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtypeString("Span").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+					namespace.SetParent(NameToNamespace("Std::Value", env))
+
+					// Include mixins and implement interfaces
+					IncludeMixin(namespace, NameToType("Std::Duration", env).(*Mixin))
+
+					// Define methods
+					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
+					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time::Span", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
+					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time::Span", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
+					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
+					namespace.DefineMethod("Returns the day component of this span as an Int.\nRange of values: 0...30", 0|METHOD_NATIVE_FLAG, value.ToSymbol("days"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of hours in this span modulo 24 as an Int.\nRange of values: 0...23", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hours"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of days in this span as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_days"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the count of hours in this span as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_hours"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the count of microseconds in this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_microseconds"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the count of milliseconds in this span as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_milliseconds"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the count of minutes in this span as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_minutes"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of months in this span as a Float.\nOne month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_months"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the count of nanoseconds in this span as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_nanoseconds"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the count of seconds in this span as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_seconds"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the count of weeks in this span as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_weeks"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of years in this span as a Float.\nOne year is `365.25` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_years"), nil, nil, NameToType("Std::Float", env), Never{})
+					namespace.DefineMethod("Returns the count of microseconds in this span modulo 1000 as a Float.\nRange of values: 0...999", 0|METHOD_NATIVE_FLAG, value.ToSymbol("microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of milliseconds in this span modulo 1000 as an Int.\nRange of values: 0...999", 0|METHOD_NATIVE_FLAG, value.ToSymbol("milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of minutes in this span modulo 60 as an Int.\nRange of values: 0...59", 0|METHOD_NATIVE_FLAG, value.ToSymbol("minutes"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of months in this span modulo `12` as an Int.\nOne month is `30.4375` days.\n\nRange of values: 0...11", 0|METHOD_NATIVE_FLAG, value.ToSymbol("months"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of nanoseconds in this span modulo 1000 as an Int.\nRange of values: 0...999", 0|METHOD_NATIVE_FLAG, value.ToSymbol("nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of seconds in this span modulo 60 as an Int.\nRange of values: 0...59", 0|METHOD_NATIVE_FLAG, value.ToSymbol("seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the string representation of the span in the format \"51h15m0.12s\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+					namespace.DefineMethod("Returns the count of days in this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_days"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of hours in this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_hours"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of microseconds in this span as a Float.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_microseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of milliseconds in this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_milliseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of minutes in this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_minutes"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of weeks in this span as an Int.\nOne month is `30.4375` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_months"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of nanoseconds in this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_nanoseconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of seconds in this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the count of weeks in this span as an Int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_weeks"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of years in this span as an Int.\nOne year is `365.25` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("total_years"), nil, nil, NameToType("Std::Int", env), Never{})
+					namespace.DefineMethod("Returns the approximate count of years in this span as an Int.\nOne year is `365.25` days.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("years"), nil, nil, NameToType("Std::Int", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+
+					{
+						namespace := namespace.Singleton()
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("Parses a time span string and creates a `Time::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"300ms\", \"-1.5h\" or \"2h45m\".\nValid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("s"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
+						namespace.DefineMethod("Returns the amount of elapsed since the given `DateTime`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("since"), nil, []*Parameter{NewParameter(value.ToSymbol("datetime"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
+						namespace.DefineMethod("Returns the amount of time that is left until the given `DateTime`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("until"), nil, []*Parameter{NewParameter(value.ToSymbol("datetime"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
 				}
 			}
 			{

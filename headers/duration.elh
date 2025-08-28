@@ -1,0 +1,171 @@
+##[
+	Represents a difference between two points in time.
+]##
+abstract mixin ::Std::Duration
+	##[
+		Returns the string representation of the duration.
+	]##
+	sig to_string: String
+
+	##[
+		Returns the approximate count of years in this duration as a Float.
+	]##
+	sig in_years: Float
+
+	##[
+		Returns the approximate count of years in this span as an Int.
+	]##
+	sig total_years: Int
+
+	##[
+		Returns the year component of this duration as an Int.
+	]##
+	sig years: Int
+
+	##[
+		Returns the approximate count of months in this duration as a Float.
+	]##
+	sig in_months: Float
+
+	##[
+		Returns the approximate count of weeks in this duration as an Int.
+	]##
+	sig total_months: Int
+
+	##[
+		Returns the month component of this duration as an Int.
+
+		Range of values: 0...11
+	]##
+	sig months: Int
+
+	##[
+		Returns the approximate count of weeks in this duration as a Float.
+	]##
+	sig in_weeks: Float
+
+	##[
+		Returns the approximate count of weeks in this duration as an Int.
+	]##
+	sig total_weeks: Int
+
+	##[
+		Returns the day component of this duration as an Int.
+
+		Range of values: 0...30
+	]##
+	sig days: Int
+
+	##[
+		Returns the approximate count of days in this duration as a Float.
+	]##
+	sig in_days: Float
+
+	##[
+		Returns the approximate count of days in this duration as an Int.
+	]##
+	sig total_days: Int
+
+	##[
+		Returns the hour component of this duration as an Int.
+
+		Range of values: 0...23
+	]##
+	sig hours: Int
+
+	##[
+		Returns the approximate count of hours in this duration as a Float.
+	]##
+	sig in_hours: Float
+
+	##[
+		Returns the approximate count of hours in this duration as an Int.
+	]##
+	sig total_hours: Int
+
+	##[
+		Returns the minute component of this duration as an Int.
+
+		Range of values: 0...59
+	]##
+	sig minutes: Int
+
+	##[
+		Returns the approximate count of minutes in this duration as a Float.
+	]##
+	sig in_minutes: Float
+
+	##[
+		Returns the approximate count of minutes in this duration as an Int.
+	]##
+	sig total_minutes: Int
+
+	##[
+		Returns the second component of this duration as an Int.
+
+		Range of values: 0...59
+	]##
+	sig seconds: Int
+
+	##[
+		Returns the approximate count of seconds in this duration as a Float.
+	]##
+	sig in_seconds: Float
+
+	##[
+		Returns the approximate count of seconds in this duration as an Int.
+	]##
+	sig total_seconds: Int
+
+	##[
+		Returns the millisecond component of this duration as an Int.
+
+		Range of values: 0...999
+	]##
+	sig milliseconds: Int
+
+	##[
+		Returns the approximate count of milliseconds in this duration as a Float.
+	]##
+	sig in_milliseconds: Float
+
+	##[
+		Returns the approximate count of milliseconds in this span as an Int.
+	]##
+	sig total_milliseconds: Int
+
+	##[
+		Returns the microsecond component of this duration as an Int.
+
+		Range of values: 0...999
+	]##
+	sig microseconds: Int
+
+	##[
+		Returns the approximate count of microseconds in this span as a Float.
+	]##
+	sig in_microseconds: Float
+
+	##[
+		Returns the approximate count of microseconds in this span as an Int.
+	]##
+	sig total_microseconds: Int
+
+	##[
+		Returns the nanosecond component of this duration as an Int.
+
+		Range of values: 0...999
+	]##
+	sig nanoseconds: Int
+
+	##[
+		Returns the approximate count of nanoseconds in this span as a Float.
+	]##
+	sig in_nanoseconds: Float
+
+	##[
+		Returns the approximate count of nanoseconds in this span as an Int.
+	]##
+	sig total_nanoseconds: Int
+
+end
