@@ -36,7 +36,7 @@ func (DateTime) SingletonClass() *Class {
 const DefaultDateTimeFormat = "%Y-%m-%d %H:%M:%S.%9N %:z"
 
 func (t DateTime) Inspect() string {
-	return fmt.Sprintf("Std::DateTime('%s')", t.ToString().String())
+	return fmt.Sprintf("Std::DateTime.parse('%s')", t.ToString().String())
 }
 
 func (t DateTime) Error() string {
@@ -88,20 +88,20 @@ func DateTimeNow() *DateTime {
 
 // Adds the given duration to the time.
 // Returns a new time structure.
-func (t *DateTime) Add(val Duration) *DateTime {
+func (t *DateTime) Add(val TimeSpan) *DateTime {
 	return ToElkDateTime(t.Go.Add(val.Go()))
 }
 
 // Subtracts the given duration from the time.
 // Returns a new time structure.
-func (t *DateTime) Subtract(val Duration) *DateTime {
+func (t *DateTime) Subtract(val TimeSpan) *DateTime {
 	return ToElkDateTime(t.Go.Add(-val.Go()))
 }
 
 // Calculates the difference between two time objects.
 // Returns a duration.
-func (t *DateTime) Diff(val *DateTime) Duration {
-	return Duration(t.Go.Sub(val.Go))
+func (t *DateTime) Diff(val *DateTime) TimeSpan {
+	return TimeSpan(t.Go.Sub(val.Go))
 }
 
 func (t DateTime) ToGoTime() time.Time {

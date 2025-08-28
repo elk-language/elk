@@ -1,22 +1,11 @@
 ##[
-	Represents an accurate difference between two calendar dates (year, month, day).
-	It is represented bt Int32 for months and Int32 for days.
+	Represents an accurate difference between two DateTime's.
 
-	Months/years are split from days because it is impossible to
-	accurately convert months into days without knowing the starting
-	date it is meant to be applied to.
-
-	As such the conversion is done only when subtracted/added to a
-	date/datetime.
-
-	The max amount of years is `178_956_970`,
-	and max amount of days is `2_147_483_647`.
+	It is made up of a `Date::Span` and a `Time::Span`.
 ]##
-sealed primitive class ::Std::Date::Span < Value
-	init(years: Int = 0, months: Int = 0, days: Int = 0); end
-
+sealed primitive class ::Std::DateTime::Span < Value
 	##[
-		Returns the string representation of the date span in the format "5Y2M10D".
+		Returns the string representation of the date span in the format "5Y2M10D51h15m0.12s".
 	]##
 	def to_string: String; end
 

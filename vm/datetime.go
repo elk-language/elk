@@ -48,7 +48,7 @@ func initDateTime() {
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			dur := args[1].MustInlineDuration()
+			dur := args[1].MustInlineTimeSpan()
 			return value.Ref(self.Subtract(dur)), value.Undefined
 		},
 		DefWithParameters(1),
@@ -58,7 +58,7 @@ func initDateTime() {
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			dur := args[1].MustInlineDuration()
+			dur := args[1].MustInlineTimeSpan()
 			return value.Ref(self.Add(dur)), value.Undefined
 		},
 		DefWithParameters(1),

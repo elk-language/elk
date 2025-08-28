@@ -59,6 +59,22 @@ func initDateSpan() {
 	)
 	Def(
 		c,
+		"total_years",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.TotalYears(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"in_years",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.InYears().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"months",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
@@ -67,10 +83,34 @@ func initDateSpan() {
 	)
 	Def(
 		c,
-		"months_mod",
+		"total_months",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
-			return value.SmallInt(self.MonthsMod()).ToValue(), value.Undefined
+			return self.TotalMonths(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"in_months",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.InMonths().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_weeks",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.TotalWeeks(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"in_weeks",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.InWeeks().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -79,6 +119,118 @@ func initDateSpan() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
 			return value.SmallInt(self.Days()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_days",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.TotalDays(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"in_days",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.InDays().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_hours",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.TotalHours(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"in_hours",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.InHours().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_minutes",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.TotalMinutes(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"in_minutes",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.InMinutes().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_seconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.TotalSeconds(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"in_seconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.InSeconds().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_milliseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.TotalMilliseconds(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"in_milliseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.InMilliseconds().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_microseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.TotalMicroseconds(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"in_microseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.InMicroseconds().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_nanoseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.TotalNanoseconds(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"in_nanoseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.InNanoseconds().ToValue(), value.Undefined
 		},
 	)
 	Def(

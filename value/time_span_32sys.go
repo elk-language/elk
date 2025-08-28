@@ -2,6 +2,6 @@
 
 package value
 
-func (d Duration) ToValue() Value {
+func (d TimeSpan) ToValue() Value {
 	return Ref(d)
 }

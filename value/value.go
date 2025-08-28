@@ -46,15 +46,15 @@ const (
 	UINT32_FLAG
 	CHAR_FLAG
 	SYMBOL_FLAG
-	TIME_FLAG
 	DATE_FLAG
-	DATE_SPAN_FLAG
 
 	// only 64 bit systems
 	INT64_FLAG
 	UINT64_FLAG
 	FLOAT64_FLAG
-	DURATION_FLAG
+	TIME_FLAG
+	TIME_SPAN_FLAG
+	DATE_SPAN_FLAG
 	REFERENCE_FLAG
 
 	SENTINEL_FLAG = 0xFF
@@ -113,8 +113,8 @@ func (v Value) Inspect() string {
 		return v.AsInlineUInt64().Inspect()
 	case CHAR_FLAG:
 		return v.AsChar().Inspect()
-	case DURATION_FLAG:
-		return v.AsInlineDuration().Inspect()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan().Inspect()
 	case DATE_FLAG:
 		return v.AsDate().Inspect()
 	case DATE_SPAN_FLAG:
@@ -176,8 +176,8 @@ func (v Value) Class() *Class {
 		return v.AsInlineUInt64().Class()
 	case CHAR_FLAG:
 		return v.AsChar().Class()
-	case DURATION_FLAG:
-		return v.AsInlineDuration().Class()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan().Class()
 	case DATE_FLAG:
 		return v.AsDate().Class()
 	case DATE_SPAN_FLAG:
@@ -231,8 +231,8 @@ func (v Value) DirectClass() *Class {
 		return v.AsInlineUInt64().DirectClass()
 	case CHAR_FLAG:
 		return v.AsChar().DirectClass()
-	case DURATION_FLAG:
-		return v.AsInlineDuration().DirectClass()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan().DirectClass()
 	case DATE_FLAG:
 		return v.AsDate().DirectClass()
 	case DATE_SPAN_FLAG:
@@ -286,8 +286,8 @@ func (v Value) SingletonClass() *Class {
 		return v.AsInlineUInt64().SingletonClass()
 	case CHAR_FLAG:
 		return v.AsChar().SingletonClass()
-	case DURATION_FLAG:
-		return v.AsInlineDuration().SingletonClass()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan().SingletonClass()
 	case DATE_FLAG:
 		return v.AsDate().SingletonClass()
 	case DATE_SPAN_FLAG:
@@ -341,8 +341,8 @@ func (v Value) InstanceVariables() *InstanceVariables {
 		return v.AsInlineUInt64().InstanceVariables()
 	case CHAR_FLAG:
 		return v.AsChar().InstanceVariables()
-	case DURATION_FLAG:
-		return v.AsInlineDuration().InstanceVariables()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan().InstanceVariables()
 	case DATE_FLAG:
 		return v.AsDate().InstanceVariables()
 	case DATE_SPAN_FLAG:
@@ -396,8 +396,8 @@ func (v Value) Error() string {
 		return v.AsInlineUInt64().Error()
 	case CHAR_FLAG:
 		return v.AsChar().Error()
-	case DURATION_FLAG:
-		return v.AsInlineDuration().Error()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan().Error()
 	case DATE_FLAG:
 		return v.AsDate().Error()
 	case DATE_SPAN_FLAG:
@@ -721,35 +721,35 @@ func (v Value) MustUInt64() UInt64 {
 	}
 }
 
-func (v Value) IsInlineDuration() bool {
-	return v.flag == DURATION_FLAG
+func (v Value) IsInlineTimeSpan() bool {
+	return v.flag == TIME_SPAN_FLAG
 }
 
-func (v Value) AsInlineDuration() Duration {
-	return Duration(v.data)
+func (v Value) AsInlineTimeSpan() TimeSpan {
+	return TimeSpan(v.data)
 }
 
-func (v Value) AsDuration() Duration {
+func (v Value) AsTimeSpan() TimeSpan {
 	if v.IsReference() {
-		return v.AsReference().(Duration)
+		return v.AsReference().(TimeSpan)
 	} else {
-		return v.AsInlineDuration()
+		return v.AsInlineTimeSpan()
 	}
 }
 
-func (v Value) MustDuration() Duration {
+func (v Value) MustTimeSpan() TimeSpan {
 	if v.IsReference() {
-		return v.AsReference().(Duration)
+		return v.AsReference().(TimeSpan)
 	} else {
-		return v.MustInlineDuration()
+		return v.MustInlineTimeSpan()
 	}
 }
 
-func (v Value) MustInlineDuration() Duration {
-	if !v.IsInlineDuration() {
-		panic(fmt.Sprintf("value `%s` is not an inline Duration", v.Inspect()))
+func (v Value) MustInlineTimeSpan() TimeSpan {
+	if !v.IsInlineTimeSpan() {
+		panic(fmt.Sprintf("value `%s` is not an inline Time::Span", v.Inspect()))
 	}
-	return v.AsInlineDuration()
+	return v.AsInlineTimeSpan()
 }
 
 func (v Value) IsDate() bool {
@@ -773,7 +773,7 @@ func (v Value) IsInlineTime() bool {
 
 func (v Value) AsInlineTime() Time {
 	return Time{
-		duration: Duration(v.data),
+		duration: TimeSpan(v.data),
 	}
 }
 

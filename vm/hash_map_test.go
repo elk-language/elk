@@ -430,7 +430,7 @@ func TestHashMapContains(t *testing.T) {
 				2,
 				value.Pair{
 					Key:   value.Ref(value.String("foo")),
-					Value: value.Ref(value.Float(2.6).ToValue().AsInlineDuration()),
+					Value: value.Ref(value.Float(2.6).ToValue().AsInlineTimeSpan()),
 				},
 				value.Pair{
 					Key:   value.ToSymbol("foo").ToValue(),

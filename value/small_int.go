@@ -1006,40 +1006,40 @@ func (i SmallInt) Hash() UInt64 {
 	return UInt64(d.Sum64())
 }
 
-func (i SmallInt) Nanoseconds() Duration {
-	return Duration(i)
+func (i SmallInt) Nanoseconds() TimeSpan {
+	return TimeSpan(i)
 }
 
-func (i SmallInt) Microseconds() Duration {
-	return Duration(i) * Microsecond
+func (i SmallInt) Microseconds() TimeSpan {
+	return TimeSpan(i) * Microsecond
 }
 
-func (i SmallInt) Milliseconds() Duration {
-	return Duration(i) * Millisecond
+func (i SmallInt) Milliseconds() TimeSpan {
+	return TimeSpan(i) * Millisecond
 }
 
-func (i SmallInt) Seconds() Duration {
-	return Duration(i) * Second
+func (i SmallInt) Seconds() TimeSpan {
+	return TimeSpan(i) * Second
 }
 
-func (i SmallInt) Minutes() Duration {
-	return Duration(i) * Minute
+func (i SmallInt) Minutes() TimeSpan {
+	return TimeSpan(i) * Minute
 }
 
-func (i SmallInt) Hours() Duration {
-	return Duration(i) * Hour
+func (i SmallInt) Hours() TimeSpan {
+	return TimeSpan(i) * Hour
 }
 
-func (i SmallInt) Days() Duration {
-	return Duration(i) * Day
+func (i SmallInt) Days() TimeSpan {
+	return TimeSpan(i) * Day
 }
 
-func (i SmallInt) Weeks() Duration {
-	return Duration(i) * Week
+func (i SmallInt) Weeks() TimeSpan {
+	return TimeSpan(i) * Week
 }
 
-func (i SmallInt) Years() Duration {
-	return Duration(i) * Year
+func (i SmallInt) Years() TimeSpan {
+	return TimeSpan(i) * Year
 }
 
 type SmallIntIterator struct {

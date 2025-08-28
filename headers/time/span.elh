@@ -1,0 +1,184 @@
+##[
+	Represents the elapsed time between two Times as an int64 nanosecond count.
+	The representation limits the largest representable span to approximately 290 years.
+]##
+sealed primitive class ::Std::Time::Span < Value
+	singleton
+		##[
+			Parses a time span string and creates a `Time::Span` value.
+			The string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
+			Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+		]##
+		def parse(s: String): Time::Span; end
+
+		##[
+			Returns the amount of elapsed since the given `DateTime`.
+		]##
+		def since(datetime: DateTime): Time::Span; end
+
+		##[
+			Returns the amount of time that is left until the given `DateTime`.
+		]##
+		def until(datetime: DateTime): Time::Span; end
+	end
+
+	def +(other: Time::Span): Time::Span; end
+	def -(other: Time::Span): Time::Span; end
+	def *(other: CoercibleNumeric): Time::Span; end
+	def /(other: CoercibleNumeric): Time::Span; end
+
+	##[
+		Returns the string representation of the span in the format "51h15m0.12s".
+	]##
+	def to_string: String; end
+
+	##[
+		Returns the count of nanoseconds in this span as a Float.
+	]##
+	def in_nanoseconds: Float; end
+
+	##[
+		Returns the count of nanoseconds in this span as an Int.
+	]##
+	def total_nanoseconds: Int; end
+
+	##[
+		Returns the count of nanoseconds in this span modulo 1000 as an Int.
+		Range of values: 0...999
+	]##
+	def nanoseconds: Int; end
+
+	##[
+		Returns the count of microseconds in this span as an Int.
+	]##
+	def in_microseconds: Float; end
+
+	##[
+		Returns the count of microseconds in this span as a Float.
+	]##
+	def total_microseconds: Int; end
+
+	##[
+		Returns the count of microseconds in this span modulo 1000 as a Float.
+		Range of values: 0...999
+	]##
+	def microseconds: Int; end
+
+	##[
+		Returns the count of milliseconds in this span as a Float.
+	]##
+	def in_milliseconds: Float; end
+
+	##[
+		Returns the count of milliseconds in this span as an Int.
+	]##
+	def total_milliseconds: Int; end
+
+	##[
+		Returns the count of milliseconds in this span modulo 1000 as an Int.
+		Range of values: 0...999
+	]##
+	def milliseconds: Int; end
+
+	##[
+		Returns the count of seconds in this span as a Float.
+	]##
+	def in_seconds: Float; end
+
+	##[
+		Returns the count of seconds in this span as an Int.
+	]##
+	def total_seconds: Int; end
+
+	##[
+		Returns the count of seconds in this span modulo 60 as an Int.
+		Range of values: 0...59
+	]##
+	def seconds: Int; end
+
+	##[
+		Returns the count of minutes in this span as a Float.
+	]##
+	def in_minutes: Float; end
+
+	##[
+		Returns the count of minutes in this span as an Int.
+	]##
+	def total_minutes: Int; end
+
+	##[
+		Returns the count of minutes in this span modulo 60 as an Int.
+		Range of values: 0...59
+	]##
+	def minutes: Int; end
+
+	##[
+		Returns the count of hours in this span as a Float.
+	]##
+	def in_hours: Float; end
+
+	##[
+		Returns the count of hours in this span as an Int.
+	]##
+	def total_hours: Int; end
+
+	##[
+		Returns the count of hours in this span modulo 24 as an Int.
+		Range of values: 0...23
+	]##
+	def hours: Int; end
+
+	##[
+		Returns the count of days in this span as a Float.
+	]##
+	def in_days: Float; end
+
+	##[
+		Returns the count of days in this span as an Int.
+	]##
+	def total_days: Int; end
+
+	##[
+		Returns the count of weeks in this span as a Float.
+	]##
+	def in_weeks: Float; end
+
+	##[
+		Returns the count of weeks in this span as an Int.
+	]##
+	def total_weeks: Int; end
+
+	##[
+		Returns the approximate count of months in this span as a Float.
+		One month is `30.4375` days.
+	]##
+	def in_months: Float; end
+
+	##[
+		Returns the approximate count of weeks in this span as an Int.
+		One month is `30.4375` days.
+	]##
+	def total_months: Int; end
+
+	##[
+		Returns the approximate count of months in this span modulo `12` as an Int.
+		One month is `30.4375` days.
+
+		Range of values: 0...11
+	]##
+	def months: Int; end
+
+	##[
+		Returns the approximate count of years in this span as a Float.
+		One year is `365.25` days.
+	]##
+	def in_years: Float; end
+
+	##[
+		Returns the approximate count of years in this span as an Int.
+		One year is `365.25` days.
+	]##
+	def total_years: Int; end
+	alias years total_years
+
+end

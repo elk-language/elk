@@ -2,9 +2,9 @@
 
 package value
 
-func (d Duration) ToValue() Value {
+func (t TimeSpan) ToValue() Value {
 	return Value{
-		flag: DURATION_FLAG,
-		data: uintptr(d),
+		flag: TIME_SPAN_FLAG,
+		data: uintptr(t),
 	}
 }

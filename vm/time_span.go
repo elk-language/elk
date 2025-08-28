@@ -4,28 +4,28 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Std::Duration
-func initDuration() {
+// Std::TimeSpan
+func initTimeSpan() {
 	// Class methods
-	c := &value.DurationClass.SingletonClass().MethodContainer
+	c := &value.TimeSpanClass.SingletonClass().MethodContainer
 	Def(
 		c,
 		"parse",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			str := args[1].AsReference().(value.String)
-			return value.ToValueErr(value.ParseDuration(str))
+			return value.ToValueErr(value.ParsTimeSpan(str))
 		},
 		DefWithParameters(1),
 	)
 
 	// Instance methods
-	c = &value.DurationClass.MethodContainer
+	c = &value.TimeSpanClass.MethodContainer
 	Def(
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			dur := args[1].MustDuration()
+			self := args[0].MustTimeSpan()
+			dur := args[1].MustTimeSpan()
 			return self.Add(dur).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
@@ -34,8 +34,8 @@ func initDuration() {
 		c,
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			dur := args[1].MustDuration()
+			self := args[0].MustTimeSpan()
+			dur := args[1].MustTimeSpan()
 			return self.Subtract(dur).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
@@ -44,7 +44,7 @@ func initDuration() {
 		c,
 		"*",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
+			self := args[0].MustTimeSpan()
 			other := args[1]
 			return value.ToValueErr(self.Multiply(other))
 		},
@@ -54,7 +54,7 @@ func initDuration() {
 		c,
 		"/",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
+			self := args[0].MustTimeSpan()
 			other := args[1]
 			return value.ToValueErr(self.Divide(other))
 		},
@@ -64,199 +64,224 @@ func initDuration() {
 		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
+			self := args[0].MustTimeSpan()
 			return value.Ref(self.ToString()), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_nanoseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustTimeSpan()
+			return self.TotalNanoseconds(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return self.Nanoseconds(), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"nanoseconds_mod",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return value.SmallInt(self.NanosecondsMod()).ToValue(), value.Undefined
+			self := args[0].MustTimeSpan()
+			return value.SmallInt(self.Nanoseconds()).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"in_nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
+			self := args[0].MustTimeSpan()
 			return self.InNanoseconds().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_microseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustTimeSpan()
+			return self.TotalMicroseconds(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return self.Microseconds(), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"microseconds_mod",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return value.SmallInt(self.MicrosecondsMod()).ToValue(), value.Undefined
+			self := args[0].MustTimeSpan()
+			return value.SmallInt(self.Microseconds()).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"in_microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
+			self := args[0].MustTimeSpan()
 			return self.InMicroseconds().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_milliseconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustTimeSpan()
+			return self.TotalMilliseconds(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return self.Milliseconds(), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"milliseconds_mod",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return value.SmallInt(self.MillisecondsMod()).ToValue(), value.Undefined
+			self := args[0].MustTimeSpan()
+			return value.SmallInt(self.Milliseconds()).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"in_milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
+			self := args[0].MustTimeSpan()
 			return self.InMilliseconds().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_seconds",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustTimeSpan()
+			return self.TotalSeconds(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return self.Seconds(), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"seconds_mod",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return value.SmallInt(self.SecondsMod()).ToValue(), value.Undefined
+			self := args[0].MustTimeSpan()
+			return value.SmallInt(self.Seconds()).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"in_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
+			self := args[0].MustTimeSpan()
 			return self.InSeconds().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_minutes",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustTimeSpan()
+			return self.TotalMinutes(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"minutes",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return self.Minutes(), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"minutes_mod",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return value.SmallInt(self.MinutesMod()).ToValue(), value.Undefined
+			self := args[0].MustTimeSpan()
+			return value.SmallInt(self.Minutes()).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"in_minutes",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
+			self := args[0].MustTimeSpan()
 			return self.InMinutes().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_hours",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustTimeSpan()
+			return self.TotalHours(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return self.Hours(), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"hours_mod",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return value.SmallInt(self.HoursMod()).ToValue(), value.Undefined
+			self := args[0].MustTimeSpan()
+			return value.SmallInt(self.Hours()).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"in_hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
+			self := args[0].MustTimeSpan()
 			return self.InHours().ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
-		"days",
+		"total_days",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return self.Days(), value.Undefined
+			self := args[0].MustTimeSpan()
+			return self.TotalDays(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"in_days",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
+			self := args[0].MustTimeSpan()
 			return self.InDays().ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
-		"weeks",
+		"total_weeks",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return self.Weeks(), value.Undefined
+			self := args[0].MustTimeSpan()
+			return self.TotalWeeks(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"in_weeks",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
+			self := args[0].MustTimeSpan()
 			return self.InWeeks().ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
-		"years",
+		"total_months",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
-			return self.Years(), value.Undefined
+			self := args[0].MustTimeSpan()
+			return self.TotalMonths(), value.Undefined
 		},
 	)
 	Def(
 		c,
+		"months",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustTimeSpan()
+			return value.SmallInt(self.Months()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"in_months",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustTimeSpan()
+			return self.InMonths().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_years",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustTimeSpan()
+			return self.TotalYears(), value.Undefined
+		},
+	)
+	Alias(c, "years", "total years")
+	Def(
+		c,
 		"in_years",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustDuration()
+			self := args[0].MustTimeSpan()
 			return self.InYears().ToValue(), value.Undefined
 		},
 	)

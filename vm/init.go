@@ -80,9 +80,10 @@ func InitGlobalEnvironment() {
 	initBox()
 	initResult()
 	initDate()
-	initDateTime()
-	initTime()
 	initDateSpan()
-	initDuration()
+	initTime()
+	initTimeSpan()
+	initDateTime()
+	initDateTimeSpan()
 	initTimezone()
 }

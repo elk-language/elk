@@ -1087,56 +1087,56 @@ func ParseBigIntPanic(s string, base int) *BigInt {
 	return result
 }
 
-func (i *BigInt) Nanoseconds() Duration {
-	return Duration(i.ToSmallInt())
+func (i *BigInt) Nanoseconds() TimeSpan {
+	return TimeSpan(i.ToSmallInt())
 }
 
-func (i *BigInt) Microseconds() Duration {
+func (i *BigInt) Microseconds() TimeSpan {
 	oBigInt := big.NewInt(int64(Microsecond))
 	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
-	return Duration(i.ToSmallInt())
+	return TimeSpan(i.ToSmallInt())
 }
 
-func (i *BigInt) Milliseconds() Duration {
+func (i *BigInt) Milliseconds() TimeSpan {
 	oBigInt := big.NewInt(int64(Millisecond))
 	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
-	return Duration(i.ToSmallInt())
+	return TimeSpan(i.ToSmallInt())
 }
 
-func (i *BigInt) Seconds() Duration {
+func (i *BigInt) Seconds() TimeSpan {
 	oBigInt := big.NewInt(int64(Second))
 	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
-	return Duration(i.ToSmallInt())
+	return TimeSpan(i.ToSmallInt())
 }
 
-func (i *BigInt) Minutes() Duration {
+func (i *BigInt) Minutes() TimeSpan {
 	oBigInt := big.NewInt(int64(Minute))
 	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
-	return Duration(i.ToSmallInt())
+	return TimeSpan(i.ToSmallInt())
 }
 
-func (i *BigInt) Hours() Duration {
+func (i *BigInt) Hours() TimeSpan {
 	oBigInt := big.NewInt(int64(Hour))
 	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
-	return Duration(i.ToSmallInt())
+	return TimeSpan(i.ToSmallInt())
 }
 
-func (i *BigInt) Days() Duration {
+func (i *BigInt) Days() TimeSpan {
 	oBigInt := big.NewInt(int64(Day))
 	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
-	return Duration(i.ToSmallInt())
+	return TimeSpan(i.ToSmallInt())
 }
 
-func (i *BigInt) Weeks() Duration {
+func (i *BigInt) Weeks() TimeSpan {
 	oBigInt := big.NewInt(int64(Week))
 	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
-	return Duration(i.ToSmallInt())
+	return TimeSpan(i.ToSmallInt())
 }
 
-func (i *BigInt) Years() Duration {
+func (i *BigInt) Years() TimeSpan {
 	oBigInt := big.NewInt(int64(Year))
 	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
-	return Duration(i.ToSmallInt())
+	return TimeSpan(i.ToSmallInt())
 }
 
 type BigIntIterator struct {

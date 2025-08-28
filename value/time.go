@@ -13,7 +13,7 @@ const DefaultTimeFormat = "%H:%M:%S.%9N"
 
 // Represents a time of day: hour, minute, second, nanosecond.
 type Time struct {
-	duration Duration
+	duration TimeSpan
 }
 
 var TimeClass *Class // ::Std::Time
@@ -25,17 +25,17 @@ func TimeNow() Time {
 
 // Create a new Time value.
 func MakeTime(hour, min, sec, nsec int) Time {
-	duration := Duration(hour)*Hour +
-		Duration(min)*Minute +
-		Duration(sec)*Second +
-		Duration(nsec)*Nanosecond
+	duration := TimeSpan(hour)*Hour +
+		TimeSpan(min)*Minute +
+		TimeSpan(sec)*Second +
+		TimeSpan(nsec)*Nanosecond
 
 	return Time{
 		duration: duration,
 	}
 }
 
-func (t Time) ToDuration() Duration {
+func (t Time) ToDuration() TimeSpan {
 	return t.duration
 }
 
@@ -87,15 +87,15 @@ func (t Time) String() string {
 
 // Hour in a 24 hour clock.
 func (t Time) Hour() int {
-	return t.duration.HoursMod()
+	return t.duration.Hours()
 }
 
 func (t Time) Minute() int {
-	return t.duration.MinutesMod()
+	return t.duration.Minutes()
 }
 
 func (t Time) Second() int {
-	return t.duration.SecondsMod()
+	return t.duration.Seconds()
 }
 
 func (t Time) MillisecondsInSecond() int {
@@ -103,7 +103,7 @@ func (t Time) MillisecondsInSecond() int {
 }
 
 func (t Time) Millisecond() int {
-	return t.duration.MillisecondsMod()
+	return t.duration.Milliseconds()
 }
 
 func (t Time) MicrosecondsInSecond() int {
@@ -111,7 +111,7 @@ func (t Time) MicrosecondsInSecond() int {
 }
 
 func (t Time) Microsecond() int {
-	return t.duration.MicrosecondsMod()
+	return t.duration.Microseconds()
 }
 
 func (t Time) NanosecondsInSecond() int {
@@ -119,7 +119,7 @@ func (t Time) NanosecondsInSecond() int {
 }
 
 func (t Time) Nanosecond() int {
-	return t.duration.NanosecondsMod()
+	return t.duration.Nanoseconds()
 }
 
 func (t Time) PicosecondsInSecond() int64 {

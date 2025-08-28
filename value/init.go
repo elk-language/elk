@@ -108,9 +108,6 @@ func InitGlobalEnvironment() {
 	initEndlessClosedRange()
 	initBeginlessOpenRange()
 	initEndlessOpenRange()
-	initDuration()
-	initTimezone()
-	initDateTime()
 	initPosition()
 	initSpan()
 	initElk()
@@ -139,8 +136,12 @@ func InitGlobalEnvironment() {
 	initElkParser()
 	initLocation()
 	initDate()
-	initTime()
 	initDateSpan()
+	initTime()
+	initTimeSpan()
+	initDateTime()
+	initDateTimeSpan()
+	initTimezone()
 }
 
 func init() {
