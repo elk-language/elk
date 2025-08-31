@@ -540,6 +540,7 @@ const (
 	UNQUOTE_PATTERN   // Keyword `unquote_pattern`
 	UNDEFINED         // Keyword `undefined`
 	FUNC              // Keyword `func`
+	OVERLOAD          // Keyword `overload`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -645,6 +646,7 @@ var Keywords = map[string]Type{
 	"unquote_pattern": UNQUOTE_PATTERN,
 	"undefined":       UNDEFINED,
 	"func":            FUNC,
+	"overload":        OVERLOAD,
 }
 
 var tokenNames = [...]string{
@@ -916,4 +918,5 @@ var tokenNames = [...]string{
 	UNQUOTE_PATTERN: "unquote_pattern",
 	UNDEFINED:       "undefined",
 	FUNC:            "func",
+	OVERLOAD:        "overload",
 }

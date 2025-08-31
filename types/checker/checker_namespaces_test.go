@@ -3052,6 +3052,36 @@ func TestInterfaceType(t *testing.T) {
 				var a: Foo = Bar()
 			`,
 		},
+		"assign instance of class that implements the interface implicitly with overloads": {
+			input: `
+				interface Foo
+					def foo(a: Int); end
+				end
+				class Bar
+					overload def foo(a: String); end
+					overload def foo(a: Int); end
+				end
+
+				var a: Foo = Bar()
+			`,
+		},
+		"assign instance of class that does not implement the interface with overloads": {
+			input: `
+				interface Foo
+					def foo(a: Int); end
+				end
+				class Bar
+					overload def foo(a: String); end
+					overload def foo(a: Float); end
+				end
+
+				var a: Foo = Bar()
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(168, 10, 18), P(172, 10, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - incorrect implementation of `Foo.:foo`\n      is:        `def foo(a: Std::String): void`\n                 `def foo(a: Std::Float): void`\n      should be: `def foo(a: Std::Int): void`"),
+				diagnostic.NewFailure(L("<main>", P(168, 10, 18), P(172, 10, 22)), "type `Bar` cannot be assigned to type `Foo`"),
+			},
+		},
 		"assign instance of class that does not implement the interface": {
 			input: `
 				interface Foo

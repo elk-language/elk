@@ -88,6 +88,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		false,
 		false,
 		false,
+		false,
 		symbol.S_init,
 		nil,
 		initNode.Parameters,
@@ -434,6 +435,7 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 		false,
 		node.IsGenerator(),
 		node.IsAsync(),
+		node.IsOverload(),
 		value.ToSymbol(c.identifierToName(node.Name)),
 		node.TypeParameters,
 		node.Parameters,
@@ -455,6 +457,7 @@ func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefini
 		c.currentMethodScope().container,
 		node.DocComment(),
 		true,
+		false,
 		false,
 		false,
 		false,
@@ -634,6 +637,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		false,
 		false,
 		false,
+		false,
 		value.ToSymbol(name),
 		nil,
 		nil,
@@ -747,6 +751,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		false,
 		false,
 		false,
+		false,
 		value.ToSymbol(setterName),
 		nil,
 		params,
@@ -801,6 +806,72 @@ func (c *Checker) checkMethodOverride(
 	baseMethod *types.Method,
 	location *position.Location,
 ) {
+	if overrideMethod.IsRegisteredOverload() {
+		return
+	}
+
+	if len(overrideMethod.Overloads) == 0 {
+		c._checkMethodOverride(
+			overrideMethod,
+			baseMethod,
+			location,
+		)
+		return
+	}
+
+	if c._checkMethodOverride(
+		overrideMethod,
+		baseMethod,
+		nil,
+	) {
+		return
+	}
+
+	for _, overload := range overrideMethod.Overloads {
+		if c._checkMethodOverride(
+			overload,
+			baseMethod,
+			nil,
+		) {
+			return
+		}
+	}
+
+	errDetailsBuff := new(strings.Builder)
+
+	fmt.Fprintf(
+		errDetailsBuff,
+		"no overload of method `%s` is a valid override of `%s`\n  is: `%s`\n",
+		types.InspectWithColor(overrideMethod),
+		baseMethod.InspectSignatureWithColor(true),
+		overrideMethod.InspectSignatureWithColor(true),
+	)
+
+	for _, overload := range overrideMethod.Overloads {
+		fmt.Fprintf(
+			errDetailsBuff,
+			"      `%s`\n",
+			overload.InspectSignatureWithColor(true),
+		)
+	}
+
+	fmt.Fprintf(
+		errDetailsBuff,
+		"  should be: `%s`\n",
+		baseMethod.InspectSignatureWithColor(true),
+	)
+
+	c.addFailure(
+		errDetailsBuff.String(),
+		location,
+	)
+}
+
+func (c *Checker) _checkMethodOverride(
+	overrideMethod,
+	baseMethod *types.Method,
+	location *position.Location,
+) bool {
 	var areIncompatible bool
 	errDetailsBuff := new(strings.Builder)
 
@@ -931,8 +1002,10 @@ func (c *Checker) checkMethodOverride(
 			),
 			location,
 		)
+		return false
 	}
 
+	return true
 }
 
 func (c *Checker) checkMethod(
@@ -2008,6 +2081,7 @@ func (c *Checker) declareMethod(
 	inferReturnType bool,
 	generator bool,
 	async bool,
+	overload bool,
 	name value.Symbol,
 	typeParamNodes []ast.TypeParameterNode,
 	paramNodes []ast.ParameterNode,
@@ -2019,8 +2093,17 @@ func (c *Checker) declareMethod(
 	if c.mode == interfaceMode {
 		abstract = true
 	}
+	if abstract && overload {
+		c.addFailure(
+			fmt.Sprintf(
+				"abstract method `%s` cannot be overloaded",
+				name.String(),
+			),
+			location,
+		)
+	}
 	oldMethod := methodNamespace.Method(name)
-	if oldMethod != nil {
+	if !overload && oldMethod != nil {
 		if sealed && !oldMethod.IsSealed() {
 			c.addFailure(
 				fmt.Sprintf(
@@ -2319,6 +2402,9 @@ func (c *Checker) declareMethod(
 	if async {
 		flags |= types.METHOD_ASYNC_FLAG
 	}
+	if overload {
+		flags |= types.METHOD_OVERLOAD_FLAG
+	}
 	newMethod := types.NewMethod(
 		docComment,
 		flags,
@@ -2331,8 +2417,26 @@ func (c *Checker) declareMethod(
 	)
 	newMethod.SetLocation(location)
 
-	c.checkMethodOverrideWithPlaceholder(newMethod, oldMethod, location)
-	methodNamespace.SetMethod(name, newMethod)
+	if overload {
+		if oldMethod != nil {
+			if !oldMethod.IsOverload() {
+				c.addFailure(
+					fmt.Sprintf(
+						"cannot declare an overload for method `%s` previously defined without `%s`",
+						name.String(),
+						lexer.Colorize("overload"),
+					),
+					location,
+				)
+			}
+			oldMethod.RegisterOverload(newMethod)
+		} else {
+			methodNamespace.SetMethod(name, newMethod)
+		}
+	} else {
+		c.checkMethodOverrideWithPlaceholder(newMethod, oldMethod, location)
+		methodNamespace.SetMethod(name, newMethod)
+	}
 
 	c.checkSpecialMethods(name, newMethod, paramNodes, location)
 

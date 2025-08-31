@@ -182,6 +182,9 @@ func (n *MethodDefinitionNode) String() string {
 	if n.IsAsync() {
 		buff.WriteString("async ")
 	}
+	if n.IsOverload() {
+		buff.WriteString("overload ")
+	}
 
 	buff.WriteString("def ")
 	buff.WriteString(n.Name.String())
@@ -307,11 +310,20 @@ func (m *MethodDefinitionNode) SetAsync() {
 	m.Flags.SetFlag(METHOD_ASYNC_FLAG)
 }
 
+func (m *MethodDefinitionNode) IsOverload() bool {
+	return m.Flags.HasFlag(METHOD_OVERLOAD_FLAG)
+}
+
+func (m *MethodDefinitionNode) SetOverload() {
+	m.Flags.SetFlag(METHOD_OVERLOAD_FLAG)
+}
+
 const (
 	METHOD_ABSTRACT_FLAG bitfield.BitFlag8 = 1 << iota
 	METHOD_SEALED_FLAG
 	METHOD_GENERATOR_FLAG
 	METHOD_ASYNC_FLAG
+	METHOD_OVERLOAD_FLAG
 )
 
 func (*MethodDefinitionNode) Class() *value.Class {
@@ -334,6 +346,7 @@ func (n *MethodDefinitionNode) Inspect() string {
 	fmt.Fprintf(&buff, ",\n  sealed: %t", n.IsSealed())
 	fmt.Fprintf(&buff, ",\n  generator: %t", n.IsGenerator())
 	fmt.Fprintf(&buff, ",\n  async: %t", n.IsAsync())
+	fmt.Fprintf(&buff, ",\n  overload: %t", n.IsOverload())
 
 	buff.WriteString(",\n  name: ")
 	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)

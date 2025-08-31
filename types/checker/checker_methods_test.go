@@ -630,6 +630,33 @@ func TestAliasDeclaration(t *testing.T) {
 
 func TestMethodDefinitionOverride(t *testing.T) {
 	tests := testTable{
+		"valid overload override": {
+			input: `
+				class Foo
+					def foo(a: Int); end
+				end
+
+				class Bar < Foo
+					overload def foo(a: String); end
+ 					overload def foo(a: Int); end
+				end
+			`,
+		},
+		"invalid overloads override": {
+			input: `
+				class Foo
+					def foo(a: Int); end
+				end
+
+				class Bar < Foo
+					overload def foo(a: String); end
+ 					overload def foo(a: Float); end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(75, 7, 6), P(106, 7, 37)), "no overload of method `Bar.:foo` is a valid override of `def foo(a: Std::Int): void`\n  is: `def foo(a: Std::String): void`\n      `def foo(a: Std::Float): void`\n  should be: `def foo(a: Std::Int): void`\n"),
+			},
+		},
 		"invalid override": {
 			input: `
 				class Foo
@@ -1418,6 +1445,21 @@ func TestSpecialMethodDefinition(t *testing.T) {
 
 func TestMethodDefinition(t *testing.T) {
 	tests := testTable{
+		"declare overload for method without overload": {
+			input: `
+				def foo(a: String); end
+				overload def foo(a: Int); end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(33, 3, 5), P(61, 3, 33)), "cannot declare an overload for method `foo` previously defined without `overload`"),
+			},
+		},
+		"declare overload for method with overload": {
+			input: `
+				overload def foo(a: String); end
+				overload def foo(a: Int); end
+			`,
+		},
 		"declare within a method": {
 			input: `
 				def foo

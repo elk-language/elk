@@ -3872,6 +3872,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.DefineMethod("Whether the method is abstract eg. `abstract def foo; end`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_abstract"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("Whether the method is asynchronous eg. `async def foo; end`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_async"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("Whether the method is a generator eg. `def* foo; end`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_generator"), nil, nil, Bool{}, Never{})
+						namespace.DefineMethod("Whether the method is an overload eg. `overload def foo; end`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_overload"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("Whether the method is sealed eg. `sealed def foo; end`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_sealed"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
@@ -3884,6 +3885,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.DefineConstant(value.ToSymbol("ABSTRACT_FLAG"), NameToType("Std::UInt8", env))
 						namespace.DefineConstant(value.ToSymbol("ASYNC_FLAG"), NameToType("Std::UInt8", env))
 						namespace.DefineConstant(value.ToSymbol("GENERATOR_FLAG"), NameToType("Std::UInt8", env))
+						namespace.DefineConstant(value.ToSymbol("OVERLOAD_FLAG"), NameToType("Std::UInt8", env))
 						namespace.DefineConstant(value.ToSymbol("SEALED_FLAG"), NameToType("Std::UInt8", env))
 
 						// Define instance variables

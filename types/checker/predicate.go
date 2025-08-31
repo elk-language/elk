@@ -1080,9 +1080,35 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 	c.throwType = b
 
 	var incorrectMethods []methodOverride
+abstractLoop:
 	for _, abstractMethod := range c.methodsInNamespace(b) {
 		method := c.resolveMethodInNamespace(a, abstractMethod.Name)
-		if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil, true) {
+		if method == nil {
+			incorrectMethods = append(incorrectMethods, methodOverride{
+				superMethod: abstractMethod,
+				override:    method,
+			})
+			continue abstractLoop
+		}
+
+		if len(method.Overloads) > 0 {
+			if c.checkMethodCompatibility(abstractMethod, method, nil, true) {
+				continue abstractLoop
+			}
+			for _, overload := range method.Overloads {
+				if c.checkMethodCompatibility(abstractMethod, overload, nil, true) {
+					continue abstractLoop
+				}
+			}
+
+			incorrectMethods = append(incorrectMethods, methodOverride{
+				superMethod: abstractMethod,
+				override:    method,
+			})
+			continue abstractLoop
+		}
+
+		if !c.checkMethodCompatibility(abstractMethod, method, nil, true) {
 			incorrectMethods = append(incorrectMethods, methodOverride{
 				superMethod: abstractMethod,
 				override:    method,
@@ -1111,9 +1137,22 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 
 			fmt.Fprintf(
 				methodDetailsBuff,
-				"\n  - incorrect implementation of `%s`\n      is:        `%s`\n      should be: `%s`",
+				"\n  - incorrect implementation of `%s`\n      is:        `%s`",
 				types.InspectWithColor(abstractMethod),
 				implementation.InspectSignatureWithColor(false),
+			)
+
+			for _, overload := range implementation.Overloads {
+				fmt.Fprintf(
+					methodDetailsBuff,
+					"\n                 `%s`",
+					overload.InspectSignatureWithColor(false),
+				)
+			}
+
+			fmt.Fprintf(
+				methodDetailsBuff,
+				"\n      should be: `%s`",
 				abstractMethod.InspectSignatureWithColor(false),
 			)
 		}

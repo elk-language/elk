@@ -146,6 +146,8 @@ const (
 	METHOD_ATTRIBUTE_FLAG
 	METHOD_GENERATOR_FLAG
 	METHOD_ASYNC_FLAG
+	METHOD_OVERLOAD_FLAG
+	METHOD_REGISTERED_OVERLOAD_FLAG
 	METHOD_MACRO_FLAG
 	// used in using expression placeholders
 	METHOD_PLACEHOLDER_FLAG
@@ -163,6 +165,7 @@ type Method struct {
 
 	Params         []*Parameter
 	TypeParameters []*TypeParameter
+	Overloads      []*Method
 	ReturnType     Type
 	ThrowType      Type
 	DefinedUnder   Namespace
@@ -207,6 +210,7 @@ func (m *Method) Copy() *Method {
 		CalledMethods:                m.CalledMethods,
 		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
 		Node:                         m.Node,
+		Overloads:                    m.Overloads,
 	}
 }
 
@@ -238,6 +242,13 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 		newMethod.DefinedUnder = newDefinedUnder
 		newMethod.DefinedUnder.SetMethod(newMethod.Name, newMethod)
 	}
+
+	newOverloads := make([]*Method, len(m.Params))
+	for i, overload := range m.Overloads {
+		newOverloads[i] = overload.DeepCopyEnv(oldEnv, newEnv)
+	}
+	newMethod.Overloads = newOverloads
+
 	newMethod.ThrowType = DeepCopyEnv(m.ThrowType, oldEnv, newEnv)
 	newMethod.ReturnType = DeepCopyEnv(m.ReturnType, oldEnv, newEnv)
 
@@ -260,6 +271,11 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 	newMethod.CalledMethods = newCalledMethods
 
 	return newMethod
+}
+
+func (m *Method) RegisterOverload(overload *Method) {
+	m.Overloads = append(m.Overloads, overload)
+	overload.SetRegisteredOverload(true)
 }
 
 func (m *Method) Location() *position.Location {
@@ -320,6 +336,24 @@ func (m *Method) IsAsync() bool {
 
 func (m *Method) SetAsync(val bool) *Method {
 	m.SetFlag(METHOD_ASYNC_FLAG, val)
+	return m
+}
+
+func (m *Method) IsOverload() bool {
+	return m.Flags.HasFlag(METHOD_OVERLOAD_FLAG)
+}
+
+func (m *Method) SetOverload(val bool) *Method {
+	m.SetFlag(METHOD_OVERLOAD_FLAG, val)
+	return m
+}
+
+func (m *Method) IsRegisteredOverload() bool {
+	return m.Flags.HasFlag(METHOD_REGISTERED_OVERLOAD_FLAG)
+}
+
+func (m *Method) SetRegisteredOverload(val bool) *Method {
+	m.SetFlag(METHOD_REGISTERED_OVERLOAD_FLAG, val)
 	return m
 }
 

@@ -746,6 +746,8 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 		return p.sealedModifier(allowed)
 	case token.ASYNC:
 		return p.asyncModifier(allowed)
+	case token.OVERLOAD:
+		return p.overloadModifier(allowed)
 	case token.DOC_COMMENT:
 		return p.docComment(allowed)
 	case token.ALIAS:
@@ -2433,6 +2435,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.noinitModifier(false)
 	case token.ABSTRACT:
 		return p.abstractModifier(false)
+	case token.OVERLOAD:
+		return p.overloadModifier(false)
 	case token.PRIMITIVE:
 		return p.primitiveModifier(false)
 	case token.SEALED:
@@ -5668,6 +5672,26 @@ func (p *Parser) abstractModifier(allowed bool) ast.ExpressionNode {
 		n.SetLocation(abstractTok.Location().Join(n.Location()))
 	default:
 		p.errorMessageLocation("the abstract modifier can only be attached to classes, mixins and methods", node.Location())
+	}
+
+	return node
+}
+
+// overloadModifier = "overload" declarationExpression
+func (p *Parser) overloadModifier(allowed bool) ast.ExpressionNode {
+	overloadTok := p.advance()
+
+	p.swallowNewlines()
+	node := p.declarationExpression(allowed)
+	switch n := node.(type) {
+	case *ast.MethodDefinitionNode:
+		if n.IsOverload() {
+			p.errorMessageLocation("the overload modifier can only be attached once", overloadTok.Location())
+		}
+		n.SetOverload()
+		n.SetLocation(overloadTok.Location().Join(n.Location()))
+	default:
+		p.errorMessageLocation("the overload modifier can only be attached to methods", node.Location())
 	}
 
 	return node
