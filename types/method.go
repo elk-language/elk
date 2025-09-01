@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 
 	"github.com/elk-language/elk/bitfield"
@@ -271,6 +272,20 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 	newMethod.CalledMethods = newCalledMethods
 
 	return newMethod
+}
+
+func (m *Method) AllOverloads() iter.Seq[*Method] {
+	return func(yield func(*Method) bool) {
+		if !yield(m) {
+			return
+		}
+
+		for _, overload := range m.Overloads {
+			if !yield(overload) {
+				return
+			}
+		}
+	}
 }
 
 func (m *Method) RegisterOverload(overload *Method) {

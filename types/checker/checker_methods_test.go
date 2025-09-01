@@ -630,7 +630,47 @@ func TestAliasDeclaration(t *testing.T) {
 
 func TestMethodDefinitionOverride(t *testing.T) {
 	tests := testTable{
-		"valid overload override": {
+		"one invalid parent overload override": {
+			input: `
+				class Foo
+					overload def foo(a: String); end
+ 					overload def foo(a: Int); end
+				end
+
+				class Bar < Foo
+					def foo(a: String, b: Int = 3); end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(123, 8, 6), P(157, 8, 40)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `def foo(a: Std::String, b?: Std::Int): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - has an incompatible parameter, is `a: Std::String`, should be `a: Std::Int`"),
+			},
+		},
+		"all valid parent overload overrides": {
+			input: `
+				class Foo
+					overload def foo(a: String); end
+ 					overload def foo(a: Int); end
+				end
+
+				class Bar < Foo
+					overload def foo(a: String, b: Float = 0.0); end
+ 					overload def foo(a: Int, b: Float = 0.0); end
+				end
+			`,
+		},
+		"one valid parent overload override": {
+			input: `
+				class Foo
+					overload def foo(a: String); end
+ 					overload def foo(a: Int); end
+				end
+
+				class Bar < Foo
+					def foo(a: String | Int); end
+				end
+			`,
+		},
+		"valid child overload override": {
 			input: `
 				class Foo
 					def foo(a: Int); end
@@ -642,7 +682,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 		},
-		"invalid overloads override": {
+		"invalid child overloads override": {
 			input: `
 				class Foo
 					def foo(a: Int); end

@@ -4487,7 +4487,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		return node
 	}
 
-	method = c.replaceTypeParametersInMethod(c.deepCopyMethod(method), typeArgs.ArgumentMap, true)
+	method = c.replaceTypeParametersInMethodCopy(method, typeArgs.ArgumentMap, true)
 
 	receiver := c.getReceiverlessMethodReceiver(name, method, methodNamespace, fromLocal, node.MethodName.Location())
 

@@ -709,6 +709,11 @@ func (c *Checker) deepCopyMethod(method *types.Method) *types.Method {
 		copy.ReturnType = c.replaceTypeParameters(copy.ReturnType, newTypeParamTransformMap, true)
 		copy.ThrowType = c.replaceTypeParameters(copy.ThrowType, newTypeParamTransformMap, true)
 
+		newOverloads := make([]*types.Method, len(method.Overloads))
+		for i, overload := range method.Overloads {
+			newOverloads[i] = c.deepCopyMethod(overload)
+		}
+
 		return copy
 	}
 
@@ -819,15 +824,7 @@ func (c *Checker) checkMethodOverride(
 		return
 	}
 
-	if c._checkMethodOverride(
-		overrideMethod,
-		baseMethod,
-		nil,
-	) {
-		return
-	}
-
-	for _, overload := range overrideMethod.Overloads {
+	for overload := range overrideMethod.AllOverloads() {
 		if c._checkMethodOverride(
 			overload,
 			baseMethod,
@@ -1036,11 +1033,13 @@ func (c *Checker) checkMethod(
 		if parent != nil {
 			baseMethod := c.resolveMethodInNamespace(parent, name)
 			if baseMethod != nil {
-				c.checkMethodOverride(
-					checkedMethod,
-					baseMethod,
-					location,
-				)
+				for baseOverload := range baseMethod.AllOverloads() {
+					c.checkMethodOverride(
+						checkedMethod,
+						baseOverload,
+						location,
+					)
+				}
 			}
 		}
 	}
@@ -3030,7 +3029,34 @@ func (c *Checker) replaceTypeParametersInMethodCopy(method *types.Method, typeAr
 		}
 	}
 
-	if methodCopy != nil {
+	different := methodCopy != nil
+	var overloadsCopy []*types.Method
+
+	if different {
+		for i, overload := range method.Overloads {
+			method.Overloads[i] = c.replaceTypeParametersInMethod(overload, typeArgs, replaceMethodTypeParams)
+		}
+	} else {
+		overloadsCopy := make([]*types.Method, len(method.Overloads))
+		for i, overload := range method.Overloads {
+			overloadCopy := c.replaceTypeParametersInMethodCopy(overload, typeArgs, replaceMethodTypeParams)
+			if overload != overloadCopy {
+				different = true
+			}
+			overloadsCopy[i] = overloadCopy
+		}
+	}
+
+	if different {
+		if methodCopy == nil {
+			methodCopy = c.deepCopyMethod(method)
+			for i, overload := range overloadsCopy {
+				if method.Overloads[i] == overload {
+					overloadsCopy[i] = c.deepCopyMethod(overload)
+				}
+			}
+			methodCopy.Overloads = overloadsCopy
+		}
 		return methodCopy
 	}
 	return method
@@ -3046,6 +3072,10 @@ func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs t
 
 	for _, param := range method.Params {
 		param.Type = c.replaceTypeParameters(param.Type, typeArgs, replaceMethodTypeParams)
+	}
+
+	for i, overload := range method.Overloads {
+		method.Overloads[i] = c.replaceTypeParametersInMethod(overload, typeArgs, replaceMethodTypeParams)
 	}
 
 	return method

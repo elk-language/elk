@@ -1092,10 +1092,7 @@ abstractLoop:
 		}
 
 		if len(method.Overloads) > 0 {
-			if c.checkMethodCompatibility(abstractMethod, method, nil, true) {
-				continue abstractLoop
-			}
-			for _, overload := range method.Overloads {
+			for overload := range method.AllOverloads() {
 				if c.checkMethodCompatibility(abstractMethod, overload, nil, true) {
 					continue abstractLoop
 				}
