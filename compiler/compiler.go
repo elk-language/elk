@@ -477,6 +477,13 @@ func (c *Compiler) compileMethodsWithinModule(module *types.Module, location *po
 
 		for methodName, method := range types.SortedOwnMethods(module) {
 			c.compileMethodDefinition(methodName, method, location)
+
+			for i, overload := range method.Overloads {
+				overloadName := value.ToSymbol(
+					fmt.Sprintf("%s@%d", methodName.String(), i+1),
+				)
+				c.compileMethodDefinition(overloadName, overload, location)
+			}
 		}
 
 		for aliasName, alias := range types.SortedOwnMethodAliases(module) {

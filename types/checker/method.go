@@ -14,6 +14,7 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
@@ -1420,6 +1421,73 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	typeParams []*types.TypeParameter,
 	location *position.Location,
 ) (
+	_method *types.Method,
+	_posArgs []ast.ExpressionNode,
+	typeArgs types.TypeArgumentMap,
+) {
+	if len(method.Overloads) == 0 {
+		posArgs, typeArgs := c._checkMethodArgumentsAndInferTypeArguments(
+			method,
+			positionalArguments,
+			namedArguments,
+			typeParams,
+			location,
+		)
+		return method, posArgs, typeArgs
+	}
+
+	prevDiagnostics := c.Errors
+	tempDiagnostics := diagnostic.NewSyncDiagnosticList()
+	c.Errors = tempDiagnostics
+	for overload := range method.AllOverloads() {
+		tempDiagnostics.Clear()
+		posArgs, typeArgs := c._checkMethodArgumentsAndInferTypeArguments(
+			overload,
+			positionalArguments,
+			namedArguments,
+			typeParams,
+			location,
+		)
+
+		if !tempDiagnostics.IsFailure() {
+			c.Errors = prevDiagnostics
+			return overload, posArgs, typeArgs
+		}
+	}
+
+	c.Errors = prevDiagnostics
+
+	errDetailsBuff := new(strings.Builder)
+
+	fmt.Fprintf(
+		errDetailsBuff,
+		"no overload of `%s` matches the given arguments\n  signature: `%s`",
+		method.Name.String(),
+		method.InspectSignatureWithColor(false),
+	)
+
+	for overload := range method.AllOverloads() {
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n             `%s`\n",
+			overload.InspectSignatureWithColor(false),
+		)
+	}
+
+	c.addFailure(
+		errDetailsBuff.String(),
+		location,
+	)
+	return nil, nil, nil
+}
+
+func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
+	method *types.Method,
+	positionalArguments []ast.ExpressionNode,
+	namedArguments []ast.NamedArgumentNode,
+	typeParams []*types.TypeParameter,
+	location *position.Location,
+) (
 	_posArgs []ast.ExpressionNode,
 	typeArgs types.TypeArgumentMap,
 ) {
@@ -1470,6 +1538,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		}
 		param := method.Params[currentParamIndex]
 
+		posArg.SetType(nil)
 		typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 		posArgType := c.TypeOf(typedPosArg)
 
@@ -1542,6 +1611,8 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		// check rest arguments
 		for ; currentArgIndex < min(argCount-method.PostParamCount, len(positionalArguments)); currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
+
+			posArg.SetType(nil)
 			typedPosArg := c.checkRestArgument(posArg, posRestParam.Type)
 			posArgType := c.TypeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, posRestParam.Type, typeArgMap, typedPosArg.Location())
@@ -1582,6 +1653,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			currentParamIndex++
 			param := method.Params[currentParamIndex]
 
+			posArg.SetType(nil)
 			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 			posArgType := c.TypeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
@@ -1650,6 +1722,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			found = true
 			definedNamedArgumentsSlice[namedArgIndex] = true
 
+			namedArg.Value.SetType(nil)
 			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
 			namedArgType := c.TypeOf(typedNamedArgValue)
 			inferredParamType := c.inferTypeArguments(namedArgType, param.Type, typeArgMap, typedNamedArgValue.Location())
@@ -1715,6 +1788,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 			namedArgI := namedArguments[i]
 			switch namedArg := namedArgI.(type) {
 			case *ast.NamedCallArgumentNode:
+				namedArg.Value.SetType(nil)
 				typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
 				posArgType := c.TypeOf(typedNamedArgValue)
 				inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap, typedNamedArgValue.Location())
@@ -1739,6 +1813,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					namedArg.Location(),
 				)
 			case *ast.DoubleSplatExpressionNode:
+				namedArg.SetType(nil)
 				result := c.checkDoubleSplatArgument(method.Name.String(), namedArg, namedRestParam)
 				namedRestArgs.Elements = append(
 					namedRestArgs.Elements,
@@ -1867,9 +1942,9 @@ func (c *Checker) checkNonGenericMethodArguments(
 	positionalArguments []ast.ExpressionNode,
 	namedArguments []ast.NamedArgumentNode,
 	location *position.Location,
-) []ast.ExpressionNode {
-	posArgs, _ := c.checkMethodArgumentsAndInferTypeArguments(method, positionalArguments, namedArguments, nil, location)
-	return posArgs
+) (*types.Method, []ast.ExpressionNode) {
+	method, posArgs, _ := c.checkMethodArgumentsAndInferTypeArguments(method, positionalArguments, namedArguments, nil, location)
+	return method, posArgs
 }
 
 func (c *Checker) checkRestArgument(node ast.ExpressionNode, typ types.Type) ast.ExpressionNode {
@@ -1902,40 +1977,39 @@ func (c *Checker) checkMethodArguments(
 		}
 
 		method = c.replaceTypeParametersInMethodCopy(method, typeArgs.ArgumentMap, true)
-		typedPositionalArguments = c.checkNonGenericMethodArguments(
+		return c.checkNonGenericMethodArguments(
 			method,
 			positionalArgumentNodes,
 			namedArgumentNodes,
 			location,
 		)
-		return method, typedPositionalArguments
 	}
 
 	if len(method.TypeParameters) > 0 {
 		var typeArgMap types.TypeArgumentMap
 		method = c.deepCopyMethod(method)
-		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
+		var chosenMethod *types.Method
+		chosenMethod, typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
 			method,
 			positionalArgumentNodes,
 			namedArgumentNodes,
 			method.TypeParameters,
 			location,
 		)
-		if len(typeArgMap) != len(method.TypeParameters) {
+		if len(typeArgMap) != len(chosenMethod.TypeParameters) {
 			return nil, nil
 		}
-		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap, true)
-		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap, true)
-		return method, typedPositionalArguments
+		chosenMethod.ReturnType = c.replaceTypeParameters(chosenMethod.ReturnType, typeArgMap, true)
+		chosenMethod.ThrowType = c.replaceTypeParameters(chosenMethod.ThrowType, typeArgMap, true)
+		return chosenMethod, typedPositionalArguments
 	}
 
-	typedPositionalArguments = c.checkNonGenericMethodArguments(
+	return c.checkNonGenericMethodArguments(
 		method,
 		positionalArgumentNodes,
 		namedArgumentNodes,
 		location,
 	)
-	return method, typedPositionalArguments
 }
 
 func (c *Checker) checkSimpleMethodCall(
@@ -1947,6 +2021,7 @@ func (c *Checker) checkSimpleMethodCall(
 	namedArgumentNodes []ast.NamedArgumentNode,
 	location *position.Location,
 ) (
+	_methodName value.Symbol,
 	_receiver ast.ExpressionNode,
 	_positionalArguments []ast.ExpressionNode,
 	typ types.Type,
@@ -1970,7 +2045,7 @@ func (c *Checker) checkSimpleMethodCall(
 			typedPositionalArguments = append(typedPositionalArguments, c.checkExpression(arg.Value))
 		}
 
-		return receiver, typedPositionalArguments, receiverType
+		return methodName, receiver, typedPositionalArguments, receiverType
 	}
 
 	var method *types.Method
@@ -1986,14 +2061,14 @@ func (c *Checker) checkSimpleMethodCall(
 	if method == nil {
 		c.checkExpressions(positionalArgumentNodes)
 		c.checkNamedArguments(namedArgumentNodes)
-		return receiver, positionalArgumentNodes, types.Untyped{}
+		return methodName, receiver, positionalArgumentNodes, types.Untyped{}
 	}
 
 	c.addToMethodCache(method)
 
 	method, typedPositionalArguments := c.checkMethodArguments(method, typeArgumentNodes, positionalArgumentNodes, namedArgumentNodes, location)
 	if method == nil {
-		return receiver, positionalArgumentNodes, types.Untyped{}
+		return methodName, receiver, positionalArgumentNodes, types.Untyped{}
 	}
 
 	var returnType types.Type
@@ -2024,26 +2099,37 @@ func (c *Checker) checkSimpleMethodCall(
 
 	c.checkCalledMethodThrowType(method, location)
 
-	return receiver, typedPositionalArguments, returnType
+	return method.Name, receiver, typedPositionalArguments, returnType
 }
 
 func (c *Checker) checkBinaryOpMethodCall(
-	left ast.ExpressionNode,
-	right ast.ExpressionNode,
+	node *ast.BinaryExpressionNode,
 	methodName value.Symbol,
-	location *position.Location,
-) types.Type {
-	_, _, returnType := c.checkSimpleMethodCall(
-		left,
+) ast.ExpressionNode {
+	chosenMethodName, receiver, args, returnType := c.checkSimpleMethodCall(
+		node.Left,
 		token.DOT,
 		methodName,
 		nil,
-		[]ast.ExpressionNode{right},
+		[]ast.ExpressionNode{node.Right},
 		nil,
-		location,
+		node.Location(),
 	)
+	if chosenMethodName != methodName {
+		newNode := ast.NewMethodCallNode(
+			node.Location(),
+			receiver,
+			token.New(node.Location(), token.DOT),
+			ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+			args,
+			nil,
+		)
+		newNode.SetType(returnType)
+		return newNode
+	}
 
-	return returnType
+	node.SetType(returnType)
+	return node
 }
 
 func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *types.Method) {

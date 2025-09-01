@@ -304,6 +304,16 @@ func (e *SyncDiagnosticList) JoinErrList(other DiagnosticList) {
 	e.Mutex.Unlock()
 }
 
+func (e *SyncDiagnosticList) Clear() {
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
+
+	if e.DiagnosticList == nil {
+		return
+	}
+	e.DiagnosticList = e.DiagnosticList[0:0]
+}
+
 func (e *SyncDiagnosticList) IsFailure() bool {
 	return e.DiagnosticList.IsFailure()
 }

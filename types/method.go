@@ -291,6 +291,7 @@ func (m *Method) AllOverloads() iter.Seq[*Method] {
 func (m *Method) RegisterOverload(overload *Method) {
 	m.Overloads = append(m.Overloads, overload)
 	overload.SetRegisteredOverload(true)
+	overload.Name = value.ToSymbol(fmt.Sprintf("%s@%d", overload.Name.String(), len(m.Overloads)))
 }
 
 func (m *Method) Location() *position.Location {

@@ -3078,7 +3078,7 @@ func TestInterfaceType(t *testing.T) {
 				var a: Foo = Bar()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(168, 10, 18), P(172, 10, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - incorrect implementation of `Foo.:foo`\n      is:        `def foo(a: Std::String): void`\n                 `def foo(a: Std::Float): void`\n      should be: `def foo(a: Std::Int): void`"),
+				diagnostic.NewFailure(L("<main>", P(168, 10, 18), P(172, 10, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - incorrect implementation of `Foo.:foo`\n      is:        `def foo(a: Std::String): void`\n                 `def foo@1(a: Std::Float): void`\n      should be: `def foo(a: Std::Int): void`"),
 				diagnostic.NewFailure(L("<main>", P(168, 10, 18), P(172, 10, 22)), "type `Bar` cannot be assigned to type `Foo`"),
 			},
 		},

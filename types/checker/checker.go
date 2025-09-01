@@ -1540,22 +1540,20 @@ func (c *Checker) checkMustExpressionNode(node *ast.MustExpressionNode) *ast.Mus
 }
 
 func (c *Checker) checkArithmeticBinaryOperator(
-	left,
-	right ast.ExpressionNode,
+	node *ast.BinaryExpressionNode,
 	methodName value.Symbol,
-	location *position.Location,
-) types.Type {
-	leftType := c.ToNonLiteral(c.TypeOf(left), true)
+) ast.ExpressionNode {
+	node.Left = c.checkExpression(node.Left)
+	node.Right = c.checkExpression(node.Right)
+	leftType := c.ToNonLiteral(c.TypeOf(node.Left), true)
 	leftClassType, leftIsClass := leftType.(*types.Class)
 
-	rightType := c.ToNonLiteral(c.TypeOf(right), true)
+	rightType := c.ToNonLiteral(c.TypeOf(node.Right), true)
 	rightClassType, rightIsClass := rightType.(*types.Class)
 	if !leftIsClass || !rightIsClass {
 		return c.checkBinaryOpMethodCall(
-			left,
-			right,
+			node,
 			methodName,
-			location,
 		)
 	}
 
@@ -1563,28 +1561,32 @@ func (c *Checker) checkArithmeticBinaryOperator(
 	case "Std::Int":
 		switch rightClassType.Name() {
 		case "Std::Int":
-			return c.StdInt()
+			node.SetType(c.StdInt())
+			return node
 		case "Std::Float":
-			return c.StdFloat()
+			node.SetType(c.StdFloat())
+			return node
 		case "Std::BigFloat":
-			return c.StdBigFloat()
+			node.SetType(c.StdBigFloat())
+			return node
 		}
 	case "Std::Float":
 		switch rightClassType.Name() {
 		case "Std::Int":
-			return c.StdFloat()
+			node.SetType(c.StdFloat())
+			return node
 		case "Std::Float":
-			return c.StdFloat()
+			node.SetType(c.StdFloat())
+			return node
 		case "Std::BigFloat":
-			return c.StdBigFloat()
+			node.SetType(c.StdBigFloat())
+			return node
 		}
 	}
 
 	return c.checkBinaryOpMethodCall(
-		left,
-		right,
+		node,
 		methodName,
-		location,
 	)
 }
 
@@ -1598,7 +1600,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			node.SetType(rightType)
 			return node
 		}
-		receiver, _, typ := c.checkSimpleMethodCall(
+		methodName, receiver, _, typ := c.checkSimpleMethodCall(
 			node.Right,
 			token.DOT,
 			symbol.OpUnaryPlus,
@@ -1607,6 +1609,19 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			nil,
 			node.Location(),
 		)
+		if methodName != symbol.OpUnaryPlus {
+			newNode := ast.NewMethodCallNode(
+				node.Location(),
+				receiver,
+				token.New(node.Location(), token.DOT),
+				ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+				nil,
+				nil,
+			)
+			newNode.SetType(typ)
+			return node
+		}
+
 		node.Right = receiver
 		node.SetType(typ)
 		return node
@@ -1620,7 +1635,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			node.SetType(copy)
 			return node
 		}
-		receiver, _, typ := c.checkSimpleMethodCall(
+		methodName, receiver, _, typ := c.checkSimpleMethodCall(
 			node.Right,
 			token.DOT,
 			symbol.OpNegate,
@@ -1629,11 +1644,24 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			nil,
 			node.Location(),
 		)
+		if methodName != symbol.OpNegate {
+			newNode := ast.NewMethodCallNode(
+				node.Location(),
+				receiver,
+				token.New(node.Location(), token.DOT),
+				ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+				nil,
+				nil,
+			)
+			newNode.SetType(typ)
+			return node
+		}
+
 		node.Right = receiver
 		node.SetType(typ)
 		return node
 	case token.TILDE:
-		receiver, _, typ := c.checkSimpleMethodCall(
+		methodName, receiver, _, typ := c.checkSimpleMethodCall(
 			node.Right,
 			token.DOT,
 			value.ToSymbol(node.Op.FetchValue()),
@@ -1642,6 +1670,19 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			nil,
 			node.Location(),
 		)
+		if methodName != symbol.OpBitwiseNot {
+			newNode := ast.NewMethodCallNode(
+				node.Location(),
+				receiver,
+				token.New(node.Location(), token.DOT),
+				ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+				nil,
+				nil,
+			)
+			newNode.SetType(typ)
+			return node
+		}
+
 		node.Right = receiver
 		node.SetType(typ)
 		return node
@@ -3510,7 +3551,7 @@ func (c *Checker) checkNotOperator(node *ast.UnaryExpressionNode) ast.Expression
 }
 
 func (c *Checker) checkNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscriptExpressionNode) ast.ExpressionNode {
-	receiver, args, typ := c.checkSimpleMethodCall(
+	methodName, receiver, args, typ := c.checkSimpleMethodCall(
 		node.Receiver,
 		token.QUESTION_DOT,
 		symbol.OpSubscript,
@@ -3519,15 +3560,27 @@ func (c *Checker) checkNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscript
 		nil,
 		node.Location(),
 	)
+	if methodName != symbol.OpSubscript {
+		newNode := ast.NewMethodCallNode(
+			node.Location(),
+			receiver,
+			token.New(node.Location(), token.QUESTION_DOT),
+			ast.NewPublicIdentifierNode(node.Location(), methodName.String()),
+			args,
+			nil,
+		)
+		newNode.SetType(typ)
+		return newNode
+	}
+
 	node.Receiver = receiver
 	node.Key = args[0]
-
 	node.SetType(typ)
 	return node
 }
 
 func (c *Checker) checkSubscriptExpressionNode(node *ast.SubscriptExpressionNode) ast.ExpressionNode {
-	receiver, args, typ := c.checkSimpleMethodCall(
+	methodName, receiver, args, typ := c.checkSimpleMethodCall(
 		node.Receiver,
 		token.DOT,
 		symbol.OpSubscript,
@@ -3536,9 +3589,21 @@ func (c *Checker) checkSubscriptExpressionNode(node *ast.SubscriptExpressionNode
 		nil,
 		node.Location(),
 	)
+	if methodName != symbol.OpSubscript {
+		newNode := ast.NewMethodCallNode(
+			node.Location(),
+			receiver,
+			token.New(node.Location(), token.DOT),
+			ast.NewPublicIdentifierNode(node.Location(), methodName.String()),
+			args,
+			nil,
+		)
+		newNode.SetType(typ)
+		return newNode
+	}
+
 	node.Receiver = receiver
 	node.Key = args[0]
-
 	node.SetType(typ)
 	return node
 }
@@ -3683,25 +3748,15 @@ func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.Expressio
 func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.ExpressionNode {
 	switch node.Op.Type {
 	case token.PLUS:
-		node.Left = c.checkExpression(node.Left)
-		node.Right = c.checkExpression(node.Right)
-		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpAdd, node.Location()))
+		return c.checkArithmeticBinaryOperator(node, symbol.OpAdd)
 	case token.MINUS:
-		node.Left = c.checkExpression(node.Left)
-		node.Right = c.checkExpression(node.Right)
-		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpSubtract, node.Location()))
+		return c.checkArithmeticBinaryOperator(node, symbol.OpSubtract)
 	case token.STAR:
-		node.Left = c.checkExpression(node.Left)
-		node.Right = c.checkExpression(node.Right)
-		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpMultiply, node.Location()))
+		return c.checkArithmeticBinaryOperator(node, symbol.OpMultiply)
 	case token.SLASH:
-		node.Left = c.checkExpression(node.Left)
-		node.Right = c.checkExpression(node.Right)
-		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpDivide, node.Location()))
+		return c.checkArithmeticBinaryOperator(node, symbol.OpDivide)
 	case token.STAR_STAR:
-		node.Left = c.checkExpression(node.Left)
-		node.Right = c.checkExpression(node.Right)
-		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpExponentiate, node.Location()))
+		return c.checkArithmeticBinaryOperator(node, symbol.OpExponentiate)
 	case token.PIPE_OP:
 		return c.checkPipeExpression(node)
 	case token.INSTANCE_OF_OP:
@@ -3723,15 +3778,29 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		token.AND_TILDE, token.OR, token.XOR, token.PERCENT,
 		token.GREATER, token.GREATER_EQUAL,
 		token.LESS, token.LESS_EQUAL, token.SPACESHIP_OP:
-		left, args, typ := c.checkSimpleMethodCall(
+		originalMethodName := value.ToSymbol(node.Op.FetchValue())
+		methodName, left, args, typ := c.checkSimpleMethodCall(
 			node.Left,
 			token.DOT,
-			value.ToSymbol(node.Op.FetchValue()),
+			originalMethodName,
 			nil,
 			[]ast.ExpressionNode{node.Right},
 			nil,
 			node.Location(),
 		)
+		if methodName != originalMethodName {
+			newNode := ast.NewMethodCallNode(
+				node.Location(),
+				left,
+				token.New(node.Location(), token.DOT),
+				ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+				args,
+				nil,
+			)
+			newNode.SetType(typ)
+			return newNode
+		}
+
 		node.Left = left
 		node.Right = args[0]
 		node.SetType(typ)
@@ -4491,7 +4560,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 
 	receiver := c.getReceiverlessMethodReceiver(name, method, methodNamespace, fromLocal, node.MethodName.Location())
 
-	typedPositionalArguments := c.checkNonGenericMethodArguments(
+	method, typedPositionalArguments := c.checkNonGenericMethodArguments(
 		method,
 		node.PositionalArguments,
 		node.NamedArguments,
@@ -4501,7 +4570,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		node.Location(),
 		receiver,
 		token.New(node.Location(), token.DOT),
-		node.MethodName,
+		ast.NewPublicIdentifierNode(node.MethodName.Location(), method.Name.String()),
 		typedPositionalArguments,
 		nil,
 	)
@@ -4531,7 +4600,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	if len(method.TypeParameters) > 0 {
 		var typeArgMap types.TypeArgumentMap
 		method = c.deepCopyMethod(method)
-		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
+		method, typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
 			method,
 			node.PositionalArguments,
 			node.NamedArguments,
@@ -4549,7 +4618,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap, true)
 		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap, true)
 	} else {
-		typedPositionalArguments = c.checkNonGenericMethodArguments(
+		method, typedPositionalArguments = c.checkNonGenericMethodArguments(
 			method,
 			node.PositionalArguments,
 			node.NamedArguments,
@@ -4750,7 +4819,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 		)
 	}
 
-	typedPositionalArguments := c.checkNonGenericMethodArguments(
+	method, typedPositionalArguments := c.checkNonGenericMethodArguments(
 		method,
 		node.PositionalArguments,
 		node.NamedArguments,
@@ -4833,7 +4902,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 		)
 	}
 
-	typedPositionalArguments := c.checkNonGenericMethodArguments(
+	method, typedPositionalArguments := c.checkNonGenericMethodArguments(
 		method,
 		node.PositionalArguments,
 		node.NamedArguments,
@@ -4910,7 +4979,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			c.addToMethodCache(method)
 		}
 
-		typedPositionalArguments := c.checkNonGenericMethodArguments(
+		method, typedPositionalArguments := c.checkNonGenericMethodArguments(
 			method,
 			node.PositionalArguments,
 			node.NamedArguments,
@@ -4941,7 +5010,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		c.addToMethodCache(method)
 	}
 
-	typedPositionalArguments, typeArgMap := c.checkMethodArgumentsAndInferTypeArguments(
+	method, typedPositionalArguments, typeArgMap := c.checkMethodArgumentsAndInferTypeArguments(
 		method,
 		node.PositionalArguments,
 		node.NamedArguments,
@@ -4991,7 +5060,8 @@ func (c *Checker) checkCallNode(node *ast.CallNode) ast.ExpressionNode {
 	} else {
 		op = token.DOT
 	}
-	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
+	var methodName value.Symbol
+	methodName, node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
 		op,
 		value.ToSymbol("call"),
@@ -5000,13 +5070,23 @@ func (c *Checker) checkCallNode(node *ast.CallNode) ast.ExpressionNode {
 		node.NamedArguments,
 		node.Location(),
 	)
-	node.SetType(typ)
-	return node
+
+	newNode := ast.NewMethodCallNode(
+		node.Location(),
+		node.Receiver,
+		token.New(node.Location(), op),
+		ast.NewPublicIdentifierNode(node.Location(), methodName.String()),
+		node.PositionalArguments,
+		nil,
+	)
+	newNode.SetType(typ)
+	return newNode
 }
 
 func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, tailPosition bool) ast.ExpressionNode {
 	var typ types.Type
-	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
+	var methodName value.Symbol
+	methodName, node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
 		node.Op.Type,
 		value.ToSymbol(c.identifierToName(node.MethodName)),
@@ -5014,6 +5094,10 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, tailPosition boo
 		node.PositionalArguments,
 		node.NamedArguments,
 		node.MethodName.Location(),
+	)
+	node.MethodName = ast.NewPublicIdentifierNode(
+		node.MethodName.Location(),
+		methodName.String(),
 	)
 	if len(c.catchScopes) < 1 {
 		node.TailCall = tailPosition
@@ -5024,7 +5108,8 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, tailPosition boo
 
 func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	var typ types.Type
-	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
+	var methodName value.Symbol
+	methodName, node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
 		node.Op.Type,
 		value.ToSymbol(c.identifierToName(node.MethodName)),
@@ -5032,6 +5117,10 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, ta
 		node.PositionalArguments,
 		node.NamedArguments,
 		node.MethodName.Location(),
+	)
+	node.MethodName = ast.NewPublicIdentifierNode(
+		node.MethodName.Location(),
+		methodName.String(),
 	)
 	if len(c.catchScopes) < 1 {
 		node.TailCall = tailPosition
@@ -5266,7 +5355,7 @@ func (c *Checker) checkAssignment(node *ast.AssignmentExpressionNode) ast.Expres
 }
 
 func (c *Checker) checkSubscriptAssignment(subscriptNode *ast.SubscriptExpressionNode, assignmentNode *ast.AssignmentExpressionNode) ast.ExpressionNode {
-	receiver, args, _ := c.checkSimpleMethodCall(
+	methodName, receiver, args, _ := c.checkSimpleMethodCall(
 		subscriptNode.Receiver,
 		token.DOT,
 		symbol.OpSubscriptSet,
@@ -5275,27 +5364,52 @@ func (c *Checker) checkSubscriptAssignment(subscriptNode *ast.SubscriptExpressio
 		nil,
 		assignmentNode.Location(),
 	)
+	if methodName != symbol.OpSubscriptSet {
+		newNode := ast.NewMethodCallNode(
+			subscriptNode.Location(),
+			receiver,
+			token.New(subscriptNode.Location(), token.DOT),
+			ast.NewPublicIdentifierNode(subscriptNode.Location(), methodName.String()),
+			args,
+			nil,
+		)
+		newNode.SetType(c.TypeOf(assignmentNode.Right))
+		return newNode
+	}
+
 	subscriptNode.Receiver = receiver
 	subscriptNode.Key = args[0]
 	assignmentNode.Right = args[1]
-
 	assignmentNode.SetType(c.TypeOf(assignmentNode.Right))
 	return assignmentNode
 }
 
 func (c *Checker) checkAttributeAssignment(attributeNode *ast.AttributeAccessNode, assignmentNode *ast.AssignmentExpressionNode) ast.ExpressionNode {
-	receiver, args, _ := c.checkSimpleMethodCall(
+	originalMethodName := value.ToSymbol(c.identifierToName(attributeNode.AttributeName) + "=")
+	methodName, receiver, args, _ := c.checkSimpleMethodCall(
 		attributeNode.Receiver,
 		token.DOT,
-		value.ToSymbol(c.identifierToName(attributeNode.AttributeName)+"="),
+		originalMethodName,
 		nil,
 		[]ast.ExpressionNode{assignmentNode.Right},
 		nil,
 		assignmentNode.Location(),
 	)
+	if methodName != originalMethodName {
+		newNode := ast.NewMethodCallNode(
+			attributeNode.Location(),
+			receiver,
+			token.New(attributeNode.Location(), token.DOT),
+			ast.NewPublicIdentifierNode(attributeNode.Location(), methodName.String()),
+			args,
+			nil,
+		)
+		newNode.SetType(c.TypeOf(assignmentNode.Right))
+		return newNode
+	}
+
 	attributeNode.Receiver = receiver
 	assignmentNode.Right = args[0]
-
 	assignmentNode.SetType(c.TypeOf(assignmentNode.Right))
 	return assignmentNode
 }

@@ -642,7 +642,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(123, 8, 6), P(157, 8, 40)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `def foo(a: Std::String, b?: Std::Int): void`\n  should be: `def foo(a: Std::Int): void`\n\n  - has an incompatible parameter, is `a: Std::String`, should be `a: Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(123, 8, 6), P(157, 8, 40)), "method `Bar.:foo` is not a valid override of `Foo.:foo@1`\n  is:        `def foo(a: Std::String, b?: Std::Int): void`\n  should be: `def foo@1(a: Std::Int): void`\n\n  - has an incompatible parameter, is `a: Std::String`, should be `a: Std::Int`"),
 			},
 		},
 		"all valid parent overload overrides": {
@@ -694,7 +694,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(75, 7, 6), P(106, 7, 37)), "no overload of method `Bar.:foo` is a valid override of `def foo(a: Std::Int): void`\n  is: `def foo(a: Std::String): void`\n      `def foo(a: Std::Float): void`\n  should be: `def foo(a: Std::Int): void`\n"),
+				diagnostic.NewFailure(L("<main>", P(75, 7, 6), P(106, 7, 37)), "no overload of method `Bar.:foo` is a valid override of `def foo(a: Std::Int): void`\n  is: `def foo(a: Std::String): void`\n      `def foo@1(a: Std::Float): void`\n  should be: `def foo(a: Std::Int): void`\n"),
 			},
 		},
 		"invalid override": {
