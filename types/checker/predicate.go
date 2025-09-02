@@ -1091,20 +1091,6 @@ abstractLoop:
 			continue abstractLoop
 		}
 
-		if len(method.Overloads) > 0 {
-			for overload := range method.AllOverloads() {
-				if c.checkMethodCompatibility(abstractMethod, overload, nil, true) {
-					continue abstractLoop
-				}
-			}
-
-			incorrectMethods = append(incorrectMethods, methodOverride{
-				superMethod: abstractMethod,
-				override:    method,
-			})
-			continue abstractLoop
-		}
-
 		if !c.checkMethodCompatibility(abstractMethod, method, nil, true) {
 			incorrectMethods = append(incorrectMethods, methodOverride{
 				superMethod: abstractMethod,

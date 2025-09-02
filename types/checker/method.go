@@ -816,51 +816,62 @@ func (c *Checker) checkMethodOverride(
 		return
 	}
 
-	if len(overrideMethod.Overloads) == 0 {
-		c._checkMethodOverride(
-			overrideMethod,
-			baseMethod,
+	if len(baseMethod.Overloads) > len(overrideMethod.Overloads) {
+		errDetailsBuff := new(strings.Builder)
+
+		fmt.Fprintf(
+			errDetailsBuff,
+			"missing overloads in `%s`\n  is: ",
+			I(overrideMethod.DefinedUnder),
+		)
+
+		var i int
+		for overrideOverload := range overrideMethod.AllOverloads() {
+			if i != 0 {
+				fmt.Fprint(
+					errDetailsBuff,
+					"\n      ",
+				)
+			}
+			fmt.Fprintf(
+				errDetailsBuff,
+				"`%s`",
+				overrideOverload.InspectSignatureWithColor(false),
+			)
+			i++
+		}
+
+		fmt.Fprint(
+			errDetailsBuff,
+			"\n  should be: ",
+		)
+
+		i = 0
+		for baseOverload := range baseMethod.AllOverloads() {
+			if i != 0 {
+				fmt.Fprint(
+					errDetailsBuff,
+					"\n             ",
+				)
+			}
+			fmt.Fprintf(
+				errDetailsBuff,
+				"`%s`",
+				baseOverload.InspectSignatureWithColor(false),
+			)
+			i++
+		}
+
+		c.addFailure(
+			errDetailsBuff.String(),
 			location,
 		)
 		return
 	}
 
-	for overload := range overrideMethod.AllOverloads() {
-		if c._checkMethodOverride(
-			overload,
-			baseMethod,
-			nil,
-		) {
-			return
-		}
-	}
-
-	errDetailsBuff := new(strings.Builder)
-
-	fmt.Fprintf(
-		errDetailsBuff,
-		"no overload of method `%s` is a valid override of `%s`\n  is: `%s`\n",
-		types.InspectWithColor(overrideMethod),
-		baseMethod.InspectSignatureWithColor(true),
-		overrideMethod.InspectSignatureWithColor(true),
-	)
-
-	for _, overload := range overrideMethod.Overloads {
-		fmt.Fprintf(
-			errDetailsBuff,
-			"      `%s`\n",
-			overload.InspectSignatureWithColor(true),
-		)
-	}
-
-	fmt.Fprintf(
-		errDetailsBuff,
-		"  should be: `%s`\n",
-		baseMethod.InspectSignatureWithColor(true),
-	)
-
-	c.addFailure(
-		errDetailsBuff.String(),
+	c._checkMethodOverride(
+		overrideMethod,
+		baseMethod,
 		location,
 	)
 }
@@ -1034,13 +1045,11 @@ func (c *Checker) checkMethod(
 		if parent != nil {
 			baseMethod := c.resolveMethodInNamespace(parent, name)
 			if baseMethod != nil {
-				for baseOverload := range baseMethod.AllOverloads() {
-					c.checkMethodOverride(
-						checkedMethod,
-						baseOverload,
-						location,
-					)
-				}
+				c.checkMethodOverride(
+					checkedMethod,
+					baseMethod,
+					location,
+				)
 			}
 		}
 	}

@@ -244,7 +244,7 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 		newMethod.DefinedUnder.SetMethod(newMethod.Name, newMethod)
 	}
 
-	newOverloads := make([]*Method, len(m.Params))
+	newOverloads := make([]*Method, len(m.Overloads))
 	for i, overload := range m.Overloads {
 		newOverloads[i] = overload.DeepCopyEnv(oldEnv, newEnv)
 	}
