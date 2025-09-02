@@ -1862,6 +1862,39 @@ func TestMethodDefinition(t *testing.T) {
 
 func TestMethodCalls(t *testing.T) {
 	tests := testTable{
+		"call an overload": {
+			input: `
+				module Foo
+					overload def foo(a: String); end
+					overload def foo(a: Int); end
+				end
+				a := Foo
+				a.foo(1)
+				a.foo("lol")
+			`,
+		},
+		"call an overload for arithmetic": {
+			input: `
+				module Foo
+					overload def +(a: String): String then a
+					overload def +(a: Int): Float then a.to_float
+				end
+				a := Foo
+				var b: Float = a + 1
+				var c: String = a + "lol"
+			`,
+		},
+		"call an overload for subscript": {
+			input: `
+				module Foo
+					overload def [](a: String): String then a
+					overload def [](a: Int): Float then a.to_float
+				end
+				a := Foo
+				var b: Float = a[1]
+				var c: String = a["lol"]
+			`,
+		},
 		"call a variable": {
 			input: `
 				module Foo

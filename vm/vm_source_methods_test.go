@@ -10,6 +10,20 @@ import (
 
 func TestVMSource_Subscript(t *testing.T) {
 	tests := sourceTestTable{
+		"call overload": {
+			source: `
+				module Foo
+					overload def [](a: String): String then a
+					overload def [](a: Int): Float then a.to_float
+				end
+				a := Foo
+				var b: Float = a[1]
+				var c: String = a["lol"]
+				puts "b: #b, c: #c"
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "b: 1.0, c: \"lol\"\n",
+		},
 		"get index 0 of a list": {
 			source: `
 				list := ["foo", 2, 7.8]
@@ -506,6 +520,19 @@ func TestVMSource_Generator(t *testing.T) {
 
 func TestVMSource_CallMethod(t *testing.T) {
 	tests := sourceTestTable{
+		"call on overload": {
+			source: `
+				module Foo
+					overload def foo(a: String): String then a
+					overload def foo(a: Int): Float then a.to_float
+				end
+				b := Foo.foo(1)
+				c := Foo.foo("lol")
+				puts "b: #b, c: #c"
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "b: 1.0, c: \"lol\"\n",
+		},
 		"nil safe call on nil": {
 			source: `
 				var a: Int? = nil
