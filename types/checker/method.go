@@ -3340,7 +3340,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 			c.addMissingMethodError(typ, name.String(), errSpan)
 			return nil
 		case 1:
-			return methods[0]
+			return methods[0].WithoutOverloads()
 		}
 
 		isCompatible := true
@@ -3353,7 +3353,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		}
 
 		if isCompatible {
-			return baseMethod
+			return baseMethod.WithoutOverloads()
 		}
 
 		return nil
@@ -3379,7 +3379,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		}
 
 		if c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod, errSpan) {
-			return baseMethod
+			return baseMethod.WithoutOverloads()
 		}
 		return nil
 	case *types.Union:
@@ -3411,7 +3411,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		}
 
 		if isCompatible {
-			return baseMethod
+			return baseMethod.WithoutOverloads()
 		}
 
 		return nil

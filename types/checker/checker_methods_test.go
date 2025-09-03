@@ -1890,6 +1890,25 @@ func TestMethodDefinition(t *testing.T) {
 
 func TestMethodCalls(t *testing.T) {
 	tests := testTable{
+		"call an overload on a union type": {
+			input: `
+				module Foo
+					overload def foo(a: Int); end
+					overload def foo(a: String); end
+				end
+
+				module Bar
+					def foo(a: Int); end
+				end
+
+				var a: Foo | Bar = Foo
+				a.foo(1)
+				a.foo("lol")
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(198, 13, 11), P(202, 13, 15)), "expected type `Std::Int` for parameter `a` in call to `Foo::foo`, got type `\"lol\"`"),
+			},
+		},
 		"call an overload": {
 			input: `
 				module Foo

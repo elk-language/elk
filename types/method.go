@@ -191,6 +191,16 @@ func NewMethodPlaceholder(fullName string, name value.Symbol, definedUnder Names
 	return m
 }
 
+func (m *Method) WithoutOverloads() *Method {
+	if len(m.Overloads) == 0 {
+		return m
+	}
+
+	copy := m.Copy()
+	copy.Overloads = nil
+	return copy
+}
+
 func (m *Method) Copy() *Method {
 	return &Method{
 		FullName:                     m.FullName,
