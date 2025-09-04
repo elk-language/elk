@@ -90,8 +90,41 @@ func (t TimeSpan) ToString() String {
 	return String(t.String())
 }
 
-func (t TimeSpan) Add(other TimeSpan) TimeSpan {
+func (t TimeSpan) Add(other Value) (Value, Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return Ref(t.AddDateSpan(other.AsDateSpan())), Undefined
+	case TIME_SPAN_FLAG:
+		return t.AddTimeSpan(other.AsTimeSpan()).ToValue(), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", other.Class().Inspect(), durationUnionType))
+	}
+
+	switch other := other.AsReference().(type) {
+	case TimeSpan:
+		return t.AddTimeSpan(other).ToValue(), Undefined
+	case *DateTimeSpan:
+		return Ref(t.AddDateTimeSpan(other)), Undefined
+	default:
+
+		return Undefined, Ref(NewArgumentTypeError("other", other.Class().Inspect(), durationUnionType))
+	}
+}
+
+func (t TimeSpan) AddTimeSpan(other TimeSpan) TimeSpan {
 	return TimeSpan(t.Go() + other.Go())
+}
+
+func (t TimeSpan) AddDateSpan(other DateSpan) *DateTimeSpan {
+	return NewDateTimeSpan(other, t)
+}
+
+func (t TimeSpan) AddDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
+	return NewDateTimeSpan(
+		other.DateSpan,
+		t.AddTimeSpan(other.TimeSpan),
+	)
 }
 
 func (t TimeSpan) Subtract(other TimeSpan) TimeSpan {

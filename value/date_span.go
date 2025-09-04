@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Represents the difference between two dates
@@ -22,6 +23,10 @@ func MakeDateSpan(years, months, days int) DateSpan {
 }
 
 var DateSpanClass *Class // ::Std::Date::Span
+
+func (d DateSpan) IsZero() bool {
+	return d.months == 0 && d.days == 0
+}
 
 func (d DateSpan) Copy() Reference {
 	return d
@@ -55,7 +60,18 @@ func (d DateSpan) String() string {
 	years := d.months / 12
 	months := d.Months()
 	days := d.days
-	return fmt.Sprintf("%dY%dM%dD", years, months, days)
+
+	var buff strings.Builder
+	if years > 0 {
+		fmt.Fprintf(&buff, "%dY", years)
+	}
+	if months > 0 {
+		fmt.Fprintf(&buff, "%dM", months)
+	}
+	if days > 0 || d.IsZero() {
+		fmt.Fprintf(&buff, "%dD", days)
+	}
+	return buff.String()
 }
 
 func (d DateSpan) ToString() String {
@@ -182,6 +198,51 @@ func (d DateSpan) TotalYears() Value {
 
 func (d DateSpan) InYears() Float {
 	return Float(d.months)/12 + Float(d.days)/YearDays
+}
+
+const durationUnionType = "Std::Time::Span | Std::Date::Span | Std::DateTime::Span"
+
+func (d DateSpan) Add(other Value) (Value, Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return d.AddDateSpan(other.AsDateSpan()).ToValue(), Undefined
+	case TIME_SPAN_FLAG:
+		return Ref(d.AddTimeSpan(other.AsTimeSpan())), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", other.Class().Inspect(), durationUnionType))
+	}
+
+	switch other := other.AsReference().(type) {
+	case TimeSpan:
+		return Ref(d.AddTimeSpan(other)), Undefined
+	case *DateTimeSpan:
+		return Ref(d.AddDateTimeSpan(other)), Undefined
+	default:
+
+		return Undefined, Ref(NewArgumentTypeError("other", other.Class().Inspect(), durationUnionType))
+	}
+}
+
+func (d DateSpan) AddDateSpan(other DateSpan) DateSpan {
+	return DateSpan{
+		months: d.months + other.months,
+		days:   d.days + other.days,
+	}
+}
+
+func (d DateSpan) AddTimeSpan(other TimeSpan) *DateTimeSpan {
+	return NewDateTimeSpan(
+		d,
+		other,
+	)
+}
+
+func (d DateSpan) AddDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
+	return NewDateTimeSpan(
+		d.AddDateSpan(other.DateSpan),
+		other.TimeSpan,
+	)
 }
 
 func initDateSpan() {

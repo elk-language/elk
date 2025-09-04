@@ -24,9 +24,39 @@ func initTimeSpan() {
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustTimeSpan()
-			dur := args[1].MustTimeSpan()
-			return self.Add(dur).ToValue(), value.Undefined
+			self := args[0].AsTimeSpan()
+			other := args[1]
+			return self.Add(other)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"+@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := args[1].AsTimeSpan()
+			return self.AddTimeSpan(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"+@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := args[1].AsDateSpan()
+			return value.Ref(self.AddDateSpan(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"+@3",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := (*value.DateTimeSpan)(args[1].Pointer())
+			return value.Ref(self.AddDateTimeSpan(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)

@@ -161,56 +161,74 @@ sealed noinit primitive class ::Std::Float < Value
 	##[
 		Returns the duration equivalent to `self` nanoseconds.
 	]##
-	def nanoseconds: Duration; end
+	def nanoseconds: Time::Span; end
 	alias nanosecond nanoseconds
 
 	##[
 		Returns the duration equivalent to `self` microseconds.
 	]##
-	def microseconds: Duration; end
+	def microseconds: Time::Span; end
 	alias microsecond microseconds
 
 	##[
 		Returns the duration equivalent to `self` milliseconds.
 	]##
-	def milliseconds: Duration; end
+	def milliseconds: Time::Span; end
 	alias millisecond milliseconds
 
 	##[
 		Returns the duration equivalent to `self` seconds.
 	]##
-	def seconds: Duration; end
+	def seconds: Time::Span; end
 	alias second seconds
 
 	##[
 		Returns the duration equivalent to `self` minutes.
 	]##
-	def minutes: Duration; end
+	def minutes: Time::Span; end
 	alias minute minutes
 
 	##[
 		Returns the duration equivalent to `self` hours.
 	]##
-	def hours: Duration; end
+	def hours: Time::Span; end
 	alias hour hours
 
 	##[
 		Returns the duration equivalent to `self` days.
 	]##
-	def days: Duration; end
+	def days: DateTime::Span; end
 	alias day days
 
 	##[
 		Returns the duration equivalent to `self` weeks.
 	]##
-	def weeks: Duration; end
+	def weeks: DateTime::Span; end
 	alias week weeks
+
+	##[
+		Returns the duration equivalent to `self` months.
+	]##
+	def months: DateTime::Span; end
+	alias month months
 
 	##[
 		Returns the duration equivalent to `self` years.
 	]##
-	def years: Duration; end
+	def years: DateTime::Span; end
 	alias year years
+
+	##[
+		Returns the duration equivalent to `self` centuries.
+	]##
+	def centuries: DateTime::Span; end
+	alias century centuries
+
+	##[
+		Returns the duration equivalent to `self` millenia.
+	]##
+	def millenia: DateTime::Span; end
+	alias millenium millenia
 
 	##[
 		Returns the AST Node that represents the same value.

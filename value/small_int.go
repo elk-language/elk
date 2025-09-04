@@ -1030,16 +1030,28 @@ func (i SmallInt) Hours() TimeSpan {
 	return TimeSpan(i) * Hour
 }
 
-func (i SmallInt) Days() TimeSpan {
-	return TimeSpan(i) * Day
+func (i SmallInt) Days() DateSpan {
+	return MakeDateSpan(0, 0, int(i))
 }
 
-func (i SmallInt) Weeks() TimeSpan {
-	return TimeSpan(i) * Week
+func (i SmallInt) Weeks() DateSpan {
+	return MakeDateSpan(0, 0, int(i)*7)
 }
 
-func (i SmallInt) Years() TimeSpan {
-	return TimeSpan(i) * Year
+func (i SmallInt) Months() DateSpan {
+	return MakeDateSpan(0, int(i), 0)
+}
+
+func (i SmallInt) Years() DateSpan {
+	return MakeDateSpan(int(i), 0, 0)
+}
+
+func (i SmallInt) Centuries() DateSpan {
+	return MakeDateSpan(int(i)*100, 0, 0)
+}
+
+func (i SmallInt) Millenia() DateSpan {
+	return MakeDateSpan(int(i)*1000, 0, 0)
 }
 
 type SmallIntIterator struct {

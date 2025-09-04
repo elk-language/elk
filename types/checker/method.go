@@ -1448,12 +1448,20 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	prevDiagnostics := c.Errors
 	tempDiagnostics := diagnostic.NewSyncDiagnosticList()
 	c.Errors = tempDiagnostics
-	for overload := range method.AllOverloads() {
+	for overload := range method.ReverseOverloads() {
 		tempDiagnostics.Clear()
+
+		posArgs := ds.MapSlice(positionalArguments, func(arg ast.ExpressionNode) ast.ExpressionNode {
+			return ast.DeepCopy(arg).(ast.ExpressionNode)
+		})
+		namedArgs := ds.MapSlice(namedArguments, func(arg ast.NamedArgumentNode) ast.NamedArgumentNode {
+			return ast.DeepCopy(arg).(ast.NamedArgumentNode)
+		})
+
 		posArgs, typeArgs := c._checkMethodArgumentsAndInferTypeArguments(
 			overload,
-			positionalArguments,
-			namedArguments,
+			posArgs,
+			namedArgs,
 			typeParams,
 			location,
 		)
@@ -1475,10 +1483,10 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		method.InspectSignatureWithColor(false),
 	)
 
-	for overload := range method.AllOverloads() {
+	for _, overload := range method.Overloads {
 		fmt.Fprintf(
 			errDetailsBuff,
-			"\n             `%s`\n",
+			"\n             `%s`",
 			overload.InspectSignatureWithColor(false),
 		)
 	}
@@ -1547,7 +1555,6 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 		}
 		param := method.Params[currentParamIndex]
 
-		posArg.SetType(nil)
 		typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 		posArgType := c.TypeOf(typedPosArg)
 
@@ -1621,7 +1628,6 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 		for ; currentArgIndex < min(argCount-method.PostParamCount, len(positionalArguments)); currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
 
-			posArg.SetType(nil)
 			typedPosArg := c.checkRestArgument(posArg, posRestParam.Type)
 			posArgType := c.TypeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, posRestParam.Type, typeArgMap, typedPosArg.Location())
@@ -1662,7 +1668,6 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			currentParamIndex++
 			param := method.Params[currentParamIndex]
 
-			posArg.SetType(nil)
 			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 			posArgType := c.TypeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
@@ -1731,7 +1736,6 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			found = true
 			definedNamedArgumentsSlice[namedArgIndex] = true
 
-			namedArg.Value.SetType(nil)
 			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
 			namedArgType := c.TypeOf(typedNamedArgValue)
 			inferredParamType := c.inferTypeArguments(namedArgType, param.Type, typeArgMap, typedNamedArgValue.Location())
@@ -1797,7 +1801,6 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			namedArgI := namedArguments[i]
 			switch namedArg := namedArgI.(type) {
 			case *ast.NamedCallArgumentNode:
-				namedArg.Value.SetType(nil)
 				typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
 				posArgType := c.TypeOf(typedNamedArgValue)
 				inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap, typedNamedArgValue.Location())
@@ -1822,7 +1825,6 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 					namedArg.Location(),
 				)
 			case *ast.DoubleSplatExpressionNode:
-				namedArg.SetType(nil)
 				result := c.checkDoubleSplatArgument(method.Name.String(), namedArg, namedRestParam)
 				namedRestArgs.Elements = append(
 					namedRestArgs.Elements,

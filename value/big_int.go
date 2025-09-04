@@ -1121,22 +1121,34 @@ func (i *BigInt) Hours() TimeSpan {
 	return TimeSpan(i.ToSmallInt())
 }
 
-func (i *BigInt) Days() TimeSpan {
-	oBigInt := big.NewInt(int64(Day))
-	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
-	return TimeSpan(i.ToSmallInt())
+func (i *BigInt) Days() DateSpan {
+	return MakeDateSpan(0, 0, int(i.ToSmallInt()))
 }
 
-func (i *BigInt) Weeks() TimeSpan {
-	oBigInt := big.NewInt(int64(Week))
+func (i *BigInt) Weeks() DateSpan {
+	oBigInt := big.NewInt(7)
 	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
-	return TimeSpan(i.ToSmallInt())
+	return MakeDateSpan(0, 0, int(oBigInt.Int64()))
 }
 
-func (i *BigInt) Years() TimeSpan {
-	oBigInt := big.NewInt(int64(Year))
+func (i *BigInt) Months() DateSpan {
+	return MakeDateSpan(0, int(i.ToSmallInt()), 0)
+}
+
+func (i *BigInt) Years() DateSpan {
+	return MakeDateSpan(int(i.ToSmallInt()), 0, 0)
+}
+
+func (i *BigInt) Centuries() DateSpan {
+	oBigInt := big.NewInt(100)
 	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
-	return TimeSpan(i.ToSmallInt())
+	return MakeDateSpan(int(oBigInt.Int64()), 0, 0)
+}
+
+func (i *BigInt) Millenia() DateSpan {
+	oBigInt := big.NewInt(1000)
+	oBigInt.Mul(i.ToGoBigInt(), oBigInt)
+	return MakeDateSpan(int(oBigInt.Int64()), 0, 0)
 }
 
 type BigIntIterator struct {

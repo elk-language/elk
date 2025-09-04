@@ -317,6 +317,11 @@ type Node interface {
 	traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption
 }
 
+// Create a deep copy of the AST node
+func DeepCopy(node Node) Node {
+	return Splice(node, nil, nil)
+}
+
 // Create a copy of AST replacing consecutive unquote nodes with the given arguments
 func Splice(node Node, loc *position.Location, args *[]Node) Node {
 	return node.splice(loc, args, false)

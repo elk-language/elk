@@ -6,6 +6,11 @@
 sealed primitive class ::Std::DateTime::Span < Value
 	include Duration
 
+	overload def +(other: Duration): Duration; end
+	overload def +(other: DateTime::Span): DateTime::Span; end
+	overload def +(other: Time::Span): DateTime::Span; end
+	overload def +(other: Date::Span): DateTime::Span; end
+
 	##[
 		Returns the string representation of the date span in the format "5Y2M10D51h15m0.12s".
 	]##

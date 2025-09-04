@@ -298,6 +298,21 @@ func (m *Method) AllOverloads() iter.Seq[*Method] {
 	}
 }
 
+func (m *Method) ReverseOverloads() iter.Seq[*Method] {
+	return func(yield func(*Method) bool) {
+		for i := len(m.Overloads) - 1; i >= 0; i-- {
+			overload := m.Overloads[i]
+			if !yield(overload) {
+				return
+			}
+		}
+
+		if !yield(m) {
+			return
+		}
+	}
+}
+
 func (m *Method) RegisterOverload(overload *Method) {
 	m.Overloads = append(m.Overloads, overload)
 	overload.SetRegisteredOverload(true)

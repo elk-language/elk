@@ -643,16 +643,65 @@ func (f Float) Hours() TimeSpan {
 	return TimeSpan(f * Float(Hour))
 }
 
-func (f Float) Days() TimeSpan {
-	return TimeSpan(f * Float(Day))
+func (f Float) Days() *DateTimeSpan {
+	days, frac := math.Modf(float64(f))
+
+	return NewDateTimeSpan(
+		MakeDateSpan(0, 0, int(days)),
+		TimeSpan(frac*float64(Day)),
+	)
 }
 
-func (f Float) Weeks() TimeSpan {
-	return TimeSpan(f * Float(Week))
+func (f Float) Weeks() *DateTimeSpan {
+	days, frac := math.Modf(float64(f * 7))
+
+	return NewDateTimeSpan(
+		MakeDateSpan(0, 0, int(days)),
+		TimeSpan(frac*float64(Day)),
+	)
 }
 
-func (f Float) Years() TimeSpan {
-	return TimeSpan(f * Float(Year))
+func (f Float) Months() *DateTimeSpan {
+	months, frac := math.Modf(float64(f))
+	days, frac := math.Modf(frac * MonthDays)
+
+	return NewDateTimeSpan(
+		MakeDateSpan(0, int(months), int(days)),
+		TimeSpan(frac*float64(Day)),
+	)
+}
+
+func (f Float) Years() *DateTimeSpan {
+	years, frac := math.Modf(float64(f))
+	months, frac := math.Modf(frac * 12)
+	days, frac := math.Modf(frac * MonthDays)
+
+	return NewDateTimeSpan(
+		MakeDateSpan(int(years), int(months), int(days)),
+		TimeSpan(frac*float64(Day)),
+	)
+}
+
+func (f Float) Centuries() *DateTimeSpan {
+	years, frac := math.Modf(float64(f) * 100)
+	months, frac := math.Modf(frac * 12)
+	days, frac := math.Modf(frac * MonthDays)
+
+	return NewDateTimeSpan(
+		MakeDateSpan(int(years), int(months), int(days)),
+		TimeSpan(frac*float64(Day)),
+	)
+}
+
+func (f Float) Millenia() *DateTimeSpan {
+	years, frac := math.Modf(float64(f) * 1000)
+	months, frac := math.Modf(frac * 12)
+	days, frac := math.Modf(frac * MonthDays)
+
+	return NewDateTimeSpan(
+		MakeDateSpan(int(years), int(months), int(days)),
+		TimeSpan(frac*float64(Day)),
+	)
 }
 
 func initFloat() {

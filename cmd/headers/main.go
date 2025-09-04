@@ -10,6 +10,7 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/checker"
+	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -361,80 +362,89 @@ func defineMethodsWithinSubtypes(buffer *bytes.Buffer, namespace types.Namespace
 	}
 }
 
+func methodConstructorArguments(buffer *bytes.Buffer, methodName value.Symbol, method *types.Method) {
+	fmt.Fprintf(
+		buffer,
+		"%q, 0",
+		method.DocComment,
+	)
+
+	if method.IsAbstract() {
+		buffer.WriteString("| METHOD_ABSTRACT_FLAG")
+	}
+	if method.IsSealed() {
+		buffer.WriteString("| METHOD_SEALED_FLAG")
+	}
+	if method.IsNative() {
+		buffer.WriteString("| METHOD_NATIVE_FLAG")
+	}
+	if method.IsGenerator() {
+		buffer.WriteString("| METHOD_GENERATOR_FLAG")
+	}
+	if method.IsAsync() {
+		buffer.WriteString("| METHOD_ASYNC_FLAG")
+	}
+
+	fmt.Fprintf(
+		buffer,
+		", value.ToSymbol(%q), ",
+		methodName.String(),
+	)
+
+	if len(method.TypeParameters) > 0 {
+		buffer.WriteString("[]*TypeParameter{")
+		for _, param := range method.TypeParameters {
+			fmt.Fprintf(
+				buffer,
+				"%s,",
+				typeToCode(param, true),
+			)
+		}
+		buffer.WriteString("}, ")
+	} else {
+		buffer.WriteString("nil, ")
+	}
+
+	if len(method.Params) > 0 {
+		buffer.WriteString("[]*Parameter{")
+		for _, param := range method.Params {
+			fmt.Fprintf(
+				buffer,
+				"NewParameter(value.ToSymbol(%q), %s, %s, %t),",
+				param.Name.String(),
+				typeToCode(param.Type, false),
+				param.Kind,
+				param.InstanceVariable,
+			)
+		}
+		buffer.WriteString("}, ")
+	} else {
+		buffer.WriteString("nil, ")
+	}
+
+	fmt.Fprintf(
+		buffer,
+		"%s, %s",
+		typeToCode(method.ReturnType, false),
+		typeToCode(method.ThrowType, false),
+	)
+}
+
 func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 	buffer.WriteString("\n// Define methods\n")
 
 	for methodName, method := range types.SortedOwnMethods(namespace) {
 		isInit := methodName == symbol.S_init
+		hasOverloads := len(method.Overloads) > 0
 
-		if isInit {
+		if isInit || hasOverloads {
 			buffer.WriteString("method = ")
 		}
-		fmt.Fprintf(
-			buffer,
-			"namespace.DefineMethod(%q, 0",
-			method.DocComment,
-		)
+		buffer.WriteString("namespace.DefineMethod(")
 
-		if method.IsAbstract() {
-			buffer.WriteString("| METHOD_ABSTRACT_FLAG")
-		}
-		if method.IsSealed() {
-			buffer.WriteString("| METHOD_SEALED_FLAG")
-		}
-		if method.IsNative() {
-			buffer.WriteString("| METHOD_NATIVE_FLAG")
-		}
-		if method.IsGenerator() {
-			buffer.WriteString("| METHOD_GENERATOR_FLAG")
-		}
-		if method.IsAsync() {
-			buffer.WriteString("| METHOD_ASYNC_FLAG")
-		}
+		methodConstructorArguments(buffer, methodName, method)
 
-		fmt.Fprintf(
-			buffer,
-			", value.ToSymbol(%q), ",
-			methodName.String(),
-		)
-
-		if len(method.TypeParameters) > 0 {
-			buffer.WriteString("[]*TypeParameter{")
-			for _, param := range method.TypeParameters {
-				fmt.Fprintf(
-					buffer,
-					"%s,",
-					typeToCode(param, true),
-				)
-			}
-			buffer.WriteString("}, ")
-		} else {
-			buffer.WriteString("nil, ")
-		}
-
-		if len(method.Params) > 0 {
-			buffer.WriteString("[]*Parameter{")
-			for _, param := range method.Params {
-				fmt.Fprintf(
-					buffer,
-					"NewParameter(value.ToSymbol(%q), %s, %s, %t),",
-					param.Name.String(),
-					typeToCode(param.Type, false),
-					param.Kind,
-					param.InstanceVariable,
-				)
-			}
-			buffer.WriteString("}, ")
-		} else {
-			buffer.WriteString("nil, ")
-		}
-
-		fmt.Fprintf(
-			buffer,
-			"%s, %s)\n",
-			typeToCode(method.ReturnType, false),
-			typeToCode(method.ThrowType, false),
-		)
+		buffer.WriteString(")\n")
 
 		ivars := namespace.InstanceVariables()
 		if isInit && len(ivars) > 0 {
@@ -449,6 +459,14 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 					"ivars.Add(value.ToSymbol(%q))\n",
 					name.String(),
 				)
+			}
+		}
+
+		if hasOverloads {
+			for _, overload := range method.Overloads {
+				buffer.WriteString("method.RegisterOverload(NewMethod(")
+				methodConstructorArguments(buffer, methodName, overload)
+				buffer.WriteString(", namespace))\n")
 			}
 		}
 	}

@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Represents the difference between two datetimes.
@@ -12,13 +13,25 @@ type DateTimeSpan struct {
 }
 
 func NewDateTimeSpan(datespan DateSpan, timespan TimeSpan) *DateTimeSpan {
-	return &DateTimeSpan{
+	span := &DateTimeSpan{
 		DateSpan: datespan,
 		TimeSpan: timespan,
 	}
+	span.Normalise()
+	return span
 }
 
 var DateTimeSpanClass *Class // ::Std::DateTime::Span
+
+func (d *DateTimeSpan) Normalise() {
+	days := d.TimeSpan / Day
+	if days == 0 {
+		return
+	}
+
+	d.DateSpan.days += int32(days)
+	d.TimeSpan %= Day
+}
 
 func (d *DateTimeSpan) Copy() Reference {
 	return &DateTimeSpan{
@@ -51,8 +64,24 @@ func (d *DateTimeSpan) Error() string {
 	return d.Inspect()
 }
 
+func (d *DateTimeSpan) IsZero() bool {
+	return d.DateSpan.IsZero() && d.TimeSpan == 0
+}
+
 func (d *DateTimeSpan) String() string {
-	return fmt.Sprintf("%s%s", d.DateSpan.String(), d.TimeSpan.String())
+	if d.IsZero() {
+		return "0D"
+	}
+
+	var buff strings.Builder
+	if !d.DateSpan.IsZero() {
+		buff.WriteString(d.DateSpan.String())
+	}
+	if d.TimeSpan != 0 {
+		buff.WriteString(d.TimeSpan.String())
+	}
+
+	return buff.String()
 }
 
 func (d *DateTimeSpan) ToString() String {
@@ -223,6 +252,49 @@ func (d *DateTimeSpan) TotalYears() Value {
 
 func (d *DateTimeSpan) InYears() Float {
 	return d.DateSpan.InYears() + d.TimeSpan.InYears()
+}
+
+func (d *DateTimeSpan) Add(other Value) (Value, Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return Ref(d.AddDateSpan(other.AsDateSpan())), Undefined
+	case TIME_SPAN_FLAG:
+		return Ref(d.AddTimeSpan(other.AsTimeSpan())), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", other.Class().Inspect(), durationUnionType))
+	}
+
+	switch other := other.AsReference().(type) {
+	case TimeSpan:
+		return Ref(d.AddTimeSpan(other)), Undefined
+	case *DateTimeSpan:
+		return Ref(d.AddDateTimeSpan(other)), Undefined
+	default:
+
+		return Undefined, Ref(NewArgumentTypeError("other", other.Class().Inspect(), durationUnionType))
+	}
+}
+
+func (d *DateTimeSpan) AddTimeSpan(other TimeSpan) *DateTimeSpan {
+	return NewDateTimeSpan(
+		d.DateSpan,
+		d.TimeSpan.AddTimeSpan(other),
+	)
+}
+
+func (d *DateTimeSpan) AddDateSpan(other DateSpan) *DateTimeSpan {
+	return NewDateTimeSpan(
+		d.DateSpan.AddDateSpan(other),
+		d.TimeSpan,
+	)
+}
+
+func (d *DateTimeSpan) AddDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
+	return NewDateTimeSpan(
+		d.DateSpan.AddDateSpan(other.DateSpan),
+		d.TimeSpan.AddTimeSpan(other.TimeSpan),
+	)
 }
 
 func initDateTimeSpan() {
