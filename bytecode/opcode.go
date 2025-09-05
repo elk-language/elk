@@ -253,7 +253,6 @@ const (
 	CLOSE_UPVALUE8                  // Close upvalues up to the given index, moving them from the stack to the heap (8 bit operand)
 	CLOSE_UPVALUE16                 // Close upvalues up to the given index, moving them from the stack to the heap (16 bit operand)
 	DEF_NAMESPACE                   // Define a new namespace
-	DEF_METHOD_ALIAS                // Define a new method alias
 	GET_CONST8                      // Get the value of the constant with the name stored under the given index in the value pool (8 bit operand)
 	GET_CONST16                     // Get the value of the constant with the name stored under the given index in the value pool (16 bit operand)
 	DEF_CONST                       // Define a new constant
@@ -502,7 +501,6 @@ var opCodeNames = [...]string{
 	CLOSE_UPVALUE8:    "CLOSE_UPVALUE8",
 	CLOSE_UPVALUE16:   "CLOSE_UPVALUE16",
 	DEF_NAMESPACE:     "DEF_NAMESPACE",
-	DEF_METHOD_ALIAS:  "DEF_METHOD_ALIAS",
 	GET_CONST8:        "GET_CONST8",
 	GET_CONST16:       "GET_CONST16",
 	DEF_CONST:         "DEF_CONST",

@@ -486,10 +486,6 @@ func (c *Compiler) compileMethodsWithinModule(module *types.Module, location *po
 			}
 		}
 
-		for aliasName, alias := range types.SortedOwnMethodAliases(module) {
-			c.compileMethodAliasDefinition(aliasName, alias, location)
-		}
-
 		c.emit(location.StartPos.Line, bytecode.POP)
 	}
 
@@ -501,20 +497,13 @@ func (c *Compiler) compileMethodsWithinModule(module *types.Module, location *po
 	}
 }
 
-func (c *Compiler) compileMethodAliasDefinition(aliasName value.Symbol, alias *types.MethodAlias, location *position.Location) {
-	if !alias.IsDefinable() {
-		return
-	}
-
-	c.emitValue(alias.Method.Name.ToValue(), location)
-	c.emitValue(aliasName.ToValue(), location)
-	c.emit(location.StartPos.Line, bytecode.DEF_METHOD_ALIAS)
-	alias.Compiled = true
-}
-
 func (c *Compiler) compileMethodDefinition(name value.Symbol, method *types.Method, location *position.Location) {
 	if !method.IsDefinable() {
 		return
+	}
+
+	if method.Base != nil {
+		method = method.Base
 	}
 
 	if method.IsAttribute() {
@@ -594,19 +583,11 @@ func (c *Compiler) compileMethodsWithinNamespace(namespace types.Namespace, loca
 			c.compileMethodDefinition(methodName, method, location)
 		}
 
-		for aliasName, alias := range types.SortedOwnMethodAliases(namespace) {
-			c.compileMethodAliasDefinition(aliasName, alias, location)
-		}
-
 		if singletonHasCompiledMethods {
 			c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 
 			for methodName, method := range types.SortedOwnMethods(singleton) {
 				c.compileMethodDefinition(methodName, method, location)
-			}
-
-			for aliasName, alias := range types.SortedOwnMethodAliases(singleton) {
-				c.compileMethodAliasDefinition(aliasName, alias, location)
 			}
 		}
 

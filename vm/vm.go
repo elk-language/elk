@@ -687,8 +687,6 @@ func (vm *VM) run() {
 			vm.opInitNamespace()
 		case bytecode.DEF_METHOD:
 			vm.opDefMethod()
-		case bytecode.DEF_METHOD_ALIAS:
-			vm.opDefMethodAlias()
 		case bytecode.INCLUDE:
 			vm.throwIfErr(vm.opInclude())
 		case bytecode.DEF_IVARS:
@@ -2251,20 +2249,6 @@ func (vm *VM) opInclude() (err value.Value) {
 	}
 
 	return value.Undefined
-}
-
-// Define a new method alias
-func (vm *VM) opDefMethodAlias() {
-	newName := vm.popGet().AsInlineSymbol()
-	oldName := vm.popGet().AsInlineSymbol()
-	methodContainer := vm.peek()
-
-	switch m := methodContainer.SafeAsReference().(type) {
-	case *value.Class:
-		m.Methods[newName] = m.Methods[oldName]
-	default:
-		panic(fmt.Sprintf("invalid method container: %s", methodContainer.Inspect()))
-	}
 }
 
 // Define a new method

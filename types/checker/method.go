@@ -137,9 +137,16 @@ func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace typ
 	oldMethod := c.resolveMethodInNamespace(namespace, newName)
 	c.checkMethodOverrideWithPlaceholder(aliasedMethod, oldMethod, node.Location())
 	c.checkSpecialMethods(newName, aliasedMethod, nil, node.Location())
-	alias := aliasedMethod.Copy()
-	alias.Name = newName
-	namespace.SetMethodAlias(newName, alias)
+
+	if aliasedMethod.IsOverload() {
+		c.addFailure(
+			fmt.Sprintf("method `%s` with overloads cannot have an alias", aliasedMethod.Name.String()),
+			node.Location(),
+		)
+	}
+
+	alias := aliasedMethod.CreateAlias(newName)
+	namespace.SetMethod(newName, alias)
 }
 
 func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNode, methodName, asName string, location *position.Location) {

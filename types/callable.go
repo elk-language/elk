@@ -119,14 +119,6 @@ func (c *Callable) IsPrimitive() bool {
 	return true
 }
 
-func (c *Callable) MethodAliases() MethodAliasMap {
-	return nil
-}
-
-func (c *Callable) SetMethodAlias(name value.Symbol, method *Method) {
-	panic("cannot define method aliases in a callable")
-}
-
 func (c *Callable) Constants() ConstantMap {
 	return nil
 }
