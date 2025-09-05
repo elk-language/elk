@@ -800,21 +800,37 @@ func (v Value) MustTime() Time {
 	}
 }
 
-func (v Value) IsDateSpan() bool {
+func (v Value) IsInlineDateSpan() bool {
 	return v.flag == DATE_SPAN_FLAG
 }
 
-func (v Value) AsDateSpan() DateSpan {
+func (v Value) AsInlineDateSpan() DateSpan {
 	months := int32(v.data >> 32)
 	days := int32(v.data & 0xFFFFFFFF)
 	return DateSpan{months: months, days: days}
 }
 
-func (v Value) MustDateSpan() DateSpan {
-	if !v.IsDateSpan() {
-		panic(fmt.Sprintf("value `%s` is not a DateSpan", v.Inspect()))
+func (v Value) AsDateSpan() DateSpan {
+	if v.IsReference() {
+		return v.AsReference().(DateSpan)
+	} else {
+		return v.AsInlineDateSpan()
 	}
-	return v.AsDateSpan()
+}
+
+func (v Value) MustDateSpan() DateSpan {
+	if v.IsReference() {
+		return v.AsReference().(DateSpan)
+	} else {
+		return v.MustInlineDateSpan()
+	}
+}
+
+func (v Value) MustInlineDateSpan() DateSpan {
+	if !v.IsInlineTimeSpan() {
+		panic(fmt.Sprintf("value `%s` is not an inline Date::Span", v.Inspect()))
+	}
+	return v.AsInlineDateSpan()
 }
 
 func (v Value) IsInlineSymbol() bool {

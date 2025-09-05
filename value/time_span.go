@@ -104,6 +104,8 @@ func (t TimeSpan) Add(other Value) (Value, Value) {
 	switch other := other.AsReference().(type) {
 	case TimeSpan:
 		return t.AddTimeSpan(other).ToValue(), Undefined
+	case DateSpan:
+		return Ref(t.AddDateSpan(other)), Undefined
 	case *DateTimeSpan:
 		return Ref(t.AddDateTimeSpan(other)), Undefined
 	default:
@@ -127,22 +129,51 @@ func (t TimeSpan) AddDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
 	)
 }
 
-func (t TimeSpan) Subtract(other TimeSpan) TimeSpan {
+func (t TimeSpan) Subtract(other Value) (Value, Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return Ref(t.SubtractDateSpan(other.AsDateSpan())), Undefined
+	case TIME_SPAN_FLAG:
+		return t.SubtractTimeSpan(other.AsTimeSpan()).ToValue(), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", other.Class().Inspect(), durationUnionType))
+	}
+
+	switch other := other.AsReference().(type) {
+	case TimeSpan:
+		return t.SubtractTimeSpan(other).ToValue(), Undefined
+	case DateSpan:
+		return Ref(t.SubtractDateSpan(other)), Undefined
+	case *DateTimeSpan:
+		return Ref(t.SubtractDateTimeSpan(other)), Undefined
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", other.Class().Inspect(), durationUnionType))
+	}
+}
+
+func (t TimeSpan) SubtractTimeSpan(other TimeSpan) TimeSpan {
 	return TimeSpan(t.Go() - other.Go())
+}
+
+func (t TimeSpan) SubtractDateSpan(other DateSpan) *DateTimeSpan {
+	return t.AddDateSpan(other.Negate())
+}
+
+func (t TimeSpan) SubtractDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
+	return NewDateTimeSpan(
+		other.DateSpan.Negate(),
+		t.AddTimeSpan(-other.TimeSpan),
+	)
 }
 
 func (t TimeSpan) Multiply(other Value) (TimeSpan, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			newBig := big.NewInt(int64(t))
-			result := ToElkBigInt(newBig.Mul(newBig, o.ToGoBigInt()))
-			return TimeSpan(result.ToSmallInt()), Undefined
+			return t.MultiplyBigInt(o), Undefined
 		case *BigFloat:
-			prec := max(o.Precision(), 64)
-			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(Int64(t))
-			iBigFloat.MulBigFloat(iBigFloat, o)
-			return TimeSpan(iBigFloat.ToInt64()), Undefined
+			return t.MultiplyBigFloat(o), Undefined
 		default:
 			return 0, Ref(NewCoerceError(t.Class(), other.Class()))
 		}
@@ -150,32 +181,50 @@ func (t TimeSpan) Multiply(other Value) (TimeSpan, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return t * TimeSpan(other.AsSmallInt()), Undefined
+		return t.MultiplySmallInt(other.AsSmallInt()), Undefined
 	case FLOAT_FLAG:
-		return TimeSpan(Float(t) * other.AsFloat()), Undefined
+		return t.MultiplyFloat(other.AsFloat()), Undefined
 	default:
 		return 0, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
+}
+
+func (t TimeSpan) MultiplyBigInt(other *BigInt) TimeSpan {
+	newBig := big.NewInt(int64(t))
+	result := ToElkBigInt(newBig.Mul(newBig, other.ToGoBigInt()))
+	return TimeSpan(result.ToSmallInt())
+}
+
+func (t TimeSpan) MultiplySmallInt(other SmallInt) TimeSpan {
+	return t * TimeSpan(other)
+}
+
+func (t TimeSpan) MultiplyInt(other Value) TimeSpan {
+	if other.IsSmallInt() {
+		return t.MultiplySmallInt(other.AsSmallInt())
+	}
+
+	return t.MultiplyBigInt((*BigInt)(other.Pointer()))
+}
+
+func (t TimeSpan) MultiplyFloat(other Float) TimeSpan {
+	return TimeSpan(Float(t) * other)
+}
+
+func (t TimeSpan) MultiplyBigFloat(other *BigFloat) TimeSpan {
+	prec := max(other.Precision(), 64)
+	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(Int64(t))
+	iBigFloat.MulBigFloat(iBigFloat, other)
+	return TimeSpan(iBigFloat.ToInt64())
 }
 
 func (t TimeSpan) Divide(other Value) (TimeSpan, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			if o.IsZero() {
-				return 0, Ref(NewZeroDivisionError())
-			}
-			newBig := big.NewInt(int64(t))
-			result := ToElkBigInt(newBig.Div(newBig, o.ToGoBigInt()))
-			return TimeSpan(result.ToSmallInt()), Undefined
+			return t.DivideBigInt(o)
 		case *BigFloat:
-			if o.IsZero() {
-				return 0, Ref(NewZeroDivisionError())
-			}
-			prec := max(o.Precision(), 64)
-			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(Int64(t))
-			iBigFloat.DivBigFloat(iBigFloat, o)
-			return TimeSpan(iBigFloat.ToInt64()), Undefined
+			return t.DivideBigFloat(o)
 		default:
 			return 0, Ref(NewCoerceError(t.Class(), other.Class()))
 		}
@@ -183,20 +232,53 @@ func (t TimeSpan) Divide(other Value) (TimeSpan, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		o := other.AsSmallInt()
-		if o == 0 {
-			return 0, Ref(NewZeroDivisionError())
-		}
-		return t / TimeSpan(o), Undefined
+		return t.DivideSmallInt(other.AsSmallInt())
 	case FLOAT_FLAG:
-		o := other.AsFloat()
-		if o == 0 {
-			return 0, Ref(NewZeroDivisionError())
-		}
-		return TimeSpan(Float(t) / o), Undefined
+		return t.DivideFloat(other.AsFloat())
 	default:
 		return 0, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
+}
+
+func (t TimeSpan) DivideBigInt(other *BigInt) (TimeSpan, Value) {
+	if other.IsZero() {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	newBig := big.NewInt(int64(t))
+	result := ToElkBigInt(newBig.Div(newBig, other.ToGoBigInt()))
+	return TimeSpan(result.ToSmallInt()), Undefined
+}
+
+func (t TimeSpan) DivideSmallInt(other SmallInt) (TimeSpan, Value) {
+	if other == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	return t / TimeSpan(other), Undefined
+}
+
+func (t TimeSpan) DivideInt(other Value) (TimeSpan, Value) {
+	if other.IsReference() {
+		return t.DivideBigInt((*BigInt)(other.Pointer()))
+	}
+
+	return t.DivideSmallInt(other.AsSmallInt())
+}
+
+func (t TimeSpan) DivideFloat(other Float) (TimeSpan, Value) {
+	if other == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	return TimeSpan(Float(t) / other), Undefined
+}
+
+func (t TimeSpan) DivideBigFloat(other *BigFloat) (TimeSpan, Value) {
+	if other.IsZero() {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	prec := max(other.Precision(), 64)
+	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(Int64(t))
+	iBigFloat.DivBigFloat(iBigFloat, other)
+	return TimeSpan(iBigFloat.ToInt64()), Undefined
 }
 
 func (t TimeSpan) TotalNanoseconds() Value {

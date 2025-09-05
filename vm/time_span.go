@@ -22,6 +22,22 @@ func initTimeSpan() {
 	c = &value.TimeSpanClass.MethodContainer
 	Def(
 		c,
+		"-@",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			return (-self).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"+@",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+
+	Def(
+		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
@@ -60,16 +76,48 @@ func initTimeSpan() {
 		},
 		DefWithParameters(1),
 	)
+
 	Def(
 		c,
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
-			dur := args[1].MustTimeSpan()
-			return self.Subtract(dur).ToValue(), value.Undefined
+			other := args[1]
+			return self.Subtract(other)
 		},
 		DefWithParameters(1),
 	)
+	Def(
+		c,
+		"-@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := args[1].AsTimeSpan()
+			return self.SubtractTimeSpan(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"-@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := args[1].AsDateSpan()
+			return value.Ref(self.SubtractDateSpan(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"-@3",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := (*value.DateTimeSpan)(args[1].Pointer())
+			return value.Ref(self.SubtractDateTimeSpan(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
 	Def(
 		c,
 		"*",
@@ -82,6 +130,37 @@ func initTimeSpan() {
 	)
 	Def(
 		c,
+		"*@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := args[1]
+			return self.MultiplyInt(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"*@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := args[1].AsFloat()
+			return self.MultiplyFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"*@3",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := (*value.BigFloat)(args[1].Pointer())
+			return self.MultiplyBigFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
 		"/",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
@@ -90,6 +169,37 @@ func initTimeSpan() {
 		},
 		DefWithParameters(1),
 	)
+	Def(
+		c,
+		"/@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := args[1]
+			return value.ToValueErr(self.DivideInt(other))
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"/@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := args[1].AsFloat()
+			return value.ToValueErr(self.DivideFloat(other))
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"/@3",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := (*value.BigFloat)(args[1].Pointer())
+			return value.ToValueErr(self.DivideBigFloat(other))
+		},
+		DefWithParameters(1),
+	)
+
 	Def(
 		c,
 		"to_string",

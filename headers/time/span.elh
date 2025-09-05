@@ -24,14 +24,36 @@ sealed primitive class ::Std::Time::Span < Value
 		def until(datetime: DateTime): Time::Span; end
 	end
 
+	##[
+		Returns the result of negating the duration.
+
+		```
+			var a = 1.minutes
+			-a #=> -1m
+		```
+	]##
+	sealed def -@: Time::Span; end
+	sealed def +@: Time::Span; end
+
 	overload def +(other: Duration): Duration; end
 	overload def +(other: Time::Span): Time::Span; end
 	overload def +(other: Date::Span): DateTime::Span; end
 	overload def +(other: DateTime::Span): DateTime::Span; end
 
-	def -(other: Time::Span): Time::Span; end
-	def *(other: CoercibleNumeric): Time::Span; end
-	def /(other: CoercibleNumeric): Time::Span; end
+	overload def -(other: Duration): Duration; end
+	overload def -(other: Time::Span): Time::Span; end
+	overload def -(other: Date::Span): DateTime::Span; end
+	overload def -(other: DateTime::Span): DateTime::Span; end
+
+	overload def *(other: CoercibleNumeric): Time::Span; end
+	overload def *(other: Int): Time::Span; end
+	overload def *(other: Float): Time::Span; end
+	overload def *(other: BigFloat): Time::Span; end
+
+	overload def /(other: CoercibleNumeric): Time::Span; end
+	overload def /(other: Int): Time::Span; end
+	overload def /(other: Float): Time::Span; end
+	overload def /(other: BigFloat): Time::Span; end
 
 	##[
 		Returns the string representation of the span in the format "51h15m0.12s".

@@ -148,7 +148,6 @@ const (
 	METHOD_GENERATOR_FLAG
 	METHOD_ASYNC_FLAG
 	METHOD_OVERLOAD_FLAG
-	METHOD_REGISTERED_OVERLOAD_FLAG
 	METHOD_MACRO_FLAG
 	// used in using expression placeholders
 	METHOD_PLACEHOLDER_FLAG
@@ -162,6 +161,7 @@ type Method struct {
 	Name               value.Symbol
 	OptionalParamCount int
 	PostParamCount     int
+	OverloadId         int
 	Flags              bitfield.BitField16
 
 	Params         []*Parameter
@@ -315,7 +315,7 @@ func (m *Method) ReverseOverloads() iter.Seq[*Method] {
 
 func (m *Method) RegisterOverload(overload *Method) {
 	m.Overloads = append(m.Overloads, overload)
-	overload.SetRegisteredOverload(true)
+	overload.OverloadId = len(m.Overloads)
 	overload.Name = value.ToSymbol(fmt.Sprintf("%s@%d", overload.Name.String(), len(m.Overloads)))
 }
 
@@ -390,12 +390,7 @@ func (m *Method) SetOverload(val bool) *Method {
 }
 
 func (m *Method) IsRegisteredOverload() bool {
-	return m.Flags.HasFlag(METHOD_REGISTERED_OVERLOAD_FLAG)
-}
-
-func (m *Method) SetRegisteredOverload(val bool) *Method {
-	m.SetFlag(METHOD_REGISTERED_OVERLOAD_FLAG, val)
-	return m
+	return m.OverloadId != 0
 }
 
 func (m *Method) IsMacro() bool {

@@ -25,12 +25,18 @@ var DateTimeSpanClass *Class // ::Std::DateTime::Span
 
 func (d *DateTimeSpan) Normalise() {
 	days := d.TimeSpan / Day
-	if days == 0 {
-		return
+	if days != 0 {
+		d.DateSpan.days += int32(days)
+		d.TimeSpan %= Day
 	}
 
-	d.DateSpan.days += int32(days)
-	d.TimeSpan %= Day
+	if d.DateSpan.days > 0 && d.TimeSpan < 0 {
+		d.DateSpan.days -= 1
+		d.TimeSpan += Day
+	} else if d.DateSpan.days < 0 && d.TimeSpan > 0 {
+		d.DateSpan.days += 1
+		d.TimeSpan -= Day
+	}
 }
 
 func (d *DateTimeSpan) Copy() Reference {
@@ -86,6 +92,13 @@ func (d *DateTimeSpan) String() string {
 
 func (d *DateTimeSpan) ToString() String {
 	return String(d.String())
+}
+
+func (d *DateTimeSpan) Negate() *DateTimeSpan {
+	return NewDateTimeSpan(
+		d.DateSpan.Negate(),
+		-d.TimeSpan,
+	)
 }
 
 func (d *DateTimeSpan) Nanoseconds() int {
@@ -268,6 +281,8 @@ func (d *DateTimeSpan) Add(other Value) (Value, Value) {
 	switch other := other.AsReference().(type) {
 	case TimeSpan:
 		return Ref(d.AddTimeSpan(other)), Undefined
+	case DateSpan:
+		return Ref(d.AddDateSpan(other)), Undefined
 	case *DateTimeSpan:
 		return Ref(d.AddDateTimeSpan(other)), Undefined
 	default:
@@ -294,6 +309,51 @@ func (d *DateTimeSpan) AddDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
 	return NewDateTimeSpan(
 		d.DateSpan.AddDateSpan(other.DateSpan),
 		d.TimeSpan.AddTimeSpan(other.TimeSpan),
+	)
+}
+
+func (d *DateTimeSpan) Subtract(other Value) (Value, Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return Ref(d.SubtractDateSpan(other.AsDateSpan())), Undefined
+	case TIME_SPAN_FLAG:
+		return Ref(d.SubtractTimeSpan(other.AsTimeSpan())), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", other.Class().Inspect(), durationUnionType))
+	}
+
+	switch other := other.AsReference().(type) {
+	case TimeSpan:
+		return Ref(d.SubtractTimeSpan(other)), Undefined
+	case DateSpan:
+		return Ref(d.SubtractDateSpan(other)), Undefined
+	case *DateTimeSpan:
+		return Ref(d.SubtractDateTimeSpan(other)), Undefined
+	default:
+
+		return Undefined, Ref(NewArgumentTypeError("other", other.Class().Inspect(), durationUnionType))
+	}
+}
+
+func (d *DateTimeSpan) SubtractTimeSpan(other TimeSpan) *DateTimeSpan {
+	return NewDateTimeSpan(
+		d.DateSpan,
+		d.TimeSpan.AddTimeSpan(-other),
+	)
+}
+
+func (d *DateTimeSpan) SubtractDateSpan(other DateSpan) *DateTimeSpan {
+	return NewDateTimeSpan(
+		d.DateSpan.AddDateSpan(other.Negate()),
+		d.TimeSpan,
+	)
+}
+
+func (d *DateTimeSpan) SubtractDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
+	return NewDateTimeSpan(
+		d.DateSpan.AddDateSpan(other.DateSpan.Negate()),
+		d.TimeSpan.AddTimeSpan(-other.TimeSpan),
 	)
 }
 
