@@ -609,6 +609,18 @@ func TestAliasDeclaration(t *testing.T) {
 				var a: String = Foo().bar
 			`,
 		},
+		"declare an alias of overload": {
+			input: `
+				class Foo
+					overload def foo: String then "foo"
+					alias bar foo
+				end
+				var a: String = Foo().bar
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(67, 4, 12), P(73, 4, 18)), "method `foo` with overloads cannot have an alias"),
+			},
+		},
 		"declare an alias of a nonexistent method": {
 			input: `
 				class Foo

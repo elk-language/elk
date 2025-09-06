@@ -504,6 +504,29 @@ func (c *Compiler) compileMethodDefinition(name value.Symbol, method *types.Meth
 
 	if method.Base != nil {
 		method = method.Base
+
+		if method.IsNative() {
+			namespace := value.RootModule.Constants.GetString(method.DefinedUnder.Name()).AsReference()
+			var class *value.Class
+			switch n := namespace.(type) {
+			case *value.Class:
+				class = n
+			case *value.Module:
+				class = n.SingletonClass()
+			default:
+				panic(fmt.Sprintf("invalid namespace %T", namespace))
+			}
+			nativeMethod, ok := class.Methods[method.Name]
+			if !ok {
+				panic(fmt.Sprintf("undefined native method %s under %s", method.Name.String(), namespace.Inspect()))
+			}
+
+			c.emitValue(value.Ref(nativeMethod), location)
+			c.emitValue(name.ToValue(), location)
+			c.emit(location.StartPos.Line, bytecode.DEF_METHOD)
+			method.SetCompiled(true)
+			return
+		}
 	}
 
 	if method.IsAttribute() {

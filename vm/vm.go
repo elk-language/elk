@@ -2254,7 +2254,7 @@ func (vm *VM) opInclude() (err value.Value) {
 // Define a new method
 func (vm *VM) opDefMethod() {
 	name := vm.popGet().AsInlineSymbol()
-	body := vm.popGet().AsReference().(*BytecodeFunction)
+	body := vm.popGet().AsReference().(value.Method)
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {

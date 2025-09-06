@@ -451,7 +451,7 @@ func (m *Method) IsDefinable() bool {
 
 	if m.Base != nil {
 		_, hasBytecode := m.Base.Body.(*vm.BytecodeFunction)
-		return hasBytecode || m.Base.IsAttribute()
+		return hasBytecode || m.Base.IsAttribute() || m.Base.IsNative()
 	}
 
 	_, hasBytecode := m.Body.(*vm.BytecodeFunction)
