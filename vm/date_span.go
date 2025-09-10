@@ -149,6 +149,47 @@ func initDateSpan() {
 
 	Def(
 		c,
+		"*",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			other := args[1]
+			return self.Multiply(other)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"*@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			other := args[1]
+			return self.MultiplyInt(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"*@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			other := args[1].AsFloat()
+			return value.Ref(self.MultiplyFloat(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"*@3",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			other := (*value.BigFloat)(args[1].Pointer())
+			return value.Ref(self.MultiplyBigFloat(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
 		"years",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
