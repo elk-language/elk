@@ -76,6 +76,24 @@ func initDateTime() {
 
 	Def(
 		c,
+		"date",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(*value.DateTime)
+			return self.Date().ToValue(), value.Undefined
+		},
+	)
+
+	Def(
+		c,
+		"time",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(*value.DateTime)
+			return self.Time().ToValue(), value.Undefined
+		},
+	)
+
+	Def(
+		c,
 		"zone",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)

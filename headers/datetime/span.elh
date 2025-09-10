@@ -33,6 +33,16 @@ sealed primitive class ::Std::DateTime::Span < Value
 	def to_string: String; end
 
 	##[
+		Returns the date span component of this datetime span.
+	]##
+	def date_span: Date::Span; end
+
+	##[
+		Returns the time span component of this datetime span.
+	]##
+	def time_span: Time::Span; end
+
+	##[
 		Returns the approximate count of years in this span as a Float.
 		One year is `365.25` days.
 	]##

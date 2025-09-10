@@ -18,7 +18,7 @@ sealed primitive class ::Std::Time
 	alias format strftime
 
 	def to_string: String; end
-	def to_duration: Duration; end
+	def to_time_span: Time::Span; end
 
 	##[
 		Returns the hour offset within the day specified by `self` in the range `0...23`

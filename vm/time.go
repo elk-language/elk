@@ -53,10 +53,10 @@ func initTime() {
 	)
 	Def(
 		c,
-		"to_duration",
+		"to_time_span",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
-			return self.ToDuration().ToValue(), value.Undefined
+			return self.ToTimeSpan().ToValue(), value.Undefined
 		},
 	)
 	Def(

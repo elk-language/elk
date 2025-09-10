@@ -86,6 +86,23 @@ func DateTimeNow() *DateTime {
 	return ToElkDateTime(time.Now())
 }
 
+func (t *DateTime) Date() Date {
+	return MakeDate(
+		t.Year(),
+		t.Month(),
+		t.Day(),
+	)
+}
+
+func (t *DateTime) Time() Time {
+	return MakeTime(
+		t.Hour(),
+		t.Minute(),
+		t.Second(),
+		t.Nanosecond(),
+	)
+}
+
 // Adds the given duration to the time.
 // Returns a new time structure.
 func (t *DateTime) Add(val TimeSpan) *DateTime {

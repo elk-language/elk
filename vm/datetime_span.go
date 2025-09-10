@@ -88,7 +88,7 @@ func initDateTimeSpan() {
 	)
 	Def(
 		c,
-		"+@2",
+		"-@2",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1].AsTimeSpan()
@@ -98,13 +98,31 @@ func initDateTimeSpan() {
 	)
 	Def(
 		c,
-		"+@3",
+		"-@3",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1].AsDateSpan()
 			return value.Ref(self.SubtractDateSpan(other)), value.Undefined
 		},
 		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"date_span",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			return self.DateSpan.ToValue(), value.Undefined
+		},
+	)
+
+	Def(
+		c,
+		"time_span",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			return self.TimeSpan.ToValue(), value.Undefined
+		},
 	)
 
 	Def(

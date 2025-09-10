@@ -35,7 +35,7 @@ func MakeTime(hour, min, sec, nsec int) Time {
 	}
 }
 
-func (t Time) ToDuration() TimeSpan {
+func (t Time) ToTimeSpan() TimeSpan {
 	return t.duration
 }
 

@@ -36,6 +36,16 @@ sealed primitive class ::Std::DateTime
 	alias format strftime
 
 	##[
+		Returns the date component of this DateTime object.
+	]##
+	def date: Date; end
+
+	##[
+		Returns the time component of this DateTime object.
+	]##
+	def time: Time; end
+
+	##[
 		Return the timezone associated with this DateTime object.
 	]##
 	def zone: Timezone; end
