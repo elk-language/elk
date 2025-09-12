@@ -43,6 +43,11 @@ sealed primitive class ::Std::Date::Span < Value
 	overload def *(other: Float): DateTime::Span; end
 	overload def *(other: BigFloat): DateTime::Span; end
 
+	overload def /(other: CoercibleNumeric): DateTime::Span; end
+	overload def /(other: Int): DateTime::Span; end
+	overload def /(other: Float): DateTime::Span; end
+	overload def /(other: BigFloat): DateTime::Span; end
+
 	##[
 		Returns the string representation of the date span in the format "5Y2M10D".
 	]##

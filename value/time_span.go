@@ -213,7 +213,7 @@ func (t TimeSpan) MultiplyFloat(other Float) TimeSpan {
 
 func (t TimeSpan) MultiplyBigFloat(other *BigFloat) TimeSpan {
 	prec := max(other.Precision(), 64)
-	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(Int64(t))
+	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(int64(t))
 	iBigFloat.MulBigFloat(iBigFloat, other)
 	return TimeSpan(iBigFloat.ToInt64())
 }
@@ -276,7 +276,7 @@ func (t TimeSpan) DivideBigFloat(other *BigFloat) (TimeSpan, Value) {
 		return 0, Ref(NewZeroDivisionError())
 	}
 	prec := max(other.Precision(), 64)
-	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(Int64(t))
+	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(int64(t))
 	iBigFloat.DivBigFloat(iBigFloat, other)
 	return TimeSpan(iBigFloat.ToInt64()), Undefined
 }

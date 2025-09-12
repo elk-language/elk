@@ -30,6 +30,8 @@ func MakeTime(hour, min, sec, nsec int) Time {
 		TimeSpan(sec)*Second +
 		TimeSpan(nsec)*Nanosecond
 
+	duration %= Day
+
 	return Time{
 		duration: duration,
 	}
