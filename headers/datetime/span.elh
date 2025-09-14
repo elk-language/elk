@@ -14,18 +14,28 @@ sealed primitive class ::Std::DateTime::Span < Value
 			-a #=> -5D-2m
 		```
 	]##
-	sealed def -@: Date::Span; end
-	sealed def +@: Date::Span; end
+	sealed def -@: DateTime::Span; end
+	sealed def +@: DateTime::Span; end
 
-	overload def +(other: Duration): Duration; end
+	overload def +(other: Duration): DateTime::Span; end
 	overload def +(other: DateTime::Span): DateTime::Span; end
 	overload def +(other: Time::Span): DateTime::Span; end
 	overload def +(other: Date::Span): DateTime::Span; end
 
-	overload def -(other: Duration): Duration; end
+	overload def -(other: Duration): DateTime::Span; end
 	overload def -(other: DateTime::Span): DateTime::Span; end
 	overload def -(other: Time::Span): DateTime::Span; end
 	overload def -(other: Date::Span): DateTime::Span; end
+
+	overload def *(other: CoercibleNumeric): DateTime::Span; end
+	overload def *(other: Int): DateTime::Span; end
+	overload def *(other: Float): DateTime::Span; end
+	overload def *(other: BigFloat): DateTime::Span; end
+
+	overload def /(other: CoercibleNumeric): DateTime::Span; end
+	overload def /(other: Int): DateTime::Span; end
+	overload def /(other: Float): DateTime::Span; end
+	overload def /(other: BigFloat): DateTime::Span; end
 
 	##[
 		Returns the string representation of the date span in the format "5Y2M10D51h15m0.12s".

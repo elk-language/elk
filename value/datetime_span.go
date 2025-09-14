@@ -2,6 +2,8 @@ package value
 
 import (
 	"fmt"
+	"math"
+	"math/big"
 	"strings"
 )
 
@@ -354,6 +356,283 @@ func (d *DateTimeSpan) SubtractDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
 	return NewDateTimeSpan(
 		d.DateSpan.AddDateSpan(other.DateSpan.Negate()),
 		d.TimeSpan.AddTimeSpan(-other.TimeSpan),
+	)
+}
+
+func (d *DateTimeSpan) Multiply(other Value) (Value, Value) {
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *BigInt:
+			return Ref(d.MultiplyBigInt(o)), Undefined
+		case *BigFloat:
+			return Ref(d.MultiplyBigFloat(o)), Undefined
+		default:
+			return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case SMALL_INT_FLAG:
+		return Ref(d.MultiplySmallInt(other.AsSmallInt())), Undefined
+	case FLOAT_FLAG:
+		return Ref(d.MultiplyFloat(other.AsFloat())), Undefined
+	default:
+		return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+func (d *DateTimeSpan) MultiplyBigInt(other *BigInt) *DateTimeSpan {
+	o := other.ToGoBigInt()
+
+	num := new(big.Int)
+
+	newMonths := num.SetInt64(int64(d.DateSpan.months))
+	newMonths.Mul(newMonths, o)
+	months := int32(newMonths.Int64())
+
+	newDays := num.SetInt64(int64(d.DateSpan.days))
+	newDays.Mul(newDays, o)
+	days := int32(newDays.Int64())
+
+	dateSpan := DateSpan{
+		months: months,
+		days:   days,
+	}
+
+	newNanoseconds := num.SetInt64(int64(d.TimeSpan))
+	newNanoseconds.Mul(newNanoseconds, o)
+	timeSpan := TimeSpan(newNanoseconds.Int64())
+
+	return NewDateTimeSpan(
+		dateSpan,
+		timeSpan,
+	)
+}
+
+func (d *DateTimeSpan) MultiplySmallInt(other SmallInt) *DateTimeSpan {
+	dateSpan := DateSpan{
+		months: int32(SmallInt(d.DateSpan.months) * other),
+		days:   int32(SmallInt(d.DateSpan.days) * other),
+	}
+
+	timeSpan := TimeSpan(int64(d.TimeSpan) * int64(other))
+
+	return NewDateTimeSpan(
+		dateSpan,
+		timeSpan,
+	)
+}
+
+func (d *DateTimeSpan) MultiplyInt(other Value) *DateTimeSpan {
+	if other.IsSmallInt() {
+		return d.MultiplySmallInt(other.AsSmallInt())
+	}
+
+	return d.MultiplyBigInt((*BigInt)(other.Pointer()))
+}
+
+func (d *DateTimeSpan) MultiplyFloat(other Float) *DateTimeSpan {
+	monthsFloat := float64(d.DateSpan.months) * float64(other)
+	fullMonthsFloat, fracMonth := math.Modf(monthsFloat)
+	months := int32(fullMonthsFloat)
+
+	daysFloat := float64(d.DateSpan.days) * float64(other)
+	fullDaysFloat, fracDay := math.Modf(daysFloat + fracMonth*MonthDays)
+	days := int32(fullDaysFloat)
+
+	newDateSpan := DateSpan{
+		months: months,
+		days:   days,
+	}
+
+	newTimeSpan := TimeSpan(float64(d.TimeSpan)*float64(other) + fracDay*float64(Day))
+
+	return NewDateTimeSpan(
+		newDateSpan,
+		newTimeSpan,
+	)
+}
+
+func (d *DateTimeSpan) MultiplyBigFloat(other *BigFloat) *DateTimeSpan {
+	prec := max(other.Precision(), 64)
+
+	monthsBigFloat := new(BigFloat).SetPrecision(prec).SetInt64(int64(d.DateSpan.months))
+	monthsBigFloat.MulBigFloat(monthsBigFloat, other)
+	months := int32(monthsBigFloat.Int64())
+
+	fracMonth := new(BigFloat).SetPrecision(prec)
+	fracMonth.SubBigFloat(monthsBigFloat, NewBigFloat(float64(months)))
+
+	daysBigFloat := new(BigFloat).SetPrecision(prec).SetInt64(int64(d.DateSpan.days))
+	daysBigFloat.MulBigFloat(daysBigFloat, other)
+	daysBigFloat.AddBigFloat(daysBigFloat, fracMonth.MulBigFloat(fracMonth, NewBigFloat(MonthDays)))
+	days := int32(daysBigFloat.Int64())
+
+	fracDay := new(BigFloat).SetPrecision(prec)
+	fracDay.SubBigFloat(daysBigFloat, NewBigFloat(float64(days)))
+
+	newDateSpan := DateSpan{
+		months: months,
+		days:   days,
+	}
+
+	timeSpanBigFloat := fracDay.MulBigFloat(fracDay, NewBigFloat(float64(Day)))
+	nanoseconds := daysBigFloat.SetInt64(int64(d.TimeSpan))
+	nanoseconds.MulBigFloat(nanoseconds, other)
+	timeSpanBigFloat.AddBigFloat(timeSpanBigFloat, nanoseconds)
+	newTimeSpan := TimeSpan(timeSpanBigFloat.Int64())
+
+	return NewDateTimeSpan(
+		newDateSpan,
+		newTimeSpan,
+	)
+}
+
+func (d *DateTimeSpan) Divide(other Value) (Value, Value) {
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *BigInt:
+			return Ref(d.DivideBigInt(o)), Undefined
+		case *BigFloat:
+			return Ref(d.DivideBigFloat(o)), Undefined
+		default:
+			return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case SMALL_INT_FLAG:
+		return Ref(d.DivideSmallInt(other.AsSmallInt())), Undefined
+	case FLOAT_FLAG:
+		return Ref(d.DivideFloat(other.AsFloat())), Undefined
+	default:
+		return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+func (d *DateTimeSpan) DivideBigInt(other *BigInt) *DateTimeSpan {
+	prec := max(uint(other.BitSize()), 64)
+	o := new(BigFloat).SetBigInt(other)
+
+	monthsBigFloat := new(BigFloat).SetPrecision(prec).SetInt64(int64(d.DateSpan.months))
+	monthsBigFloat.DivBigFloat(monthsBigFloat, o)
+	months := int32(monthsBigFloat.Int64())
+
+	fracMonth := new(BigFloat).SetPrecision(prec)
+	fracMonth.SubBigFloat(monthsBigFloat, NewBigFloat(float64(months)))
+
+	daysBigFloat := new(BigFloat).SetPrecision(prec).SetInt64(int64(d.DateSpan.days))
+	daysBigFloat.MulBigFloat(daysBigFloat, o)
+	daysBigFloat.AddBigFloat(daysBigFloat, fracMonth.MulBigFloat(fracMonth, NewBigFloat(MonthDays)))
+	days := int32(daysBigFloat.Int64())
+
+	fracDay := new(BigFloat).SetPrecision(prec)
+	fracDay.SubBigFloat(daysBigFloat, NewBigFloat(float64(days)))
+
+	newDateSpan := DateSpan{
+		months: months,
+		days:   days,
+	}
+
+	timeSpanBigFloat := fracDay.MulBigFloat(fracDay, NewBigFloat(float64(Day)))
+	nanoseconds := daysBigFloat.SetInt64(int64(d.TimeSpan))
+	nanoseconds.DivBigFloat(nanoseconds, o)
+	timeSpanBigFloat.AddBigFloat(timeSpanBigFloat, nanoseconds)
+	newTimeSpan := TimeSpan(timeSpanBigFloat.Int64())
+
+	return NewDateTimeSpan(
+		newDateSpan,
+		newTimeSpan,
+	)
+}
+
+func (d *DateTimeSpan) DivideSmallInt(other SmallInt) *DateTimeSpan {
+	o := float64(other)
+
+	monthsFloat := float64(d.DateSpan.months) / o
+	fullMonthsFloat, fracMonth := math.Modf(monthsFloat)
+	months := int32(fullMonthsFloat)
+
+	daysFloat := float64(d.DateSpan.days) / o
+	fullDaysFloat, fracDay := math.Modf(daysFloat + fracMonth*MonthDays)
+	days := int32(fullDaysFloat)
+
+	newDateSpan := DateSpan{
+		months: months,
+		days:   days,
+	}
+
+	newTimeSpan := TimeSpan(float64(d.TimeSpan)/o + fracDay*float64(Day))
+
+	return NewDateTimeSpan(
+		newDateSpan,
+		newTimeSpan,
+	)
+}
+
+func (d *DateTimeSpan) DivideInt(other Value) *DateTimeSpan {
+	if other.IsSmallInt() {
+		return d.DivideSmallInt(other.AsSmallInt())
+	}
+
+	return d.DivideBigInt((*BigInt)(other.Pointer()))
+}
+
+func (d *DateTimeSpan) DivideFloat(other Float) *DateTimeSpan {
+	o := float64(other)
+	monthsFloat := float64(d.DateSpan.months) / o
+	fullMonthsFloat, fracMonth := math.Modf(monthsFloat)
+	months := int32(fullMonthsFloat)
+
+	daysFloat := float64(d.DateSpan.days) / o
+	fullDaysFloat, fracDay := math.Modf(daysFloat + fracMonth*MonthDays)
+	days := int32(fullDaysFloat)
+
+	newDateSpan := DateSpan{
+		months: months,
+		days:   days,
+	}
+
+	newTimeSpan := TimeSpan(float64(d.TimeSpan)/o + fracDay*float64(Day))
+
+	return NewDateTimeSpan(
+		newDateSpan,
+		newTimeSpan,
+	)
+}
+
+func (d *DateTimeSpan) DivideBigFloat(other *BigFloat) *DateTimeSpan {
+	prec := max(other.Precision(), 64)
+
+	monthsBigFloat := new(BigFloat).SetPrecision(prec).SetInt64(int64(d.DateSpan.months))
+	monthsBigFloat.DivBigFloat(monthsBigFloat, other)
+	months := int32(monthsBigFloat.Int64())
+
+	fracMonth := new(BigFloat).SetPrecision(prec)
+	fracMonth.SubBigFloat(monthsBigFloat, NewBigFloat(float64(months)))
+
+	daysBigFloat := new(BigFloat).SetPrecision(prec).SetInt64(int64(d.DateSpan.days))
+	daysBigFloat.DivBigFloat(daysBigFloat, other)
+	daysBigFloat.AddBigFloat(daysBigFloat, fracMonth.MulBigFloat(fracMonth, NewBigFloat(MonthDays)))
+	days := int32(daysBigFloat.Int64())
+
+	fracDay := new(BigFloat).SetPrecision(prec)
+	fracDay.SubBigFloat(daysBigFloat, NewBigFloat(float64(days)))
+
+	newDateSpan := DateSpan{
+		months: months,
+		days:   days,
+	}
+
+	timeSpanBigFloat := fracDay.MulBigFloat(fracDay, NewBigFloat(float64(Day)))
+	nanoseconds := daysBigFloat.SetInt64(int64(d.TimeSpan))
+	nanoseconds.DivBigFloat(nanoseconds, other)
+	timeSpanBigFloat.AddBigFloat(timeSpanBigFloat, nanoseconds)
+	newTimeSpan := TimeSpan(timeSpanBigFloat.Int64())
+
+	return NewDateTimeSpan(
+		newDateSpan,
+		newTimeSpan,
 	)
 }
 

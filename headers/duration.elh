@@ -2,7 +2,13 @@
 	Represents a difference between two points in time.
 ]##
 abstract mixin ::Std::Duration
+	sig -@: Duration
+	sig +@: Duration
+
 	sig +(other: Duration): Duration
+	sig -(other: Duration): Duration
+	sig *(other: CoercibleNumeric): Duration
+	sig /(other: CoercibleNumeric): Duration
 
 	##[
 		Returns the string representation of the duration.

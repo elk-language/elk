@@ -109,6 +109,88 @@ func initDateTimeSpan() {
 
 	Def(
 		c,
+		"*",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			other := args[1]
+			return self.Multiply(other)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"*@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			other := args[1]
+			return value.Ref(self.MultiplyInt(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"*@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			other := args[1].AsFloat()
+			return value.Ref(self.MultiplyFloat(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"*@3",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			other := (*value.BigFloat)(args[1].Pointer())
+			return value.Ref(self.MultiplyBigFloat(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"/",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			other := args[1]
+			return self.Divide(other)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"/@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			other := args[1]
+			return value.Ref(self.DivideInt(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"/@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			other := args[1].AsFloat()
+			return value.Ref(self.DivideFloat(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"/@3",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			other := (*value.BigFloat)(args[1].Pointer())
+			return value.Ref(self.DivideBigFloat(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
 		"date_span",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
