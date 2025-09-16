@@ -25,6 +25,11 @@ sealed primitive class ::Std::Time::Span < Value
 	end
 
 	##[
+		Create a new time span.
+	]##
+	init(hours: Int = 0, minutes: Int = 0, seconds: Int = 0, nanoseconds: Int = 0); end
+
+	##[
 		Returns the result of negating the duration.
 
 		```

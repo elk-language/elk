@@ -493,6 +493,14 @@ func (v Value) MustSmallInt() SmallInt {
 	return v.AsSmallInt()
 }
 
+func (v Value) AsInt() int {
+	if v.IsReference() {
+		return int(v.AsBigInt().ToSmallInt())
+	}
+
+	return int(v.AsSmallInt())
+}
+
 func (v Value) IsChar() bool {
 	return v.flag == CHAR_FLAG
 }

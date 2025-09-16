@@ -22,6 +22,41 @@ func initTimeSpan() {
 	c = &value.TimeSpanClass.MethodContainer
 	Def(
 		c,
+		"#init",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			var hours int
+			if !args[1].IsUndefined() {
+				hours = args[1].AsInt()
+			}
+
+			var minutes int
+			if !args[2].IsUndefined() {
+				minutes = args[2].AsInt()
+			}
+
+			var seconds int
+			if !args[3].IsUndefined() {
+				seconds = args[3].AsInt()
+			}
+
+			var nanoseconds int
+			if !args[4].IsUndefined() {
+				nanoseconds = args[4].AsInt()
+			}
+
+			span := value.MakeTimeSpan(
+				hours,
+				minutes,
+				seconds,
+				nanoseconds,
+			)
+
+			return span.ToValue(), value.Undefined
+		},
+		DefWithParameters(4),
+	)
+	Def(
+		c,
 		"-@",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()

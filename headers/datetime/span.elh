@@ -6,7 +6,20 @@
 sealed primitive class ::Std::DateTime::Span < Value
 	include Duration
 
-		##[
+	##[
+		Create a new datetime span.
+	]##
+	init(
+		years: Int = 0,
+		months: Int = 0,
+		days: Int = 0,
+		hours: Int = 0,
+		minutes: Int = 0,
+		seconds: Int = 0,
+		nanoseconds: Int = 0,
+	); end
+
+	##[
 		Returns the result of negating the duration.
 
 		```

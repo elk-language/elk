@@ -11,6 +11,62 @@ func initDateTimeSpan() {
 
 	Def(
 		c,
+		"#init",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			var years int
+			if !args[1].IsUndefined() {
+				years = args[1].AsInt()
+			}
+
+			var months int
+			if !args[2].IsUndefined() {
+				months = args[2].AsInt()
+			}
+
+			var days int
+			if !args[3].IsUndefined() {
+				days = args[3].AsInt()
+			}
+
+			var hours int
+			if !args[4].IsUndefined() {
+				hours = args[4].AsInt()
+			}
+
+			var minutes int
+			if !args[5].IsUndefined() {
+				minutes = args[5].AsInt()
+			}
+
+			var seconds int
+			if !args[6].IsUndefined() {
+				seconds = args[6].AsInt()
+			}
+
+			var nanoseconds int
+			if !args[7].IsUndefined() {
+				nanoseconds = args[7].AsInt()
+			}
+
+			dateSpan := value.MakeDateSpan(
+				years,
+				months,
+				days,
+			)
+			timeSpan := value.MakeTimeSpan(
+				hours,
+				minutes,
+				seconds,
+				nanoseconds,
+			)
+			self := value.NewDateTimeSpan(dateSpan, timeSpan)
+			return value.Ref(self), value.Undefined
+		},
+		DefWithParameters(7),
+	)
+
+	Def(
+		c,
 		"-@",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())

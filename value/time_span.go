@@ -42,6 +42,16 @@ func ParsTimeSpan(s String) (result TimeSpan, err Value) {
 	return TimeSpan(dur), Undefined
 }
 
+// Create a new Time Span value.
+func MakeTimeSpan(hours, mins, secs, nsecs int) TimeSpan {
+	duration := TimeSpan(hours)*Hour +
+		TimeSpan(mins)*Minute +
+		TimeSpan(secs)*Second +
+		TimeSpan(nsecs)*Nanosecond
+
+	return TimeSpan(duration)
+}
+
 func DurationSince(t DateTime) TimeSpan {
 	return TimeSpan(time.Since(t.Go))
 }
