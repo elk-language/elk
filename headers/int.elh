@@ -183,6 +183,11 @@ sealed noinit primitive class ::Std::Int < Value
 	def to_int8: Int8; end
 
 	##[
+		Converts the integer to an unsigned integer.
+	]##
+	def to_uint: UInt; end
+
+	##[
 		Converts the integer to an unsigned 64-bit integer.
 	]##
 	def to_uint64: UInt64; end

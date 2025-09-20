@@ -68,8 +68,13 @@ func (i Int16) ToInt32() Int32 {
 }
 
 // Convert to Elk Int8.
-func (i Int8) ToInt8() Int8 {
+func (i Int16) ToInt8() Int8 {
 	return Int8(i)
+}
+
+// Convert to Elk UInt.
+func (i Int16) ToUInt() UInt {
+	return UInt(i)
 }
 
 // Convert to Elk UInt64.

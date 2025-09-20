@@ -1105,6 +1105,10 @@ func (l *Lexer) numberLiteral(startDigit rune) *token.Token {
 		return l.lexError("invalid sized integer literal")
 	case 'u':
 		l.advanceChar()
+		if !isDigit(l.peekChar()) {
+			return l.tokenWithValue(token.UINT, lexeme.String())
+		}
+
 		switch ch, _ := l.advanceChar(); ch {
 		case '6':
 			if l.matchChar('4') {

@@ -78,6 +78,7 @@ func InitGlobalEnvironment() {
 	initUInt32()
 	initUInt16()
 	initUInt8()
+	initUInt()
 	initFloat()
 	initBigFloat()
 	initFloat64()

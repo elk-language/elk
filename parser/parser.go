@@ -2457,6 +2457,12 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok.Location(),
 			tok.Value,
 		)
+	case token.UINT:
+		tok := p.advance()
+		return ast.NewUIntLiteralNode(
+			tok.Location(),
+			tok.Value,
+		)
 	case token.INT64:
 		tok := p.advance()
 		return ast.NewInt64LiteralNode(
@@ -4879,6 +4885,8 @@ func (p *Parser) primaryType() ast.TypeNode {
 		return p.symbolLiteral(false)
 	case token.INT:
 		return p.int()
+	case token.UINT:
+		return p.uint()
 	case token.INT64:
 		return p.int64()
 	case token.UINT64:
@@ -6671,6 +6679,8 @@ func (p *Parser) innerLiteralPattern() ast.PatternExpressionNode {
 		return p.int()
 	case token.INT64:
 		return p.int64()
+	case token.UINT:
+		return p.uint()
 	case token.UINT64:
 		return p.uint64()
 	case token.INT32:
@@ -6717,6 +6727,14 @@ func (p *Parser) int() *ast.IntLiteralNode {
 func (p *Parser) int64() *ast.Int64LiteralNode {
 	tok := p.advance()
 	return ast.NewInt64LiteralNode(
+		tok.Location(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) uint() *ast.UIntLiteralNode {
+	tok := p.advance()
+	return ast.NewUIntLiteralNode(
 		tok.Location(),
 		tok.Value,
 	)

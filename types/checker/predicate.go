@@ -698,6 +698,12 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 			return false
 		}
 		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
+	case *types.UIntLiteral:
+		b, ok := b.(*types.UIntLiteral)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	case *types.UInt64Literal:
 		b, ok := b.(*types.UInt64Literal)
 		if !ok {

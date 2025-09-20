@@ -65,6 +65,11 @@ func (i Int64) ToInt8() Int8 {
 	return Int8(i)
 }
 
+// Convert to Elk UInt.
+func (i Int64) ToUInt() UInt {
+	return UInt(i)
+}
+
 // Convert to Elk UInt64.
 func (i Int64) ToUInt64() UInt64 {
 	return UInt64(i)

@@ -1229,6 +1229,13 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 			return expressionCompiled
 		}
 		c.emitValue(value.UInt32(i).ToValue(), node.Location())
+	case *ast.UIntLiteralNode:
+		i, err := value.StrictParseUint(node.Value, 0, value.SmallIntBits)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return expressionCompiled
+		}
+		c.emitValue(value.UInt(i).ToValue(), node.Location())
 	case *ast.UInt64LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 64)
 		if !err.IsUndefined() {
@@ -3657,7 +3664,7 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		*ast.CharLiteralNode, *ast.RawCharLiteralNode, *ast.DoubleQuotedStringLiteralNode,
 		*ast.InterpolatedStringLiteralNode, *ast.RawStringLiteralNode,
 		*ast.SimpleSymbolLiteralNode, *ast.InterpolatedSymbolLiteralNode,
-		*ast.IntLiteralNode, *ast.Int64LiteralNode, *ast.UInt64LiteralNode,
+		*ast.IntLiteralNode, *ast.Int64LiteralNode, *ast.UIntLiteralNode, *ast.UInt64LiteralNode,
 		*ast.Int32LiteralNode, *ast.UInt32LiteralNode, *ast.Int16LiteralNode, *ast.UInt16LiteralNode,
 		*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
 		*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode,

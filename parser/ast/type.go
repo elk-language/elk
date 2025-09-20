@@ -41,6 +41,7 @@ func (*Int64LiteralNode) typeNode()              {}
 func (*Int32LiteralNode) typeNode()              {}
 func (*Int16LiteralNode) typeNode()              {}
 func (*Int8LiteralNode) typeNode()               {}
+func (*UIntLiteralNode) typeNode()               {}
 func (*UInt64LiteralNode) typeNode()             {}
 func (*UInt32LiteralNode) typeNode()             {}
 func (*UInt16LiteralNode) typeNode()             {}

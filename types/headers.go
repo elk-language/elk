@@ -393,6 +393,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.TryDefineClass("Indicates that the format of an\nuint8 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
+				{
+					namespace := namespace.TryDefineClass("UInt literal eg. `5u`, `125_355u`, `0xffu`", false, true, true, false, value.ToSymbol("UIntLiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of an\nuint node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace.Name() // noop - avoid unused variable error
+				}
 				namespace.TryDefineClass("Expression of an operator with one operand eg. `!foo`, `-bar`", false, true, true, false, value.ToSymbol("UnaryExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Type of an operator with one operand eg. `-2`, `+3`", false, true, true, false, value.ToSymbol("UnaryTypeNode"), objectClass, env)
 				namespace.TryDefineClass("`undefined` literal.", false, true, true, false, value.ToSymbol("UndefinedLiteralNode"), objectClass, env)
@@ -702,6 +707,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
+			namespace := namespace.TryDefineClass("Represents an unsigned integer (a positive whole number like `1u`, `2u`, `3u`, `0u`).\nIs 64 bit on a 64 bit system, 32 bit on a 32 bit system.", false, true, true, true, value.ToSymbol("UInt"), objectClass, env)
+			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int8.", value.ToSymbol("Convertible"), env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
 			namespace := namespace.TryDefineClass("Represents an unsigned 16 bit integer (a positive whole number like `1u16`, `2u16`, `3u16`, `0u16`).", false, true, true, true, value.ToSymbol("UInt16"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a uint16.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
@@ -989,6 +999,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the bigfloat to a 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
 				namespace.DefineMethod("Converts the bigfloat to a 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 				namespace.DefineMethod("Converts the bigfloat to a 8-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Converts the bigfloat to an unsigned 16-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 				namespace.DefineMethod("Converts the bigfloat to an unsigned 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 				namespace.DefineMethod("Converts the bigfloat to an unsigned 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
@@ -5712,6 +5723,40 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						}
 					}
 					{
+						namespace := namespace.MustSubtypeString("UIntLiteralNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::UIntLiteralNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+
+						{
+							namespace := namespace.MustSubtypeString("FormatError").(*Class)
+
+							namespace.Name() // noop - avoid unused variable error
+							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+
+							// Define constants
+
+							// Define instance variables
+						}
+					}
+					{
 						namespace := namespace.MustSubtypeString("UnaryExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
@@ -6666,6 +6711,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the float to a 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 				namespace.DefineMethod("Converts the float to a 8-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
 				namespace.DefineMethod("Converts the Float to a String.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Converts the float to an unsigned 16-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 				namespace.DefineMethod("Converts the float to an unsigned 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 				namespace.DefineMethod("Converts the float to an unsigned 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
@@ -7319,6 +7365,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the integer to a 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 8-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
 				namespace.DefineMethod("Converts the integer to a string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
@@ -7412,6 +7459,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the integer to a 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 8-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
+				namespace.DefineMethod("Returns the string representation of this integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
@@ -7486,6 +7535,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns itself.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 8-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
+				namespace.DefineMethod("Returns the string representation of this integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
@@ -7560,6 +7611,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the integer to a 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
 				namespace.DefineMethod("Returns itself.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 8-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
+				namespace.DefineMethod("Returns the string representation of this integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
@@ -7634,6 +7687,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the integer to a 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 				namespace.DefineMethod("Returns itself.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
+				namespace.DefineMethod("Returns the string representation of this integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
@@ -9367,6 +9422,82 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtypeString("UInt").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
+				ImplementInterface(namespace, NewGeneric(NameToType("Std::Comparable", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("T"): NewTypeArgument(Self{}, CONTRAVARIANT)}, []value.Symbol{value.ToSymbol("T")})))
+
+				// Define methods
+				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10u\n\tvar b = 3u\n\ta % b #=> 1u\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Performs bitwise AND.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("&"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Performs bitwise AND NOT (bit clear).", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("&~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Multiply this integer by `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Exponentiate this integer, raise it to the power of `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Add `other` to this integer.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Get the next integer by incrementing by `1`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("++"), nil, nil, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1u\n\t+a #=> 1u\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@"), nil, nil, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Subtract `other` from this integer.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Get the previous integer by decrementing by `1`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("--"), nil, nil, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Returns the result of negating the integer.\n\n```\n\tvar a = 1u\n\t-a #=> 18446744073709551615u\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@"), nil, nil, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Divide this integer by another integer.\nThrows an unchecked runtime error when dividing by `0`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
+				namespace.DefineMethod("Returns an integer shifted left by `other` positions, or right if `other` is negative.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Returns an integer shifted left by `other` positions, or right if `other` is negative.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<<<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
+				namespace.DefineMethod("Compare this integer with another integer.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<=>"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
+				namespace.DefineMethod("Returns an integer shifted right by `other` positions, or left if `other` is negative.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">>"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Returns an integer shifted right by `other` positions, or left if `other` is negative.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">>>"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Performs bitwise XOR.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("^"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Calculates a hash of the int.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hash"), nil, nil, NameToType("Std::UInt64", env), Never{})
+				namespace.DefineMethod("Return a human readable string\nrepresentation of this object\nfor debugging etc.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("inspect"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_expr_node"), nil, nil, NameToType("Std::Elk::AST::UIntLiteralNode", env), Never{})
+				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_node"), nil, nil, NameToType("Std::Elk::AST::UIntLiteralNode", env), Never{})
+				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_pattern_expr_node"), nil, nil, NameToType("Std::Elk::AST::UIntLiteralNode", env), Never{})
+				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_pattern_node"), nil, nil, NameToType("Std::Elk::AST::UIntLiteralNode", env), Never{})
+				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_type_node"), nil, nil, NameToType("Std::Elk::AST::UIntLiteralNode", env), Never{})
+				namespace.DefineMethod("Converts the integer to a floating point number.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_float"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Converts the integer to a 32-bit floating point number.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_float32"), nil, nil, NameToType("Std::Float32", env), Never{})
+				namespace.DefineMethod("Converts the integer to a 64-bit floating point number.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_float64"), nil, nil, NameToType("Std::Float64", env), Never{})
+				namespace.DefineMethod("Converts to an automatically resizable integer type.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Converts the integer to a 16-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int16"), nil, nil, NameToType("Std::Int16", env), Never{})
+				namespace.DefineMethod("Converts the integer to a 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
+				namespace.DefineMethod("Converts the integer to a 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
+				namespace.DefineMethod("Converts the integer to a 8-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
+				namespace.DefineMethod("Returns the string representation of this integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns itself.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned 8-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint8"), nil, nil, NameToType("Std::UInt8", env), Never{})
+				namespace.DefineMethod("Performs bitwise OR.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("|"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Returns the result of applying bitwise NOT on the bits\nof this integer.\n\n```\n\t~4u #=> 18446744073709551611u\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("~"), nil, nil, NameToType("Std::UInt", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.MustSubtypeString("Convertible").(*Interface)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Convert the value to a uint.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
+			{
 				namespace := namespace.MustSubtypeString("UInt16").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -9414,6 +9545,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the integer to a 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 8-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
+				namespace.DefineMethod("Returns the string representation of this integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Returns itself.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
@@ -9488,6 +9621,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the integer to a 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 8-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
+				namespace.DefineMethod("Returns the string representation of this integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 				namespace.DefineMethod("Returns itself.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
@@ -9562,6 +9697,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the integer to a 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 8-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
+				namespace.DefineMethod("Returns the string representation of this integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 				namespace.DefineMethod("Returns itself.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
@@ -9636,6 +9773,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Converts the integer to a 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 				namespace.DefineMethod("Converts the integer to a 8-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
+				namespace.DefineMethod("Returns the string representation of this integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Converts the integer to an unsigned integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 16-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 32-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 				namespace.DefineMethod("Converts the integer to an unsigned 64-bit integer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})

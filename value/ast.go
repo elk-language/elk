@@ -46,6 +46,7 @@ var UInt8LiteralNodeFormatErrorClass *Class      // Std::Elk::AST::UInt8LiteralN
 var UInt16LiteralNodeFormatErrorClass *Class     // Std::Elk::AST::UInt16LiteralNode::FormatError
 var UInt32LiteralNodeFormatErrorClass *Class     // Std::Elk::AST::UInt32LiteralNode::FormatError
 var UInt64LiteralNodeFormatErrorClass *Class     // Std::Elk::AST::UInt64LiteralNode::FormatError
+var UIntLiteralNodeFormatErrorClass *Class       // Std::Elk::AST::UIntLiteralNode::FormatError
 var FloatLiteralNodeFormatErrorClass *Class      // Std::Elk::AST::FloatLiteralNode::FormatError
 var BigFloatLiteralNodeFormatErrorClass *Class   // Std::Elk::AST::BigFloatLiteralNode::FormatError
 var Float32LiteralNodeFormatErrorClass *Class    // Std::Elk::AST::Float32LiteralNode::FormatError
@@ -86,6 +87,7 @@ var Int64LiteralNodeClass *Class                  // Std::Elk::AST::Int64Literal
 var Int32LiteralNodeClass *Class                  // Std::Elk::AST::Int32LiteralNode
 var Int16LiteralNodeClass *Class                  // Std::Elk::AST::Int16LiteralNode
 var Int8LiteralNodeClass *Class                   // Std::Elk::AST::Int8LiteralNode
+var UIntLiteralNodeClass *Class                   // Std::Elk::AST::UIntLiteralNode
 var UInt64LiteralNodeClass *Class                 // Std::Elk::AST::UInt64LiteralNode
 var UInt32LiteralNodeClass *Class                 // Std::Elk::AST::UInt32LiteralNode
 var UInt16LiteralNodeClass *Class                 // Std::Elk::AST::UInt16LiteralNode
@@ -563,6 +565,14 @@ func initElkAST() {
 
 	Int8LiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithSuperclass(ConstantNodeMixin))
 	Int8LiteralNodeClass.AddConstantString("FormatError", Ref(Int8LiteralNodeFormatErrorClass))
+
+	UIntLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	UIntLiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)
+	UIntLiteralNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("UIntLiteralNode", Ref(UIntLiteralNodeClass))
+
+	UIntLiteralNodeFormatErrorClass = NewClassWithOptions(ClassWithSuperclass(ConstantNodeMixin))
+	UIntLiteralNodeClass.AddConstantString("FormatError", Ref(UIntLiteralNodeFormatErrorClass))
 
 	UInt64LiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	UInt64LiteralNodeClass.IncludeMixin(PatternExpressionNodeMixin)

@@ -231,6 +231,51 @@ func (i *Int8Literal) CopyNumeric() NumericLiteral {
 	}
 }
 
+type UIntLiteral struct {
+	Value      string
+	isNegative bool
+}
+
+func (i *UIntLiteral) StringValue() string {
+	return i.Value
+}
+
+func (i *UIntLiteral) IsNegative() bool {
+	return i.isNegative
+}
+
+func (i *UIntLiteral) SetNegative(val bool) {
+	i.isNegative = val
+}
+
+func NewUIntLiteral(value string) *UIntLiteral {
+	return &UIntLiteral{
+		Value: value,
+	}
+}
+
+func (i *UIntLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
+	return env.StdSubtype(symbol.UInt64)
+}
+
+func (*UIntLiteral) IsLiteral() bool {
+	return true
+}
+
+func (i *UIntLiteral) inspect() string {
+	if i.isNegative {
+		return fmt.Sprintf("-%su", i.Value)
+	}
+	return fmt.Sprintf("%su", i.Value)
+}
+
+func (i *UIntLiteral) CopyNumeric() NumericLiteral {
+	return &UIntLiteral{
+		Value:      i.Value,
+		isNegative: i.isNegative,
+	}
+}
+
 type UInt64Literal struct {
 	Value      string
 	isNegative bool

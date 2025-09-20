@@ -788,6 +788,8 @@ func typeToCode(typ types.Type, init bool) string {
 		return fmt.Sprintf("NewInt16Literal(%q)", t.Value)
 	case *types.Int8Literal:
 		return fmt.Sprintf("NewInt8Literal(%q)", t.Value)
+	case *types.UIntLiteral:
+		return fmt.Sprintf("NewUIntLiteral(%q)", t.Value)
 	case *types.UInt64Literal:
 		return fmt.Sprintf("NewUInt64Literal(%q)", t.Value)
 	case *types.UInt32Literal:

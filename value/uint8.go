@@ -24,7 +24,7 @@ func (UInt8) Class() *Class {
 }
 
 func (UInt8) DirectClass() *Class {
-	return UInt64Class
+	return UInt8Class
 }
 
 func (UInt8) SingletonClass() *Class {
@@ -74,6 +74,11 @@ func (i UInt8) ToInt16() Int16 {
 // Convert to Elk Int8.
 func (i UInt8) ToInt8() Int8 {
 	return Int8(i)
+}
+
+// Convert to Elk UInt.
+func (i UInt8) ToUInt() UInt {
+	return UInt(i)
 }
 
 // Convert to Elk UInt64.

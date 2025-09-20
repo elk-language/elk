@@ -1035,6 +1035,9 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 	case *ast.Int8LiteralNode:
 		n.SetType(types.NewInt8Literal(n.Value))
 		return n
+	case *ast.UIntLiteralNode:
+		n.SetType(types.NewUIntLiteral(n.Value))
+		return n
 	case *ast.UInt64LiteralNode:
 		n.SetType(types.NewUInt64Literal(n.Value))
 		return n

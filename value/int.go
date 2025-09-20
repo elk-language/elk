@@ -5,7 +5,7 @@ var IntIteratorClass *Class // ::Std::Int::Iterator
 
 // All simple Elk integer types (without BigInt)
 type SimpleInt interface {
-	SmallInt | Int64 | Int32 | Int16 | Int8 | UInt64 | UInt32 | UInt16 | UInt8
+	SmallInt | Int64 | Int32 | Int16 | Int8 | UInt | UInt64 | UInt32 | UInt16 | UInt8
 }
 
 type SingedInt interface {
@@ -13,7 +13,7 @@ type SingedInt interface {
 }
 
 type UnsignedInt interface {
-	UInt64 | UInt32 | UInt16 | UInt8
+	UInt | UInt64 | UInt32 | UInt16 | UInt8
 }
 
 func initInt() {

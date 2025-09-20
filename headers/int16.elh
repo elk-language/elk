@@ -176,6 +176,11 @@ sealed noinit primitive class ::Std::Int16 < Value
 	sealed def %(other: Int16): Int16; end
 
 	##[
+		Returns the string representation of this integer.
+	]##
+	def to_string: String; end
+
+	##[
 		Converts to an automatically resizable integer type.
 	]##
 	def to_int: Int; end
@@ -221,6 +226,11 @@ sealed noinit primitive class ::Std::Int16 < Value
 		Converts the integer to a 8-bit integer.
 	]##
 	def to_int8: Int8; end
+
+	##[
+		Converts the integer to an unsigned integer.
+	]##
+	def to_uint: UInt; end
 
 	##[
 		Converts the integer to an unsigned 64-bit integer.

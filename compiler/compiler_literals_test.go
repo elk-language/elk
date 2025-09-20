@@ -602,6 +602,23 @@ func TestLiterals(t *testing.T) {
 				},
 			),
 		},
+		"put UInt": {
+			input: "450_200u",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(7, 1, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.UInt(450200).ToValue(),
+				},
+			),
+		},
 		"put Int8": {
 			input: "1i8",
 			want: vm.NewBytecodeFunctionNoParams(

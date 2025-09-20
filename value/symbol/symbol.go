@@ -27,6 +27,7 @@ var (
 	Int32                 = value.ToSymbol("Int32")
 	Int16                 = value.ToSymbol("Int16")
 	Int8                  = value.ToSymbol("Int8")
+	UInt                  = value.ToSymbol("UInt")
 	UInt64                = value.ToSymbol("UInt64")
 	UInt32                = value.ToSymbol("UInt32")
 	UInt16                = value.ToSymbol("UInt16")

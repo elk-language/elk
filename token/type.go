@@ -44,7 +44,7 @@ func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 		RAW_STRING, STRING_BEG, NIL, FALSE, TRUE, LOOP, DEF, SIG,
 		INIT, CLASS, STRUCT, MODULE, MIXIN, INTERFACE, ENUM, TYPE, TYPEDEF,
 		VAR, VAL, CONST, DO, ALIAS, SELF, SUPER, SWITCH,
-		INT, INT64, UINT64, INT32, UINT32, INT16, UINT16, INT8, UINT8,
+		INT, INT64, UINT, UINT64, INT32, UINT32, INT16, UINT16, INT8, UINT8,
 		FLOAT, BIG_FLOAT, FLOAT64, FLOAT32:
 		return true
 	}
@@ -418,6 +418,7 @@ const (
 	// Int literals start here
 	LABEL_INT_LITERAL_BEG
 	INT                   // Int literal eg. `23`
+	UINT                  // UInt literal eg. `23u`
 	INT64                 // Int64 literal eg. `23i64`
 	UINT64                // UInt64 literal eg. `23u64`
 	INT32                 // Int32 literal eg. `23i32`
@@ -805,6 +806,7 @@ var tokenNames = [...]string{
 	STRING_INTERP_END:              "} (STRING_INTERP_END)",
 	STRING_END:                     "\" (STRING_END)",
 	INT:                            "INT",
+	UINT:                           "UINT",
 	INT64:                          "INT64",
 	UINT64:                         "UINT64",
 	INT32:                          "INT32",

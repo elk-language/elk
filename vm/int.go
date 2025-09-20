@@ -14,6 +14,23 @@ func initInt() {
 	c := &value.IntClass.MethodContainer
 	Def(
 		c,
+		"hash",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Hash().ToValue(), value.Undefined
+			}
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.Hash().ToValue(), value.Undefined
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+		},
+	)
+	Def(
+		c,
 		"++",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]

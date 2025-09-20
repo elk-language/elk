@@ -173,6 +173,7 @@ func InitGlobalEnvironment() {
 	initUInt16LiteralNode()
 	initUInt32LiteralNode()
 	initUInt64LiteralNode()
+	initUIntLiteralNode()
 	initUnaryExpressionNode()
 	initUnaryTypeNode()
 	initUndefinedLiteralNode()
