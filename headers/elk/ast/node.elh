@@ -15,6 +15,13 @@ module ::Std::Elk::AST
 				an expression.
 			]##
 			def expr(node: StatementNode | ArrayTuple[StatementNode]): ExpressionNode; end
+
+			##[
+				Wrap the given node in an unhygienic node.
+				It enables macro-generated code to access
+				local variables from outer scopes.
+			]##
+			def unhygienic(node: Node): UnhygienicNode; end
 		end
 
 		##[

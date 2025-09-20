@@ -10,6 +10,7 @@ type Mixin struct {
 	parent         Namespace
 	abstract       bool
 	defined        bool
+	native         bool
 	Checked        bool
 	singleton      *SingletonClass
 	typeParameters []*TypeParameter
@@ -52,6 +53,14 @@ func (m *Mixin) IsAbstract() bool {
 
 func (m *Mixin) IsSealed() bool {
 	return false
+}
+
+func (m *Mixin) IsNative() bool {
+	return m.native
+}
+
+func (m *Mixin) SetNative(native bool) {
+	m.native = native
 }
 
 func (m *Mixin) IsDefined() bool {
@@ -168,26 +177,22 @@ func (m *Mixin) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Mixin {
 		abstract:      m.abstract,
 		defined:       m.defined,
 		Checked:       m.Checked,
+		native:        m.native,
 		NamespaceBase: MakeNamespaceBase(m.docComment, m.name),
 	}
 	parentNamespace.DefineSubtype(value.ToSymbol(mixinConstantPath[len(mixinConstantPath)-1]), newMixin)
 
+	newMixin.singleton = nil
+	newMixin.singleton = DeepCopyEnv(m.singleton, oldEnv, newEnv).(*SingletonClass)
+
+	newMixin.typeParameters = TypeParametersDeepCopyEnv(m.typeParameters, oldEnv, newEnv)
 	newMixin.methods = MethodsDeepCopyEnv(m.methods, oldEnv, newEnv)
-	newMixin.subtypes = ConstantsDeepCopyEnv(m.subtypes, oldEnv, newEnv)
 	newMixin.instanceVariables = TypesDeepCopyEnv(m.instanceVariables, oldEnv, newEnv)
 	newMixin.constants = ConstantsDeepCopyEnv(m.constants, oldEnv, newEnv)
-	newMixin.typeParameters = TypeParametersDeepCopyEnv(m.typeParameters, oldEnv, newEnv)
+	newMixin.subtypes = ConstantsDeepCopyEnv(m.subtypes, oldEnv, newEnv)
 
 	if m.parent != nil {
 		newMixin.parent = DeepCopyEnv(m.parent, oldEnv, newEnv).(Namespace)
 	}
-	var singletonParent Namespace
-	if m.singleton.parent != nil {
-		singletonParent = DeepCopyEnv(m.singleton.parent, oldEnv, newEnv).(Namespace)
-	}
-	newMixin.singleton = NewSingletonClass(
-		newMixin,
-		singletonParent,
-	)
 	return newMixin
 }

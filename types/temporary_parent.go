@@ -12,3 +12,11 @@ func NewTemporaryParent(namespace Namespace) *TemporaryParent {
 		Namespace: namespace,
 	}
 }
+
+func (t *TemporaryParent) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TemporaryParent {
+	newTemporaryParent := &TemporaryParent{
+		Namespace: DeepCopyEnv(t.Namespace, oldEnv, newEnv).(Namespace),
+	}
+
+	return newTemporaryParent
+}

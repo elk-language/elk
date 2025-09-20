@@ -1,0 +1,241 @@
+##[
+	Represents an accurate difference between two DateTime's.
+
+	It is made up of a `Date::Span` and a `Time::Span`.
+]##
+sealed primitive class ::Std::DateTime::Span < Value
+	include Duration
+
+	##[
+		Create a new datetime span.
+	]##
+	init(
+		years: Int = 0,
+		months: Int = 0,
+		days: Int = 0,
+		hours: Int = 0,
+		minutes: Int = 0,
+		seconds: Int = 0,
+		nanoseconds: Int = 0,
+	); end
+
+	##[
+		Returns the result of negating the duration.
+
+		```
+			var a = 5.days + 2.minutes
+			-a #=> -5D-2m
+		```
+	]##
+	sealed def -@: DateTime::Span; end
+	sealed def +@: DateTime::Span; end
+
+	overload def +(other: Duration): DateTime::Span; end
+	overload def +(other: DateTime::Span): DateTime::Span; end
+	overload def +(other: Time::Span): DateTime::Span; end
+	overload def +(other: Date::Span): DateTime::Span; end
+
+	overload def -(other: Duration): DateTime::Span; end
+	overload def -(other: DateTime::Span): DateTime::Span; end
+	overload def -(other: Time::Span): DateTime::Span; end
+	overload def -(other: Date::Span): DateTime::Span; end
+
+	overload def *(other: CoercibleNumeric): DateTime::Span; end
+	overload def *(other: Int): DateTime::Span; end
+	overload def *(other: Float): DateTime::Span; end
+	overload def *(other: BigFloat): DateTime::Span; end
+
+	overload def /(other: CoercibleNumeric): DateTime::Span; end
+	overload def /(other: Int): DateTime::Span; end
+	overload def /(other: Float): DateTime::Span; end
+	overload def /(other: BigFloat): DateTime::Span; end
+
+	##[
+		Returns the string representation of the date span in the format "5Y2M10D51h15m0.12s".
+	]##
+	def to_string: String; end
+
+	##[
+		Returns the date span component of this datetime span.
+	]##
+	def date_span: Date::Span; end
+
+	##[
+		Returns the time span component of this datetime span.
+	]##
+	def time_span: Time::Span; end
+
+	##[
+		Returns the approximate count of years in this span as a Float.
+		One year is `365.25` days.
+	]##
+	def in_years: Float; end
+
+	##[
+		Returns the approximate count of years in this span as an Int.
+		This is a sum of the year component and the approximate amount of years
+		from the day component.
+		One year is `365.25` days.
+	]##
+	def total_years: Int; end
+
+	##[
+		Returns the year component of this span as an Int.
+		Does not include years from days stored in this span,
+		if it contains 2 years and 500 days, it will return `2`.
+	]##
+	def years: Int; end
+
+	##[
+		Returns the approximate count of months in this span as a Float.
+		One month is `30.4375` days.
+	]##
+	def in_months: Float; end
+
+	##[
+		Returns the approximate count of weeks in this span as an Int.
+		This is a sum of the months component and the approximate amount of months
+		from the day component.
+		One month is `30.4375` days.
+	]##
+	def total_months: Int; end
+
+	##[
+		Returns the month component of this span as an Int.
+
+		Range of values: 0...11
+	]##
+	def months: Int; end
+
+	##[
+		Returns the approximate count of weeks in this span as a Float.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def in_weeks: Float; end
+
+	##[
+		Returns the approximate count of weeks in this span as an Int.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def total_weeks: Int; end
+
+	##[
+		Returns the day component of this span as an Int.
+	]##
+	def days: Int; end
+
+	##[
+		Returns the approximate count of days in this span as a Float.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def in_days: Float; end
+
+	##[
+		Returns the approximate count of days in this span as an Int.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def total_days: Int; end
+
+	##[
+		Returns the hour component of this span as an Int.
+	]##
+	def hours: Int; end
+
+	##[
+		Returns the approximate count of hours in this span as a Float.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def in_hours: Float; end
+
+	##[
+		Returns the approximate count of hours in this span as an Int.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def total_hours: Int; end
+
+	##[
+		Returns the minute component of this span as an Int.
+	]##
+	def minutes: Int; end
+
+	##[
+		Returns the approximate count of minutes in this span as a Float.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def in_minutes: Float; end
+
+	##[
+		Returns the approximate count of minutes in this span as an Int.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def total_minutes: Int; end
+
+	##[
+		Returns the second component of this span as an Int.
+	]##
+	def seconds: Int; end
+
+	##[
+		Returns the approximate count of seconds in this span as a Float.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def in_seconds: Float; end
+
+	##[
+		Returns the approximate count of seconds in this span as an Int.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def total_seconds: Int; end
+
+	##[
+		Returns the millisecond component of this span as an Int.
+	]##
+	def milliseconds: Int; end
+
+	##[
+		Returns the approximate count of milliseconds in this span as a Float.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def in_milliseconds: Float; end
+
+	##[
+		Returns the approximate count of milliseconds in this span as an Int.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def total_milliseconds: Int; end
+
+	##[
+		Returns the microsecond component of this span as an Int.
+	]##
+	def microseconds: Int; end
+
+	##[
+		Returns the approximate count of microseconds in this span as a Float.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def in_microseconds: Float; end
+
+	##[
+		Returns the approximate count of microseconds in this span as an Int.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def total_microseconds: Int; end
+
+	##[
+		Returns the nanosecond component of this span as an Int.
+	]##
+	def nanoseconds: Int; end
+
+	##[
+		Returns the approximate count of nanoseconds in this span as a Float.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def in_nanoseconds: Float; end
+
+	##[
+		Returns the approximate count of nanoseconds in this span as an Int.
+		One year is `365.25` days, one month is `30.4375` days.
+	]##
+	def total_nanoseconds: Int; end
+
+end

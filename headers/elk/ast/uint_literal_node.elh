@@ -1,0 +1,20 @@
+module Std::Elk::AST
+  ##[
+    UInt literal eg. `5u`, `125_355u`, `0xffu`
+  ]##
+  sealed primitive class UIntLiteralNode
+    include PatternExpressionNode,
+            TypeNode
+
+    ##[
+			Indicates that the format of an
+			uint node is invalid.
+		]##
+		class FormatError < Node::FormatError; end
+
+    init(value: String, location: FS::Location = loop; end)! FormatError; end
+    def value: String; end
+    def location: FS::Location; end
+    def to_uint64: UInt64; end
+  end
+end

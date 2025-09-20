@@ -1,4 +1,4 @@
-package checker
+package checker_test
 
 import (
 	"testing"
@@ -192,9 +192,9 @@ func TestStruct(t *testing.T) {
 				var f = Foo(5.2, 'b', :bar)
 			`,
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(68, 7, 13), P(70, 7, 15)), "expected 1...2 arguments in call to `Foo.:#init`, got 3"),
 				diagnostic.NewFailure(L("<main>", P(72, 7, 17), P(74, 7, 19)), "expected type `Std::String` for parameter `a` in call to `Foo.:#init`, got type `5.2`"),
 				diagnostic.NewFailure(L("<main>", P(77, 7, 22), P(79, 7, 24)), "expected type `Std::Int` for parameter `b` in call to `Foo.:#init`, got type `\"b\"`"),
-				diagnostic.NewFailure(L("<main>", P(68, 7, 13), P(70, 7, 15)), "expected 1...2 arguments in call to `Foo.:#init`, got 3"),
 			},
 		},
 		"call a getter on a struct": {
@@ -3051,6 +3051,53 @@ func TestInterfaceType(t *testing.T) {
 
 				var a: Foo = Bar()
 			`,
+		},
+		"assign instance of class that implements the interface implicitly with non-main overload": {
+			input: `
+				interface Foo
+					def foo(a: Int); end
+				end
+				class Bar
+					overload def foo(a: String); end
+					overload def foo(a: Int); end
+				end
+
+				var a: Foo = Bar()
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(166, 10, 18), P(170, 10, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - incorrect implementation of `Foo.:foo`\n      is:        `def foo(a: Std::String): void`\n                 `def foo@1(a: Std::Int): void`\n      should be: `def foo(a: Std::Int): void`"),
+				diagnostic.NewFailure(L("<main>", P(166, 10, 18), P(170, 10, 22)), "type `Bar` cannot be assigned to type `Foo`"),
+			},
+		},
+		"assign instance of class that implements the interface implicitly with main overload": {
+			input: `
+				interface Foo
+					def foo(a: Int); end
+				end
+				class Bar
+					overload def foo(a: Int); end
+					overload def foo(a: String); end
+				end
+
+				var a: Foo = Bar()
+			`,
+		},
+		"assign instance of class that does not implement the interface with overloads": {
+			input: `
+				interface Foo
+					def foo(a: Int); end
+				end
+				class Bar
+					overload def foo(a: String); end
+					overload def foo(a: Float); end
+				end
+
+				var a: Foo = Bar()
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(168, 10, 18), P(172, 10, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - incorrect implementation of `Foo.:foo`\n      is:        `def foo(a: Std::String): void`\n                 `def foo@1(a: Std::Float): void`\n      should be: `def foo(a: Std::Int): void`"),
+				diagnostic.NewFailure(L("<main>", P(168, 10, 18), P(172, 10, 22)), "type `Bar` cannot be assigned to type `Foo`"),
+			},
 		},
 		"assign instance of class that does not implement the interface": {
 			input: `

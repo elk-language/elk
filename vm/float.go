@@ -316,7 +316,7 @@ func initFloat() {
 		"days",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.Days().ToValue(), value.Undefined
+			return value.Ref(self.Days()), value.Undefined
 		},
 	)
 	Alias(c, "day", "days")
@@ -326,18 +326,48 @@ func initFloat() {
 		"weeks",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.Weeks().ToValue(), value.Undefined
+			return value.Ref(self.Weeks()), value.Undefined
 		},
 	)
 	Alias(c, "week", "weeks")
 
 	Def(
 		c,
+		"months",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustFloat()
+			return value.Ref(self.Months()), value.Undefined
+		},
+	)
+	Alias(c, "month", "months")
+
+	Def(
+		c,
 		"years",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustFloat()
-			return self.Years().ToValue(), value.Undefined
+			return value.Ref(self.Years()), value.Undefined
 		},
 	)
 	Alias(c, "year", "years")
+
+	Def(
+		c,
+		"centuries",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustFloat()
+			return value.Ref(self.Centuries()), value.Undefined
+		},
+	)
+	Alias(c, "century", "centuries")
+
+	Def(
+		c,
+		"millenia",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustFloat()
+			return value.Ref(self.Millenia()), value.Undefined
+		},
+	)
+	Alias(c, "millenium", "millenia")
 }

@@ -1,0 +1,79 @@
+module ::Std::Test
+  mixin Assertions
+    singleton
+      include Assertions
+    end
+
+    ##[
+      Checks whether the given value is truthy.
+    ]##
+    def assert_truthy(got: any, message: String? = nil); end
+
+    ##[
+      Checks whether the given value is falsy.
+    ]##
+    def assert_falsy(got: any, message: String? = nil); end
+
+    ##[
+      Checks whether the given value is `true`.
+    ]##
+    def assert_true(got: any, message: String? = nil); end
+
+    ##[
+      Checks whether the given value is `false`.
+    ]##
+    def assert_false(got: any, message: String? = nil); end
+
+    ##[
+      Checks whether the given value is `nil`.
+    ]##
+    def assert_nil(got: any, message: String? = nil); end
+
+    ##[
+      Checks whether the given value is not `nil`.
+    ]##
+    def assert_not_nil(got: any, message: String? = nil); end
+
+    ##[
+      Checks whether the given value is an instance
+      of the given class/mixin or its parents.
+    ]##
+    def assert_is_a(klass: Class | Mixin, got: any, message: String? = nil); end
+
+    ##[
+      Checks whether the given value is an instance
+      of the given class.
+    ]##
+    def assert_instance_of(klass: Class, got: any, message: String? = nil); end
+
+    ##[
+      Checks whether the given two values are equal.
+    ]##
+    def assert_equal(expected: any, got: any, message: String? = nil); end
+
+    ##[
+      Checks whether the given two values are not equal.
+    ]##
+    def assert_not_equal(expected: any, got: any, message: String? = nil); end
+
+    ##[
+      Checks whether `a` is greater than `b`, `a > b`
+    ]##
+    def assert_greater[T](a: Comparable[T], b: T, message: String? = nil); end
+
+    ##[
+      Checks whether `a` is greater or equal to `b`, `a >= b`
+    ]##
+    def assert_greater_equal[T](a: Comparable[T], b: T, message: String? = nil); end
+
+    ##[
+      Checks whether `a` is less than `b`, `a > b`
+    ]##
+    def assert_less[T](a: Comparable[T], b: T, message: String? = nil); end
+
+    ##[
+      Checks whether `a` is less or equal to `b`, `a >= b`
+    ]##
+    def assert_less_equal[T](a: Comparable[T], b: T, message: String? = nil); end
+  end
+end

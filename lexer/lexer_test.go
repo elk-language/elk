@@ -56,3 +56,23 @@ func tokenTest(tc testCase, t *testing.T) {
 		t.Fatal(diff)
 	}
 }
+
+func tokenTestWithMode(tc testCase, m mode, t *testing.T) {
+	t.Helper()
+	lex := NewWithMode("<main>", tc.input, m)
+	var got []*token.Token
+	for {
+		tok := lex.Next()
+		if tok.IsEndOfFile() {
+			break
+		}
+		got = append(got, tok)
+	}
+	opts := []cmp.Option{
+		cmp.AllowUnexported(token.Token{}),
+	}
+	diff := cmp.Diff(tc.want, got, opts...)
+	if diff != "" {
+		t.Fatal(diff)
+	}
+}

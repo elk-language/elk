@@ -242,6 +242,17 @@ func initMethodDefinitionNode() {
 
 	vm.Def(
 		c,
+		"is_overload",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.MethodDefinitionNode)
+			result := value.ToElkBool(self.IsOverload())
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
 		"location",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)

@@ -161,8 +161,8 @@ func (e DiagnosticList) Join(other DiagnosticList) DiagnosticList {
 }
 
 // Add a new diagnostic.
-func (dl *DiagnosticList) Append(d *Diagnostic) {
-	*dl = append(*dl, d)
+func (dl *DiagnosticList) Append(d ...*Diagnostic) {
+	*dl = append(*dl, d...)
 }
 
 // Create and add a new diagnostic.
@@ -302,6 +302,16 @@ func (e *SyncDiagnosticList) JoinErrList(other DiagnosticList) {
 	e.Mutex.Lock()
 	e.DiagnosticList = append(e.DiagnosticList, other...)
 	e.Mutex.Unlock()
+}
+
+func (e *SyncDiagnosticList) Clear() {
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
+
+	if e.DiagnosticList == nil {
+		return
+	}
+	e.DiagnosticList = e.DiagnosticList[0:0]
 }
 
 func (e *SyncDiagnosticList) IsFailure() bool {

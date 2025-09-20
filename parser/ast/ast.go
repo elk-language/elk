@@ -212,7 +212,7 @@ func TypeAssociativity(expr TypeNode) Associativity {
 		*IntersectionTypeNode, *UnionTypeNode:
 		return LEFT_ASSOCIATIVE
 	case *NotTypeNode, *SingletonTypeNode, *InstanceOfTypeNode,
-		*UnaryTypeNode, *ClosureTypeNode:
+		*UnaryTypeNode, *CallableTypeNode:
 		return RIGHT_ASSOCIATIVE
 	}
 
@@ -221,7 +221,7 @@ func TypeAssociativity(expr TypeNode) Associativity {
 
 func TypePrecedence(expr TypeNode) uint8 {
 	switch e := expr.(type) {
-	case *ClosureTypeNode:
+	case *CallableTypeNode:
 		return 10
 	case *UnionTypeNode:
 		return 20
@@ -315,6 +315,11 @@ type Node interface {
 	MacroType(*types.GlobalEnvironment) types.Type
 	splice(loc *position.Location, args *[]Node, unquote bool) Node
 	traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption
+}
+
+// Create a deep copy of the AST node
+func DeepCopy(node Node) Node {
+	return Splice(node, nil, nil)
 }
 
 // Create a copy of AST replacing consecutive unquote nodes with the given arguments

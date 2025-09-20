@@ -44,7 +44,7 @@ func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 		RAW_STRING, STRING_BEG, NIL, FALSE, TRUE, LOOP, DEF, SIG,
 		INIT, CLASS, STRUCT, MODULE, MIXIN, INTERFACE, ENUM, TYPE, TYPEDEF,
 		VAR, VAL, CONST, DO, ALIAS, SELF, SUPER, SWITCH,
-		INT, INT64, UINT64, INT32, UINT32, INT16, UINT16, INT8, UINT8,
+		INT, INT64, UINT, UINT64, INT32, UINT32, INT16, UINT16, INT8, UINT8,
 		FLOAT, BIG_FLOAT, FLOAT64, FLOAT32:
 		return true
 	}
@@ -230,6 +230,7 @@ const (
 	ZERO_VALUE       Type = iota // Zero value for Type
 	ERROR                        // ERROR Token with a message
 	END_OF_FILE                  // End Of File has been reached
+	TEXT                         // Plain text
 	NEWLINE                      // Newline `\n`, `\r\n`
 	SEMICOLON                    // SEMICOLON `;`
 	COMMA                        // Comma `,`
@@ -377,6 +378,7 @@ const (
 
 	LABEL_SPECIAL_COLLECTION_LITERAL_END // Special collection literals end here
 
+	CLOSURE_TYPE_BEG     // Beginning of a closure type `%|`
 	HASH_SET_LITERAL_BEG // HashHashSet literal beginning `^[`
 	TUPLE_LITERAL_BEG    // ArrayTuple literal beginning `%[`
 	RECORD_LITERAL_BEG   // Record literal beginning `%{`
@@ -416,6 +418,7 @@ const (
 	// Int literals start here
 	LABEL_INT_LITERAL_BEG
 	INT                   // Int literal eg. `23`
+	UINT                  // UInt literal eg. `23u`
 	INT64                 // Int64 literal eg. `23i64`
 	UINT64                // UInt64 literal eg. `23u64`
 	INT32                 // Int32 literal eg. `23i32`
@@ -538,6 +541,7 @@ const (
 	UNQUOTE_PATTERN   // Keyword `unquote_pattern`
 	UNDEFINED         // Keyword `undefined`
 	FUNC              // Keyword `func`
+	OVERLOAD          // Keyword `overload`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -643,6 +647,7 @@ var Keywords = map[string]Type{
 	"unquote_pattern": UNQUOTE_PATTERN,
 	"undefined":       UNDEFINED,
 	"func":            FUNC,
+	"overload":        OVERLOAD,
 }
 
 var tokenNames = [...]string{
@@ -779,6 +784,7 @@ var tokenNames = [...]string{
 	RAW_STRING:                     "RAW_STRING",
 	CHAR_LITERAL:                   "CHAR_LITERAL",
 	RAW_CHAR_LITERAL:               "RAW_CHAR_LITERAL",
+	CLOSURE_TYPE_BEG:               "%|",
 	REGEX_BEG:                      "%/",
 	REGEX_CONTENT:                  "REGEX_CONTENT",
 	REGEX_INTERP_BEG:               "${ (REGEX_INTERP_BEG)",
@@ -800,6 +806,7 @@ var tokenNames = [...]string{
 	STRING_INTERP_END:              "} (STRING_INTERP_END)",
 	STRING_END:                     "\" (STRING_END)",
 	INT:                            "INT",
+	UINT:                           "UINT",
 	INT64:                          "INT64",
 	UINT64:                         "UINT64",
 	INT32:                          "INT32",
@@ -913,4 +920,5 @@ var tokenNames = [...]string{
 	UNQUOTE_PATTERN: "unquote_pattern",
 	UNDEFINED:       "undefined",
 	FUNC:            "func",
+	OVERLOAD:        "overload",
 }

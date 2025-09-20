@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/cespare/xxhash/v2"
+	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -117,6 +118,21 @@ func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
 	}
 
 	return result, value.Undefined
+}
+
+// Return the string representation of a value for debugging
+func Inspect(vm *VM, val value.Value) (value.Value, value.Value) {
+	return vm.CallMethodByName(symbol.L_inspect, val)
+}
+
+// Return the string representation of a value for debugging
+func InspectWithColor(vm *VM, val value.Value) (string, value.Value) {
+	result, err := vm.CallMethodByName(symbol.L_inspect, val)
+	if !err.IsUndefined() {
+		return "", err
+	}
+
+	return lexer.Colorize(string(result.AsString())), value.Undefined
 }
 
 // Check whether two values are equal

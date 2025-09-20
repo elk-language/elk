@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 
 	"github.com/elk-language/elk/bitfield"
@@ -146,6 +147,7 @@ const (
 	METHOD_ATTRIBUTE_FLAG
 	METHOD_GENERATOR_FLAG
 	METHOD_ASYNC_FLAG
+	METHOD_OVERLOAD_FLAG
 	METHOD_MACRO_FLAG
 	// used in using expression placeholders
 	METHOD_PLACEHOLDER_FLAG
@@ -159,10 +161,13 @@ type Method struct {
 	Name               value.Symbol
 	OptionalParamCount int
 	PostParamCount     int
+	OverloadId         int
 	Flags              bitfield.BitField16
 
 	Params         []*Parameter
 	TypeParameters []*TypeParameter
+	Overloads      []*Method
+	Base           *Method
 	ReturnType     Type
 	ThrowType      Type
 	DefinedUnder   Namespace
@@ -187,8 +192,20 @@ func NewMethodPlaceholder(fullName string, name value.Symbol, definedUnder Names
 	return m
 }
 
+func (m *Method) WithoutOverloads() *Method {
+	if len(m.Overloads) == 0 {
+		return m
+	}
+
+	copy := m.Copy()
+	copy.Overloads = nil
+	return copy
+}
+
 func (m *Method) Copy() *Method {
 	return &Method{
+		Base:                         m.Base,
+		OverloadId:                   m.OverloadId,
 		FullName:                     m.FullName,
 		Name:                         m.Name,
 		DocComment:                   m.DocComment,
@@ -207,13 +224,14 @@ func (m *Method) Copy() *Method {
 		CalledMethods:                m.CalledMethods,
 		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
 		Node:                         m.Node,
+		Overloads:                    m.Overloads,
 	}
 }
 
 func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 	var newDefinedUnder Namespace
 
-	if m.DefinedUnder != nil && !IsClosure(m.DefinedUnder) {
+	if m.DefinedUnder != nil && !IsCallable(m.DefinedUnder) {
 		newDefinedUnder = DeepCopyEnv(m.DefinedUnder, oldEnv, newEnv).(Namespace)
 		if newMethod := newDefinedUnder.Method(m.Name); newMethod != nil {
 			return newMethod
@@ -221,6 +239,7 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 	}
 
 	newMethod := &Method{
+		OverloadId:                   m.OverloadId,
 		FullName:                     m.FullName,
 		Name:                         m.Name,
 		DocComment:                   m.DocComment,
@@ -238,6 +257,17 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 		newMethod.DefinedUnder = newDefinedUnder
 		newMethod.DefinedUnder.SetMethod(newMethod.Name, newMethod)
 	}
+
+	newOverloads := make([]*Method, len(m.Overloads))
+	for i, overload := range m.Overloads {
+		newOverloads[i] = overload.DeepCopyEnv(oldEnv, newEnv)
+	}
+	newMethod.Overloads = newOverloads
+
+	if m.Base != nil {
+		newMethod.Base = DeepCopyEnv(m.Base, oldEnv, newEnv).(*Method)
+	}
+
 	newMethod.ThrowType = DeepCopyEnv(m.ThrowType, oldEnv, newEnv)
 	newMethod.ReturnType = DeepCopyEnv(m.ReturnType, oldEnv, newEnv)
 
@@ -260,6 +290,48 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 	newMethod.CalledMethods = newCalledMethods
 
 	return newMethod
+}
+
+func (m *Method) CreateAlias(newName value.Symbol) *Method {
+	alias := m.Copy()
+	alias.Name = newName
+	alias.Base = m
+	return alias
+}
+
+func (m *Method) AllOverloads() iter.Seq[*Method] {
+	return func(yield func(*Method) bool) {
+		if !yield(m) {
+			return
+		}
+
+		for _, overload := range m.Overloads {
+			if !yield(overload) {
+				return
+			}
+		}
+	}
+}
+
+func (m *Method) ReverseOverloads() iter.Seq[*Method] {
+	return func(yield func(*Method) bool) {
+		for i := len(m.Overloads) - 1; i >= 0; i-- {
+			overload := m.Overloads[i]
+			if !yield(overload) {
+				return
+			}
+		}
+
+		if !yield(m) {
+			return
+		}
+	}
+}
+
+func (m *Method) RegisterOverload(overload *Method) {
+	m.Overloads = append(m.Overloads, overload)
+	overload.OverloadId = len(m.Overloads)
+	overload.Name = value.ToSymbol(fmt.Sprintf("%s@%d", overload.Name.String(), len(m.Overloads)))
 }
 
 func (m *Method) Location() *position.Location {
@@ -323,6 +395,19 @@ func (m *Method) SetAsync(val bool) *Method {
 	return m
 }
 
+func (m *Method) IsOverload() bool {
+	return m.Flags.HasFlag(METHOD_OVERLOAD_FLAG)
+}
+
+func (m *Method) SetOverload(val bool) *Method {
+	m.SetFlag(METHOD_OVERLOAD_FLAG, val)
+	return m
+}
+
+func (m *Method) IsRegisteredOverload() bool {
+	return m.OverloadId != 0
+}
+
 func (m *Method) IsMacro() bool {
 	return m.Flags.HasFlag(METHOD_MACRO_FLAG)
 }
@@ -364,8 +449,12 @@ func (m *Method) IsDefinable() bool {
 		return false
 	}
 
-	_, hasBytecode := m.Body.(*vm.BytecodeFunction)
+	if m.Base != nil {
+		_, hasBytecode := m.Base.Body.(*vm.BytecodeFunction)
+		return hasBytecode || m.Base.IsAttribute() || m.Base.IsNative()
+	}
 
+	_, hasBytecode := m.Body.(*vm.BytecodeFunction)
 	return hasBytecode || m.IsAttribute()
 }
 
@@ -540,7 +629,7 @@ func inspectMethod(namespace Namespace, methodName value.Symbol) string {
 		return fmt.Sprintf("%s::%s", scope.Name(), methodName.String())
 	case *SingletonClass:
 		return fmt.Sprintf("%s::%s", scope.AttachedObject.Name(), methodName.String())
-	case *Closure:
+	case *Callable:
 		return "call"
 	case *MixinWithWhere:
 		return inspectMethod(scope.Namespace, methodName)

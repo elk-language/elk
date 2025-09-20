@@ -95,6 +95,10 @@ func (t *TypeParamNamespace) IsPrimitive() bool {
 	return true
 }
 
+func (t *TypeParamNamespace) IsNative() bool {
+	return false
+}
+
 func (t *TypeParamNamespace) IsGeneric() bool {
 	return false
 }
@@ -109,14 +113,6 @@ func (t *TypeParamNamespace) SetTypeParameters([]*TypeParameter) {
 
 func (t *TypeParamNamespace) Constants() ConstantMap {
 	return t.constants
-}
-
-func (t *TypeParamNamespace) MethodAliases() MethodAliasMap {
-	return nil
-}
-
-func (t *TypeParamNamespace) SetMethodAlias(name value.Symbol, method *Method) {
-	panic("cannot define method aliases on type param namespaces")
 }
 
 func (t *TypeParamNamespace) Constant(name value.Symbol) (Constant, bool) {

@@ -29,9 +29,16 @@ func (c *Checker) expandTopLevelMacrosInFile(filename string, node *ast.ProgramN
 	}
 
 	prevFilename := c.Filename
+	prevIsHeader := c.IsHeader()
+
 	c.Filename = filename
+	c.setIsHeaderForPath(filename)
+
 	c.expandTopLevelMacros(node.Body)
+
 	c.Filename = prevFilename
+	c.SetHeader(prevIsHeader)
+
 	node.State = ast.EXPANDED_TOP_LEVEL_MACROS
 }
 
@@ -209,10 +216,21 @@ func (c *Checker) resolveMacroForNamespace(namespace types.Namespace, name value
 	return nil
 }
 
+func macroName(namespace types.Namespace, name string) string {
+	var namespaceName string
+	switch n := namespace.(type) {
+	case *types.SingletonClass:
+		namespaceName = n.AttachedObject.Name()
+	default:
+		namespaceName = namespace.Name()
+	}
+	return fmt.Sprintf("%s::%s", namespaceName, name)
+}
+
 func (c *Checker) getMacroForNamespace(namespace types.Namespace, name value.Symbol, loc *position.Location) *types.Method {
 	macro := c.resolveMacroForNamespace(namespace, name)
 	if macro == nil {
-		c.addUndefinedMacroError(name.String(), loc)
+		c.addUndefinedMacroError(macroName(namespace, name.String()), loc)
 	}
 
 	return macro
@@ -222,7 +240,7 @@ func (c *Checker) addUndefinedMacroError(name string, loc *position.Location) {
 	c.addFailure(
 		fmt.Sprintf(
 			"undefined macro `%s`",
-			name,
+			lexer.Colorize(name),
 		),
 		loc,
 	)
@@ -702,7 +720,7 @@ func (c *Checker) registerMacroCheck(macro *types.Method, node *ast.MacroDefinit
 // Check macro definition bodies
 func (c *Checker) checkMacros() {
 	concurrent.Foreach(
-		concurrencyLimit,
+		MethodCheckConcurrencyLimit,
 		c.macroChecks,
 		func(macroCheck macroCheckEntry) {
 			macro := macroCheck.macro

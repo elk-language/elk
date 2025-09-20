@@ -23,6 +23,8 @@ import (
 var DefaultThreadPool = &ThreadPool{}
 var INIT_VALUE_STACK_SIZE int
 var MAX_VALUE_STACK_SIZE int
+var DEFAULT_THREAD_POOL_SIZE int
+var DEFAULT_THREAD_POOL_QUEUE_SIZE int
 
 func init() {
 	val, ok := config.IntFromEnvVar("ELK_INIT_VALUE_STACK_SIZE")
@@ -39,7 +41,20 @@ func init() {
 		MAX_VALUE_STACK_SIZE = 100_000_000 / int(value.ValueSize) // 100MB by default
 	}
 
-	DefaultThreadPool.initThreadPool(4, 256)
+	val, ok = config.IntFromEnvVar("ELK_DEFAULT_THREAD_POOL_SIZE")
+	if ok {
+		DEFAULT_THREAD_POOL_SIZE = val
+	} else {
+		DEFAULT_THREAD_POOL_SIZE = 4
+	}
+	val, ok = config.IntFromEnvVar("ELK_DEFAULT_THREAD_POOL_QUEUE_SIZE")
+	if ok {
+		DEFAULT_THREAD_POOL_QUEUE_SIZE = val
+	} else {
+		DEFAULT_THREAD_POOL_QUEUE_SIZE = 256
+	}
+
+	DefaultThreadPool.initThreadPool(DEFAULT_THREAD_POOL_SIZE, DEFAULT_THREAD_POOL_QUEUE_SIZE)
 }
 
 // VM state
@@ -177,13 +192,17 @@ func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	return vm.peek(), value.Undefined
 }
 
-func (vm *VM) PrintError() {
-	fmt.Fprint(vm.Stderr, vm.ErrStackTrace().String())
+func PrintError(stderr io.Writer, stackTrace *value.StackTrace, err value.Value) {
+	fmt.Fprint(stderr, stackTrace.String())
 	c := color.New(color.FgRed, color.Bold)
-	c.Fprint(vm.Stderr, "Error! Uncaught thrown value:")
-	fmt.Fprint(vm.Stderr, " ")
-	fmt.Fprintln(vm.Stderr, lexer.Colorize(vm.Err().Inspect()))
-	fmt.Fprintln(vm.Stderr)
+	c.Fprint(stderr, "Error! Uncaught thrown value:")
+	fmt.Fprint(stderr, " ")
+	fmt.Fprintln(stderr, lexer.Colorize(err.Inspect()))
+	fmt.Fprintln(stderr)
+}
+
+func (vm *VM) PrintError() {
+	PrintError(vm.Stderr, vm.ErrStackTrace(), vm.Err())
 }
 
 func (vm *VM) runWithState() {
@@ -462,6 +481,9 @@ func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
 	self := *vm.spAdd(-args - 1)
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
+	if method == nil {
+		fmt.Printf("name: %s, self: %s\n", name.String(), self.Inspect())
+	}
 	return vm.callMethodOnStack(method, args)
 }
 
@@ -665,8 +687,6 @@ func (vm *VM) run() {
 			vm.opInitNamespace()
 		case bytecode.DEF_METHOD:
 			vm.opDefMethod()
-		case bytecode.DEF_METHOD_ALIAS:
-			vm.opDefMethodAlias()
 		case bytecode.INCLUDE:
 			vm.throwIfErr(vm.opInclude())
 		case bytecode.DEF_IVARS:
@@ -1833,10 +1853,11 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 
 	panic(
 		fmt.Sprintf(
-			"tried to call a method that is neither bytecode nor native: %#v, %s in %s",
+			"tried to call a method that is neither bytecode nor native: %#v, %s in %s (%s)",
 			method,
 			callInfo.Name,
 			class.Name,
+			self.Inspect(),
 		),
 	)
 }
@@ -2230,24 +2251,10 @@ func (vm *VM) opInclude() (err value.Value) {
 	return value.Undefined
 }
 
-// Define a new method alias
-func (vm *VM) opDefMethodAlias() {
-	newName := vm.popGet().AsInlineSymbol()
-	oldName := vm.popGet().AsInlineSymbol()
-	methodContainer := vm.peek()
-
-	switch m := methodContainer.SafeAsReference().(type) {
-	case *value.Class:
-		m.Methods[newName] = m.Methods[oldName]
-	default:
-		panic(fmt.Sprintf("invalid method container: %s", methodContainer.Inspect()))
-	}
-}
-
 // Define a new method
 func (vm *VM) opDefMethod() {
 	name := vm.popGet().AsInlineSymbol()
-	body := vm.popGet().AsReference().(*BytecodeFunction)
+	body := vm.popGet().AsReference().(value.Method)
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {

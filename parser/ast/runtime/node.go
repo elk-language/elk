@@ -93,6 +93,19 @@ func initNode() {
 		},
 		vm.DefWithParameters(1),
 	)
+	vm.Def(
+		c,
+		"unhygienic",
+		func(vm *vm.VM, args []value.Value) (value.Value, value.Value) {
+			node := args[1].AsReference().(ast.Node)
+			result := ast.NewUnhygienicNode(
+				node.Location(),
+				node,
+			)
+			return value.Ref(result), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
 
 	// Std::Kernel
 	c = &value.KernelModule.SingletonClass().MethodContainer

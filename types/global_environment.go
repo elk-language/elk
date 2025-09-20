@@ -46,12 +46,30 @@ func (g *GlobalEnvironment) StdConst(name value.Symbol) Type {
 	return s.Type
 }
 
+func (g *GlobalEnvironment) ASTSubtype(name value.Symbol) Type {
+	elkMod := g.StdSubtypeModule(symbol.Elk)
+	astMod := elkMod.MustSubtype(symbol.AST).(*Module)
+	return astMod.MustSubtype(name)
+}
+
+func (g *GlobalEnvironment) ExpressionNode() *Mixin {
+	return g.ASTSubtype(symbol.ExpressionNode).(*Mixin)
+}
+
+func (g *GlobalEnvironment) PatternNode() *Mixin {
+	return g.ASTSubtype(symbol.PatternNode).(*Mixin)
+}
+
+func (g *GlobalEnvironment) TypeNode() *Mixin {
+	return g.ASTSubtype(symbol.TypeNode).(*Mixin)
+}
+
 func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	// -- Bootstrapping --
 
 	rootModule := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Root"),
-		defined:       true,
+		native:        true,
 	}
 	env := &GlobalEnvironment{
 		Root: rootModule,
@@ -60,7 +78,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	stdModule := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Std"),
-		defined:       true,
+		native:        true,
 	}
 	rootModule.DefineConstant(symbol.Root, rootModule)
 	rootModule.DefineSubtype(symbol.Root, rootModule)
@@ -70,7 +88,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	valueClass := &Class{
 		NamespaceBase: MakeNamespaceBase("", "Std::Value"),
-		defined:       true,
+		native:        true,
 	}
 	valueClass.primitive = true
 	stdModule.DefineSubtype(symbol.Value, valueClass)
@@ -78,14 +96,14 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	objectClass := &Class{
 		parent:        valueClass,
 		NamespaceBase: MakeNamespaceBase("", "Std::Object"),
-		defined:       true,
+		native:        true,
 	}
 	stdModule.DefineSubtype(symbol.Object, objectClass)
 
 	classClass := &Class{
 		parent:        objectClass,
 		NamespaceBase: MakeNamespaceBase("", "Std::Class"),
-		defined:       true,
+		native:        true,
 		noinit:        true,
 	}
 	stdModule.DefineSubtype(symbol.Class, classClass)

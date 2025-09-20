@@ -63,16 +63,18 @@ func newLocal(typ types.Type, initialised, singleAssignment bool) *local {
 
 // Contains definitions of local variables and values
 type localEnvironment struct {
-	parent *localEnvironment
-	locals map[value.Symbol]*local
-	index  int
+	parent        *localEnvironment
+	locals        map[value.Symbol]*local
+	index         int
+	macroBoundary bool
 }
 
 func (l *localEnvironment) copy() *localEnvironment {
 	return &localEnvironment{
-		parent: l.parent,
-		locals: l.locals,
-		index:  l.index,
+		parent:        l.parent,
+		locals:        l.locals,
+		index:         l.index,
+		macroBoundary: l.macroBoundary,
 	}
 }
 
@@ -83,11 +85,11 @@ func (l *localEnvironment) getLocal(name string) *local {
 }
 
 // Resolve the local with the given name from this local environment or any parent environment
-func (l *localEnvironment) resolveLocal(name string) (*local, bool) {
+func (l *localEnvironment) resolveLocal(name string, unhygienic bool) (*local, bool) {
 	nameSymbol := value.ToSymbol(name)
 	currentEnv := l
 	for {
-		if currentEnv == nil {
+		if currentEnv == nil || currentEnv.macroBoundary && !unhygienic {
 			return nil, false
 		}
 		loc, ok := currentEnv.locals[nameSymbol]
@@ -98,10 +100,11 @@ func (l *localEnvironment) resolveLocal(name string) (*local, bool) {
 	}
 }
 
-func newLocalEnvironment(parent *localEnvironment) *localEnvironment {
+func newLocalEnvironment(parent *localEnvironment, macroBoundary bool) *localEnvironment {
 	return &localEnvironment{
-		parent: parent,
-		locals: make(map[value.Symbol]*local),
+		parent:        parent,
+		locals:        make(map[value.Symbol]*local),
+		macroBoundary: macroBoundary,
 	}
 }
 
@@ -110,11 +113,15 @@ func (c *Checker) popLocalEnv() {
 }
 
 func (c *Checker) pushNestedLocalEnv() {
-	c.pushLocalEnv(newLocalEnvironment(c.currentLocalEnv()))
+	c.pushLocalEnv(newLocalEnvironment(c.currentLocalEnv(), false))
 }
 
 func (c *Checker) pushIsolatedLocalEnv() {
-	c.pushLocalEnv(newLocalEnvironment(nil))
+	c.pushLocalEnv(newLocalEnvironment(nil, false))
+}
+
+func (c *Checker) pushMacroBoundaryLocalEnv() {
+	c.pushLocalEnv(newLocalEnvironment(c.currentLocalEnv(), true))
 }
 
 func (c *Checker) pushLocalEnv(env *localEnvironment) {
@@ -147,7 +154,7 @@ func (c *Checker) getLocal(name string) *local {
 // Resolve the local with the given name from the current local environment or any parent environment
 func (c *Checker) resolveLocal(name string, location *position.Location) (*local, bool) {
 	env := c.currentLocalEnv()
-	local, inCurrentEnv := env.resolveLocal(name)
+	local, inCurrentEnv := env.resolveLocal(name, c.isUnhygienic())
 	if local == nil {
 		c.addFailure(
 			fmt.Sprintf("undefined local `%s`", name),
@@ -162,8 +169,9 @@ func (c *Checker) deepCopyLocalEnvs(oldEnv, newEnv *types.GlobalEnvironment) []*
 
 	for _, localEnv := range c.localEnvs {
 		newLocalEnv := &localEnvironment{
-			index:  localEnv.index,
-			locals: make(map[value.Symbol]*local),
+			index:         localEnv.index,
+			locals:        make(map[value.Symbol]*local),
+			macroBoundary: localEnv.macroBoundary,
 		}
 		if localEnv.parent != nil {
 			newLocalEnv.parent = newLocalEnvs[localEnv.parent.index]

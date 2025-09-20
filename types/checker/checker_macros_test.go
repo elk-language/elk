@@ -1,4 +1,4 @@
-package checker
+package checker_test
 
 import (
 	"testing"
@@ -92,34 +92,34 @@ func TestUnquote(t *testing.T) {
 		"report an error when the argument to unquote is not expression node convertible": {
 			input: `
 				quote
-					a + unquote(Time.now)
+					a + unquote(DateTime.now)
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(36, 3, 26)), "type `Std::Time` does not implement interface `Std::Elk::AST::ExpressionNode::Convertible`:\n\n  - missing method `Std::Elk::AST::ExpressionNode::Convertible.:to_ast_expr_node` with signature: `def to_ast_expr_node(): Std::Elk::AST::ExpressionNode`"),
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(36, 3, 26)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::ExpressionNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(40, 3, 30)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::ExpressionNode::Convertible`:\n\n  - missing method `Std::Elk::AST::ExpressionNode::Convertible.:to_ast_expr_node` with signature: `def to_ast_expr_node(): Std::Elk::AST::ExpressionNode`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(40, 3, 30)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::ExpressionNode::Convertible`"),
 			},
 		},
 		"report an error when the argument to unquote_expr is not expression node convertible": {
 			input: `
 				quote
-					a + unquote_expr(Time.now)
+					a + unquote_expr(DateTime.now)
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(41, 3, 31)), "type `Std::Time` does not implement interface `Std::Elk::AST::ExpressionNode::Convertible`:\n\n  - missing method `Std::Elk::AST::ExpressionNode::Convertible.:to_ast_expr_node` with signature: `def to_ast_expr_node(): Std::Elk::AST::ExpressionNode`"),
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(41, 3, 31)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::ExpressionNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(45, 3, 35)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::ExpressionNode::Convertible`:\n\n  - missing method `Std::Elk::AST::ExpressionNode::Convertible.:to_ast_expr_node` with signature: `def to_ast_expr_node(): Std::Elk::AST::ExpressionNode`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(45, 3, 35)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::ExpressionNode::Convertible`"),
 			},
 		},
 		"report an error when the argument to short unquote is not expression node convertible": {
 			input: `
 				quote
-					a + !{Time.now}
+					a + !{DateTime.now}
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(30, 3, 20)), "type `Std::Time` does not implement interface `Std::Elk::AST::ExpressionNode::Convertible`:\n\n  - missing method `Std::Elk::AST::ExpressionNode::Convertible.:to_ast_expr_node` with signature: `def to_ast_expr_node(): Std::Elk::AST::ExpressionNode`"),
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(30, 3, 20)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::ExpressionNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(34, 3, 24)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::ExpressionNode::Convertible`:\n\n  - missing method `Std::Elk::AST::ExpressionNode::Convertible.:to_ast_expr_node` with signature: `def to_ast_expr_node(): Std::Elk::AST::ExpressionNode`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(34, 3, 24)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::ExpressionNode::Convertible`"),
 			},
 		},
 
@@ -133,34 +133,34 @@ func TestUnquote(t *testing.T) {
 		"report an error when the argument to unquote is not identifier node convertible": {
 			input: `
 				quote
-					var unquote(Time.now): String
+					var unquote(DateTime.now): String
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(36, 3, 26)), "type `Std::Time` does not implement interface `Std::Elk::AST::IdentifierNode::Convertible`:\n\n  - missing method `Std::Elk::AST::IdentifierNode::Convertible.:to_ast_ident_node` with signature: `def to_ast_ident_node(): Std::Elk::AST::IdentifierNode`"),
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(36, 3, 26)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::IdentifierNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(40, 3, 30)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::IdentifierNode::Convertible`:\n\n  - missing method `Std::Elk::AST::IdentifierNode::Convertible.:to_ast_ident_node` with signature: `def to_ast_ident_node(): Std::Elk::AST::IdentifierNode`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(40, 3, 30)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::IdentifierNode::Convertible`"),
 			},
 		},
 		"report an error when the argument to unquote_ident is not identifier node convertible": {
 			input: `
 				quote
-					var unquote_ident(Time.now): String
+					var unquote_ident(DateTime.now): String
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(42, 3, 32)), "type `Std::Time` does not implement interface `Std::Elk::AST::IdentifierNode::Convertible`:\n\n  - missing method `Std::Elk::AST::IdentifierNode::Convertible.:to_ast_ident_node` with signature: `def to_ast_ident_node(): Std::Elk::AST::IdentifierNode`"),
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(42, 3, 32)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::IdentifierNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(46, 3, 36)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::IdentifierNode::Convertible`:\n\n  - missing method `Std::Elk::AST::IdentifierNode::Convertible.:to_ast_ident_node` with signature: `def to_ast_ident_node(): Std::Elk::AST::IdentifierNode`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(46, 3, 36)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::IdentifierNode::Convertible`"),
 			},
 		},
 		"report an error when the argument to short unquote is not identifier node convertible": {
 			input: `
 				quote
-					var !{Time.now}: String
+					var !{DateTime.now}: String
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(30, 3, 20)), "type `Std::Time` does not implement interface `Std::Elk::AST::IdentifierNode::Convertible`:\n\n  - missing method `Std::Elk::AST::IdentifierNode::Convertible.:to_ast_ident_node` with signature: `def to_ast_ident_node(): Std::Elk::AST::IdentifierNode`"),
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(30, 3, 20)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::IdentifierNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(34, 3, 24)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::IdentifierNode::Convertible`:\n\n  - missing method `Std::Elk::AST::IdentifierNode::Convertible.:to_ast_ident_node` with signature: `def to_ast_ident_node(): Std::Elk::AST::IdentifierNode`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(34, 3, 24)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::IdentifierNode::Convertible`"),
 			},
 		},
 
@@ -174,23 +174,23 @@ func TestUnquote(t *testing.T) {
 		"report an error when the argument to unquote is not pattern expression node convertible": {
 			input: `
 				quote
-					var ^[unquote(Time.now)] = "foo"
+					var ^[unquote(DateTime.now)] = "foo"
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(38, 3, 28)), "type `Std::Time` does not implement interface `Std::Elk::AST::PatternExpressionNode::Convertible`:\n\n  - missing method `Std::Elk::AST::PatternExpressionNode::Convertible.:to_ast_pattern_expr_node` with signature: `def to_ast_pattern_expr_node(): Std::Elk::AST::PatternExpressionNode`"),
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(38, 3, 28)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::PatternExpressionNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(42, 3, 32)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::PatternExpressionNode::Convertible`:\n\n  - missing method `Std::Elk::AST::PatternExpressionNode::Convertible.:to_ast_pattern_expr_node` with signature: `def to_ast_pattern_expr_node(): Std::Elk::AST::PatternExpressionNode`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(42, 3, 32)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::PatternExpressionNode::Convertible`"),
 			},
 		},
 		"report an error when the argument to short unquote is not pattern expression node convertible": {
 			input: `
 				quote
-					var ^[!{Time.now}] = "foo"
+					var ^[!{DateTime.now}] = "foo"
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(32, 3, 22)), "type `Std::Time` does not implement interface `Std::Elk::AST::PatternExpressionNode::Convertible`:\n\n  - missing method `Std::Elk::AST::PatternExpressionNode::Convertible.:to_ast_pattern_expr_node` with signature: `def to_ast_pattern_expr_node(): Std::Elk::AST::PatternExpressionNode`"),
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(32, 3, 22)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::PatternExpressionNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(36, 3, 26)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::PatternExpressionNode::Convertible`:\n\n  - missing method `Std::Elk::AST::PatternExpressionNode::Convertible.:to_ast_pattern_expr_node` with signature: `def to_ast_pattern_expr_node(): Std::Elk::AST::PatternExpressionNode`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(36, 3, 26)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::PatternExpressionNode::Convertible`"),
 			},
 		},
 
@@ -204,34 +204,34 @@ func TestUnquote(t *testing.T) {
 		"report an error when the argument to unquote is not constant node convertible": {
 			input: `
 				quote
-					const unquote(Time.now) = "foo"
+					const unquote(DateTime.now) = "foo"
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(38, 3, 28)), "type `Std::Time` does not implement interface `Std::Elk::AST::ConstantNode::Convertible`:\n\n  - missing method `Std::Elk::AST::ConstantNode::Convertible.:to_ast_const_node` with signature: `def to_ast_const_node(): Std::Elk::AST::ConstantNode`"),
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(38, 3, 28)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::ConstantNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(42, 3, 32)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::ConstantNode::Convertible`:\n\n  - missing method `Std::Elk::AST::ConstantNode::Convertible.:to_ast_const_node` with signature: `def to_ast_const_node(): Std::Elk::AST::ConstantNode`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(42, 3, 32)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::ConstantNode::Convertible`"),
 			},
 		},
 		"report an error when the argument to unquote_const is not constant node convertible": {
 			input: `
 				quote
-					const unquote_const(Time.now) = "foo"
+					const unquote_const(DateTime.now) = "foo"
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(44, 3, 34)), "type `Std::Time` does not implement interface `Std::Elk::AST::ConstantNode::Convertible`:\n\n  - missing method `Std::Elk::AST::ConstantNode::Convertible.:to_ast_const_node` with signature: `def to_ast_const_node(): Std::Elk::AST::ConstantNode`"),
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(44, 3, 34)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::ConstantNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(48, 3, 38)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::ConstantNode::Convertible`:\n\n  - missing method `Std::Elk::AST::ConstantNode::Convertible.:to_ast_const_node` with signature: `def to_ast_const_node(): Std::Elk::AST::ConstantNode`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(48, 3, 38)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::ConstantNode::Convertible`"),
 			},
 		},
 		"report an error when the argument to short unquote is not constant node convertible": {
 			input: `
 				quote
-					const !{Time.now} = "foo"
+					const !{DateTime.now} = "foo"
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(32, 3, 22)), "type `Std::Time` does not implement interface `Std::Elk::AST::ConstantNode::Convertible`:\n\n  - missing method `Std::Elk::AST::ConstantNode::Convertible.:to_ast_const_node` with signature: `def to_ast_const_node(): Std::Elk::AST::ConstantNode`"),
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(32, 3, 22)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::ConstantNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(36, 3, 26)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::ConstantNode::Convertible`:\n\n  - missing method `Std::Elk::AST::ConstantNode::Convertible.:to_ast_const_node` with signature: `def to_ast_const_node(): Std::Elk::AST::ConstantNode`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(36, 3, 26)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::ConstantNode::Convertible`"),
 			},
 		},
 
@@ -245,34 +245,34 @@ func TestUnquote(t *testing.T) {
 		"report an error when the argument to unquote is not pattern node convertible": {
 			input: `
 				quote
-					var [unquote(Time.now)] = "foo"
+					var [unquote(DateTime.now)] = "foo"
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(21, 3, 11), P(37, 3, 27)), "type `Std::Time` does not implement interface `Std::Elk::AST::PatternNode::Convertible`:\n\n  - missing method `Std::Elk::AST::PatternNode::Convertible.:to_ast_pattern_node` with signature: `def to_ast_pattern_node(): Std::Elk::AST::PatternNode`"),
-				diagnostic.NewFailure(L("<main>", P(21, 3, 11), P(37, 3, 27)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::PatternNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(21, 3, 11), P(41, 3, 31)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::PatternNode::Convertible`:\n\n  - missing method `Std::Elk::AST::PatternNode::Convertible.:to_ast_pattern_node` with signature: `def to_ast_pattern_node(): Std::Elk::AST::PatternNode`"),
+				diagnostic.NewFailure(L("<main>", P(21, 3, 11), P(41, 3, 31)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::PatternNode::Convertible`"),
 			},
 		},
 		"report an error when the argument to unquote_pattern is not pattern node convertible": {
 			input: `
 				quote
-					var [unquote_pattern(Time.now)] = "foo"
+					var [unquote_pattern(DateTime.now)] = "foo"
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(21, 3, 11), P(45, 3, 35)), "type `Std::Time` does not implement interface `Std::Elk::AST::PatternNode::Convertible`:\n\n  - missing method `Std::Elk::AST::PatternNode::Convertible.:to_ast_pattern_node` with signature: `def to_ast_pattern_node(): Std::Elk::AST::PatternNode`"),
-				diagnostic.NewFailure(L("<main>", P(21, 3, 11), P(45, 3, 35)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::PatternNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(21, 3, 11), P(49, 3, 39)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::PatternNode::Convertible`:\n\n  - missing method `Std::Elk::AST::PatternNode::Convertible.:to_ast_pattern_node` with signature: `def to_ast_pattern_node(): Std::Elk::AST::PatternNode`"),
+				diagnostic.NewFailure(L("<main>", P(21, 3, 11), P(49, 3, 39)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::PatternNode::Convertible`"),
 			},
 		},
 		"report an error when the argument to short unquote is not pattern node convertible": {
 			input: `
 				quote
-					var [!{Time.now}] = "foo"
+					var [!{DateTime.now}] = "foo"
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(21, 3, 11), P(31, 3, 21)), "type `Std::Time` does not implement interface `Std::Elk::AST::PatternNode::Convertible`:\n\n  - missing method `Std::Elk::AST::PatternNode::Convertible.:to_ast_pattern_node` with signature: `def to_ast_pattern_node(): Std::Elk::AST::PatternNode`"),
-				diagnostic.NewFailure(L("<main>", P(21, 3, 11), P(31, 3, 21)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::PatternNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(21, 3, 11), P(35, 3, 25)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::PatternNode::Convertible`:\n\n  - missing method `Std::Elk::AST::PatternNode::Convertible.:to_ast_pattern_node` with signature: `def to_ast_pattern_node(): Std::Elk::AST::PatternNode`"),
+				diagnostic.NewFailure(L("<main>", P(21, 3, 11), P(35, 3, 25)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::PatternNode::Convertible`"),
 			},
 		},
 
@@ -286,12 +286,12 @@ func TestUnquote(t *testing.T) {
 		"report an error when the argument to unquote_ivar is not pattern node convertible": {
 			input: `
 				quote
-					var unquote_ivar(Time.now): String?
+					var unquote_ivar(DateTime.now): String?
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(41, 3, 31)), "type `Std::Time` does not implement interface `Std::Elk::AST::InstanceVariableNode::Convertible`:\n\n  - missing method `Std::Elk::AST::InstanceVariableNode::Convertible.:to_ast_ivar_node` with signature: `def to_ast_ivar_node(): Std::Elk::AST::ExpressionNode`"),
-				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(41, 3, 31)), "type `Std::Time` cannot be assigned to type `Std::Elk::AST::InstanceVariableNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(45, 3, 35)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::InstanceVariableNode::Convertible`:\n\n  - missing method `Std::Elk::AST::InstanceVariableNode::Convertible.:to_ast_ivar_node` with signature: `def to_ast_ivar_node(): Std::Elk::AST::ExpressionNode`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 10), P(45, 3, 35)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::InstanceVariableNode::Convertible`"),
 			},
 		},
 	}
@@ -550,7 +550,7 @@ func TestExpandMacro(t *testing.T) {
 				timeout := Foo::fib!(15) + 2
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(41, 3, 21), P(43, 3, 23)), "undefined macro `fib!`"),
+				diagnostic.NewFailure(L("<main>", P(41, 3, 21), P(43, 3, 23)), "undefined macro `Foo::fib!`"),
 			},
 		},
 		"inherit a macro": {

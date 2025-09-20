@@ -59,11 +59,11 @@ func initKernel() {
 		"sleep",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			durationVal := args[1]
-			var duration value.Duration
+			var duration value.TimeSpan
 			if durationVal.IsReference() {
-				duration = durationVal.AsReference().(value.Duration)
+				duration = durationVal.AsReference().(value.TimeSpan)
 			} else {
-				duration = durationVal.AsInlineDuration()
+				duration = durationVal.AsInlineTimeSpan()
 			}
 
 			time.Sleep(duration.Go())
@@ -78,11 +78,11 @@ func initKernel() {
 		"timeout",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			durationVal := args[1]
-			var duration value.Duration
+			var duration value.TimeSpan
 			if durationVal.IsReference() {
-				duration = durationVal.AsReference().(value.Duration)
+				duration = durationVal.AsReference().(value.TimeSpan)
 			} else {
-				duration = durationVal.AsInlineDuration()
+				duration = durationVal.AsInlineTimeSpan()
 			}
 
 			p := NewExternalPromise(vm.threadPool)

@@ -155,6 +155,80 @@ func NewInt64LiteralNode(loc *position.Location, val string) *Int64LiteralNode {
 	}
 }
 
+// UInt literal eg. `5u`, `125_355u`, `0xffu`
+type UIntLiteralNode struct {
+	TypedNodeBase
+	Value string
+}
+
+func (n *UIntLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UIntLiteralNode", env)
+}
+
+func (n *UIntLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	return &UIntLiteralNode{
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Value:         n.Value,
+	}
+}
+
+func (n *UIntLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	return leave(n, parent)
+}
+
+func (n *UIntLiteralNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UIntLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value &&
+		n.loc.Equal(o.loc)
+}
+
+func (n *UIntLiteralNode) String() string {
+	return fmt.Sprintf("%su", n.Value)
+}
+
+func (*UIntLiteralNode) IsStatic() bool {
+	return true
+}
+
+func (*UIntLiteralNode) Class() *value.Class {
+	return value.UIntLiteralNodeClass
+}
+
+func (*UIntLiteralNode) DirectClass() *value.Class {
+	return value.UIntLiteralNodeClass
+}
+
+func (n *UIntLiteralNode) Inspect() string {
+	return fmt.Sprintf(
+		"Std::Elk::AST::UIntLiteralNode{location: %s, value: %s}",
+		(*value.Location)(n.loc).Inspect(),
+		n.Value,
+	)
+}
+
+func (n *UIntLiteralNode) Error() string {
+	return n.Inspect()
+}
+
+// Create a new UInt literal node eg. `5u`, `125_355u`, `0xffu`
+func NewUIntLiteralNode(loc *position.Location, val string) *UIntLiteralNode {
+	return &UIntLiteralNode{
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		Value:         val,
+	}
+}
+
 // UInt64 literal eg. `5u64`, `125_355u64`, `0xffu64`
 type UInt64LiteralNode struct {
 	TypedNodeBase

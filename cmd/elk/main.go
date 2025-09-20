@@ -1,14 +1,20 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
+	"path"
 
 	"path/filepath"
 
 	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/ext"
+	"github.com/elk-language/elk/ext/std/test"
+	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/repl"
+	"github.com/elk-language/elk/types/checker"
+	"github.com/elk-language/elk/vm"
+	"github.com/spf13/pflag"
 )
 
 // Main entry point to the interpreter.
@@ -16,7 +22,7 @@ func main() {
 	command := os.Args[1]
 	switch command {
 	case "repl":
-		fs := flag.NewFlagSet("repl", flag.ContinueOnError)
+		fs := pflag.NewFlagSet("repl", pflag.ExitOnError)
 		disassemble := fs.Bool("disassemble", false, "run the REPL in disassembler mode")
 		inspectStack := fs.Bool("inspect-stack", false, "print the stack after each iteration of the REPL")
 		parse := fs.Bool("parse", false, "run the REPL in parser mode")
@@ -26,7 +32,19 @@ func main() {
 		fs.Parse(os.Args[2:])
 		repl.Run(*disassemble, *inspectStack, *parse, *lex, *typecheck, *expand)
 	case "run":
-		runFile(os.Args[2])
+		if len(os.Args) < 3 {
+			runMain()
+		} else {
+			runFile(os.Args[2])
+		}
+	case "test":
+		fs := pflag.NewFlagSet("test", pflag.ExitOnError)
+		main := fs.String("main", "main.elk.test", "specify the main test file that loads tests")
+		grep := fs.String("grep", "", "test name filter regex pattern")
+		path := fs.StringSliceP("path", "p", []string{}, "test file name glob with an optional line number")
+		fs.Parse(os.Args[2:])
+
+		runTest(*main, *grep, *path)
 	default:
 		os.Exit(64)
 	}
@@ -44,36 +62,69 @@ func runFile(fileName string) {
 		fmt.Fprintf(os.Stderr, "Could not find file `%s`\n", absFileName)
 		os.Exit(1)
 	}
-	source, err := os.ReadFile(absFileName)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not read file `%s`\n", absFileName)
-		os.Exit(1)
+
+	bytecode, diagnostics := checker.CheckFile(fileName, nil, false, nil)
+	if diagnostics != nil {
+		fmt.Println()
+
+		diagnosticString, err := diagnostics.HumanString(true, lexer.Colorizer{})
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(diagnosticString)
+		if diagnostics.IsFailure() {
+			os.Exit(1)
+		}
 	}
 
-	runSourceWithName(absFileName, source)
+	v := vm.New()
+	_, elkErr := v.InterpretTopLevel(bytecode)
+	if !elkErr.IsUndefined() {
+		vm.PrintError(os.Stderr, v.ErrStackTrace(), elkErr)
+		os.Exit(1)
+	}
 }
 
-// Run the given string of source code with
-// the specified name.
-func runSourceWithName(sourceName string, source []byte) {
-	// ast, err := parser.Parse(source)
-	// pp.Println(ast)
-	// pp.Println(err)
+// Attempt to execute the main file in the current working directory
+func runMain() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
 
-	// lex := lexer.NewWithName(sourceName, source)
-	// for {
-	// 	token := lex.Next()
-	// 	pp.Println(token)
-
-	// 	if token.Type == token.END_OF_FILE {
-	// 		break
-	// 	}
-	// }
-
+	mainPath := path.Join(cwd, "main.elk")
+	runFile(mainPath)
 }
 
-// Run the given slice of bytes containing
-// Elk source code.
-func runSource(source []byte) {
-	runSourceWithName("(eval)", source)
+func runTest(main string, grep string, paths []string) {
+	if grep != "" {
+		regexFilter, err := test.NewRegexFilter(grep)
+		if err != nil {
+			fmt.Printf("invalid grep: %s\n", err)
+			os.Exit(1)
+		}
+		test.RegisterFilter(regexFilter)
+	}
+	for _, path := range paths {
+		pathFilter, err := test.NewPathFilter(path)
+		if err != nil {
+			fmt.Printf("invalid path: %s\n", err)
+			os.Exit(1)
+		}
+		test.RegisterFilter(pathFilter)
+	}
+	runTestFile(main)
+}
+
+func runTestFile(fileName string) {
+	runFile(fileName)
+	testExt := ext.Map["std/test"]
+	if !testExt.Initialised {
+		testExt.RuntimeInit()
+	}
+
+	report := test.Run()
+	if report == nil || report.Status() != test.TEST_SUCCESS {
+		os.Exit(1)
+	}
 }

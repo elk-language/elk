@@ -58,6 +58,11 @@ const (
 	regexLiteralMode       // Triggered after consuming the initial token `%/` of a regex literal
 	regexFlagMode          // Triggered during the lexing of regex literal flags
 	regexInterpolationMode // Triggered after consuming the initial token `${` of regex interpolation
+
+	embellishmentMode             // used when coloring strings with bits of Elk code in backticks like "foo `1 + 2` bar"
+	embellishedBacktickMode       // triggered after encountering a backtick when lexing embellished text
+	embellishedDoubleBacktickMode // triggered after encountering a double backtick when lexing embellished text
+	embellishedTripleBacktickMode // triggered after encountering a triple backtick when lexing embellished text
 )
 
 // Holds the current state of the lexing process.
@@ -94,6 +99,34 @@ func (c Colorizer) Colorize(source string) (string, error) {
 // Lex the given string and construct a new one colouring every token.
 func Colorize(source string) string {
 	l := New(source)
+
+	var result strings.Builder
+	var previousEnd int
+	for {
+		tok := l.Next()
+		if tok.Type == token.END_OF_FILE {
+			missing := source[previousEnd:]
+			if len(missing) > 0 {
+				result.WriteString(missing)
+			}
+			break
+		}
+		span := tok.Span()
+		between := source[previousEnd:span.StartPos.ByteOffset]
+		result.WriteString(between)
+
+		c := color.New(tok.AnsiStyling()...)
+		lexeme := source[span.StartPos.ByteOffset : span.EndPos.ByteOffset+1]
+		result.WriteString(c.Sprint(lexeme))
+		previousEnd = span.EndPos.ByteOffset + 1
+	}
+	return result.String()
+}
+
+// Lex the given string and construct a new one colouring every token.
+// Used for text with bits of Elk code in backticks like "foo `1 + 2` bar"
+func ColorizeEmbellishedText(source string) string {
+	l := NewWithMode("<main>", source, embellishmentMode)
 
 	var result strings.Builder
 	var previousEnd int
@@ -155,6 +188,11 @@ func New(source string) *Lexer {
 
 // Same as [New] but lets you specify the path to the source code file.
 func NewWithName(sourceName string, source string) *Lexer {
+	return NewWithMode(sourceName, source, normalMode)
+}
+
+// Same as [New] but lets you specify the path to the source code file.
+func NewWithMode(sourceName string, source string, m mode) *Lexer {
 	return &Lexer{
 		sourceName:  sourceName,
 		source:      source,
@@ -162,7 +200,7 @@ func NewWithName(sourceName string, source string) *Lexer {
 		startLine:   1,
 		column:      1,
 		startColumn: 1,
-		modeStack:   []mode{normalMode},
+		modeStack:   []mode{m},
 	}
 }
 
@@ -227,7 +265,10 @@ func (l *Lexer) popMode() {
 // Attempts to scan and construct the next token.
 func (l *Lexer) scanToken() *token.Token {
 	switch l.mode() {
-	case normalMode, stringInterpolationMode, regexInterpolationMode:
+	case embellishmentMode:
+		return l.scanEmbellishedText()
+	case normalMode, stringInterpolationMode, regexInterpolationMode,
+		embellishedBacktickMode, embellishedDoubleBacktickMode, embellishedTripleBacktickMode:
 		return l.scanNormal(false)
 	case afterMethodCallOperatorMode:
 		l.popMode()
@@ -1064,6 +1105,10 @@ func (l *Lexer) numberLiteral(startDigit rune) *token.Token {
 		return l.lexError("invalid sized integer literal")
 	case 'u':
 		l.advanceChar()
+		if !isDigit(l.peekChar()) {
+			return l.tokenWithValue(token.UINT, lexeme.String())
+		}
+
 		switch ch, _ := l.advanceChar(); ch {
 		case '6':
 			if l.matchChar('4') {
@@ -1794,6 +1839,37 @@ func (l *Lexer) scanRegexLiteral() *token.Token {
 	return l.scanRegexLiteralContent()
 }
 
+func (l *Lexer) scanEmbellishedText() *token.Token {
+	var result strings.Builder
+loop:
+	for {
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.tokenWithValue(token.TEXT, result.String())
+		}
+
+		switch char {
+		case '`':
+			if l.matchChar('`') {
+				if l.matchChar('`') {
+					l.pushMode(embellishedTripleBacktickMode)
+					break loop
+				}
+				l.pushMode(embellishedDoubleBacktickMode)
+				break loop
+			}
+
+			l.pushMode(embellishedBacktickMode)
+			break loop
+		case '\n':
+			l.incrementLine()
+		}
+		result.WriteRune(char)
+	}
+
+	return l.tokenWithValue(token.TEXT, result.String())
+}
+
 // Scan characters in normal mode.
 func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 	for {
@@ -2157,19 +2233,25 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			}
 			fallthrough
 		case '%':
-			if l.matchChar('/') {
+			switch l.peekChar() {
+			case '|':
+				l.advanceChar()
+				return l.token(token.CLOSURE_TYPE_BEG)
+			case '/':
+				l.advanceChar()
 				l.pushMode(regexLiteralMode)
 				return l.token(token.REGEX_BEG)
-			}
-			if l.matchChar('[') {
+			case '[':
+				l.advanceChar()
 				return l.token(token.TUPLE_LITERAL_BEG)
-			}
-			if l.matchChar('{') {
+			case '{':
+				l.advanceChar()
 				return l.token(token.RECORD_LITERAL_BEG)
-			}
-			if l.matchChar('=') {
+			case '=':
+				l.advanceChar()
 				return l.token(token.PERCENT_EQUAL)
 			}
+
 			if l.acceptChar('w') {
 				if l.acceptNextChar('[') {
 					l.advanceChars(2)
@@ -2224,6 +2306,22 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 				l.swallowSingleLineComment()
 			}
 		case '`':
+			switch l.mode() {
+			case embellishedBacktickMode:
+				l.popMode()
+				return l.scanEmbellishedText()
+			case embellishedDoubleBacktickMode:
+				if l.matchChar('`') {
+					l.popMode()
+					return l.scanEmbellishedText()
+				}
+			case embellishedTripleBacktickMode:
+				if l.acceptCharsN("`", 2) {
+					l.advanceChars(2)
+					l.popMode()
+					return l.scanEmbellishedText()
+				}
+			}
 			return l.character()
 		case 'r':
 			if l.matchChar('`') {

@@ -9,19 +9,19 @@ import (
 // Strict numerics are sized and cannot be automatically coerced
 // to other types.
 type StrictNumeric interface {
-	Float64 | Float32 | Int64 | Int32 | Int16 | Int8 | UInt64 | UInt32 | UInt16 | UInt8
+	Float64 | Float32 | Int64 | Int32 | Int16 | Int8 | UInt | UInt64 | UInt32 | UInt16 | UInt8
 }
 
 // Strict integers are sized and cannot be automatically coerced
 // to other types.
 type StrictInt interface {
-	Int64 | Int32 | Int16 | Int8 | UInt64 | UInt32 | UInt16 | UInt8
+	Int64 | Int32 | Int16 | Int8 | UInt | UInt64 | UInt32 | UInt16 | UInt8
 }
 
 // Strict unsigned integers are sized and cannot be automatically coerced
 // to other types.
 type StrictUnsignedInt interface {
-	UInt64 | UInt32 | UInt16 | UInt8
+	UInt | UInt64 | UInt32 | UInt16 | UInt8
 }
 
 // Strict signed integers are sized and cannot be automatically coerced

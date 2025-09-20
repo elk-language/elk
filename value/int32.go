@@ -57,9 +57,9 @@ func (i Int32) ToFloat32() Float32 {
 	return Float32(i)
 }
 
-// Convert to Elk Int32.
-func (i Int32) ToInt32() Int32 {
-	return Int32(i)
+// Convert to Elk Int64.
+func (i Int32) ToInt64() Int64 {
+	return Int64(i)
 }
 
 // Convert to Elk Int16.
@@ -75,6 +75,11 @@ func (i Int32) ToInt8() Int8 {
 // Convert to Elk UInt32.
 func (i Int32) ToUInt32() UInt32 {
 	return UInt32(i)
+}
+
+// Convert to Elk UInt.
+func (i Int32) ToUInt() UInt {
+	return UInt(i)
 }
 
 // Convert to Elk UInt64.

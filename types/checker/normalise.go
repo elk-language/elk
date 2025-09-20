@@ -23,8 +23,8 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 			return p
 		}
 		return arg.Type
-	case *types.Closure:
-		g, ok := givenType.(*types.Closure)
+	case *types.Callable:
+		g, ok := givenType.(*types.Callable)
 		if !ok {
 			return p
 		}
@@ -68,7 +68,7 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		}
 
 		if isDifferent {
-			closure := types.NewClosure(nil)
+			closure := types.NewCallable(nil, p.IsClosure)
 			newMethod := types.NewMethod(
 				pMethod.DocComment,
 				pMethod.Flags.ToBitFlag(),
@@ -87,6 +87,9 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		typeArg := typeArgMap[p.Name]
 		if typeArg != nil {
 			return typeArg.Type
+		}
+		if givenType == nil {
+			return nil
 		}
 
 		inferredType := c.ToNonLiteral(givenType, false)
@@ -109,7 +112,22 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 	case *types.Generic:
 		g, ok := givenType.(*types.Generic)
 		if !ok {
-			return p
+			newArgMap := make(types.TypeArgumentMap, len(p.ArgumentMap))
+			for _, argName := range p.ArgumentOrder {
+				pArg := p.ArgumentMap[argName]
+				result := c.inferTypeArguments(nil, pArg.Type, typeArgMap, errLocation)
+				if result == nil {
+					return p
+				}
+				newArgMap[argName] = types.NewTypeArgument(result, pArg.Variance)
+			}
+			return types.NewGeneric(
+				p.Namespace,
+				types.NewTypeArguments(
+					newArgMap,
+					p.ArgumentOrder,
+				),
+			)
 		}
 		if !c.isSubtype(g.Namespace, p.Namespace, nil) {
 			return p
@@ -492,7 +510,7 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 		return types.NewInstanceOf(
 			result,
 		)
-	case *types.Closure:
+	case *types.Callable:
 		newParams := make([]*types.Parameter, len(t.Body.Params))
 		var isDifferent bool
 		for i, param := range t.Body.Params {
@@ -525,7 +543,7 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 		method.ReturnType = returnType
 		method.ThrowType = throwType
 
-		closure := types.NewClosure(method)
+		closure := types.NewCallable(method, t.IsClosure)
 		method.DefinedUnder = closure
 		return closure
 	case *types.Generic:
@@ -631,7 +649,7 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeAr
 		return types.NewInstanceOf(
 			result,
 		)
-	case *types.Closure:
+	case *types.Callable:
 		newParams := make([]*types.Parameter, len(t.Body.Params))
 		var isDifferent bool
 		for i, param := range t.Body.Params {
@@ -664,7 +682,7 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeAr
 		method.ReturnType = returnType
 		method.ThrowType = throwType
 
-		closure := types.NewClosure(method)
+		closure := types.NewCallable(method, t.IsClosure)
 		method.DefinedUnder = closure
 		return closure
 	case *types.Generic:

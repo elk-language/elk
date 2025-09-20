@@ -55,18 +55,30 @@ func BigFloatNegInf() *BigFloat {
 
 // Sets f to the value of i.
 func (f *BigFloat) SetSmallInt(i SmallInt) *BigFloat {
-	return f.SetInt64(Int64(i))
+	return f.SetInt64(int64(i))
 }
 
 // Sets f to the value of i.
-func (f *BigFloat) SetInt64(i Int64) *BigFloat {
+func (f *BigFloat) SetElkInt64(i Int64) *BigFloat {
 	f.AsGoBigFloat().SetInt64(int64(i))
+	return f
+}
+
+// Sets f to the value of i.
+func (f *BigFloat) SetInt64(i int64) *BigFloat {
+	f.AsGoBigFloat().SetInt64(i)
 	return f
 }
 
 // Sets f to the value of i.
 func (f *BigFloat) SetUInt64(i UInt64) *BigFloat {
 	f.AsGoBigFloat().SetUint64(uint64(i))
+	return f
+}
+
+// Sets f to the value of i.
+func (f *BigFloat) SetUint64(i uint64) *BigFloat {
+	f.AsGoBigFloat().SetUint64(i)
 	return f
 }
 
@@ -78,16 +90,31 @@ func (f *BigFloat) SetBigInt(i *BigInt) *BigFloat {
 
 // Sets f to the possibly rounded value of x.
 func (f *BigFloat) SetFloat(x Float) *BigFloat {
-	return f.SetFloat64(Float64(x))
+	return f.SetFloat64(float64(x))
 }
 
 // Sets f to the possibly rounded value of x.
-func (f *BigFloat) SetFloat64(x Float64) *BigFloat {
-	if math.IsNaN(float64(x)) {
+func (f *BigFloat) SetFloat64(x float64) *BigFloat {
+	if math.IsNaN(x) {
 		return f.SetNaN()
 	}
-	f.AsGoBigFloat().SetFloat64(float64(x))
+	f.AsGoBigFloat().SetFloat64(x)
 	return f
+}
+
+// Sets f to the possibly rounded value of x.
+func (f *BigFloat) SetElkFloat64(x Float64) *BigFloat {
+	return f.SetFloat64(float64(x))
+}
+
+// Sets f to the possibly rounded value of x.
+func (f *BigFloat) SetFloat32(x float32) *BigFloat {
+	return f.SetFloat64(float64(x))
+}
+
+// Sets f to the possibly rounded value of x.
+func (f *BigFloat) SetElkFloat32(x Float32) *BigFloat {
+	return f.SetFloat64(float64(x))
 }
 
 func (f *BigFloat) Hash() UInt64 {
@@ -112,22 +139,30 @@ func (f *BigFloat) ToFloat() Float {
 
 // Convert to a Float64 value.
 func (f *BigFloat) ToFloat64() Float64 {
+	return Float64(f.Float64())
+}
+
+func (f *BigFloat) Float64() float64 {
 	if f.IsNaN() {
-		return Float64NaN()
+		return float64(Float64NaN())
 	}
 
 	f64, _ := f.AsGoBigFloat().Float64()
-	return Float64(f64)
+	return f64
 }
 
 // Convert to a Float32 value.
 func (f *BigFloat) ToFloat32() Float32 {
+	return Float32(f.Float32())
+}
+
+func (f *BigFloat) Float32() float32 {
 	if f.IsNaN() {
-		return Float32NaN()
+		return float32(Float32NaN())
 	}
 
 	f32, _ := f.AsGoBigFloat().Float32()
-	return Float32(f32)
+	return f32
 }
 
 // Convert to a Float value.
@@ -150,9 +185,17 @@ func (f *BigFloat) ToInt64() Int64 {
 	return Int64(f.ToBigInt().ToGoBigInt().Int64())
 }
 
+func (f *BigFloat) Int64() int64 {
+	return int64(f.ToBigInt().ToGoBigInt().Int64())
+}
+
 // Convert to an Int32 value.
 func (f *BigFloat) ToInt32() Int32 {
 	return Int32(f.ToBigInt().ToGoBigInt().Int64())
+}
+
+func (f *BigFloat) Int32() int32 {
+	return int32(f.ToBigInt().ToGoBigInt().Int64())
 }
 
 // Convert to an Int16 value.
@@ -160,9 +203,17 @@ func (f *BigFloat) ToInt16() Int16 {
 	return Int16(f.ToBigInt().ToGoBigInt().Int64())
 }
 
+func (f *BigFloat) Int16() int16 {
+	return int16(f.ToBigInt().ToGoBigInt().Int64())
+}
+
 // Convert to an Int8 value.
 func (f *BigFloat) ToInt8() Int8 {
 	return Int8(f.ToBigInt().ToGoBigInt().Int64())
+}
+
+func (f *BigFloat) int8() int8 {
+	return int8(f.ToBigInt().ToGoBigInt().Int64())
 }
 
 // Convert to an UInt64 value.
@@ -170,9 +221,17 @@ func (f *BigFloat) ToUInt64() UInt64 {
 	return UInt64(f.ToBigInt().ToGoBigInt().Uint64())
 }
 
+func (f *BigFloat) Uint64() uint64 {
+	return uint64(f.ToBigInt().ToGoBigInt().Uint64())
+}
+
 // Convert to an UInt32 value.
 func (f *BigFloat) ToUInt32() UInt32 {
 	return UInt32(f.ToBigInt().ToGoBigInt().Uint64())
+}
+
+func (f *BigFloat) Uint32() uint32 {
+	return uint32(f.ToBigInt().ToGoBigInt().Uint64())
 }
 
 // Convert to an UInt16 value.
@@ -180,9 +239,17 @@ func (f *BigFloat) ToUInt16() UInt16 {
 	return UInt16(f.ToBigInt().ToGoBigInt().Uint64())
 }
 
+func (f *BigFloat) Uint16() uint16 {
+	return uint16(f.ToBigInt().ToGoBigInt().Uint64())
+}
+
 // Convert to an UInt8 value.
 func (f *BigFloat) ToUInt8() UInt8 {
 	return UInt8(f.ToBigInt().ToGoBigInt().Uint64())
+}
+
+func (f *BigFloat) Uint8() uint8 {
+	return uint8(f.ToBigInt().ToGoBigInt().Uint64())
 }
 
 // Set z = x
@@ -1063,7 +1130,7 @@ func (f *BigFloat) LaxEqualBool(other Value) bool {
 				return false
 			}
 
-			oBigFloat := (&BigFloat{}).SetInt64(o)
+			oBigFloat := (&BigFloat{}).SetElkInt64(o)
 			return f.Cmp(oBigFloat) == 0
 		case UInt64:
 			if f.IsNaN() {
@@ -1077,7 +1144,7 @@ func (f *BigFloat) LaxEqualBool(other Value) bool {
 				return false
 			}
 
-			oBigFloat := (&BigFloat{}).SetFloat64(o)
+			oBigFloat := (&BigFloat{}).SetElkFloat64(o)
 			return f.Cmp(oBigFloat) == 0
 		default:
 			return false
@@ -1105,28 +1172,28 @@ func (f *BigFloat) LaxEqualBool(other Value) bool {
 			return false
 		}
 
-		oBigFloat := (&BigFloat{}).SetInt64(other.AsInlineInt64())
+		oBigFloat := (&BigFloat{}).SetElkInt64(other.AsInlineInt64())
 		return f.Cmp(oBigFloat) == 0
 	case INT32_FLAG:
 		if f.IsNaN() {
 			return false
 		}
 
-		oBigFloat := (&BigFloat{}).SetInt64(Int64(other.AsInt32()))
+		oBigFloat := (&BigFloat{}).SetElkInt64(Int64(other.AsInt32()))
 		return f.Cmp(oBigFloat) == 0
 	case INT16_FLAG:
 		if f.IsNaN() {
 			return false
 		}
 
-		oBigFloat := (&BigFloat{}).SetInt64(Int64(other.AsInt16()))
+		oBigFloat := (&BigFloat{}).SetElkInt64(Int64(other.AsInt16()))
 		return f.Cmp(oBigFloat) == 0
 	case INT8_FLAG:
 		if f.IsNaN() {
 			return false
 		}
 
-		oBigFloat := (&BigFloat{}).SetInt64(Int64(other.AsInt8()))
+		oBigFloat := (&BigFloat{}).SetElkInt64(Int64(other.AsInt8()))
 		return f.Cmp(oBigFloat) == 0
 	case UINT64_FLAG:
 		if f.IsNaN() {
@@ -1162,7 +1229,7 @@ func (f *BigFloat) LaxEqualBool(other Value) bool {
 			return false
 		}
 
-		oBigFloat := (&BigFloat{}).SetFloat64(o)
+		oBigFloat := (&BigFloat{}).SetElkFloat64(o)
 		return f.Cmp(oBigFloat) == 0
 	case FLOAT32_FLAG:
 		o := other.AsFloat32()
@@ -1170,7 +1237,7 @@ func (f *BigFloat) LaxEqualBool(other Value) bool {
 			return false
 		}
 
-		oBigFloat := (&BigFloat{}).SetFloat64(Float64(o))
+		oBigFloat := (&BigFloat{}).SetElkFloat32(o)
 		return f.Cmp(oBigFloat) == 0
 	default:
 		return false

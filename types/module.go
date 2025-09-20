@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -8,6 +10,7 @@ import (
 
 type Module struct {
 	defined     bool
+	native      bool
 	parent      Namespace
 	ivarIndices *value.IvarIndices
 	NamespaceBase
@@ -38,7 +41,7 @@ func (*Module) Singleton() *SingletonClass {
 }
 
 func (m *Module) SetSingleton(*SingletonClass) {
-	panic("cannot set singleton class of a module")
+	panic(fmt.Sprintf("cannot set singleton class of a module: %s", m.Name()))
 }
 
 func (m *Module) Parent() Namespace {
@@ -57,6 +60,14 @@ func (m *Module) SetDefined(defined bool) {
 	m.defined = defined
 }
 
+func (m *Module) IsNative() bool {
+	return m.native
+}
+
+func (m *Module) SetNative(native bool) {
+	m.native = native
+}
+
 func (m *Module) IsAbstract() bool {
 	return false
 }
@@ -71,7 +82,7 @@ func (m *Module) IsPrimitive() bool {
 
 func NewModule(docComment, name string, env *GlobalEnvironment) *Module {
 	return &Module{
-		defined:       env.Init,
+		native:        env.Init,
 		parent:        env.StdSubtypeClass(symbol.Module),
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
@@ -87,6 +98,7 @@ func NewModuleWithDetails(
 ) *Module {
 	return &Module{
 		parent: env.StdSubtypeClass(symbol.Module),
+		native: env.Init,
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
 			name:       name,
@@ -119,6 +131,7 @@ func (m *Module) Copy() *Module {
 	return &Module{
 		parent:  m.parent,
 		defined: m.defined,
+		native:  m.native,
 		NamespaceBase: NamespaceBase{
 			docComment: m.docComment,
 			name:       m.name,
@@ -147,6 +160,7 @@ func (m *Module) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Module {
 	newModule := &Module{
 		NamespaceBase: MakeNamespaceBase(m.docComment, m.name),
 		defined:       m.defined,
+		native:        m.native,
 	}
 	if parentNamespace != nil {
 		parentNamespace.DefineSubtype(value.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newModule)

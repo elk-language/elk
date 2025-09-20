@@ -6,6 +6,7 @@ import (
 	"iter"
 	"maps"
 	"os"
+	"path"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -16,6 +17,8 @@ import (
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
+	"github.com/elk-language/elk/env"
+	"github.com/elk-language/elk/ext"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
@@ -92,6 +95,7 @@ const (
 	inferClosureReturnTypeFlag
 	inferClosureThrowTypeFlag
 	generatorFlag
+	unhygienicFlag
 	definedMacrosFlag // indicates that the typechecker has defined some macros
 	incrementalFlag   // indicates the typechecker should check and compiler code incrementally (REPL)
 )
@@ -132,6 +136,7 @@ type Checker struct {
 	constantChecks          *constantDefinitionChecks
 	typeDefinitionChecks    *typeDefinitionChecks
 	methodCache             *concurrent.Slice[*types.Method] // used in constant definition checks, the list of methods used in the current constant declaration
+	extensions              *concurrent.Slice[*ext.Extension]
 	method                  *types.Method
 	namespacesWithIvars     *ds.OrderedMap[string, *namespaceWithIvarsData] // namespaces that declare instance variables
 	compiler                *compiler.Compiler
@@ -147,12 +152,13 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		mode:       topLevelMode,
 		Errors:     new(diagnostic.SyncDiagnosticList),
 		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil),
+			newLocalEnvironment(nil, false),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		constantChecks:       newConstantDefinitionChecks(),
 		ASTCache:             concurrent.NewMap[string, *ast.ProgramNode](),
 		methodCache:          concurrent.NewSlice[*types.Method](),
+		extensions:           concurrent.NewSlice[*ext.Extension](),
 		threadPool:           threadPool,
 	}
 	if threadPool == nil {
@@ -216,6 +222,18 @@ func (c *Checker) setGenerator(val bool) {
 		c.flags.SetFlag(generatorFlag)
 	} else {
 		c.flags.UnsetFlag(generatorFlag)
+	}
+}
+
+func (c *Checker) isUnhygienic() bool {
+	return c.flags.HasFlag(unhygienicFlag)
+}
+
+func (c *Checker) setUnhygienic(val bool) {
+	if val {
+		c.flags.SetFlag(unhygienicFlag)
+	} else {
+		c.flags.UnsetFlag(unhygienicFlag)
 	}
 }
 
@@ -321,11 +339,21 @@ func (c *Checker) checkNamespacePlaceholders() {
 	c.namespacePlaceholders = nil
 }
 
+func (c *Checker) initExtensions() {
+	c.env.Init = true
+	for _, extension := range c.extensions.Slice {
+		extension.Init(c)
+	}
+	c.env.Init = false
+	c.extensions = concurrent.NewSlice[*ext.Extension]()
+}
+
 func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	var wg sync.WaitGroup
 	// parse all files of the project concurrently
 	c.checkImportsForFile(c.Filename, node, &wg)
 	wg.Wait()
+	c.initExtensions()
 
 	c.initMacroCompiler(node.Location())
 	c.hoistNamespaceDefinitionsAndMacrosInFile(c.Filename, node)
@@ -359,7 +387,6 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	if !c.shouldCompile() {
 		return nil
 	}
-	c.compiler.EmitReturn()
 	return c.compiler.Bytecode
 }
 
@@ -373,7 +400,7 @@ func (c *Checker) compileMethods(methodCompiler *compiler.Compiler, offset int, 
 
 // Whether the typechecker should compile the checked code
 func (c *Checker) shouldCompile() bool {
-	return c.compiler != nil && !c.Errors.IsFailure()
+	return !c.IsHeader() && c.compiler != nil && !c.Errors.IsFailure()
 }
 
 // Create a new compiler that will define all methods
@@ -474,11 +501,18 @@ func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
 	source := string(bytes)
 	ast, errList := parser.Parse(filename, source)
 	if errList != nil {
-		c.Errors.DiagnosticList.Join(errList)
+		c.Errors.DiagnosticList.Append(errList...)
 		return nil
 	}
 
 	return c.checkProgram(ast)
+}
+
+func (c *Checker) setIsHeaderForPath(filePath string) {
+	if path.Ext(filePath) == ".elh" {
+		c.SetHeader(true)
+		c.env.Init = true
+	}
 }
 
 // Scans the AST of the project registering all namespaces, types and macro definitions.
@@ -500,9 +534,17 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacrosInFile(filename string, node
 	}
 
 	prevFilename := c.Filename
+	prevIsHeader := c.IsHeader()
+
 	c.Filename = filename
+	c.setIsHeaderForPath(filename)
+
 	c.hoistNamespaceDefinitionsAndMacros(node.Body)
+
 	c.Filename = prevFilename
+	c.SetHeader(prevIsHeader)
+	c.env.Init = false
+
 	node.State = ast.CHECKED_NAMESPACES
 }
 
@@ -524,9 +566,17 @@ func (c *Checker) hoistMethodDefinitionsInFile(filename string, node *ast.Progra
 	}
 
 	prevFilename := c.Filename
+	prevIsHeader := c.IsHeader()
+
 	c.Filename = filename
+	c.setIsHeaderForPath(filename)
+
 	c.hoistMethodDefinitions(node.Body)
+
 	c.Filename = prevFilename
+	c.SetHeader(prevIsHeader)
+	c.env.Init = false
+
 	node.State = ast.CHECKED_METHODS
 }
 
@@ -544,29 +594,36 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 			continue
 		}
 		prevCompiler := c.compiler
+		prevIsHeader := c.IsHeader()
+		c.setIsHeaderForPath(importPath)
+
 		if c.shouldCompile() {
-			c.compiler = c.compiler.InitExpressionCompiler(filename, node.Location())
+			c.compiler = c.compiler.InitExpressionCompiler(importedAst.Location())
 		}
 		c.checkExpressionsInFile(importPath, importedAst)
+
 		c.compiler = prevCompiler
+		c.SetHeader(prevIsHeader)
+		c.env.Init = false
 	}
 
 	prevFilename := c.Filename
 	c.Filename = filename
+
 	c.checkStatements(node.Body, false)
-	c.Filename = prevFilename
 
 	node.State = ast.CHECKED_EXPRESSIONS
 
 	if c.shouldCompile() {
 		c.compiler.CompileExpressionsInFile(node)
 	}
+	c.Filename = prevFilename
 }
 
 func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg *sync.WaitGroup) {
 	c.ASTCache.Set(fileName, ast)
 
-	imports := c.hoistImports(ast.Body)
+	imports := c.hoistImports(ast.Body, fileName)
 	for _, importStmt := range imports {
 		ast.ImportPaths = append(ast.ImportPaths, importStmt.FsPaths...)
 		for _, importPath := range importStmt.FsPaths {
@@ -812,7 +869,7 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 		switch t := typ.(type) {
 		case *types.NamedType:
 			return c.checkExpressionWithType(node, t.Type)
-		case *types.Closure:
+		case *types.Callable:
 			return c.checkClosureLiteralNodeWithType(n, t)
 		}
 	case *ast.ArrayListLiteralNode:
@@ -978,6 +1035,9 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 	case *ast.Int8LiteralNode:
 		n.SetType(types.NewInt8Literal(n.Value))
 		return n
+	case *ast.UIntLiteralNode:
+		n.SetType(types.NewUIntLiteral(n.Value))
+		return n
 	case *ast.UInt64LiteralNode:
 		n.SetType(types.NewUInt64Literal(n.Value))
 		return n
@@ -1109,6 +1169,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkDoExpressionNode(n)
 	case *ast.MacroBoundaryNode:
 		return c.checkMacroBoundaryNode(n)
+	case *ast.UnhygienicNode:
+		return c.checkExpressionUnhygienicNode(n)
 	case *ast.TypeofExpressionNode:
 		return c.checkTypeofExpressionNode(n)
 	case *ast.IfExpressionNode:
@@ -1481,22 +1543,20 @@ func (c *Checker) checkMustExpressionNode(node *ast.MustExpressionNode) *ast.Mus
 }
 
 func (c *Checker) checkArithmeticBinaryOperator(
-	left,
-	right ast.ExpressionNode,
+	node *ast.BinaryExpressionNode,
 	methodName value.Symbol,
-	location *position.Location,
-) types.Type {
-	leftType := c.ToNonLiteral(c.TypeOf(left), true)
+) ast.ExpressionNode {
+	node.Left = c.checkExpression(node.Left)
+	node.Right = c.checkExpression(node.Right)
+	leftType := c.ToNonLiteral(c.TypeOf(node.Left), true)
 	leftClassType, leftIsClass := leftType.(*types.Class)
 
-	rightType := c.ToNonLiteral(c.TypeOf(right), true)
+	rightType := c.ToNonLiteral(c.TypeOf(node.Right), true)
 	rightClassType, rightIsClass := rightType.(*types.Class)
 	if !leftIsClass || !rightIsClass {
 		return c.checkBinaryOpMethodCall(
-			left,
-			right,
+			node,
 			methodName,
-			location,
 		)
 	}
 
@@ -1504,28 +1564,32 @@ func (c *Checker) checkArithmeticBinaryOperator(
 	case "Std::Int":
 		switch rightClassType.Name() {
 		case "Std::Int":
-			return c.StdInt()
+			node.SetType(c.StdInt())
+			return node
 		case "Std::Float":
-			return c.StdFloat()
+			node.SetType(c.StdFloat())
+			return node
 		case "Std::BigFloat":
-			return c.StdBigFloat()
+			node.SetType(c.StdBigFloat())
+			return node
 		}
 	case "Std::Float":
 		switch rightClassType.Name() {
 		case "Std::Int":
-			return c.StdFloat()
+			node.SetType(c.StdFloat())
+			return node
 		case "Std::Float":
-			return c.StdFloat()
+			node.SetType(c.StdFloat())
+			return node
 		case "Std::BigFloat":
-			return c.StdBigFloat()
+			node.SetType(c.StdBigFloat())
+			return node
 		}
 	}
 
 	return c.checkBinaryOpMethodCall(
-		left,
-		right,
+		node,
 		methodName,
-		location,
 	)
 }
 
@@ -1539,7 +1603,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			node.SetType(rightType)
 			return node
 		}
-		receiver, _, typ := c.checkSimpleMethodCall(
+		methodName, receiver, _, typ := c.checkSimpleMethodCall(
 			node.Right,
 			token.DOT,
 			symbol.OpUnaryPlus,
@@ -1548,6 +1612,19 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			nil,
 			node.Location(),
 		)
+		if methodName != symbol.OpUnaryPlus {
+			newNode := ast.NewMethodCallNode(
+				node.Location(),
+				receiver,
+				token.New(node.Location(), token.DOT),
+				ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+				nil,
+				nil,
+			)
+			newNode.SetType(typ)
+			return node
+		}
+
 		node.Right = receiver
 		node.SetType(typ)
 		return node
@@ -1561,7 +1638,7 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			node.SetType(copy)
 			return node
 		}
-		receiver, _, typ := c.checkSimpleMethodCall(
+		methodName, receiver, _, typ := c.checkSimpleMethodCall(
 			node.Right,
 			token.DOT,
 			symbol.OpNegate,
@@ -1570,11 +1647,24 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			nil,
 			node.Location(),
 		)
+		if methodName != symbol.OpNegate {
+			newNode := ast.NewMethodCallNode(
+				node.Location(),
+				receiver,
+				token.New(node.Location(), token.DOT),
+				ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+				nil,
+				nil,
+			)
+			newNode.SetType(typ)
+			return node
+		}
+
 		node.Right = receiver
 		node.SetType(typ)
 		return node
 	case token.TILDE:
-		receiver, _, typ := c.checkSimpleMethodCall(
+		methodName, receiver, _, typ := c.checkSimpleMethodCall(
 			node.Right,
 			token.DOT,
 			value.ToSymbol(node.Op.FetchValue()),
@@ -1583,6 +1673,19 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 			nil,
 			node.Location(),
 		)
+		if methodName != symbol.OpBitwiseNot {
+			newNode := ast.NewMethodCallNode(
+				node.Location(),
+				receiver,
+				token.New(node.Location(), token.DOT),
+				ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+				nil,
+				nil,
+			)
+			newNode.SetType(typ)
+			return node
+		}
+
 		node.Right = receiver
 		node.SetType(typ)
 		return node
@@ -3387,12 +3490,46 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 }
 
 func (c *Checker) checkMacroBoundaryNode(node *ast.MacroBoundaryNode) ast.ExpressionNode {
-	c.pushIsolatedLocalEnv()
+	c.pushMacroBoundaryLocalEnv()
 	resultType, _ := c.checkStatements(node.Body, false)
 	c.popLocalEnv()
 
 	node.SetType(resultType)
 	return node
+}
+
+func (c *Checker) checkExpressionUnhygienicNode(node *ast.UnhygienicNode) *ast.UnhygienicNode {
+	prevUnhygienic := c.isUnhygienic()
+	c.setUnhygienic(true)
+
+	node.Node = c.checkExpression(node.Node.(ast.ExpressionNode))
+
+	c.setUnhygienic(prevUnhygienic)
+	node.SetType(c.TypeOf(node.Node))
+	return node
+}
+
+func (c *Checker) checkTypeUnhygienicNode(node *ast.UnhygienicNode) *ast.UnhygienicNode {
+	prevUnhygienic := c.isUnhygienic()
+	c.setUnhygienic(true)
+
+	node.Node = c.checkTypeNode(node.Node.(ast.TypeNode))
+
+	c.setUnhygienic(prevUnhygienic)
+	node.SetType(c.TypeOf(node.Node))
+	return node
+}
+
+func (c *Checker) checkPatternUnhygienicNode(node *ast.UnhygienicNode, matchedType types.Type) (result ast.PatternNode, fullyCapturedType types.Type) {
+	prevUnhygienic := c.isUnhygienic()
+	c.setUnhygienic(true)
+
+	patternNode, fullyCapturedType := c.checkPattern(node.Node.(ast.PatternNode), matchedType)
+	node.Node = patternNode
+
+	c.setUnhygienic(prevUnhygienic)
+	node.SetType(c.TypeOf(node.Node))
+	return node, fullyCapturedType
 }
 
 func (c *Checker) checkPostfixExpressionNode(node *ast.PostfixExpressionNode) ast.ExpressionNode {
@@ -3417,7 +3554,7 @@ func (c *Checker) checkNotOperator(node *ast.UnaryExpressionNode) ast.Expression
 }
 
 func (c *Checker) checkNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscriptExpressionNode) ast.ExpressionNode {
-	receiver, args, typ := c.checkSimpleMethodCall(
+	methodName, receiver, args, typ := c.checkSimpleMethodCall(
 		node.Receiver,
 		token.QUESTION_DOT,
 		symbol.OpSubscript,
@@ -3426,15 +3563,27 @@ func (c *Checker) checkNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscript
 		nil,
 		node.Location(),
 	)
+	if methodName != symbol.OpSubscript {
+		newNode := ast.NewMethodCallNode(
+			node.Location(),
+			receiver,
+			token.New(node.Location(), token.QUESTION_DOT),
+			ast.NewPublicIdentifierNode(node.Location(), methodName.String()),
+			args,
+			nil,
+		)
+		newNode.SetType(typ)
+		return newNode
+	}
+
 	node.Receiver = receiver
 	node.Key = args[0]
-
 	node.SetType(typ)
 	return node
 }
 
 func (c *Checker) checkSubscriptExpressionNode(node *ast.SubscriptExpressionNode) ast.ExpressionNode {
-	receiver, args, typ := c.checkSimpleMethodCall(
+	methodName, receiver, args, typ := c.checkSimpleMethodCall(
 		node.Receiver,
 		token.DOT,
 		symbol.OpSubscript,
@@ -3443,9 +3592,21 @@ func (c *Checker) checkSubscriptExpressionNode(node *ast.SubscriptExpressionNode
 		nil,
 		node.Location(),
 	)
+	if methodName != symbol.OpSubscript {
+		newNode := ast.NewMethodCallNode(
+			node.Location(),
+			receiver,
+			token.New(node.Location(), token.DOT),
+			ast.NewPublicIdentifierNode(node.Location(), methodName.String()),
+			args,
+			nil,
+		)
+		newNode.SetType(typ)
+		return newNode
+	}
+
 	node.Receiver = receiver
 	node.Key = args[0]
-
 	node.SetType(typ)
 	return node
 }
@@ -3590,25 +3751,15 @@ func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.Expressio
 func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.ExpressionNode {
 	switch node.Op.Type {
 	case token.PLUS:
-		node.Left = c.checkExpression(node.Left)
-		node.Right = c.checkExpression(node.Right)
-		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpAdd, node.Location()))
+		return c.checkArithmeticBinaryOperator(node, symbol.OpAdd)
 	case token.MINUS:
-		node.Left = c.checkExpression(node.Left)
-		node.Right = c.checkExpression(node.Right)
-		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpSubtract, node.Location()))
+		return c.checkArithmeticBinaryOperator(node, symbol.OpSubtract)
 	case token.STAR:
-		node.Left = c.checkExpression(node.Left)
-		node.Right = c.checkExpression(node.Right)
-		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpMultiply, node.Location()))
+		return c.checkArithmeticBinaryOperator(node, symbol.OpMultiply)
 	case token.SLASH:
-		node.Left = c.checkExpression(node.Left)
-		node.Right = c.checkExpression(node.Right)
-		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpDivide, node.Location()))
+		return c.checkArithmeticBinaryOperator(node, symbol.OpDivide)
 	case token.STAR_STAR:
-		node.Left = c.checkExpression(node.Left)
-		node.Right = c.checkExpression(node.Right)
-		node.SetType(c.checkArithmeticBinaryOperator(node.Left, node.Right, symbol.OpExponentiate, node.Location()))
+		return c.checkArithmeticBinaryOperator(node, symbol.OpExponentiate)
 	case token.PIPE_OP:
 		return c.checkPipeExpression(node)
 	case token.INSTANCE_OF_OP:
@@ -3630,15 +3781,29 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		token.AND_TILDE, token.OR, token.XOR, token.PERCENT,
 		token.GREATER, token.GREATER_EQUAL,
 		token.LESS, token.LESS_EQUAL, token.SPACESHIP_OP:
-		left, args, typ := c.checkSimpleMethodCall(
+		originalMethodName := value.ToSymbol(node.Op.FetchValue())
+		methodName, left, args, typ := c.checkSimpleMethodCall(
 			node.Left,
 			token.DOT,
-			value.ToSymbol(node.Op.FetchValue()),
+			originalMethodName,
 			nil,
 			[]ast.ExpressionNode{node.Right},
 			nil,
 			node.Location(),
 		)
+		if methodName != originalMethodName {
+			newNode := ast.NewMethodCallNode(
+				node.Location(),
+				left,
+				token.New(node.Location(), token.DOT),
+				ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+				args,
+				nil,
+			)
+			newNode.SetType(typ)
+			return newNode
+		}
+
 		node.Left = left
 		node.Right = args[0]
 		node.SetType(typ)
@@ -4055,7 +4220,7 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 			}
 
 			parent.SetIvarIndices(&currentIvarIndices)
-			if c.shouldCompile() && len(currentIvarIndices) != 0 {
+			if c.shouldCompile() && !parent.IsNative() && len(currentIvarIndices) != 0 {
 				c.compiler.CompileIvarIndices(parent, position.DefaultLocation)
 			}
 
@@ -4341,9 +4506,37 @@ func (c *Checker) instanceVariableToName(node ast.InstanceVariableNode) string {
 	}
 }
 
+func (c *Checker) getReceiverlessMethodReceiver(methodName string, method *types.Method, methodNamespace types.Namespace, fromLocal bool, loc *position.Location) ast.ExpressionNode {
+	var receiver ast.ExpressionNode
+	if fromLocal {
+		receiver = ast.NewPublicIdentifierNode(loc, methodName)
+	} else {
+		switch under := methodNamespace.(type) {
+		case *types.Module:
+			// from using
+			receiver = ast.NewPublicConstantNode(loc, under.Name())
+		case *types.SingletonClass:
+			// from using
+			receiver = ast.NewPublicConstantNode(loc, under.AttachedObject.Name())
+		case *types.UsingBufferNamespace:
+			return c.getReceiverlessMethodReceiver(methodName, method, method.DefinedUnder, false, loc)
+		case *types.NamespacePlaceholder:
+			receiver = ast.NewPublicConstantNode(loc, under.Name())
+		case nil:
+			// from self
+			receiver = ast.NewSelfLiteralNode(loc)
+			c.checkNonNilableInstanceVariablesForSelf(loc)
+		default:
+			panic(fmt.Sprintf("unexpected method namespace returned from getReceiverlessMethod: %T", under))
+		}
+	}
+
+	return receiver
+}
+
 func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	name := c.identifierToName(node.MethodName)
-	method, fromLocal := c.getReceiverlessMethod(value.ToSymbol(name), node.MethodName.Location())
+	method, methodNamespace, fromLocal := c.getReceiverlessMethod(value.ToSymbol(name), node.MethodName.Location())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -4366,27 +4559,11 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		return node
 	}
 
-	method = c.replaceTypeParametersInMethod(c.deepCopyMethod(method), typeArgs.ArgumentMap, true)
+	method = c.replaceTypeParametersInMethodCopy(method, typeArgs.ArgumentMap, true)
 
-	var receiver ast.ExpressionNode
-	if fromLocal {
-		receiver = ast.NewPublicIdentifierNode(node.Location(), name)
-	} else {
-		switch under := method.DefinedUnder.(type) {
-		case *types.Module:
-			// from using or self
-			receiver = ast.NewPublicConstantNode(node.Location(), under.Name())
-		case *types.SingletonClass:
-			// from using or self
-			receiver = ast.NewPublicConstantNode(node.Location(), under.AttachedObject.Name())
-		default:
-			// from self
-			receiver = ast.NewSelfLiteralNode(node.Location())
-			c.checkNonNilableInstanceVariablesForSelf(node.MethodName.Location())
-		}
-	}
+	receiver := c.getReceiverlessMethodReceiver(name, method, methodNamespace, fromLocal, node.MethodName.Location())
 
-	typedPositionalArguments := c.checkNonGenericMethodArguments(
+	method, typedPositionalArguments := c.checkNonGenericMethodArguments(
 		method,
 		node.PositionalArguments,
 		node.NamedArguments,
@@ -4396,7 +4573,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		node.Location(),
 		receiver,
 		token.New(node.Location(), token.DOT),
-		node.MethodName,
+		ast.NewPublicIdentifierNode(node.MethodName.Location(), method.Name.String()),
 		typedPositionalArguments,
 		nil,
 	)
@@ -4412,7 +4589,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	methodName := c.identifierToName(node.MethodName)
 	methodNameSymbol := value.ToSymbol(methodName)
-	method, fromLocal := c.getReceiverlessMethod(methodNameSymbol, node.MethodName.Location())
+	method, methodNamespace, fromLocal := c.getReceiverlessMethod(methodNameSymbol, node.MethodName.Location())
 	if method == nil || method.IsPlaceholder() {
 		c.checkExpressions(node.PositionalArguments)
 		c.checkNamedArguments(node.NamedArguments)
@@ -4426,7 +4603,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	if len(method.TypeParameters) > 0 {
 		var typeArgMap types.TypeArgumentMap
 		method = c.deepCopyMethod(method)
-		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
+		method, typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
 			method,
 			node.PositionalArguments,
 			node.NamedArguments,
@@ -4444,7 +4621,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap, true)
 		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap, true)
 	} else {
-		typedPositionalArguments = c.checkNonGenericMethodArguments(
+		method, typedPositionalArguments = c.checkNonGenericMethodArguments(
 			method,
 			node.PositionalArguments,
 			node.NamedArguments,
@@ -4452,33 +4629,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		)
 	}
 
-	var receiver ast.ExpressionNode
-	if fromLocal {
-		receiver = ast.NewPublicIdentifierNode(node.Location(), methodName)
-	} else {
-		switch under := method.DefinedUnder.(type) {
-		case *types.Module:
-			if under == c.selfType {
-				receiver = ast.NewSelfLiteralNode(node.Location())
-				c.checkNonNilableInstanceVariablesForSelf(node.MethodName.Location())
-			} else {
-				// from using
-				receiver = ast.NewPublicConstantNode(node.Location(), under.Name())
-			}
-		case *types.SingletonClass:
-			if under == c.selfType {
-				receiver = ast.NewSelfLiteralNode(node.Location())
-				c.checkNonNilableInstanceVariablesForSelf(node.MethodName.Location())
-			} else {
-				// from using
-				receiver = ast.NewPublicConstantNode(node.Location(), under.AttachedObject.Name())
-			}
-		default:
-			// from self
-			receiver = ast.NewSelfLiteralNode(node.Location())
-			c.checkNonNilableInstanceVariablesForSelf(node.MethodName.Location())
-		}
-	}
+	receiver := c.getReceiverlessMethodReceiver(methodName, method, methodNamespace, fromLocal, node.MethodName.Location())
 
 	newNode := ast.NewMethodCallNode(
 		node.Location(),
@@ -4671,7 +4822,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 		)
 	}
 
-	typedPositionalArguments := c.checkNonGenericMethodArguments(
+	method, typedPositionalArguments := c.checkNonGenericMethodArguments(
 		method,
 		node.PositionalArguments,
 		node.NamedArguments,
@@ -4754,7 +4905,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 		)
 	}
 
-	typedPositionalArguments := c.checkNonGenericMethodArguments(
+	method, typedPositionalArguments := c.checkNonGenericMethodArguments(
 		method,
 		node.PositionalArguments,
 		node.NamedArguments,
@@ -4831,7 +4982,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			c.addToMethodCache(method)
 		}
 
-		typedPositionalArguments := c.checkNonGenericMethodArguments(
+		method, typedPositionalArguments := c.checkNonGenericMethodArguments(
 			method,
 			node.PositionalArguments,
 			node.NamedArguments,
@@ -4862,7 +5013,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		c.addToMethodCache(method)
 	}
 
-	typedPositionalArguments, typeArgMap := c.checkMethodArgumentsAndInferTypeArguments(
+	method, typedPositionalArguments, typeArgMap := c.checkMethodArgumentsAndInferTypeArguments(
 		method,
 		node.PositionalArguments,
 		node.NamedArguments,
@@ -4912,7 +5063,8 @@ func (c *Checker) checkCallNode(node *ast.CallNode) ast.ExpressionNode {
 	} else {
 		op = token.DOT
 	}
-	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
+	var methodName value.Symbol
+	methodName, node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
 		op,
 		value.ToSymbol("call"),
@@ -4921,13 +5073,23 @@ func (c *Checker) checkCallNode(node *ast.CallNode) ast.ExpressionNode {
 		node.NamedArguments,
 		node.Location(),
 	)
-	node.SetType(typ)
-	return node
+
+	newNode := ast.NewMethodCallNode(
+		node.Location(),
+		node.Receiver,
+		token.New(node.Location(), op),
+		ast.NewPublicIdentifierNode(node.Location(), methodName.String()),
+		node.PositionalArguments,
+		nil,
+	)
+	newNode.SetType(typ)
+	return newNode
 }
 
 func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, tailPosition bool) ast.ExpressionNode {
 	var typ types.Type
-	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
+	var methodName value.Symbol
+	methodName, node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
 		node.Op.Type,
 		value.ToSymbol(c.identifierToName(node.MethodName)),
@@ -4935,6 +5097,10 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, tailPosition boo
 		node.PositionalArguments,
 		node.NamedArguments,
 		node.MethodName.Location(),
+	)
+	node.MethodName = ast.NewPublicIdentifierNode(
+		node.MethodName.Location(),
+		methodName.String(),
 	)
 	if len(c.catchScopes) < 1 {
 		node.TailCall = tailPosition
@@ -4945,7 +5111,8 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, tailPosition boo
 
 func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, tailPosition bool) ast.ExpressionNode {
 	var typ types.Type
-	node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
+	var methodName value.Symbol
+	methodName, node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
 		node.Receiver,
 		node.Op.Type,
 		value.ToSymbol(c.identifierToName(node.MethodName)),
@@ -4953,6 +5120,10 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, ta
 		node.PositionalArguments,
 		node.NamedArguments,
 		node.MethodName.Location(),
+	)
+	node.MethodName = ast.NewPublicIdentifierNode(
+		node.MethodName.Location(),
+		methodName.String(),
 	)
 	if len(c.catchScopes) < 1 {
 		node.TailCall = tailPosition
@@ -4962,7 +5133,7 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, ta
 }
 
 func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.ClosureLiteralNode, name string) ast.ExpressionNode {
-	closure := types.NewClosure(nil)
+	closure := types.NewCallable(nil, true)
 	method, mod := c.declareMethod(
 		nil,
 		closure,
@@ -4970,6 +5141,7 @@ func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.Closure
 		false,
 		false,
 		true,
+		false,
 		false,
 		false,
 		symbol.L_call,
@@ -5003,7 +5175,7 @@ func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.Closure
 }
 
 func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, baseMethod *types.Method) ast.ExpressionNode {
-	closure := types.NewClosure(nil)
+	closure := types.NewCallable(nil, true)
 	method, mod := c.declareMethod(
 		baseMethod,
 		closure,
@@ -5011,6 +5183,7 @@ func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, 
 		false,
 		false,
 		true,
+		false,
 		false,
 		false,
 		symbol.L_call,
@@ -5039,7 +5212,7 @@ func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, 
 	return node
 }
 
-func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Closure) ast.ExpressionNode {
+func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Callable) ast.ExpressionNode {
 	baseMethod := closureType.Method(symbol.L_call)
 	return c.checkClosureLiteralNodeWithBase(node, baseMethod)
 }
@@ -5185,7 +5358,7 @@ func (c *Checker) checkAssignment(node *ast.AssignmentExpressionNode) ast.Expres
 }
 
 func (c *Checker) checkSubscriptAssignment(subscriptNode *ast.SubscriptExpressionNode, assignmentNode *ast.AssignmentExpressionNode) ast.ExpressionNode {
-	receiver, args, _ := c.checkSimpleMethodCall(
+	methodName, receiver, args, _ := c.checkSimpleMethodCall(
 		subscriptNode.Receiver,
 		token.DOT,
 		symbol.OpSubscriptSet,
@@ -5194,27 +5367,52 @@ func (c *Checker) checkSubscriptAssignment(subscriptNode *ast.SubscriptExpressio
 		nil,
 		assignmentNode.Location(),
 	)
+	if methodName != symbol.OpSubscriptSet {
+		newNode := ast.NewMethodCallNode(
+			subscriptNode.Location(),
+			receiver,
+			token.New(subscriptNode.Location(), token.DOT),
+			ast.NewPublicIdentifierNode(subscriptNode.Location(), methodName.String()),
+			args,
+			nil,
+		)
+		newNode.SetType(c.TypeOf(assignmentNode.Right))
+		return newNode
+	}
+
 	subscriptNode.Receiver = receiver
 	subscriptNode.Key = args[0]
 	assignmentNode.Right = args[1]
-
 	assignmentNode.SetType(c.TypeOf(assignmentNode.Right))
 	return assignmentNode
 }
 
 func (c *Checker) checkAttributeAssignment(attributeNode *ast.AttributeAccessNode, assignmentNode *ast.AssignmentExpressionNode) ast.ExpressionNode {
-	receiver, args, _ := c.checkSimpleMethodCall(
+	originalMethodName := value.ToSymbol(c.identifierToName(attributeNode.AttributeName) + "=")
+	methodName, receiver, args, _ := c.checkSimpleMethodCall(
 		attributeNode.Receiver,
 		token.DOT,
-		value.ToSymbol(c.identifierToName(attributeNode.AttributeName)+"="),
+		originalMethodName,
 		nil,
 		[]ast.ExpressionNode{assignmentNode.Right},
 		nil,
 		assignmentNode.Location(),
 	)
+	if methodName != originalMethodName {
+		newNode := ast.NewMethodCallNode(
+			attributeNode.Location(),
+			receiver,
+			token.New(attributeNode.Location(), token.DOT),
+			ast.NewPublicIdentifierNode(attributeNode.Location(), methodName.String()),
+			args,
+			nil,
+		)
+		newNode.SetType(c.TypeOf(assignmentNode.Right))
+		return newNode
+	}
+
 	attributeNode.Receiver = receiver
 	assignmentNode.Right = args[0]
-
 	assignmentNode.SetType(c.TypeOf(assignmentNode.Right))
 	return assignmentNode
 }
@@ -5525,14 +5723,28 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 }
 
 // Get the type of the constant with the given name
-func (c *Checker) resolveConstantForDeclaration(constantExpression ast.ExpressionNode) (types.Namespace, types.Type, string) {
+func (c *Checker) resolveConstantForNamespaceDeclaration(constantExpression ast.ExpressionNode) (types.Namespace, types.Type, string) {
 	switch constant := constantExpression.(type) {
 	case *ast.PublicConstantNode:
 		return c.resolveSimpleConstantForSetter(constant.Value)
 	case *ast.PrivateConstantNode:
 		return c.resolveSimpleConstantForSetter(constant.Value)
 	case *ast.ConstantLookupNode:
-		return c.resolveConstantLookupForDeclaration(constant)
+		return c.resolveConstantLookupForNamespaceDeclaration(constant)
+	default:
+		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
+	}
+}
+
+// Get the type of the constant with the given name
+func (c *Checker) resolveConstantForConstantDeclaration(constantExpression ast.ExpressionNode) (types.Namespace, types.Type, string) {
+	switch constant := constantExpression.(type) {
+	case *ast.PublicConstantNode:
+		return c.resolveSimpleConstantForSetter(constant.Value)
+	case *ast.PrivateConstantNode:
+		return c.resolveSimpleConstantForSetter(constant.Value)
+	case *ast.ConstantLookupNode:
+		return c.resolveConstantLookupForConstantDeclaration(constant)
 	default:
 		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
 	}
@@ -5550,11 +5762,25 @@ func (c *Checker) registerMethodPlaceholder(placeholder *types.Method) {
 	c.methodPlaceholders = append(c.methodPlaceholders, placeholder)
 }
 
-func (c *Checker) resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string) {
-	return c._resolveConstantLookupForDeclaration(node, true)
+func (c *Checker) resolveConstantLookupForNamespaceDeclaration(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string) {
+	return c._resolveConstantLookupForNamespaceDeclaration(node, true)
 }
 
-func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode, firstCall bool) (types.Namespace, types.Type, string) {
+func (c *Checker) resolveConstantLookupForConstantDeclaration(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string) {
+	return c._resolveConstantLookupForConstantDeclaration(node, true)
+}
+
+func (c *Checker) addUndefinedNamespaceError(name string, loc *position.Location) {
+	c.addFailure(
+		fmt.Sprintf(
+			"undefined namespace `%s`",
+			lexer.Colorize(name),
+		),
+		loc,
+	)
+}
+
+func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.ConstantLookupNode, firstCall bool) (types.Namespace, types.Type, string) {
 	var leftContainerType types.Type
 	var leftContainerName string
 
@@ -5590,7 +5816,7 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 	case nil:
 		leftContainerType = c.env.Root
 	case *ast.ConstantLookupNode:
-		_, leftContainerType, leftContainerName = c._resolveConstantLookupForDeclaration(l, false)
+		_, leftContainerType, leftContainerName = c._resolveConstantLookupForNamespaceDeclaration(l, false)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid constant node %T", node),
@@ -5654,6 +5880,105 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 		leftContainer.DefineConstant(rightSymbol, types.NewSingletonClass(placeholder, nil))
 	} else if placeholder, ok := constantType.(*types.NamespacePlaceholder); ok {
 		placeholder.Locations.Push(node.Right.Location())
+
+	}
+
+	return leftContainer, constantType, constantName
+}
+
+func (c *Checker) _resolveConstantLookupForConstantDeclaration(node *ast.ConstantLookupNode, firstCall bool) (types.Namespace, types.Type, string) {
+	var leftContainerType types.Type
+	var leftContainerName string
+
+	switch l := node.Left.(type) {
+	case *ast.PublicConstantNode:
+		namespace := c.currentConstScope().container
+		leftConstant, ok := namespace.ConstantString(l.Value)
+		leftContainerType = leftConstant.Type
+		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
+		if !ok {
+			c.addUndefinedNamespaceError(leftContainerName, l.Location())
+			node.SetType(types.Untyped{})
+			return nil, nil, ""
+		}
+	case *ast.PrivateConstantNode:
+		namespace := c.currentConstScope().container
+		leftConstant, ok := namespace.ConstantString(l.Value)
+		leftContainerType = leftConstant.Type
+		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
+		if !ok {
+			c.addUndefinedNamespaceError(leftContainerName, l.Location())
+			node.SetType(types.Untyped{})
+			return nil, nil, ""
+		}
+	case nil:
+		leftContainerType = c.env.Root
+	case *ast.ConstantLookupNode:
+		var container types.Namespace
+		container, leftContainerType, leftContainerName = c._resolveConstantLookupForConstantDeclaration(l, false)
+		if container == nil {
+			node.SetType(types.Untyped{})
+			return nil, nil, ""
+		}
+	default:
+		c.addFailure(
+			fmt.Sprintf("invalid constant node %T", node),
+			node.Location(),
+		)
+		return nil, nil, ""
+	}
+
+	var rightName string
+	switch r := node.Right.(type) {
+	case *ast.PublicConstantNode:
+		rightName = r.Value
+	case *ast.PrivateConstantNode:
+		rightName = r.Value
+		c.addFailure(
+			fmt.Sprintf("cannot read private constant `%s`", rightName),
+			node.Location(),
+		)
+	default:
+		c.addFailure(
+			fmt.Sprintf("invalid constant node %T", node),
+			node.Location(),
+		)
+		return nil, nil, ""
+	}
+
+	constantName := types.MakeFullConstantName(leftContainerName, rightName)
+	if leftContainerType == nil {
+		return nil, nil, constantName
+	}
+	var leftContainer types.Namespace
+	switch l := leftContainerType.(type) {
+	case *types.Module:
+		leftContainer = l
+	case *types.Class:
+		leftContainer = l
+	case *types.Mixin:
+		leftContainer = l
+	case *types.Interface:
+		leftContainer = l
+	case *types.NamespacePlaceholder:
+		leftContainer = l
+	case *types.SingletonClass:
+		leftContainer = l.AttachedObject
+	default:
+		c.addFailure(
+			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
+			node.Location(),
+		)
+		return nil, nil, constantName
+	}
+
+	rightSymbol := value.ToSymbol(rightName)
+	constant, ok := leftContainer.Constant(rightSymbol)
+	constantType := constant.Type
+	if !ok && !firstCall {
+		c.addUndefinedNamespaceError(rightName, node.Right.Location())
+		node.SetType(types.Untyped{})
+		return nil, nil, ""
 	}
 
 	return leftContainer, constantType, constantName
@@ -6255,8 +6580,8 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return typeNode
 	case *ast.ConstantLookupNode:
 		return c.constantLookupType(n)
-	case *ast.ClosureTypeNode:
-		return c.checkClosureTypeNode(n)
+	case *ast.CallableTypeNode:
+		return c.checkCallableTypeNode(n)
 	case *ast.RawStringLiteralNode:
 		n.SetType(types.NewStringLiteral(n.Value))
 		return n
@@ -6354,6 +6679,8 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return c.checkSingletonTypeNode(n)
 	case *ast.InstanceOfTypeNode:
 		return c.checkInstanceOfTypeNode(n)
+	case *ast.UnhygienicNode:
+		return c.checkTypeUnhygienicNode(n)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid type node %T", node),
@@ -6539,12 +6866,13 @@ func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeNode) ast.Ty
 	}
 }
 
-func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
-	closure := types.NewClosure(nil)
+func (c *Checker) checkCallableTypeNode(node *ast.CallableTypeNode) ast.TypeNode {
+	callable := types.NewCallable(nil, node.IsClosure)
 	method, mod := c.declareMethod(
 		nil,
-		closure,
+		callable,
 		"",
+		false,
 		false,
 		false,
 		false,
@@ -6560,8 +6888,8 @@ func (c *Checker) checkClosureTypeNode(node *ast.ClosureTypeNode) ast.TypeNode {
 	if mod != nil {
 		c.popConstScope()
 	}
-	closure.Body = method
-	node.SetType(closure)
+	callable.Body = method
+	node.SetType(callable)
 	return node
 }
 
@@ -7310,7 +7638,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		return structNode
 	}
 
-	container, constant, fullConstantName := c.resolveConstantForDeclaration(structNode.Constant)
+	container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(structNode.Constant)
 	constantName := value.ToSymbol(extractConstantName(structNode.Constant))
 	class := c.declareClass(
 		structNode.DocComment(),
@@ -7324,6 +7652,9 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		constantName,
 		structNode.Location(),
 	)
+	if c.IsHeader() {
+		class.SetNative(true)
+	}
 	structNode.SetType(class)
 	structNode.Constant = ast.NewPublicConstantNode(structNode.Constant.Location(), fullConstantName)
 
@@ -7397,7 +7728,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		newStatements,
 	)
 	classNode.SetType(class)
-	c.registerNamespaceDeclarationCheck(fullConstantName, classNode, class)
+	c.registerNamespaceDeclarationCheck(fullConstantName, classNode, class, c.IsHeader())
 	return classNode
 }
 
@@ -7417,7 +7748,7 @@ func (c *Checker) hoistModuleDeclarationWithFunc(node *ast.ModuleDeclarationNode
 
 	module, ok := c.TypeOf(node).(*types.Module)
 	if !ok {
-		container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+		container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(node.Constant)
 		constantName := value.ToSymbol(extractConstantName(node.Constant))
 		module = c.declareModule(
 			node.DocComment(),
@@ -7427,6 +7758,9 @@ func (c *Checker) hoistModuleDeclarationWithFunc(node *ast.ModuleDeclarationNode
 			constantName,
 			node.Location(),
 		)
+		if c.IsHeader() {
+			module.SetNative(true)
+		}
 		node.SetType(module)
 		node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 	}
@@ -7459,7 +7793,7 @@ func (c *Checker) hoistClassDeclarationWithFunc(node *ast.ClassDeclarationNode, 
 
 	class, ok := c.TypeOf(node).(*types.Class)
 	if !ok {
-		container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+		container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(node.Constant)
 		constantName := value.ToSymbol(extractConstantName(node.Constant))
 		class = c.declareClass(
 			node.DocComment(),
@@ -7473,8 +7807,11 @@ func (c *Checker) hoistClassDeclarationWithFunc(node *ast.ClassDeclarationNode, 
 			constantName,
 			node.Location(),
 		)
+		if c.IsHeader() {
+			class.SetNative(true)
+		}
 		node.SetType(class)
-		c.registerNamespaceDeclarationCheck(fullConstantName, node, class)
+		c.registerNamespaceDeclarationCheck(fullConstantName, node, class, c.IsHeader())
 		node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 	}
 
@@ -7506,7 +7843,7 @@ func (c *Checker) hoistMixinDeclarationWithFunc(node *ast.MixinDeclarationNode, 
 
 	mixin, ok := c.TypeOf(node).(*types.Mixin)
 	if !ok {
-		container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+		container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(node.Constant)
 		constantName := value.ToSymbol(extractConstantName(node.Constant))
 		mixin = c.declareMixin(
 			node.DocComment(),
@@ -7518,7 +7855,10 @@ func (c *Checker) hoistMixinDeclarationWithFunc(node *ast.MixinDeclarationNode, 
 			node.Location(),
 		)
 		node.SetType(mixin)
-		c.registerNamespaceDeclarationCheck(fullConstantName, node, mixin)
+		if c.IsHeader() {
+			mixin.SetNative(true)
+		}
+		c.registerNamespaceDeclarationCheck(fullConstantName, node, mixin, c.IsHeader())
 		node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 	}
 
@@ -7550,7 +7890,7 @@ func (c *Checker) hoistInterfaceDeclarationWithFunc(node *ast.InterfaceDeclarati
 
 	iface, ok := c.TypeOf(node).(*types.Interface)
 	if !ok {
-		container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+		container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(node.Constant)
 		constantName := value.ToSymbol(extractConstantName(node.Constant))
 		iface = c.declareInterface(
 			node.DocComment(),
@@ -7561,7 +7901,7 @@ func (c *Checker) hoistInterfaceDeclarationWithFunc(node *ast.InterfaceDeclarati
 			node.Location(),
 		)
 		node.SetType(iface)
-		c.registerNamespaceDeclarationCheck(fullConstantName, node, iface)
+		c.registerNamespaceDeclarationCheck(fullConstantName, node, iface, c.IsHeader())
 		node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 	}
 
@@ -7585,7 +7925,7 @@ func (c *Checker) hoistExtendWhereDeclaration(node *ast.ExtendWhereBlockExpressi
 	}
 
 	currentNamespace := c.currentConstScope().container
-	c.registerNamespaceDeclarationCheck(currentNamespace.Name(), node, nil)
+	c.registerNamespaceDeclarationCheck(currentNamespace.Name(), node, nil, c.IsHeader())
 
 	prevMode := c.mode
 	c.mode = extendWhereMode
@@ -7627,14 +7967,14 @@ func (c *Checker) hoistSingletonDeclarationWithFunc(node *ast.SingletonBlockExpr
 	c.mode = prevMode
 }
 
-func (c *Checker) hoistImports(statements []ast.StatementNode) []*ast.ImportStatementNode {
+func (c *Checker) hoistImports(statements []ast.StatementNode, fileName string) []*ast.ImportStatementNode {
 	var imports []*ast.ImportStatementNode
 
 	for _, statement := range statements {
 		switch stmt := statement.(type) {
 		case *ast.ImportStatementNode:
 			imports = append(imports, stmt)
-			c.checkImport(stmt)
+			c.checkImport(stmt, fileName)
 		}
 	}
 
@@ -7680,7 +8020,7 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 				}
 				namespace := c.currentMethodScope().container
 				expr.SetType(types.Untyped{})
-				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace)
+				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace, c.IsHeader())
 			case *ast.IncludeExpressionNode:
 				switch c.mode {
 				case classMode, mixinMode, singletonMode:
@@ -7689,7 +8029,7 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 				}
 				namespace := c.currentMethodScope().container
 				expr.SetType(types.Untyped{})
-				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace)
+				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace, c.IsHeader())
 			case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
 				*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 				namespace := c.currentMethodScope().container
@@ -7869,7 +8209,11 @@ func (c *Checker) checkUsingAllEntryNode(node *ast.UsingAllEntryNode) *ast.Using
 	return node
 }
 
-func (c *Checker) checkImport(node *ast.ImportStatementNode) {
+func isLibPath(path string) bool {
+	return !strings.HasPrefix(path, ".") && !strings.HasPrefix(path, "/")
+}
+
+func (c *Checker) checkImport(node *ast.ImportStatementNode, checkedFileName string) {
 	var path string
 
 	switch pathNode := node.Path.(type) {
@@ -7879,13 +8223,25 @@ func (c *Checker) checkImport(node *ast.ImportStatementNode) {
 		path = pathNode.Value
 	}
 
-	if !filepath.IsAbs(path) {
-		dirPath := filepath.Dir(c.Filename)
+	if isLibPath(path) {
+		shortPath := path
+		// library
+		path = filepath.Join(env.ELKPATH, "lib", path)
+		if filepath.Ext(path) == "" {
+			path = filepath.Join(path, "init.{elk,elh}")
+		} else {
+		}
+		extension, ok := ext.Map[shortPath]
+		if ok {
+			c.extensions.Push(extension)
+		}
+	} else if !filepath.IsAbs(path) {
+		dirPath := filepath.Dir(checkedFileName)
 		path = filepath.Join(dirPath, path)
 	}
 
-	base, pattern := doublestar.SplitPattern(path)
-	fsys := os.DirFS(base)
+	baseDir, pattern := doublestar.SplitPattern(path)
+	fsys := os.DirFS(baseDir)
 	filePaths, err := doublestar.Glob(fsys, pattern)
 	if err != nil {
 		c.addFailure(
@@ -7899,8 +8255,19 @@ func (c *Checker) checkImport(node *ast.ImportStatementNode) {
 		return
 	}
 
+	if len(filePaths) == 0 {
+		c.addFailure(
+			fmt.Sprintf(
+				"no matched files for import: %s",
+				path,
+			),
+			node.Location(),
+		)
+		return
+	}
+
 	for _, filename := range filePaths {
-		filename := filepath.Join(base, filename)
+		filename := filepath.Join(baseDir, filename)
 		info, err := os.Stat(filename)
 		if os.IsNotExist(err) {
 			c.addFailure(

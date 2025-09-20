@@ -426,7 +426,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.BITWISE_AND_NOT, bytecode.UNARY_PLUS, bytecode.INCREMENT, bytecode.DECREMENT, bytecode.DUP,
 		bytecode.SWAP, bytecode.INSTANCE_OF, bytecode.IS_A, bytecode.POP_SKIP_ONE, bytecode.INSPECT_STACK,
 		bytecode.THROW, bytecode.RETHROW, bytecode.RETURN_FINALLY, bytecode.JUMP_TO_FINALLY,
-		bytecode.MUST, bytecode.AS, bytecode.SET_SUPERCLASS, bytecode.DEF_CONST, bytecode.EXEC, bytecode.DEF_METHOD_ALIAS,
+		bytecode.MUST, bytecode.AS, bytecode.SET_SUPERCLASS, bytecode.DEF_CONST, bytecode.EXEC,
 		bytecode.INT_M1, bytecode.INT_0, bytecode.INT_1, bytecode.INT_2, bytecode.INT_3, bytecode.INT_4, bytecode.INT_5,
 		bytecode.FLOAT_0, bytecode.FLOAT_1, bytecode.FLOAT_2,
 		bytecode.LESS_EQUAL_INT, bytecode.ADD_INT, bytecode.SUBTRACT_INT,

@@ -1,0 +1,332 @@
+##[
+	Represents a moment in datetime with nanosecond precision.
+]##
+sealed primitive class ::Std::DateTime
+	singleton
+		##[
+			Returns the current datetime.
+		]##
+		def now: DateTime; end
+	end
+
+	const DEFAULT_FORMAT: String
+
+	##[
+		Adds the given duration to the datetime.
+		Returns a new datetime object.
+	]##
+	def +(other: Duration): DateTime; end
+
+	##[
+		Subtracts the given duration from the datetime.
+		Returns a new datetime object.
+	]##
+	def -(other: Duration): DateTime; end
+
+	##[
+		Calculates the difference between two datetime objects.
+		Returns a duration.
+	]##
+	def diff(other: DateTime): Duration; end
+
+	##[
+		Create a string formatted according to the given format string.
+	]##
+	def strftime(fmt: String): String; end
+	alias format strftime
+
+	##[
+		Returns the date component of this DateTime object.
+	]##
+	def date: Date; end
+
+	##[
+		Returns the time component of this DateTime object.
+	]##
+	def time: Time; end
+
+	##[
+		Return the timezone associated with this DateTime object.
+	]##
+	def zone: Timezone; end
+	alias timezone zone
+
+	##[
+		Return the name of the timezone associated with this DateTime object.
+	]##
+	def zone_name: String; end
+	alias timezone_name zone_name
+
+	##[
+		Returns the offset of the timezone in seconds east of UTC.
+	]##
+	def zone_offset_seconds: Int; end
+	alias timezone_offset_seconds zone_offset_seconds
+
+	##[
+		Returns the offset of the timezone in hours east of UTC.
+	]##
+	def zone_offset_hours: Int; end
+	alias timezone_offset_hours zone_offset_hours
+
+	def to_string: String; end
+
+	##[
+		Returns the year in which `self` occurs.
+	]##
+	def year: Int; end
+
+	##[
+		Returns the ISO 8601 year in which `self` occurs.
+	]##
+	def iso_year: Int; end
+
+	##[
+		Returns the month in which `self` occurs.
+	]##
+	def month: Int; end
+
+	##[
+		The week number of the current year as a decimal number,
+		range 0 to 53, starting with the first Monday
+		as the first day of week 1.
+	]##
+	def week_from_monday: Int; end
+	alias week week_from_monday
+
+	##[
+		The week number of the current year as a decimal number,
+		range 0 to 53, starting with the first Sunday
+		as the first day of week 01.
+	]##
+	def week_from_sunday: Int; end
+
+	##[
+		Returns the ISO 8601 week number in which `self` occurs.
+		Week ranges from 1 to 53. Jan 01 to Jan 03 of year n might belong to week 52 or 53 of year n-1, and Dec 29 to Dec 31 might belong to week 1 of year n+1.
+	]##
+	def iso_week: Int; end
+
+	##[
+		Returns the day of the month in range `1...12`
+	]##
+	def month_day: Int; end
+	alias day month_day
+
+	##[
+		Returns the day of the year.
+	]##
+	def year_day: Int; end
+
+	##[
+		Returns the name of the day of the week.
+	]##
+	def weekday_name: String; end
+
+	##[
+		Returns the number of the day of the week, where 1 is Monday, 7 is Sunday
+	]##
+	def weekday_from_monday: Int; end
+	alias weekday weekday_from_monday
+
+	##[
+		Returns the number of the day of the week, where 0 is Sunday, 6 is Saturday
+	]##
+	def weekday_from_sunday: Int; end
+
+	##[
+		Returns the hour offset within the day specified by `self` in the range `0...23`
+	]##
+	def hour: Int; end
+
+	##[
+		Returns the minute offset within the hour specified by `self` in the range `0...59`
+	]##
+	def minute: Int; end
+
+	##[
+		Returns the second offset within the minute specified by `self` in the range `0...59`
+	]##
+	def second: Int; end
+
+	##[
+		Returns the millisecond offset within the second specified by `self` in the range `0...999`
+	]##
+	def millisecond: Int; end
+
+	##[
+		Returns the microsecond offset within the millisecond specified by `self` in the range `0...999`
+	]##
+	def microsecond: Int; end
+
+	##[
+		Returns the microsecond offset within the second specified by `self` in the range `0...999_999`
+	]##
+	def microseconds_in_second: Int; end
+
+	##[
+		Returns the nanosecond offset within the microsecond specified by `self` in the range `0...999`
+	]##
+	def nanosecond: Int; end
+
+	##[
+		Returns the nanosecond offset within the second specified by `self` in the range `0...999_999_999`
+	]##
+	def nanoseconds_in_second: Int; end
+
+	##[
+		Returns the picosecond offset within the second specified by `self` in the range `0...999_999_999_999`
+	]##
+	def picoseconds_in_seconds: Int; end
+
+	##[
+		Returns the femtosecond offset within the second specified by `self` in the range `0...999_999_999_999_999`
+	]##
+	def femtoseconds_in_second: Int; end
+
+	##[
+		Returns the attosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999`
+	]##
+	def attoseconds_in_second: Int; end
+
+	##[
+		Returns the zeptosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999_999`
+	]##
+	def zeptoseconds_in_second: Int; end
+
+	##[
+		Returns the yoctosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999_999_999`
+	]##
+	def yoctoseconds_in_second: Int; end
+
+	##[
+		Returns the number of seconds elapsed since January 1, 1970 UTC
+	]##
+	def unix_seconds: Int; end
+
+	##[
+		Returns the number of milliseconds elapsed since January 1, 1970 UTC
+	]##
+	def unix_milliseconds: Int; end
+
+	##[
+		Returns the number of microseconds elapsed since January 1, 1970 UTC
+	]##
+	def unix_microseconds: Int; end
+
+	##[
+		Returns the number of nanoseconds elapsed since January 1, 1970 UTC
+	]##
+	def unix_nanoseconds: Int; end
+
+	##[
+		Returns the number of picoseconds elapsed since January 1, 1970 UTC
+	]##
+	def unix_picoseconds: Int; end
+
+	##[
+		Returns the number of femtoseconds elapsed since January 1, 1970 UTC
+	]##
+	def unix_femtoseconds: Int; end
+
+	##[
+		Returns the number of attoseconds elapsed since January 1, 1970 UTC
+	]##
+	def unix_attoseconds: Int; end
+
+	##[
+		Returns the number of zeptoseconds elapsed since January 1, 1970 UTC
+	]##
+	def unix_zeptoseconds: Int; end
+
+	##[
+		Returns the number of yoctoseconds elapsed since January 1, 1970 UTC
+	]##
+	def unix_yoctoseconds: Int; end
+
+	##[
+		Convert the datetime to the UTC zone.
+	]##
+	def to_utc: DateTime; end
+	alias utc to_utc
+
+	##[
+		Convert the datetime to the local timezone.
+	]##
+	def to_local: DateTime; end
+	alias local to_local
+
+	##[
+		Checks whether the timezone it UTC.
+	]##
+	def is_utc: bool; end
+
+	##[
+		Checks whether the timezone it local (the same as the system timezone).
+	]##
+	def is_local: bool; end
+
+	##[
+		Checks whether the day of the week is monday.
+	]##
+	def is_monday: bool; end
+
+	##[
+		Checks whether the day of the week is tuesday.
+	]##
+	def is_tuesday: bool; end
+
+	##[
+		Checks whether the day of the week is wednesday.
+	]##
+	def is_wednesday: bool; end
+
+	##[
+		Checks whether the day of the week is thursday.
+	]##
+	def is_thursday: bool; end
+
+	##[
+		Checks whether the day of the week is friday.
+	]##
+	def is_friday: bool; end
+
+	##[
+		Checks whether the day of the week is saturday.
+	]##
+	def is_saturday: bool; end
+
+	##[
+		Checks whether the day of the week is sunday.
+	]##
+	def is_sunday: bool; end
+
+	##[
+		Whether the current hour is AM.
+	]##
+	def is_am: bool; end
+
+	##[
+		Whether the current hour is PM.
+	]##
+	def is_pm: bool; end
+
+	##[
+		Returns `"AM"` or `"PM"` based on the hour.
+	]##
+	def meridiem: String; end
+
+	##[
+		Returns the hour of the day in a twelve hour clock.
+	]##
+	def hour12: Int; end
+
+	sealed def >=(other: DateTime): bool; end
+
+	sealed def >(other: DateTime): bool; end
+
+	sealed def <=(other: DateTime): bool; end
+
+	sealed def <(other: DateTime): bool; end
+
+end

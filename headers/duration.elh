@@ -1,125 +1,179 @@
 ##[
-	Represents the elapsed time between two Times as an int64 nanosecond count.
-	 The representation limits the largest representable duration to approximately 290 years.
+	Represents a difference between two points in time.
 ]##
-sealed primitive class ::Std::Duration < Value
-	singleton
-		##[
-			Parses a duration string and creates a Duration value.
-			A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
-			Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
-		]##
-		def parse(s: String): Duration; end
+abstract mixin ::Std::Duration
+	sig -@: Duration
+	sig +@: Duration
 
-		##[
-			Returns the amount of elapsed since the given `Time`.
-		]##
-		def since(time: Time): Duration; end
-
-		##[
-			Returns the amount of time that is left until the given `Time`.
-		]##
-		def until(time: Time): Duration; end
-	end
-
-	def +(other: Duration): Duration; end
-	def -(other: Duration): Duration; end
-	def *(other: CoercibleNumeric): Duration; end
-	def /(other: CoercibleNumeric): Duration; end
+	sig +(other: Duration): Duration
+	sig -(other: Duration): Duration
+	sig *(other: CoercibleNumeric): Duration
+	sig /(other: CoercibleNumeric): Duration
 
 	##[
-		Returns the string representation of the duration in the format "51h15m0.12s".
+		Returns the string representation of the duration.
 	]##
-	def to_string: String; end
+	sig to_string: String
 
 	##[
-		Returns the count of nanoseconds in this duration as a Float.
+		Returns the approximate count of years in this duration as a Float.
 	]##
-	def in_nanoseconds: Float; end
+	sig in_years: Float
 
 	##[
-		Returns the count of nanoseconds in this duration as an Int.
+		Returns the approximate count of years in this span as an Int.
 	]##
-	def nanoseconds: Int; end
+	sig total_years: Int
 
 	##[
-		Returns the count of microseconds in this duration as an Int.
+		Returns the year component of this duration as an Int.
 	]##
-	def in_microseconds: Float; end
+	sig years: Int
 
 	##[
-		Returns the count of microseconds in this duration as a Float.
+		Returns the approximate count of months in this duration as a Float.
 	]##
-	def microseconds: Int; end
+	sig in_months: Float
 
 	##[
-		Returns the count of milliseconds in this duration as a Float.
+		Returns the approximate count of weeks in this duration as an Int.
 	]##
-	def in_milliseconds: Float; end
+	sig total_months: Int
 
 	##[
-		Returns the count of milliseconds in this duration as an Int.
+		Returns the month component of this duration as an Int.
+
+		Range of values: 0...11
 	]##
-	def milliseconds: Int; end
+	sig months: Int
 
 	##[
-		Returns the count of seconds in this duration as a Float.
+		Returns the approximate count of weeks in this duration as a Float.
 	]##
-	def in_seconds: Float; end
+	sig in_weeks: Float
 
 	##[
-		Returns the count of seconds in this duration as an Int.
+		Returns the approximate count of weeks in this duration as an Int.
 	]##
-	def seconds: Int; end
+	sig total_weeks: Int
 
 	##[
-		Returns the count of minutes in this duration as a Float.
+		Returns the day component of this duration as an Int.
+
+		Range of values: 0...30
 	]##
-	def in_minutes: Float; end
+	sig days: Int
 
 	##[
-		Returns the count of minutes in this duration as an Int.
+		Returns the approximate count of days in this duration as a Float.
 	]##
-	def minutes: Int; end
+	sig in_days: Float
 
 	##[
-		Returns the count of hours in this duration as a Float.
+		Returns the approximate count of days in this duration as an Int.
 	]##
-	def in_hours: Float; end
+	sig total_days: Int
 
 	##[
-		Returns the count of hours in this duration as an Int.
+		Returns the hour component of this duration as an Int.
+
+		Range of values: 0...23
 	]##
-	def hours: Int; end
+	sig hours: Int
 
 	##[
-		Returns the count of days in this duration as a Float.
+		Returns the approximate count of hours in this duration as a Float.
 	]##
-	def in_days: Float; end
+	sig in_hours: Float
 
 	##[
-		Returns the count of days in this duration as an Int.
+		Returns the approximate count of hours in this duration as an Int.
 	]##
-	def days: Int; end
+	sig total_hours: Int
 
 	##[
-		Returns the count of weeks in this duration as a Float.
+		Returns the minute component of this duration as an Int.
+
+		Range of values: 0...59
 	]##
-	def in_weeks: Float; end
+	sig minutes: Int
 
 	##[
-		Returns the count of weeks in this duration as an Int.
+		Returns the approximate count of minutes in this duration as a Float.
 	]##
-	def weeks: Int; end
+	sig in_minutes: Float
 
 	##[
-		Returns the count of years in this duration as a Float.
+		Returns the approximate count of minutes in this duration as an Int.
 	]##
-	def in_years: Float; end
+	sig total_minutes: Int
 
 	##[
-		Returns the count of years in this duration as an Int.
+		Returns the second component of this duration as an Int.
+
+		Range of values: 0...59
 	]##
-	def years: Int; end
+	sig seconds: Int
+
+	##[
+		Returns the approximate count of seconds in this duration as a Float.
+	]##
+	sig in_seconds: Float
+
+	##[
+		Returns the approximate count of seconds in this duration as an Int.
+	]##
+	sig total_seconds: Int
+
+	##[
+		Returns the millisecond component of this duration as an Int.
+
+		Range of values: 0...999
+	]##
+	sig milliseconds: Int
+
+	##[
+		Returns the approximate count of milliseconds in this duration as a Float.
+	]##
+	sig in_milliseconds: Float
+
+	##[
+		Returns the approximate count of milliseconds in this span as an Int.
+	]##
+	sig total_milliseconds: Int
+
+	##[
+		Returns the microsecond component of this duration as an Int.
+
+		Range of values: 0...999
+	]##
+	sig microseconds: Int
+
+	##[
+		Returns the approximate count of microseconds in this span as a Float.
+	]##
+	sig in_microseconds: Float
+
+	##[
+		Returns the approximate count of microseconds in this span as an Int.
+	]##
+	sig total_microseconds: Int
+
+	##[
+		Returns the nanosecond component of this duration as an Int.
+
+		Range of values: 0...999
+	]##
+	sig nanoseconds: Int
+
+	##[
+		Returns the approximate count of nanoseconds in this span as a Float.
+	]##
+	sig in_nanoseconds: Float
+
+	##[
+		Returns the approximate count of nanoseconds in this span as an Int.
+	]##
+	sig total_nanoseconds: Int
 
 end

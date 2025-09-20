@@ -9,6 +9,7 @@ module Std::Elk::AST
     const SEALED_FLAG: UInt8
     const GENERATOR_FLAG: UInt8
     const ASYNC_FLAG: UInt8
+    const OVERLOAD_FLAG: UInt8
 
     init(
       name: IdentifierNode,
@@ -51,5 +52,10 @@ module Std::Elk::AST
       Whether the method is asynchronous eg. `async def foo; end`
     ]##
     def is_async: bool; end
+
+    ##[
+      Whether the method is an overload eg. `overload def foo; end`
+    ]##
+    def is_overload: bool; end
   end
 end

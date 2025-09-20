@@ -2,7 +2,7 @@
 	Represents a value that can be compared
 	using relational operators like `>`, `>=`, `<`, `<=`, `<=>`
 ]##
-interface ::Std::Comparable[T]
+interface ::Std::Comparable[-T]
 	##[
 		Returns:
 

@@ -114,9 +114,11 @@ func DeepCopyEnv(t Type, oldEnv, newEnv *GlobalEnvironment) Type {
 		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
 	case *TypeParamNamespace:
 		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *Closure:
+	case *Callable:
 		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
 	case *TypeParameter:
+		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
+	case *TemporaryParent:
 		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
 	default:
 		return ToTypeInterface(t)

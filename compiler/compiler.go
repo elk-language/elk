@@ -158,6 +158,7 @@ type Compiler struct {
 	mode               mode
 	isGenerator        bool
 	isAsync            bool
+	unhygienic         bool
 	secondToLastOpCode bytecode.OpCode
 	lastOpCode         bytecode.OpCode
 	patternNesting     int
@@ -217,7 +218,7 @@ func (c *Compiler) compileGlobalEnv() {
 }
 
 func (c *Compiler) compileNamespaceDefinition(parentNamespace, namespace types.Namespace, namespaceType byte, constName value.Symbol, location *position.Location) {
-	if !namespace.IsDefined() {
+	if !namespace.IsDefined() && !namespace.IsNative() {
 		switch p := parentNamespace.(type) {
 		case *types.SingletonClass:
 			c.emitGetConst(value.ToSymbol(p.AttachedObject.Name()), location)
@@ -320,8 +321,8 @@ func (c *Compiler) CompileInclude(target types.Namespace, mixin *types.Mixin, lo
 	c.emit(location.StartPos.Line, bytecode.INCLUDE)
 }
 
-func (c *Compiler) InitExpressionCompiler(filename string, location *position.Location) *Compiler {
-	exprCompiler := New(filename, topLevelMode, c.Bytecode.Location, c.checker)
+func (c *Compiler) InitExpressionCompiler(location *position.Location) *Compiler {
+	exprCompiler := New("<file>", topLevelMode, location, c.checker)
 	exprCompiler.Errors = c.Errors
 
 	c.emitValue(value.Ref(exprCompiler.Bytecode), location)
@@ -332,7 +333,7 @@ func (c *Compiler) InitExpressionCompiler(filename string, location *position.Lo
 }
 
 func (c *Compiler) CompileExpressionsInFile(node *ast.ProgramNode) {
-	c.compileNode(node, false)
+	c.compileProgram(node)
 }
 
 // Entry point to the compilation process
@@ -476,10 +477,13 @@ func (c *Compiler) compileMethodsWithinModule(module *types.Module, location *po
 
 		for methodName, method := range types.SortedOwnMethods(module) {
 			c.compileMethodDefinition(methodName, method, location)
-		}
 
-		for aliasName, alias := range types.SortedOwnMethodAliases(module) {
-			c.compileMethodAliasDefinition(aliasName, alias, location)
+			for i, overload := range method.Overloads {
+				overloadName := value.ToSymbol(
+					fmt.Sprintf("%s@%d", methodName.String(), i+1),
+				)
+				c.compileMethodDefinition(overloadName, overload, location)
+			}
 		}
 
 		c.emit(location.StartPos.Line, bytecode.POP)
@@ -493,20 +497,36 @@ func (c *Compiler) compileMethodsWithinModule(module *types.Module, location *po
 	}
 }
 
-func (c *Compiler) compileMethodAliasDefinition(aliasName value.Symbol, alias *types.MethodAlias, location *position.Location) {
-	if !alias.IsDefinable() {
-		return
-	}
-
-	c.emitValue(alias.Method.Name.ToValue(), location)
-	c.emitValue(aliasName.ToValue(), location)
-	c.emit(location.StartPos.Line, bytecode.DEF_METHOD_ALIAS)
-	alias.Compiled = true
-}
-
 func (c *Compiler) compileMethodDefinition(name value.Symbol, method *types.Method, location *position.Location) {
 	if !method.IsDefinable() {
 		return
+	}
+
+	if method.Base != nil {
+		method = method.Base
+
+		if method.IsNative() {
+			namespace := value.RootModule.Constants.GetString(method.DefinedUnder.Name()).AsReference()
+			var class *value.Class
+			switch n := namespace.(type) {
+			case *value.Class:
+				class = n
+			case *value.Module:
+				class = n.SingletonClass()
+			default:
+				panic(fmt.Sprintf("invalid namespace %T", namespace))
+			}
+			nativeMethod, ok := class.Methods[method.Name]
+			if !ok {
+				panic(fmt.Sprintf("undefined native method %s under %s", method.Name.String(), namespace.Inspect()))
+			}
+
+			c.emitValue(value.Ref(nativeMethod), location)
+			c.emitValue(name.ToValue(), location)
+			c.emit(location.StartPos.Line, bytecode.DEF_METHOD)
+			method.SetCompiled(true)
+			return
+		}
 	}
 
 	if method.IsAttribute() {
@@ -586,19 +606,11 @@ func (c *Compiler) compileMethodsWithinNamespace(namespace types.Namespace, loca
 			c.compileMethodDefinition(methodName, method, location)
 		}
 
-		for aliasName, alias := range types.SortedOwnMethodAliases(namespace) {
-			c.compileMethodAliasDefinition(aliasName, alias, location)
-		}
-
 		if singletonHasCompiledMethods {
 			c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 
 			for methodName, method := range types.SortedOwnMethods(singleton) {
 				c.compileMethodDefinition(methodName, method, location)
-			}
-
-			for aliasName, alias := range types.SortedOwnMethodAliases(singleton) {
-				c.compileMethodAliasDefinition(aliasName, alias, location)
 			}
 		}
 
@@ -899,7 +911,8 @@ func (c *Compiler) nodeIsCompilable(node ast.Node) bool {
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
 		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
-		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
+		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode,
+		*ast.ImportStatementNode:
 		return false
 	case *ast.ExpressionStatementNode:
 		return c.nodeIsCompilable(node.Expression)
@@ -957,7 +970,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
 		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
-		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
+		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode,
+		*ast.ImportStatementNode:
 		return expressionIgnored
 	case *ast.ProgramNode:
 		return c.compileStatements(node.Body, node.Location(), valueIsIgnored)
@@ -1113,6 +1127,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		c.compileDoExpressionNode(node)
 	case *ast.MacroBoundaryNode:
 		c.compileMacroBoundaryNode(node)
+	case *ast.UnhygienicNode:
+		c.compileUnhygienicNode(node, valueIsIgnored)
 	case *ast.IfExpressionNode:
 		return c.compileIfExpression(
 			false,
@@ -1213,6 +1229,13 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 			return expressionCompiled
 		}
 		c.emitValue(value.UInt32(i).ToValue(), node.Location())
+	case *ast.UIntLiteralNode:
+		i, err := value.StrictParseUint(node.Value, 0, value.SmallIntBits)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return expressionCompiled
+		}
+		c.emitValue(value.UInt(i).ToValue(), node.Location())
 	case *ast.UInt64LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 64)
 		if !err.IsUndefined() {
@@ -1562,6 +1585,15 @@ func (c *Compiler) compileMacroBoundaryNode(node *ast.MacroBoundaryNode) {
 	c.enterScope("", defaultScopeType)
 	c.compileStatementsWithResult(node.Body, location)
 	c.leaveScope(location.EndPos.Line)
+}
+
+func (c *Compiler) compileUnhygienicNode(node *ast.UnhygienicNode, valueIsIgnored bool) {
+	prevUnhygienic := c.unhygienic
+	c.unhygienic = true
+
+	c.compileNode(node.Node, valueIsIgnored)
+
+	c.unhygienic = prevUnhygienic
 }
 
 // Count `finally` blocks we are currently nested in under
@@ -3632,7 +3664,7 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		*ast.CharLiteralNode, *ast.RawCharLiteralNode, *ast.DoubleQuotedStringLiteralNode,
 		*ast.InterpolatedStringLiteralNode, *ast.RawStringLiteralNode,
 		*ast.SimpleSymbolLiteralNode, *ast.InterpolatedSymbolLiteralNode,
-		*ast.IntLiteralNode, *ast.Int64LiteralNode, *ast.UInt64LiteralNode,
+		*ast.IntLiteralNode, *ast.Int64LiteralNode, *ast.UIntLiteralNode, *ast.UInt64LiteralNode,
 		*ast.Int32LiteralNode, *ast.UInt32LiteralNode, *ast.Int16LiteralNode, *ast.UInt16LiteralNode,
 		*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
 		*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode,
@@ -7526,7 +7558,7 @@ func (c *Compiler) resolveLocal(name string) (*local, bool) {
 			found = true
 			break
 		}
-		if varScope.typ == macroBoundaryScopeType {
+		if !c.unhygienic && varScope.typ == macroBoundaryScopeType {
 			break
 		}
 	}

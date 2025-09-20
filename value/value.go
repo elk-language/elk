@@ -44,14 +44,18 @@ const (
 	UINT16_FLAG
 	INT32_FLAG
 	UINT32_FLAG
+	UINT_FLAG
 	CHAR_FLAG
 	SYMBOL_FLAG
+	DATE_FLAG
 
 	// only 64 bit systems
 	INT64_FLAG
 	UINT64_FLAG
 	FLOAT64_FLAG
-	DURATION_FLAG
+	TIME_FLAG
+	TIME_SPAN_FLAG
+	DATE_SPAN_FLAG
 	REFERENCE_FLAG
 
 	SENTINEL_FLAG = 0xFF
@@ -108,10 +112,18 @@ func (v Value) Inspect() string {
 		return v.AsUInt32().Inspect()
 	case UINT64_FLAG:
 		return v.AsInlineUInt64().Inspect()
+	case UINT_FLAG:
+		return v.AsUInt().Inspect()
 	case CHAR_FLAG:
 		return v.AsChar().Inspect()
-	case DURATION_FLAG:
-		return v.AsInlineDuration().Inspect()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan().Inspect()
+	case DATE_FLAG:
+		return v.AsDate().Inspect()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan().Inspect()
+	case TIME_FLAG:
+		return v.AsTime().Inspect()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -165,10 +177,18 @@ func (v Value) Class() *Class {
 		return v.AsUInt32().Class()
 	case UINT64_FLAG:
 		return v.AsInlineUInt64().Class()
+	case UINT_FLAG:
+		return v.AsUInt().Class()
 	case CHAR_FLAG:
 		return v.AsChar().Class()
-	case DURATION_FLAG:
-		return v.AsInlineDuration().Class()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan().Class()
+	case DATE_FLAG:
+		return v.AsDate().Class()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan().Class()
+	case TIME_FLAG:
+		return v.AsTime().Class()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -214,10 +234,18 @@ func (v Value) DirectClass() *Class {
 		return v.AsUInt32().DirectClass()
 	case UINT64_FLAG:
 		return v.AsInlineUInt64().DirectClass()
+	case UINT_FLAG:
+		return v.AsUInt().DirectClass()
 	case CHAR_FLAG:
 		return v.AsChar().DirectClass()
-	case DURATION_FLAG:
-		return v.AsInlineDuration().DirectClass()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan().DirectClass()
+	case DATE_FLAG:
+		return v.AsDate().DirectClass()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan().DirectClass()
+	case TIME_FLAG:
+		return v.AsTime().DirectClass()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -263,10 +291,18 @@ func (v Value) SingletonClass() *Class {
 		return v.AsUInt32().SingletonClass()
 	case UINT64_FLAG:
 		return v.AsInlineUInt64().SingletonClass()
+	case UINT_FLAG:
+		return v.AsUInt().SingletonClass()
 	case CHAR_FLAG:
 		return v.AsChar().SingletonClass()
-	case DURATION_FLAG:
-		return v.AsInlineDuration().SingletonClass()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan().SingletonClass()
+	case DATE_FLAG:
+		return v.AsDate().SingletonClass()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan().SingletonClass()
+	case TIME_FLAG:
+		return v.AsTime().SingletonClass()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -312,10 +348,18 @@ func (v Value) InstanceVariables() *InstanceVariables {
 		return v.AsUInt32().InstanceVariables()
 	case UINT64_FLAG:
 		return v.AsInlineUInt64().InstanceVariables()
+	case UINT_FLAG:
+		return v.AsUInt().InstanceVariables()
 	case CHAR_FLAG:
 		return v.AsChar().InstanceVariables()
-	case DURATION_FLAG:
-		return v.AsInlineDuration().InstanceVariables()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan().InstanceVariables()
+	case DATE_FLAG:
+		return v.AsDate().InstanceVariables()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan().InstanceVariables()
+	case TIME_FLAG:
+		return v.AsTime().InstanceVariables()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -361,10 +405,18 @@ func (v Value) Error() string {
 		return v.AsUInt32().Error()
 	case UINT64_FLAG:
 		return v.AsInlineUInt64().Error()
+	case UINT_FLAG:
+		return v.AsUInt().Error()
 	case CHAR_FLAG:
 		return v.AsChar().Error()
-	case DURATION_FLAG:
-		return v.AsInlineDuration().Error()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan().Error()
+	case DATE_FLAG:
+		return v.AsDate().Error()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan().Error()
+	case TIME_FLAG:
+		return v.AsTime().Error()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -376,6 +428,18 @@ func (v Value) ValueFlag() uint8 {
 
 func (v Value) IsReference() bool {
 	return v.flag == REFERENCE_FLAG
+}
+
+func (v Value) AsString() String {
+	return v.AsReference().(String)
+}
+
+func (v Value) AsBigInt() *BigInt {
+	return (*BigInt)(v.Pointer())
+}
+
+func (v Value) MustBigInt() *BigInt {
+	return v.MustReference().(*BigInt)
 }
 
 // Returns `nil` when the value is not a reference
@@ -440,6 +504,29 @@ func (v Value) MustSmallInt() SmallInt {
 		panic(fmt.Sprintf("value `%s` is not a SmallInt", v.Inspect()))
 	}
 	return v.AsSmallInt()
+}
+
+func (v Value) AsInt() int {
+	if v.IsReference() {
+		return int(v.AsBigInt().ToSmallInt())
+	}
+
+	return int(v.AsSmallInt())
+}
+
+func (v Value) IsUInt() bool {
+	return v.flag == UINT_FLAG
+}
+
+func (v Value) AsUInt() UInt {
+	return UInt(v.data)
+}
+
+func (v Value) MustUInt() UInt {
+	if !v.IsUInt() {
+		panic(fmt.Sprintf("value `%s` is not a UInt", v.Inspect()))
+	}
+	return v.AsUInt()
 }
 
 func (v Value) IsChar() bool {
@@ -670,35 +757,116 @@ func (v Value) MustUInt64() UInt64 {
 	}
 }
 
-func (v Value) IsInlineDuration() bool {
-	return v.flag == DURATION_FLAG
+func (v Value) IsInlineTimeSpan() bool {
+	return v.flag == TIME_SPAN_FLAG
 }
 
-func (v Value) AsInlineDuration() Duration {
-	return Duration(v.data)
+func (v Value) AsInlineTimeSpan() TimeSpan {
+	return TimeSpan(v.data)
 }
 
-func (v Value) AsDuration() Duration {
+func (v Value) AsTimeSpan() TimeSpan {
 	if v.IsReference() {
-		return v.AsReference().(Duration)
+		return v.AsReference().(TimeSpan)
 	} else {
-		return v.AsInlineDuration()
+		return v.AsInlineTimeSpan()
 	}
 }
 
-func (v Value) MustDuration() Duration {
+func (v Value) MustTimeSpan() TimeSpan {
 	if v.IsReference() {
-		return v.AsReference().(Duration)
+		return v.AsReference().(TimeSpan)
 	} else {
-		return v.MustInlineDuration()
+		return v.MustInlineTimeSpan()
 	}
 }
 
-func (v Value) MustInlineDuration() Duration {
-	if !v.IsInlineDuration() {
-		panic(fmt.Sprintf("value `%s` is not an inline Duration", v.Inspect()))
+func (v Value) MustInlineTimeSpan() TimeSpan {
+	if !v.IsInlineTimeSpan() {
+		panic(fmt.Sprintf("value `%s` is not an inline Time::Span", v.Inspect()))
 	}
-	return v.AsInlineDuration()
+	return v.AsInlineTimeSpan()
+}
+
+func (v Value) IsDate() bool {
+	return v.flag == DATE_FLAG
+}
+
+func (v Value) AsDate() Date {
+	return Date{bits: uint32(v.data)}
+}
+
+func (v Value) MustDate() Date {
+	if !v.IsDate() {
+		panic(fmt.Sprintf("value `%s` is not a Date", v.Inspect()))
+	}
+	return v.AsDate()
+}
+
+func (v Value) IsInlineTime() bool {
+	return v.flag == TIME_FLAG
+}
+
+func (v Value) AsInlineTime() Time {
+	return Time{
+		duration: TimeSpan(v.data),
+	}
+}
+
+func (v Value) MustInlineTime() Time {
+	if !v.IsInlineTime() {
+		panic(fmt.Sprintf("value `%s` is not an inline Time", v.Inspect()))
+	}
+	return v.AsInlineTime()
+}
+
+func (v Value) AsTime() Time {
+	if v.IsReference() {
+		return v.AsReference().(Time)
+	} else {
+		return v.AsInlineTime()
+	}
+}
+
+func (v Value) MustTime() Time {
+	if v.IsReference() {
+		return v.AsReference().(Time)
+	} else {
+		return v.MustInlineTime()
+	}
+}
+
+func (v Value) IsInlineDateSpan() bool {
+	return v.flag == DATE_SPAN_FLAG
+}
+
+func (v Value) AsInlineDateSpan() DateSpan {
+	months := int32(v.data >> 32)
+	days := int32(v.data & 0xFFFFFFFF)
+	return DateSpan{months: months, days: days}
+}
+
+func (v Value) AsDateSpan() DateSpan {
+	if v.IsReference() {
+		return v.AsReference().(DateSpan)
+	} else {
+		return v.AsInlineDateSpan()
+	}
+}
+
+func (v Value) MustDateSpan() DateSpan {
+	if v.IsReference() {
+		return v.AsReference().(DateSpan)
+	} else {
+		return v.MustInlineDateSpan()
+	}
+}
+
+func (v Value) MustInlineDateSpan() DateSpan {
+	if !v.IsInlineTimeSpan() {
+		panic(fmt.Sprintf("value `%s` is not an inline Date::Span", v.Inspect()))
+	}
+	return v.AsInlineDateSpan()
 }
 
 func (v Value) IsInlineSymbol() bool {
@@ -955,6 +1123,8 @@ func ToGoInt(val Value) (int, bool) {
 		return int(val.AsUInt32()), true
 	case UINT64_FLAG:
 		return int(val.AsInlineUInt64()), true
+	case UINT_FLAG:
+		return int(val.AsUInt()), true
 	}
 	return 0, false
 }
@@ -1041,6 +1211,9 @@ func ToGoUInt(val Value) (uint, bool) {
 		if uint64(v) > math.MaxUint {
 			return 0, false
 		}
+		return uint(v), true
+	case UINT_FLAG:
+		v := val.AsUInt()
 		return uint(v), true
 	}
 
@@ -1223,6 +1396,9 @@ func Hash(key Value) (result UInt64, err Value) {
 	case INT8_FLAG:
 		k := key.AsInt8()
 		return k.Hash(), err
+	case UINT_FLAG:
+		k := key.AsUInt()
+		return k.Hash(), err
 	case UINT64_FLAG:
 		k := key.AsInlineUInt64()
 		return k.Hash(), err
@@ -1295,6 +1471,9 @@ func AddVal(left, right Value) (result, err Value) {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return ToValueErr(l.Add(right))
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return ToValueErr(l.Add(right))
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return ToValueErr(l.Add(right))
@@ -1363,6 +1542,9 @@ func SubtractVal(left, right Value) (result, err Value) {
 		return ToValueErr(l.Subtract(right))
 	case INT8_FLAG:
 		l := left.AsInt8()
+		return ToValueErr(l.Subtract(right))
+	case UINT_FLAG:
+		l := left.AsUInt()
 		return ToValueErr(l.Subtract(right))
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
@@ -1436,6 +1618,9 @@ func MultiplyVal(left, right Value) (result, err Value) {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return ToValueErr(l.Multiply(right))
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return ToValueErr(l.Multiply(right))
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return ToValueErr(l.Multiply(right))
@@ -1503,6 +1688,9 @@ func DivideVal(left, right Value) (result, err Value) {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return ToValueErr(l.Divide(right))
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return ToValueErr(l.Divide(right))
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return ToValueErr(l.Divide(right))
@@ -1566,6 +1754,9 @@ func NegateVal(operand Value) Value {
 	case INT8_FLAG:
 		o := operand.AsInt8()
 		return (-o).ToValue()
+	case UINT_FLAG:
+		o := operand.AsUInt()
+		return (-o).ToValue()
 	case UINT64_FLAG:
 		o := operand.AsInlineUInt64()
 		return (-o).ToValue()
@@ -1619,6 +1810,9 @@ func IncrementVal(operand Value) Value {
 	case INT8_FLAG:
 		o := operand.AsInt8()
 		return (o + 1).ToValue()
+	case UINT_FLAG:
+		o := operand.AsUInt()
+		return (o + 1).ToValue()
 	case UINT64_FLAG:
 		o := operand.AsInlineUInt64()
 		return (o + 1).ToValue()
@@ -1671,6 +1865,9 @@ func DecrementVal(operand Value) Value {
 		return (o - 1).ToValue()
 	case INT8_FLAG:
 		o := operand.AsInt8()
+		return (o - 1).ToValue()
+	case UINT_FLAG:
+		o := operand.AsUInt()
 		return (o - 1).ToValue()
 	case UINT64_FLAG:
 		o := operand.AsInlineUInt64()
@@ -1747,6 +1944,9 @@ func BitwiseNotVal(operand Value) Value {
 	case INT8_FLAG:
 		o := operand.AsInt8()
 		return (^o).ToValue()
+	case UINT_FLAG:
+		o := operand.AsUInt()
+		return (^o).ToValue()
 	case UINT64_FLAG:
 		o := operand.AsInlineUInt64()
 		return (^o).ToValue()
@@ -1811,6 +2011,9 @@ func ExponentiateVal(left, right Value) (result, err Value) {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return ToValueErr(l.ExponentiateVal(right))
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return ToValueErr(l.ExponentiateVal(right))
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return ToValueErr(l.ExponentiateVal(right))
@@ -1874,6 +2077,9 @@ func ModuloVal(left, right Value) (result, err Value) {
 		return ToValueErr(l.ModuloVal(right))
 	case INT8_FLAG:
 		l := left.AsInt8()
+		return ToValueErr(l.ModuloVal(right))
+	case UINT_FLAG:
+		l := left.AsUInt()
 		return ToValueErr(l.ModuloVal(right))
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
@@ -1948,6 +2154,9 @@ func CompareVal(left, right Value) (result, err Value) {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return l.CompareVal(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return l.CompareVal(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return l.CompareVal(right)
@@ -2017,6 +2226,9 @@ func GreaterThanVal(left, right Value) (result, err Value) {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return l.GreaterThanVal(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return l.GreaterThanVal(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return l.GreaterThanVal(right)
@@ -2081,6 +2293,9 @@ func GreaterThan(left, right Value) (result bool, err Value) {
 		return l.GreaterThan(right)
 	case INT8_FLAG:
 		l := left.AsInt8()
+		return l.GreaterThan(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
 		return l.GreaterThan(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
@@ -2151,6 +2366,9 @@ func GreaterThanEqualVal(left, right Value) (result, err Value) {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return l.GreaterThanEqualVal(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return l.GreaterThanEqualVal(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return l.GreaterThanEqualVal(right)
@@ -2215,6 +2433,9 @@ func GreaterThanEqual(left, right Value) (result bool, err Value) {
 		return l.GreaterThanEqual(right)
 	case INT8_FLAG:
 		l := left.AsInt8()
+		return l.GreaterThanEqual(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
 		return l.GreaterThanEqual(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
@@ -2285,6 +2506,9 @@ func LessThanVal(left, right Value) (result, err Value) {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return l.LessThanVal(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return l.LessThanVal(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return l.LessThanVal(right)
@@ -2349,6 +2573,9 @@ func LessThan(left, right Value) (result bool, err Value) {
 		return l.LessThan(right)
 	case INT8_FLAG:
 		l := left.AsInt8()
+		return l.LessThan(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
 		return l.LessThan(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
@@ -2419,6 +2646,9 @@ func LessThanEqualVal(left, right Value) (result, err Value) {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return l.LessThanEqualVal(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return l.LessThanEqualVal(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return l.LessThanEqualVal(right)
@@ -2483,6 +2713,9 @@ func LessThanEqual(left, right Value) (result bool, err Value) {
 		return l.LessThanEqual(right)
 	case INT8_FLAG:
 		l := left.AsInt8()
+		return l.LessThanEqual(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
 		return l.LessThanEqual(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
@@ -2557,6 +2790,9 @@ func LaxEqualVal(left, right Value) Value {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return StrictSignedIntLaxEqual(l, right)
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return StrictUnsignedIntLaxEqual(l, right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return StrictUnsignedIntLaxEqual(l, right)
@@ -2645,6 +2881,9 @@ func EqualVal(left, right Value) Value {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return l.EqualVal(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return l.EqualVal(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return l.EqualVal(right)
@@ -2717,6 +2956,9 @@ func Equal(left, right Value) bool {
 		return l.Equal(right)
 	case INT8_FLAG:
 		l := left.AsInt8()
+		return l.Equal(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
 		return l.Equal(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
@@ -2801,6 +3043,9 @@ func StrictEqualVal(left, right Value) Value {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return l.StrictEqualVal(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return l.StrictEqualVal(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return l.StrictEqualVal(right)
@@ -2869,6 +3114,9 @@ func StrictEqual(left, right Value) bool {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		return l.Equal(right)
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return l.Equal(right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		return l.Equal(right)
@@ -2935,6 +3183,10 @@ func RightBitshiftVal(left, right Value) (result, err Value) {
 		l := left.AsInt8()
 		result, err := StrictIntRightBitshift(l, right)
 		return result.ToValue(), err
+	case UINT_FLAG:
+		l := left.AsUInt()
+		result, err := StrictIntRightBitshift(l, right)
+		return result.ToValue(), err
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		result, err := StrictIntRightBitshift(l, right)
@@ -2990,6 +3242,10 @@ func LogicalRightBitshiftVal(left, right Value) (result, err Value) {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		r, err := StrictIntLogicalRightBitshift(l, right, LogicalRightShift8)
+		return r.ToValue(), err
+	case UINT_FLAG:
+		l := left.AsUInt()
+		r, err := StrictIntRightBitshift(l, right)
 		return r.ToValue(), err
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
@@ -3055,6 +3311,10 @@ func LeftBitshiftVal(left, right Value) (result, err Value) {
 		l := left.AsInt8()
 		result, err := StrictIntLeftBitshift(l, right)
 		return result.ToValue(), err
+	case UINT_FLAG:
+		l := left.AsUInt()
+		result, err := StrictIntLeftBitshift(l, right)
+		return result.ToValue(), err
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		result, err := StrictIntLeftBitshift(l, right)
@@ -3110,6 +3370,10 @@ func LogicalLeftBitshiftVal(left, right Value) (result, err Value) {
 	case INT8_FLAG:
 		l := left.AsInt8()
 		r, err := StrictIntLogicalLeftBitshift(l, right, LogicalRightShift8)
+		return r.ToValue(), err
+	case UINT_FLAG:
+		l := left.AsUInt()
+		r, err := StrictIntLeftBitshift(l, right)
 		return r.ToValue(), err
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
@@ -3170,6 +3434,10 @@ func BitwiseAndVal(left, right Value) (result, err Value) {
 		return result.ToValue(), err
 	case INT8_FLAG:
 		l := left.AsInt8()
+		result, err := l.BitwiseAnd(right)
+		return result.ToValue(), err
+	case UINT_FLAG:
+		l := left.AsUInt()
 		result, err := l.BitwiseAnd(right)
 		return result.ToValue(), err
 	case UINT64_FLAG:
@@ -3233,6 +3501,10 @@ func BitwiseAndNotVal(left, right Value) (result, err Value) {
 		l := left.AsInt8()
 		result, err := l.BitwiseAndNot(right)
 		return result.ToValue(), err
+	case UINT_FLAG:
+		l := left.AsUInt()
+		result, err := l.BitwiseAndNot(right)
+		return result.ToValue(), err
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		result, err := l.BitwiseAndNot(right)
@@ -3294,6 +3566,10 @@ func BitwiseOrVal(left, right Value) (result, err Value) {
 		l := left.AsInt8()
 		result, err := l.BitwiseOr(right)
 		return result.ToValue(), err
+	case UINT_FLAG:
+		l := left.AsUInt()
+		result, err := l.BitwiseOr(right)
+		return result.ToValue(), err
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
 		result, err := l.BitwiseOr(right)
@@ -3353,6 +3629,10 @@ func BitwiseXorVal(left, right Value) (result, err Value) {
 		return result.ToValue(), err
 	case INT8_FLAG:
 		l := left.AsInt8()
+		result, err := l.BitwiseXor(right)
+		return result.ToValue(), err
+	case UINT_FLAG:
+		l := left.AsUInt()
 		result, err := l.BitwiseXor(right)
 		return result.ToValue(), err
 	case UINT64_FLAG:

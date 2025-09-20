@@ -17,6 +17,7 @@ type NamespaceWithIvarIndices interface {
 	Namespace
 	IvarIndices() *value.IvarIndices
 	SetIvarIndices(*value.IvarIndices)
+	IsNative() bool
 }
 
 type Namespace interface {
@@ -35,6 +36,7 @@ type Namespace interface {
 	IsGeneric() bool
 	IsDefined() bool
 	SetDefined(bool)
+	IsNative() bool
 
 	TypeParameters() []*TypeParameter
 	SetTypeParameters([]*TypeParameter)
@@ -63,9 +65,6 @@ type Namespace interface {
 	InstanceVariable(name value.Symbol) Type
 	InstanceVariableString(name string) Type
 	DefineInstanceVariable(name value.Symbol, val Type)
-
-	MethodAliases() MethodAliasMap
-	SetMethodAlias(name value.Symbol, method *Method)
 
 	DefineClass(docComment string, primitive, abstract, sealed, noinit bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class
 	DefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module
@@ -133,12 +132,6 @@ func MethodsDeepCopyEnv(methods MethodMap, oldEnv, newEnv *GlobalEnvironment) Me
 func NamespaceHasAnyDefinableMethods(namespace Namespace) bool {
 	for _, method := range namespace.Methods() {
 		if method.IsDefinable() {
-			return true
-		}
-	}
-
-	for _, alias := range namespace.MethodAliases() {
-		if alias.IsDefinable() {
 			return true
 		}
 	}
@@ -806,21 +799,6 @@ func OwnMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
 func SortedOwnMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
 	return func(yield func(name value.Symbol, method *Method) bool) {
 		methods := namespace.Methods()
-		names := symbol.SortKeys(methods)
-
-		for _, name := range names {
-			method := methods[name]
-			if !yield(name, method) {
-				break
-			}
-		}
-	}
-}
-
-// Iterate over every method alias defined directly under the given namespace, sorted by name
-func SortedOwnMethodAliases(namespace Namespace) iter.Seq2[value.Symbol, *MethodAlias] {
-	return func(yield func(name value.Symbol, method *MethodAlias) bool) {
-		methods := namespace.MethodAliases()
 		names := symbol.SortKeys(methods)
 
 		for _, name := range names {

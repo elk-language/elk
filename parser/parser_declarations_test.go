@@ -6947,6 +6947,53 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
+		"can be an overload": {
+			input: "overload def foo; end",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(20, 1, 21))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(20, 1, 21))),
+						ast.NewMethodDefinitionNode(
+							L(S(P(0, 1, 1), P(20, 1, 21))),
+							"",
+							ast.METHOD_OVERLOAD_FLAG,
+							ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(15, 1, 16))), "foo"),
+							nil,
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"cannot repeat overload": {
+			input: "overload overload def foo; end",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(29, 1, 30))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(29, 1, 30))),
+						ast.NewMethodDefinitionNode(
+							L(S(P(0, 1, 1), P(29, 1, 30))),
+							"",
+							ast.METHOD_OVERLOAD_FLAG,
+							ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(24, 1, 25))), "foo"),
+							nil,
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(0, 1, 1), P(7, 1, 8))), "the overload modifier can only be attached once"),
+			},
+		},
 		"cannot repeat async": {
 			input: "async async def foo; end",
 			want: ast.NewProgramNode(

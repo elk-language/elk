@@ -30,7 +30,9 @@ func (m *ModulePlaceholder) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Modu
 	newMod.methods = MethodsDeepCopyEnv(m.methods, oldEnv, newEnv)
 	newMod.subtypes = ConstantsDeepCopyEnv(m.subtypes, oldEnv, newEnv)
 	newMod.constants = ConstantsDeepCopyEnv(m.constants, oldEnv, newEnv)
-	newMod.parent = DeepCopyEnv(m.parent, oldEnv, newEnv).(Namespace)
+	if m.parent != nil {
+		newMod.parent = DeepCopyEnv(m.parent, oldEnv, newEnv).(Namespace)
+	}
 
 	return newMod
 }

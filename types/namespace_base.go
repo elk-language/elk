@@ -34,7 +34,6 @@ type NamespaceBase struct {
 	subtypes          ConstantMap
 	instanceVariables TypeMap
 	methods           MethodMap
-	methodAliases     MethodAliasMap
 }
 
 func MakeNamespaceBase(docComment, name string) NamespaceBase {
@@ -45,7 +44,6 @@ func MakeNamespaceBase(docComment, name string) NamespaceBase {
 		subtypes:          make(ConstantMap),
 		instanceVariables: make(TypeMap),
 		methods:           make(MethodMap),
-		methodAliases:     make(MethodAliasMap),
 	}
 }
 
@@ -79,15 +77,6 @@ func (c *NamespaceBase) SetName(name string) {
 
 func (c *NamespaceBase) Methods() MethodMap {
 	return c.methods
-}
-
-func (c *NamespaceBase) MethodAliases() MethodAliasMap {
-	return c.methodAliases
-}
-
-func (c *NamespaceBase) SetMethodAlias(name value.Symbol, method *Method) {
-	c.methodAliases[name] = NewMethodAlias(method)
-	c.SetMethod(name, method)
 }
 
 func (c *NamespaceBase) Constants() ConstantMap {

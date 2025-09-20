@@ -14,6 +14,23 @@ func initInt() {
 	c := &value.IntClass.MethodContainer
 	Def(
 		c,
+		"hash",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Hash().ToValue(), value.Undefined
+			}
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.Hash().ToValue(), value.Undefined
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+		},
+	)
+	Def(
+		c,
 		"++",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -814,6 +831,22 @@ func initInt() {
 	Alias(c, "week", "weeks")
 	Def(
 		c,
+		"months",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Months().ToValue(), value.Undefined
+			}
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return s.Months().ToValue(), value.Undefined
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+		},
+	)
+	Alias(c, "month", "months")
+	Def(
+		c,
 		"years",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -828,6 +861,38 @@ func initInt() {
 		},
 	)
 	Alias(c, "year", "years")
+	Def(
+		c,
+		"centuries",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Centuries().ToValue(), value.Undefined
+			}
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return s.Centuries().ToValue(), value.Undefined
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+		},
+	)
+	Alias(c, "century", "centuries")
+	Def(
+		c,
+		"millenia",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			if self.IsSmallInt() {
+				return self.AsSmallInt().Millenia().ToValue(), value.Undefined
+			}
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				return s.Millenia().ToValue(), value.Undefined
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+		},
+	)
+	Alias(c, "millenium", "millenia")
 
 	Def(
 		c,

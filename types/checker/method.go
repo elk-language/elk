@@ -14,6 +14,7 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
@@ -88,6 +89,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		false,
 		false,
 		false,
+		false,
 		symbol.S_init,
 		nil,
 		initNode.Parameters,
@@ -135,7 +137,16 @@ func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace typ
 	oldMethod := c.resolveMethodInNamespace(namespace, newName)
 	c.checkMethodOverrideWithPlaceholder(aliasedMethod, oldMethod, node.Location())
 	c.checkSpecialMethods(newName, aliasedMethod, nil, node.Location())
-	namespace.SetMethodAlias(newName, aliasedMethod)
+
+	if aliasedMethod.IsOverload() {
+		c.addFailure(
+			fmt.Sprintf("method `%s` with overloads cannot have an alias", aliasedMethod.Name.String()),
+			node.Location(),
+		)
+	}
+
+	alias := aliasedMethod.CreateAlias(newName)
+	namespace.SetMethod(newName, alias)
 }
 
 func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNode, methodName, asName string, location *position.Location) {
@@ -434,6 +445,7 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 		false,
 		node.IsGenerator(),
 		node.IsAsync(),
+		node.IsOverload(),
 		value.ToSymbol(c.identifierToName(node.Name)),
 		node.TypeParameters,
 		node.Parameters,
@@ -455,6 +467,7 @@ func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefini
 		c.currentMethodScope().container,
 		node.DocComment(),
 		true,
+		false,
 		false,
 		false,
 		false,
@@ -496,7 +509,7 @@ func (c *Checker) newMethodChecker(
 		Errors:         c.Errors,
 		flags:          c.flags,
 		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil),
+			newLocalEnvironment(nil, false),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),
@@ -531,6 +544,7 @@ type methodCheckEntry struct {
 	constantScopes []constantScope
 	methodScopes   []methodScope
 	node           *ast.MethodDefinitionNode
+	headerMode     bool
 }
 
 func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
@@ -539,14 +553,15 @@ func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefi
 		constantScopes: c.constantScopesCopy(),
 		methodScopes:   c.methodScopesCopy(),
 		node:           node,
+		headerMode:     c.IsHeader(),
 	})
 }
 
-var concurrencyLimit = 1000
+var MethodCheckConcurrencyLimit = 100
 
 func (c *Checker) checkMethods() {
 	concurrent.Foreach(
-		concurrencyLimit,
+		MethodCheckConcurrencyLimit,
 		c.methodChecks,
 		func(methodCheck methodCheckEntry) {
 			method := methodCheck.method
@@ -570,6 +585,7 @@ func (c *Checker) checkMethods() {
 				c.threadPool,
 				node.Location(),
 			)
+			methodChecker.SetHeader(methodCheck.headerMode)
 
 			methodChecker.checkMethodDefinition(node, method)
 
@@ -626,6 +642,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		nil,
 		c.currentMethodScope().container,
 		docComment,
+		false,
 		false,
 		false,
 		false,
@@ -702,6 +719,11 @@ func (c *Checker) deepCopyMethod(method *types.Method) *types.Method {
 		copy.ReturnType = c.replaceTypeParameters(copy.ReturnType, newTypeParamTransformMap, true)
 		copy.ThrowType = c.replaceTypeParameters(copy.ThrowType, newTypeParamTransformMap, true)
 
+		newOverloads := make([]*types.Method, len(method.Overloads))
+		for i, overload := range method.Overloads {
+			newOverloads[i] = c.deepCopyMethod(overload)
+		}
+
 		return copy
 	}
 
@@ -739,6 +761,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		nil,
 		methodScope.container,
 		docComment,
+		false,
 		false,
 		false,
 		false,
@@ -798,6 +821,75 @@ func (c *Checker) checkMethodOverride(
 	baseMethod *types.Method,
 	location *position.Location,
 ) {
+	if overrideMethod.IsRegisteredOverload() {
+		return
+	}
+
+	if len(baseMethod.Overloads) > len(overrideMethod.Overloads) {
+		errDetailsBuff := new(strings.Builder)
+
+		fmt.Fprintf(
+			errDetailsBuff,
+			"missing overloads in `%s`\n  is: ",
+			I(overrideMethod.DefinedUnder),
+		)
+
+		var i int
+		for overrideOverload := range overrideMethod.AllOverloads() {
+			if i != 0 {
+				fmt.Fprint(
+					errDetailsBuff,
+					"\n      ",
+				)
+			}
+			fmt.Fprintf(
+				errDetailsBuff,
+				"`%s`",
+				overrideOverload.InspectSignatureWithColor(false),
+			)
+			i++
+		}
+
+		fmt.Fprint(
+			errDetailsBuff,
+			"\n  should be: ",
+		)
+
+		i = 0
+		for baseOverload := range baseMethod.AllOverloads() {
+			if i != 0 {
+				fmt.Fprint(
+					errDetailsBuff,
+					"\n             ",
+				)
+			}
+			fmt.Fprintf(
+				errDetailsBuff,
+				"`%s`",
+				baseOverload.InspectSignatureWithColor(false),
+			)
+			i++
+		}
+
+		c.addFailure(
+			errDetailsBuff.String(),
+			location,
+		)
+		return
+	}
+
+	c._checkMethodOverride(
+		overrideMethod,
+		baseMethod,
+		location,
+	)
+}
+
+func (c *Checker) _checkMethodOverride(
+	overrideMethod,
+	baseMethod *types.Method,
+	location *position.Location,
+) bool {
 	var areIncompatible bool
 	errDetailsBuff := new(strings.Builder)
 
@@ -928,8 +1020,10 @@ func (c *Checker) checkMethodOverride(
 			),
 			location,
 		)
+		return false
 	}
 
+	return true
 }
 
 func (c *Checker) checkMethod(
@@ -947,7 +1041,7 @@ func (c *Checker) checkMethod(
 	name := checkedMethod.Name
 	prevMode := c.mode
 	prevFlags := c.flags
-	isClosure := types.IsClosure(methodNamespace)
+	isClosure := types.IsCallable(methodNamespace)
 
 	if methodNamespace != nil {
 		currentMethod := c.resolveMethodInNamespace(methodNamespace, name)
@@ -1332,7 +1426,88 @@ func (c *Checker) addToThrowType(typ types.Type) {
 	c.throwType = c.NewNormalisedUnion(c.throwType, typ)
 }
 
+type inferArg struct {
+	typedArg ast.ExpressionNode
+	param    *types.Parameter
+	retry    bool
+}
+
 func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
+	method *types.Method,
+	positionalArguments []ast.ExpressionNode,
+	namedArguments []ast.NamedArgumentNode,
+	typeParams []*types.TypeParameter,
+	location *position.Location,
+) (
+	_method *types.Method,
+	_posArgs []ast.ExpressionNode,
+	typeArgs types.TypeArgumentMap,
+) {
+	if len(method.Overloads) == 0 {
+		posArgs, typeArgs := c._checkMethodArgumentsAndInferTypeArguments(
+			method,
+			positionalArguments,
+			namedArguments,
+			typeParams,
+			location,
+		)
+		return method, posArgs, typeArgs
+	}
+
+	prevDiagnostics := c.Errors
+	tempDiagnostics := diagnostic.NewSyncDiagnosticList()
+	c.Errors = tempDiagnostics
+	for overload := range method.ReverseOverloads() {
+		tempDiagnostics.Clear()
+
+		posArgs := ds.MapSlice(positionalArguments, func(arg ast.ExpressionNode) ast.ExpressionNode {
+			return ast.DeepCopy(arg).(ast.ExpressionNode)
+		})
+		namedArgs := ds.MapSlice(namedArguments, func(arg ast.NamedArgumentNode) ast.NamedArgumentNode {
+			return ast.DeepCopy(arg).(ast.NamedArgumentNode)
+		})
+
+		posArgs, typeArgs := c._checkMethodArgumentsAndInferTypeArguments(
+			overload,
+			posArgs,
+			namedArgs,
+			typeParams,
+			location,
+		)
+
+		if !tempDiagnostics.IsFailure() {
+			c.Errors = prevDiagnostics
+			return overload, posArgs, typeArgs
+		}
+	}
+
+	c.Errors = prevDiagnostics
+
+	errDetailsBuff := new(strings.Builder)
+
+	fmt.Fprintf(
+		errDetailsBuff,
+		"no overload of `%s` matches the given arguments\n  signature: `%s`",
+		method.Name.String(),
+		method.InspectSignatureWithColor(false),
+	)
+
+	for _, overload := range method.Overloads {
+		fmt.Fprintf(
+			errDetailsBuff,
+			"\n             `%s`",
+			overload.InspectSignatureWithColor(false),
+		)
+	}
+
+	c.addFailure(
+		errDetailsBuff.String(),
+		location,
+	)
+	return nil, nil, nil
+}
+
+func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 	method *types.Method,
 	positionalArguments []ast.ExpressionNode,
 	namedArguments []ast.NamedArgumentNode,
@@ -1371,6 +1546,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		)
 	}
 
+	var inferArgs []inferArg
 	var currentParamIndex int
 	// check all positional argument before the rest parameter
 	for ; currentParamIndex < len(positionalArguments); currentParamIndex++ {
@@ -1392,14 +1568,38 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		posArgType := c.TypeOf(typedPosArg)
 
 		inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
+		var retry bool
 		if inferredParamType == nil {
 			param.Type = types.Untyped{}
-		} else if inferredParamType != param.Type {
+		} else if inferredParamType == param.Type {
+			retry = true
+		} else {
 			param.Type = inferredParamType
 		}
+		inferArgs = append(inferArgs, inferArg{
+			typedArg: typedPosArg,
+			param:    param,
+			retry:    retry,
+		})
+	}
+
+	for _, inferArg := range inferArgs {
+		typedPosArg := inferArg.typedArg
+		posArgType := c.TypeOf(typedPosArg)
+		param := inferArg.param
+
+		if inferArg.retry {
+			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
+			if inferredParamType == nil {
+				param.Type = types.Untyped{}
+			} else if inferredParamType != param.Type {
+				param.Type = inferredParamType
+			}
+		}
+
 		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 
-		if !c.isSubtype(posArgType, param.Type, posArg.Location()) {
+		if !c.isSubtype(posArgType, param.Type, typedPosArg.Location()) {
 			c.addFailure(
 				fmt.Sprintf(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
@@ -1408,7 +1608,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 					types.InspectWithColor(method),
 					types.InspectWithColor(posArgType),
 				),
-				posArg.Location(),
+				typedPosArg.Location(),
 			)
 		}
 	}
@@ -1436,6 +1636,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		// check rest arguments
 		for ; currentArgIndex < min(argCount-method.PostParamCount, len(positionalArguments)); currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
+
 			typedPosArg := c.checkRestArgument(posArg, posRestParam.Type)
 			posArgType := c.TypeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, posRestParam.Type, typeArgMap, typedPosArg.Location())
@@ -1761,9 +1962,9 @@ func (c *Checker) checkNonGenericMethodArguments(
 	positionalArguments []ast.ExpressionNode,
 	namedArguments []ast.NamedArgumentNode,
 	location *position.Location,
-) []ast.ExpressionNode {
-	posArgs, _ := c.checkMethodArgumentsAndInferTypeArguments(method, positionalArguments, namedArguments, nil, location)
-	return posArgs
+) (*types.Method, []ast.ExpressionNode) {
+	method, posArgs, _ := c.checkMethodArgumentsAndInferTypeArguments(method, positionalArguments, namedArguments, nil, location)
+	return method, posArgs
 }
 
 func (c *Checker) checkRestArgument(node ast.ExpressionNode, typ types.Type) ast.ExpressionNode {
@@ -1796,40 +1997,39 @@ func (c *Checker) checkMethodArguments(
 		}
 
 		method = c.replaceTypeParametersInMethodCopy(method, typeArgs.ArgumentMap, true)
-		typedPositionalArguments = c.checkNonGenericMethodArguments(
+		return c.checkNonGenericMethodArguments(
 			method,
 			positionalArgumentNodes,
 			namedArgumentNodes,
 			location,
 		)
-		return method, typedPositionalArguments
 	}
 
 	if len(method.TypeParameters) > 0 {
 		var typeArgMap types.TypeArgumentMap
 		method = c.deepCopyMethod(method)
-		typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
+		var chosenMethod *types.Method
+		chosenMethod, typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
 			method,
 			positionalArgumentNodes,
 			namedArgumentNodes,
 			method.TypeParameters,
 			location,
 		)
-		if len(typeArgMap) != len(method.TypeParameters) {
+		if len(typeArgMap) != len(chosenMethod.TypeParameters) {
 			return nil, nil
 		}
-		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap, true)
-		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap, true)
-		return method, typedPositionalArguments
+		chosenMethod.ReturnType = c.replaceTypeParameters(chosenMethod.ReturnType, typeArgMap, true)
+		chosenMethod.ThrowType = c.replaceTypeParameters(chosenMethod.ThrowType, typeArgMap, true)
+		return chosenMethod, typedPositionalArguments
 	}
 
-	typedPositionalArguments = c.checkNonGenericMethodArguments(
+	return c.checkNonGenericMethodArguments(
 		method,
 		positionalArgumentNodes,
 		namedArgumentNodes,
 		location,
 	)
-	return method, typedPositionalArguments
 }
 
 func (c *Checker) checkSimpleMethodCall(
@@ -1841,6 +2041,7 @@ func (c *Checker) checkSimpleMethodCall(
 	namedArgumentNodes []ast.NamedArgumentNode,
 	location *position.Location,
 ) (
+	_methodName value.Symbol,
 	_receiver ast.ExpressionNode,
 	_positionalArguments []ast.ExpressionNode,
 	typ types.Type,
@@ -1864,7 +2065,7 @@ func (c *Checker) checkSimpleMethodCall(
 			typedPositionalArguments = append(typedPositionalArguments, c.checkExpression(arg.Value))
 		}
 
-		return receiver, typedPositionalArguments, receiverType
+		return methodName, receiver, typedPositionalArguments, receiverType
 	}
 
 	var method *types.Method
@@ -1880,14 +2081,14 @@ func (c *Checker) checkSimpleMethodCall(
 	if method == nil {
 		c.checkExpressions(positionalArgumentNodes)
 		c.checkNamedArguments(namedArgumentNodes)
-		return receiver, positionalArgumentNodes, types.Untyped{}
+		return methodName, receiver, positionalArgumentNodes, types.Untyped{}
 	}
 
 	c.addToMethodCache(method)
 
 	method, typedPositionalArguments := c.checkMethodArguments(method, typeArgumentNodes, positionalArgumentNodes, namedArgumentNodes, location)
 	if method == nil {
-		return receiver, positionalArgumentNodes, types.Untyped{}
+		return methodName, receiver, positionalArgumentNodes, types.Untyped{}
 	}
 
 	var returnType types.Type
@@ -1918,26 +2119,37 @@ func (c *Checker) checkSimpleMethodCall(
 
 	c.checkCalledMethodThrowType(method, location)
 
-	return receiver, typedPositionalArguments, returnType
+	return method.Name, receiver, typedPositionalArguments, returnType
 }
 
 func (c *Checker) checkBinaryOpMethodCall(
-	left ast.ExpressionNode,
-	right ast.ExpressionNode,
+	node *ast.BinaryExpressionNode,
 	methodName value.Symbol,
-	location *position.Location,
-) types.Type {
-	_, _, returnType := c.checkSimpleMethodCall(
-		left,
+) ast.ExpressionNode {
+	chosenMethodName, receiver, args, returnType := c.checkSimpleMethodCall(
+		node.Left,
 		token.DOT,
 		methodName,
 		nil,
-		[]ast.ExpressionNode{right},
+		[]ast.ExpressionNode{node.Right},
 		nil,
-		location,
+		node.Location(),
 	)
+	if chosenMethodName != methodName {
+		newNode := ast.NewMethodCallNode(
+			node.Location(),
+			receiver,
+			token.New(node.Location(), token.DOT),
+			ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+			args,
+			nil,
+		)
+		newNode.SetType(returnType)
+		return newNode
+	}
 
-	return returnType
+	node.SetType(returnType)
+	return node
 }
 
 func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *types.Method) {
@@ -1974,6 +2186,7 @@ func (c *Checker) declareMethod(
 	inferReturnType bool,
 	generator bool,
 	async bool,
+	overload bool,
 	name value.Symbol,
 	typeParamNodes []ast.TypeParameterNode,
 	paramNodes []ast.ParameterNode,
@@ -1985,8 +2198,17 @@ func (c *Checker) declareMethod(
 	if c.mode == interfaceMode {
 		abstract = true
 	}
+	if abstract && overload {
+		c.addFailure(
+			fmt.Sprintf(
+				"abstract method `%s` cannot be overloaded",
+				name.String(),
+			),
+			location,
+		)
+	}
 	oldMethod := methodNamespace.Method(name)
-	if oldMethod != nil {
+	if !overload && oldMethod != nil {
 		if sealed && !oldMethod.IsSealed() {
 			c.addFailure(
 				fmt.Sprintf(
@@ -2285,6 +2507,9 @@ func (c *Checker) declareMethod(
 	if async {
 		flags |= types.METHOD_ASYNC_FLAG
 	}
+	if overload {
+		flags |= types.METHOD_OVERLOAD_FLAG
+	}
 	newMethod := types.NewMethod(
 		docComment,
 		flags,
@@ -2297,8 +2522,26 @@ func (c *Checker) declareMethod(
 	)
 	newMethod.SetLocation(location)
 
-	c.checkMethodOverrideWithPlaceholder(newMethod, oldMethod, location)
-	methodNamespace.SetMethod(name, newMethod)
+	if overload {
+		if oldMethod != nil {
+			if !oldMethod.IsOverload() {
+				c.addFailure(
+					fmt.Sprintf(
+						"cannot declare an overload for method `%s` previously defined without `%s`",
+						name.String(),
+						lexer.Colorize("overload"),
+					),
+					location,
+				)
+			}
+			oldMethod.RegisterOverload(newMethod)
+		} else {
+			methodNamespace.SetMethod(name, newMethod)
+		}
+	} else {
+		c.checkMethodOverrideWithPlaceholder(newMethod, oldMethod, location)
+		methodNamespace.SetMethod(name, newMethod)
+	}
 
 	c.checkSpecialMethods(name, newMethod, paramNodes, location)
 
@@ -2706,6 +2949,9 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name value
 			case *types.Module:
 				parent = n
 			default:
+				if n.Singleton() == nil {
+					continue
+				}
 				parent = n.Singleton()
 			}
 		}
@@ -2889,7 +3135,34 @@ func (c *Checker) replaceTypeParametersInMethodCopy(method *types.Method, typeAr
 		}
 	}
 
-	if methodCopy != nil {
+	different := methodCopy != nil
+	var overloadsCopy []*types.Method
+
+	if different {
+		for i, overload := range method.Overloads {
+			method.Overloads[i] = c.replaceTypeParametersInMethod(overload, typeArgs, replaceMethodTypeParams)
+		}
+	} else {
+		overloadsCopy := make([]*types.Method, len(method.Overloads))
+		for i, overload := range method.Overloads {
+			overloadCopy := c.replaceTypeParametersInMethodCopy(overload, typeArgs, replaceMethodTypeParams)
+			if overload != overloadCopy {
+				different = true
+			}
+			overloadsCopy[i] = overloadCopy
+		}
+	}
+
+	if different {
+		if methodCopy == nil {
+			methodCopy = c.deepCopyMethod(method)
+			for i, overload := range overloadsCopy {
+				if method.Overloads[i] == overload {
+					overloadsCopy[i] = c.deepCopyMethod(overload)
+				}
+			}
+			methodCopy.Overloads = overloadsCopy
+		}
 		return methodCopy
 	}
 	return method
@@ -2905,6 +3178,10 @@ func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs t
 
 	for _, param := range method.Params {
 		param.Type = c.replaceTypeParameters(param.Type, typeArgs, replaceMethodTypeParams)
+	}
+
+	for i, overload := range method.Overloads {
+		method.Overloads[i] = c.replaceTypeParametersInMethod(overload, typeArgs, replaceMethodTypeParams)
 	}
 
 	return method
@@ -2944,7 +3221,7 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typ, errSpan, inParent, inSelf)
 	case *types.Interface:
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typ, errSpan, inParent, inSelf)
-	case *types.Closure:
+	case *types.Callable:
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typ, errSpan, inParent, inSelf)
 	case *types.SingletonClass:
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typ, errSpan, inParent, inSelf)
@@ -2973,18 +3250,18 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name value
 	}
 }
 
-func (c *Checker) getReceiverlessMethod(name value.Symbol, location *position.Location) (_ *types.Method, fromLocal bool) {
+func (c *Checker) getReceiverlessMethod(name value.Symbol, location *position.Location) (_ *types.Method, namespace types.Namespace, fromLocal bool) {
 	nameStr := name.String()
 	local, _ := c.resolveLocal(nameStr, nil)
 	if local != nil {
 		if !local.initialised {
 			c.addUninitialisedLocalError(nameStr, location)
 		}
-		return c.getMethod(local.typ, symbol.L_call, location), true
+		return c.getMethod(local.typ, symbol.L_call, location), nil, true
 	}
 	method := c.getMethod(c.selfType, name, nil)
 	if method != nil {
-		return method, false
+		return method, nil, false
 	}
 
 	for _, methodScope := range c.methodScopes {
@@ -2997,13 +3274,13 @@ func (c *Checker) getReceiverlessMethod(name value.Symbol, location *position.Lo
 		namespace := methodScope.container
 		method := c.getMethod(namespace, name, nil)
 		if method != nil {
-			return method, false
+			return method, namespace, false
 		}
 	}
 
 	c.addMissingMethodError(c.selfType, name.String(), location)
 
-	return nil, false
+	return nil, nil, false
 }
 
 func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *position.Location, inParent, inSelf bool) *types.Method {
@@ -3026,7 +3303,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
 	case *types.Interface:
 		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
-	case *types.Closure:
+	case *types.Callable:
 		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
 	case *types.InterfaceProxy:
 		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
@@ -3074,7 +3351,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 			c.addMissingMethodError(typ, name.String(), errSpan)
 			return nil
 		case 1:
-			return methods[0]
+			return methods[0].WithoutOverloads()
 		}
 
 		isCompatible := true
@@ -3087,7 +3364,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		}
 
 		if isCompatible {
-			return baseMethod
+			return baseMethod.WithoutOverloads()
 		}
 
 		return nil
@@ -3113,7 +3390,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		}
 
 		if c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod, errSpan) {
-			return baseMethod
+			return baseMethod.WithoutOverloads()
 		}
 		return nil
 	case *types.Union:
@@ -3145,7 +3422,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		}
 
 		if isCompatible {
-			return baseMethod
+			return baseMethod.WithoutOverloads()
 		}
 
 		return nil

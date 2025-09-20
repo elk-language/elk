@@ -1,0 +1,19 @@
+module Std::Elk::AST
+  ##[
+    Create a new unhygienic node.
+    It enables macro-generated code to access
+    local variables from outer scopes.
+  ]##
+  sealed primitive class UnhygienicNode
+    include TypeNode
+    include PatternExpressionNode
+
+    init(
+      node: Node,
+      location: FS::Location = loop; end,
+    ); end
+
+    def node: Node; end
+    def location: FS::Location; end
+  end
+end

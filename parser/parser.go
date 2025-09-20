@@ -746,6 +746,8 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 		return p.sealedModifier(allowed)
 	case token.ASYNC:
 		return p.asyncModifier(allowed)
+	case token.OVERLOAD:
+		return p.overloadModifier(allowed)
 	case token.DOC_COMMENT:
 		return p.docComment(allowed)
 	case token.ALIAS:
@@ -2433,6 +2435,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.noinitModifier(false)
 	case token.ABSTRACT:
 		return p.abstractModifier(false)
+	case token.OVERLOAD:
+		return p.overloadModifier(false)
 	case token.PRIMITIVE:
 		return p.primitiveModifier(false)
 	case token.SEALED:
@@ -2450,6 +2454,12 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.INT:
 		tok := p.advance()
 		return ast.NewIntLiteralNode(
+			tok.Location(),
+			tok.Value,
+		)
+	case token.UINT:
+		tok := p.advance()
+		return ast.NewUIntLiteralNode(
 			tok.Location(),
 			tok.Value,
 		)
@@ -4875,6 +4885,8 @@ func (p *Parser) primaryType() ast.TypeNode {
 		return p.symbolLiteral(false)
 	case token.INT:
 		return p.int()
+	case token.UINT:
+		return p.uint()
 	case token.INT64:
 		return p.int64()
 	case token.UINT64:
@@ -4905,21 +4917,25 @@ func (p *Parser) primaryType() ast.TypeNode {
 	case token.ANY:
 		tok := p.advance()
 		return ast.NewAnyTypeNode(tok.Location())
-	case token.OR, token.OR_OR:
-		return p.closureType()
+	case token.OR, token.OR_OR, token.CLOSURE_TYPE_BEG:
+		return p.callableType()
 	default:
 		return p.namedType()
 	}
 }
 
-// closureType = (("|" signatureParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation]
-func (p *Parser) closureType() ast.TypeNode {
+// callableType = (("|" signatureParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation]
+func (p *Parser) callableType() ast.TypeNode {
 	var params []ast.ParameterNode
 	var location *position.Location
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
+	var isClosure bool
 
-	if p.accept(token.OR) {
+	if p.accept(token.CLOSURE_TYPE_BEG) {
+		isClosure = true
+	}
+	if p.accept(token.CLOSURE_TYPE_BEG, token.OR) {
 		location = p.advance().Location()
 		if !p.accept(token.OR) {
 			p.mode = withoutUnionTypeMode
@@ -4956,11 +4972,12 @@ func (p *Parser) closureType() ast.TypeNode {
 		location = location.Join(throwType.Location())
 	}
 
-	return ast.NewClosureTypeNode(
+	return ast.NewCallableTypeNode(
 		location,
 		params,
 		returnType,
 		throwType,
+		isClosure,
 	)
 }
 
@@ -5663,6 +5680,26 @@ func (p *Parser) abstractModifier(allowed bool) ast.ExpressionNode {
 		n.SetLocation(abstractTok.Location().Join(n.Location()))
 	default:
 		p.errorMessageLocation("the abstract modifier can only be attached to classes, mixins and methods", node.Location())
+	}
+
+	return node
+}
+
+// overloadModifier = "overload" declarationExpression
+func (p *Parser) overloadModifier(allowed bool) ast.ExpressionNode {
+	overloadTok := p.advance()
+
+	p.swallowNewlines()
+	node := p.declarationExpression(allowed)
+	switch n := node.(type) {
+	case *ast.MethodDefinitionNode:
+		if n.IsOverload() {
+			p.errorMessageLocation("the overload modifier can only be attached once", overloadTok.Location())
+		}
+		n.SetOverload()
+		n.SetLocation(overloadTok.Location().Join(n.Location()))
+	default:
+		p.errorMessageLocation("the overload modifier can only be attached to methods", node.Location())
 	}
 
 	return node
@@ -6642,6 +6679,8 @@ func (p *Parser) innerLiteralPattern() ast.PatternExpressionNode {
 		return p.int()
 	case token.INT64:
 		return p.int64()
+	case token.UINT:
+		return p.uint()
 	case token.UINT64:
 		return p.uint64()
 	case token.INT32:
@@ -6688,6 +6727,14 @@ func (p *Parser) int() *ast.IntLiteralNode {
 func (p *Parser) int64() *ast.Int64LiteralNode {
 	tok := p.advance()
 	return ast.NewInt64LiteralNode(
+		tok.Location(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) uint() *ast.UIntLiteralNode {
+	tok := p.advance()
+	return ast.NewUIntLiteralNode(
 		tok.Location(),
 		tok.Value,
 	)

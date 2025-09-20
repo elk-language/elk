@@ -199,6 +199,8 @@ func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) (re
 		return c.checkMacroCallNodeForPattern(n, matchedType)
 	case *ast.ScopedMacroCallNode:
 		return c.checkScopedMacroCallNodeForPattern(n, matchedType)
+	case *ast.UnhygienicNode:
+		return c.checkPatternUnhygienicNode(n, matchedType)
 	default:
 		panic(fmt.Sprintf("invalid pattern node %T", node))
 	}
