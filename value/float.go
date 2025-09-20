@@ -127,6 +127,11 @@ func (f Float) ToInt8() Int8 {
 }
 
 // Convert to Elk UInt64
+func (f Float) ToUInt() UInt {
+	return UInt(f)
+}
+
+// Convert to Elk UInt64
 func (f Float) ToUInt64() UInt64 {
 	return UInt64(f)
 }

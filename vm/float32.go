@@ -4,38 +4,14 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func initBigFloat() {
+func initFloat32() {
 	// Instance methods
-	c := &value.BigFloatClass.MethodContainer
-	Def(
-		c,
-		"set_precision",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			arg := args[1]
-			p, ok := value.ToGoUInt(arg)
-			if !ok {
-				return value.Undefined, value.Ref(value.NewBigFloatPrecisionError(arg.Inspect()))
-			}
-			return value.Ref(self.SetPrecision(p)), value.Undefined
-		},
-		DefWithParameters(1),
-	)
-	Alias(c, "p", "set_precision")
-	Def(
-		c,
-		"precision",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return value.UInt64(self.Precision()).ToValue(), value.Undefined
-		},
-	)
-
+	c := &value.Float32Class.MethodContainer
 	Def(
 		c,
 		"hash",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
+			self := args[0].AsFloat32()
 			return self.Hash().ToValue(), value.Undefined
 		},
 	)
@@ -50,17 +26,16 @@ func initBigFloat() {
 		c,
 		"-@",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return value.Ref(self.Negate()), value.Undefined
+			self := args[0].AsFloat32()
+			return (-self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			other := args[1]
-			return self.AddVal(other)
+			self := args[0].AsFloat32()
+			return value.ToValueErr(self.Add(args[1]))
 		},
 		DefWithParameters(1),
 	)
@@ -68,9 +43,8 @@ func initBigFloat() {
 		c,
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			other := args[1]
-			return self.SubtractVal(other)
+			self := args[0].AsFloat32()
+			return value.ToValueErr(self.Subtract(args[1]))
 		},
 		DefWithParameters(1),
 	)
@@ -78,9 +52,8 @@ func initBigFloat() {
 		c,
 		"*",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			other := args[1]
-			return self.MultiplyVal(other)
+			self := args[0].AsFloat32()
+			return value.ToValueErr(self.Multiply(args[1]))
 		},
 		DefWithParameters(1),
 	)
@@ -88,9 +61,8 @@ func initBigFloat() {
 		c,
 		"/",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			other := args[1]
-			return self.DivideVal(other)
+			self := args[0].AsFloat32()
+			return value.ToValueErr(self.Divide(args[1]))
 		},
 		DefWithParameters(1),
 	)
@@ -98,9 +70,8 @@ func initBigFloat() {
 		c,
 		"**",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			other := args[1]
-			return self.ExponentiateVal(other)
+			self := args[0].AsFloat32()
+			return value.ToValueErr(self.ExponentiateVal(args[1]))
 		},
 		DefWithParameters(1),
 	)
@@ -108,7 +79,7 @@ func initBigFloat() {
 		c,
 		"<=>",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
+			self := args[0].AsFloat32()
 			other := args[1]
 			return self.CompareVal(other)
 		},
@@ -118,7 +89,7 @@ func initBigFloat() {
 		c,
 		">",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
+			self := args[0].AsFloat32()
 			other := args[1]
 			return self.GreaterThanVal(other)
 		},
@@ -128,7 +99,7 @@ func initBigFloat() {
 		c,
 		">=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
+			self := args[0].AsFloat32()
 			other := args[1]
 			return self.GreaterThanEqualVal(other)
 		},
@@ -138,7 +109,7 @@ func initBigFloat() {
 		c,
 		"<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
+			self := args[0].AsFloat32()
 			other := args[1]
 			return self.LessThanVal(other)
 		},
@@ -148,7 +119,7 @@ func initBigFloat() {
 		c,
 		"<=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
+			self := args[0].AsFloat32()
 			other := args[1]
 			return self.LessThanEqualVal(other)
 		},
@@ -158,7 +129,7 @@ func initBigFloat() {
 		c,
 		"==",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
+			self := args[0].AsFloat32()
 			other := args[1]
 			return self.EqualVal(other), value.Undefined
 		},
@@ -168,9 +139,9 @@ func initBigFloat() {
 		c,
 		"=~",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
+			self := args[0].AsFloat32()
 			other := args[1]
-			return self.LaxEqualVal(other), value.Undefined
+			return value.StrictFloatLaxEqual(self, other), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -178,9 +149,9 @@ func initBigFloat() {
 		c,
 		"%",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
+			self := args[0].AsFloat32()
 			other := args[1]
-			return self.ModuloVal(other)
+			return value.ToValueErr(self.ModuloVal(other))
 		},
 		DefWithParameters(1),
 	)
@@ -189,50 +160,48 @@ func initBigFloat() {
 		c,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0]
+			self := args[0].AsFloat32()
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
 	)
-	Alias(c, "to_string", "inspect")
-
 	Def(
 		c,
-		"to_big_float",
+		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0]
-			return self, value.Undefined
+			self := args[0].AsFloat32()
+			return value.Ref(self.ToString()), value.Undefined
 		},
 	)
+
 	Def(
 		c,
 		"to_float",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToFloat().ToValue(), value.Undefined
+			self := args[0].AsFloat32()
+			return value.Float(self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"to_int",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToInt(), value.Undefined
+			self := args[0].AsFloat32()
+			return value.SmallInt(self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"to_float64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToFloat64().ToValue(), value.Undefined
+			self := args[0].AsFloat32()
+			return value.Float64(self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
-		"to_float32",
+		"to_float64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToFloat32().ToValue(), value.Undefined
+			return args[0], value.Undefined
 		},
 	)
 
@@ -240,72 +209,72 @@ func initBigFloat() {
 		c,
 		"to_int64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToInt64().ToValue(), value.Undefined
+			self := args[0].AsFloat32()
+			return value.Int64(self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"to_int32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToInt32().ToValue(), value.Undefined
+			self := args[0].AsFloat32()
+			return value.Int32(self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"to_int16",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToInt16().ToValue(), value.Undefined
+			self := args[0].AsFloat32()
+			return value.Int16(self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"to_int8",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToInt8().ToValue(), value.Undefined
+			self := args[0].AsFloat32()
+			return value.Int8(self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"to_uint",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToUInt().ToValue(), value.Undefined
+			self := args[0].AsFloat32()
+			return value.UInt(self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"to_uint64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToUInt64().ToValue(), value.Undefined
+			self := args[0].AsFloat32()
+			return value.UInt64(self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"to_uint32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToUInt32().ToValue(), value.Undefined
+			self := args[0].AsFloat32()
+			return value.UInt32(self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"to_uint16",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToUInt16().ToValue(), value.Undefined
+			self := args[0].AsFloat32()
+			return value.UInt16(self).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"to_uint8",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.BigFloat)(args[0].Pointer())
-			return self.ToUInt8().ToValue(), value.Undefined
+			self := args[0].AsFloat32()
+			return value.UInt8(self).ToValue(), value.Undefined
 		},
 	)
 }

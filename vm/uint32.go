@@ -133,6 +133,15 @@ func initUInt32() {
 	)
 	Def(
 		c,
+		"=~",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsUInt32()
+			return value.StrictUnsignedIntLaxEqual(self, args[1]), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"<<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsUInt32()

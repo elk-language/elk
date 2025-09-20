@@ -133,6 +133,15 @@ func initInt8() {
 	)
 	Def(
 		c,
+		"=~",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsInt8()
+			return value.StrictSignedIntLaxEqual(self, args[1]), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"<<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsInt8()

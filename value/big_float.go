@@ -216,6 +216,11 @@ func (f *BigFloat) int8() int8 {
 	return int8(f.ToBigInt().ToGoBigInt().Int64())
 }
 
+// Convert to an UInt value.
+func (f *BigFloat) ToUInt() UInt {
+	return UInt(f.ToBigInt().ToGoBigInt().Uint64())
+}
+
 // Convert to an UInt64 value.
 func (f *BigFloat) ToUInt64() UInt64 {
 	return UInt64(f.ToBigInt().ToGoBigInt().Uint64())

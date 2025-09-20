@@ -274,6 +274,25 @@ func initInt() {
 	)
 	Def(
 		c,
+		"=~",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			other := args[1]
+			if self.IsSmallInt() {
+				return self.AsSmallInt().LaxEqualVal(other), value.Undefined
+			}
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return s.LaxEqualVal(other), value.Undefined
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"<<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]

@@ -32,6 +32,8 @@ func InitGlobalEnvironment() {
 	initEndlessOpenRangeIterator()
 	initNil()
 	initFloat()
+	initFloat32()
+	initFloat64()
 	initHashMap()
 	initHashMapIterator()
 	initHashRecord()
