@@ -3,6 +3,7 @@ package value
 import (
 	"fmt"
 	"strings"
+	"unsafe"
 
 	"github.com/elk-language/elk/indent"
 )
@@ -34,6 +35,18 @@ func (b *Box) Get() Value {
 // Set the value in the box
 func (b *Box) Set(v Value) {
 	*b = Box(v)
+}
+
+// Return the box of the next value in memory
+func (b *Box) Next(step int) *Box {
+	ptr := unsafe.Pointer(b)
+	return (*Box)(unsafe.Add(ptr, step*int(ValueSize)))
+}
+
+// Return the box of the previous value in memory
+func (b *Box) Prev(step int) *Box {
+	ptr := unsafe.Pointer(b)
+	return (*Box)(unsafe.Add(ptr, -step*int(ValueSize)))
 }
 
 func (*Box) Class() *Class {

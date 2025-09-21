@@ -1060,12 +1060,30 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Define methods
 				method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("v"), NameToType("Std::Box::Val", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Returns the raw address of the pointer as an unsigned integer.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.\n\nIf all other references to an object disappear\nthe object will be garbage collected so you may end up\nwith a stale address of already freed memory.\nReading freed memory is undefined behaviour.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("address"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Retrieves the value stored in the `Box`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("get"), nil, nil, NameToType("Std::Box::Val", env), Never{})
+				namespace.DefineMethod("Does pointer arithmetic and returns a Box of the next value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Box::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				namespace.DefineMethod("Does pointer arithmetic and returns a Box of the previous value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("prev"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Box::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Stores the given value in the `Box`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("set"), nil, []*Parameter{NewParameter(value.ToSymbol("v"), NameToType("Std::Box::Val", env), NormalParameterKind, false)}, NameToType("Std::Box::Val", env), Never{})
 
 				// Define constants
 
 				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Creates a new Box from a raw address.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("at"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), NewTypeParamNamespace("Type Parameter Container of :at", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("address"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), NewTypeParamNamespace("Type Parameter Container of :at", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtypeString("CallFrame").(*Class)
