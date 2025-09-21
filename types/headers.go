@@ -138,6 +138,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Pattern with two operands eg. `> 10 && < 50`", false, true, true, false, value.ToSymbol("BinaryPatternNode"), objectClass, env)
 				namespace.TryDefineClass("Type expression of an operator with two operands eg. `String | Int`", false, true, true, false, value.ToSymbol("BinaryTypeNode"), objectClass, env)
 				namespace.TryDefineClass("`bool` literal.", false, true, true, false, value.ToSymbol("BoolLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a box of expression eg. `&a`", false, true, true, false, value.ToSymbol("BoxOfExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a box type eg. `^String`", false, true, true, false, value.ToSymbol("BoxTypeNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `break` expression eg. `break`, `break false`", false, true, true, false, value.ToSymbol("BreakExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a method call eg. `'123'.()`", false, true, true, false, value.ToSymbol("CallNode"), objectClass, env)
@@ -514,6 +515,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineInterface("Represents a value that can compute its own hash for use in\ndata structures like hashmaps, hashrecords, hashsets.", value.ToSymbol("Hashable"), env)
 		{
+			namespace := namespace.TryDefineClass("ImmutableBox wraps another value, it's a read only pointer to another `Value`.", false, true, true, false, value.ToSymbol("ImmutableBox"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
 			namespace := namespace.TryDefineInterface("An interface that represents a finite, immutable collection\nof elements.", value.ToSymbol("ImmutableCollection"), env)
 			{
 				namespace := namespace.TryDefineMixin("Provides default implementations of most immutable collection methods.", true, value.ToSymbol("Base"), env)
@@ -797,6 +802,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Removes all elements from the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("clear"), nil, nil, Void{}, Never{})
 				namespace.DefineMethod("Check whether the given `value` is present in this list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::ArrayList::Val", env), NameToType("Std::ArrayList::Val", env), NameToType("Std::ArrayList::Val", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::ArrayList::Val", env), NameToType("Std::ArrayList::Val", env), NameToType("Std::ArrayList::Val", env), INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Mutates the list.\n\nReallocates the underlying array to hold\nthe given number of new elements.\n\nExpands the `capacity` of the list by `new_slots`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("grow"), nil, []*Parameter{NewParameter(value.ToSymbol("new_slots"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Returns the immutable box/pointer\nto the slot with the given index.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("immutable_box_of"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayList::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::ArrayList::Iterator", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayList::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Returns the number of left slots for new elements\nin the underlying array.\nIt tells you how many more elements can be\nadded to the list before the underlying array gets\nreallocated.\n\nIt is always equal to `capacity - length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the number of elements present in the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
@@ -863,6 +869,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Check whether the given value is an `ArrayTuple`\nwith the same elements.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Check whether the given value is an `ArrayTuple` or `ArrayList`\nwith the same elements.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::ArrayTuple::Val", env), Never{})
+				namespace.DefineMethod("Returns the immutable box/pointer\nto the slot with the given index.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("immutable_box_of"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :immutable_box_of", true), NameToType("Std::ArrayTuple::Val", env), NameToType("Std::ArrayTuple::Val", env), NameToType("Std::ArrayTuple::Val", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :immutable_box_of", true), NameToType("Std::ArrayTuple::Val", env), NameToType("Std::ArrayTuple::Val", env), NameToType("Std::ArrayTuple::Val", env), INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the tuple.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple::Iterator", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayTuple::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Returns the number of elements present in the tuple.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Iterates over the elements of this tuple,\nyielding them to the given closure.\n\nReturns a new Tuple that consists of the elements returned\nby the given closure.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::ArrayTuple::Val", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), false), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT))
@@ -1056,14 +1063,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.SetTypeParameters(typeParams)
 
+				namespace.SetParent(NameToNamespace("Std::ImmutableBox", env))
+
 				// Include mixins and implement interfaces
 
 				// Define methods
-				method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("v"), NameToType("Std::Box::Val", env), NormalParameterKind, false)}, Void{}, Never{})
-				namespace.DefineMethod("Returns the raw address of the pointer as an unsigned integer.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.\n\nIf all other references to an object disappear\nthe object will be garbage collected so you may end up\nwith a stale address of already freed memory.\nReading freed memory is undefined behaviour.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("address"), nil, nil, NameToType("Std::UInt", env), Never{})
-				namespace.DefineMethod("Retrieves the value stored in the `Box`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("get"), nil, nil, NameToType("Std::Box::Val", env), Never{})
-				namespace.DefineMethod("Does pointer arithmetic and returns a Box of the next value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Box::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
-				namespace.DefineMethod("Does pointer arithmetic and returns a Box of the previous value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("prev"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Box::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Stores the given value in the `Box`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("set"), nil, []*Parameter{NewParameter(value.ToSymbol("v"), NameToType("Std::Box::Val", env), NormalParameterKind, false)}, NameToType("Std::Box::Val", env), Never{})
 
 				// Define constants
@@ -2292,6 +2296,23 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("BoxOfExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -7210,6 +7231,51 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtypeString("ImmutableBox").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Val"), namespace, Never{}, Any{}, nil, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("v"), NameToType("Std::ImmutableBox::Val", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Returns the raw address of the pointer as an unsigned integer.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.\n\nIf all other references to an object disappear\nthe object will be garbage collected so you may end up\nwith a stale address of already freed memory.\nReading freed memory is undefined behaviour.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("address"), nil, nil, NameToType("Std::UInt", env), Never{})
+				namespace.DefineMethod("Retrieves the value stored in the `Box`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("get"), nil, nil, NameToType("Std::ImmutableBox::Val", env), Never{})
+				namespace.DefineMethod("Does pointer arithmetic and returns a Box of the next value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Does pointer arithmetic and returns a Box of the previous value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("prev"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Convert this `Box` to an `ImmutableBox`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_immutable_box"), nil, nil, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ImmutableBox::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Creates a new Box from a raw address.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("at"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), NewTypeParamNamespace("Type Parameter Container of :at", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("address"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), NewTypeParamNamespace("Type Parameter Container of :at", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtypeString("ImmutableCollection").(*Interface)

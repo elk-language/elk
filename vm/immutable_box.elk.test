@@ -1,42 +1,29 @@
 using Std::Test::Assertions::*
 using Std::Test::*
 
-describe "Box", ->
+describe "ImmutableBox", ->
 	context "init", ->
 		should "create a new box", ->
-			b := Box(3)
-			assert! b <<: Box
+			b := ImmutableBox(3)
+			assert! b <<: ImmutableBox
 			assert! b.get == 3
-
-			b.set(-25)
-			assert! b.get == -25
 		end
 	end
 
 	context "get", ->
 		should "return the stored value", ->
-			b := Box(3)
+			b := ImmutableBox(3)
 			assert! b.get == 3
 
-			c := Box("foo")
+			c := ImmutableBox("foo")
 			assert! c.get == "foo"
-		end
-	end
-
-	context "set", ->
-		should "overwrite the stored value", ->
-			b := Box(3)
-			assert! b.get == 3
-
-			b.set(9)
-			assert! b.get == 9
 		end
 	end
 
 	context "next", ->
 		should "return the next box", ->
 			arr := [3, 5, 8]
-			a := arr.box_of(0)
+			a := arr.immutable_box_of(0)
 			assert! a.get == 3
 
 			b := a.next
@@ -45,7 +32,7 @@ describe "Box", ->
 
 		should "return the second next box", ->
 			arr := [3, 5, 8]
-			a := arr.box_of(0)
+			a := arr.immutable_box_of(0)
 			assert! a.get == 3
 
 			b := a.next(2)
@@ -56,7 +43,7 @@ describe "Box", ->
 	context "prev", ->
 		should "return the previous box", ->
 			arr := [3, 5, 8]
-			a := arr.box_of(-1)
+			a := arr.immutable_box_of(-1)
 			assert! a.get == 8
 
 			b := a.prev
@@ -65,7 +52,7 @@ describe "Box", ->
 
 		should "return the second previous box", ->
 			arr := [3, 5, 8]
-			a := arr.box_of(-1)
+			a := arr.immutable_box_of(-1)
 			assert! a.get == 8
 
 			b := a.prev(2)
@@ -75,32 +62,32 @@ describe "Box", ->
 
 	context "address", ->
 		should "return the raw address as UInt", ->
-			b := Box(3)
+			b := ImmutableBox(3)
 			addr := b.address
-			assert! addr <: UInt
+			assert! addr <<: UInt
 
-			c := Box.at(addr)
+			c := ImmutableBox.at(addr)
 			assert! b.get == 3
 		end
 	end
 
 	context "at", ->
 		should "return the raw address as UInt", ->
-			b := Box(3)
-			c := Box.at(b.address)
+			b := ImmutableBox(3)
+			c := ImmutableBox.at(b.address)
 			assert! c.get == 3
 
-			e := Box(2.5)
-			f := Box.at(e.address)
+			e := ImmutableBox(2.5)
+			f := ImmutableBox.at(e.address)
 			assert! f.get == 2.5
 		end
 	end
 
 	context "to_immutable_box", ->
-		should "return an immutable box", ->
-			b := Box(3)
+		should "return self", ->
+			b := ImmutableBox(3)
 			c := b.to_immutable_box
-			assert! c <<: ImmutableBox
+			assert! c === b
 			assert! c.get == 3
 		end
 	end

@@ -1,0 +1,59 @@
+##[
+	ImmutableBox wraps another value, it's a read only pointer to another `Value`.
+]##
+sealed primitive class ::Std::ImmutableBox[Val]
+	singleton
+		##[
+			Creates a new Box from a raw address.
+
+			This method is inherently UNSAFE
+			and should only be used if you have a valid
+			reason and you know what you're doing.
+		]##
+		def at[T](address: UInt): ImmutableBox[T]; end
+	end
+
+	init(v: Val); end
+
+	##[
+		Retrieves the value stored in the `Box`.
+	]##
+	def get: Val; end
+
+	##[
+		Does pointer arithmetic and returns a Box of the next value in memory.
+
+		This method is inherently UNSAFE
+		and should only be used if you have a valid
+		reason and you know what you're doing.
+	]##
+	def next(step: Int = 1): self; end
+
+	##[
+		Does pointer arithmetic and returns a Box of the previous value in memory.
+
+		This method is inherently UNSAFE
+		and should only be used if you have a valid
+		reason and you know what you're doing.
+	]##
+	def prev(step: Int = 1): self; end
+
+	##[
+		Returns the raw address of the pointer as an unsigned integer.
+
+		This method is inherently UNSAFE
+		and should only be used if you have a valid
+		reason and you know what you're doing.
+
+		If all other references to an object disappear
+		the object will be garbage collected so you may end up
+		with a stale address of already freed memory.
+		Reading freed memory is undefined behaviour.
+	]##
+	def address: UInt; end
+
+	##[
+		Convert this `Box` to an `ImmutableBox`
+	]##
+	def to_immutable_box: ImmutableBox[Val]; end
+end

@@ -303,6 +303,12 @@ func (l *ArrayList) Repeat(other Value) (*ArrayList, Value) {
 	}
 }
 
+// Return an immutable box pointing to the slot with the given index.
+func (l *ArrayList) ImmutableBoxOfVal(index Value) (*ImmutableBox, Value) {
+	b, err := l.BoxOfVal(index)
+	return b.ToImmutableBox(), err
+}
+
 // Return a box pointing to the slot with the given index.
 func (l *ArrayList) BoxOfVal(index Value) (*Box, Value) {
 	var i int

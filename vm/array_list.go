@@ -55,6 +55,17 @@ func initArrayList() {
 	)
 	Def(
 		c,
+		"immutable_box_of",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.ArrayList)(args[0].Pointer())
+			other := args[1]
+			b, err := self.ImmutableBoxOfVal(other)
+			return value.Ref(b), err
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"[]",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())

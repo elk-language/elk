@@ -13,6 +13,12 @@ sealed primitive class ::Std::ArrayTuple[+Val]
 	def length: Int; end
 
 	##[
+		Returns the immutable box/pointer
+		to the slot with the given index.
+	]##
+	def immutable_box_of[V := Val](index: Int): ImmutableBox[V]; end
+
+	##[
 		Get the element under the given index.
 
 		Throws an unchecked error if the index is a negative number

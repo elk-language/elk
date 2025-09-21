@@ -11,7 +11,7 @@ import (
 var BoxClass *Class // ::Std::Box
 
 func initBox() {
-	BoxClass = NewClassWithOptions(ClassWithConstructor(BoxConstructor))
+	BoxClass = NewClassWithOptions(ClassWithConstructor(BoxConstructor), ClassWithSuperclass(ImmutableBoxClass))
 	StdModule.AddConstantString("Box", Ref(BoxClass))
 }
 
@@ -67,6 +67,10 @@ func (b *Box) Copy() Reference {
 
 func (*Box) InstanceVariables() *InstanceVariables {
 	return nil
+}
+
+func (b *Box) ToImmutableBox() *ImmutableBox {
+	return (*ImmutableBox)(unsafe.Pointer(b))
 }
 
 func (b *Box) Inspect() string {

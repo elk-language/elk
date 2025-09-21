@@ -799,6 +799,92 @@ func TestAssignment(t *testing.T) {
 	}
 }
 
+func TestBoxOfExpression(t *testing.T) {
+	tests := testTable{
+		"can create box of public ident": {
+			input: "&a",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(1, 1, 2))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(1, 1, 2))),
+						ast.NewBoxOfExpressionNode(
+							L(S(P(0, 1, 1), P(1, 1, 2))),
+							ast.NewPublicIdentifierNode(
+								L(S(P(1, 1, 2), P(1, 1, 2))),
+								"a",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can create box of private ident": {
+			input: "&_a",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(2, 1, 3))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(2, 1, 3))),
+						ast.NewBoxOfExpressionNode(
+							L(S(P(0, 1, 1), P(2, 1, 3))),
+							ast.NewPrivateIdentifierNode(
+								L(S(P(1, 1, 2), P(2, 1, 3))),
+								"_a",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can create box of instance var": {
+			input: "&@a",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(2, 1, 3))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(2, 1, 3))),
+						ast.NewBoxOfExpressionNode(
+							L(S(P(0, 1, 1), P(2, 1, 3))),
+							ast.NewPublicInstanceVariableNode(
+								L(S(P(1, 1, 2), P(2, 1, 3))),
+								"a",
+							),
+						),
+					),
+				},
+			),
+		},
+		"cannot create box of a literal": {
+			input: "&1",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(1, 1, 2))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(1, 1, 2))),
+						ast.NewBoxOfExpressionNode(
+							L(S(P(0, 1, 1), P(1, 1, 2))),
+							ast.NewIntLiteralNode(
+								L(S(P(1, 1, 2), P(1, 1, 2))),
+								"1",
+							),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(1, 1, 2), P(1, 1, 2))), "boxes can only be created for local and instance variables"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestPostfixExpressions(t *testing.T) {
 	tests := testTable{
 		"ints are not valid assignment targets": {

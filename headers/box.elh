@@ -1,7 +1,7 @@
 ##[
 	Box wraps another value, it's a pointer to another `Value`.
 ]##
-sealed primitive class ::Std::Box[Val]
+sealed primitive class ::Std::Box[Val] < ImmutableBox[Val]
 	singleton
 		##[
 			Creates a new Box from a raw address.
@@ -10,50 +10,11 @@ sealed primitive class ::Std::Box[Val]
 			and should only be used if you have a valid
 			reason and you know what you're doing.
 		]##
-		def at[T](address: UInt): ^T; end
+		def at[T](address: UInt): Box[T]; end
 	end
-
-	init(v: Val); end
-
-	##[
-		Retrieves the value stored in the `Box`.
-	]##
-	def get: Val; end
 
 	##[
 		Stores the given value in the `Box`.
 	]##
 	def set(v: Val): Val; end
-
-	##[
-		Does pointer arithmetic and returns a Box of the next value in memory.
-
-		This method is inherently UNSAFE
-		and should only be used if you have a valid
-		reason and you know what you're doing.
-	]##
-	def next(step: Int = 1): ^Val; end
-
-	##[
-		Does pointer arithmetic and returns a Box of the previous value in memory.
-
-		This method is inherently UNSAFE
-		and should only be used if you have a valid
-		reason and you know what you're doing.
-	]##
-	def prev(step: Int = 1): ^Val; end
-
-	##[
-		Returns the raw address of the pointer as an unsigned integer.
-
-		This method is inherently UNSAFE
-		and should only be used if you have a valid
-		reason and you know what you're doing.
-
-		If all other references to an object disappear
-		the object will be garbage collected so you may end up
-		with a stale address of already freed memory.
-		Reading freed memory is undefined behaviour.
-	]##
-	def address: UInt; end
 end

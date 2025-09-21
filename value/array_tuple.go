@@ -244,6 +244,36 @@ func (t *ArrayTuple) Repeat(other Value) (*ArrayTuple, Value) {
 	}
 }
 
+// Return a box pointing to the slot with the given index.
+func (l *ArrayTuple) ImmutableBoxOfVal(index Value) (*ImmutableBox, Value) {
+	var i int
+
+	i, ok := ToGoInt(index)
+	if !ok {
+		if i == -1 {
+			return nil, Ref(NewIndexOutOfRangeError(index.Inspect(), len(*l)))
+		}
+		return nil, Ref(NewCoerceError(IntClass, index.Class()))
+	}
+
+	return l.ImmutableBoxOf(i)
+}
+
+// Return a box pointing to the slot with the given index.
+func (l *ArrayTuple) ImmutableBoxOf(index int) (*ImmutableBox, Value) {
+	len := l.Length()
+	if index >= len || index < -len {
+		return nil, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len))
+	}
+
+	if index < 0 {
+		index = len + index
+	}
+
+	box := (*ImmutableBox)(&(*l)[index])
+	return box, Undefined
+}
+
 // Expands the arrayTuple by n nil elements.
 func (t *ArrayTuple) Expand(newElements int) {
 	if newElements < 1 {

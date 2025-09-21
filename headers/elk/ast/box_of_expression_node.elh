@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a box of expression eg. `&a`
+  ]##
+  sealed primitive class BoxOfExpressionNode
+    include ExpressionNode
+
+    init(expression: ExpressionNode, location: FS::Location = loop; end); end
+    def expression: ExpressionNode; end
+    def location: FS::Location; end
+  end
+end

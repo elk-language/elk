@@ -1353,7 +1353,7 @@ func (p *Parser) asExpression() ast.ExpressionNode {
 
 // unaryExpression = powerExpression | ("!" | "-" | "+" | "~" | "&") unaryExpression
 func (p *Parser) unaryExpression() ast.ExpressionNode {
-	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE, token.AND); ok {
+	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE); ok {
 		p.swallowNewlines()
 
 		p.indentedSection = true
@@ -1363,6 +1363,27 @@ func (p *Parser) unaryExpression() ast.ExpressionNode {
 		return ast.NewUnaryExpressionNode(
 			operator.Location().Join(right.Location()),
 			operator,
+			right,
+		)
+	}
+	if operator, ok := p.matchOk(token.AND); ok {
+		p.swallowNewlines()
+
+		p.indentedSection = true
+		right := p.unaryExpression()
+		p.indentedSection = false
+
+		switch right.(type) {
+		case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode, *ast.PublicInstanceVariableNode:
+		default:
+			p.errorMessageLocation(
+				"boxes can only be created for local and instance variables",
+				right.Location(),
+			)
+		}
+
+		return ast.NewBoxOfExpressionNode(
+			operator.Location().Join(right.Location()),
 			right,
 		)
 	}

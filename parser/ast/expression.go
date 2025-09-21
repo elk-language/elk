@@ -148,3 +148,4 @@ func (*HashSetLiteralNode) expressionNode()                {}
 func (*HashMapLiteralNode) expressionNode()                {}
 func (*HashRecordLiteralNode) expressionNode()             {}
 func (*RangeLiteralNode) expressionNode()                  {}
+func (*BoxOfExpressionNode) expressionNode()               {}

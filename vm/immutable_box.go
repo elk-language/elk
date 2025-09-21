@@ -6,16 +6,16 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Std::Box
-func initBox() {
+// Std::ImmutableBox
+func initImmutableBox() {
 	// Class methods
-	c := &value.BoxClass.SingletonClass().MethodContainer
+	c := &value.ImmutableBoxClass.SingletonClass().MethodContainer
 	Def(
 		c,
 		"at",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			address := args[1].AsUInt()
-			b := (*value.Box)(unsafe.Pointer(uintptr(address)))
+			b := (*value.ImmutableBox)(unsafe.Pointer(uintptr(address)))
 
 			return value.Ref(b), value.Undefined
 		},
@@ -23,14 +23,14 @@ func initBox() {
 	)
 
 	// Instance methods
-	c = &value.BoxClass.MethodContainer
+	c = &value.ImmutableBoxClass.MethodContainer
 	Def(
 		c,
 		"#init",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Box)(args[0].Pointer())
+			self := (*value.ImmutableBox)(args[0].Pointer())
 			v := args[1]
-			self.Set(v)
+			*self = value.ImmutableBox(v)
 
 			return value.Ref(self), value.Undefined
 		},
@@ -40,27 +40,15 @@ func initBox() {
 		c,
 		"get",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Box)(args[0].Pointer())
+			self := (*value.ImmutableBox)(args[0].Pointer())
 			return self.Get(), value.Undefined
 		},
 	)
 	Def(
 		c,
-		"set",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Box)(args[0].Pointer())
-			v := args[1]
-			self.Set(v)
-
-			return v, value.Undefined
-		},
-		DefWithParameters(1),
-	)
-	Def(
-		c,
 		"address",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Box)(args[0].Pointer())
+			self := (*value.ImmutableBox)(args[0].Pointer())
 			return value.UInt(uintptr(unsafe.Pointer(self))).ToValue(), value.Undefined
 		},
 	)
@@ -68,8 +56,7 @@ func initBox() {
 		c,
 		"to_immutable_box",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Box)(args[0].Pointer())
-			return value.Ref(self.ToImmutableBox()), value.Undefined
+			return args[0], value.Undefined
 		},
 	)
 
@@ -77,7 +64,7 @@ func initBox() {
 		c,
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Box)(args[0].Pointer())
+			self := (*value.ImmutableBox)(args[0].Pointer())
 
 			var step int
 			if args[1].IsUndefined() {
@@ -95,7 +82,7 @@ func initBox() {
 		c,
 		"prev",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Box)(args[0].Pointer())
+			self := (*value.ImmutableBox)(args[0].Pointer())
 
 			var step int
 			if args[1].IsUndefined() {

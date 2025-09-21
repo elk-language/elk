@@ -128,6 +128,16 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	stdModule.DefineModule("", symbol.Kernel, env)
 
+	boxClass := stdModule.DefineClass("", false, true, true, false, symbol.Box, objectClass, env)
+	// Set up type parameters
+	var typeParam *TypeParameter
+	typeParams := make([]*TypeParameter, 1)
+	typeParam = NewTypeParameter(value.ToSymbol("Val"), boxClass, Never{}, Any{}, nil, INVARIANT)
+	typeParams[0] = typeParam
+	boxClass.DefineSubtype(value.ToSymbol("Val"), typeParam)
+	boxClass.DefineConstant(value.ToSymbol("Val"), NoValue{})
+	boxClass.SetTypeParameters(typeParams)
+
 	boolClass := stdModule.DefineClass("", false, true, true, true, symbol.Bool, valueClass, env)
 	stdModule.DefineClass("", false, true, true, true, symbol.True, boolClass, env)
 	stdModule.DefineClass("", false, true, true, true, symbol.False, boolClass, env)

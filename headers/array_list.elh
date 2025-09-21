@@ -14,6 +14,12 @@ sealed primitive class ::Std::ArrayList[Val]
 	def box_of(index: Int): ^Val; end
 
 	##[
+		Returns the immutable box/pointer
+		to the slot with the given index.
+	]##
+	def immutable_box_of(index: Int): ImmutableBox[Val]; end
+
+	##[
 		Removes the element from the list.
 
 		Returns `true` if the element has been removed,

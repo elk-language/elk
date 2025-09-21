@@ -88,6 +88,7 @@ func InitGlobalEnvironment() {
 	initToken()
 	initLocation()
 	initPath()
+	initImmutableBox()
 	initBox()
 	initResult()
 	initDate()

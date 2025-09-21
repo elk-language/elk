@@ -122,6 +122,7 @@ func InitGlobalEnvironment() {
 	initNewExpressionNode()
 	initNilLiteralNode()
 	initNilSafeSubscriptExpressionNode()
+	initBoxOfExpressionNode()
 	initBoxTypeNode()
 	initNilableTypeNode()
 	initNotTypeNode()
