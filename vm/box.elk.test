@@ -1,0 +1,99 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+describe "Box", ->
+	context "init", ->
+		should "create a new box", ->
+			b := Box(3)
+			assert! b <: Box
+			assert! b.get == 3
+
+			b.set(-25)
+			assert! b.get == -25
+		end
+	end
+
+	context "get", ->
+		should "return th stored value", ->
+			b := Box(3)
+			assert! b.get == 3
+
+			c := Box("foo")
+			assert! c.get == "foo"
+		end
+	end
+
+	context "set", ->
+		should "overwrite the stored value", ->
+			b := Box(3)
+			assert! b.get == 3
+
+			b.set(9)
+			assert! b.get == 9
+		end
+	end
+
+	context "next", ->
+		should "return the next box", ->
+			arr := [3, 5, 8]
+			a := arr.box_of(0)
+			assert! a.get == 3
+
+			b := a.next
+			assert! b.get == 5
+		end
+
+		should "return the second next box", ->
+			arr := [3, 5, 8]
+			a := arr.box_of(0)
+			assert! a.get == 3
+
+			b := a.next(2)
+			assert! b.get == 8
+		end
+	end
+
+	context "prev", ->
+		should "return the previous box", ->
+			arr := [3, 5, 8]
+			a := arr.box_of(-1)
+			assert! a.get == 8
+
+			b := a.prev
+			assert! b.get == 5
+		end
+
+		should "return the second previous box", ->
+			arr := [3, 5, 8]
+			a := arr.box_of(-1)
+			assert! a.get == 8
+
+			b := a.prev(2)
+			assert! b.get == 3
+		end
+	end
+
+	context "address", ->
+		should "return the raw address as UInt", ->
+			b := Box(3)
+			addr := b.address
+			assert! addr <: UInt
+
+			c := Box.at(addr)
+			assert! b.get == 3
+		end
+	end
+
+	context "at", ->
+		should "return the raw address as UInt", ->
+			b := Box(3)
+			c := Box.at(b.address)
+			assert! c.get == 3
+
+			e := Box(2.5)
+			f := Box.at(e.address)
+			assert! f.get == 2.5
+		end
+	end
+
+end
