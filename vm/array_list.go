@@ -13,7 +13,7 @@ func initArrayList() {
 		c,
 		"iter",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			iterator := value.NewArrayListIterator(self)
 			return value.Ref(iterator), value.Undefined
 		},
@@ -22,7 +22,7 @@ func initArrayList() {
 		c,
 		"capacity",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
 		},
 	)
@@ -30,7 +30,7 @@ func initArrayList() {
 		c,
 		"length",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
 	)
@@ -38,15 +38,26 @@ func initArrayList() {
 		c,
 		"left_capacity",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
+		"box_of",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.ArrayList)(args[0].Pointer())
+			other := args[1]
+			b, err := self.BoxOfVal(other)
+			return value.Ref(b), err
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"[]",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			other := args[1]
 			return self.Subscript(other)
 		},
@@ -56,7 +67,7 @@ func initArrayList() {
 		c,
 		"[]=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			key := args[1]
 			val := args[2]
 			err := self.SubscriptSet(key, val)
@@ -71,7 +82,7 @@ func initArrayList() {
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			other := args[1]
 			return value.RefErr(self.Concat(other))
 		},
@@ -81,7 +92,7 @@ func initArrayList() {
 		c,
 		"*",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			other := args[1]
 			return value.RefErr(self.Repeat(other))
 		},
@@ -91,7 +102,7 @@ func initArrayList() {
 		c,
 		"contains",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			contains, err := ArrayListContains(vm, self, args[1])
 			if !err.IsUndefined() {
 				return value.Undefined, err
@@ -104,7 +115,7 @@ func initArrayList() {
 		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			switch other := args[1].SafeAsReference().(type) {
 			case *value.ArrayList:
 				equal, err := ArrayListEqual(vm, self, other)
@@ -122,7 +133,7 @@ func initArrayList() {
 		c,
 		"=~",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			switch other := args[1].SafeAsReference().(type) {
 			case *value.ArrayList:
 				equal, err := ArrayListEqual(vm, self, other)
@@ -146,7 +157,7 @@ func initArrayList() {
 		c,
 		"grow",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			nValue := args[1]
 			n, ok := value.IntToGoInt(nValue)
 			if !ok && n == -1 {
@@ -167,7 +178,7 @@ func initArrayList() {
 		c,
 		"append",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			values := args[1].MustReference().(*value.ArrayTuple)
 			self.Append(*values...)
 			return value.Ref(self), value.Undefined
@@ -178,7 +189,7 @@ func initArrayList() {
 		c,
 		"<<",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			self.Append(args[1])
 			return value.Ref(self), value.Undefined
 		},
@@ -190,7 +201,7 @@ func initArrayList() {
 		c,
 		"map_mut",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			callable := args[1]
 			// callable is a closure
 			if function, ok := callable.SafeAsReference().(*Closure); ok {
@@ -223,7 +234,7 @@ func initArrayList() {
 		c,
 		"map",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.ArrayList)
+			self := (*value.ArrayList)(args[0].Pointer())
 			callable := args[1]
 			newList := value.NewArrayListWithLength(self.Length())
 

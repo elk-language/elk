@@ -8,6 +8,12 @@ sealed primitive class ::Std::ArrayList[Val]
 	include List[Val]
 
 	##[
+		Returns the box/pointer
+		to the slot with the given index.
+	]##
+	def box_of(index: Int): ^Val; end
+
+	##[
 		Removes the element from the list.
 
 		Returns `true` if the element has been removed,

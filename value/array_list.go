@@ -303,6 +303,36 @@ func (l *ArrayList) Repeat(other Value) (*ArrayList, Value) {
 	}
 }
 
+// Return a box pointing to the slot with the given index.
+func (l *ArrayList) BoxOfVal(index Value) (*Box, Value) {
+	var i int
+
+	i, ok := ToGoInt(index)
+	if !ok {
+		if i == -1 {
+			return nil, Ref(NewIndexOutOfRangeError(index.Inspect(), len(*l)))
+		}
+		return nil, Ref(NewCoerceError(IntClass, index.Class()))
+	}
+
+	return l.BoxOf(i)
+}
+
+// Return a box pointing to the slot with the given index.
+func (l *ArrayList) BoxOf(index int) (*Box, Value) {
+	len := l.Length()
+	if index >= len || index < -len {
+		return nil, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len))
+	}
+
+	if index < 0 {
+		index = len + index
+	}
+
+	box := (*Box)(&(*l)[index])
+	return box, Undefined
+}
+
 // Expands the list by n nil elements.
 func (l *ArrayList) Expand(newElements int) {
 	if newElements < 1 {
