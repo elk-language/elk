@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a box type eg. `^String`
+  ]##
+  sealed primitive class BoxTypeNode
+    include TypeNode
+
+    init(type_node: TypeNode, location: FS::Location = loop; end); end
+    def type_node: TypeNode; end
+    def location: FS::Location; end
+  end
+end

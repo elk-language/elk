@@ -6670,6 +6670,11 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		typ := c.ToNilable(c.TypeOf(n.TypeNode))
 		n.SetType(typ)
 		return n
+	case *ast.BoxTypeNode:
+		n.TypeNode = c.checkTypeNode(n.TypeNode)
+		typ := types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), c.TypeOf(n.TypeNode))
+		n.SetType(typ)
+		return n
 	case *ast.NotTypeNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
 		typ := c.NormaliseType(types.NewNot(c.TypeOf(n.TypeNode)))

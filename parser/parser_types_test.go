@@ -587,6 +587,214 @@ func TestNotType(t *testing.T) {
 	}
 }
 
+func TestBoxType(t *testing.T) {
+	tests := testTable{
+		"can have unquote": {
+			input: "type ^unquote(foo + 2)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(21, 1, 22))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(21, 1, 22))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(21, 1, 22))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(21, 1, 22))),
+								ast.NewUnquoteNode(
+									L(S(P(6, 1, 7), P(21, 1, 22))),
+									ast.UNQUOTE_TYPE_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(14, 1, 15), P(20, 1, 21))),
+										T(L(S(P(18, 1, 19), P(18, 1, 19))), token.PLUS),
+										ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(16, 1, 17))), "foo"),
+										ast.NewIntLiteralNode(L(S(P(20, 1, 21), P(20, 1, 21))), "2"),
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have unquote_type": {
+			input: "type unquote_type(foo + 2)?",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(26, 1, 27))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(26, 1, 27))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(26, 1, 27))),
+							ast.NewNilableTypeNode(
+								L(S(P(5, 1, 6), P(26, 1, 27))),
+								ast.NewUnquoteNode(
+									L(S(P(5, 1, 6), P(25, 1, 26))),
+									ast.UNQUOTE_TYPE_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(18, 1, 19), P(24, 1, 25))),
+										T(L(S(P(22, 1, 23), P(22, 1, 23))), token.PLUS),
+										ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "foo"),
+										ast.NewIntLiteralNode(L(S(P(24, 1, 25), P(24, 1, 25))), "2"),
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have short unquote": {
+			input: "type ^!{foo / 2}",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(15, 1, 16))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(15, 1, 16))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(15, 1, 16))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(15, 1, 16))),
+								ast.NewUnquoteNode(
+									L(S(P(6, 1, 7), P(15, 1, 16))),
+									ast.UNQUOTE_TYPE_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(8, 1, 9), P(14, 1, 15))),
+										T(L(S(P(12, 1, 13), P(12, 1, 13))), token.SLASH),
+										ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(10, 1, 11))), "foo"),
+										ast.NewIntLiteralNode(L(S(P(14, 1, 15), P(14, 1, 15))), "2"),
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be a box type with a constant": {
+			input: "type ^String",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(11, 1, 12))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(11, 1, 12))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(11, 1, 12))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(11, 1, 12))),
+								ast.NewPublicConstantNode(
+									L(S(P(6, 1, 7), P(11, 1, 12))),
+									"String",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be a box type with a private constant": {
+			input: "type ^_FooBa",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(11, 1, 12))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(11, 1, 12))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(11, 1, 12))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(11, 1, 12))),
+								ast.NewPrivateConstantNode(
+									L(S(P(6, 1, 7), P(11, 1, 12))),
+									"_FooBa",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be a box constant lookup": {
+			input: "type ^::Foo::Bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(15, 1, 16))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(15, 1, 16))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(15, 1, 16))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(15, 1, 16))),
+								ast.NewConstantLookupNode(
+									L(S(P(6, 1, 7), P(15, 1, 16))),
+									ast.NewConstantLookupNode(
+										L(S(P(6, 1, 7), P(10, 1, 11))),
+										nil,
+										ast.NewPublicConstantNode(
+											L(S(P(8, 1, 9), P(10, 1, 11))),
+											"Foo",
+										),
+									),
+									ast.NewPublicConstantNode(
+										L(S(P(13, 1, 14), P(15, 1, 16))),
+										"Bar",
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be a box literal": {
+			input: "type ^1",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(6, 1, 7))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(6, 1, 7))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(6, 1, 7))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(6, 1, 7))),
+								ast.NewIntLiteralNode(
+									L(S(P(6, 1, 7), P(6, 1, 7))),
+									"1",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be a box literal with expression": {
+			input: "type ^(1)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 1, 9))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(8, 1, 9))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(7, 1, 8))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(7, 1, 8))),
+								ast.NewIntLiteralNode(
+									L(S(P(7, 1, 8), P(7, 1, 8))),
+									"1",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestNilableType(t *testing.T) {
 	tests := testTable{
 		"can have unquote": {

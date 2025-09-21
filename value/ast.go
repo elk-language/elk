@@ -224,6 +224,7 @@ var UnionTypeNodeClass *Class                     // Std::Elk::AST::UnionTypeNod
 var IntersectionTypeNodeClass *Class              // Std::Elk::AST::IntersectionTypeNode
 var BinaryTypeNodeClass *Class                    // Std::Elk::AST::BinaryTypeNode
 var NilableTypeNodeClass *Class                   // Std::Elk::AST::NilableTypeNode
+var BoxTypeNodeClass *Class                       // Std::Elk::AST::BoxTypeNode
 var InstanceOfTypeNodeClass *Class                // Std::Elk::AST::InstanceOfTypeNode
 var SingletonTypeNodeClass *Class                 // Std::Elk::AST::SingletonTypeNode
 var NotTypeNodeClass *Class                       // Std::Elk::AST::NotTypeNode
@@ -1232,6 +1233,10 @@ func initElkAST() {
 	NilableTypeNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	NilableTypeNodeClass.IncludeMixin(TypeNodeMixin)
 	ElkASTModule.AddConstantString("NilableTypeNode", Ref(NilableTypeNodeClass))
+
+	BoxTypeNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	BoxTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("BoxTypeNode", Ref(BoxTypeNodeClass))
 
 	InstanceOfTypeNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	InstanceOfTypeNodeClass.IncludeMixin(TypeNodeMixin)

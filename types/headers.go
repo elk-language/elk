@@ -138,6 +138,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Pattern with two operands eg. `> 10 && < 50`", false, true, true, false, value.ToSymbol("BinaryPatternNode"), objectClass, env)
 				namespace.TryDefineClass("Type expression of an operator with two operands eg. `String | Int`", false, true, true, false, value.ToSymbol("BinaryTypeNode"), objectClass, env)
 				namespace.TryDefineClass("`bool` literal.", false, true, true, false, value.ToSymbol("BoolLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a box type eg. `^String`", false, true, true, false, value.ToSymbol("BoxTypeNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `break` expression eg. `break`, `break false`", false, true, true, false, value.ToSymbol("BreakExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a method call eg. `'123'.()`", false, true, true, false, value.ToSymbol("CallNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a callable type eg. `|i: Int|: String`", false, true, true, false, value.ToSymbol("CallableTypeNode"), objectClass, env)
@@ -2273,6 +2274,23 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("BoxTypeNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
 
 						// Define constants
 

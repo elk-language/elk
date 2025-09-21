@@ -15,6 +15,7 @@ func (*VoidTypeNode) typeNode()                  {}
 func (*UnionTypeNode) typeNode()                 {}
 func (*IntersectionTypeNode) typeNode()          {}
 func (*BinaryTypeNode) typeNode()                {}
+func (*BoxTypeNode) typeNode()                   {}
 func (*NilableTypeNode) typeNode()               {}
 func (*InstanceOfTypeNode) typeNode()            {}
 func (*SingletonTypeNode) typeNode()             {}
