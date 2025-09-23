@@ -1055,6 +1055,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		return c.compileLogicalExpressionNode(node, valueIsIgnored)
 	case *ast.UnaryExpressionNode:
 		c.compileUnaryExpressionNode(node)
+	case *ast.BoxOfExpressionNode:
+		c.compileBoxOfExpressionNode(node)
 	case *ast.RangeLiteralNode:
 		c.compileRangeLiteralNode(node)
 	case *ast.HashSetLiteralNode:
@@ -6809,6 +6811,36 @@ listLoop:
 	}
 
 	c.emitNewArrayList(len(rest), location)
+}
+
+func (c *Compiler) compileBoxOfExpressionNode(node *ast.BoxOfExpressionNode) {
+	switch n := node.Expression.(type) {
+	case *ast.PublicInstanceVariableNode:
+		location := n.Location()
+		ivarName := value.ToSymbol(n.Value)
+		self := c.checker.SelfType()
+
+		switch self := self.(type) {
+		case types.NamespaceWithIvarIndices:
+			ivarIndices := self.IvarIndices()
+			index := ivarIndices.GetIndex(ivarName)
+			c.emitSmallInt(value.SmallInt(index), location)
+			callInfo := value.NewCallSiteInfo(
+				value.ToSymbol("#box_of_ivar_index"),
+				1,
+			)
+			c.emitCallMethod(callInfo, location, false)
+		default:
+			c.emitValue(ivarName.ToValue(), location)
+			callInfo := value.NewCallSiteInfo(
+				value.ToSymbol("#box_of_ivar_name"),
+				1,
+			)
+			c.emitCallMethod(callInfo, location, false)
+		}
+	default:
+		c.Errors.AddFailure(fmt.Sprintf("cannot take the address of: `%s`", node.Expression.Inspect()), node.Location())
+	}
 }
 
 func (c *Compiler) compileUnaryExpressionNode(node *ast.UnaryExpressionNode) {

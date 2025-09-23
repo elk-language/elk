@@ -349,6 +349,36 @@ func TestVMSource_Values(t *testing.T) {
 
 func TestVMSource_InstanceVariables(t *testing.T) {
 	tests := sourceTestTable{
+		"read a box of instance variable of a class instance": {
+			source: `
+				class Foo
+				 	attr bar: String?
+
+					def bar_ptr: ^String? then &@bar
+				end
+
+				f := ::Foo()
+				ptr := f.bar_ptr
+				f.bar = "bar value"
+				ptr.get
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"set a box of instance variable of a class instance": {
+			source: `
+				class Foo
+				 	attr bar: String?
+
+					def bar_ptr: ^String? then &@bar
+				end
+
+				f := ::Foo()
+				ptr := f.bar_ptr
+				ptr.set "bar value"
+				f.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
 		"read an instance variable of an instance": {
 			source: `
 				class Foo
@@ -437,6 +467,44 @@ func TestVMSource_InstanceVariables(t *testing.T) {
 
 				f := ::Foo()
 				f.bar = "bar value"
+				f.bar
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"read a box of instance variable inherited from a mixin": {
+			source: `
+				mixin Foo
+				 	attr bar: String?
+
+					def bar_ptr: ^String? then &@bar
+				end
+
+				class Bar
+				  include Foo
+				end
+
+				f := ::Bar()
+				ptr := f.bar_ptr
+				f.bar = "bar value"
+				ptr.get
+			`,
+			wantStackTop: value.Ref(value.String("bar value")),
+		},
+		"set a box of instance variable inherited from a mixin": {
+			source: `
+				mixin Foo
+				 	attr bar: String?
+
+					def bar_ptr: ^String? then &@bar
+				end
+
+				class Bar
+				  include Foo
+				end
+
+				f := ::Bar()
+				ptr := f.bar_ptr
+				ptr.set "bar value"
 				f.bar
 			`,
 			wantStackTop: value.Ref(value.String("bar value")),

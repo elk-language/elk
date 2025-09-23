@@ -1444,6 +1444,31 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 		},
+		"get box of an instance variable in an instance method of a class": {
+			input: `
+				class Foo
+					var @foo: String?
+					def bar
+						var a: nil = &@foo
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(70, 5, 20), P(74, 5, 24)), "type `Std::Box[Std::String?]` cannot be assigned to type `nil`"),
+			},
+		},
+		"get box of a nonexistent instance variable in an instance method of a class": {
+			input: `
+				class Foo
+					def bar
+						var a: nil = &@foo
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 4, 21), P(51, 4, 24)), "undefined instance variable `@foo` in type `Foo`"),
+			},
+		},
 		"declare non-nilable instance variable in a singleton class": {
 			input: `
 				class Foo

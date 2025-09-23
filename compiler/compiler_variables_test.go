@@ -1623,6 +1623,479 @@ func TestInstanceVariables(t *testing.T) {
 			),
 		},
 
+		"get box of instance variable in a class instance method": {
+			input: `
+				class Foo
+					var @foo: Int?
+
+					def foo: ^Int?
+				  	&@foo
+					end
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(85, 8, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+					bytecode.NewLineInfo(8, 2),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						namespaceDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 1,
+							byte(bytecode.GET_CONST8), 1,
+							byte(bytecode.GET_CONST8), 2,
+							byte(bytecode.SET_SUPERCLASS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(85, 8, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 10),
+							bytecode.NewLineInfo(8, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<ivarIndices>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_IVARS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(85, 8, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 4),
+							bytecode.NewLineInfo(8, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(&value.IvarIndices{
+								value.ToSymbol("foo"): 0,
+							}),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(85, 8, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(8, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.INT_0),
+									byte(bytecode.CALL_METHOD8), 0,
+									byte(bytecode.RETURN),
+								},
+								L(P(41, 5, 6), P(76, 7, 8)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(6, 3),
+									bytecode.NewLineInfo(7, 1),
+								},
+								[]value.Value{
+									value.Ref(&value.CallSiteInfo{
+										Name:          value.ToSymbol("#box_of_ivar_index"),
+										ArgumentCount: 1,
+									}),
+								},
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+				},
+			),
+		},
+		"get box of instance variable from parent in a class instance method": {
+			input: `
+				class Bar
+					var @foo: Int?
+				end
+
+				class Foo < Bar
+					def foo: ^Int?
+				  	&@foo
+					end
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(113, 10, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+					bytecode.NewLineInfo(10, 2),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						namespaceDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 1,
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_NAMESPACE), 1,
+							byte(bytecode.GET_CONST8), 1,
+							byte(bytecode.GET_CONST8), 3,
+							byte(bytecode.SET_SUPERCLASS),
+							byte(bytecode.GET_CONST8), 2,
+							byte(bytecode.GET_CONST8), 1,
+							byte(bytecode.SET_SUPERCLASS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(113, 10, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 20),
+							bytecode.NewLineInfo(10, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Bar").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<ivarIndices>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_IVARS),
+							byte(bytecode.GET_CONST8), 2,
+							byte(bytecode.LOAD_VALUE_3),
+							byte(bytecode.DEF_IVARS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(113, 10, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 8),
+							bytecode.NewLineInfo(10, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Bar").ToValue(),
+							value.Ref(&value.IvarIndices{
+								value.ToSymbol("foo"): 0,
+							}),
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(&value.IvarIndices{
+								value.ToSymbol("foo"): 0,
+							}),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(113, 10, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(10, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.INT_0),
+									byte(bytecode.CALL_METHOD8), 0,
+									byte(bytecode.RETURN),
+								},
+								L(P(69, 7, 6), P(104, 9, 8)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(8, 3),
+									bytecode.NewLineInfo(9, 1),
+								},
+								[]value.Value{
+									value.Ref(&value.CallSiteInfo{
+										Name:          value.ToSymbol("#box_of_ivar_index"),
+										ArgumentCount: 1,
+									}),
+								},
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+				},
+			),
+		},
+		"get box of instance variable from mixin in a class instance method": {
+			input: `
+				mixin Bar
+					var @foo: Int?
+				end
+
+				class Foo
+					include Bar
+
+					def foo: ^Int?
+				  	&@foo
+					end
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(125, 12, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+					bytecode.NewLineInfo(12, 2),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						namespaceDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_NAMESPACE), 1,
+							byte(bytecode.GET_CONST8), 2,
+							byte(bytecode.GET_CONST8), 3,
+							byte(bytecode.SET_SUPERCLASS),
+							byte(bytecode.GET_CONST8), 2,
+							byte(bytecode.GET_CONST8), 1,
+							byte(bytecode.INCLUDE),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(125, 12, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 20),
+							bytecode.NewLineInfo(12, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Bar").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+							value.ToSymbol("Std::Object").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<ivarIndices>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_IVARS),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(125, 12, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 4),
+							bytecode.NewLineInfo(12, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(&value.IvarIndices{
+								value.ToSymbol("foo"): 0,
+							}),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(125, 12, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(12, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.INT_0),
+									byte(bytecode.CALL_METHOD8), 0,
+									byte(bytecode.RETURN),
+								},
+								L(P(81, 9, 6), P(116, 11, 8)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(10, 3),
+									bytecode.NewLineInfo(11, 1),
+								},
+								[]value.Value{
+									value.Ref(&value.CallSiteInfo{
+										Name:          value.ToSymbol("#box_of_ivar_index"),
+										ArgumentCount: 1,
+									}),
+								},
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+				},
+			),
+		},
+		"get box of instance variable in a mixin instance method": {
+			input: `
+				mixin Foo
+					var @foo: Int?
+
+					def foo: ^Int?
+				  	&@foo
+					end
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.EXEC),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(85, 8, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(8, 2),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						namespaceDefinitionsSymbol,
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.DEF_NAMESPACE), 2,
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(85, 8, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+							bytecode.NewLineInfo(8, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Root").ToValue(),
+							value.ToSymbol("Foo").ToValue(),
+						},
+					)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<methodDefinitions>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(85, 8, 8)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 6),
+							bytecode.NewLineInfo(8, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("Foo").ToValue(),
+							value.Ref(vm.NewBytecodeFunctionNoParams(
+								value.ToSymbol("foo"),
+								[]byte{
+									byte(bytecode.LOAD_VALUE_0),
+									byte(bytecode.CALL_METHOD8), 1,
+									byte(bytecode.RETURN),
+								},
+								L(P(41, 5, 6), P(76, 7, 8)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(6, 3),
+									bytecode.NewLineInfo(7, 1),
+								},
+								[]value.Value{
+									value.ToSymbol("foo").ToValue(),
+									value.Ref(&value.CallSiteInfo{
+										Name:          value.ToSymbol("#box_of_ivar_name"),
+										ArgumentCount: 1,
+									}),
+								},
+							)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					)),
+				},
+			),
+		},
+
 		"get instance variable in a class instance method": {
 			input: `
 				class Foo

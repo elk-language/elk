@@ -64,12 +64,71 @@ func initValue() {
 			return value.Undefined, err
 		},
 	)
+	Def(
+		c,
+		"#box_of_ivar_index",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			ivars := self.InstanceVariables()
+			if ivars == nil {
+				return value.Undefined, value.Ref(
+					value.NewError(
+						value.PrimitiveValueErrorClass,
+						"cannot access instance variables in a primitive value",
+					),
+				)
+			}
+
+			index := int(args[1].AsSmallInt())
+			box := ivars.BoxOf(index)
+			if box.Get().IsUndefined() {
+				box.Set(value.Nil)
+			}
+			return value.Ref(box), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"#box_of_ivar_name",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			ivars := self.InstanceVariables()
+			if ivars == nil {
+				return value.Undefined, value.Ref(
+					value.NewError(
+						value.PrimitiveValueErrorClass,
+						"cannot access instance variables in a primitive value",
+					),
+				)
+			}
+
+			class := self.DirectClass()
+			name := args[1].AsInlineSymbol()
+			index, ok := class.IvarIndices.GetIndexOk(name)
+			if !ok {
+				return value.Undefined, value.Ref(
+					value.Errorf(
+						value.PrimitiveValueErrorClass,
+						"no such instance variable: `@%s`",
+						name.String(),
+					),
+				)
+			}
+			box := ivars.BoxOf(index)
+			if box.Get().IsUndefined() {
+				box.Set(value.Nil)
+			}
+			return value.Ref(box), value.Undefined
+		},
+		DefWithParameters(1),
+	)
 
 }
 
 func ObjectHash(val value.Value) value.UInt64 {
 	v := reflect.ValueOf(val)
-	if v.Kind() != reflect.Ptr {
+	if v.Kind() != reflect.Pointer {
 		if !v.CanAddr() {
 			return value.UInt64(0)
 		}

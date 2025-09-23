@@ -1163,6 +1163,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkBinaryExpression(n)
 	case *ast.UnaryExpressionNode:
 		return c.checkUnaryExpression(n)
+	case *ast.BoxOfExpressionNode:
+		return c.checkBoxOfExpression(n)
 	case *ast.PostfixExpressionNode:
 		return c.checkPostfixExpressionNode(n)
 	case *ast.DoExpressionNode:
@@ -1591,6 +1593,33 @@ func (c *Checker) checkArithmeticBinaryOperator(
 		node,
 		methodName,
 	)
+}
+
+func (c *Checker) checkBoxOfExpression(node *ast.BoxOfExpressionNode) ast.ExpressionNode {
+	switch expr := node.Expression.(type) {
+	// case *ast.PublicIdentifierNode:
+	// case *ast.PrivateIdentifierNode:
+	case *ast.PublicInstanceVariableNode:
+		c.checkNonNilableInstanceVariablesForSelf(expr.Location())
+		typ := c.checkInstanceVariable(expr.Value, expr.Location())
+		if types.IsUntyped(typ) {
+			node.SetType(types.Untyped{})
+			return node
+		}
+		box := types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), typ)
+		node.SetType(box)
+		return node
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot create a box of %s",
+				lexer.Colorize(expr.Inspect()),
+			),
+			expr.Location(),
+		)
+		node.SetType(types.Untyped{})
+		return node
+	}
 }
 
 func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.ExpressionNode {
