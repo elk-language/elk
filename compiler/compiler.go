@@ -7512,12 +7512,19 @@ func (c *Compiler) closeUpvaluesInCurrentScope(line int) {
 }
 
 func (c *Compiler) closeUpvaluesInScope(line int, scope *scope) {
+	lowestIndex := -1
 	for _, local := range scope.localTable {
 		if !local.hasUpvalue {
 			continue
 		}
 
-		c.emitCloseUpvalue(line, local.index)
+		if lowestIndex == -1 || local.index < uint16(lowestIndex) {
+			lowestIndex = int(local.index)
+		}
+	}
+
+	if lowestIndex != -1 {
+		c.emitCloseUpvalue(line, uint16(lowestIndex))
 	}
 }
 

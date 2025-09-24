@@ -2390,7 +2390,7 @@ func (vm *VM) getUpvalueValue(index int) value.Value {
 	return *vm.upvalues[index].location
 }
 
-// Closes all upvalues up to the given local slot.
+// Closes all upvalues down to the given local slot (the given slot and all above).
 func (vm *VM) opCloseUpvalues(lastToClose uintptr) {
 	for {
 		if vm.openUpvalueHead == nil ||

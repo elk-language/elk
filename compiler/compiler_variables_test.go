@@ -3914,6 +3914,133 @@ func TestUpvalues(t *testing.T) {
 				},
 			),
 		},
+		"close upvalues in multiple scopes": {
+			input: `
+				a := 2
+				b := 10
+
+				if b == 40
+					g := 5
+					e := 9
+					f := 20
+					h := -> g + f
+					if a == 20
+						a := 10
+						b := 50
+						c := 30
+						d := -> a + b + c
+					end
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 10,
+					byte(bytecode.INT_2),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.LOAD_INT_8), 10,
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.GET_LOCAL_2),
+					byte(bytecode.LOAD_INT_8), 40,
+					byte(bytecode.JUMP_UNLESS_IEQ), 0, 64,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_3),
+					byte(bytecode.LOAD_INT_8), 9,
+					byte(bytecode.SET_LOCAL_4),
+					byte(bytecode.LOAD_INT_8), 20,
+					byte(bytecode.SET_LOCAL8), 5,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.CLOSURE),
+					2, 3,
+					2, 5,
+					0xff,
+					byte(bytecode.SET_LOCAL8), 6,
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_INT_8), 20,
+					byte(bytecode.JUMP_UNLESS_IEQ), 0, 32,
+					byte(bytecode.LOAD_INT_8), 10,
+					byte(bytecode.SET_LOCAL8), 7,
+					byte(bytecode.LOAD_INT_8), 50,
+					byte(bytecode.SET_LOCAL8), 8,
+					byte(bytecode.LOAD_INT_8), 30,
+					byte(bytecode.SET_LOCAL8), 9,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CLOSURE),
+					2, 7,
+					2, 8,
+					2, 9,
+					0xff,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL8), 10,
+					byte(bytecode.CLOSE_UPVALUE8), 7,
+					byte(bytecode.LEAVE_SCOPE16), 10, 4,
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.NIL),
+					byte(bytecode.CLOSE_UPVALUE_3),
+					byte(bytecode.LEAVE_SCOPE16), 6, 4,
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(194, 16, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(5, 6),
+					bytecode.NewLineInfo(6, 2),
+					bytecode.NewLineInfo(7, 3),
+					bytecode.NewLineInfo(8, 4),
+					bytecode.NewLineInfo(9, 9),
+					bytecode.NewLineInfo(10, 6),
+					bytecode.NewLineInfo(11, 4),
+					bytecode.NewLineInfo(12, 4),
+					bytecode.NewLineInfo(13, 4),
+					bytecode.NewLineInfo(14, 12),
+					bytecode.NewLineInfo(10, 9),
+					bytecode.NewLineInfo(5, 8),
+					bytecode.NewLineInfo(16, 1),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						functionSymbol,
+						[]byte{
+							byte(bytecode.GET_UPVALUE_0),
+							byte(bytecode.GET_UPVALUE_1),
+							byte(bytecode.ADD_INT),
+							byte(bytecode.RETURN),
+						},
+						L(P(87, 9, 11), P(94, 9, 18)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(9, 4),
+						},
+						0,
+						0,
+						nil,
+						2,
+					)),
+					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						functionSymbol,
+						[]byte{
+							byte(bytecode.GET_UPVALUE_0),
+							byte(bytecode.GET_UPVALUE_1),
+							byte(bytecode.ADD_INT),
+							byte(bytecode.GET_UPVALUE8), 2,
+							byte(bytecode.ADD_INT),
+							byte(bytecode.RETURN),
+						},
+						L(P(165, 14, 12), P(176, 14, 23)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(14, 7),
+						},
+						0,
+						0,
+						nil,
+						3,
+					)),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

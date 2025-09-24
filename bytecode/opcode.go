@@ -247,11 +247,11 @@ const (
 	GET_UPVALUE_1                   // Push the value of the upvalue with index 1
 	GET_UPVALUE8                    // Push the value of the upvalue with the given index onto the stack (8 bit operand)
 	GET_UPVALUE16                   // Push the value of the upvalue with the given index onto the stack (16 bit operand)
-	CLOSE_UPVALUE_1                 // Close upvalues up to index 1
-	CLOSE_UPVALUE_2                 // Close upvalues up to index 2
-	CLOSE_UPVALUE_3                 // Close upvalues up to index 3
-	CLOSE_UPVALUE8                  // Close upvalues up to the given index, moving them from the stack to the heap (8 bit operand)
-	CLOSE_UPVALUE16                 // Close upvalues up to the given index, moving them from the stack to the heap (16 bit operand)
+	CLOSE_UPVALUE_1                 // Close upvalues down to index 1
+	CLOSE_UPVALUE_2                 // Close upvalues down to index 2
+	CLOSE_UPVALUE_3                 // Close upvalues down to index 3
+	CLOSE_UPVALUE8                  // Close upvalues down to the given index, moving them from the stack to the heap (8 bit operand)
+	CLOSE_UPVALUE16                 // Close upvalues down to the given index, moving them from the stack to the heap (16 bit operand)
 	DEF_NAMESPACE                   // Define a new namespace
 	GET_CONST8                      // Get the value of the constant with the name stored under the given index in the value pool (8 bit operand)
 	GET_CONST16                     // Get the value of the constant with the name stored under the given index in the value pool (16 bit operand)
