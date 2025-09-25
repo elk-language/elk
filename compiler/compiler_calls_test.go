@@ -5189,14 +5189,13 @@ func TestCallMethod(t *testing.T) {
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.LOOP), 0, 13,
-					byte(bytecode.LEAVE_SCOPE16), 1, 1,
 					byte(bytecode.CALL_METHOD8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(66, 5, 16)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(5, 26),
+					bytecode.NewLineInfo(5, 23),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -5292,7 +5291,6 @@ func TestCallMethod(t *testing.T) {
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.APPEND),
 					byte(bytecode.LOOP), 0, 10,
-					byte(bytecode.LEAVE_SCOPE16), 3, 2,
 					byte(bytecode.LOAD_INT_8), 10,
 					byte(bytecode.APPEND),
 					byte(bytecode.CALL_METHOD8), 5,
@@ -5302,7 +5300,7 @@ func TestCallMethod(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(5, 3),
-					bytecode.NewLineInfo(6, 27),
+					bytecode.NewLineInfo(6, 24),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -5638,7 +5636,6 @@ func TestCallMethod(t *testing.T) {
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.LOOP), 0, 48,
-					byte(bytecode.LEAVE_SCOPE16), 4, 3,
 					byte(bytecode.CALL_METHOD8), 10,
 					byte(bytecode.RETURN),
 				},
@@ -5646,7 +5643,7 @@ func TestCallMethod(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(5, 25),
-					bytecode.NewLineInfo(6, 62),
+					bytecode.NewLineInfo(6, 59),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -5775,7 +5772,6 @@ func TestCallMethod(t *testing.T) {
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.LOOP), 0, 48,
-					byte(bytecode.LEAVE_SCOPE16), 4, 3,
 					byte(bytecode.LOAD_VALUE8), 9,
 					byte(bytecode.LOAD_INT_8), 10,
 					byte(bytecode.MAP_SET),
@@ -5786,7 +5782,7 @@ func TestCallMethod(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
 					bytecode.NewLineInfo(5, 3),
-					bytecode.NewLineInfo(6, 68),
+					bytecode.NewLineInfo(6, 65),
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(

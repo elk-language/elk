@@ -473,10 +473,6 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		return f.disassembleUnsignedNumericOperands(output, 1, 2, offset)
 	case bytecode.LOAD_INT_16:
 		return f.disassembleSignedNumericOperands(output, 1, 2, offset)
-	case bytecode.LEAVE_SCOPE16:
-		return f.disassembleUnsignedNumericOperands(output, 2, 1, offset)
-	case bytecode.LEAVE_SCOPE32:
-		return f.disassembleUnsignedNumericOperands(output, 2, 2, offset)
 	case bytecode.DEF_NAMESPACE:
 		return f.disassembleDefNamespace(output, offset)
 	case bytecode.NEW_REGEX8:

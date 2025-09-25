@@ -74,8 +74,6 @@ const (
 	NIL                             // Push nil onto the stack
 	POP                             // Pop an element off the stack.
 	POP_2                           // Pop two elements off the stack
-	LEAVE_SCOPE16                   // Leave a scope and pop off any local variables (16 bit operand)
-	LEAVE_SCOPE32                   // Leave a scope and pop off any local variables (32 bit operand)
 	PREP_LOCALS8                    // Prepare slots for local variables and values (8 bit operand)
 	PREP_LOCALS16                   // Prepare slots for local variables and values (16 bit operand)
 	SET_LOCAL_1                     // Assign the value on top of the stack to the local variable with index 1
@@ -322,8 +320,6 @@ var opCodeNames = [...]string{
 	NIL:               "NIL",
 	POP:               "POP",
 	POP_2:             "POP_2",
-	LEAVE_SCOPE16:     "LEAVE_SCOPE16",
-	LEAVE_SCOPE32:     "LEAVE_SCOPE32",
 	PREP_LOCALS8:      "PREP_LOCALS8",
 	PREP_LOCALS16:     "PREP_LOCALS16",
 	SET_LOCAL_1:       "SET_LOCAL_1",

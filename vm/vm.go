@@ -914,10 +914,6 @@ func (vm *VM) run() {
 		case bytecode.CLOSE_UPVALUE16:
 			last := vm.fpAddRaw(uintptr(vm.readUint16()))
 			vm.opCloseUpvalues(last)
-		case bytecode.LEAVE_SCOPE16:
-			vm.opLeaveScope(int(vm.readByte()), int(vm.readByte()))
-		case bytecode.LEAVE_SCOPE32:
-			vm.opLeaveScope(int(vm.readUint16()), int(vm.readUint16()))
 		case bytecode.PREP_LOCALS8:
 			vm.opPrepLocals(uintptr(vm.readByte()))
 		case bytecode.PREP_LOCALS16:
@@ -3062,14 +3058,6 @@ func (vm *VM) opDefConst() {
 	}
 
 	constants.AddConstant(constName, constVal)
-}
-
-// Leave a local scope and pop all local variables associated with it.
-func (vm *VM) opLeaveScope(lastLocalIndex, varsToPop int) {
-	firstLocalIndex := lastLocalIndex - varsToPop
-	for i := lastLocalIndex; i > firstLocalIndex; i-- {
-		*vm.fpAdd(i) = value.Undefined
-	}
 }
 
 // Register slots for local variables and values.

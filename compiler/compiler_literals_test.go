@@ -1234,7 +1234,6 @@ func TestArrayTuples(t *testing.T) {
 					byte(bytecode.MULTIPLY_INT),
 					byte(bytecode.APPEND),
 					byte(bytecode.LOOP), 0, 12,
-					byte(bytecode.LEAVE_SCOPE16), 2, 2,
 					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
@@ -1242,7 +1241,7 @@ func TestArrayTuples(t *testing.T) {
 				L(P(0, 1, 1), P(44, 2, 44)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 24),
+					bytecode.NewLineInfo(2, 21),
 				},
 				[]value.Value{
 					value.Ref(&value.ArrayTuple{
@@ -2273,7 +2272,6 @@ func TestArrayLists(t *testing.T) {
 					byte(bytecode.MULTIPLY_INT),
 					byte(bytecode.APPEND),
 					byte(bytecode.LOOP), 0, 12,
-					byte(bytecode.LEAVE_SCOPE16), 2, 2,
 					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
@@ -2281,7 +2279,7 @@ func TestArrayLists(t *testing.T) {
 				L(P(0, 1, 1), P(43, 2, 43)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 26),
+					bytecode.NewLineInfo(2, 23),
 				},
 				[]value.Value{
 					value.Ref(&value.ArrayList{
@@ -2925,7 +2923,6 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.MULTIPLY_INT),
 					byte(bytecode.APPEND),
 					byte(bytecode.LOOP), 0, 12,
-					byte(bytecode.LEAVE_SCOPE16), 2, 2,
 					byte(bytecode.INT_2),
 					byte(bytecode.APPEND),
 					byte(bytecode.RETURN),
@@ -2933,7 +2930,7 @@ func TestHashSet(t *testing.T) {
 				L(P(0, 1, 1), P(38, 2, 38)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 26),
+					bytecode.NewLineInfo(2, 23),
 				},
 				[]value.Value{
 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
@@ -3131,7 +3128,6 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.EXPONENTIATE_INT),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.LOOP), 0, 13,
-					byte(bytecode.LEAVE_SCOPE16), 2, 2,
 					byte(bytecode.INT_2),
 					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.MAP_SET),
@@ -3139,7 +3135,7 @@ func TestHashMap(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(55, 1, 56)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 30),
+					bytecode.NewLineInfo(1, 27),
 				},
 				[]value.Value{
 					value.Ref(vm.MustNewHashMapWithCapacityAndElements(
@@ -3583,7 +3579,6 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.EXPONENTIATE_INT),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.LOOP), 0, 13,
-					byte(bytecode.LEAVE_SCOPE16), 2, 2,
 					byte(bytecode.INT_2),
 					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.MAP_SET),
@@ -3591,7 +3586,7 @@ func TestHashRecord(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 1, 57)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 29),
+					bytecode.NewLineInfo(1, 26),
 				},
 				[]value.Value{
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(

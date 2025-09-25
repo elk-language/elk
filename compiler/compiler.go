@@ -1624,10 +1624,8 @@ func (c *Compiler) countFinallyInLoop(label string) int {
 }
 
 func (c *Compiler) leaveScopeOnBreak(line int, label string) {
-	var varsToPop int
 	for i := range c.scopes {
 		scope := c.scopes[len(c.scopes)-i-1]
-		varsToPop += len(scope.localTable)
 		c.closeUpvaluesInScope(line, scope)
 
 		if label == "" {
@@ -1641,7 +1639,6 @@ func (c *Compiler) leaveScopeOnBreak(line int, label string) {
 			break
 		}
 	}
-	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
 }
 
 func (c *Compiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) {
@@ -1671,8 +1668,6 @@ func (c *Compiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) {
 }
 
 func (c *Compiler) leaveScopeOnContinue(line int, label string) {
-	var varsToPop int
-
 	if label == "" {
 		for i := range c.scopes {
 			scope := c.scopes[len(c.scopes)-i-1]
@@ -1680,19 +1675,17 @@ func (c *Compiler) leaveScopeOnContinue(line int, label string) {
 				break
 			}
 			c.closeUpvaluesInScope(line, scope)
-			varsToPop += len(scope.localTable)
 		}
-	} else {
-		for i := range c.scopes {
-			scope := c.scopes[len(c.scopes)-i-1]
-			if scope.label == label {
-				break
-			}
-			c.closeUpvaluesInScope(line, scope)
-			varsToPop += len(scope.localTable)
-		}
+		return
 	}
-	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
+
+	for i := range c.scopes {
+		scope := c.scopes[len(c.scopes)-i-1]
+		if scope.label == label {
+			break
+		}
+		c.closeUpvaluesInScope(line, scope)
+	}
 }
 
 func (c *Compiler) compileContinueExpressionNode(node *ast.ContinueExpressionNode) {
@@ -7483,27 +7476,23 @@ func (c *Compiler) enterScope(label string, typ scopeType) {
 	c.scopes = append(c.scopes, newScope(label, typ))
 }
 
-// Pop the values of local variables in the current scope
+// Close upvalues in the current scope
 func (c *Compiler) leaveScope(line int) {
-	varsToPop := c.leaveScopeWithoutMutating(line)
+	c.leaveScopeWithoutMutating(line)
 
 	currentDepth := len(c.scopes) - 1
+	varsToPop := len(c.scopes[currentDepth].localTable)
 	c.lastLocalIndex -= varsToPop
 	c.scopes[currentDepth] = nil
 	c.scopes = c.scopes[:currentDepth]
 }
 
-// Pop the values of local variables in the current scope.
+// Close upvalues in the current scope.
 // Allows you to emit the instructions to leave the same scope a few times,
 // because it doesn't mutate the state of the compiler.
-func (c *Compiler) leaveScopeWithoutMutating(line int) int {
+func (c *Compiler) leaveScopeWithoutMutating(line int) {
 	currentDepth := len(c.scopes) - 1
-
 	c.closeUpvaluesInScope(line, c.scopes[currentDepth])
-
-	varsToPop := len(c.scopes[currentDepth].localTable)
-	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
-	return varsToPop
 }
 
 func (c *Compiler) closeUpvaluesInCurrentScope(line int) {
@@ -7525,20 +7514,6 @@ func (c *Compiler) closeUpvaluesInScope(line int, scope *scope) {
 
 	if lowestIndex != -1 {
 		c.emitCloseUpvalue(line, uint16(lowestIndex))
-	}
-}
-
-func (c *Compiler) emitLeaveScope(line, maxLocalIndex, varsToPop int) {
-	if varsToPop <= 0 {
-		return
-	}
-
-	if maxLocalIndex > math.MaxUint8 || varsToPop > math.MaxUint8 {
-		c.emit(line, bytecode.LEAVE_SCOPE32)
-		c.emitUint16(uint16(maxLocalIndex))
-		c.emitUint16(uint16(varsToPop))
-	} else {
-		c.emit(line, bytecode.LEAVE_SCOPE16, byte(maxLocalIndex), byte(varsToPop))
 	}
 }
 
