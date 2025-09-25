@@ -27,6 +27,10 @@ func (u *Upvalue) IsClosed() bool {
 	return u.location == &u.closed
 }
 
+func (u *Upvalue) IsOpen() bool {
+	return !u.IsClosed()
+}
+
 func NewUpvalue(loc *value.Value) *Upvalue {
 	return &Upvalue{
 		location: loc,

@@ -23,3 +23,12 @@ class Std::FileSystemError < Std::Error; end
 	Thrown when an invalid glob pattern has been encountered.
 ]##
 class Std::GlobError < Std::Error; end
+
+##[
+	Thrown when another thread tried to execute
+	an open closure.
+
+	An open closure captures variables that still live
+	on the stack of the thread that created it.
+]##
+class Std::OpenClosureError < Std::Error; end

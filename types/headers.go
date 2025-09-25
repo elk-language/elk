@@ -610,6 +610,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("`Module` is the class of all modules.", false, false, false, true, value.ToSymbol("Module"), objectClass, env)
 		namespace.TryDefineClass("Represents an empty value.", false, true, true, true, value.ToSymbol("Nil"), objectClass, env)
 		namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("Object"), objectClass, env)
+		namespace.TryDefineClass("Thrown when another thread tried to execute\nan open closure.\n\nAn open closure captures variables that still live\non the stack of the thread that created it.", false, false, false, false, value.ToSymbol("OpenClosureError"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("Represents an open range from `start` to `end` *(start, end)*", false, true, true, false, value.ToSymbol("OpenRange"), objectClass, env)
 			{
@@ -8336,6 +8337,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.Name() // noop - avoid unused variable error
 				namespace.SetParent(NameToNamespace("Std::Value", env))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtypeString("OpenClosureError").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToNamespace("Std::Error", env))
 
 				// Include mixins and implement interfaces
 

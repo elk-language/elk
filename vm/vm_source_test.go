@@ -19,13 +19,15 @@ import (
 
 // Represents a single VM source code test case.
 type sourceTestCase struct {
-	source         string
-	wantStackTop   value.Value
-	wantStdout     string
-	wantStderr     string
-	wantStackTrace *value.StackTrace
-	wantRuntimeErr value.Value
-	wantCompileErr perror.DiagnosticList
+	source            string
+	wantStackTop      value.Value
+	wantStdout        string
+	wantStdoutPattern *value.Regex
+	wantStderr        string
+	wantStderrPattern *value.Regex
+	wantStackTrace    *value.StackTrace
+	wantRuntimeErr    value.Value
+	wantCompileErr    perror.DiagnosticList
 }
 
 // Type of the compiler test table.
@@ -161,12 +163,35 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	if !tc.wantRuntimeErr.IsUndefined() {
 		return
 	}
-	if diff := cmp.Diff(tc.wantStdout, gotStdout, comparer.Options()...); diff != "" {
-		t.Error(diff)
+
+	if tc.wantStdoutPattern != nil {
+		if !tc.wantStdoutPattern.MatchesString(gotStdout) {
+			t.Errorf(
+				"stdout not matched by regex\n  got: %q\n  pattern: %s",
+				gotStdout,
+				tc.wantStdoutPattern.Inspect(),
+			)
+		}
+	} else {
+		if diff := cmp.Diff(tc.wantStdout, gotStdout, comparer.Options()...); diff != "" {
+			t.Error(diff)
+		}
 	}
-	if diff := cmp.Diff(tc.wantStderr, gotStderr, comparer.Options()...); diff != "" {
-		t.Error(diff)
+
+	if tc.wantStderrPattern != nil {
+		if !tc.wantStderrPattern.MatchesString(gotStderr) {
+			t.Errorf(
+				"stderr not matched by regex\n  got: %q\n  pattern: %s",
+				gotStderr,
+				tc.wantStderrPattern.Inspect(),
+			)
+		}
+	} else {
+		if diff := cmp.Diff(tc.wantStderr, gotStderr, comparer.Options()...); diff != "" {
+			t.Error(diff)
+		}
 	}
+
 	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, comparer.Options()...); diff != "" {
 		t.Log(gotRuntimeErr)
 		if !gotStackTop.IsUndefined() && !tc.wantStackTop.IsUndefined() {

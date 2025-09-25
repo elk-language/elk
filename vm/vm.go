@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync/atomic"
 	"unsafe"
 
 	"github.com/elk-language/elk/bitfield"
@@ -25,6 +26,9 @@ var INIT_VALUE_STACK_SIZE int
 var MAX_VALUE_STACK_SIZE int
 var DEFAULT_THREAD_POOL_SIZE int
 var DEFAULT_THREAD_POOL_QUEUE_SIZE int
+
+// Global counter of VM IDs
+var currentID atomic.Int64
 
 func init() {
 	val, ok := config.IntFromEnvVar("ELK_INIT_VALUE_STACK_SIZE")
@@ -77,6 +81,7 @@ var stateSymbols = [...]value.Symbol{
 
 // A single instance of the Elk Virtual Machine.
 type VM struct {
+	ID     int64
 	Stdin  io.Reader // standard output used by the VM
 	Stdout io.Writer // standard input used by the VM
 	Stderr io.Writer // standard error used by the VM
@@ -136,7 +141,10 @@ func New(opts ...Option) *VM {
 	// mark the end of the call stack with a sentinel value
 	callFrames[len(callFrames)-1] = makeSentinelCallFrame()
 
+	id := currentID.Add(1)
+
 	vm := &VM{
+		ID:         id,
 		stack:      stack,
 		sp:         uintptr(unsafe.Pointer(&stack[0])),
 		fp:         uintptr(unsafe.Pointer(&stack[0])),
@@ -376,6 +384,13 @@ func (vm *VM) callGo(closure *Closure) {
 
 // Call an Elk closure from Go code, preserving the state of the VM.
 func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, value.Value) {
+	if closure.VMID != vm.ID && closure.HasOpenUpvalues() {
+		return value.Undefined, value.Ref(value.NewOpenClosureError(
+			closure.VMID,
+			vm.ID,
+			closure.Inspect(),
+		))
+	}
 	if closure.Bytecode.ParameterCount() != len(args) {
 		return value.Undefined, value.Ref(value.NewWrongArgumentCountError(
 			closure.Bytecode.Name().String(),
@@ -1372,7 +1387,7 @@ func (vm *VM) opGo() {
 
 func (vm *VM) closure() {
 	function := vm.peek().AsReference().(*BytecodeFunction)
-	closure := NewClosure(function, vm.selfValue())
+	closure := NewClosure(vm.ID, function, vm.selfValue())
 	vm.replace(value.Ref(closure))
 
 	for i := range len(closure.Upvalues) {
@@ -2047,6 +2062,14 @@ func (vm *VM) opCall(callInfoIndex int) (err value.Value) {
 
 // set up the vm to execute a closure
 func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err value.Value) {
+	if closure.VMID != vm.ID && closure.HasOpenUpvalues() {
+		return value.Ref(value.NewOpenClosureError(
+			closure.VMID,
+			vm.ID,
+			closure.Inspect(),
+		))
+	}
+
 	function := closure.Bytecode
 	vm.populateMissingParameters(function.parameterCount, callInfo.ArgumentCount)
 	vm.createCurrentCallFrame(false)

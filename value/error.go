@@ -15,6 +15,11 @@ var ErrorClass *Class
 // Thrown when a `nil` value is encountered in a `must` expression.
 var UnexpectedNilErrorClass *Class
 
+// ::Std::OpenClosureError
+//
+// Thrown when another thread tried to execute an open closure.
+var OpenClosureErrorClass *Class
+
 // ::Std::TypeError
 //
 // Thrown when an argument given to a method
@@ -133,6 +138,18 @@ func NewError(class *Class, message string) *Object {
 		class:             class,
 		instanceVariables: ivars,
 	}
+}
+
+// Create a new error that signals that
+// the given index is out of range.
+func NewOpenClosureError(closureVMID, VMID int64, closureInspect string) *Object {
+	return Errorf(
+		OpenClosureErrorClass,
+		"thread %d tried to call open closure `%s` created by thread %d",
+		VMID,
+		closureInspect,
+		closureVMID,
+	)
 }
 
 // Create a new error that signals that
@@ -507,6 +524,9 @@ func initError() {
 
 	UnexpectedNilErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("UnexpectedNilError", Ref(UnexpectedNilErrorClass))
+
+	OpenClosureErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
+	StdModule.AddConstantString("OpenClosureError", Ref(OpenClosureErrorClass))
 
 	TypeErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("TypeError", Ref(TypeErrorClass))

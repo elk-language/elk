@@ -3,11 +3,22 @@ package vm_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value"
 )
 
 func TestVMSource_Go(t *testing.T) {
 	tests := sourceTestTable{
+		"call open closure in another thread": {
+			source: `
+				a := 5
+				c := -> a
+				go puts c()
+				sleep 1.second
+			`,
+			wantStderrPattern: value.MustCompileRegex("Std::OpenClosureError", bitfield.BitField8{}),
+			wantStackTop:      value.Nil,
+		},
 		"handle an error thrown in a separate coroutine": {
 			source: `
 				go throw unchecked 5
