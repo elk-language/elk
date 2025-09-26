@@ -379,6 +379,19 @@ func (vm *VM) callGo(closure *Closure) {
 	vm.upvalues = closure.Upvalues
 	// push `self`
 	vm.push(closure.Self)
+
+	if closure.VMID != vm.ID && closure.HasOpenUpvalues() {
+		vm.throwNoCatch(
+			value.Ref(
+				value.NewOpenClosureError(
+					closure.VMID,
+					vm.ID,
+					closure.Inspect(),
+				),
+			),
+		)
+	}
+
 	vm.run()
 }
 
@@ -914,21 +927,27 @@ func (vm *VM) run() {
 			vm.opSetUpvalue(int(vm.readByte()))
 		case bytecode.SET_UPVALUE16:
 			vm.opSetUpvalue(int(vm.readUint16()))
-		case bytecode.CLOSE_UPVALUE_1:
+		case bytecode.CLOSE_UPVALUES_TO_1:
 			last := vm.fpAddRaw(1)
 			vm.opCloseUpvalues(last)
-		case bytecode.CLOSE_UPVALUE_2:
+		case bytecode.CLOSE_UPVALUES_TO_2:
 			last := vm.fpAddRaw(2)
 			vm.opCloseUpvalues(last)
-		case bytecode.CLOSE_UPVALUE_3:
+		case bytecode.CLOSE_UPVALUES_TO_3:
 			last := vm.fpAddRaw(3)
 			vm.opCloseUpvalues(last)
-		case bytecode.CLOSE_UPVALUE8:
+		case bytecode.CLOSE_UPVALUES_TO8:
 			last := vm.fpAddRaw(uintptr(vm.readByte()))
 			vm.opCloseUpvalues(last)
-		case bytecode.CLOSE_UPVALUE16:
+		case bytecode.CLOSE_UPVALUES_TO16:
 			last := vm.fpAddRaw(uintptr(vm.readUint16()))
 			vm.opCloseUpvalues(last)
+		case bytecode.CLOSE_UPVALUE8:
+			index := vm.fpAddRaw(uintptr(vm.readByte()))
+			vm.opCloseUpvalue(index)
+		case bytecode.CLOSE_UPVALUE16:
+			index := vm.fpAddRaw(uintptr(vm.readUint16()))
+			vm.opCloseUpvalue(index)
 		case bytecode.PREP_LOCALS8:
 			vm.opPrepLocals(uintptr(vm.readByte()))
 		case bytecode.PREP_LOCALS16:
@@ -2409,6 +2428,32 @@ func (vm *VM) getUpvalueValue(index int) value.Value {
 	return *vm.upvalues[index].location
 }
 
+// Closes the upvalue with the given local slot.
+func (vm *VM) opCloseUpvalue(index uintptr) {
+	currentUpvalue := vm.openUpvalueHead
+	var prevUpvalue *Upvalue
+
+	for {
+		if currentUpvalue == nil {
+			break
+		}
+		if uintptr(unsafe.Pointer(currentUpvalue.location)) == index {
+			currentUpvalue.unsafeClose()
+
+			if prevUpvalue == nil {
+				vm.openUpvalueHead = currentUpvalue.next
+			} else {
+				prevUpvalue = currentUpvalue.next
+			}
+
+			break
+		}
+
+		prevUpvalue = currentUpvalue
+		currentUpvalue = currentUpvalue.next
+	}
+}
+
 // Closes all upvalues down to the given local slot (the given slot and all above).
 func (vm *VM) opCloseUpvalues(lastToClose uintptr) {
 	for {
@@ -2419,12 +2464,7 @@ func (vm *VM) opCloseUpvalues(lastToClose uintptr) {
 		}
 
 		currentUpvalue := vm.openUpvalueHead
-		// move the variable from the stack to the heap
-		// inside of the upvalue
-		currentUpvalue.closed = *currentUpvalue.location
-		// the location pointer now points to the `closed` field
-		// within the upvalue
-		currentUpvalue.location = &currentUpvalue.closed
+		currentUpvalue.unsafeClose()
 		vm.openUpvalueHead = currentUpvalue.next
 	}
 }
@@ -4027,6 +4067,17 @@ func (vm *VM) rethrow(err value.Value, stackTrace *value.StackTrace) {
 
 		vm.restoreLastFrame()
 	}
+}
+
+func (vm *VM) throwNoCatch(err value.Value) {
+	vm.rethrowNoCatch(err, vm.GetStackTrace())
+}
+
+func (vm *VM) rethrowNoCatch(err value.Value, stackTrace *value.StackTrace) {
+	vm.state = errorState
+	vm.errStackTrace = stackTrace
+	vm.push(err)
+	vm.restoreLastFrame()
 }
 
 // Used in a panic to stop the VM

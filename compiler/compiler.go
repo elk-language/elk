@@ -4536,12 +4536,16 @@ func (c *Compiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
 	closureCompiler.Errors = c.Errors
 	closureCompiler.compileFunction(node.Location(), nil, node.Body)
 
+	line := node.Location().StartPos.Line
 	result := closureCompiler.Bytecode
 	c.emitValue(value.Ref(result), node.Location())
 
-	c.emit(node.Location().StartPos.Line, bytecode.CLOSURE)
+	c.emit(line, bytecode.CLOSURE)
 
-	for _, upvalue := range closureCompiler.upvalues {
+	capturedLocalIndices := make([]uint16, len(closureCompiler.upvalues))
+	for i, upvalue := range closureCompiler.upvalues {
+		capturedLocalIndices[i] = upvalue.local.index
+
 		var flags bitfield.BitField8
 		if upvalue.isLocal {
 			flags.SetFlag(vm.UpvalueLocalFlag)
@@ -4560,7 +4564,12 @@ func (c *Compiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
 
 	c.emitByte(vm.ClosureTerminatorFlag)
 
-	c.emit(node.Location().StartPos.Line, bytecode.GO)
+	for _, index := range capturedLocalIndices {
+		// close all upvalues of the closure
+		c.emitCloseUpvalue(line, index)
+	}
+
+	c.emit(line, bytecode.GO)
 }
 
 func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
@@ -7144,20 +7153,31 @@ func (c *Compiler) emitGetUpvalue(line int, index uint16) {
 	c.emit(line, bytecode.GET_UPVALUE8, byte(index))
 }
 
-// Emit an instruction that sets an upvalue.
-func (c *Compiler) emitCloseUpvalue(line int, index uint16) {
+// Emit an instruction that closes upvalues.
+func (c *Compiler) emitCloseUpvalues(line int, index uint16) {
 	switch index {
 	case 1:
-		c.emit(line, bytecode.CLOSE_UPVALUE_1)
+		c.emit(line, bytecode.CLOSE_UPVALUES_TO_1)
 		return
 	case 2:
-		c.emit(line, bytecode.CLOSE_UPVALUE_2)
+		c.emit(line, bytecode.CLOSE_UPVALUES_TO_2)
 		return
 	case 3:
-		c.emit(line, bytecode.CLOSE_UPVALUE_3)
+		c.emit(line, bytecode.CLOSE_UPVALUES_TO_3)
 		return
 	}
 
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.CLOSE_UPVALUES_TO16)
+		c.emitUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.CLOSE_UPVALUES_TO8, byte(index))
+}
+
+// Emit an instruction that closes an upvalue.
+func (c *Compiler) emitCloseUpvalue(line int, index uint16) {
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.CLOSE_UPVALUE16)
 		c.emitUint16(index)
@@ -7513,7 +7533,7 @@ func (c *Compiler) closeUpvaluesInScope(line int, scope *scope) {
 	}
 
 	if lowestIndex != -1 {
-		c.emitCloseUpvalue(line, uint16(lowestIndex))
+		c.emitCloseUpvalues(line, uint16(lowestIndex))
 	}
 }
 

@@ -31,6 +31,23 @@ func (u *Upvalue) IsOpen() bool {
 	return !u.IsClosed()
 }
 
+func (u *Upvalue) Close() {
+	if u.IsClosed() {
+		return
+	}
+
+	u.unsafeClose()
+}
+
+func (u *Upvalue) unsafeClose() {
+	// move the variable from the stack to the heap
+	// inside of the upvalue
+	u.closed = *u.location
+	// the location pointer now points to the `closed` field
+	// within the upvalue
+	u.location = &u.closed
+}
+
 func NewUpvalue(loc *value.Value) *Upvalue {
 	return &Upvalue{
 		location: loc,
