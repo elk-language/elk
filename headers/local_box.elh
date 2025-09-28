@@ -23,7 +23,7 @@
 	Using open/unclosed LocalBoxes in multiple threads is inherently racy and
 	should be avoided. The closing process is not synchronized.
 ]##
-sealed primitive class ::Std::LocalBox[Val] < Box[Val]
+sealed noinit primitive class ::Std::LocalBox[Val] < ::Std::Box[Val]
 	singleton
 		##[
 			Creates a new LocalBox from a raw address.
@@ -34,7 +34,7 @@ sealed primitive class ::Std::LocalBox[Val] < Box[Val]
 			and should only be used if you have a valid
 			reason and you know what you're doing.
 		]##
-		def at[T](address: UInt): Box[T]; end
+		def at[T](address: UInt): LocalBox[T]; end
 	end
 
 	##[

@@ -2,6 +2,16 @@ using Std::Test::Assertions::*
 using Std::Test::*
 
 describe "Box", ->
+	context "singleton", ->
+		should "at", ->
+			b := Box(3)
+			v := Box.at(b.address)
+			assert! v <<: Box
+			assert! v.get == 3
+			assert! v === b
+		end
+	end
+
 	context "init", ->
 		should "create a new box", ->
 			b := Box(3)
@@ -23,6 +33,25 @@ describe "Box", ->
 		end
 	end
 
+	context "to_box", ->
+		should "return self", ->
+			b := Box(3)
+			v := b.to_box
+			assert! v <<: Box
+			assert! v.address == b.address
+			assert! v === b
+		end
+	end
+
+	context "to_immutable_box", ->
+		should "convert to an immutable box", ->
+			b := Box(3)
+			v := b.to_immutable_box
+			assert! v <<: ImmutableBox
+			assert! v.address == b.address
+		end
+	end
+
 	context "set", ->
 		should "overwrite the stored value", ->
 			b := Box(3)
@@ -37,18 +66,50 @@ describe "Box", ->
 		should "return the next box", ->
 			arr := [3, 5, 8]
 			a := arr.box_of(0)
+			assert! a <<: Box
 			assert! a.get == 3
 
 			b := a.next
+			assert! b <<: Box
+			assert! b.get == 5
+
+			b = a.next_box
+			assert! b <<: Box
 			assert! b.get == 5
 		end
 
 		should "return the second next box", ->
 			arr := [3, 5, 8]
 			a := arr.box_of(0)
+			assert! a <<: Box
 			assert! a.get == 3
 
 			b := a.next(2)
+			assert! b <<: Box
+			assert! b.get == 8
+		end
+	end
+
+	context "next_immutable_box", ->
+		should "return the next box", ->
+			arr := [3, 5, 8]
+			a := arr.box_of(0)
+			assert! a <<: Box
+			assert! a.get == 3
+
+			b := a.next_immutable_box
+			assert! b <<: ImmutableBox
+			assert! b.get == 5
+		end
+
+		should "return the second next box", ->
+			arr := [3, 5, 8]
+			a := arr.box_of(0)
+			assert! a <<: Box
+			assert! a.get == 3
+
+			b := a.next_immutable_box(2)
+			assert! b <<: ImmutableBox
 			assert! b.get == 8
 		end
 	end
@@ -57,18 +118,50 @@ describe "Box", ->
 		should "return the previous box", ->
 			arr := [3, 5, 8]
 			a := arr.box_of(-1)
+			assert! a <<: Box
 			assert! a.get == 8
 
 			b := a.prev
+			assert! b <<: Box
+			assert! b.get == 5
+
+			b = a.prev_box
+			assert! b <<: Box
 			assert! b.get == 5
 		end
 
 		should "return the second previous box", ->
 			arr := [3, 5, 8]
 			a := arr.box_of(-1)
+			assert! a <<: Box
 			assert! a.get == 8
 
 			b := a.prev(2)
+			assert! b <<: Box
+			assert! b.get == 3
+		end
+	end
+
+	context "prev_immutable_box", ->
+		should "return the previous box", ->
+			arr := [3, 5, 8]
+			a := arr.box_of(-1)
+			assert! a <<: Box
+			assert! a.get == 8
+
+			b := a.prev_immutable_box
+			assert! b <<: ImmutableBox
+			assert! b.get == 5
+		end
+
+		should "return the second previous box", ->
+			arr := [3, 5, 8]
+			a := arr.box_of(-1)
+			assert! a <<: Box
+			assert! a.get == 8
+
+			b := a.prev_immutable_box(2)
+			assert! b <<: ImmutableBox
 			assert! b.get == 3
 		end
 	end
@@ -77,22 +170,10 @@ describe "Box", ->
 		should "return the raw address as UInt", ->
 			b := Box(3)
 			addr := b.address
-			assert! addr <: UInt
+			assert! addr <<: UInt
 
 			c := Box.at(addr)
 			assert! b.get == 3
-		end
-	end
-
-	context "at", ->
-		should "return the raw address as UInt", ->
-			b := Box(3)
-			c := Box.at(b.address)
-			assert! c.get == 3
-
-			e := Box(2.5)
-			f := Box.at(e.address)
-			assert! f.get == 2.5
 		end
 	end
 

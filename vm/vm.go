@@ -1413,8 +1413,13 @@ func (vm *VM) opClosure() {
 	closure := NewClosure(vm.ID, function, vm.selfValue())
 	vm.replace(value.Ref(closure))
 
-	for i := range len(closure.Upvalues) {
-		flags := bitfield.BitField8FromInt(vm.readByte())
+	for i := 0; ; i++ {
+		flagByte := vm.readByte()
+		if flagByte == ClosureTerminatorFlag {
+			break
+		}
+
+		flags := bitfield.BitField8FromInt(flagByte)
 		var upIndex int
 		if flags.HasFlag(UpvalueLongIndexFlag) {
 			upIndex = int(vm.readUint16())
@@ -1428,7 +1433,6 @@ func (vm *VM) opClosure() {
 			closure.Upvalues[i] = vm.upvalues[upIndex]
 		}
 	}
-	vm.ipIncrement() // skip past the terminator
 }
 
 func (vm *VM) captureUpvalue(slot *value.Value) *Upvalue {
@@ -1865,6 +1869,16 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 	self := vm.selfValue()
 	class := self.DirectClass()
 
+	defer func() {
+		r := recover()
+		if r != nil {
+			fmt.Printf("panicked self: %s", self.Inspect())
+
+			vm.bytecode.DisassembleStdout()
+			fmt.Printf("ip: %d, location: %s\n", vm.ipOffset(), vm.bytecode.Location.String())
+			panic(r)
+		}
+	}()
 	// shift all arguments one slot forward to make room for self
 	for i := range callInfo.ArgumentCount {
 		*vm.spAdd(-i) = *vm.spAdd(-i - 1)

@@ -122,9 +122,9 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 
 			fmt.Fprintf(
 				buffer,
-				`namespace.SetParent(NameToNamespace(%q, env))
+				`namespace.SetParent(%s)
 				`,
-				namespaceClass.Superclass().Name(),
+				namespaceToCode(superclass),
 			)
 		}
 	}

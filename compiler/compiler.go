@@ -3136,14 +3136,10 @@ func (c *Compiler) addUpvalue(local *local, upIndex uint16, kind upvalueKind, lo
 		local:   local,
 		kind:    kind,
 	}
-	c.defineUpvalue(upvalue)
-	local.hasUpvalue = true
-	return upvalue
-}
-
-func (c *Compiler) defineUpvalue(upvalue *upvalue) {
 	c.upvalues = append(c.upvalues, upvalue)
 	c.Bytecode.UpvalueCount++
+	local.hasUpvalue = true
+	return upvalue
 }
 
 func (c *Compiler) compileModifierExpressionNode(label string, node *ast.ModifierNode, valueIsIgnored bool) expressionResult {
@@ -4555,6 +4551,10 @@ func (c *Compiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
 
 	capturedLocalIndices := make([]uint16, len(closureCompiler.upvalues))
 	for i, upvalue := range closureCompiler.upvalues {
+		if upvalue.kind == upvalueOwnLocal {
+			continue
+		}
+
 		capturedLocalIndices[i] = upvalue.local.index
 
 		var flags bitfield.BitField8
@@ -4595,6 +4595,10 @@ func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
 	c.emit(node.Location().StartPos.Line, bytecode.CLOSURE)
 
 	for _, upvalue := range closureCompiler.upvalues {
+		if upvalue.kind == upvalueOwnLocal {
+			continue
+		}
+
 		var flags bitfield.BitField8
 		if upvalue.kind == upvalueParentLocal {
 			flags.SetFlag(vm.UpvalueLocalFlag)
@@ -6841,7 +6845,7 @@ func (c *Compiler) compileBoxOfExpressionNode(node *ast.BoxOfExpressionNode) {
 				local:   local,
 				kind:    upvalueOwnLocal,
 			}
-			c.defineUpvalue(upvalue)
+			c.upvalues = append(c.upvalues, upvalue)
 			local.hasUpvalue = true
 		}
 

@@ -3818,7 +3818,7 @@ func TestUpvalues(t *testing.T) {
 				a := 5
 				&a
 			`,
-			want: vm.NewBytecodeFunctionWithUpvalues(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3833,10 +3833,7 @@ func TestUpvalues(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 3),
 				},
-				0,
-				0,
 				[]value.Value{},
-				1,
 			),
 		},
 		"close pointer upvalue after scope exit": {
@@ -3848,7 +3845,7 @@ func TestUpvalues(t *testing.T) {
 				end
 				b.get
 			`,
-			want: vm.NewBytecodeFunctionWithUpvalues(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3871,12 +3868,9 @@ func TestUpvalues(t *testing.T) {
 					bytecode.NewLineInfo(6, 2),
 					bytecode.NewLineInfo(7, 4),
 				},
-				0,
-				0,
 				[]value.Value{
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("get"), 0)),
 				},
-				1,
 			),
 		},
 		"read a local after creating a pointer": {
@@ -3885,7 +3879,7 @@ func TestUpvalues(t *testing.T) {
 				b := &a
 				a
 			`,
-			want: vm.NewBytecodeFunctionWithUpvalues(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3903,10 +3897,7 @@ func TestUpvalues(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 					bytecode.NewLineInfo(4, 2),
 				},
-				0,
-				0,
 				[]value.Value{},
-				1,
 			),
 		},
 		"set a local after creating a pointer": {
@@ -3915,7 +3906,7 @@ func TestUpvalues(t *testing.T) {
 				b := &a
 				a = 20
 			`,
-			want: vm.NewBytecodeFunctionWithUpvalues(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3935,10 +3926,7 @@ func TestUpvalues(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 					bytecode.NewLineInfo(4, 5),
 				},
-				0,
-				0,
 				[]value.Value{},
-				1,
 			),
 		},
 		"capture a local with a pointer": {
@@ -3948,7 +3936,7 @@ func TestUpvalues(t *testing.T) {
 				c := -> println a
 				a
 			`,
-			want: vm.NewBytecodeFunctionWithUpvalues(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
@@ -3972,8 +3960,6 @@ func TestUpvalues(t *testing.T) {
 					bytecode.NewLineInfo(4, 6),
 					bytecode.NewLineInfo(5, 2),
 				},
-				0,
-				0,
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
 						value.ToSymbol("<closure>"),
@@ -3998,7 +3984,6 @@ func TestUpvalues(t *testing.T) {
 						1,
 					)),
 				},
-				1,
 			),
 		},
 		"in child scope": {

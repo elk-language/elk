@@ -1,0 +1,280 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+describe "LocalBox", ->
+	context "singleton", ->
+		context "at", ->
+			should "return the local box", ->
+				a := 3
+				b := &a
+				assert! b <<: LocalBox
+
+				v := LocalBox.at(b.address)
+				assert! v <<: LocalBox
+				assert! v.get == 3
+				assert! v === b
+			end
+		end
+	end
+
+	context "is_closed", ->
+		should "return false for open local", ->
+			a := 3
+			b := &a
+			assert! b.is_closed == false
+		end
+
+		should "return true for closed local", ->
+			var b: LocalBox[Int]
+			do
+				a := 3
+				b = &a
+			end
+
+			assert! b.is_closed == true
+		end
+	end
+
+	context "is_open", ->
+		should "return true for open local", ->
+			a := 3
+			b := &a
+			assert! b.is_open == true
+		end
+
+		should "return false for closed local", ->
+			var b: LocalBox[Int]
+			do
+				a := 3
+				b = &a
+			end
+
+			assert! b.is_open == false
+		end
+	end
+
+	context "close", ->
+		should "close an open local", ->
+			a := 3
+			b := &a
+
+			b.close
+			assert! b.is_closed == true
+			assert! b.get == 3
+
+			a = 10
+			assert! b.get == 3
+
+			b.set 25
+			assert! a == 10
+		end
+
+		should "close a closed local", ->
+			var b: LocalBox[Int]
+			do
+				a := 3
+				b = &a
+			end
+
+			assert! b.is_closed == true
+			b.close
+			assert! b.is_closed == true
+		end
+	end
+
+	context "get", ->
+		should "return the stored value", ->
+			a := 3
+			b := &a
+			assert! b.get == 3
+
+			a = 25
+			assert! b.get == 25
+		end
+	end
+
+	context "to_immutable_box", ->
+		should "return immutable box to local", ->
+			a := 3
+			b := &a
+
+			c := b.to_immutable_box
+			assert! c <<: ImmutableBox
+			assert! c.get == 3
+
+			a = 10
+			assert! c.get == 10
+		end
+	end
+
+	context "to_box", ->
+		should "return box to local", ->
+			a := 3
+			b := &a
+
+			c := b.to_box
+			assert! c <<: Box
+			assert! c.get == 3
+
+			a = 10
+			assert! c.get == 10
+		end
+	end
+
+	context "next", ->
+		should "return the next box", ->
+			a := 5
+			b := 6
+
+			c := &a
+			assert! c <<: LocalBox
+			assert! c.get == 5
+
+			d := c.next
+			assert! d <<: Box
+			assert! d.get == 6
+
+			d = c.next_box
+			assert! d <<: Box
+			assert! d.get == 6
+		end
+
+		should "return the second next box", ->
+			a := 5
+			b := 6
+			c := 7
+
+			d := &a
+			assert! d <<: LocalBox
+			assert! d.get == 5
+
+			e := d.next(2)
+			assert! e <<: Box
+			assert! e.get == 7
+
+			e = d.next_box(2)
+			assert! e <<: Box
+			assert! e.get == 7
+		end
+	end
+
+	context "next_immutable_box", ->
+		should "return the next box", ->
+			a := 5
+			b := 6
+
+			c := &a
+			assert! c <<: LocalBox
+			assert! c.get == 5
+
+			d := c.next_immutable_box
+			assert! d <<: ImmutableBox
+			assert! d.get == 6
+		end
+
+		should "return the second next box", ->
+			a := 5
+			b := 6
+			c := 7
+
+			d := &a
+			assert! d <<: LocalBox
+			assert! d.get == 5
+
+			e := d.next_immutable_box(2)
+			assert! e <<: ImmutableBox
+			assert! e.get == 7
+		end
+	end
+
+	context "prev", ->
+		should "return the previous box", ->
+			a := 5
+			b := 6
+
+			c := &b
+			assert! c <<: LocalBox
+			assert! c.get == 6
+
+			d := c.prev
+			assert! d <<: Box
+			assert! d.get == 5
+
+			d = c.prev_box
+			assert! d <<: Box
+			assert! d.get == 5
+		end
+
+		should "return the second previous box", ->
+			a := 5
+			b := 6
+			c := 7
+
+			d := &c
+			assert! d <<: LocalBox
+			assert! d.get == 7
+
+			e := d.prev(2)
+			assert! e <<: Box
+			assert! e.get == 5
+
+			e = d.prev_box(2)
+			assert! e <<: Box
+			assert! e.get == 5
+		end
+	end
+
+	context "prev_immutable_box", ->
+		should "return the previous box", ->
+			a := 5
+			b := 6
+
+			c := &b
+			assert! c <<: LocalBox
+			assert! c.get == 6
+
+			d := c.prev_immutable_box
+			assert! d <<: ImmutableBox
+			assert! d.get == 5
+		end
+
+		should "return the second previous box", ->
+			a := 5
+			b := 6
+			c := 7
+
+			d := &c
+			assert! d <<: LocalBox
+			assert! d.get == 7
+
+			e := d.prev_immutable_box(2)
+			assert! e <<: ImmutableBox
+			assert! e.get == 5
+		end
+	end
+
+	context "address", ->
+		should "return the raw address as UInt", ->
+			a := 3
+			b := &a
+			addr := b.address
+			assert! addr <<: UInt
+
+			c := LocalBox.at(addr)
+			assert! b.get == 3
+		end
+	end
+
+	context "local_address", ->
+		should "return the raw address as UInt", ->
+			a := 3
+			b := &a
+			addr := b.local_address
+			assert! addr <<: UInt
+
+			c := Box.at(addr)
+			assert! b.get == 3
+		end
+	end
+
+end

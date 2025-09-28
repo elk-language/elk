@@ -111,7 +111,7 @@ func (v *LocalBox) Copy() value.Reference {
 // Std::LocalBox
 func initLocalBox() {
 	// Class methods
-	c := &value.BoxClass.SingletonClass().MethodContainer
+	c := &value.LocalBoxClass.SingletonClass().MethodContainer
 	Def(
 		c,
 		"at",

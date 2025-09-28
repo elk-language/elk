@@ -1,7 +1,7 @@
 ##[
 	ImmutableBox wraps another value, it's a read only pointer to another `Value`.
 ]##
-sealed primitive class ::Std::ImmutableBox[Val]
+sealed primitive class ::Std::ImmutableBox[+Val]
 	singleton
 		##[
 			Creates a new Box from a raw address.

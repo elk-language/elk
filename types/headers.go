@@ -601,7 +601,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A box that points to a local variable/value in the current stack frame.\n\nLocalBox is a specialized pointer type that contains a pointer to a structure\nwhich itself holds a pointer to a local variable or value. This double-pointer\nindirection matches the memory layout of upvalues (captured variables in closures).\n\nThe double-pointer design is necessary because local variables live on the stack\nof the currently executing function. When a box pointing to a local variable\nis created this provides a stable\nway to reference it through heap allocation, preventing dangling pointers to\nstack memory after the function returns and its stack frame gets destroyed.\n\nBefore closing, the structure is laid out as:\nLocalBox -> HeapStruct -> StackValue\n\nAfter closing it look like this:\nLocalBox -> HeapStruct\n\nClosing means that the local's value is moved from the stack to the heap.\nThis happens when the variable goes out of scope in the function that defined it.\n\nUsing open/unclosed LocalBoxes in multiple threads is inherently racy and\nshould be avoided. The closing process is not synchronized.", false, true, true, false, value.ToSymbol("LocalBox"), objectClass, env)
+			namespace := namespace.TryDefineClass("A box that points to a local variable/value in the current stack frame.\n\nLocalBox is a specialized pointer type that contains a pointer to a structure\nwhich itself holds a pointer to a local variable or value. This double-pointer\nindirection matches the memory layout of upvalues (captured variables in closures).\n\nThe double-pointer design is necessary because local variables live on the stack\nof the currently executing function. When a box pointing to a local variable\nis created this provides a stable\nway to reference it through heap allocation, preventing dangling pointers to\nstack memory after the function returns and its stack frame gets destroyed.\n\nBefore closing, the structure is laid out as:\nLocalBox -> HeapStruct -> StackValue\n\nAfter closing it look like this:\nLocalBox -> HeapStruct\n\nClosing means that the local's value is moved from the stack to the heap.\nThis happens when the variable goes out of scope in the function that defined it.\n\nUsing open/unclosed LocalBoxes in multiple threads is inherently racy and\nshould be avoided. The closing process is not synchronized.", false, true, true, true, value.ToSymbol("LocalBox"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineInterface("Represents a resource that can be locked and unlocked.", value.ToSymbol("Lockable"), env)
@@ -807,7 +807,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Removes all elements from the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("clear"), nil, nil, Void{}, Never{})
 				namespace.DefineMethod("Check whether the given `value` is present in this list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("contains"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::ArrayList::Val", env), NameToType("Std::ArrayList::Val", env), NameToType("Std::ArrayList::Val", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :contains", true), NameToType("Std::ArrayList::Val", env), NameToType("Std::ArrayList::Val", env), NameToType("Std::ArrayList::Val", env), INVARIANT), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Mutates the list.\n\nReallocates the underlying array to hold\nthe given number of new elements.\n\nExpands the `capacity` of the list by `new_slots`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("grow"), nil, []*Parameter{NewParameter(value.ToSymbol("new_slots"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Returns the immutable box/pointer\nto the slot with the given index.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("immutable_box_of"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayList::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				namespace.DefineMethod("Returns the immutable box/pointer\nto the slot with the given index.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("immutable_box_of"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayList::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::ArrayList::Iterator", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayList::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Returns the number of left slots for new elements\nin the underlying array.\nIt tells you how many more elements can be\nadded to the list before the underlying array gets\nreallocated.\n\nIt is always equal to `capacity - length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the number of elements present in the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
@@ -874,7 +874,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Check whether the given value is an `ArrayTuple`\nwith the same elements.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Check whether the given value is an `ArrayTuple` or `ArrayList`\nwith the same elements.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::ArrayTuple::Val", env), Never{})
-				namespace.DefineMethod("Returns the immutable box/pointer\nto the slot with the given index.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("immutable_box_of"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :immutable_box_of", true), NameToType("Std::ArrayTuple::Val", env), NameToType("Std::ArrayTuple::Val", env), NameToType("Std::ArrayTuple::Val", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :immutable_box_of", true), NameToType("Std::ArrayTuple::Val", env), NameToType("Std::ArrayTuple::Val", env), NameToType("Std::ArrayTuple::Val", env), INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				namespace.DefineMethod("Returns the immutable box/pointer\nto the slot with the given index.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("immutable_box_of"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :immutable_box_of", true), NameToType("Std::ArrayTuple::Val", env), NameToType("Std::ArrayTuple::Val", env), NameToType("Std::ArrayTuple::Val", env), INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :immutable_box_of", true), NameToType("Std::ArrayTuple::Val", env), NameToType("Std::ArrayTuple::Val", env), NameToType("Std::ArrayTuple::Val", env), INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Returns an iterator that iterates\nover each element of the tuple.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple::Iterator", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayTuple::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Returns the number of elements present in the tuple.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Iterates over the elements of this tuple,\nyielding them to the given closure.\n\nReturns a new Tuple that consists of the elements returned\nby the given closure.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::ArrayTuple::Val", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), false), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT))
@@ -1042,7 +1042,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Bool").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 
@@ -1068,7 +1068,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.SetTypeParameters(typeParams)
 
-				namespace.SetParent(NameToNamespace("Std::ImmutableBox", env))
+				namespace.SetParent(NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Box::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})))
 
 				// Include mixins and implement interfaces
 
@@ -1079,7 +1079,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Does pointer arithmetic and returns a mutable Box of the previous value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("prev_box"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Stores the given value in the `Box`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("set"), nil, []*Parameter{NewParameter(value.ToSymbol("v"), NameToType("Std::Box::Val", env), NormalParameterKind, false)}, NameToType("Std::Box::Val", env), Never{})
 				namespace.DefineMethod("Returns `self`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_box"), nil, nil, NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Box::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
-				namespace.DefineMethod("Convert this `Box` to an `ImmutableBox`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_immutable_box"), nil, nil, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Box::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				namespace.DefineMethod("Convert this `Box` to an `ImmutableBox`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_immutable_box"), nil, nil, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Box::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 
 				// Define constants
 
@@ -1172,7 +1172,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Char").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -1453,7 +1453,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Date").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 
@@ -1511,7 +1511,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtypeString("Span").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetParent(NameToNamespace("Std::Value", env))
+					namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 					// Include mixins and implement interfaces
 					IncludeMixin(namespace, NameToType("Std::Duration", env).(*Mixin))
@@ -1677,7 +1677,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtypeString("Span").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetParent(NameToNamespace("Std::Value", env))
+					namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 					// Include mixins and implement interfaces
 					IncludeMixin(namespace, NameToType("Std::Duration", env).(*Mixin))
@@ -2176,7 +2176,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -2616,7 +2616,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -2844,7 +2844,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -2878,7 +2878,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -2912,7 +2912,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -3243,7 +3243,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -3451,7 +3451,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -3485,7 +3485,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -3519,7 +3519,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -3553,7 +3553,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -3602,7 +3602,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -4388,7 +4388,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::FormatError", env))
+							namespace.SetParent(NameToType("Std::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -4615,7 +4615,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::ConstantNode::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::ConstantNode::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -4649,7 +4649,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::IdentifierNode::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::IdentifierNode::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -5678,7 +5678,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -5712,7 +5712,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -5746,7 +5746,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -5780,7 +5780,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -5814,7 +5814,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 							namespace.Name() // noop - avoid unused variable error
-							namespace.SetParent(NameToNamespace("Std::Elk::AST::Node::FormatError", env))
+							namespace.SetParent(NameToType("Std::Elk::AST::Node::FormatError", env).(*Class))
 
 							// Include mixins and implement interfaces
 
@@ -6673,7 +6673,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace := namespace.MustSubtypeString("Error").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
-						namespace.SetParent(NameToNamespace("Std::Error", env))
+						namespace.SetParent(NameToType("Std::Error", env).(*Class))
 
 						// Include mixins and implement interfaces
 
@@ -6689,7 +6689,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("False").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Bool", env))
+				namespace.SetParent(NameToType("Std::Bool", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -6710,7 +6710,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("FileSystemError").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Error", env))
+				namespace.SetParent(NameToType("Std::Error", env).(*Class))
 
 				// Include mixins and implement interfaces
 
@@ -6724,7 +6724,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Float").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -6816,7 +6816,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Float32").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -6880,7 +6880,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Float64").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -6944,7 +6944,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("FormatError").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Error", env))
+				namespace.SetParent(NameToType("Std::Error", env).(*Class))
 
 				// Include mixins and implement interfaces
 
@@ -6991,7 +6991,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("GlobError").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Error", env))
+				namespace.SetParent(NameToType("Std::Error", env).(*Class))
 
 				// Include mixins and implement interfaces
 
@@ -7252,7 +7252,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				var typeParam *TypeParameter
 				typeParams := make([]*TypeParameter, 1)
 
-				typeParam = NewTypeParameter(value.ToSymbol("Val"), namespace, Never{}, Any{}, nil, INVARIANT)
+				typeParam = NewTypeParameter(value.ToSymbol("Val"), namespace, Never{}, Any{}, nil, COVARIANT)
 				typeParams[0] = typeParam
 				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
 				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
@@ -7265,11 +7265,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("v"), NameToType("Std::ImmutableBox::Val", env), NormalParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Returns the raw address of the pointer as an unsigned integer.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.\n\nIf all other references to an object disappear\nthe object will be garbage collected so you may end up\nwith a stale address of already freed memory.\nReading freed memory is undefined behaviour.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("address"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Retrieves the value stored in the `Box`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("get"), nil, nil, NameToType("Std::ImmutableBox::Val", env), Never{})
-				namespace.DefineMethod("Does pointer arithmetic and returns a Box of the next value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
-				namespace.DefineMethod("Does pointer arithmetic and returns an ImmutableBox of the next value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next_immutable_box"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
-				namespace.DefineMethod("Does pointer arithmetic and returns a Box of the previous value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("prev"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
-				namespace.DefineMethod("Does pointer arithmetic and returns an ImmutableBox of the previous value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("prev_immutable_box"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Value", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
-				namespace.DefineMethod("Returns self.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_immutable_box"), nil, nil, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ImmutableBox::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				namespace.DefineMethod("Does pointer arithmetic and returns a Box of the next value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Value", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				namespace.DefineMethod("Does pointer arithmetic and returns an ImmutableBox of the next value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next_immutable_box"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Value", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				namespace.DefineMethod("Does pointer arithmetic and returns a Box of the previous value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("prev"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Value", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				namespace.DefineMethod("Does pointer arithmetic and returns an ImmutableBox of the previous value in memory.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("prev_immutable_box"), nil, []*Parameter{NewParameter(value.ToSymbol("step"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Value", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				namespace.DefineMethod("Returns self.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_immutable_box"), nil, nil, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ImmutableBox::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 
 				// Define constants
 
@@ -7283,7 +7283,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Include mixins and implement interfaces
 
 					// Define methods
-					namespace.DefineMethod("Creates a new Box from a raw address.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("at"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), NewTypeParamNamespace("Type Parameter Container of :at", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("address"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), NewTypeParamNamespace("Type Parameter Container of :at", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+					namespace.DefineMethod("Creates a new Box from a raw address.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("at"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), NewTypeParamNamespace("Type Parameter Container of :at", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("address"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), NewTypeParamNamespace("Type Parameter Container of :at", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 
 					// Define constants
 
@@ -7417,7 +7417,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Int").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -7531,7 +7531,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Int16").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -7607,7 +7607,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Int32").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -7683,7 +7683,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Int64").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -7759,7 +7759,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Int8").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -7999,7 +7999,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtypeString("NotFoundError").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetParent(NameToNamespace("Std::Error", env))
+					namespace.SetParent(NameToType("Std::Error", env).(*Class))
 
 					// Include mixins and implement interfaces
 
@@ -8247,7 +8247,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				namespace.SetTypeParameters(typeParams)
 
-				namespace.SetParent(NameToNamespace("Std::Box", env))
+				namespace.SetParent(NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::LocalBox::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})))
 
 				// Include mixins and implement interfaces
 
@@ -8258,7 +8258,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns `true` if the value still lives on the stack.\nOtherwise returns `false`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_open"), nil, nil, Bool{}, Never{})
 				namespace.DefineMethod("Returns the raw address of the local slot/value as an unsigned integer.\n\nUsing this method on an unclosed LocalBox is UNSAFE!\nAfter the LocalBox gets closed the pointer returned by this method\nwill not be updated and will point to invalid memory.\n\nIf all other references to an object disappear\nthe object will be garbage collected so you may end up\nwith a stale address of already freed memory.\nReading freed memory is undefined behaviour.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("local_address"), nil, nil, NameToType("Std::UInt", env), Never{})
 				namespace.DefineMethod("Returns a mutable box that points directly to the local slot/value.\n\nUsing this method on an unclosed LocalBox is UNSAFE!\nAfter the LocalBox gets closed the pointer returned by this method\nwill not be updated and will point to invalid memory.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_box"), nil, nil, NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::LocalBox::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
-				namespace.DefineMethod("Returns an immutable box that points directly to the local slot/value.\n\nUsing this method on an unclosed LocalBox is UNSAFE!\nAfter the LocalBox gets closed the pointer returned by this method\nwill not be updated and will point to invalid memory.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_immutable_box"), nil, nil, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::LocalBox::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				namespace.DefineMethod("Returns an immutable box that points directly to the local slot/value.\n\nUsing this method on an unclosed LocalBox is UNSAFE!\nAfter the LocalBox gets closed the pointer returned by this method\nwill not be updated and will point to invalid memory.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_immutable_box"), nil, nil, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::LocalBox::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 
 				// Define constants
 
@@ -8272,7 +8272,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Include mixins and implement interfaces
 
 					// Define methods
-					namespace.DefineMethod("Creates a new LocalBox from a raw address.\nOnly addresses taken from a LocalBox can be used in this method.\nSupplying another address is undefined behaviour and may crash the process.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("at"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), NewTypeParamNamespace("Type Parameter Container of :at", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("address"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), NewTypeParamNamespace("Type Parameter Container of :at", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+					namespace.DefineMethod("Creates a new LocalBox from a raw address.\nOnly addresses taken from a LocalBox can be used in this method.\nSupplying another address is undefined behaviour and may crash the process.\n\nThis method is inherently UNSAFE\nand should only be used if you have a valid\nreason and you know what you're doing.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("at"), []*TypeParameter{NewTypeParameter(value.ToSymbol("T"), NewTypeParamNamespace("Type Parameter Container of :at", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("address"), NameToType("Std::UInt", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::LocalBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("T"), NewTypeParamNamespace("Type Parameter Container of :at", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 
 					// Define constants
 
@@ -8360,7 +8360,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Nil").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -8396,7 +8396,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Object").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 
@@ -8410,7 +8410,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("OpenClosureError").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Error", env))
+				namespace.SetParent(NameToType("Std::Error", env).(*Class))
 
 				// Include mixins and implement interfaces
 
@@ -8497,7 +8497,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("OutOfRangeError").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Error", env))
+				namespace.SetParent(NameToType("Std::Error", env).(*Class))
 
 				// Include mixins and implement interfaces
 
@@ -9166,7 +9166,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("Symbol").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -9436,7 +9436,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtypeString("Span").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetParent(NameToNamespace("Std::Value", env))
+					namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 					// Include mixins and implement interfaces
 					IncludeMixin(namespace, NameToType("Std::Duration", env).(*Mixin))
@@ -9552,7 +9552,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("True").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Bool", env))
+				namespace.SetParent(NameToType("Std::Bool", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -9603,7 +9603,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("UInt").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -9679,7 +9679,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("UInt16").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -9755,7 +9755,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("UInt32").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -9831,7 +9831,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("UInt64").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
@@ -9907,7 +9907,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.MustSubtypeString("UInt8").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
-				namespace.SetParent(NameToNamespace("Std::Value", env))
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 				// Include mixins and implement interfaces
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))

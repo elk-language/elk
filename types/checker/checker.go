@@ -1604,7 +1604,7 @@ func (c *Checker) checkBoxOfExpression(node *ast.BoxOfExpressionNode) ast.Expres
 			node.SetType(types.Untyped{})
 			return node
 		}
-		box := types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), typ)
+		box := types.NewGenericWithTypeArgs(c.Std(symbol.LocalBox).(*types.Class), typ)
 		node.SetType(box)
 		return node
 	case *ast.PublicInstanceVariableNode:
