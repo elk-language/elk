@@ -9,6 +9,107 @@ import (
 
 func TestVMSource_Variables(t *testing.T) {
 	tests := sourceTestTable{
+		"create a box": {
+			source: `
+				var b: Box[Int]
+				do
+					a := 5
+					println "a1: #a"
+					println()
+
+					read_pre := -> a
+					set_pre := |v: Int| -> a = v
+
+					println "read_pre1: #{read_pre()}"
+					set_pre(10)
+					println "read_pre2: #{read_pre()}"
+					println "a2: #a"
+					println()
+
+					b = &a
+					read_post := -> a
+					set_post := |v: Int| -> a = v
+
+					println "b1: #{b.get}"
+					println "read_pre2: #{read_pre()}"
+					println "read_post1: #{read_post()}"
+					println()
+
+
+					b.set 50
+					println "b2: #{b.get}"
+					println "a3: #a"
+					println "read_pre3: #{read_pre()}"
+					println "read_post2: #{read_post()}"
+					println()
+
+					a = 15
+					println "b3: #{b.get}"
+					println "a4: #a"
+					println "read_pre4: #{read_pre()}"
+					println "read_post3: #{read_post()}"
+					println()
+
+					set_post(100)
+					println "b4: #{b.get}"
+					println "a5: #a"
+					println "read_pre5: #{read_pre()}"
+					println "read_post4: #{read_post()}"
+					println()
+
+					set_pre(200)
+					println "b5: #{b.get}"
+					println "a6: #a"
+					println "read_pre6: #{read_pre()}"
+					println "read_post5: #{read_post()}"
+					println()
+				end
+
+				println "b6: #{b.get}"
+				println()
+
+				b.set 42
+
+				println "b7: #{b.get}"
+				println()
+			`,
+			wantStackTop: value.Nil,
+			wantStdout: `a1: 5
+
+read_pre1: 5
+read_pre2: 10
+a2: 10
+
+b1: 10
+read_pre2: 10
+read_post1: 10
+
+b2: 50
+a3: 50
+read_pre3: 50
+read_post2: 50
+
+b3: 15
+a4: 15
+read_pre4: 15
+read_post3: 15
+
+b4: 100
+a5: 100
+read_pre5: 100
+read_post4: 100
+
+b5: 200
+a6: 200
+read_pre6: 200
+read_post5: 200
+
+b6: 200
+
+b7: 42
+
+`,
+		},
 		"define and initialise a variable": {
 			source:       "var a = 'foo'",
 			wantStackTop: value.Ref(value.String("foo")),

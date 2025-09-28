@@ -574,7 +574,7 @@ func (vm *VM) run() {
 		case bytecode.GO:
 			vm.opGo()
 		case bytecode.CLOSURE:
-			vm.closure()
+			vm.opClosure()
 		case bytecode.JUMP_TO_FINALLY:
 			leftFinallyCount := vm.peek().AsSmallInt()
 			jumpOffset := vm.peekAt(1).AsSmallInt()
@@ -899,6 +899,10 @@ func (vm *VM) run() {
 			vm.opGetLocal(int(vm.readByte()))
 		case bytecode.GET_LOCAL16:
 			vm.opGetLocal(int(vm.readUint16()))
+		case bytecode.BOX_LOCAL8:
+			vm.opBoxLocal(int(vm.readByte()))
+		case bytecode.BOX_LOCAL16:
+			vm.opBoxLocal(int(vm.readUint16()))
 		case bytecode.SET_LOCAL_1:
 			vm.opSetLocal(1)
 		case bytecode.SET_LOCAL_2:
@@ -1404,7 +1408,7 @@ func (vm *VM) opGo() {
 	vm.replace(value.Ref(thread))
 }
 
-func (vm *VM) closure() {
+func (vm *VM) opClosure() {
 	function := vm.peek().AsReference().(*BytecodeFunction)
 	closure := NewClosure(vm.ID, function, vm.selfValue())
 	vm.replace(value.Ref(closure))
@@ -1427,24 +1431,24 @@ func (vm *VM) closure() {
 	vm.ipIncrement() // skip past the terminator
 }
 
-func (vm *VM) captureUpvalue(location *value.Value) *Upvalue {
+func (vm *VM) captureUpvalue(slot *value.Value) *Upvalue {
 	var prevUpvalue *Upvalue
 	currentUpvalue := vm.openUpvalueHead
 	for {
 		if currentUpvalue == nil ||
-			(uintptr)(unsafe.Pointer(currentUpvalue.location)) <=
-				(uintptr)(unsafe.Pointer(location)) {
+			(uintptr)(unsafe.Pointer(currentUpvalue.slot)) <=
+				(uintptr)(unsafe.Pointer(slot)) {
 			break
 		}
 		prevUpvalue = currentUpvalue
 		currentUpvalue = currentUpvalue.next
 	}
 
-	if currentUpvalue != nil && currentUpvalue.location == location {
+	if currentUpvalue != nil && currentUpvalue.slot == slot {
 		return currentUpvalue
 	}
 
-	newUpvalue := NewUpvalue(location)
+	newUpvalue := NewUpvalue(slot)
 	newUpvalue.next = currentUpvalue
 	if prevUpvalue != nil {
 		prevUpvalue.next = newUpvalue
@@ -2217,8 +2221,8 @@ func (vm *VM) growValueStack() {
 				continue
 			}
 
-			offset := vm.stackOffsetFromTo(&vm.stack[0], upvalue.location)
-			upvalue.location = vm.stackAdd(&newStack[0], offset)
+			offset := vm.stackOffsetFromTo(&vm.stack[0], upvalue.slot)
+			upvalue.slot = vm.stackAdd(&newStack[0], offset)
 		}
 	}
 
@@ -2227,8 +2231,8 @@ func (vm *VM) growValueStack() {
 			continue
 		}
 
-		offset := vm.stackOffsetFromTo(&vm.stack[0], upvalue.location)
-		upvalue.location = vm.stackAdd(&newStack[0], offset)
+		offset := vm.stackOffsetFromTo(&vm.stack[0], upvalue.slot)
+		upvalue.slot = vm.stackAdd(&newStack[0], offset)
 	}
 
 	vm.fp = vm.stackAddRaw(newStackPtr, fpOffset)
@@ -2403,6 +2407,13 @@ func (vm *VM) opGetLocal(index int) {
 	vm.push(vm.getLocalValue(index))
 }
 
+// Create a box that points to a local
+func (vm *VM) opBoxLocal(localIndex int) {
+	upvalue := vm.captureUpvalue(vm.fpAdd(localIndex))
+	box := (*LocalBox)(upvalue)
+	vm.push(value.Ref(box))
+}
+
 // Read a local variable or value.
 func (vm *VM) getLocalValue(index int) value.Value {
 	return *vm.fpAdd(index)
@@ -2415,7 +2426,7 @@ func (vm *VM) opSetUpvalue(index int) {
 
 // Set an upvalue.
 func (vm *VM) setUpvalueValue(index int, val value.Value) {
-	*vm.upvalues[index].location = val
+	*vm.upvalues[index].slot = val
 }
 
 // Read an upvalue.
@@ -2425,7 +2436,7 @@ func (vm *VM) opGetUpvalue(index int) {
 
 // Read an upvalue.
 func (vm *VM) getUpvalueValue(index int) value.Value {
-	return *vm.upvalues[index].location
+	return *vm.upvalues[index].slot
 }
 
 // Closes the upvalue with the given local slot.
@@ -2437,8 +2448,8 @@ func (vm *VM) opCloseUpvalue(index uintptr) {
 		if currentUpvalue == nil {
 			break
 		}
-		if uintptr(unsafe.Pointer(currentUpvalue.location)) == index {
-			currentUpvalue.unsafeClose()
+		if uintptr(unsafe.Pointer(currentUpvalue.slot)) == index {
+			currentUpvalue.Close()
 
 			if prevUpvalue == nil {
 				vm.openUpvalueHead = currentUpvalue.next
@@ -2458,13 +2469,13 @@ func (vm *VM) opCloseUpvalue(index uintptr) {
 func (vm *VM) opCloseUpvalues(lastToClose uintptr) {
 	for {
 		if vm.openUpvalueHead == nil ||
-			uintptr(unsafe.Pointer(vm.openUpvalueHead.location)) <
+			uintptr(unsafe.Pointer(vm.openUpvalueHead.slot)) <
 				lastToClose {
 			break
 		}
 
 		currentUpvalue := vm.openUpvalueHead
-		currentUpvalue.unsafeClose()
+		currentUpvalue.Close()
 		vm.openUpvalueHead = currentUpvalue.next
 	}
 }

@@ -17,4 +17,50 @@ sealed primitive class ::Std::Box[Val] < ImmutableBox[Val]
 		Stores the given value in the `Box`.
 	]##
 	def set(v: Val): Val; end
+
+	##[
+		Does pointer arithmetic and returns a Box of the next value in memory.
+
+		This method is inherently UNSAFE
+		and should only be used if you have a valid
+		reason and you know what you're doing.
+	]##
+	def next(step: Int = 1): Box[Value]; end
+
+	##[
+		Does pointer arithmetic and returns a mutable Box of the next value in memory.
+
+		This method is inherently UNSAFE
+		and should only be used if you have a valid
+		reason and you know what you're doing.
+	]##
+	def next_box(step: Int = 1): Box[Value]; end
+
+	##[
+		Does pointer arithmetic and returns a Box of the previous value in memory.
+
+		This method is inherently UNSAFE
+		and should only be used if you have a valid
+		reason and you know what you're doing.
+	]##
+	def prev(step: Int = 1): Box[Value]; end
+
+	##[
+		Does pointer arithmetic and returns a mutable Box of the previous value in memory.
+
+		This method is inherently UNSAFE
+		and should only be used if you have a valid
+		reason and you know what you're doing.
+	]##
+	def prev_box(step: Int = 1): Box[Value]; end
+
+	##[
+		Returns `self`
+	]##
+	def to_box: Box[Val]; end
+
+	##[
+		Convert this `Box` to an `ImmutableBox`
+	]##
+	def to_immutable_box: ImmutableBox[Val]; end
 end

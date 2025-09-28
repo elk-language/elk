@@ -3813,6 +3813,194 @@ func TestLocalVariables(t *testing.T) {
 
 func TestUpvalues(t *testing.T) {
 	tests := testTable{
+		"create a pointer": {
+			input: `
+				a := 5
+				&a
+			`,
+			want: vm.NewBytecodeFunctionWithUpvalues(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.BOX_LOCAL8), 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(18, 3, 7)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 3),
+				},
+				0,
+				0,
+				[]value.Value{},
+				1,
+			),
+		},
+		"close pointer upvalue after scope exit": {
+			input: `
+				var b: ^Int
+				do
+					a := 5
+					b = &a
+				end
+				b.get
+			`,
+			want: vm.NewBytecodeFunctionWithUpvalues(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.BOX_LOCAL8), 2,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.CLOSE_UPVALUES_TO_2),
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(65, 7, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(4, 2),
+					bytecode.NewLineInfo(5, 4),
+					bytecode.NewLineInfo(6, 2),
+					bytecode.NewLineInfo(7, 4),
+				},
+				0,
+				0,
+				[]value.Value{
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("get"), 0)),
+				},
+				1,
+			),
+		},
+		"read a local after creating a pointer": {
+			input: `
+				a := 5
+				b := &a
+				a
+			`,
+			want: vm.NewBytecodeFunctionWithUpvalues(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.BOX_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(29, 4, 6)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(4, 2),
+				},
+				0,
+				0,
+				[]value.Value{},
+				1,
+			),
+		},
+		"set a local after creating a pointer": {
+			input: `
+				a := 5
+				b := &a
+				a = 20
+			`,
+			want: vm.NewBytecodeFunctionWithUpvalues(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.BOX_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.LOAD_INT_8), 20,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(34, 4, 11)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(4, 5),
+				},
+				0,
+				0,
+				[]value.Value{},
+				1,
+			),
+		},
+		"capture a local with a pointer": {
+			input: `
+				a := 5
+				b := &a
+				c := -> println a
+				a
+			`,
+			want: vm.NewBytecodeFunctionWithUpvalues(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 3,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.BOX_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.CLOSURE),
+					2, 1,
+					0xff,
+					byte(bytecode.SET_LOCAL_3),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(51, 5, 6)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(4, 6),
+					bytecode.NewLineInfo(5, 2),
+				},
+				0,
+				0,
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						value.ToSymbol("<closure>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.UNDEFINED),
+							byte(bytecode.GET_UPVALUE_0),
+							byte(bytecode.NEW_ARRAY_TUPLE8), 1,
+							byte(bytecode.CALL_METHOD_TCO8), 1,
+							byte(bytecode.RETURN),
+						},
+						L(P(33, 4, 10), P(44, 4, 21)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(4, 9),
+						},
+						0,
+						0,
+						[]value.Value{
+							value.ToSymbol("Std::Kernel").ToValue(),
+							value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
+						},
+						1,
+					)),
+				},
+				1,
+			),
+		},
 		"in child scope": {
 			input: `
 				upvalue := 5

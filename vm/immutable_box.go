@@ -77,6 +77,7 @@ func initImmutableBox() {
 		},
 		DefWithParameters(1),
 	)
+	Alias(c, "next_immutable_box", "next")
 
 	Def(
 		c,
@@ -95,4 +96,5 @@ func initImmutableBox() {
 		},
 		DefWithParameters(1),
 	)
+	Alias(c, "prev_immutable_box", "prev")
 }

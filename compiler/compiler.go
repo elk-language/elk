@@ -75,7 +75,7 @@ const (
 // represents a local variable or value
 type local struct {
 	index      uint16
-	hasUpvalue bool // is captured by some upvalue in a closure
+	hasUpvalue bool
 }
 
 type localTable map[string]*local
@@ -91,7 +91,7 @@ const (
 
 // set of local variables
 type scope struct {
-	localTable map[string]*local
+	localTable localTable
 	label      string
 	typ        scopeType
 }
@@ -134,14 +134,22 @@ type loopJumpSet struct {
 	loopJumps                     []*loopJumpInfo
 }
 
+type upvalueKind uint8
+
+const (
+	upvalueParentLocal upvalueKind = iota
+	upvalueParentUpvalue
+	upvalueOwnLocal
+)
+
 // Represents an upvalue, a captured variable from an outer context
 type upvalue struct {
 	index uint16 // index of the upvalue
 	// index of the captured local if `isLocal` is true,
 	// otherwise the index of the captured upvalue from the outer context
 	upIndex uint16
-	isLocal bool   // whether the captured variable is a local or an upvalue
-	local   *local // the local that is captured through this upvalue
+	kind    upvalueKind // whether the captured variable is a local or an upvalue
+	local   *local      // the local that is captured through this upvalue
 }
 
 // Holds the state of the Compiler.
@@ -3077,17 +3085,16 @@ func (c *Compiler) compileInstanceVariableAccess(name string, location *position
 	c.emitGetInstanceVariable(value.ToSymbol(name), location)
 }
 
-func (c *Compiler) compileLocalVariableAccess(name string, location *position.Location) (*local, *upvalue, bool) {
+func (c *Compiler) compileLocalVariableAccess(name string, location *position.Location) {
 	if local, ok := c.resolveLocal(name); ok {
 		c.emitGetLocal(location.StartPos.Line, local.index)
-		return local, nil, true
-	} else if upvalue, ok := c.resolveUpvalue(name, location); ok {
-		local := upvalue.local
-		c.emitGetUpvalue(location.StartPos.Line, upvalue.index)
-		return local, upvalue, true
+		return
 	}
 
-	return nil, nil, false
+	if upvalue, ok := c.resolveUpvalue(name, location); ok {
+		c.emitGetUpvalue(location.StartPos.Line, upvalue.index)
+		return
+	}
 }
 
 // Resolve an upvalue from an outer context and get its index.
@@ -3098,20 +3105,20 @@ func (c *Compiler) resolveUpvalue(name string, location *position.Location) (*up
 	}
 	local, ok := parent.resolveLocal(name)
 	if ok {
-		return c.addUpvalue(local, local.index, true, location), true
+		return c.addUpvalue(local, local.index, upvalueParentLocal, location), true
 	}
 
 	upvalue, ok := parent.resolveUpvalue(name, location)
 	if ok {
-		return c.addUpvalue(upvalue.local, upvalue.index, false, location), true
+		return c.addUpvalue(upvalue.local, upvalue.index, upvalueParentUpvalue, location), true
 	}
 
 	return nil, false
 }
 
-func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, location *position.Location) *upvalue {
+func (c *Compiler) addUpvalue(local *local, upIndex uint16, kind upvalueKind, location *position.Location) *upvalue {
 	for _, upvalue := range c.upvalues {
-		if upvalue.upIndex == upIndex && upvalue.isLocal == isLocal {
+		if upvalue.upIndex == upIndex && upvalue.kind == kind {
 			return upvalue
 		}
 	}
@@ -3127,12 +3134,16 @@ func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, locati
 		index:   uint16(len(c.upvalues)),
 		upIndex: upIndex,
 		local:   local,
-		isLocal: isLocal,
+		kind:    kind,
 	}
-	c.upvalues = append(c.upvalues, upvalue)
-	c.Bytecode.UpvalueCount++
+	c.defineUpvalue(upvalue)
 	local.hasUpvalue = true
 	return upvalue
+}
+
+func (c *Compiler) defineUpvalue(upvalue *upvalue) {
+	c.upvalues = append(c.upvalues, upvalue)
+	c.Bytecode.UpvalueCount++
 }
 
 func (c *Compiler) compileModifierExpressionNode(label string, node *ast.ModifierNode, valueIsIgnored bool) expressionResult {
@@ -4547,7 +4558,7 @@ func (c *Compiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
 		capturedLocalIndices[i] = upvalue.local.index
 
 		var flags bitfield.BitField8
-		if upvalue.isLocal {
+		if upvalue.kind == upvalueParentLocal {
 			flags.SetFlag(vm.UpvalueLocalFlag)
 		}
 		if upvalue.upIndex > math.MaxUint8 {
@@ -4585,7 +4596,7 @@ func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
 
 	for _, upvalue := range closureCompiler.upvalues {
 		var flags bitfield.BitField8
-		if upvalue.isLocal {
+		if upvalue.kind == upvalueParentLocal {
 			flags.SetFlag(vm.UpvalueLocalFlag)
 		}
 		if upvalue.upIndex > math.MaxUint8 {
@@ -6817,6 +6828,24 @@ listLoop:
 
 func (c *Compiler) compileBoxOfExpressionNode(node *ast.BoxOfExpressionNode) {
 	switch n := node.Expression.(type) {
+	case *ast.PublicIdentifierNode:
+		local, ok := c.resolveLocal(n.Value)
+		if !ok {
+			return
+		}
+
+		if !local.hasUpvalue {
+			upvalue := &upvalue{
+				index:   uint16(len(c.upvalues)),
+				upIndex: local.index,
+				local:   local,
+				kind:    upvalueOwnLocal,
+			}
+			c.defineUpvalue(upvalue)
+			local.hasUpvalue = true
+		}
+
+		c.emitBoxLocal(node.Location().StartPos.Line, local.index)
 	case *ast.PublicInstanceVariableNode:
 		location := n.Location()
 		ivarName := value.ToSymbol(n.Value)
@@ -7068,6 +7097,17 @@ func (c *Compiler) emitSetLocalPop(line int, index uint16) {
 	}
 
 	c.emit(line, bytecode.SET_LOCAL8, byte(index))
+}
+
+// Emit an instruction that creates a box for a local variable/value.
+func (c *Compiler) emitBoxLocal(line int, index uint16) {
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.BOX_LOCAL16)
+		c.emitUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.BOX_LOCAL8, byte(index))
 }
 
 // Emit an instruction that gets the value of a local.

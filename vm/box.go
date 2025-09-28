@@ -72,6 +72,13 @@ func initBox() {
 			return value.Ref(self.ToImmutableBox()), value.Undefined
 		},
 	)
+	Def(
+		c,
+		"to_box",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
 
 	Def(
 		c,
@@ -90,6 +97,26 @@ func initBox() {
 		},
 		DefWithParameters(1),
 	)
+	Alias(c, "next_box", "next")
+
+	Def(
+		c,
+		"next_immutable_box",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.Box)(args[0].Pointer())
+
+			var step int
+			if args[1].IsUndefined() {
+				step = 1
+			} else {
+				step = args[1].AsInt()
+			}
+
+			next := self.Next(step)
+			return value.Ref(next.ToImmutableBox()), value.Undefined
+		},
+		DefWithParameters(1),
+	)
 
 	Def(
 		c,
@@ -105,6 +132,26 @@ func initBox() {
 			}
 
 			return value.Ref(self.Prev(step)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "prev_box", "prev")
+
+	Def(
+		c,
+		"prev_immutable_box",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.Box)(args[0].Pointer())
+
+			var step int
+			if args[1].IsUndefined() {
+				step = 1
+			} else {
+				step = args[1].AsInt()
+			}
+
+			prev := self.Prev(step)
+			return value.Ref(prev.ToImmutableBox()), value.Undefined
 		},
 		DefWithParameters(1),
 	)

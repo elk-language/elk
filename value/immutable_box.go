@@ -11,12 +11,16 @@ import (
 var ImmutableBoxClass *Class // ::Std::ImmutableBox
 
 func initImmutableBox() {
-	ImmutableBoxClass = NewClassWithOptions(ClassWithConstructor(BoxConstructor))
+	ImmutableBoxClass = NewClassWithOptions(ClassWithConstructor(ImmutableBoxConstructor))
 	StdModule.AddConstantString("ImmutableBox", Ref(ImmutableBoxClass))
 }
 
 // Box wraps another value, it's a read only pointer to another `Value`.
 type ImmutableBox Value
+
+func ImmutableBoxConstructor(class *Class) Value {
+	return Ref(NewImmutableBox(Undefined))
+}
 
 func NewImmutableBox(v Value) *ImmutableBox {
 	b := ImmutableBox(v)
@@ -71,7 +75,7 @@ func (b *ImmutableBox) Inspect() string {
 	fmt.Fprintf(&buff, "Std::ImmutableBox{\n  &: %p", b)
 
 	buff.WriteString(",\n  ")
-	indent.IndentStringFromSecondLine(&buff, b.Get().Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, valInspect, 1)
 
 	buff.WriteString("\n}")
 

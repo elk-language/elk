@@ -1597,8 +1597,16 @@ func (c *Checker) checkArithmeticBinaryOperator(
 
 func (c *Checker) checkBoxOfExpression(node *ast.BoxOfExpressionNode) ast.ExpressionNode {
 	switch expr := node.Expression.(type) {
-	// case *ast.PublicIdentifierNode:
-	// case *ast.PrivateIdentifierNode:
+	case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
+		node.Expression = c.checkExpression(node.Expression)
+		typ := c.typeOfGuardVoid(node.Expression)
+		if types.IsUntyped(typ) {
+			node.SetType(types.Untyped{})
+			return node
+		}
+		box := types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), typ)
+		node.SetType(box)
+		return node
 	case *ast.PublicInstanceVariableNode:
 		c.checkNonNilableInstanceVariablesForSelf(expr.Location())
 		typ := c.checkInstanceVariable(expr.Value, expr.Location())

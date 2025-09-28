@@ -13,10 +13,10 @@ const (
 // Represents a captured variable from an outer context
 type Upvalue struct {
 	// Points to the region where the closed variable lives.
-	// In an open upvalue location points to a slot on the value stack.
-	// In a closed upvalue location points to the `closed` field
+	// In an open upvalue slot points to a slot on the value stack.
+	// In a closed upvalue slot points to the `closed` field
 	// within the upvalue.
-	location *value.Value
+	slot *value.Value
 	// Undefined in open upvalues, contains the variable's value in closed upvalues.
 	closed value.Value
 	// Points to the next upvalue on the stack creating a linked list
@@ -24,7 +24,7 @@ type Upvalue struct {
 }
 
 func (u *Upvalue) IsClosed() bool {
-	return u.location == &u.closed
+	return u.slot == &u.closed
 }
 
 func (u *Upvalue) IsOpen() bool {
@@ -42,15 +42,15 @@ func (u *Upvalue) Close() {
 func (u *Upvalue) unsafeClose() {
 	// move the variable from the stack to the heap
 	// inside of the upvalue
-	u.closed = *u.location
+	u.closed = *u.slot
 	// the location pointer now points to the `closed` field
 	// within the upvalue
-	u.location = &u.closed
+	u.slot = &u.closed
 }
 
-func NewUpvalue(loc *value.Value) *Upvalue {
+func NewUpvalue(slot *value.Value) *Upvalue {
 	return &Upvalue{
-		location: loc,
+		slot: slot,
 	}
 }
 

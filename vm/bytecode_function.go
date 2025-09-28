@@ -446,7 +446,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.PROMISE, bytecode.AWAIT, bytecode.AWAIT_RESULT, bytecode.AWAIT_SYNC, bytecode.DEF_IVARS,
 		bytecode.GET_IVAR_0, bytecode.GET_IVAR_1, bytecode.GET_IVAR_2, bytecode.SET_IVAR_0, bytecode.SET_IVAR_1, bytecode.SET_IVAR_2:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
-	case bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
+	case bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8, bytecode.BOX_LOCAL8,
 		bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
 		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.NEW_SYMBOL8,
 		bytecode.NEW_HASH_SET8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUES_TO8, bytecode.CLOSE_UPVALUE8,
@@ -469,7 +469,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.JUMP_IF_NP, bytecode.JUMP_UNLESS_NP, bytecode.JUMP_IF_NIL_NP, bytecode.JUMP_UNLESS_NNP,
 		bytecode.JUMP_IF_EQ, bytecode.JUMP_UNLESS_EQ, bytecode.JUMP_UNLESS_GE,
 		bytecode.JUMP_UNLESS_GT, bytecode.JUMP_UNLESS_LT, bytecode.JUMP_UNLESS_LE, bytecode.JUMP_UNLESS_UNDEF,
-		bytecode.GET_IVAR16, bytecode.SET_IVAR16:
+		bytecode.GET_IVAR16, bytecode.SET_IVAR16, bytecode.BOX_LOCAL16:
 		return f.disassembleUnsignedNumericOperands(output, 1, 2, offset)
 	case bytecode.LOAD_INT_16:
 		return f.disassembleSignedNumericOperands(output, 1, 2, offset)

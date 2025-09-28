@@ -27,7 +27,16 @@ sealed primitive class ::Std::ImmutableBox[Val]
 		and should only be used if you have a valid
 		reason and you know what you're doing.
 	]##
-	def next(step: Int = 1): self; end
+	def next(step: Int = 1): ImmutableBox[Value]; end
+
+	##[
+		Does pointer arithmetic and returns an ImmutableBox of the next value in memory.
+
+		This method is inherently UNSAFE
+		and should only be used if you have a valid
+		reason and you know what you're doing.
+	]##
+	def next_immutable_box(step: Int = 1): ImmutableBox[Value]; end
 
 	##[
 		Does pointer arithmetic and returns a Box of the previous value in memory.
@@ -36,7 +45,16 @@ sealed primitive class ::Std::ImmutableBox[Val]
 		and should only be used if you have a valid
 		reason and you know what you're doing.
 	]##
-	def prev(step: Int = 1): self; end
+	def prev(step: Int = 1): ImmutableBox[Value]; end
+
+	##[
+		Does pointer arithmetic and returns an ImmutableBox of the previous value in memory.
+
+		This method is inherently UNSAFE
+		and should only be used if you have a valid
+		reason and you know what you're doing.
+	]##
+	def prev_immutable_box(step: Int = 1): ImmutableBox[Value]; end
 
 	##[
 		Returns the raw address of the pointer as an unsigned integer.
@@ -53,7 +71,7 @@ sealed primitive class ::Std::ImmutableBox[Val]
 	def address: UInt; end
 
 	##[
-		Convert this `Box` to an `ImmutableBox`
+		Returns self.
 	]##
 	def to_immutable_box: ImmutableBox[Val]; end
 end

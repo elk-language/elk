@@ -88,6 +88,8 @@ const (
 	GET_LOCAL_4                       // Push the value of the local variable with index 4
 	GET_LOCAL8                        // Push the value of the local variable with the given index onto the stack (8 bit operand)
 	GET_LOCAL16                       // Push the value of the local variable with the given index onto the stack (16 bit operand)
+	BOX_LOCAL8                        // Create a box that points to the local with the given index and push it onto the stack (8 bit operand)
+	BOX_LOCAL16                       // Create a box that points to the local with the given index and push it onto the stack (16 bit operand)
 	JUMP_UNLESS_LE                    // Jump n bytes forward if the the value on the stack is not less than or equal to the second value
 	JUMP_UNLESS_LT                    // Jump n bytes forward if the the value on the stack is not less than the second value
 	JUMP_UNLESS_GE                    // Jump n bytes forward if the the value on the stack is not greater than or equal to the second value
@@ -336,6 +338,8 @@ var opCodeNames = [...]string{
 	GET_LOCAL_4:         "GET_LOCAL_4",
 	GET_LOCAL8:          "GET_LOCAL8",
 	GET_LOCAL16:         "GET_LOCAL16",
+	BOX_LOCAL8:          "BOX_LOCAL8",
+	BOX_LOCAL16:         "BOX_LOCAL16",
 	JUMP_UNLESS_LE:      "JUMP_UNLESS_LE",
 	JUMP_UNLESS_LT:      "JUMP_UNLESS_LT",
 	JUMP_UNLESS_GE:      "JUMP_UNLESS_GE",

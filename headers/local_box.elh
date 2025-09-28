@@ -1,0 +1,107 @@
+##[
+	A box that points to a local variable/value in the current stack frame.
+
+	LocalBox is a specialized pointer type that contains a pointer to a structure
+	which itself holds a pointer to a local variable or value. This double-pointer
+	indirection matches the memory layout of upvalues (captured variables in closures).
+
+	The double-pointer design is necessary because local variables live on the stack
+	of the currently executing function. When a box pointing to a local variable
+	is created this provides a stable
+	way to reference it through heap allocation, preventing dangling pointers to
+	stack memory after the function returns and its stack frame gets destroyed.
+
+	Before closing, the structure is laid out as:
+	LocalBox -> HeapStruct -> StackValue
+
+	After closing it look like this:
+	LocalBox -> HeapStruct
+
+	Closing means that the local's value is moved from the stack to the heap.
+	This happens when the variable goes out of scope in the function that defined it.
+
+	Using open/unclosed LocalBoxes in multiple threads is inherently racy and
+	should be avoided. The closing process is not synchronized.
+]##
+sealed primitive class ::Std::LocalBox[Val] < Box[Val]
+	singleton
+		##[
+			Creates a new LocalBox from a raw address.
+			Only addresses taken from a LocalBox can be used in this method.
+			Supplying another address is undefined behaviour and may crash the process.
+
+			This method is inherently UNSAFE
+			and should only be used if you have a valid
+			reason and you know what you're doing.
+		]##
+		def at[T](address: UInt): Box[T]; end
+	end
+
+	##[
+		Returns an immutable box that points directly to the local slot/value.
+
+		Using this method on an unclosed LocalBox is UNSAFE!
+		After the LocalBox gets closed the pointer returned by this method
+		will not be updated and will point to invalid memory.
+	]##
+	def to_immutable_box: ImmutableBox[Val]; end
+
+	##[
+		Returns a mutable box that points directly to the local slot/value.
+
+		Using this method on an unclosed LocalBox is UNSAFE!
+		After the LocalBox gets closed the pointer returned by this method
+		will not be updated and will point to invalid memory.
+	]##
+	def to_box: Box[Val]; end
+
+	##[
+		Returns the raw address of the local box (that points to the local slot/value) as an unsigned integer.
+
+		This method is inherently UNSAFE
+		and should only be used if you have a valid
+		reason and you know what you're doing.
+
+		If all other references to an object disappear
+		the object will be garbage collected so you may end up
+		with a stale address of already freed memory.
+		Reading freed memory is undefined behaviour.
+	]##
+	def address: UInt; end
+
+	##[
+		Returns the raw address of the local slot/value as an unsigned integer.
+
+		Using this method on an unclosed LocalBox is UNSAFE!
+		After the LocalBox gets closed the pointer returned by this method
+		will not be updated and will point to invalid memory.
+
+		If all other references to an object disappear
+		the object will be garbage collected so you may end up
+		with a stale address of already freed memory.
+		Reading freed memory is undefined behaviour.
+	]##
+	def local_address: UInt; end
+
+	##[
+		Closes the LocalBox immediately moving the value
+		from the stack to the heap structure.
+		Does nothing if the LocalBox is already closed
+
+		UNSAFE! Using this method in a different thread than the one that created
+		the LocalBox is undefined behaviour.
+	]##
+	def close; end
+
+	##[
+		Returns `true` if the value has been moved to the heap.
+		Otherwise returns `false`.
+	]##
+	def is_closed: bool; end
+
+	##[
+		Returns `true` if the value still lives on the stack.
+		Otherwise returns `false`.
+	]##
+	def is_open: bool; end
+end

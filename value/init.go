@@ -128,6 +128,7 @@ func InitGlobalEnvironment() {
 	initThreadPool()
 	initChannel()
 	initImmutableBox()
+	initLocalBox()
 	initBox()
 	initResult()
 	initColorizer()

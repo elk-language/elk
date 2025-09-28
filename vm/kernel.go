@@ -35,7 +35,10 @@ func initKernel() {
 		c,
 		"println",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			var iterated bool
 			for val, err := range Iterate(vm, args[1]) {
+				iterated = true
+
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -46,6 +49,10 @@ func initKernel() {
 				}
 				r := result.MustReference().(value.String).String()
 				fmt.Fprintln(vm.Stdout, r)
+			}
+
+			if !iterated {
+				fmt.Fprintln(vm.Stdout)
 			}
 
 			return value.Nil, value.Undefined
