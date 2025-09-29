@@ -1,0 +1,11 @@
+##[
+  Contains tools that let you interact
+  and control the Elk runtime.
+]##
+module Std::Runtime
+  ##[
+    Runs a garbage collection and blocks the caller until the garbage collection is complete.
+    It may also block the entire program.
+  ]##
+  def gc; end
+end

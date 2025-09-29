@@ -48,6 +48,7 @@ const (
 	CHAR_FLAG
 	SYMBOL_FLAG
 	DATE_FLAG
+	WEAK_FLAG
 
 	// only 64 bit systems
 	INT64_FLAG
@@ -124,6 +125,8 @@ func (v Value) Inspect() string {
 		return v.AsDateSpan().Inspect()
 	case TIME_FLAG:
 		return v.AsTime().Inspect()
+	case WEAK_FLAG:
+		return v.AsWeak().Inspect()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -189,6 +192,8 @@ func (v Value) Class() *Class {
 		return v.AsDateSpan().Class()
 	case TIME_FLAG:
 		return v.AsTime().Class()
+	case WEAK_FLAG:
+		return v.AsWeak().Class()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -246,6 +251,8 @@ func (v Value) DirectClass() *Class {
 		return v.AsDateSpan().DirectClass()
 	case TIME_FLAG:
 		return v.AsTime().DirectClass()
+	case WEAK_FLAG:
+		return v.AsWeak().DirectClass()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -303,6 +310,8 @@ func (v Value) SingletonClass() *Class {
 		return v.AsDateSpan().SingletonClass()
 	case TIME_FLAG:
 		return v.AsTime().SingletonClass()
+	case WEAK_FLAG:
+		return v.AsWeak().SingletonClass()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -360,6 +369,8 @@ func (v Value) InstanceVariables() *InstanceVariables {
 		return v.AsDateSpan().InstanceVariables()
 	case TIME_FLAG:
 		return v.AsTime().InstanceVariables()
+	case WEAK_FLAG:
+		return v.AsWeak().InstanceVariables()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -417,6 +428,8 @@ func (v Value) Error() string {
 		return v.AsDateSpan().Error()
 	case TIME_FLAG:
 		return v.AsTime().Error()
+	case WEAK_FLAG:
+		return v.AsWeak().Error()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -942,6 +955,21 @@ func (v Value) MustUndefined() UndefinedType {
 		panic(fmt.Sprintf("value `%s` is not Undefined", v.Inspect()))
 	}
 	return v.AsUndefined()
+}
+
+func (v Value) IsWeak() bool {
+	return v.flag == WEAK_FLAG
+}
+
+func (v Value) AsWeak() Weak {
+	return *(*Weak)(unsafe.Pointer(&v.ptr))
+}
+
+func (v Value) MustWeak() Weak {
+	if !v.IsWeak() {
+		panic(fmt.Sprintf("value `%s` is not a `Weak`", v.Inspect()))
+	}
+	return v.AsWeak()
 }
 
 // Set an object's instance variable with the given name to the given value

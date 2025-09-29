@@ -669,6 +669,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineModule("Contains tools that let you interact\nand control the Elk runtime.", value.ToSymbol("Runtime"), env)
 		{
 			namespace := namespace.TryDefineMixin("Represents an unordered, mutable collection\nof unique elements.", true, value.ToSymbol("Set"), env)
 			namespace.Name() // noop - avoid unused variable error
@@ -743,6 +744,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, true, false, value.ToSymbol("Value"), nil, env)
+		{
+			namespace := namespace.TryDefineClass("A weak pointer that does not prevent garbage collection of its target.\n\nA weak pointer has to be converted to a `Box` (a strong pointer)\nto access and/or modify the value it references (`Weak.:to_box`, `Weak.:to_immutable_box`).\nThese conversion methods will return `nil` if the object has already been garbage collected.", false, true, true, false, value.ToSymbol("Weak"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.Name() // noop - avoid unused variable error
 	}
 
@@ -8938,6 +8943,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 			}
 			{
+				namespace := namespace.MustSubtypeString("Runtime").(*Module)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Runs a garbage collection and blocks the caller until the garbage collection is complete.\nIt may also block the entire program.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("gc"), nil, nil, Void{}, Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtypeString("Set").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -9993,6 +10012,33 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns a shallow copy of the value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("copy"), nil, nil, Self{}, Never{})
 				namespace.DefineMethod("Returns a hash of the value,\n  that is used to calculate the slot\n  in a HashMap, HashRecord or HashSet\n  where the value will be stored.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hash"), nil, nil, NameToType("Std::UInt64", env), Never{})
 				namespace.DefineMethod("Returns a human readable `String`\nrepresentation of this value\nfor debugging etc.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("inspect"), nil, nil, NameToType("Std::String", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtypeString("Weak").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("Val"), namespace, Never{}, Any{}, nil, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("Val"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("Val"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				method = namespace.DefineMethod("Convert the given box to a weak pointer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("box"), NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Weak::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Convert this weak pointer to a `Box`\n(a mutable strong pointer).\n\nWill return `nil` if the object has already\nbeen garbage collected.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_box"), nil, nil, NewNilable(NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Weak::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")}))), Never{})
+				namespace.DefineMethod("Convert this weak pointer to an `ImmutableBox`\n(an immutable strong pointer).\n\nWill return `nil` if the object has already\nbeen garbage collected.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_immutable_box"), nil, nil, NewNilable(NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Weak::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")}))), Never{})
 
 				// Define constants
 

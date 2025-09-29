@@ -1,0 +1,31 @@
+##[
+	A weak pointer that does not prevent garbage collection of its target.
+
+	A weak pointer has to be converted to a `Box` (a strong pointer)
+	to access and/or modify the value it references (`Weak.:to_box`, `Weak.:to_immutable_box`).
+	These conversion methods will return `nil` if the object has already been garbage collected.
+]##
+sealed primitive class ::Std::Weak[Val]
+	##[
+		Convert the given box to a weak pointer.
+	]##
+	init(box: ImmutableBox[Val]); end
+
+	##[
+		Convert this weak pointer to a `Box`
+		(a mutable strong pointer).
+
+		Will return `nil` if the object has already
+		been garbage collected.
+	]##
+	def to_box: Box[Val]?; end
+
+	##[
+		Convert this weak pointer to an `ImmutableBox`
+		(an immutable strong pointer).
+
+		Will return `nil` if the object has already
+		been garbage collected.
+	]##
+	def to_immutable_box: ImmutableBox[Val]?; end
+end

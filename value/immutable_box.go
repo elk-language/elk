@@ -27,6 +27,10 @@ func NewImmutableBox(v Value) *ImmutableBox {
 	return &b
 }
 
+func (b *ImmutableBox) ToBox() *Box {
+	return (*Box)(b)
+}
+
 // Retrieve the value stored in the box
 func (b *ImmutableBox) Get() Value {
 	return Value(*b)
