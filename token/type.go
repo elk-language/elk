@@ -542,6 +542,7 @@ const (
 	UNDEFINED         // Keyword `undefined`
 	FUNC              // Keyword `func`
 	OVERLOAD          // Keyword `overload`
+	UNSAFE            // Keyword `unsafe`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -648,6 +649,7 @@ var Keywords = map[string]Type{
 	"undefined":       UNDEFINED,
 	"func":            FUNC,
 	"overload":        OVERLOAD,
+	"unsafe":          UNSAFE,
 }
 
 var tokenNames = [...]string{
@@ -921,4 +923,5 @@ var tokenNames = [...]string{
 	UNDEFINED:       "undefined",
 	FUNC:            "func",
 	OVERLOAD:        "overload",
+	UNSAFE:          "unsafe",
 }

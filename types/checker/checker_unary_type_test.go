@@ -427,3 +427,44 @@ func TestUnaryMinusType(t *testing.T) {
 		})
 	}
 }
+
+func TestBoxType(t *testing.T) {
+	tests := testTable{
+		"assign to box type": {
+			input: `
+				var a: Box[Int] = Box(1)
+				var b: ^Int = a
+			`,
+		},
+		"assign to immutable box type": {
+			input: `
+				var a: ImmutableBox[Int] = ImmutableBox(1)
+				var b: *Int = a
+			`,
+		},
+		"box type is distinct from its value": {
+			input: `
+				var a: ^Int = Box(1)
+				var b: Int = a
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 3, 18), P(43, 3, 18)), "type `Std::Box[Std::Int]` cannot be assigned to type `Std::Int`"),
+			},
+		},
+		"immutable box type is distinct from its value": {
+			input: `
+				var a: *Int = ImmutableBox(1)
+				var b: Int = a
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(52, 3, 18), P(52, 3, 18)), "type `Std::ImmutableBox[Std::Int]` cannot be assigned to type `Std::Int`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}

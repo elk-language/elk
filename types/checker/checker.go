@@ -6709,7 +6709,15 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.BoxTypeNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
-		typ := types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), c.TypeOf(n.TypeNode))
+
+		var className value.Symbol
+		if n.Immutable {
+			className = symbol.ImmutableBox
+		} else {
+			className = symbol.Box
+		}
+
+		typ := types.NewGenericWithTypeArgs(c.Std(className).(*types.Class), c.TypeOf(n.TypeNode))
 		n.SetType(typ)
 		return n
 	case *ast.NotTypeNode:

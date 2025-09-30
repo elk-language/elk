@@ -610,6 +610,35 @@ func TestBoxType(t *testing.T) {
 										ast.NewIntLiteralNode(L(S(P(20, 1, 21), P(20, 1, 21))), "2"),
 									),
 								),
+								false,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can be immutable with unquote": {
+			input: "type *unquote(foo + 2)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(21, 1, 22))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(21, 1, 22))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(21, 1, 22))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(21, 1, 22))),
+								ast.NewUnquoteNode(
+									L(S(P(6, 1, 7), P(21, 1, 22))),
+									ast.UNQUOTE_TYPE_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(14, 1, 15), P(20, 1, 21))),
+										T(L(S(P(18, 1, 19), P(18, 1, 19))), token.PLUS),
+										ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(16, 1, 17))), "foo"),
+										ast.NewIntLiteralNode(L(S(P(20, 1, 21), P(20, 1, 21))), "2"),
+									),
+								),
+								true,
 							),
 						),
 					),
@@ -617,7 +646,7 @@ func TestBoxType(t *testing.T) {
 			),
 		},
 		"can have unquote_type": {
-			input: "type unquote_type(foo + 2)?",
+			input: "type ^unquote_type(foo + 2)",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(26, 1, 27))),
 				[]ast.StatementNode{
@@ -625,18 +654,47 @@ func TestBoxType(t *testing.T) {
 						L(S(P(0, 1, 1), P(26, 1, 27))),
 						ast.NewTypeExpressionNode(
 							L(S(P(0, 1, 1), P(26, 1, 27))),
-							ast.NewNilableTypeNode(
+							ast.NewBoxTypeNode(
 								L(S(P(5, 1, 6), P(26, 1, 27))),
 								ast.NewUnquoteNode(
-									L(S(P(5, 1, 6), P(25, 1, 26))),
+									L(S(P(6, 1, 7), P(26, 1, 27))),
 									ast.UNQUOTE_TYPE_KIND,
 									ast.NewBinaryExpressionNode(
-										L(S(P(18, 1, 19), P(24, 1, 25))),
-										T(L(S(P(22, 1, 23), P(22, 1, 23))), token.PLUS),
-										ast.NewPublicIdentifierNode(L(S(P(18, 1, 19), P(20, 1, 21))), "foo"),
-										ast.NewIntLiteralNode(L(S(P(24, 1, 25), P(24, 1, 25))), "2"),
+										L(S(P(19, 1, 20), P(25, 1, 26))),
+										T(L(S(P(23, 1, 24), P(23, 1, 24))), token.PLUS),
+										ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "foo"),
+										ast.NewIntLiteralNode(L(S(P(25, 1, 26), P(25, 1, 26))), "2"),
 									),
 								),
+								false,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can be immutable with unquote_type": {
+			input: "type *unquote_type(foo + 2)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(26, 1, 27))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(26, 1, 27))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(26, 1, 27))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(26, 1, 27))),
+								ast.NewUnquoteNode(
+									L(S(P(6, 1, 7), P(26, 1, 27))),
+									ast.UNQUOTE_TYPE_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(19, 1, 20), P(25, 1, 26))),
+										T(L(S(P(23, 1, 24), P(23, 1, 24))), token.PLUS),
+										ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(21, 1, 22))), "foo"),
+										ast.NewIntLiteralNode(L(S(P(25, 1, 26), P(25, 1, 26))), "2"),
+									),
+								),
+								true,
 							),
 						),
 					),
@@ -664,6 +722,35 @@ func TestBoxType(t *testing.T) {
 										ast.NewIntLiteralNode(L(S(P(14, 1, 15), P(14, 1, 15))), "2"),
 									),
 								),
+								false,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can be immutable with short unquote": {
+			input: "type *!{foo / 2}",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(15, 1, 16))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(15, 1, 16))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(15, 1, 16))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(15, 1, 16))),
+								ast.NewUnquoteNode(
+									L(S(P(6, 1, 7), P(15, 1, 16))),
+									ast.UNQUOTE_TYPE_KIND,
+									ast.NewBinaryExpressionNode(
+										L(S(P(8, 1, 9), P(14, 1, 15))),
+										T(L(S(P(12, 1, 13), P(12, 1, 13))), token.SLASH),
+										ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(10, 1, 11))), "foo"),
+										ast.NewIntLiteralNode(L(S(P(14, 1, 15), P(14, 1, 15))), "2"),
+									),
+								),
+								true,
 							),
 						),
 					),
@@ -685,6 +772,29 @@ func TestBoxType(t *testing.T) {
 									L(S(P(6, 1, 7), P(11, 1, 12))),
 									"String",
 								),
+								false,
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be an immutable box type with a constant": {
+			input: "type *String",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(11, 1, 12))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(11, 1, 12))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(11, 1, 12))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(11, 1, 12))),
+								ast.NewPublicConstantNode(
+									L(S(P(6, 1, 7), P(11, 1, 12))),
+									"String",
+								),
+								true,
 							),
 						),
 					),
@@ -706,6 +816,29 @@ func TestBoxType(t *testing.T) {
 									L(S(P(6, 1, 7), P(11, 1, 12))),
 									"_FooBa",
 								),
+								false,
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be an immutable box type with a private constant": {
+			input: "type *_FooBa",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(11, 1, 12))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(11, 1, 12))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(11, 1, 12))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(11, 1, 12))),
+								ast.NewPrivateConstantNode(
+									L(S(P(6, 1, 7), P(11, 1, 12))),
+									"_FooBa",
+								),
+								true,
 							),
 						),
 					),
@@ -738,6 +871,40 @@ func TestBoxType(t *testing.T) {
 										"Bar",
 									),
 								),
+								false,
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be an immutable box constant lookup": {
+			input: "type *::Foo::Bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(15, 1, 16))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(15, 1, 16))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(15, 1, 16))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(15, 1, 16))),
+								ast.NewConstantLookupNode(
+									L(S(P(6, 1, 7), P(15, 1, 16))),
+									ast.NewConstantLookupNode(
+										L(S(P(6, 1, 7), P(10, 1, 11))),
+										nil,
+										ast.NewPublicConstantNode(
+											L(S(P(8, 1, 9), P(10, 1, 11))),
+											"Foo",
+										),
+									),
+									ast.NewPublicConstantNode(
+										L(S(P(13, 1, 14), P(15, 1, 16))),
+										"Bar",
+									),
+								),
+								true,
 							),
 						),
 					),
@@ -759,6 +926,29 @@ func TestBoxType(t *testing.T) {
 									L(S(P(6, 1, 7), P(6, 1, 7))),
 									"1",
 								),
+								false,
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be an immutable box literal": {
+			input: "type *1",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(6, 1, 7))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(6, 1, 7))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(6, 1, 7))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(6, 1, 7))),
+								ast.NewIntLiteralNode(
+									L(S(P(6, 1, 7), P(6, 1, 7))),
+									"1",
+								),
+								true,
 							),
 						),
 					),
@@ -780,6 +970,29 @@ func TestBoxType(t *testing.T) {
 									L(S(P(7, 1, 8), P(7, 1, 8))),
 									"1",
 								),
+								false,
+							),
+						),
+					),
+				},
+			),
+		},
+		"type can be an immutable box literal with expression": {
+			input: "type *(1)",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(8, 1, 9))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(8, 1, 9))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(7, 1, 8))),
+							ast.NewBoxTypeNode(
+								L(S(P(5, 1, 6), P(7, 1, 8))),
+								ast.NewIntLiteralNode(
+									L(S(P(7, 1, 8), P(7, 1, 8))),
+									"1",
+								),
+								true,
 							),
 						),
 					),

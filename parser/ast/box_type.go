@@ -10,15 +10,17 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Represents a box type eg. `^Int`
+// Represents a box type eg. `^Int`, `*Int`
 type BoxTypeNode struct {
 	TypedNodeBase
-	TypeNode TypeNode // right hand side
+	Immutable bool
+	TypeNode  TypeNode // right hand side
 }
 
 func (n *BoxTypeNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &BoxTypeNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		Immutable:     n.Immutable,
 		TypeNode:      n.TypeNode.splice(loc, args, unquote).(ComplexConstantNode),
 	}
 }
@@ -50,6 +52,7 @@ func (n *BoxTypeNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc) &&
+		n.Immutable == o.Immutable &&
 		n.TypeNode.Equal(value.Ref(o.TypeNode))
 }
 
@@ -57,7 +60,11 @@ func (n *BoxTypeNode) Equal(other value.Value) bool {
 func (n *BoxTypeNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteRune('%')
+	if n.Immutable {
+		buff.WriteRune('*')
+	} else {
+		buff.WriteRune('^')
+	}
 
 	parens := TypePrecedence(n) > TypePrecedence(n.TypeNode)
 	if parens {
@@ -76,9 +83,10 @@ func (*BoxTypeNode) IsStatic() bool {
 }
 
 // Create a new box type node eg. `^Int`
-func NewBoxTypeNode(loc *position.Location, typ TypeNode) *BoxTypeNode {
+func NewBoxTypeNode(loc *position.Location, typ TypeNode, immutable bool) *BoxTypeNode {
 	return &BoxTypeNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
+		Immutable:     immutable,
 		TypeNode:      typ,
 	}
 }
@@ -98,6 +106,8 @@ func (n *BoxTypeNode) Inspect() string {
 
 	buff.WriteString(",\n  type_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+
+	fmt.Fprintf(&buff, ",\n  immutable: %t", n.Immutable)
 
 	buff.WriteString("\n}")
 

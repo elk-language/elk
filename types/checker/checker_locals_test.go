@@ -686,6 +686,15 @@ func TestLocalAccess(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
 			},
 		},
+		"create a box to a local": {
+			input: `
+				a := 5
+				var b: nil = &a
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(29, 3, 18), P(30, 3, 19)), "type `Std::LocalBox[Std::Int]` cannot be assigned to type `nil`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

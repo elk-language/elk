@@ -21,14 +21,20 @@ func initBoxTypeNode() {
 			} else {
 				argLoc = (*position.Location)(args[2].Pointer())
 			}
+
+			var argImmutable bool
+			if !args[3].IsUndefined() {
+				argImmutable = value.Truthy(args[3])
+			}
 			self := ast.NewBoxTypeNode(
 				argLoc,
 				argTypeNode,
+				argImmutable,
 			)
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(2),
+		vm.DefWithParameters(3),
 	)
 
 	vm.Def(
@@ -38,7 +44,16 @@ func initBoxTypeNode() {
 			self := (*ast.BoxTypeNode)(args[0].Pointer())
 			result := value.Ref(self.TypeNode)
 			return result, value.Undefined
+		},
+	)
 
+	vm.Def(
+		c,
+		"immutable",
+		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+			self := (*ast.BoxTypeNode)(args[0].Pointer())
+			result := value.ToElkBool(self.Immutable)
+			return result, value.Undefined
 		},
 	)
 
