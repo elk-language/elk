@@ -4547,15 +4547,12 @@ func (c *Compiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
 	result := closureCompiler.Bytecode
 	c.emitValue(value.Ref(result), node.Location())
 
-	c.emit(line, bytecode.CLOSURE)
+	c.emit(line, bytecode.CLOSED_CLOSURE)
 
-	capturedLocalIndices := make([]uint16, len(closureCompiler.upvalues))
-	for i, upvalue := range closureCompiler.upvalues {
+	for _, upvalue := range closureCompiler.upvalues {
 		if upvalue.kind == upvalueOwnLocal {
 			continue
 		}
-
-		capturedLocalIndices[i] = upvalue.local.index
 
 		var flags bitfield.BitField8
 		if upvalue.kind == upvalueParentLocal {
@@ -4575,11 +4572,6 @@ func (c *Compiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
 
 	c.emitByte(vm.ClosureTerminatorFlag)
 
-	for _, index := range capturedLocalIndices {
-		// close all upvalues of the closure
-		c.emitCloseUpvalue(line, index)
-	}
-
 	c.emit(line, bytecode.GO)
 }
 
@@ -4592,7 +4584,11 @@ func (c *Compiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
 	result := closureCompiler.Bytecode
 	c.emitValue(value.Ref(result), node.Location())
 
-	c.emit(node.Location().StartPos.Line, bytecode.CLOSURE)
+	if node.Lambda {
+		c.emit(node.Location().StartPos.Line, bytecode.CLOSED_CLOSURE)
+	} else {
+		c.emit(node.Location().StartPos.Line, bytecode.CLOSURE)
+	}
 
 	for _, upvalue := range closureCompiler.upvalues {
 		if upvalue.kind == upvalueOwnLocal {
@@ -7218,17 +7214,6 @@ func (c *Compiler) emitCloseUpvalues(line int, index uint16) {
 	}
 
 	c.emit(line, bytecode.CLOSE_UPVALUES_TO8, byte(index))
-}
-
-// Emit an instruction that closes an upvalue.
-func (c *Compiler) emitCloseUpvalue(line int, index uint16) {
-	if index > math.MaxUint8 {
-		c.emit(line, bytecode.CLOSE_UPVALUE16)
-		c.emitUint16(index)
-		return
-	}
-
-	c.emit(line, bytecode.CLOSE_UPVALUE8, byte(index))
 }
 
 // Emit an instruction that loads a value from the pool

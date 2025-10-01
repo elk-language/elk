@@ -1670,6 +1670,53 @@ func TestScopedMacroCall(t *testing.T) {
 											),
 										),
 									},
+									false,
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can omit arguments and have a trailing lambda": {
+			input: "Foo::foo!() |i| ~> i * 2",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(23, 1, 24))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(23, 1, 24))),
+						ast.NewScopedMacroCallNode(
+							L(S(P(0, 1, 1), P(23, 1, 24))),
+							ast.MACRO_EXPRESSION_KIND,
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewClosureLiteralNode(
+									L(S(P(12, 1, 13), P(23, 1, 24))),
+									[]ast.ParameterNode{
+										ast.NewFormalParameterNode(
+											L(S(P(13, 1, 14), P(13, 1, 14))),
+											ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(13, 1, 14))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
+									},
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(19, 1, 20), P(23, 1, 24))),
+											ast.NewBinaryExpressionNode(
+												L(S(P(19, 1, 20), P(23, 1, 24))),
+												T(L(S(P(21, 1, 22), P(21, 1, 22))), token.STAR),
+												ast.NewPublicIdentifierNode(L(S(P(19, 1, 20), P(19, 1, 20))), "i"),
+												ast.NewIntLiteralNode(L(S(P(23, 1, 24), P(23, 1, 24))), "2"),
+											),
+										),
+									},
+									true,
 								),
 							},
 							nil,
@@ -1707,6 +1754,7 @@ func TestScopedMacroCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -1744,6 +1792,7 @@ func TestScopedMacroCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -1791,6 +1840,7 @@ func TestScopedMacroCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -1845,6 +1895,7 @@ func TestScopedMacroCall(t *testing.T) {
 												),
 											),
 										},
+										false,
 									),
 								),
 							},
@@ -2496,6 +2547,64 @@ func TestMacroCall(t *testing.T) {
 															ast.NewIntLiteralNode(L(S(P(49, 3, 36), P(49, 3, 36))), "5"),
 														),
 													},
+													false,
+												),
+											},
+											nil,
+										),
+									),
+									nil,
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a part of a pattern with a trailing lambda": {
+			input: `
+				switch a
+				case String || bar!(1, foo) ~> 5
+				end
+			`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(58, 4, 8))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(
+						L(S(P(0, 1, 1), P(0, 1, 1))),
+					),
+					ast.NewExpressionStatementNode(
+						L(S(P(5, 2, 5), P(58, 4, 8))),
+						ast.NewSwitchExpressionNode(
+							L(S(P(5, 2, 5), P(57, 4, 7))),
+							ast.NewPublicIdentifierNode(L(S(P(12, 2, 12), P(12, 2, 12))), "a"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									L(S(P(18, 3, 5), P(57, 4, 7))),
+									ast.NewBinaryPatternNode(
+										L(S(P(23, 3, 10), P(49, 3, 36))),
+										T(L(S(P(30, 3, 17), P(31, 3, 18))), token.OR_OR),
+										ast.NewPublicConstantNode(L(S(P(23, 3, 10), P(28, 3, 15))), "String"),
+										ast.NewReceiverlessMacroCallNode(
+											L(S(P(33, 3, 20), P(49, 3, 36))),
+											ast.MACRO_PATTERN_KIND,
+											ast.NewPublicIdentifierNode(L(S(P(33, 3, 20), P(35, 3, 22))), "bar"),
+											[]ast.ExpressionNode{
+												ast.NewIntLiteralNode(L(S(P(38, 3, 25), P(38, 3, 25))), "1"),
+												ast.NewPublicIdentifierNode(L(S(P(41, 3, 28), P(43, 3, 30))), "foo"),
+												ast.NewClosureLiteralNode(
+													L(S(P(46, 3, 33), P(49, 3, 36))),
+													nil,
+													nil,
+													nil,
+													[]ast.StatementNode{
+														ast.NewExpressionStatementNode(
+															L(S(P(49, 3, 36), P(49, 3, 36))),
+															ast.NewIntLiteralNode(L(S(P(49, 3, 36), P(49, 3, 36))), "5"),
+														),
+													},
+													true,
 												),
 											},
 											nil,
@@ -2657,6 +2766,52 @@ func TestMacroCall(t *testing.T) {
 											),
 										),
 									},
+									false,
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can omit the receiver, arguments and have a trailing lambda": {
+			input: "foo!() |i| ~> i * 2",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(18, 1, 19))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(18, 1, 19))),
+						ast.NewReceiverlessMacroCallNode(
+							L(S(P(0, 1, 1), P(18, 1, 19))),
+							ast.MACRO_EXPRESSION_KIND,
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewClosureLiteralNode(
+									L(S(P(7, 1, 8), P(18, 1, 19))),
+									[]ast.ParameterNode{
+										ast.NewFormalParameterNode(
+											L(S(P(8, 1, 9), P(8, 1, 9))),
+											ast.NewPublicIdentifierNode(L(S(P(8, 1, 9), P(8, 1, 9))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
+									},
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(14, 1, 15), P(18, 1, 19))),
+											ast.NewBinaryExpressionNode(
+												L(S(P(14, 1, 15), P(18, 1, 19))),
+												T(L(S(P(16, 1, 17), P(16, 1, 17))), token.STAR),
+												ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(14, 1, 15))), "i"),
+												ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "2"),
+											),
+										),
+									},
+									true,
 								),
 							},
 							nil,
@@ -2693,6 +2848,7 @@ func TestMacroCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -2729,6 +2885,7 @@ func TestMacroCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -2775,6 +2932,7 @@ func TestMacroCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -2828,6 +2986,7 @@ func TestMacroCall(t *testing.T) {
 												),
 											),
 										},
+										false,
 									),
 								),
 							},
@@ -2927,6 +3086,45 @@ func TestMacroCall(t *testing.T) {
 											),
 										),
 									},
+									false,
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an explicit receiver and a trailing lambda without pipes": {
+			input: "foo.bar!() ~> i * 2",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(18, 1, 19))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(18, 1, 19))),
+						ast.NewMacroCallNode(
+							L(S(P(0, 1, 1), P(18, 1, 19))),
+							ast.MACRO_EXPRESSION_KIND,
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
+							[]ast.ExpressionNode{
+								ast.NewClosureLiteralNode(
+									L(S(P(11, 1, 12), P(18, 1, 19))),
+									nil,
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(14, 1, 15), P(18, 1, 19))),
+											ast.NewBinaryExpressionNode(
+												L(S(P(14, 1, 15), P(18, 1, 19))),
+												T(L(S(P(16, 1, 17), P(16, 1, 17))), token.STAR),
+												ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(14, 1, 15))), "i"),
+												ast.NewIntLiteralNode(L(S(P(18, 1, 19), P(18, 1, 19))), "2"),
+											),
+										),
+									},
+									true,
 								),
 							},
 							nil,
@@ -2964,6 +3162,7 @@ func TestMacroCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -3009,6 +3208,7 @@ func TestMacroCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -3056,6 +3256,7 @@ func TestMacroCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -3110,6 +3311,7 @@ func TestMacroCall(t *testing.T) {
 												),
 											),
 										},
+										false,
 									),
 								),
 							},

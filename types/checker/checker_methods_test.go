@@ -4489,6 +4489,17 @@ func TestClosureLiteral(t *testing.T) {
 				a(10)
 			`,
 		},
+		"do not allow recursive lambda in local declaration": {
+			input: `
+				var a: |b: Int|: String = |b| ~>
+					a(b - 1)
+				end
+				a(10)
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 3, 6), P(43, 3, 6)), "method `a` is not defined on type `Std::Object`"),
+			},
+		},
 		"allow recursive closure in local assignment": {
 			input: `
 			  var a: |b: Int|: String
@@ -4497,6 +4508,18 @@ func TestClosureLiteral(t *testing.T) {
 				end
 				a(10)
 			`,
+		},
+		"do not allow recursive lambda in local assignment": {
+			input: `
+			  var a: |b: Int|: String
+				a = |b| ~>
+					a(b - 1)
+				end
+				a(10)
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(50, 4, 6), P(50, 4, 6)), "cannot access uninitialised local `a`"),
+			},
 		},
 		"assign an incompatible closure to a closure type": {
 			input: `
@@ -4545,6 +4568,14 @@ func TestClosureLiteral(t *testing.T) {
 		"call a closure": {
 			input: `
 				a := |a: Int|: Int -> a
+				a.(9)
+				a.call(3 + 8)
+				a(3 + 8)
+			`,
+		},
+		"call a lambda": {
+			input: `
+				a := |a: Int|: Int ~> a
 				a.(9)
 				a.call(3 + 8)
 				a(3 + 8)

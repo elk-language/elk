@@ -1916,8 +1916,8 @@ methodCallLoop:
 }
 
 func (p *Parser) hasTrailingClosure() bool {
-	return p.accept(token.THIN_ARROW) ||
-		(p.accept(token.OR_OR) && p.acceptSecond(token.THIN_ARROW)) ||
+	return p.accept(token.THIN_ARROW, token.WIGGLY_ARROW) ||
+		(p.accept(token.OR_OR) && p.acceptSecond(token.THIN_ARROW, token.WIGGLY_ARROW)) ||
 		(p.accept(token.OR) && (p.acceptSecond(token.STAR, token.STAR_STAR) ||
 			p.acceptSecond(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptThird(token.OR, token.COMMA, token.COLON)))
 }
@@ -2322,7 +2322,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.NIL:
 		tok := p.advance()
 		return ast.NewNilLiteralNode(tok.Location())
-	case token.THIN_ARROW:
+	case token.THIN_ARROW, token.WIGGLY_ARROW:
 		return p.closureAfterArrow(nil, nil, nil, nil)
 	case token.SELF:
 		return p.selfLiteral()
@@ -7483,16 +7483,18 @@ strContentLoop:
 	)
 }
 
-// closureAfterArrow = "->" (expressionWithoutModifier | SEPARATOR [statements] "end" | "{" [statements] "}")
+// closureAfterArrow = ("->" | "~>") (expressionWithoutModifier | SEPARATOR [statements] "end" | "{" [statements] "}")
 func (p *Parser) closureAfterArrow(firstSpan *position.Location, params []ast.ParameterNode, returnType ast.TypeNode, throwType ast.TypeNode) ast.ExpressionNode {
 	var location *position.Location
-	arrowTok, ok := p.consume(token.THIN_ARROW)
+	arrowTok, ok := p.matchOk(token.THIN_ARROW, token.WIGGLY_ARROW)
 	if !ok {
 		return ast.NewInvalidNode(
 			arrowTok.Location(),
 			arrowTok,
 		)
 	}
+	lambda := arrowTok.Type == token.WIGGLY_ARROW
+
 	if firstSpan == nil {
 		firstSpan = arrowTok.Location()
 	}
@@ -7512,6 +7514,7 @@ func (p *Parser) closureAfterArrow(firstSpan *position.Location, params []ast.Pa
 			returnType,
 			throwType,
 			body,
+			lambda,
 		)
 	}
 
@@ -7541,6 +7544,7 @@ func (p *Parser) closureAfterArrow(firstSpan *position.Location, params []ast.Pa
 		returnType,
 		throwType,
 		body,
+		lambda,
 	)
 }
 
@@ -7609,7 +7613,7 @@ func (p *Parser) identifierOrLabel() ast.ExpressionNode {
 
 // identifierOrFunction = identifier | identifier closureAfterArrow
 func (p *Parser) identifierOrFunction() ast.ExpressionNode {
-	if p.secondLookahead.Type == token.THIN_ARROW {
+	if p.acceptSecond(token.THIN_ARROW, token.WIGGLY_ARROW) {
 		ident := p.advance()
 
 		return p.closureAfterArrow(

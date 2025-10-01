@@ -17,7 +17,7 @@ func TestGoExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.CLOSURE), 0xff,
+					byte(bytecode.CLOSED_CLOSURE), 0xff,
 					byte(bytecode.GO),
 					byte(bytecode.RETURN),
 				},
@@ -65,8 +65,7 @@ func TestGoExpression(t *testing.T) {
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.CLOSURE), 2, 1, 0xff,
-					byte(bytecode.CLOSE_UPVALUE8), 1,
+					byte(bytecode.CLOSED_CLOSURE), 2, 1, 0xff,
 					byte(bytecode.GO),
 					byte(bytecode.RETURN),
 				},
@@ -74,7 +73,7 @@ func TestGoExpression(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
-					bytecode.NewLineInfo(3, 8),
+					bytecode.NewLineInfo(3, 6),
 					bytecode.NewLineInfo(6, 1),
 				},
 				[]value.Value{

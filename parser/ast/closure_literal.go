@@ -10,13 +10,14 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Represents a closure eg. `|i| -> println(i)`
+// Represents a closure eg. `|i| -> println(i)`, `|i| ~> println(i)`
 type ClosureLiteralNode struct {
 	TypedNodeBase
 	Parameters []ParameterNode // formal parameters of the closure separated by semicolons
 	ReturnType TypeNode
 	ThrowType  TypeNode
 	Body       []StatementNode // body of the closure
+	Lambda     bool
 }
 
 func (n *ClosureLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -119,7 +120,7 @@ func (n *ClosureLiteralNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.loc.Equal(o.loc)
+	return n.loc.Equal(o.loc) && n.Lambda == o.Lambda
 }
 
 func (n *ClosureLiteralNode) String() string {
@@ -144,7 +145,11 @@ func (n *ClosureLiteralNode) String() string {
 		buff.WriteString(n.ThrowType.String())
 	}
 
-	buff.WriteString(" ->")
+	if n.Lambda {
+		buff.WriteString(" ~>")
+	} else {
+		buff.WriteString(" ->")
+	}
 
 	if len(n.Body) == 1 {
 		buff.WriteRune(' ')
@@ -174,13 +179,14 @@ func (*ClosureLiteralNode) IsStatic() bool {
 }
 
 // Create a new closure expression node eg. `|i| -> println(i)`
-func NewClosureLiteralNode(loc *position.Location, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *ClosureLiteralNode {
+func NewClosureLiteralNode(loc *position.Location, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode, lambda bool) *ClosureLiteralNode {
 	return &ClosureLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Parameters:    params,
 		ReturnType:    retType,
 		ThrowType:     throwType,
 		Body:          body,
+		Lambda:        lambda,
 	}
 }
 
@@ -228,6 +234,8 @@ func (n *ClosureLiteralNode) Inspect() string {
 		indent.IndentString(&buff, element.Inspect(), 2)
 	}
 	buff.WriteString("\n  ]")
+
+	fmt.Fprintf(&buff, ",\n  lambda: %t", n.Lambda)
 
 	buff.WriteString("\n}")
 

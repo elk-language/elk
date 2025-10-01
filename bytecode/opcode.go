@@ -239,6 +239,7 @@ const (
 	RETURN_FINALLY                    // Execute all finally blocks this line is nested in and return from the current frame
 	JUMP_TO_FINALLY                   // Jump to the specified instruction after executing finally blocks
 	CLOSURE                           // Wrap the function on top of the stack in a closure
+	CLOSED_CLOSURE                    // Wrap the function on top of the stack in a closed closure (all upvalues are detached and closed)
 	SET_UPVALUE_0                     // Assign the value on top of the stack to the upvalue with index 0
 	SET_UPVALUE_1                     // Assign the value on top of the stack to the upvalue with index 1
 	SET_UPVALUE8                      // Assign the value on top of the stack to the upvalue with the given index (8 bit operand)
@@ -252,8 +253,6 @@ const (
 	CLOSE_UPVALUES_TO_3               // Close upvalues down to index 3
 	CLOSE_UPVALUES_TO8                // Close upvalues down to the given index, moving them from the stack to the heap (8 bit operand)
 	CLOSE_UPVALUES_TO16               // Close upvalues down to the given index, moving them from the stack to the heap (16 bit operand)
-	CLOSE_UPVALUE8                    // Close the upvalue with to the given index, moving it from the stack to the heap (8 bit operand)
-	CLOSE_UPVALUE16                   // Close the upvalue with to the given index, moving it from the stack to the heap (16 bit operand)
 	DEF_NAMESPACE                     // Define a new namespace
 	GET_CONST8                        // Get the value of the constant with the name stored under the given index in the value pool (8 bit operand)
 	GET_CONST16                       // Get the value of the constant with the name stored under the given index in the value pool (16 bit operand)
@@ -489,6 +488,7 @@ var opCodeNames = [...]string{
 	RETURN_FINALLY:      "RETURN_FINALLY",
 	JUMP_TO_FINALLY:     "JUMP_TO_FINALLY",
 	CLOSURE:             "CLOSURE",
+	CLOSED_CLOSURE:      "CLOSED_CLOSURE",
 	SET_UPVALUE_0:       "SET_UPVALUE_0",
 	SET_UPVALUE_1:       "SET_UPVALUE_1",
 	SET_UPVALUE8:        "SET_UPVALUE8",
@@ -502,8 +502,6 @@ var opCodeNames = [...]string{
 	CLOSE_UPVALUES_TO_3: "CLOSE_UPVALUES_TO_3",
 	CLOSE_UPVALUES_TO8:  "CLOSE_UPVALUES_TO8",
 	CLOSE_UPVALUES_TO16: "CLOSE_UPVALUES_TO16",
-	CLOSE_UPVALUE8:      "CLOSE_UPVALUE8",
-	CLOSE_UPVALUE16:     "CLOSE_UPVALUE16",
 	DEF_NAMESPACE:       "DEF_NAMESPACE",
 	GET_CONST8:          "GET_CONST8",
 	GET_CONST16:         "GET_CONST16",

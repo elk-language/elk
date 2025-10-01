@@ -575,6 +575,8 @@ func (vm *VM) run() {
 			vm.opGo()
 		case bytecode.CLOSURE:
 			vm.opClosure()
+		case bytecode.CLOSED_CLOSURE:
+			vm.opClosedClosure()
 		case bytecode.JUMP_TO_FINALLY:
 			leftFinallyCount := vm.peek().AsSmallInt()
 			jumpOffset := vm.peekAt(1).AsSmallInt()
@@ -946,12 +948,6 @@ func (vm *VM) run() {
 		case bytecode.CLOSE_UPVALUES_TO16:
 			last := vm.fpAddRaw(uintptr(vm.readUint16()))
 			vm.opCloseUpvalues(last)
-		case bytecode.CLOSE_UPVALUE8:
-			index := vm.fpAddRaw(uintptr(vm.readByte()))
-			vm.opCloseUpvalue(index)
-		case bytecode.CLOSE_UPVALUE16:
-			index := vm.fpAddRaw(uintptr(vm.readUint16()))
-			vm.opCloseUpvalue(index)
 		case bytecode.PREP_LOCALS8:
 			vm.opPrepLocals(uintptr(vm.readByte()))
 		case bytecode.PREP_LOCALS16:
@@ -1406,6 +1402,33 @@ func (vm *VM) opGo() {
 	}(closure, thread)
 
 	vm.replace(value.Ref(thread))
+}
+
+func (vm *VM) opClosedClosure() {
+	function := vm.peek().AsReference().(*BytecodeFunction)
+	closure := NewClosure(vm.ID, function, vm.selfValue())
+	vm.replace(value.Ref(closure))
+
+	for i := 0; ; i++ {
+		flagByte := vm.readByte()
+		if flagByte == ClosureTerminatorFlag {
+			break
+		}
+
+		flags := bitfield.BitField8FromInt(flagByte)
+		var upIndex int
+		if flags.HasFlag(UpvalueLongIndexFlag) {
+			upIndex = int(vm.readUint16())
+		} else {
+			upIndex = int(vm.readByte())
+		}
+
+		if flags.HasFlag(UpvalueLocalFlag) {
+			closure.Upvalues[i] = NewClosedUpvalue(*vm.fpAdd(upIndex))
+		} else {
+			closure.Upvalues[i] = NewClosedUpvalue(vm.upvalues[upIndex].Get())
+		}
+	}
 }
 
 func (vm *VM) opClosure() {
@@ -2440,7 +2463,7 @@ func (vm *VM) opSetUpvalue(index int) {
 
 // Set an upvalue.
 func (vm *VM) setUpvalueValue(index int, val value.Value) {
-	*vm.upvalues[index].slot = val
+	vm.upvalues[index].Set(val)
 }
 
 // Read an upvalue.
@@ -2450,33 +2473,7 @@ func (vm *VM) opGetUpvalue(index int) {
 
 // Read an upvalue.
 func (vm *VM) getUpvalueValue(index int) value.Value {
-	return *vm.upvalues[index].slot
-}
-
-// Closes the upvalue with the given local slot.
-func (vm *VM) opCloseUpvalue(index uintptr) {
-	currentUpvalue := vm.openUpvalueHead
-	var prevUpvalue *Upvalue
-
-	for {
-		if currentUpvalue == nil {
-			break
-		}
-		if uintptr(unsafe.Pointer(currentUpvalue.slot)) == index {
-			currentUpvalue.Close()
-
-			if prevUpvalue == nil {
-				vm.openUpvalueHead = currentUpvalue.next
-			} else {
-				prevUpvalue = currentUpvalue.next
-			}
-
-			break
-		}
-
-		prevUpvalue = currentUpvalue
-		currentUpvalue = currentUpvalue.next
-	}
+	return vm.upvalues[index].Get()
 }
 
 // Closes all upvalues down to the given local slot (the given slot and all above).

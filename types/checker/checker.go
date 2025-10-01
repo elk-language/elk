@@ -5495,9 +5495,11 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 
 	// if the value assigned is a closure literal
 	// initialise the local earlier to allow recursive closures
-	switch node.Right.(type) {
+	switch r := node.Right.(type) {
 	case *ast.ClosureLiteralNode:
-		variable.setInitialised()
+		if !r.Lambda {
+			variable.setInitialised()
+		}
 	}
 
 	node.Right = c.checkExpressionWithType(node.Right, variable.typ)
@@ -7191,7 +7193,7 @@ func (c *Checker) checkLocalDeclaration(
 		// without a type, inference
 
 		initClosure, initIsClosure := initialiser.(*ast.ClosureLiteralNode)
-		if initIsClosure {
+		if initIsClosure && !initClosure.Lambda {
 			init := c.checkClosureLiteralNodeInVariableDeclaration(
 				initClosure,
 				name,
@@ -7223,10 +7225,12 @@ func (c *Checker) checkLocalDeclaration(
 	var earlierInitialisation bool
 	// if the value assigned is a closure literal
 	// initialise the local earlier to allow recursive closures
-	switch initialiser.(type) {
+	switch init := initialiser.(type) {
 	case *ast.ClosureLiteralNode:
-		earlierInitialisation = true
-		c.addLocal(name, local)
+		if !init.Lambda {
+			earlierInitialisation = true
+			c.addLocal(name, local)
+		}
 	}
 
 	init := c.checkExpressionWithType(initialiser, declaredType)

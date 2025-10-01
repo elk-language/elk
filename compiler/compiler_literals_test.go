@@ -78,6 +78,64 @@ func TestClosureLiteral(t *testing.T) {
 				},
 			),
 		},
+		"lambda": {
+			input: `
+				a := 5
+				calc := |n: Int|: Int ~>
+					return 1 if n < 3
+
+					n * a
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.CLOSED_CLOSURE),
+					2, 1,
+					0xff,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(83, 7, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 7),
+					bytecode.NewLineInfo(7, 1),
+				},
+				[]value.Value{
+					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						functionSymbol,
+						[]byte{
+							byte(bytecode.GET_LOCAL_1),
+							byte(bytecode.INT_3),
+							byte(bytecode.JUMP_UNLESS_ILT), 0, 2,
+							byte(bytecode.INT_1),
+							byte(bytecode.RETURN),
+							byte(bytecode.GET_LOCAL_1),
+							byte(bytecode.GET_UPVALUE_0),
+							byte(bytecode.MULTIPLY_INT),
+							byte(bytecode.RETURN),
+						},
+						L(P(24, 3, 13), P(82, 7, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(4, 7),
+							bytecode.NewLineInfo(6, 3),
+							bytecode.NewLineInfo(7, 1),
+						},
+						1,
+						0,
+						nil,
+						1,
+					)),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

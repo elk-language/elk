@@ -1183,6 +1183,51 @@ func TestMethodCall(t *testing.T) {
 											),
 										),
 									},
+									false,
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can omit the receiver, arguments and have a trailing lambda": {
+			input: "foo() |i| ~> i * 2",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(17, 1, 18))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(17, 1, 18))),
+						ast.NewReceiverlessMethodCallNode(
+							L(S(P(0, 1, 1), P(17, 1, 18))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							[]ast.ExpressionNode{
+								ast.NewClosureLiteralNode(
+									L(S(P(6, 1, 7), P(17, 1, 18))),
+									[]ast.ParameterNode{
+										ast.NewFormalParameterNode(
+											L(S(P(7, 1, 8), P(7, 1, 8))),
+											ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(7, 1, 8))), "i"),
+											nil,
+											nil,
+											ast.NormalParameterKind,
+										),
+									},
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(13, 1, 14), P(17, 1, 18))),
+											ast.NewBinaryExpressionNode(
+												L(S(P(13, 1, 14), P(17, 1, 18))),
+												T(L(S(P(15, 1, 16), P(15, 1, 16))), token.STAR),
+												ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(13, 1, 14))), "i"),
+												ast.NewIntLiteralNode(L(S(P(17, 1, 18), P(17, 1, 18))), "2"),
+											),
+										),
+									},
+									true,
 								),
 							},
 							nil,
@@ -1218,6 +1263,7 @@ func TestMethodCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -1253,6 +1299,7 @@ func TestMethodCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -1298,6 +1345,7 @@ func TestMethodCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -1350,6 +1398,7 @@ func TestMethodCall(t *testing.T) {
 												),
 											),
 										},
+										false,
 									),
 								),
 							},
@@ -1558,6 +1607,45 @@ func TestMethodCall(t *testing.T) {
 											),
 										),
 									},
+									false,
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an explicit receiver and a trailing lambda without pipes": {
+			input: "foo.bar() ~> i * 2",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(17, 1, 18))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(17, 1, 18))),
+						ast.NewMethodCallNode(
+							L(S(P(0, 1, 1), P(17, 1, 18))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							T(L(S(P(3, 1, 4), P(3, 1, 4))), token.DOT),
+							ast.NewPublicIdentifierNode(L(S(P(4, 1, 5), P(6, 1, 7))), "bar"),
+							[]ast.ExpressionNode{
+								ast.NewClosureLiteralNode(
+									L(S(P(10, 1, 11), P(17, 1, 18))),
+									nil,
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(13, 1, 14), P(17, 1, 18))),
+											ast.NewBinaryExpressionNode(
+												L(S(P(13, 1, 14), P(17, 1, 18))),
+												T(L(S(P(15, 1, 16), P(15, 1, 16))), token.STAR),
+												ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(13, 1, 14))), "i"),
+												ast.NewIntLiteralNode(L(S(P(17, 1, 18), P(17, 1, 18))), "2"),
+											),
+										),
+									},
+									true,
 								),
 							},
 							nil,
@@ -1595,6 +1683,7 @@ func TestMethodCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -1640,6 +1729,7 @@ func TestMethodCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -1687,6 +1777,7 @@ func TestMethodCall(t *testing.T) {
 											),
 										),
 									},
+									false,
 								),
 							},
 							nil,
@@ -1741,6 +1832,7 @@ func TestMethodCall(t *testing.T) {
 												),
 											),
 										},
+										false,
 									),
 								),
 							},

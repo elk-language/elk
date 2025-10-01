@@ -1,6 +1,6 @@
 module Std::Elk::AST
   ##[
-    Represents a closure eg. `|i| -> println(i)`
+    Represents a closure eg. `|i| -> println(i)`, `|i| ~> println(i)`
   ]##
   sealed primitive class ClosureLiteralNode
     include ExpressionNode
@@ -10,6 +10,7 @@ module Std::Elk::AST
       return_type: TypeNode? = nil,
       throw_type: TypeNode? = nil,
       body: ArrayTuple[StatementNode] = loop; end,
+      lambda: bool = false,
       location: FS::Location = loop; end,
     ); end
 
@@ -17,6 +18,7 @@ module Std::Elk::AST
     def return_type: TypeNode?; end
     def throw_type: TypeNode?; end
     def body: ArrayTuple[StatementNode]; end
+    def lambda: bool; end
     def location: FS::Location; end
   end
 end

@@ -23,8 +23,24 @@ type Upvalue struct {
 	next *Upvalue
 }
 
+// Create a new upvalue that is already closed
+func NewClosedUpvalue(val value.Value) *Upvalue {
+	upvalue := &Upvalue{}
+	upvalue.slot = &upvalue.closed
+	upvalue.closed = val
+	return upvalue
+}
+
 func (u *Upvalue) IsClosed() bool {
 	return u.slot == &u.closed
+}
+
+func (u *Upvalue) Get() value.Value {
+	return *u.slot
+}
+
+func (u *Upvalue) Set(v value.Value) {
+	*u.slot = v
 }
 
 func (u *Upvalue) IsOpen() bool {
@@ -80,6 +96,9 @@ func (*Upvalue) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (v *Upvalue) Copy() value.Reference {
-	return v
+func (u *Upvalue) Copy() value.Reference {
+	return &Upvalue{
+		slot:   u.slot,
+		closed: u.closed,
+	}
 }
