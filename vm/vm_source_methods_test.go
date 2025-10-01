@@ -328,6 +328,15 @@ func TestVMSource_CallClosure(t *testing.T) {
 			wantStackTop: value.Nil,
 			wantStdout:   "0\n1\n2\n3\n4\n",
 		},
+		"call lambda in a native method": {
+			source: `
+				5.times |i| ~>
+					println i
+				end
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "0\n1\n2\n3\n4\n",
+		},
 		"call closure that throws in a native method": {
 			source: `
 				5.times |i| ->
@@ -335,6 +344,74 @@ func TestVMSource_CallClosure(t *testing.T) {
 				end
 			`,
 			wantRuntimeErr: value.SmallInt(0).ToValue(),
+		},
+		"update local in closure": {
+			source: `
+				a := 5
+				puts a
+
+				fn := |v: Int| ->
+					a = v
+				end
+
+				fn(10)
+				puts a
+
+				fn(25)
+				puts a
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "5\n10\n25\n",
+		},
+		"read updated local in closure": {
+			source: `
+				a := 5
+				puts a
+
+				fn := -> puts a
+
+				a = 10
+				fn()
+
+				a = 25
+				fn()
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "5\n10\n25\n",
+		},
+		"update local in lambda": {
+			source: `
+				a := 5
+				puts a
+
+				fn := |v: Int| ~>
+					a = v
+				end
+
+				fn(10)
+				puts a
+
+				fn(25)
+				puts a
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "5\n5\n5\n",
+		},
+		"read updated local in lambda": {
+			source: `
+				a := 5
+				puts a
+
+				fn := ~> puts a
+
+				a = 10
+				fn()
+
+				a = 25
+				fn()
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "5\n5\n5\n",
 		},
 	}
 

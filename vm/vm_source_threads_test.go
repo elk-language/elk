@@ -14,10 +14,25 @@ func TestVMSource_Go(t *testing.T) {
 				a := 5
 				c := -> a
 				go puts c()
-				sleep 1.second
+				sleep 200.milliseconds
 			`,
 			wantStderrPattern: value.MustCompileRegex("Std::OpenClosureError", bitfield.BitField8{}),
 			wantStackTop:      value.Nil,
+		},
+		"call new lambda in another thread": {
+			source: `
+				wg := Sync::WaitGroup(1)
+				a := 5
+				c := ~> a
+				go
+					puts c()
+					wg.end
+				end
+
+				wg.wait
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "5\n",
 		},
 		"handle an error thrown in a separate coroutine": {
 			source: `
