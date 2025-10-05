@@ -1575,6 +1575,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define constants
 
 					// Define instance variables
+
+					{
+						namespace := namespace.Singleton()
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("Parses a time span string and creates a `Date::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"3Y\", \"-2.5M\" or \"5Y4M\".\nValid date units are \"Y\", \"M\", \"D\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("str"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
 				}
 			}
 			{
@@ -1682,7 +1697,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace := namespace.MustSubtypeString("Span").(*Class)
 
 					namespace.Name() // noop - avoid unused variable error
-					namespace.SetParent(NameToType("Std::Value", env).(*Class))
 
 					// Include mixins and implement interfaces
 					IncludeMixin(namespace, NameToType("Std::Duration", env).(*Mixin))
@@ -1743,6 +1757,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define constants
 
 					// Define instance variables
+
+					{
+						namespace := namespace.Singleton()
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("Parses a time span string and creates a `Time::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"2Y\", \"5D2h10m\", \"300ms\", \"-1.5h\" or \"2h45m\".\nValid datetime units are \"Y\", \"M\", \"D\", \"h\", \"m\", \"s\", \"ms\", \"us\" (or \"µs\"), \"ns\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("str"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
 				}
 			}
 			{
@@ -9525,7 +9554,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Include mixins and implement interfaces
 
 						// Define methods
-						namespace.DefineMethod("Parses a time span string and creates a `Time::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"300ms\", \"-1.5h\" or \"2h45m\".\nValid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("s"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
+						namespace.DefineMethod("Parses a time span string and creates a `Time::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"300ms\", \"-1.5h\" or \"2h45m\".\nValid time units are \"h\", \"m\", \"s\", \"ms\", \"us\" (or \"µs\"), \"ns\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("str"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
 						namespace.DefineMethod("Returns the amount of elapsed since the given `DateTime`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("since"), nil, []*Parameter{NewParameter(value.ToSymbol("datetime"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
 						namespace.DefineMethod("Returns the amount of time that is left until the given `DateTime`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("until"), nil, []*Parameter{NewParameter(value.ToSymbol("datetime"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
 

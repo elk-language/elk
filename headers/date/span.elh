@@ -15,6 +15,15 @@
 sealed primitive class ::Std::Date::Span < Value
 	include Duration
 
+	singleton
+		##[
+			Parses a time span string and creates a `Date::Span` value.
+			The string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "3Y", "-2.5M" or "5Y4M".
+			Valid date units are "Y", "M", "D".
+		]##
+		def parse(str: String); end
+	end
+
 	init(years: Int = 0, months: Int = 0, days: Int = 0); end
 
 	##[

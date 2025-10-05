@@ -3,8 +3,17 @@
 
 	It is made up of a `Date::Span` and a `Time::Span`.
 ]##
-sealed primitive class ::Std::DateTime::Span < Value
+sealed primitive class ::Std::DateTime::Span
 	include Duration
+
+	singleton
+		##[
+			Parses a time span string and creates a `Time::Span` value.
+			The string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "2Y", "5D2h10m", "300ms", "-1.5h" or "2h45m".
+			Valid datetime units are "Y", "M", "D", "h", "m", "s", "ms", "us" (or "µs"), "ns".
+		]##
+		def parse(str: String); end
+	end
 
 	##[
 		Create a new datetime span.

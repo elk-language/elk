@@ -9,9 +9,9 @@ sealed primitive class ::Std::Time::Span < Value
 		##[
 			Parses a time span string and creates a `Time::Span` value.
 			The string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
-			Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+			Valid time units are "h", "m", "s", "ms", "us" (or "µs"), "ns".
 		]##
-		def parse(s: String): Time::Span; end
+		def parse(str: String): Time::Span; end
 
 		##[
 			Returns the amount of elapsed since the given `DateTime`.
