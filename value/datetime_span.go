@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"strconv"
 	"strings"
+
+	"github.com/elk-language/elk/value/durationscanner"
 )
 
 // Represents the difference between two datetimes.
@@ -634,6 +637,49 @@ func (d *DateTimeSpan) DivideBigFloat(other *BigFloat) *DateTimeSpan {
 		newDateSpan,
 		newTimeSpan,
 	)
+}
+
+// Create a string formatted according to the given format string.
+func ParseDateTimeSpan(str string) (result *DateTimeSpan, err Value) {
+	scanner := durationscanner.New(str)
+	result = &DateTimeSpan{}
+
+tokenLoop:
+	for {
+		token, value := scanner.Next()
+		switch token {
+		case durationscanner.END_OF_FILE:
+			break tokenLoop
+		case durationscanner.ERROR:
+			return nil, Ref(Errorf(
+				FormatErrorClass,
+				"invalid date time span string: %s",
+				value,
+			))
+		case durationscanner.YEARS_INT:
+			bigYears, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			years := int32(bigYears.ToSmallInt())
+			result.DateSpan.months += years * 12
+		case durationscanner.YEARS_FLOAT:
+			years, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in duration string: %s",
+					er.Error(),
+				))
+			}
+		default:
+			panic(fmt.Sprintf("undefined duration token: %s", token.String()))
+		}
+
+	}
+
+	return result, Undefined
 }
 
 func initDateTimeSpan() {

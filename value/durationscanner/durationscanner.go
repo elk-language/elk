@@ -144,8 +144,10 @@ const (
 
 func (d *Durationscanner) numericComponent(startDigit rune) (Token, string) {
 	var lexeme strings.Builder
+	var isFloat bool
 
 	if startDigit == '.' {
+		isFloat = true
 		lexeme.WriteString("0.")
 		d.consumeDigits(decimalLiteralChars, &lexeme)
 	} else {
@@ -153,6 +155,7 @@ func (d *Durationscanner) numericComponent(startDigit rune) (Token, string) {
 		d.consumeDigits(decimalLiteralChars, &lexeme)
 
 		if d.matchChar('.') {
+			isFloat = true
 			lexeme.WriteByte('.')
 			d.consumeDigits(decimalLiteralChars, &lexeme)
 		}
@@ -165,33 +168,63 @@ func (d *Durationscanner) numericComponent(startDigit rune) (Token, string) {
 
 	switch char {
 	case 'Y':
-		return YEARS, lexeme.String()
+		if isFloat {
+			return YEARS_FLOAT, lexeme.String()
+		}
+		return YEARS_INT, lexeme.String()
 	case 'M':
-		return MONTHS, lexeme.String()
+		if isFloat {
+			return MONTHS_FLOAT, lexeme.String()
+		}
+		return MONTHS_INT, lexeme.String()
 	case 'D':
-		return DAYS, lexeme.String()
+		if isFloat {
+			return DAYS_FLOAT, lexeme.String()
+		}
+		return DAYS_INT, lexeme.String()
 	case 'h':
-		return HOURS, lexeme.String()
+		if isFloat {
+			return HOURS_FLOAT, lexeme.String()
+		}
+		return HOURS_INT, lexeme.String()
 	case 'm':
 		if d.matchChar('s') {
-			return MILLISECONDS, lexeme.String()
+			if isFloat {
+				return MILLISECONDS_FLOAT, lexeme.String()
+			}
+			return MILLISECONDS_INT, lexeme.String()
 		}
-		return MINUTES, lexeme.String()
+		if isFloat {
+			return MINUTES_FLOAT, lexeme.String()
+		}
+		return MINUTES_INT, lexeme.String()
 	case 's':
-		return SECONDS, lexeme.String()
+		if isFloat {
+			return SECONDS_FLOAT, lexeme.String()
+		}
+		return SECONDS_INT, lexeme.String()
 	case 'u':
 		if d.matchChar('s') {
-			return MICROSECONDS, lexeme.String()
+			if isFloat {
+				return MICROSECONDS_FLOAT, lexeme.String()
+			}
+			return MICROSECONDS_INT, lexeme.String()
 		}
 		return ERROR, fmt.Sprintf("unexpected char '%c', expected 's'", d.mustAdvanceChar())
 	case 'µ':
 		if d.matchChar('s') {
-			return MICROSECONDS, lexeme.String()
+			if isFloat {
+				return MICROSECONDS_FLOAT, lexeme.String()
+			}
+			return MICROSECONDS_INT, lexeme.String()
 		}
 		return ERROR, fmt.Sprintf("unexpected char '%c', expected 's'", d.mustAdvanceChar())
 	case 'n':
 		if d.matchChar('s') {
-			return NANOSECONDS, lexeme.String()
+			if isFloat {
+				return NANOSECONDS_FLOAT, lexeme.String()
+			}
+			return NANOSECONDS_INT, lexeme.String()
 		}
 		return ERROR, fmt.Sprintf("unexpected char '%c', expected 's'", d.mustAdvanceChar())
 	default:
