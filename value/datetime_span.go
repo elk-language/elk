@@ -44,11 +44,15 @@ func (d *DateTimeSpan) Normalise() {
 	}
 }
 
-func (d *DateTimeSpan) Copy() Reference {
+func (d *DateTimeSpan) Dup() *DateTimeSpan {
 	return &DateTimeSpan{
 		DateSpan: d.DateSpan,
 		TimeSpan: d.TimeSpan,
 	}
+}
+
+func (d *DateTimeSpan) Copy() Reference {
+	return d.Dup()
 }
 
 func (*DateTimeSpan) Class() *Class {
@@ -673,6 +677,141 @@ tokenLoop:
 					er.Error(),
 				))
 			}
+			yearsSpan := MakeDateSpan(1, 0, 0).MultiplyFloat(Float(years))
+			result.AddDateTimeSpan(yearsSpan)
+		case durationscanner.MONTHS_INT:
+			bigMonths, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			months := int32(bigMonths.ToSmallInt())
+			result.DateSpan.months += months
+		case durationscanner.MONTHS_FLOAT:
+			months, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in duration string: %s",
+					er.Error(),
+				))
+			}
+			monthsSpan := MakeDateSpan(0, 1, 0).MultiplyFloat(Float(months))
+			result.AddDateTimeSpan(monthsSpan)
+		case durationscanner.DAYS_INT:
+			bigDays, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			days := int32(bigDays.ToSmallInt())
+			result.DateSpan.days += days
+		case durationscanner.DAYS_FLOAT:
+			days, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in duration string: %s",
+					er.Error(),
+				))
+			}
+			daysSpan := MakeDateSpan(0, 0, 1).MultiplyFloat(Float(days))
+			result.AddDateTimeSpan(daysSpan)
+		case durationscanner.HOURS_INT:
+			bigHours, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			hours := TimeSpan(bigHours.ToSmallInt())
+			result.TimeSpan += hours * Hour
+		case durationscanner.HOURS_FLOAT:
+			hours, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in duration string: %s",
+					er.Error(),
+				))
+			}
+			hoursSpan := Hour.MultiplyFloat(Float(hours))
+			result.AddTimeSpan(hoursSpan)
+		case durationscanner.MINUTES_INT:
+			bigMinutes, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			minutes := TimeSpan(bigMinutes.ToSmallInt())
+			result.TimeSpan += minutes * Minute
+		case durationscanner.MINUTES_FLOAT:
+			minutes, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in duration string: %s",
+					er.Error(),
+				))
+			}
+			minutesSpan := Minute.MultiplyFloat(Float(minutes))
+			result.AddTimeSpan(minutesSpan)
+		case durationscanner.SECONDS_INT:
+			bigSeconds, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			seconds := TimeSpan(bigSeconds.ToSmallInt())
+			result.TimeSpan += seconds * Second
+		case durationscanner.SECONDS_FLOAT:
+			seconds, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in duration string: %s",
+					er.Error(),
+				))
+			}
+			secondsSpan := Second.MultiplyFloat(Float(seconds))
+			result.AddTimeSpan(secondsSpan)
+		case durationscanner.MILLISECONDS_INT:
+			bigMilliseconds, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			milliseconds := TimeSpan(bigMilliseconds.ToSmallInt())
+			result.TimeSpan += milliseconds * Millisecond
+		case durationscanner.MILLISECONDS_FLOAT:
+			milliseconds, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in duration string: %s",
+					er.Error(),
+				))
+			}
+			millisecondsSpan := Millisecond.MultiplyFloat(Float(milliseconds))
+			result.AddTimeSpan(millisecondsSpan)
+		case durationscanner.MICROSECONDS_INT:
+			bigMicroseconds, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			microseconds := TimeSpan(bigMicroseconds.ToSmallInt())
+			result.TimeSpan += microseconds * Microsecond
+		case durationscanner.MICROSECONDS_FLOAT:
+			microseconds, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in duration string: %s",
+					er.Error(),
+				))
+			}
+			microsecondsSpan := Microsecond.MultiplyFloat(Float(microseconds))
+			result.AddTimeSpan(microsecondsSpan)
 		default:
 			panic(fmt.Sprintf("undefined duration token: %s", token.String()))
 		}
