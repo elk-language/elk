@@ -12,7 +12,7 @@ sealed primitive class ::Std::DateTime::Span
 			The string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "2Y", "5D2h10m", "300ms", "-1.5h" or "2h45m".
 			Valid datetime units are "Y", "M", "D", "h", "m", "s", "ms", "us" (or "µs"), "ns".
 		]##
-		def parse(str: String); end
+		def parse(str: String): %self; end
 	end
 
 	##[

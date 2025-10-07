@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"strings"
 	"time"
 )
 
@@ -93,7 +94,54 @@ func (t TimeSpan) Error() string {
 }
 
 func (t TimeSpan) String() string {
-	return t.Go().String()
+	var buff strings.Builder
+
+	hours := t / Hour
+	if hours != 0 {
+		fmt.Fprintf(&buff, "%dh", hours)
+	}
+
+	minutes := t.Minutes()
+	if minutes != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
+		fmt.Fprintf(&buff, "%dm", minutes)
+	}
+
+	seconds := t.Seconds()
+	if seconds != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
+		fmt.Fprintf(&buff, "%ds", seconds)
+	}
+
+	milliseconds := t.Milliseconds()
+	if milliseconds != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
+		fmt.Fprintf(&buff, "%dms", milliseconds)
+	}
+
+	microseconds := t.Microseconds()
+	if microseconds != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
+		fmt.Fprintf(&buff, "%dµs", microseconds)
+	}
+
+	nanoseconds := t.Nanoseconds()
+	if nanoseconds != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
+		fmt.Fprintf(&buff, "%dns", nanoseconds)
+	}
+
+	return buff.String()
 }
 
 func (t TimeSpan) ToString() String {

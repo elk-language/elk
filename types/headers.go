@@ -1766,7 +1766,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Include mixins and implement interfaces
 
 						// Define methods
-						namespace.DefineMethod("Parses a time span string and creates a `Time::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"2Y\", \"5D2h10m\", \"300ms\", \"-1.5h\" or \"2h45m\".\nValid datetime units are \"Y\", \"M\", \"D\", \"h\", \"m\", \"s\", \"ms\", \"us\" (or \"µs\"), \"ns\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("str"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("Parses a time span string and creates a `Time::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"2Y\", \"5D2h10m\", \"300ms\", \"-1.5h\" or \"2h45m\".\nValid datetime units are \"Y\", \"M\", \"D\", \"h\", \"m\", \"s\", \"ms\", \"us\" (or \"µs\"), \"ns\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("str"), NameToType("Std::String", env), NormalParameterKind, false)}, NewInstanceOf(Self{}), Never{})
 
 						// Define constants
 

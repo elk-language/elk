@@ -141,6 +141,18 @@ func TestDurationscanner(t *testing.T) {
 				V(durationscanner.YEARS_INT, "200"),
 			},
 		},
+		"integer years negative": {
+			input: "-200Y",
+			want: []tokenValue{
+				V(durationscanner.YEARS_INT, "-200"),
+			},
+		},
+		"years negative without number": {
+			input: "-Y",
+			want: []tokenValue{
+				V(durationscanner.ERROR, "unexpected char 'Y', expected a digit"),
+			},
+		},
 		"integer years with underscores": {
 			input: "2_000Y",
 			want: []tokenValue{
@@ -151,6 +163,12 @@ func TestDurationscanner(t *testing.T) {
 			input: "22.910Y",
 			want: []tokenValue{
 				V(durationscanner.YEARS_FLOAT, "22.910"),
+			},
+		},
+		"float years negative": {
+			input: "-22.910Y",
+			want: []tokenValue{
+				V(durationscanner.YEARS_FLOAT, "-22.910"),
 			},
 		},
 		"float years leading dot": {
@@ -172,6 +190,12 @@ func TestDurationscanner(t *testing.T) {
 				V(durationscanner.MONTHS_INT, "200"),
 			},
 		},
+		"integer months negative": {
+			input: "-200M",
+			want: []tokenValue{
+				V(durationscanner.MONTHS_INT, "-200"),
+			},
+		},
 		"integer months with underscores": {
 			input: "2_000M",
 			want: []tokenValue{
@@ -182,6 +206,12 @@ func TestDurationscanner(t *testing.T) {
 			input: "22.910M",
 			want: []tokenValue{
 				V(durationscanner.MONTHS_FLOAT, "22.910"),
+			},
+		},
+		"float months negative": {
+			input: "-22.910M",
+			want: []tokenValue{
+				V(durationscanner.MONTHS_FLOAT, "-22.910"),
 			},
 		},
 		"float months leading dot": {
@@ -203,6 +233,12 @@ func TestDurationscanner(t *testing.T) {
 				V(durationscanner.DAYS_INT, "200"),
 			},
 		},
+		"integer days negative": {
+			input: "-200D",
+			want: []tokenValue{
+				V(durationscanner.DAYS_INT, "-200"),
+			},
+		},
 		"integer days with underscores": {
 			input: "2_000D",
 			want: []tokenValue{
@@ -213,6 +249,12 @@ func TestDurationscanner(t *testing.T) {
 			input: "22.910D",
 			want: []tokenValue{
 				V(durationscanner.DAYS_FLOAT, "22.910"),
+			},
+		},
+		"float days negative": {
+			input: "-22.910D",
+			want: []tokenValue{
+				V(durationscanner.DAYS_FLOAT, "-22.910"),
 			},
 		},
 		"float days leading dot": {
@@ -234,6 +276,12 @@ func TestDurationscanner(t *testing.T) {
 				V(durationscanner.HOURS_INT, "200"),
 			},
 		},
+		"integer hours negative": {
+			input: "-200h",
+			want: []tokenValue{
+				V(durationscanner.HOURS_INT, "-200"),
+			},
+		},
 		"integer hours with underscores": {
 			input: "2_000h",
 			want: []tokenValue{
@@ -244,6 +292,12 @@ func TestDurationscanner(t *testing.T) {
 			input: "22.910h",
 			want: []tokenValue{
 				V(durationscanner.HOURS_FLOAT, "22.910"),
+			},
+		},
+		"float hours negative": {
+			input: "-22.910h",
+			want: []tokenValue{
+				V(durationscanner.HOURS_FLOAT, "-22.910"),
 			},
 		},
 		"float hours leading dot": {
@@ -265,6 +319,12 @@ func TestDurationscanner(t *testing.T) {
 				V(durationscanner.MINUTES_INT, "200"),
 			},
 		},
+		"integer minutes negative": {
+			input: "-200m",
+			want: []tokenValue{
+				V(durationscanner.MINUTES_INT, "-200"),
+			},
+		},
 		"integer minutes with underscores": {
 			input: "2_000m",
 			want: []tokenValue{
@@ -275,6 +335,12 @@ func TestDurationscanner(t *testing.T) {
 			input: "22.910m",
 			want: []tokenValue{
 				V(durationscanner.MINUTES_FLOAT, "22.910"),
+			},
+		},
+		"float minutes negative": {
+			input: "-22.910m",
+			want: []tokenValue{
+				V(durationscanner.MINUTES_FLOAT, "-22.910"),
 			},
 		},
 		"float minutes leading dot": {
@@ -296,6 +362,12 @@ func TestDurationscanner(t *testing.T) {
 				V(durationscanner.SECONDS_INT, "200"),
 			},
 		},
+		"integer seconds negative": {
+			input: "-200s",
+			want: []tokenValue{
+				V(durationscanner.SECONDS_INT, "-200"),
+			},
+		},
 		"integer seconds with underscores": {
 			input: "2_000s",
 			want: []tokenValue{
@@ -306,6 +378,12 @@ func TestDurationscanner(t *testing.T) {
 			input: "22.910s",
 			want: []tokenValue{
 				V(durationscanner.SECONDS_FLOAT, "22.910"),
+			},
+		},
+		"float seconds negative": {
+			input: "-22.910s",
+			want: []tokenValue{
+				V(durationscanner.SECONDS_FLOAT, "-22.910"),
 			},
 		},
 		"float seconds leading dot": {
@@ -334,6 +412,12 @@ func TestDurationscanner(t *testing.T) {
 				V(durationscanner.MILLISECONDS_INT, "200"),
 			},
 		},
+		"integer milliseconds negative": {
+			input: "-200ms",
+			want: []tokenValue{
+				V(durationscanner.MILLISECONDS_INT, "-200"),
+			},
+		},
 		"integer milliseconds with underscores": {
 			input: "2_000ms",
 			want: []tokenValue{
@@ -344,6 +428,12 @@ func TestDurationscanner(t *testing.T) {
 			input: "22.910ms",
 			want: []tokenValue{
 				V(durationscanner.MILLISECONDS_FLOAT, "22.910"),
+			},
+		},
+		"float milliseconds negative": {
+			input: "-22.910ms",
+			want: []tokenValue{
+				V(durationscanner.MILLISECONDS_FLOAT, "-22.910"),
 			},
 		},
 		"float milliseconds leading dot": {
@@ -371,6 +461,12 @@ func TestDurationscanner(t *testing.T) {
 				V(durationscanner.MICROSECONDS_INT, "200"),
 			},
 		},
+		"integer microseconds negative": {
+			input: "-200us",
+			want: []tokenValue{
+				V(durationscanner.MICROSECONDS_INT, "-200"),
+			},
+		},
 		"integer microseconds with greek": {
 			input: "600µs",
 			want: []tokenValue{
@@ -387,6 +483,12 @@ func TestDurationscanner(t *testing.T) {
 			input: "22.910us",
 			want: []tokenValue{
 				V(durationscanner.MICROSECONDS_FLOAT, "22.910"),
+			},
+		},
+		"float microseconds negative": {
+			input: "-22.910us",
+			want: []tokenValue{
+				V(durationscanner.MICROSECONDS_FLOAT, "-22.910"),
 			},
 		},
 		"float microseconds leading dot": {
@@ -414,6 +516,12 @@ func TestDurationscanner(t *testing.T) {
 				V(durationscanner.NANOSECONDS_INT, "200"),
 			},
 		},
+		"integer nanoseconds negative": {
+			input: "-200ns",
+			want: []tokenValue{
+				V(durationscanner.NANOSECONDS_INT, "-200"),
+			},
+		},
 		"integer nanoseconds with underscores": {
 			input: "2_000ns",
 			want: []tokenValue{
@@ -424,6 +532,12 @@ func TestDurationscanner(t *testing.T) {
 			input: "22.910ns",
 			want: []tokenValue{
 				V(durationscanner.NANOSECONDS_FLOAT, "22.910"),
+			},
+		},
+		"float nanoseconds negative": {
+			input: "-22.910ns",
+			want: []tokenValue{
+				V(durationscanner.NANOSECONDS_FLOAT, "-22.910"),
 			},
 		},
 		"float nanoseconds leading dot": {

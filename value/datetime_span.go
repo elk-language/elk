@@ -93,6 +93,9 @@ func (d *DateTimeSpan) String() string {
 		buff.WriteString(d.DateSpan.String())
 	}
 	if d.TimeSpan != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
 		buff.WriteString(d.TimeSpan.String())
 	}
 
@@ -307,6 +310,11 @@ func (d *DateTimeSpan) AddTimeSpan(other TimeSpan) *DateTimeSpan {
 	)
 }
 
+func (d *DateTimeSpan) AddMutTimeSpan(other TimeSpan) *DateTimeSpan {
+	d.TimeSpan = d.TimeSpan.AddTimeSpan(other)
+	return d
+}
+
 func (d *DateTimeSpan) AddDateSpan(other DateSpan) *DateTimeSpan {
 	return NewDateTimeSpan(
 		d.DateSpan.AddDateSpan(other),
@@ -319,6 +327,12 @@ func (d *DateTimeSpan) AddDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
 		d.DateSpan.AddDateSpan(other.DateSpan),
 		d.TimeSpan.AddTimeSpan(other.TimeSpan),
 	)
+}
+
+func (d *DateTimeSpan) AddMutDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
+	d.DateSpan = d.DateSpan.AddDateSpan(other.DateSpan)
+	d.TimeSpan = d.TimeSpan.AddTimeSpan(other.TimeSpan)
+	return d
 }
 
 func (d *DateTimeSpan) Subtract(other Value) (Value, Value) {
@@ -678,7 +692,7 @@ tokenLoop:
 				))
 			}
 			yearsSpan := MakeDateSpan(1, 0, 0).MultiplyFloat(Float(years))
-			result.AddDateTimeSpan(yearsSpan)
+			result.AddMutDateTimeSpan(yearsSpan)
 		case durationscanner.MONTHS_INT:
 			bigMonths, err := ParseBigInt(value, 10)
 			if !err.IsUndefined() {
@@ -697,7 +711,7 @@ tokenLoop:
 				))
 			}
 			monthsSpan := MakeDateSpan(0, 1, 0).MultiplyFloat(Float(months))
-			result.AddDateTimeSpan(monthsSpan)
+			result.AddMutDateTimeSpan(monthsSpan)
 		case durationscanner.DAYS_INT:
 			bigDays, err := ParseBigInt(value, 10)
 			if !err.IsUndefined() {
@@ -716,7 +730,7 @@ tokenLoop:
 				))
 			}
 			daysSpan := MakeDateSpan(0, 0, 1).MultiplyFloat(Float(days))
-			result.AddDateTimeSpan(daysSpan)
+			result.AddMutDateTimeSpan(daysSpan)
 		case durationscanner.HOURS_INT:
 			bigHours, err := ParseBigInt(value, 10)
 			if !err.IsUndefined() {
@@ -735,7 +749,7 @@ tokenLoop:
 				))
 			}
 			hoursSpan := Hour.MultiplyFloat(Float(hours))
-			result.AddTimeSpan(hoursSpan)
+			result.AddMutTimeSpan(hoursSpan)
 		case durationscanner.MINUTES_INT:
 			bigMinutes, err := ParseBigInt(value, 10)
 			if !err.IsUndefined() {
@@ -754,7 +768,7 @@ tokenLoop:
 				))
 			}
 			minutesSpan := Minute.MultiplyFloat(Float(minutes))
-			result.AddTimeSpan(minutesSpan)
+			result.AddMutTimeSpan(minutesSpan)
 		case durationscanner.SECONDS_INT:
 			bigSeconds, err := ParseBigInt(value, 10)
 			if !err.IsUndefined() {
@@ -773,7 +787,7 @@ tokenLoop:
 				))
 			}
 			secondsSpan := Second.MultiplyFloat(Float(seconds))
-			result.AddTimeSpan(secondsSpan)
+			result.AddMutTimeSpan(secondsSpan)
 		case durationscanner.MILLISECONDS_INT:
 			bigMilliseconds, err := ParseBigInt(value, 10)
 			if !err.IsUndefined() {
@@ -792,7 +806,7 @@ tokenLoop:
 				))
 			}
 			millisecondsSpan := Millisecond.MultiplyFloat(Float(milliseconds))
-			result.AddTimeSpan(millisecondsSpan)
+			result.AddMutTimeSpan(millisecondsSpan)
 		case durationscanner.MICROSECONDS_INT:
 			bigMicroseconds, err := ParseBigInt(value, 10)
 			if !err.IsUndefined() {
@@ -811,13 +825,33 @@ tokenLoop:
 				))
 			}
 			microsecondsSpan := Microsecond.MultiplyFloat(Float(microseconds))
-			result.AddTimeSpan(microsecondsSpan)
+			result.AddMutTimeSpan(microsecondsSpan)
+		case durationscanner.NANOSECONDS_INT:
+			bigNanoseconds, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			nanoseconds := TimeSpan(bigNanoseconds.ToSmallInt())
+			result.TimeSpan += nanoseconds * Nanosecond
+		case durationscanner.NANOSECONDS_FLOAT:
+			nanoseconds, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in duration string: %s",
+					er.Error(),
+				))
+			}
+			nanosecondsSpan := Nanosecond.MultiplyFloat(Float(nanoseconds))
+			result.AddMutTimeSpan(nanosecondsSpan)
 		default:
 			panic(fmt.Sprintf("undefined duration token: %s", token.String()))
 		}
 
 	}
 
+	result.Normalise()
 	return result, Undefined
 }
 

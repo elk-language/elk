@@ -114,7 +114,7 @@ func (t *Durationscanner) scan() (Token, string) {
 		if unicode.IsSpace(char) {
 			continue
 		}
-		if isDigit(char) || char == '.' {
+		if isDigit(char) || char == '.' || char == '-' {
 			return t.numericComponent(char)
 		}
 
@@ -146,11 +146,17 @@ func (d *Durationscanner) numericComponent(startDigit rune) (Token, string) {
 	var lexeme strings.Builder
 	var isFloat bool
 
-	if startDigit == '.' {
+	switch startDigit {
+	case '.':
 		isFloat = true
 		lexeme.WriteString("0.")
 		d.consumeDigits(decimalLiteralChars, &lexeme)
-	} else {
+	case '-':
+		if !d.acceptChars(decimalLiteralChars) {
+			return ERROR, fmt.Sprintf("unexpected char '%c', expected a digit", d.mustAdvanceChar())
+		}
+		fallthrough
+	default:
 		lexeme.WriteRune(startDigit)
 		d.consumeDigits(decimalLiteralChars, &lexeme)
 
@@ -203,15 +209,7 @@ func (d *Durationscanner) numericComponent(startDigit rune) (Token, string) {
 			return SECONDS_FLOAT, lexeme.String()
 		}
 		return SECONDS_INT, lexeme.String()
-	case 'u':
-		if d.matchChar('s') {
-			if isFloat {
-				return MICROSECONDS_FLOAT, lexeme.String()
-			}
-			return MICROSECONDS_INT, lexeme.String()
-		}
-		return ERROR, fmt.Sprintf("unexpected char '%c', expected 's'", d.mustAdvanceChar())
-	case 'µ':
+	case 'u', 'µ', 'μ':
 		if d.matchChar('s') {
 			if isFloat {
 				return MICROSECONDS_FLOAT, lexeme.String()

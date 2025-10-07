@@ -68,9 +68,15 @@ func (d DateSpan) String() string {
 		fmt.Fprintf(&buff, "%dY", years)
 	}
 	if months != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
 		fmt.Fprintf(&buff, "%dM", months)
 	}
 	if days != 0 || d.IsZero() {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
 		fmt.Fprintf(&buff, "%dD", days)
 	}
 	return buff.String()
