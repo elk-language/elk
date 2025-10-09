@@ -269,6 +269,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents a macro definition eg. `macro foo(a: Elk::AST::StringLiteralNode); a; end`", false, true, true, false, value.ToSymbol("MacroDefinitionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a macro name eg. `foo!`.", false, true, true, false, value.ToSymbol("MacroNameNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a Map pattern eg. `{ foo: 5, bar: a, 5 => >= 10 }`", false, true, true, false, value.ToSymbol("MapPatternNode"), objectClass, env)
+				namespace.TryDefineClass("An expression that matches a value against a pattern eg. `a match Foo(a: \"lol\", b: > 2)`", false, true, true, false, value.ToSymbol("MatchExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a method call eg. `'123'.to_int()`", false, true, true, false, value.ToSymbol("MethodCallNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a method definition eg. `def foo: String then 'hello world'`", false, true, true, false, value.ToSymbol("MethodDefinitionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a method lookup with as in using declarations\neg. `Foo::bar as Bar`.", false, true, true, false, value.ToSymbol("MethodLookupAsNode"), objectClass, env)
@@ -4025,6 +4026,24 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("MatchExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
 						// Define constants
 

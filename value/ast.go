@@ -73,6 +73,7 @@ var ModifierNodeClass *Class                      // Std::Elk::AST::ModifierNode
 var ModifierIfElseNodeClass *Class                // Std::Elk::AST::ModifierIfElseNode
 var ModifierForInNodeClass *Class                 // Std::Elk::AST::ModifierForInNode
 var AssignmentExpressionNodeClass *Class          // Std::Elk::AST::AssignmentExpressionNode
+var MatchExpressionNodeClass *Class               // Std::Elk::AST::MatchExpressionNode
 var BinaryExpressionNodeClass *Class              // Std::Elk::AST::BinaryExpressionNode
 var LogicalExpressionNodeClass *Class             // Std::Elk::AST::LogicalExpressionNode
 var UnaryExpressionNodeClass *Class               // Std::Elk::AST::UnaryExpressionNode
@@ -484,6 +485,10 @@ func initElkAST() {
 	BinaryExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	BinaryExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("BinaryExpressionNode", Ref(BinaryExpressionNodeClass))
+
+	MatchExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	MatchExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("MatchExpressionNode", Ref(MatchExpressionNodeClass))
 
 	LogicalExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	LogicalExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)

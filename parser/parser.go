@@ -1189,10 +1189,10 @@ func (p *Parser) logicalAndExpression() ast.ExpressionNode {
 	return p.logicalExpression(p.pipeExpression, token.AND_AND, token.AND_BANG)
 }
 
-// pipeExpression = bitwiseOrExpression |
-// pipeExpression "|>" bitwiseOrExpression
+// pipeExpression = matchExpression |
+// pipeExpression "|>" matchExpression
 func (p *Parser) pipeExpression() ast.ExpressionNode {
-	left := p.bitwiseOrExpression()
+	left := p.matchExpression()
 
 	for {
 		op, ok := p.matchOk(token.PIPE_OP)
@@ -1202,7 +1202,7 @@ func (p *Parser) pipeExpression() ast.ExpressionNode {
 		p.swallowNewlines()
 
 		p.indentedSection = true
-		right := p.bitwiseOrExpression()
+		right := p.matchExpression()
 		p.indentedSection = false
 		if !ast.IsValidPipeExpressionTarget(right) {
 			p.errorMessageLocation(
@@ -1220,6 +1220,22 @@ func (p *Parser) pipeExpression() ast.ExpressionNode {
 	}
 
 	return left
+}
+
+// matchExpression = bitwiseOrExpression ["match" pattern]
+func (p *Parser) matchExpression() ast.ExpressionNode {
+	expr := p.bitwiseOrExpression()
+
+	if !p.match(token.MATCH) {
+		return expr
+	}
+
+	pattern := p.pattern()
+	return ast.NewMatchExpressionNode(
+		expr.Location().Join(pattern.Location()),
+		expr,
+		pattern,
+	)
 }
 
 // bitwiseOrExpression = bitwiseXorExpression | bitwiseOrExpression "|" bitwiseXorExpression

@@ -48,6 +48,42 @@ func TestPatternExpression(t *testing.T) {
 	}
 }
 
+func TestMatchExpression(t *testing.T) {
+	tests := testTable{
+		"accepts a simple pattern": {
+			input: "a + 2 match > 10",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(15, 1, 16))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(15, 1, 16))),
+						ast.NewMatchExpressionNode(
+							L(S(P(0, 1, 1), P(15, 1, 16))),
+							ast.NewBinaryExpressionNode(
+								L(S(P(0, 1, 1), P(4, 1, 5))),
+								T(L(S(P(2, 1, 3), P(2, 1, 3))), token.PLUS),
+								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(0, 1, 1))), "a"),
+								ast.NewIntLiteralNode(L(S(P(4, 1, 5), P(4, 1, 5))), "2"),
+							),
+							ast.NewUnaryExpressionNode(
+								L(S(P(12, 1, 13), P(15, 1, 16))),
+								T(L(S(P(12, 1, 13), P(12, 1, 13))), token.GREATER),
+								ast.NewIntLiteralNode(L(S(P(14, 1, 15), P(15, 1, 16))), "10"),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestSwitch(t *testing.T) {
 	tests := testTable{
 		"cannot be empty": {

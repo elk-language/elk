@@ -155,6 +155,8 @@ func ExpressionPrecedence(expr ExpressionNode) uint8 {
 		case token.AND_AND, token.AND_BANG:
 			return 50
 		}
+	case *MatchExpressionNode:
+		return 55
 	case *BinaryExpressionNode:
 		switch e.Op.Type {
 		case token.PIPE_OP:
