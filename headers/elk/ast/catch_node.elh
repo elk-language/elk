@@ -10,13 +10,13 @@ module Std::Elk::AST
   ]##
   sealed primitive class CatchNode
     init(
-      pattern: PatternNode,
+      pattern_node: PatternNode,
       body: ArrayTuple[StatementNode],
       stack_trace_var: IdentifierNode? = nil,
       location: FS::Location = loop; end
     ); end
 
-    def pattern: PatternNode; end
+    def pattern_node: PatternNode; end
     def stack_trace_var: IdentifierNode?; end
     def body: ArrayTuple[StatementNode]; end
     def location: FS::Location; end

@@ -1,15 +1,12 @@
-module ::Std::Elk::AST
-	##[
-		Represents AST nodes that are valid expressions and patterns.
-	]##
-	mixin LiteralPatternNode
-		include ExpressionNode,
-						PatternNode
+module Std::Elk::AST
+  ##[
+    Represents a pattern expression `type Foo(a: String, b: > 5)`
+  ]##
+  sealed primitive class PatternExpressionNode
+    include ExpressionNode
 
-		def to_ast_pattern_expr_node: LiteralPatternNode; end
-
-		interface Convertible
-			sig to_ast_pattern_expr_node: LiteralPatternNode
-		end
-	end
+    init(pattern_node: PatternNode, location: FS::Location = loop; end); end
+    def pattern_node: PatternNode; end
+    def location: FS::Location; end
+  end
 end

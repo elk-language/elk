@@ -9,6 +9,7 @@ type ExpressionNode interface {
 func (*InvalidNode) expressionNode()                       {}
 func (*UnhygienicNode) expressionNode()                    {}
 func (*TypeExpressionNode) expressionNode()                {}
+func (*PatternExpressionNode) expressionNode()             {}
 func (*MacroNameNode) expressionNode()                     {}
 func (*InstanceVariableDeclarationNode) expressionNode()   {}
 func (*VariablePatternDeclarationNode) expressionNode()    {}

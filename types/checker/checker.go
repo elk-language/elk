@@ -1017,8 +1017,7 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 	case *ast.IncludeExpressionNode:
 		c.checkIncludeExpressionNode(n)
 		return n
-	case *ast.TypeExpressionNode:
-		n.TypeNode = c.checkTypeNode(n.TypeNode)
+	case *ast.TypeExpressionNode, *ast.PatternExpressionNode:
 		return n
 	case *ast.IntLiteralNode:
 		n.SetType(types.NewIntLiteral(n.Value))

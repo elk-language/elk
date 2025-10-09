@@ -3,8 +3,8 @@ module Std::Elk::AST
     Represents a `case` node eg. `case 3 then println("eureka!")`
   ]##
   sealed primitive class CaseNode
-    init(pattern: PatternNode, body: ArrayTuple[StatementNode], location: FS::Location = loop; end); end
-    def pattern: PatternNode; end
+    init(pattern_node: PatternNode, body: ArrayTuple[StatementNode], location: FS::Location = loop; end); end
+    def pattern_node: PatternNode; end
     def body: ArrayTuple[StatementNode]; end
     def location: FS::Location; end
   end

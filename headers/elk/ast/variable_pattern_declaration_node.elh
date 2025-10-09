@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class VariablePatternDeclarationNode
     include ExpressionNode
 
-    init(pattern: PatternNode, initialiser: ExpressionNode, location: FS::Location = loop; end); end
-    def pattern: PatternNode; end
+    init(pattern_node: PatternNode, initialiser: ExpressionNode, location: FS::Location = loop; end); end
+    def pattern_node: PatternNode; end
     def initialiser: ExpressionNode; end
     def location: FS::Location; end
   end

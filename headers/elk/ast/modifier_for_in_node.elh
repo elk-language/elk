@@ -7,13 +7,13 @@ module Std::Elk::AST
 
     init(
       then_expression: ExpressionNode,
-      pattern: PatternNode,
+      pattern_node: PatternNode,
       in_expression: ExpressionNode,
       location: FS::Location = loop; end,
     ); end
 
     def then_expression: ExpressionNode; end
-    def pattern: PatternNode; end
+    def pattern_node: PatternNode; end
     def in_expression: ExpressionNode; end
     def location: FS::Location; end
   end

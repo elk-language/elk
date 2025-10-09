@@ -2584,6 +2584,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.typeDefinition(false)
 	case token.TYPE:
 		return p.typeExpression()
+	case token.PATTERN:
+		return p.patternExpression()
 	case token.ALIAS:
 		return p.aliasDeclaration(false)
 	case token.SIG:
@@ -3289,6 +3291,19 @@ func (p *Parser) typeExpression() ast.ExpressionNode {
 	return ast.NewTypeExpressionNode(
 		typeTok.Location().Join(typ.Location()),
 		typ,
+	)
+}
+
+// patternExpression = "pattern" pattern
+func (p *Parser) patternExpression() ast.ExpressionNode {
+	typeTok := p.advance()
+
+	p.swallowNewlines()
+
+	pattern := p.pattern()
+	return ast.NewPatternExpressionNode(
+		typeTok.Location().Join(pattern.Location()),
+		pattern,
 	)
 }
 

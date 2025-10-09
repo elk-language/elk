@@ -991,7 +991,7 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		return c.compileLabeledExpressionNode(node, valueIsIgnored)
 	case *ast.UndefinedLiteralNode:
 		c.emit(node.Location().StartPos.Line, bytecode.UNDEFINED)
-	case *ast.TypeExpressionNode:
+	case *ast.TypeExpressionNode, *ast.PatternExpressionNode:
 		c.emit(node.Location().StartPos.Line, bytecode.NIL)
 	case *ast.PublicConstantNode:
 		c.compilePublicConstantNode(node)

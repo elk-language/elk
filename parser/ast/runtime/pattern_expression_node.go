@@ -7,49 +7,36 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func initValuePatternDeclarationNode() {
-	c := &value.ValuePatternDeclarationNodeClass.MethodContainer
+func initPatternExpressionNode() {
+	c := &value.PatternExpressionNodeClass.MethodContainer
 	vm.Def(
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argPattern := args[1].MustReference().(ast.PatternNode)
-			argInitialiser := args[2].MustReference().(ast.ExpressionNode)
+			argPatternNode := args[1].MustReference().(ast.PatternNode)
 
 			var argLoc *position.Location
-			if args[3].IsUndefined() {
+			if args[2].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[3].Pointer())
+				argLoc = (*position.Location)(args[2].Pointer())
 			}
-			self := ast.NewValuePatternDeclarationNode(
+			self := ast.NewPatternExpressionNode(
 				argLoc,
-				argPattern,
-				argInitialiser,
+				argPatternNode,
 			)
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(3),
+		vm.DefWithParameters(2),
 	)
 
 	vm.Def(
 		c,
 		"pattern_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.ValuePatternDeclarationNode)
-			result := value.Ref(self.Pattern)
-			return result, value.Undefined
-
-		},
-	)
-
-	vm.Def(
-		c,
-		"initialiser",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.ValuePatternDeclarationNode)
-			result := value.Ref(self.Initialiser)
+			self := args[0].MustReference().(*ast.PatternExpressionNode)
+			result := value.Ref(self.PatternNode)
 			return result, value.Undefined
 
 		},
@@ -59,7 +46,7 @@ func initValuePatternDeclarationNode() {
 		c,
 		"location",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.ValuePatternDeclarationNode)
+			self := args[0].MustReference().(*ast.PatternExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
 
@@ -70,7 +57,7 @@ func initValuePatternDeclarationNode() {
 		c,
 		"==",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.ValuePatternDeclarationNode)
+			self := args[0].MustReference().(*ast.PatternExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
 		},
@@ -81,7 +68,7 @@ func initValuePatternDeclarationNode() {
 		c,
 		"to_string",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.ValuePatternDeclarationNode)
+			self := args[0].MustReference().(*ast.PatternExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
 	)
