@@ -1017,6 +1017,8 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 		c.compileGoExpressionNode(node)
 	case *ast.ClosureLiteralNode:
 		c.compileClosureLiteralNode(node)
+	case *ast.MatchExpressionNode:
+		c.compileMatchExpressionNode(node)
 	case *ast.SwitchExpressionNode:
 		return c.compileSwitchExpressionNode(node, valueIsIgnored)
 	case *ast.SubscriptExpressionNode:
@@ -4274,6 +4276,12 @@ func (c *Compiler) enterPattern() {
 
 func (c *Compiler) leavePattern() {
 	c.patternNesting--
+}
+
+func (c *Compiler) compileMatchExpressionNode(node *ast.MatchExpressionNode) {
+	c.compileNodeWithResult(node.Expression)
+	c.pattern(node.Pattern)
+	c.emit(node.Location().StartPos.Line, bytecode.POP_SKIP_ONE)
 }
 
 func (c *Compiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode, valueIsIgnored bool) expressionResult {

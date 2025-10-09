@@ -1017,6 +1017,9 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 	case *ast.IncludeExpressionNode:
 		c.checkIncludeExpressionNode(n)
 		return n
+	case *ast.MatchExpressionNode:
+		c.checkMatchExpressionNode(n)
+		return n
 	case *ast.TypeExpressionNode, *ast.PatternExpressionNode:
 		return n
 	case *ast.IntLiteralNode:
@@ -4321,6 +4324,13 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 			)
 		}
 	}
+}
+
+func (c *Checker) checkMatchExpressionNode(node *ast.MatchExpressionNode) {
+	node.Expression = c.checkExpression(node.Expression)
+	exprType := c.TypeOf(node.Expression)
+	node.Pattern, _ = c.checkPattern(node.Pattern, exprType)
+	node.SetType(types.Bool{})
 }
 
 type instanceVariableOverride struct {
