@@ -27,7 +27,7 @@ func (*StringLiteralContentSectionNode) stringLiteralContentNode() {}
 // implement this interface.
 type StringLiteralNode interface {
 	Node
-	PatternExpressionNode
+	LiteralPatternNode
 	StringOrSymbolLiteralNode
 	stringLiteralNode()
 }

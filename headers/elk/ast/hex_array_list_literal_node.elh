@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents a hex ArrayList literal eg. `\x[ff ee]`
   ]##
   sealed primitive class HexArrayListLiteralNode
-    include PatternExpressionNode
+    include LiteralPatternNode
 
     init(
       elements: ArrayTuple[IntCollectionContentNode] = loop; end,

@@ -115,7 +115,7 @@ func PatternDeclaresVariables(pattern PatternNode) bool {
 	}
 }
 
-type PatternExpressionNode interface {
+type LiteralPatternNode interface {
 	Node
 	ExpressionNode
 	PatternNode

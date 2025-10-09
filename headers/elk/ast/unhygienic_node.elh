@@ -6,7 +6,7 @@ module Std::Elk::AST
   ]##
   sealed primitive class UnhygienicNode
     include TypeNode
-    include PatternExpressionNode
+    include LiteralPatternNode
 
     init(
       node: Node,

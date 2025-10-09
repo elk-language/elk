@@ -178,8 +178,8 @@ func TestUnquote(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(42, 3, 32)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::PatternExpressionNode::Convertible`:\n\n  - missing method `Std::Elk::AST::PatternExpressionNode::Convertible.:to_ast_pattern_expr_node` with signature: `def to_ast_pattern_expr_node(): Std::Elk::AST::PatternExpressionNode`"),
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(42, 3, 32)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::PatternExpressionNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(42, 3, 32)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::LiteralPatternNode::Convertible`:\n\n  - missing method `Std::Elk::AST::LiteralPatternNode::Convertible.:to_ast_pattern_expr_node` with signature: `def to_ast_pattern_expr_node(): Std::Elk::AST::LiteralPatternNode`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(42, 3, 32)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::LiteralPatternNode::Convertible`"),
 			},
 		},
 		"report an error when the argument to short unquote is not pattern expression node convertible": {
@@ -189,8 +189,8 @@ func TestUnquote(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(36, 3, 26)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::PatternExpressionNode::Convertible`:\n\n  - missing method `Std::Elk::AST::PatternExpressionNode::Convertible.:to_ast_pattern_expr_node` with signature: `def to_ast_pattern_expr_node(): Std::Elk::AST::PatternExpressionNode`"),
-				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(36, 3, 26)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::PatternExpressionNode::Convertible`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(36, 3, 26)), "type `Std::DateTime` does not implement interface `Std::Elk::AST::LiteralPatternNode::Convertible`:\n\n  - missing method `Std::Elk::AST::LiteralPatternNode::Convertible.:to_ast_pattern_expr_node` with signature: `def to_ast_pattern_expr_node(): Std::Elk::AST::LiteralPatternNode`"),
+				diagnostic.NewFailure(L("<main>", P(22, 3, 12), P(36, 3, 26)), "type `Std::DateTime` cannot be assigned to type `Std::Elk::AST::LiteralPatternNode::Convertible`"),
 			},
 		},
 

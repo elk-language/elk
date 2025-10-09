@@ -3,7 +3,7 @@ module Std::Elk::AST
     `nil` literal.
   ]##
   sealed primitive class NilLiteralNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode,
             UsingEntryNode,
             ComplexConstantNode

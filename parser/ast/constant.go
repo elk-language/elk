@@ -38,7 +38,7 @@ type ComplexConstantNode interface {
 	TypeNode
 	ExpressionNode
 	PatternNode
-	PatternExpressionNode
+	LiteralPatternNode
 	UsingEntryNode
 	complexConstantNode()
 }

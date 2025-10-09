@@ -5,8 +5,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func initPatternExpressionNode() {
-	c := &value.PatternExpressionNodeMixin.MethodContainer
+func initLiteralPatternNode() {
+	c := &value.LiteralPatternNodeMixin.MethodContainer
 	vm.Def(
 		c,
 		"to_ast_pattern_expr_node",

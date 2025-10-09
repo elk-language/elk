@@ -3,7 +3,7 @@ module Std::Elk::AST
     `false` literal.
   ]##
   sealed primitive class FalseLiteralNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode
 
     init(location: FS::Location = loop; end); end

@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class KeyValuePatternNode
     include PatternNode
 
-    init(key: PatternExpressionNode, value: PatternNode, location: FS::Location = loop; end); end
-    def key: PatternExpressionNode; end
+    init(key: LiteralPatternNode, value: PatternNode, location: FS::Location = loop; end); end
+    def key: LiteralPatternNode; end
     def value: PatternNode; end
     def location: FS::Location; end
   end

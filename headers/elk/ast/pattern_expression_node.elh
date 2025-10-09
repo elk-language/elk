@@ -2,14 +2,14 @@ module ::Std::Elk::AST
 	##[
 		Represents AST nodes that are valid expressions and patterns.
 	]##
-	mixin PatternExpressionNode
+	mixin LiteralPatternNode
 		include ExpressionNode,
 						PatternNode
 
-		def to_ast_pattern_expr_node: PatternExpressionNode; end
+		def to_ast_pattern_expr_node: LiteralPatternNode; end
 
 		interface Convertible
-			sig to_ast_pattern_expr_node: PatternExpressionNode
+			sig to_ast_pattern_expr_node: LiteralPatternNode
 		end
 	end
 end

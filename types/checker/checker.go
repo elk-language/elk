@@ -1330,8 +1330,8 @@ func (c *Checker) StdPatternNode() *types.Mixin {
 	return constant.Type.(*types.Mixin)
 }
 
-func (c *Checker) StdPatternExpressionNode() *types.Mixin {
-	constant, _ := c.StdAST().Subtype(symbol.PatternExpressionNode)
+func (c *Checker) StdLiteralPatternNode() *types.Mixin {
+	constant, _ := c.StdAST().Subtype(symbol.LiteralPatternNode)
 	return constant.Type.(*types.Mixin)
 }
 
@@ -1370,8 +1370,8 @@ func (c *Checker) StdPatternNodeConvertible() *types.Interface {
 	return constant.Type.(*types.Interface)
 }
 
-func (c *Checker) StdPatternExpressionNodeConvertible() *types.Interface {
-	constant, _ := c.StdPatternExpressionNode().Subtype(symbol.Convertible)
+func (c *Checker) StdLiteralPatternNodeConvertible() *types.Interface {
+	constant, _ := c.StdLiteralPatternNode().Subtype(symbol.Convertible)
 	return constant.Type.(*types.Interface)
 }
 
@@ -4112,7 +4112,7 @@ func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.Q
 	exprConvertible := c.StdExpressionNodeConvertible()
 	constConvertible := c.StdConstantNodeConvertible()
 	patternConvertible := c.StdPatternNodeConvertible()
-	patternExprConvertible := c.StdPatternExpressionNodeConvertible()
+	patternExprConvertible := c.StdLiteralPatternNodeConvertible()
 	typeConvertible := c.StdTypeNodeConvertible()
 	identConvertible := c.StdIdentifierNodeConvertible()
 	ivarConvertible := c.StdInstanceVariableNodeConvertible()

@@ -3,7 +3,7 @@ module Std::Elk::AST
     Float32 literal eg. `5.2f32`, `.5f32`, `45e20f32`
   ]##
   sealed primitive class Float32LiteralNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode
 
     ##[

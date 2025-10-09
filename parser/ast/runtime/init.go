@@ -7,7 +7,7 @@ func InitGlobalEnvironment() {
 	initIdentifierNode()
 	initTypeNode()
 	initPatternNode()
-	initPatternExpressionNode()
+	initLiteralPatternNode()
 	initInstanceVariableNode()
 	initAliasDeclarationEntry()
 	initAliasDeclarationNode()

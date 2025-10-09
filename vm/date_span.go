@@ -6,8 +6,20 @@ import (
 
 // Std::Date::Span
 func initDateSpan() {
+	// Singleton methods
+	c := &value.DateSpanClass.SingletonClass().MethodContainer
+	Def(
+		c,
+		"parse",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			str := string(args[1].AsString())
+			return value.RefErr(value.ParseDateSpan(str))
+		},
+		DefWithParameters(1),
+	)
+
 	// Instance methods
-	c := &value.DateSpanClass.MethodContainer
+	c = &value.DateSpanClass.MethodContainer
 	Def(
 		c,
 		"#init",

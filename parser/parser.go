@@ -5209,7 +5209,7 @@ func (p *Parser) unquotePattern() ast.PatternNode {
 }
 
 // unquotePatternExpression = "unquote" "(" expressionWithoutModifier ")"
-func (p *Parser) unquotePatternExpression() ast.PatternExpressionNode {
+func (p *Parser) unquotePatternExpression() ast.LiteralPatternNode {
 	return p.unquote(ast.UNQUOTE_PATTERN_EXPRESSION_KIND)
 }
 
@@ -5269,7 +5269,7 @@ func (p *Parser) shortUnquotePattern() ast.PatternNode {
 }
 
 // shortUnquotePatternExpression = "${" expressionWithoutModifier "}"
-func (p *Parser) shortUnquotePatternExpression() ast.PatternExpressionNode {
+func (p *Parser) shortUnquotePatternExpression() ast.LiteralPatternNode {
 	return p.shortUnquote(ast.UNQUOTE_PATTERN_EXPRESSION_KIND)
 }
 
@@ -6589,7 +6589,7 @@ func (p *Parser) rangePattern() ast.PatternNode {
 		return from
 	}
 
-	fromExpr, ok := from.(ast.PatternExpressionNode)
+	fromExpr, ok := from.(ast.LiteralPatternNode)
 	if !ok || !ast.IsValidRangePatternElement(from) {
 		p.errorMessageLocation("invalid range pattern element", from.Location())
 	}
@@ -6610,7 +6610,7 @@ func (p *Parser) rangePattern() ast.PatternNode {
 		to = p.unaryPatternArgument()
 	}
 
-	toExpr, ok := to.(ast.PatternExpressionNode)
+	toExpr, ok := to.(ast.LiteralPatternNode)
 	if !ok || !ast.IsValidRangePatternElement(to) {
 		p.errorMessageLocation("invalid range pattern element", to.Location())
 	}
@@ -6624,7 +6624,7 @@ func (p *Parser) rangePattern() ast.PatternNode {
 }
 
 // unaryPatternArgument = ["-" | "+"] simplePattern
-func (p *Parser) unaryPatternArgument() ast.PatternExpressionNode {
+func (p *Parser) unaryPatternArgument() ast.LiteralPatternNode {
 	operator, ok := p.matchOk(token.MINUS, token.PLUS)
 	val := p.simplePattern()
 	if !ok {
@@ -6688,7 +6688,7 @@ func (p *Parser) literalPattern() ast.PatternNode {
 	)
 }
 
-func (p *Parser) innerLiteralPattern() ast.PatternExpressionNode {
+func (p *Parser) innerLiteralPattern() ast.LiteralPatternNode {
 	switch p.lookahead.Type {
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.SCOPE_RES_OP:
 		return p.strictConstantLookup()
@@ -6944,7 +6944,7 @@ func (p *Parser) receiverlessMacroCall(kind ast.MacroKind) ast.PatternTypeExpres
 	)
 }
 
-func (p *Parser) identifierOrMacroPattern() ast.PatternExpressionNode {
+func (p *Parser) identifierOrMacroPattern() ast.LiteralPatternNode {
 	if !p.acceptSecond(token.BANG) {
 		return p.identifier()
 	}
@@ -6952,7 +6952,7 @@ func (p *Parser) identifierOrMacroPattern() ast.PatternExpressionNode {
 	return p.receiverlessMacroCall(ast.MACRO_PATTERN_KIND)
 }
 
-func (p *Parser) simplePattern() ast.PatternExpressionNode {
+func (p *Parser) simplePattern() ast.LiteralPatternNode {
 	switch p.lookahead.Type {
 	case token.REGEX_BEG:
 		return p.regexLiteral()
@@ -6964,133 +6964,133 @@ func (p *Parser) simplePattern() ast.PatternExpressionNode {
 }
 
 // wordHashSetPattern = "^w[" (rawString)* "]"
-func (p *Parser) wordHashSetPattern() ast.PatternExpressionNode {
+func (p *Parser) wordHashSetPattern() ast.LiteralPatternNode {
 	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.wordCollectionElement,
-		ast.NewWordHashSetLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
+		ast.NewWordHashSetLiteralPatternNode,
+		ast.NewInvalidLiteralPatternNode,
 		token.WORD_HASH_SET_END,
 	)
 }
 
 // symbolHashSetPattern = "^s[" (rawString)* "]"
-func (p *Parser) symbolHashSetPattern() ast.PatternExpressionNode {
+func (p *Parser) symbolHashSetPattern() ast.LiteralPatternNode {
 	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.symbolCollectionElement,
-		ast.NewSymbolHashSetLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
+		ast.NewSymbolHashSetLiteralPatternNode,
+		ast.NewInvalidLiteralPatternNode,
 		token.SYMBOL_HASH_SET_END,
 	)
 }
 
 // hexHashSetPattern = "^x[" (HEX_INT)* "]"
-func (p *Parser) hexHashSetPattern() ast.PatternExpressionNode {
+func (p *Parser) hexHashSetPattern() ast.LiteralPatternNode {
 	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.intCollectionElement,
-		ast.NewHexHashSetLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
+		ast.NewHexHashSetLiteralPatternNode,
+		ast.NewInvalidLiteralPatternNode,
 		token.HEX_HASH_SET_END,
 	)
 }
 
 // binHashSetPattern = "^b[" (BIN_INT)* "]"
-func (p *Parser) binHashSetPattern() ast.PatternExpressionNode {
+func (p *Parser) binHashSetPattern() ast.LiteralPatternNode {
 	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.intCollectionElement,
-		ast.NewBinHashSetLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
+		ast.NewBinHashSetLiteralPatternNode,
+		ast.NewInvalidLiteralPatternNode,
 		token.BIN_HASH_SET_END,
 	)
 }
 
 // wordArrayListPattern = "\w[" (rawString)* "]"
-func (p *Parser) wordArrayListPattern() ast.PatternExpressionNode {
+func (p *Parser) wordArrayListPattern() ast.LiteralPatternNode {
 	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.wordCollectionElement,
-		ast.NewWordArrayListLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
+		ast.NewWordArrayListLiteralPatternNode,
+		ast.NewInvalidLiteralPatternNode,
 		token.WORD_ARRAY_LIST_END,
 	)
 }
 
 // symbolArrayListPattern = "\s[" (rawString)* "]"
-func (p *Parser) symbolArrayListPattern() ast.PatternExpressionNode {
+func (p *Parser) symbolArrayListPattern() ast.LiteralPatternNode {
 	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.symbolCollectionElement,
-		ast.NewSymbolArrayListLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
+		ast.NewSymbolArrayListLiteralPatternNode,
+		ast.NewInvalidLiteralPatternNode,
 		token.SYMBOL_ARRAY_LIST_END,
 	)
 }
 
 // hexArrayListPattern = "\x[" (HEX_INT)* "]"
-func (p *Parser) hexArrayListPattern() ast.PatternExpressionNode {
+func (p *Parser) hexArrayListPattern() ast.LiteralPatternNode {
 	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.intCollectionElement,
-		ast.NewHexArrayListLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
+		ast.NewHexArrayListLiteralPatternNode,
+		ast.NewInvalidLiteralPatternNode,
 		token.HEX_ARRAY_LIST_END,
 	)
 }
 
 // binArrayListPattern = "\b[" (BIN_INT)* "]"
-func (p *Parser) binArrayListPattern() ast.PatternExpressionNode {
+func (p *Parser) binArrayListPattern() ast.LiteralPatternNode {
 	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.intCollectionElement,
-		ast.NewBinArrayListLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
+		ast.NewBinArrayListLiteralPatternNode,
+		ast.NewInvalidLiteralPatternNode,
 		token.BIN_ARRAY_LIST_END,
 	)
 }
 
 // wordArrayTuplePattern = "%w[" (rawString)* "]"
-func (p *Parser) wordArrayTuplePattern() ast.PatternExpressionNode {
+func (p *Parser) wordArrayTuplePattern() ast.LiteralPatternNode {
 	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.wordCollectionElement,
-		ast.NewWordArrayTupleLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
+		ast.NewWordArrayTupleLiteralPatternNode,
+		ast.NewInvalidLiteralPatternNode,
 		token.WORD_ARRAY_TUPLE_END,
 	)
 }
 
 // symbolArrayTuplePattern = "%s[" (rawString)* "]"
-func (p *Parser) symbolArrayTuplePattern() ast.PatternExpressionNode {
+func (p *Parser) symbolArrayTuplePattern() ast.LiteralPatternNode {
 	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.symbolCollectionElement,
-		ast.NewSymbolArrayTupleLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
+		ast.NewSymbolArrayTupleLiteralPatternNode,
+		ast.NewInvalidLiteralPatternNode,
 		token.SYMBOL_ARRAY_TUPLE_END,
 	)
 }
 
 // hexArrayTuplePattern = "%x[" (HEX_INT)* "]"
-func (p *Parser) hexArrayTuplePattern() ast.PatternExpressionNode {
+func (p *Parser) hexArrayTuplePattern() ast.LiteralPatternNode {
 	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.intCollectionElement,
-		ast.NewHexArrayTupleLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
+		ast.NewHexArrayTupleLiteralPatternNode,
+		ast.NewInvalidLiteralPatternNode,
 		token.HEX_ARRAY_TUPLE_END,
 	)
 }
 
 // binArrayTuplePattern = "%b[" (BIN_INT)* "]"
-func (p *Parser) binArrayTuplePattern() ast.PatternExpressionNode {
+func (p *Parser) binArrayTuplePattern() ast.LiteralPatternNode {
 	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.intCollectionElement,
-		ast.NewBinArrayTupleLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
+		ast.NewBinArrayTupleLiteralPatternNode,
+		ast.NewInvalidLiteralPatternNode,
 		token.BIN_ARRAY_TUPLE_END,
 	)
 }

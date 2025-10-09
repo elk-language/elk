@@ -5,6 +5,8 @@ import (
 	"math"
 	"math/big"
 	"strings"
+
+	"github.com/elk-language/elk/value/durationscanner"
 )
 
 // Represents the difference between two dates
@@ -551,6 +553,60 @@ func (d DateSpan) DivideBigFloat(other *BigFloat) *DateTimeSpan {
 		newDateSpan,
 		newTimeSpan,
 	)
+}
+
+// Create a string formatted according to the given format string.
+func ParseDateSpan(str string) (result DateSpan, err Value) {
+	scanner := durationscanner.New(str)
+	result = DateSpan{}
+
+tokenLoop:
+	for {
+		token, value := scanner.Next()
+		switch token {
+		case durationscanner.END_OF_FILE:
+			break tokenLoop
+		case durationscanner.ERROR:
+			return DateSpan{}, Ref(Errorf(
+				FormatErrorClass,
+				"invalid date span string: %s",
+				value,
+			))
+		case durationscanner.YEARS_INT:
+			bigYears, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return DateSpan{}, err
+			}
+
+			years := int32(bigYears.ToSmallInt())
+			result.months += years * 12
+		case durationscanner.MONTHS_INT:
+			bigMonths, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return DateSpan{}, err
+			}
+
+			months := int32(bigMonths.ToSmallInt())
+			result.months += months
+		case durationscanner.DAYS_INT:
+			bigDays, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return DateSpan{}, err
+			}
+
+			days := int32(bigDays.ToSmallInt())
+			result.days += days
+		default:
+			return DateSpan{}, Ref(Errorf(
+				FormatErrorClass,
+				"undefined date span token: %s",
+				token.String(),
+			))
+		}
+
+	}
+
+	return result, Undefined
 }
 
 func initDateSpan() {

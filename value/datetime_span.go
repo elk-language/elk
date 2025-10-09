@@ -846,7 +846,11 @@ tokenLoop:
 			nanosecondsSpan := Nanosecond.MultiplyFloat(Float(nanoseconds))
 			result.AddMutTimeSpan(nanosecondsSpan)
 		default:
-			panic(fmt.Sprintf("undefined duration token: %s", token.String()))
+			return nil, Ref(Errorf(
+				FormatErrorClass,
+				"undefined date time span token: %s",
+				token.String(),
+			))
 		}
 
 	}

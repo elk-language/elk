@@ -6,7 +6,7 @@ module Std::Elk::AST
     include UsingEntryNode
     include TypeNode
     include ComplexConstantNode
-    include PatternExpressionNode
+    include LiteralPatternNode
 
     init(
       receiver: ExpressionNode,

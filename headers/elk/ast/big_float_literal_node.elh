@@ -3,7 +3,7 @@ module Std::Elk::AST
     BigFloat literal eg. `5.2bf`, `.5bf`, `45e20bf`
   ]##
   sealed primitive class BigFloatLiteralNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode
 
     ##[

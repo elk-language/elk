@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents an uninterpolated regex literal eg. `%/foo/`
   ]##
   sealed primitive class UninterpolatedRegexLiteralNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             RegexLiteralNode
 
     init(

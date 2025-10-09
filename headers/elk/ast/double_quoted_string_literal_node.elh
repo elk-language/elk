@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents a simple double quoted string literal eg. `"foo baz"`
   ]##
   sealed primitive class DoubleQuotedStringLiteralNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode,
             StringLiteralNode,
             SimpleStringLiteralNode

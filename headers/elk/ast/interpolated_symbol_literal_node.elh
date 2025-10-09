@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents an interpolated symbol eg. `:"foo ${bar + 2}"`
   ]##
   sealed primitive class InterpolatedSymbolLiteralNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode,
             SymbolLiteralNode
 

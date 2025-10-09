@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents a private constant eg. `_Foo`
   ]##
   sealed primitive class PrivateConstantNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode,
             UsingEntryNode,
             ComplexConstantNode,

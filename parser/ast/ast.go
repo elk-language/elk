@@ -542,7 +542,7 @@ func IsValidAssignmentTarget(node Node) bool {
 
 type StringOrSymbolLiteralNode interface {
 	Node
-	PatternExpressionNode
+	LiteralPatternNode
 	stringOrSymbolLiteralNode()
 }
 
