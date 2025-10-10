@@ -96,6 +96,7 @@ const (
 	inferClosureThrowTypeFlag
 	generatorFlag
 	unhygienicFlag
+	conditionFlag     // checked expression is a part of an if/unless condition
 	definedMacrosFlag // indicates that the typechecker has defined some macros
 	incrementalFlag   // indicates the typechecker should check and compiler code incrementally (REPL)
 )
@@ -3179,7 +3180,12 @@ func (c *Checker) checkModifierIfElseNode(node *ast.ModifierIfElseNode, tailPosi
 
 func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition bool) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
+
+	prevConditionFlagValue := c.flags.HasFlag(conditionFlag)
+	c.flags.SetFlag(conditionFlag)
 	node.Condition = c.checkExpression(node.Condition)
+	c.flags.SetFlagValue(conditionFlag, prevConditionFlagValue)
+
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
 	c.pushNestedLocalEnv()
@@ -4330,6 +4336,12 @@ func (c *Checker) checkMatchExpressionNode(node *ast.MatchExpressionNode) {
 	node.Expression = c.checkExpression(node.Expression)
 	exprType := c.TypeOf(node.Expression)
 	node.Pattern, _ = c.checkPattern(node.Pattern, exprType)
+	if !c.flags.HasFlag(conditionFlag) && ast.PatternDeclaresVariables(node.Pattern) {
+		c.addFailure(
+			"patterns in match expressions outside conditions cannot declare variables",
+			node.Pattern.Location(),
+		)
+	}
 	node.SetType(types.Bool{})
 }
 
