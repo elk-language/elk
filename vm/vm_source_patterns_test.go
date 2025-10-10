@@ -6,6 +6,31 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+func TestVMSource_Match(t *testing.T) {
+	tests := sourceTestTable{
+		"return true when pattern matches": {
+			source: `
+				var a: Int | String = 5
+				a match Int()
+			`,
+			wantStackTop: value.True,
+		},
+		"return false when pattern does not match": {
+			source: `
+				var a: Int | String = 5
+				a match String()
+			`,
+			wantStackTop: value.False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_Switch(t *testing.T) {
 	tests := sourceTestTable{
 		"match no value": {
