@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/elk-language/elk/value/durationscanner"
 )
 
 // Represents the elapsed time between two Times as an int64 nanosecond count.
@@ -31,16 +34,149 @@ const (
 
 var TimeSpanClass *Class // ::Std::Time::Span
 
-// Parses a time span string and creates a time span value.
-// A time span string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
-// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
-func ParsTimeSpan(s String) (result TimeSpan, err Value) {
-	dur, er := time.ParseDuration(s.String())
-	if er != nil {
-		return result, Ref(NewError(FormatErrorClass, er.Error()))
+// Parses a time span string and creates a datetime span value.
+// A datetime span string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
+// Valid time units are "h", "m", "s", "ms", "us" (or "µs"), "ns".
+func ParseTimeSpan(str string) (result TimeSpan, err Value) {
+	scanner := durationscanner.New(str)
+
+tokenLoop:
+	for {
+		token, value := scanner.Next()
+		switch token {
+		case durationscanner.END_OF_FILE:
+			break tokenLoop
+		case durationscanner.ERROR:
+			return 0, Ref(Errorf(
+				FormatErrorClass,
+				"invalid time span string: %s",
+				value,
+			))
+		case durationscanner.HOURS_INT:
+			bigHours, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return 0, err
+			}
+
+			hours := TimeSpan(bigHours.ToSmallInt())
+			result += hours * Hour
+		case durationscanner.HOURS_FLOAT:
+			hours, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return 0, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in time span string: %s",
+					er.Error(),
+				))
+			}
+			hoursSpan := Hour.MultiplyFloat(Float(hours))
+			result += hoursSpan
+		case durationscanner.MINUTES_INT:
+			bigMinutes, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return 0, err
+			}
+
+			minutes := TimeSpan(bigMinutes.ToSmallInt())
+			result += minutes * Minute
+		case durationscanner.MINUTES_FLOAT:
+			minutes, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return 0, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in time span string: %s",
+					er.Error(),
+				))
+			}
+			minutesSpan := Minute.MultiplyFloat(Float(minutes))
+			result += minutesSpan
+		case durationscanner.SECONDS_INT:
+			bigSeconds, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return 0, err
+			}
+
+			seconds := TimeSpan(bigSeconds.ToSmallInt())
+			result += seconds * Second
+		case durationscanner.SECONDS_FLOAT:
+			seconds, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return 0, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in time span string: %s",
+					er.Error(),
+				))
+			}
+			secondsSpan := Second.MultiplyFloat(Float(seconds))
+			result += secondsSpan
+		case durationscanner.MILLISECONDS_INT:
+			bigMilliseconds, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return 0, err
+			}
+
+			milliseconds := TimeSpan(bigMilliseconds.ToSmallInt())
+			result += milliseconds * Millisecond
+		case durationscanner.MILLISECONDS_FLOAT:
+			milliseconds, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return 0, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in time span string: %s",
+					er.Error(),
+				))
+			}
+			millisecondsSpan := Millisecond.MultiplyFloat(Float(milliseconds))
+			result += millisecondsSpan
+		case durationscanner.MICROSECONDS_INT:
+			bigMicroseconds, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return 0, err
+			}
+
+			microseconds := TimeSpan(bigMicroseconds.ToSmallInt())
+			result += microseconds * Microsecond
+		case durationscanner.MICROSECONDS_FLOAT:
+			microseconds, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return 0, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in time span string: %s",
+					er.Error(),
+				))
+			}
+			microsecondsSpan := Microsecond.MultiplyFloat(Float(microseconds))
+			result += microsecondsSpan
+		case durationscanner.NANOSECONDS_INT:
+			bigNanoseconds, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return 0, err
+			}
+
+			nanoseconds := TimeSpan(bigNanoseconds.ToSmallInt())
+			result += nanoseconds * Nanosecond
+		case durationscanner.NANOSECONDS_FLOAT:
+			nanoseconds, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return 0, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in time span string: %s",
+					er.Error(),
+				))
+			}
+			nanosecondsSpan := Nanosecond.MultiplyFloat(Float(nanoseconds))
+			result += nanosecondsSpan
+		default:
+			return 0, Ref(Errorf(
+				FormatErrorClass,
+				"undefined time span token: %s",
+				token.String(),
+			))
+		}
+
 	}
 
-	return TimeSpan(dur), Undefined
+	return result, Undefined
 }
 
 // Create a new Time Span value.

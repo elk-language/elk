@@ -13,7 +13,7 @@ func initTimeSpan() {
 		"parse",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			str := args[1].AsReference().(value.String)
-			return value.ToValueErr(value.ParsTimeSpan(str))
+			return value.ToValueErr(value.ParseTimeSpan(string(str)))
 		},
 		DefWithParameters(1),
 	)
@@ -459,7 +459,7 @@ func initTimeSpan() {
 			return self.TotalYears(), value.Undefined
 		},
 	)
-	Alias(c, "years", "total years")
+	Alias(c, "years", "total_years")
 	Def(
 		c,
 		"in_years",

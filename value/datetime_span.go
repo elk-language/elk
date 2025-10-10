@@ -657,7 +657,9 @@ func (d *DateTimeSpan) DivideBigFloat(other *BigFloat) *DateTimeSpan {
 	)
 }
 
-// Create a string formatted according to the given format string.
+// Parses a time span string and creates a datetime span value.
+// A datetime span string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
+// Valid time units are "Y", "M", "D", "h", "m", "s", "ms", "us" (or "µs"), "ns".
 func ParseDateTimeSpan(str string) (result *DateTimeSpan, err Value) {
 	scanner := durationscanner.New(str)
 	result = &DateTimeSpan{}
@@ -687,7 +689,7 @@ tokenLoop:
 			if er != nil {
 				return nil, Ref(Errorf(
 					FormatErrorClass,
-					"invalid float in duration string: %s",
+					"invalid float in datetime span string: %s",
 					er.Error(),
 				))
 			}
@@ -706,7 +708,7 @@ tokenLoop:
 			if er != nil {
 				return nil, Ref(Errorf(
 					FormatErrorClass,
-					"invalid float in duration string: %s",
+					"invalid float in datetime span string: %s",
 					er.Error(),
 				))
 			}
@@ -725,7 +727,7 @@ tokenLoop:
 			if er != nil {
 				return nil, Ref(Errorf(
 					FormatErrorClass,
-					"invalid float in duration string: %s",
+					"invalid float in datetime span string: %s",
 					er.Error(),
 				))
 			}
@@ -744,7 +746,7 @@ tokenLoop:
 			if er != nil {
 				return nil, Ref(Errorf(
 					FormatErrorClass,
-					"invalid float in duration string: %s",
+					"invalid float in datetime span string: %s",
 					er.Error(),
 				))
 			}
@@ -763,7 +765,7 @@ tokenLoop:
 			if er != nil {
 				return nil, Ref(Errorf(
 					FormatErrorClass,
-					"invalid float in duration string: %s",
+					"invalid float in datetime span string: %s",
 					er.Error(),
 				))
 			}
@@ -782,7 +784,7 @@ tokenLoop:
 			if er != nil {
 				return nil, Ref(Errorf(
 					FormatErrorClass,
-					"invalid float in duration string: %s",
+					"invalid float in datetime span string: %s",
 					er.Error(),
 				))
 			}
@@ -801,7 +803,7 @@ tokenLoop:
 			if er != nil {
 				return nil, Ref(Errorf(
 					FormatErrorClass,
-					"invalid float in duration string: %s",
+					"invalid float in datetime span string: %s",
 					er.Error(),
 				))
 			}
@@ -820,7 +822,7 @@ tokenLoop:
 			if er != nil {
 				return nil, Ref(Errorf(
 					FormatErrorClass,
-					"invalid float in duration string: %s",
+					"invalid float in datetime span string: %s",
 					er.Error(),
 				))
 			}
@@ -839,7 +841,7 @@ tokenLoop:
 			if er != nil {
 				return nil, Ref(Errorf(
 					FormatErrorClass,
-					"invalid float in duration string: %s",
+					"invalid float in datetime span string: %s",
 					er.Error(),
 				))
 			}
@@ -848,7 +850,7 @@ tokenLoop:
 		default:
 			return nil, Ref(Errorf(
 				FormatErrorClass,
-				"undefined date time span token: %s",
+				"undefined datetime span token: %s",
 				token.String(),
 			))
 		}
