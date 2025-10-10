@@ -2,7 +2,7 @@ using Std::Test::Assertions::*
 using Std::Test::*
 
 describe "Date::Span", ->
-		context "singleton", ->
+	context "singleton", ->
 		context "parse", ->
 			context "years", ->
 				should "create a span with int years", ->
@@ -34,31 +34,7 @@ describe "Date::Span", ->
 				end
 
 				should "throw when encountered float years", ->
-					s := Date::Span.parse("2.25Y")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2Y 3M"
-					assert! s.years == 2
-					assert! s.months == 3
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
-
-					s = Date::Span.parse("1.05Y")
-					assert! s <<: Date::Span
-					assert! s.to_string == "1Y 18D 6h 18m 3ns"
-					assert! s.years == 1
-					assert! s.months == 0
-					assert! s.days == 18
-					assert! s.hours == 6
-					assert! s.minutes == 18
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 3
+					assert_throws! Date::Span.parse("1.05Y") match FormatError(message: "undefined date span token: YEARS_FLOAT")
 				end
 			end
 
@@ -91,32 +67,8 @@ describe "Date::Span", ->
 					assert! s.nanoseconds == 0
 				end
 
-				should "create a span with float months", ->
-					s := Date::Span.parse("2.25M")
-					assert! s <<: Date::Span
-					assert! s.to_string == "2M 7D 14h 37m 30s"
-					assert! s.years == 0
-					assert! s.months == 2
-					assert! s.days == 7
-					assert! s.hours == 14
-					assert! s.minutes == 37
-					assert! s.seconds == 30
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
-
-					s = Date::Span.parse("1.05M")
-					assert! s <<: Date::Span
-					assert! s.to_string == "1M 1D 12h 31m 30s"
-					assert! s.years == 0
-					assert! s.months == 1
-					assert! s.days == 1
-					assert! s.hours == 12
-					assert! s.minutes == 31
-					assert! s.seconds == 30
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
+				should "throw when encountered float months", ->
+					assert_throws! Date::Span.parse("2.25M") match FormatError(message: "undefined date span token: MONTHS_FLOAT")
 				end
 			end
 
@@ -149,367 +101,68 @@ describe "Date::Span", ->
 					assert! s.nanoseconds == 0
 				end
 
-				should "create a span with float days", ->
-					s := Date::Span.parse("2.25D")
-					assert! s <<: Date::Span
-					assert! s.to_string == "2D 6h"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 2
-					assert! s.hours == 6
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
-
-					s = Date::Span.parse("1.05D")
-					assert! s <<: Date::Span
-					assert! s.to_string == "1D 1h 12m"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 1
-					assert! s.hours == 1
-					assert! s.minutes == 12
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
+				should "throw when encountered float days", ->
+					assert_throws! Date::Span.parse("2.25D") match FormatError(message: "undefined date span token: DAYS_FLOAT")
 				end
 			end
 
 			context "hours", ->
-				should "create a span with int hours", ->
-					s := DateTime::Span.parse("2h")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2h"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 2
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
+				should "throw when encountered int hours", ->
+					assert_throws! Date::Span.parse("2h") match FormatError(message: "undefined date span token: HOURS_INT")
 				end
 
-				should "create a span with float hours", ->
-					s := DateTime::Span.parse("2.25h")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2h 15m"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 2
-					assert! s.minutes == 15
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
-
-					s = DateTime::Span.parse("1.05h")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "1h 3m"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 1
-					assert! s.minutes == 3
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
+				should "throw when encountered float hours", ->
+					assert_throws! Date::Span.parse("2.25h") match FormatError(message: "undefined date span token: HOURS_FLOAT")
 				end
 			end
 
 			context "minutes", ->
-				should "create a span with int minutes", ->
-					s := DateTime::Span.parse("2m")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2m"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 2
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
-
-					s = DateTime::Span.parse("-65m")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "-1h -5m"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == -1
-					assert! s.minutes == -5
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
+				should "throw when encountered int minutes", ->
+					assert_throws! Date::Span.parse("2m") match FormatError(message: "undefined date span token: MINUTES_INT")
 				end
 
-				should "create a span with float minutes", ->
-					s := DateTime::Span.parse("2.25m")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2m 15s"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 2
-					assert! s.seconds == 15
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
-
-					s = DateTime::Span.parse("1.05m")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "1m 3s"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 1
-					assert! s.seconds == 3
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
+				should "throw when encountered float minutes", ->
+					assert_throws! Date::Span.parse("2.25m") match FormatError(message: "undefined date span token: MINUTES_FLOAT")
 				end
 			end
 
 			context "seconds", ->
-				should "create a span with int seconds", ->
-					s := DateTime::Span.parse("2s")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2s"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 2
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
-
-					s = DateTime::Span.parse("-65s")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "-1m -5s"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == -1
-					assert! s.seconds == -5
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
+				should "throw when encountered int seconds", ->
+					assert_throws! Date::Span.parse("2s") match FormatError(message: "undefined date span token: SECONDS_INT")
 				end
 
-				should "create a span with float seconds", ->
-					s := DateTime::Span.parse("2.25s")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2s 250ms"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 2
-					assert! s.milliseconds == 250
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
-
-					s = DateTime::Span.parse("1.05s")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "1s 50ms"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 1
-					assert! s.milliseconds == 50
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
+				should "throw when encountered float seconds", ->
+					assert_throws! Date::Span.parse("2.25s") match FormatError(message: "undefined date span token: SECONDS_FLOAT")
 				end
 			end
 
 			context "milliseconds", ->
-				should "create a span with int milliseconds", ->
-					s := DateTime::Span.parse("2ms")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2ms"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 2
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
-
-					s = DateTime::Span.parse("-1098ms")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "-1s -98ms"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == -1
-					assert! s.milliseconds == -98
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 0
+				should "throw when encountered int milliseconds", ->
+					assert_throws! Date::Span.parse("2ms") match FormatError(message: "undefined date span token: MILLISECONDS_INT")
 				end
 
-				should "create a span with float milliseconds", ->
-					s := DateTime::Span.parse("2.25ms")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2ms 250µs"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 2
-					assert! s.microseconds == 250
-					assert! s.nanoseconds == 0
-
-					s = DateTime::Span.parse("1.05ms")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "1ms 50µs"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 1
-					assert! s.microseconds == 50
-					assert! s.nanoseconds == 0
+				should "throw when encountered float milliseconds", ->
+					assert_throws! Date::Span.parse("2.25ms") match FormatError(message: "undefined date span token: MILLISECONDS_FLOAT")
 				end
 			end
 
 			context "microseconds", ->
-				should "create a span with int microseconds", ->
-					s := DateTime::Span.parse("2μs")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2µs"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 2
-					assert! s.nanoseconds == 0
-
-					s = DateTime::Span.parse("-1098us")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "-1ms -98µs"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == -1
-					assert! s.microseconds == -98
-					assert! s.nanoseconds == 0
+				should "throw when encountered int microseconds", ->
+					assert_throws! Date::Span.parse("2μs") match FormatError(message: "undefined date span token: MICROSECONDS_INT")
 				end
 
-				should "create a span with float microseconds", ->
-					s := DateTime::Span.parse("2.25µs")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2µs 250ns"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 2
-					assert! s.nanoseconds == 250
-
-					s = DateTime::Span.parse("1.05μs")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "1µs 50ns"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 1
-					assert! s.nanoseconds == 50
+				should "throw when encountered float microseconds", ->
+					assert_throws! Date::Span.parse("2.25µs") match FormatError(message: "undefined date span token: MICROSECONDS_FLOAT")
 				end
 			end
 
 			context "nanoseconds", ->
-				should "create a span with int nanoseconds", ->
-					s := DateTime::Span.parse("2ns")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2ns"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 2
-
-					s = DateTime::Span.parse("-1098ns")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "-1µs -98ns"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == -1
-					assert! s.nanoseconds == -98
+				should "throw when encountered int nanoseconds", ->
+					assert_throws! Date::Span.parse("2ns") match FormatError(message: "undefined date span token: NANOSECONDS_INT")
 				end
 
-				should "create a span with float nanoseconds", ->
-					s := DateTime::Span.parse("2.25ns")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "2ns"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 2
-
-					s = DateTime::Span.parse("1.05ns")
-					assert! s <<: DateTime::Span
-					assert! s.to_string == "1ns"
-					assert! s.years == 0
-					assert! s.months == 0
-					assert! s.days == 0
-					assert! s.hours == 0
-					assert! s.minutes == 0
-					assert! s.seconds == 0
-					assert! s.milliseconds == 0
-					assert! s.microseconds == 0
-					assert! s.nanoseconds == 1
+				should "throw when encountered float nanoseconds", ->
+					assert_throws! Date::Span.parse("2.25ns") match FormatError(message: "undefined date span token: NANOSECONDS_FLOAT")
 				end
 			end
 

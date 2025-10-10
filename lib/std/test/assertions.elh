@@ -1,7 +1,25 @@
+using Std::Elk::AST::*
+
 module ::Std::Test
   mixin Assertions
     singleton
       include Assertions
+    end
+
+    macro assert_throws(match_expr: MatchExpressionNode): ExpressionNode
+      quote
+        caught := false
+        do
+          !{match_expr.expression}
+        catch !{match_expr.pattern_node}
+          caught = true
+        catch err
+          throw unchecked ::Std::Test::AssertionError("caught `#err`, expected `${unquote(match_expr.pattern_node.to_string)}`")
+        end
+        unless caught
+          throw unchecked ::Std::Test::AssertionError("nothing was thrown, expected `${unquote(match_expr.pattern_node.to_string)}`")
+        end
+      end
     end
 
     ##[

@@ -15,8 +15,6 @@ func Init() {
 	ext.Register("std/test", runtimeInit, typecheckerInit)
 }
 
-// assert_throw! dupa(2) match FormatError(message: "dupa")
-
 func runtimeInit() {
 	testModule := initTest()
 	initAssertions(testModule)
