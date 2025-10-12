@@ -25,6 +25,8 @@ sealed primitive class ::Std::DateTime::Span
 		hours: Int = 0,
 		minutes: Int = 0,
 		seconds: Int = 0,
+		milliseconds: Int = 0,
+		microseconds: Int = 0,
 		nanoseconds: Int = 0,
 	); end
 

@@ -180,10 +180,12 @@ tokenLoop:
 }
 
 // Create a new Time Span value.
-func MakeTimeSpan(hours, mins, secs, nsecs int) TimeSpan {
+func MakeTimeSpan(hours, mins, secs, millisecs, microsecs, nsecs int) TimeSpan {
 	duration := TimeSpan(hours)*Hour +
 		TimeSpan(mins)*Minute +
 		TimeSpan(secs)*Second +
+		TimeSpan(millisecs)*Millisecond +
+		TimeSpan(microsecs)*Microsecond +
 		TimeSpan(nsecs)*Nanosecond
 
 	return TimeSpan(duration)
