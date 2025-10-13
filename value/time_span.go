@@ -234,6 +234,10 @@ func (t TimeSpan) Error() string {
 func (t TimeSpan) String() string {
 	var buff strings.Builder
 
+	if t == 0 {
+		return "0s"
+	}
+
 	hours := t / Hour
 	if hours != 0 {
 		fmt.Fprintf(&buff, "%dh", hours)

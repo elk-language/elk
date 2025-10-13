@@ -987,8 +987,8 @@ describe "DateTime::Span", ->
 		end
 
 		should "return 0 when no full years", ->
-			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
-			assert! s.total_years == 10
+			s := DateTime::Span(0, 5, 2, 9, 13, 8, 130, 540, 931)
+			assert! s.total_years == 0
 		end
 	end
 
