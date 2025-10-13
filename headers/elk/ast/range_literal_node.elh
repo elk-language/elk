@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents a Range literal eg. `1...5`
   ]##
   sealed primitive class RangeLiteralNode
-    include PatternExpressionNode
+    include LiteralPatternNode
 
     init(
       start: ExpressionNode,

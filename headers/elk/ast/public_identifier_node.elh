@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents a public identifier eg. `foo`.
   ]##
   sealed primitive class PublicIdentifierNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             UsingSubentryNode,
             IdentifierNode
 

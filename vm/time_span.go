@@ -13,7 +13,7 @@ func initTimeSpan() {
 		"parse",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			str := args[1].AsReference().(value.String)
-			return value.ToValueErr(value.ParsTimeSpan(str))
+			return value.ToValueErr(value.ParseTimeSpan(string(str)))
 		},
 		DefWithParameters(1),
 	)
@@ -39,21 +39,33 @@ func initTimeSpan() {
 				seconds = args[3].AsInt()
 			}
 
-			var nanoseconds int
+			var milliseconds int
 			if !args[4].IsUndefined() {
-				nanoseconds = args[4].AsInt()
+				milliseconds = args[4].AsInt()
+			}
+
+			var microseconds int
+			if !args[5].IsUndefined() {
+				microseconds = args[5].AsInt()
+			}
+
+			var nanoseconds int
+			if !args[6].IsUndefined() {
+				nanoseconds = args[6].AsInt()
 			}
 
 			span := value.MakeTimeSpan(
 				hours,
 				minutes,
 				seconds,
+				milliseconds,
+				microseconds,
 				nanoseconds,
 			)
 
 			return span.ToValue(), value.Undefined
 		},
-		DefWithParameters(4),
+		DefWithParameters(6),
 	)
 	Def(
 		c,
@@ -459,7 +471,7 @@ func initTimeSpan() {
 			return self.TotalYears(), value.Undefined
 		},
 	)
-	Alias(c, "years", "total years")
+	Alias(c, "years", "total_years")
 	Def(
 		c,
 		"in_years",

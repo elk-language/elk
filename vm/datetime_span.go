@@ -6,8 +6,20 @@ import (
 
 // Std::Datetime::Span
 func initDateTimeSpan() {
+	// Singleton methods
+	c := &value.DateTimeSpanClass.SingletonClass().MethodContainer
+	Def(
+		c,
+		"parse",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			str := string(args[1].AsString())
+			return value.RefErr(value.ParseDateTimeSpan(str))
+		},
+		DefWithParameters(1),
+	)
+
 	// Instance methods
-	c := &value.DateTimeSpanClass.MethodContainer
+	c = &value.DateTimeSpanClass.MethodContainer
 
 	Def(
 		c,
@@ -43,9 +55,19 @@ func initDateTimeSpan() {
 				seconds = args[6].AsInt()
 			}
 
-			var nanoseconds int
+			var milliseconds int
 			if !args[7].IsUndefined() {
-				nanoseconds = args[7].AsInt()
+				milliseconds = args[7].AsInt()
+			}
+
+			var microseconds int
+			if !args[8].IsUndefined() {
+				microseconds = args[8].AsInt()
+			}
+
+			var nanoseconds int
+			if !args[9].IsUndefined() {
+				nanoseconds = args[9].AsInt()
 			}
 
 			dateSpan := value.MakeDateSpan(
@@ -57,12 +79,14 @@ func initDateTimeSpan() {
 				hours,
 				minutes,
 				seconds,
+				milliseconds,
+				microseconds,
 				nanoseconds,
 			)
 			self := value.NewDateTimeSpan(dateSpan, timeSpan)
 			return value.Ref(self), value.Undefined
 		},
-		DefWithParameters(7),
+		DefWithParameters(9),
 	)
 
 	Def(
@@ -276,7 +300,7 @@ func initDateTimeSpan() {
 		"in_years",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
-			return value.SmallInt(self.InYears()).ToValue(), value.Undefined
+			return self.InYears().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -300,7 +324,7 @@ func initDateTimeSpan() {
 		"in_months",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
-			return value.SmallInt(self.InMonths()).ToValue(), value.Undefined
+			return self.InMonths().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -324,7 +348,7 @@ func initDateTimeSpan() {
 		"in_days",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
-			return value.SmallInt(self.InDays()).ToValue(), value.Undefined
+			return self.InDays().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -348,7 +372,7 @@ func initDateTimeSpan() {
 		"in_hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
-			return value.SmallInt(self.InHours()).ToValue(), value.Undefined
+			return self.InHours().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -372,7 +396,7 @@ func initDateTimeSpan() {
 		"in_minutes",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
-			return value.SmallInt(self.InMinutes()).ToValue(), value.Undefined
+			return self.InMinutes().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -396,7 +420,7 @@ func initDateTimeSpan() {
 		"in_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
-			return value.SmallInt(self.InSeconds()).ToValue(), value.Undefined
+			return self.InSeconds().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -420,7 +444,7 @@ func initDateTimeSpan() {
 		"in_milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
-			return value.SmallInt(self.InMilliseconds()).ToValue(), value.Undefined
+			return self.InMilliseconds().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -444,7 +468,7 @@ func initDateTimeSpan() {
 		"in_microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
-			return value.SmallInt(self.InMicroseconds()).ToValue(), value.Undefined
+			return self.InMicroseconds().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -468,7 +492,7 @@ func initDateTimeSpan() {
 		"in_nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
-			return value.SmallInt(self.InNanoseconds()).ToValue(), value.Undefined
+			return self.InNanoseconds().ToValue(), value.Undefined
 		},
 	)
 	Def(

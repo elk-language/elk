@@ -156,6 +156,7 @@ func NewOpenClosureError(closureVMID, VMID int64, closureInspect string) *Object
 // the given index is out of range.
 func NewIndexOutOfRangeError(index string, length int) *Object {
 	return Errorf(
+
 		IndexErrorClass,
 		"index %s out of range: %d...%d",
 		index,

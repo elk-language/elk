@@ -6,12 +6,12 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      pattern: PatternNode,
+      pattern_node: PatternNode,
       initialiser: ExpressionNode,
       location: FS::Location = loop; end,
     ); end
 
-    def pattern: PatternNode; end
+    def pattern_node: PatternNode; end
     def initialiser: ExpressionNode; end
     def location: FS::Location; end
   end

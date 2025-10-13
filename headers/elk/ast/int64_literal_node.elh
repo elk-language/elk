@@ -3,7 +3,7 @@ module Std::Elk::AST
     Int64 literal eg. `5i64`, `125_355i64`, `0xffi64`
   ]##
   sealed primitive class Int64LiteralNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode
 
     ##[

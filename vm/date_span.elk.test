@@ -2,10 +2,178 @@ using Std::Test::Assertions::*
 using Std::Test::*
 
 describe "Date::Span", ->
+	context "singleton", ->
+		context "parse", ->
+			context "years", ->
+				should "create a span with int years", ->
+					s := Date::Span.parse("2Y")
+					assert! s <<: Date::Span
+					assert! s.to_string == "2Y"
+					assert! s.years == 2
+					assert! s.months == 0
+					assert! s.days == 0
+					assert! s.hours == 0
+					assert! s.minutes == 0
+					assert! s.seconds == 0
+					assert! s.milliseconds == 0
+					assert! s.microseconds == 0
+					assert! s.nanoseconds == 0
+
+					s = Date::Span.parse("-25Y")
+					assert! s <<: Date::Span
+					assert! s.to_string == "-25Y"
+					assert! s.years == -25
+					assert! s.months == 0
+					assert! s.days == 0
+					assert! s.hours == 0
+					assert! s.minutes == 0
+					assert! s.seconds == 0
+					assert! s.milliseconds == 0
+					assert! s.microseconds == 0
+					assert! s.nanoseconds == 0
+				end
+
+				should "throw when encountered float years", ->
+					assert_throws! Date::Span.parse("1.05Y") match FormatError(message: "undefined date span token: YEARS_FLOAT")
+				end
+			end
+
+			context "months", ->
+				should "create a span with int months", ->
+					s := Date::Span.parse("2M")
+					assert! s <<: Date::Span
+					assert! s.to_string == "2M"
+					assert! s.years == 0
+					assert! s.months == 2
+					assert! s.days == 0
+					assert! s.hours == 0
+					assert! s.minutes == 0
+					assert! s.seconds == 0
+					assert! s.milliseconds == 0
+					assert! s.microseconds == 0
+					assert! s.nanoseconds == 0
+
+					s = Date::Span.parse("-25M")
+					assert! s <<: Date::Span
+					assert! s.to_string == "-2Y -1M"
+					assert! s.years == -2
+					assert! s.months == -1
+					assert! s.days == 0
+					assert! s.hours == 0
+					assert! s.minutes == 0
+					assert! s.seconds == 0
+					assert! s.milliseconds == 0
+					assert! s.microseconds == 0
+					assert! s.nanoseconds == 0
+				end
+
+				should "throw when encountered float months", ->
+					assert_throws! Date::Span.parse("2.25M") match FormatError(message: "undefined date span token: MONTHS_FLOAT")
+				end
+			end
+
+			context "days", ->
+				should "create a span with int days", ->
+					s := Date::Span.parse("2D")
+					assert! s <<: Date::Span
+					assert! s.to_string == "2D"
+					assert! s.years == 0
+					assert! s.months == 0
+					assert! s.days == 2
+					assert! s.hours == 0
+					assert! s.minutes == 0
+					assert! s.seconds == 0
+					assert! s.milliseconds == 0
+					assert! s.microseconds == 0
+					assert! s.nanoseconds == 0
+
+					s = Date::Span.parse("-25D")
+					assert! s <<: Date::Span
+					assert! s.to_string == "-25D"
+					assert! s.years == 0
+					assert! s.months == 0
+					assert! s.days == -25
+					assert! s.hours == 0
+					assert! s.minutes == 0
+					assert! s.seconds == 0
+					assert! s.milliseconds == 0
+					assert! s.microseconds == 0
+					assert! s.nanoseconds == 0
+				end
+
+				should "throw when encountered float days", ->
+					assert_throws! Date::Span.parse("2.25D") match FormatError(message: "undefined date span token: DAYS_FLOAT")
+				end
+			end
+
+			context "hours", ->
+				should "throw when encountered int hours", ->
+					assert_throws! Date::Span.parse("2h") match FormatError(message: "undefined date span token: HOURS_INT")
+				end
+
+				should "throw when encountered float hours", ->
+					assert_throws! Date::Span.parse("2.25h") match FormatError(message: "undefined date span token: HOURS_FLOAT")
+				end
+			end
+
+			context "minutes", ->
+				should "throw when encountered int minutes", ->
+					assert_throws! Date::Span.parse("2m") match FormatError(message: "undefined date span token: MINUTES_INT")
+				end
+
+				should "throw when encountered float minutes", ->
+					assert_throws! Date::Span.parse("2.25m") match FormatError(message: "undefined date span token: MINUTES_FLOAT")
+				end
+			end
+
+			context "seconds", ->
+				should "throw when encountered int seconds", ->
+					assert_throws! Date::Span.parse("2s") match FormatError(message: "undefined date span token: SECONDS_INT")
+				end
+
+				should "throw when encountered float seconds", ->
+					assert_throws! Date::Span.parse("2.25s") match FormatError(message: "undefined date span token: SECONDS_FLOAT")
+				end
+			end
+
+			context "milliseconds", ->
+				should "throw when encountered int milliseconds", ->
+					assert_throws! Date::Span.parse("2ms") match FormatError(message: "undefined date span token: MILLISECONDS_INT")
+				end
+
+				should "throw when encountered float milliseconds", ->
+					assert_throws! Date::Span.parse("2.25ms") match FormatError(message: "undefined date span token: MILLISECONDS_FLOAT")
+				end
+			end
+
+			context "microseconds", ->
+				should "throw when encountered int microseconds", ->
+					assert_throws! Date::Span.parse("2μs") match FormatError(message: "undefined date span token: MICROSECONDS_INT")
+				end
+
+				should "throw when encountered float microseconds", ->
+					assert_throws! Date::Span.parse("2.25µs") match FormatError(message: "undefined date span token: MICROSECONDS_FLOAT")
+				end
+			end
+
+			context "nanoseconds", ->
+				should "throw when encountered int nanoseconds", ->
+					assert_throws! Date::Span.parse("2ns") match FormatError(message: "undefined date span token: NANOSECONDS_INT")
+				end
+
+				should "throw when encountered float nanoseconds", ->
+					assert_throws! Date::Span.parse("2.25ns") match FormatError(message: "undefined date span token: NANOSECONDS_FLOAT")
+				end
+			end
+
+		end
+	end
+
 	context "init", ->
 		should "create a zero value", ->
 			s := Date::Span()
-			assert! s <: Date::Span
+			assert! s <<: Date::Span
+			assert! s.to_string == "0D"
 			assert! s.years == 0
 			assert! s.months == 0
 			assert! s.days == 0
@@ -13,7 +181,8 @@ describe "Date::Span", ->
 
 		should "create with all positional args", ->
 			s := Date::Span(10, 5, 2)
-			assert! s <: Date::Span
+			assert! s <<: Date::Span
+			assert! s.to_string == "10Y 5M 2D"
 			assert! s.years == 10
 			assert! s.months == 5
 			assert! s.days == 2
@@ -21,7 +190,8 @@ describe "Date::Span", ->
 
 		should "create with a few positional args", ->
 			s := Date::Span(10, 5)
-			assert! s <: Date::Span
+			assert! s <<: Date::Span
+			assert! s.to_string == "10Y 5M"
 			assert! s.years == 10
 			assert! s.months == 5
 			assert! s.days == 0
@@ -30,7 +200,8 @@ describe "Date::Span", ->
 
 		should "create with named args", ->
 			s := Date::Span(months: 10, years: 5)
-			assert! s <: Date::Span
+			assert! s <<: Date::Span
+			assert! s.to_string == "5Y 10M"
 			assert! s.years == 5
 			assert! s.months == 10
 			assert! s.days == 0
@@ -41,7 +212,8 @@ describe "Date::Span", ->
 		should "negate positive span", ->
 			s := Date::Span(10, 2, 9)
 			r := -s
-			assert! r <: Date::Span
+			assert! r <<: Date::Span
+			assert! r.to_string == "-10Y -2M -9D"
 			assert! r.years == -10
 			assert! r.months == -2
 			assert! r.days == -9
@@ -50,7 +222,8 @@ describe "Date::Span", ->
 		should "negate negative span", ->
 			s := Date::Span(-10, -5, -2)
 			r := -s
-			assert! s <: Date::Span
+			assert! r <<: Date::Span
+			assert! r.to_string == "10Y 5M 2D"
 			assert! r.years == 10
 			assert! r.months == 5
 			assert! r.days == 2
@@ -61,7 +234,8 @@ describe "Date::Span", ->
 		should "not change positive span", ->
 			s := Date::Span(10, 2, 9)
 			r := +s
-			assert! r <: Date::Span
+			assert! r <<: Date::Span
+			assert! r.to_string == "10Y 2M 9D"
 			assert! r.years == 10
 			assert! r.months == 2
 			assert! r.days == 9
@@ -70,7 +244,8 @@ describe "Date::Span", ->
 		should "not change negative span", ->
 			s := Date::Span(-10, -5, -2)
 			r := +s
-			assert! s <: Date::Span
+			assert! r <<: Date::Span
+			assert! r.to_string == "-10Y -5M -2D"
 			assert! r.years == -10
 			assert! r.months == -5
 			assert! r.days == -2
@@ -83,7 +258,8 @@ describe "Date::Span", ->
 				s := Date::Span(10, 2, 9)
 				var d: Duration = Date::Span(1, 2, 3)
 				r := s + d
-				assert! r <: Date::Span
+				assert! r <<: Date::Span
+				assert! r.to_string == "11Y 4M 12D"
 				assert! r.years == 11
 				assert! r.months == 4
 				assert! r.days == 12
@@ -93,7 +269,8 @@ describe "Date::Span", ->
 				s := Date::Span(10, 2, 9)
 				var d: Duration = Time::Span(1, 2, 3)
 				r := s + d
-				assert! r <: DateTime::Span
+				assert! r <<: DateTime::Span
+				assert! r.to_string == "10Y 2M 9D 1h 2m 3s"
 				assert! r.years == 10
 				assert! r.months == 2
 				assert! r.days == 9
@@ -106,7 +283,8 @@ describe "Date::Span", ->
 				s := Date::Span(10, 2, 9)
 				var d: Duration = DateTime::Span(1, 2, 3, 4, 5, 6)
 				r := s + d
-				assert! r <: DateTime::Span
+				assert! r <<: DateTime::Span
+				assert! r.to_string == "11Y 4M 12D 4h 5m 6s"
 				assert! r.years == 11
 				assert! r.months == 4
 				assert! r.days == 12
@@ -119,7 +297,8 @@ describe "Date::Span", ->
 		should "add date span", ->
 			s := Date::Span(10, 2, 9)
 			r := s + Date::Span(1, 2, 3)
-			assert! r <: Date::Span
+			assert! r <<: Date::Span
+			assert! r.to_string == "11Y 4M 12D"
 			assert! r.years == 11
 			assert! r.months == 4
 			assert! r.days == 12
@@ -128,7 +307,8 @@ describe "Date::Span", ->
 		should "add time span", ->
 			s := Date::Span(10, 2, 9)
 			r := s + Time::Span(1, 2, 3)
-			assert! r <: DateTime::Span
+			assert! r <<: DateTime::Span
+			assert! r.to_string == "10Y 2M 9D 1h 2m 3s"
 			assert! r.years == 10
 			assert! r.months == 2
 			assert! r.days == 9
@@ -140,7 +320,8 @@ describe "Date::Span", ->
 		should "add datetime span", ->
 			s := Date::Span(10, 2, 9)
 			r := s + DateTime::Span(1, 2, 3, 4, 5, 6)
-			assert! r <: DateTime::Span
+			assert! r <<: DateTime::Span
+			assert! r.to_string == "11Y 4M 12D 4h 5m 6s"
 			assert! r.years == 11
 			assert! r.months == 4
 			assert! r.days == 12
@@ -156,7 +337,8 @@ describe "Date::Span", ->
 				s := Date::Span(10, 2, 9)
 				var d: Duration = Date::Span(1, 2, 3)
 				r := s - d
-				assert! r <: Date::Span
+				assert! r <<: Date::Span
+				assert! r.to_string == "9Y 6D"
 				assert! r.years == 9
 				assert! r.months == 0
 				assert! r.days == 6
@@ -166,7 +348,8 @@ describe "Date::Span", ->
 				s := Date::Span(10, 2, 9)
 				var d: Duration = Time::Span(1, 2, 3)
 				r := s - d
-				assert! r <: DateTime::Span
+				assert! r <<: DateTime::Span
+				assert! r.to_string == "10Y 2M 8D 22h 57m 57s"
 				assert! r.years == 10
 				assert! r.months == 2
 				assert! r.days == 8
@@ -179,7 +362,8 @@ describe "Date::Span", ->
 				s := Date::Span(10, 2, 9)
 				var d: Duration = DateTime::Span(1, 2, 3, 4, 5, 6)
 				r := s - d
-				assert! r <: DateTime::Span
+				assert! r <<: DateTime::Span
+				assert! r.to_string == "9Y 5D 19h 54m 54s"
 				assert! r.years == 9
 				assert! r.months == 0
 				assert! r.days == 5
@@ -192,7 +376,8 @@ describe "Date::Span", ->
 		should "subtract date span", ->
 			s := Date::Span(10, 2, 9)
 			r := s - Date::Span(1, 2, 3)
-			assert! r <: Date::Span
+			assert! r <<: Date::Span
+			assert! r.to_string == "9Y 6D"
 			assert! r.years == 9
 			assert! r.months == 0
 			assert! r.days == 6
@@ -201,7 +386,8 @@ describe "Date::Span", ->
 		should "subtract time span", ->
 			s := Date::Span(10, 2, 9)
 			r := s - Time::Span(1, 2, 3)
-			assert! r <: DateTime::Span
+			assert! r <<: DateTime::Span
+			assert! r.to_string == "10Y 2M 8D 22h 57m 57s"
 			assert! r.years == 10
 			assert! r.months == 2
 			assert! r.days == 8
@@ -213,7 +399,8 @@ describe "Date::Span", ->
 		should "subtract datetime span", ->
 			s := Date::Span(10, 2, 9)
 			r := s - DateTime::Span(1, 2, 3, 4, 5, 6)
-			assert! r <: DateTime::Span
+			assert! r <<: DateTime::Span
+			assert! r.to_string == "9Y 5D 19h 54m 54s"
 			assert! r.years == 9
 			assert! r.months == 0
 			assert! r.days == 5
@@ -229,7 +416,8 @@ describe "Date::Span", ->
 				s := Date::Span(10, 2, 9)
 				var d: CoercibleNumeric = 2
 				r := s * d
-				assert! r <: Date::Span
+				assert! r <<: Date::Span
+				assert! r.to_string == "20Y 4M 18D"
 				assert! r.years == 20
 				assert! r.months == 4
 				assert! r.days == 18
@@ -239,7 +427,8 @@ describe "Date::Span", ->
 				s := Date::Span(10, 2, 9)
 				var d: CoercibleNumeric = 2.5
 				r := s * d
-				assert! r <: DateTime::Span
+				assert! r <<: DateTime::Span
+				assert! r.to_string == "25Y 5M 22D 12h"
 				assert! r.years == 25
 				assert! r.months == 5
 				assert! r.days == 22
@@ -252,7 +441,8 @@ describe "Date::Span", ->
 				s := Date::Span(10, 2, 9)
 				var d: CoercibleNumeric = 2.5bf
 				r := s * d
-				assert! r <: DateTime::Span
+				assert! r <<: DateTime::Span
+				assert! r.to_string == "25Y 5M 22D 12h"
 				assert! r.years == 25
 				assert! r.months == 5
 				assert! r.days == 22
@@ -265,7 +455,8 @@ describe "Date::Span", ->
 		should "multiply int", ->
 			s := Date::Span(10, 2, 9)
 			r := s * 2
-			assert! r <: Date::Span
+			assert! r <<: Date::Span
+			assert! r.to_string == "20Y 4M 18D"
 			assert! r.years == 20
 			assert! r.months == 4
 			assert! r.days == 18
@@ -274,7 +465,8 @@ describe "Date::Span", ->
 		should "multiply float", ->
 			s := Date::Span(10, 2, 9)
 			r := s * 2.5
-			assert! r <: DateTime::Span
+			assert! r <<: DateTime::Span
+			assert! r.to_string == "25Y 5M 22D 12h"
 			assert! r.years == 25
 			assert! r.months == 5
 			assert! r.days == 22
@@ -286,7 +478,8 @@ describe "Date::Span", ->
 		should "multiply big float", ->
 			s := Date::Span(10, 2, 9)
 			r := s * 2.5bf
-			assert! r <: DateTime::Span
+			assert! r <<: DateTime::Span
+			assert! r.to_string == "25Y 5M 22D 12h"
 			assert! r.years == 25
 			assert! r.months == 5
 			assert! r.days == 22
@@ -302,7 +495,8 @@ describe "Date::Span", ->
 				s := Date::Span(10, 2, 9)
 				var d: CoercibleNumeric = 2
 				r := s / d
-				assert! r <: DateTime::Span
+				assert! r <<: DateTime::Span
+				assert! r.to_string == "5Y 1M 4D 12h"
 				assert! r.years == 5
 				assert! r.months == 1
 				assert! r.days == 4
@@ -315,33 +509,42 @@ describe "Date::Span", ->
 				s := Date::Span(10, 2, 9)
 				var d: CoercibleNumeric = 2.5
 				r := s / d
-				assert! r <: DateTime::Span
+				assert! r <<: DateTime::Span
+				assert! r.to_string == "4Y 27D 22h 47m 59s 999ms 999µs 992ns"
 				assert! r.years == 4
 				assert! r.months == 0
 				assert! r.days == 27
 				assert! r.hours == 22
 				assert! r.minutes == 47
 				assert! r.seconds == 59
+				assert! r.milliseconds == 999
+				assert! r.microseconds == 999
+				assert! r.nanoseconds == 992
 			end
 
 			should "divide big float", ->
 				s := Date::Span(10, 2, 9)
 				var d: CoercibleNumeric = 2.5bf
 				r := s / d
-				assert! r <: DateTime::Span
+				assert! r <<: DateTime::Span
+				assert! r.to_string == "4Y 27D 22h 47m 59s 999ms 999µs 999ns"
 				assert! r.years == 4
 				assert! r.months == 0
 				assert! r.days == 27
 				assert! r.hours == 22
 				assert! r.minutes == 47
 				assert! r.seconds == 59
+				assert! r.milliseconds == 999
+				assert! r.microseconds == 999
+				assert! r.nanoseconds == 999
 			end
 		end
 
 		should "divide int", ->
 			s := Date::Span(10, 2, 9)
 			r := s / 2
-			assert! r <: DateTime::Span
+			assert! r <<: DateTime::Span
+			assert! r.to_string == "5Y 1M 4D 12h"
 			assert! r.years == 5
 			assert! r.months == 1
 			assert! r.days == 4
@@ -353,26 +556,229 @@ describe "Date::Span", ->
 		should "divide float", ->
 			s := Date::Span(10, 2, 9)
 			r := s / 2.5
-			assert! r <: DateTime::Span
+			assert! r <<: DateTime::Span
+			assert! r.to_string == "4Y 27D 22h 47m 59s 999ms 999µs 992ns"
 			assert! r.years == 4
 			assert! r.months == 0
 			assert! r.days == 27
 			assert! r.hours == 22
 			assert! r.minutes == 47
 			assert! r.seconds == 59
+			assert! r.milliseconds == 999
+			assert! r.microseconds == 999
+			assert! r.nanoseconds == 992
 		end
 
 		should "divide big float", ->
 			s := Date::Span(10, 2, 9)
 			r := s / 2.5bf
-			assert! r <: DateTime::Span
+			assert! r <<: DateTime::Span
+			assert! r.to_string == "4Y 27D 22h 47m 59s 999ms 999µs 999ns"
 			assert! r.years == 4
 			assert! r.months == 0
 			assert! r.days == 27
 			assert! r.hours == 22
 			assert! r.minutes == 47
 			assert! r.seconds == 59
+			assert! r.milliseconds == 999
+			assert! r.microseconds == 999
+			assert! r.nanoseconds == 999
 		end
 	end
+
+	context "years", ->
+		should "return int years", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.years == 10
+		end
+	end
+
+	context "total_years", ->
+		should "return total years", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.total_years == 10
+		end
+
+		should "return 0 when no full years", ->
+			s := Date::Span(0, 2, 9)
+			assert! s.total_years == 0
+		end
+	end
+
+	context "in_years", ->
+		should "calculate float years", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.in_years == 10.191307323750856
+		end
+	end
+
+	context "months", ->
+		should "return modulo months", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.months == 2
+		end
+	end
+
+	context "total_months", ->
+		should "return total months", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.total_months == 122
+		end
+	end
+
+	context "in_months", ->
+		should "calculate float months", ->
+			s := Date::Span(10, 2, 16)
+			assert! s.in_months == 122.52566735112936
+		end
+	end
+
+	context "days", ->
+		should "return modulo days", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.days == 9
+		end
+	end
+
+	context "total_days", ->
+		should "return total days", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.total_days == 3722
+		end
+	end
+
+	context "in_days", ->
+		should "calculate float days", ->
+			s := Date::Span(10, 2, 16)
+			assert! s.in_days == 3729.375
+		end
+	end
+
+	context "hours", ->
+		should "return modulo hours", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.hours == 0
+		end
+	end
+
+	context "total_hours", ->
+		should "return total hours", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.total_hours == 89328
+		end
+	end
+
+	context "in_hours", ->
+		should "calculate float hours", ->
+			s := Date::Span(10, 2, 16)
+			assert! s.in_hours == 89505.0
+		end
+	end
+
+	context "minutes", ->
+		should "return modulo minutes", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.minutes == 0
+		end
+	end
+
+	context "total_minutes", ->
+		should "return total minutes", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.total_minutes == 5359680
+		end
+	end
+
+	context "in_minutes", ->
+		should "calculate float minutes", ->
+			s := Date::Span(10, 2, 16)
+			assert! s.in_minutes == 5370300.0
+		end
+	end
+
+	context "seconds", ->
+		should "return modulo seconds", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.seconds == 0
+		end
+	end
+
+	context "total_seconds", ->
+		should "return total seconds", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.total_seconds == 321580800
+		end
+	end
+
+	context "in_seconds", ->
+		should "calculate float seconds", ->
+			s := Date::Span(10, 2, 16)
+			assert! s.in_seconds == 322218000.0
+		end
+	end
+
+	context "milliseconds", ->
+		should "return modulo milliseconds", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.milliseconds == 0
+		end
+	end
+
+	context "total_milliseconds", ->
+		should "return total milliseconds", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.total_milliseconds == 321580800000
+		end
+	end
+
+	context "in_milliseconds", ->
+		should "calculate float milliseconds", ->
+			s := Date::Span(10, 2, 16)
+			assert! s.in_milliseconds == 322218000000.0
+		end
+	end
+
+	context "microseconds", ->
+		should "return modulo microseconds", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.microseconds == 0
+		end
+	end
+
+	context "total_microseconds", ->
+		should "return total microseconds", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.total_microseconds == 321580800000000
+		end
+	end
+
+	context "in_microseconds", ->
+		should "calculate float microseconds", ->
+			s := Date::Span(10, 2, 16)
+			assert! s.in_microseconds == 322218000000000.0
+		end
+	end
+
+	context "nanoseconds", ->
+		should "return modulo nanoseconds", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.nanoseconds == 0
+		end
+	end
+
+	context "total_nanoseconds", ->
+		should "return total nanoseconds", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.total_nanoseconds == 321580800000000000
+		end
+	end
+
+	context "in_nanoseconds", ->
+		should "calculate float nanoseconds", ->
+			s := Date::Span(10, 2, 16)
+			assert! s.in_nanoseconds == 322218000000000000.0
+		end
+	end
+
 
 end

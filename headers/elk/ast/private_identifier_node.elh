@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents a private identifier eg. `_foo`
   ]##
   sealed primitive class PrivateIdentifierNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             IdentifierNode
 
 		##[

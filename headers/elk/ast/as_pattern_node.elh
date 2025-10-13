@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class AsPatternNode
     include PatternNode
 
-    init(pattern: PatternNode, name: IdentifierNode, location: FS::Location = loop; end); end
-    def pattern: PatternNode; end
+    init(pattern_node: PatternNode, name: IdentifierNode, location: FS::Location = loop; end); end
+    def pattern_node: PatternNode; end
     def name: IdentifierNode; end
     def location: FS::Location; end
   end

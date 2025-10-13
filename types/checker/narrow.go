@@ -11,6 +11,14 @@ import (
 
 type assumption uint8
 
+const (
+	assumptionTruthy assumption = iota
+	assumptionFalsy
+	assumptionNil
+	assumptionNotNil
+	assumptionNever
+)
+
 func (a assumption) negate() assumption {
 	switch a {
 	case assumptionTruthy:
@@ -38,14 +46,6 @@ func (a assumption) toNilable() assumption {
 		return a
 	}
 }
-
-const (
-	assumptionTruthy assumption = iota
-	assumptionFalsy
-	assumptionNil
-	assumptionNotNil
-	assumptionNever
-)
 
 func (c *Checker) narrowToType(node ast.ExpressionNode, typ types.Type) {
 	switch n := node.(type) {
@@ -93,8 +93,56 @@ func (c *Checker) narrowLocalToType(name string, localType, typ types.Type) type
 	return narrowedType
 }
 
+func (c *Checker) narrowExcludeType(node ast.ExpressionNode, typ types.Type) {
+	switch n := node.(type) {
+	case *ast.PublicIdentifierNode:
+		c.narrowLocalExcludeType(n.Value, c.TypeOf(n), typ)
+	case *ast.PrivateIdentifierNode:
+		c.narrowLocalExcludeType(n.Value, c.TypeOf(n), typ)
+	case *ast.VariableDeclarationNode:
+		c.narrowLocalExcludeType(c.identifierToName(n.Name), c.TypeOf(n), typ)
+	case *ast.ValueDeclarationNode:
+		c.narrowLocalExcludeType(c.identifierToName(n.Name), c.TypeOf(n), typ)
+	case *ast.AssignmentExpressionNode:
+		c.narrowAssignmentExcludeType(n, typ)
+	}
+}
+
+func (c *Checker) narrowAssignmentExcludeType(node *ast.AssignmentExpressionNode, typ types.Type) {
+	switch node.Op.Type {
+	case token.EQUAL_OP, token.COLON_EQUAL:
+		nodeType := c.TypeOf(node)
+		switch l := node.Left.(type) {
+		case *ast.PublicIdentifierNode:
+			c.narrowLocalExcludeType(l.Value, nodeType, typ)
+		case *ast.PrivateIdentifierNode:
+			c.narrowLocalExcludeType(l.Value, nodeType, typ)
+		}
+		return
+	}
+
+	c.narrowExcludeType(node.Left, typ)
+}
+
+func (c *Checker) narrowLocalExcludeType(name string, localType, typ types.Type) types.Type {
+	local, inCurrentEnv := c.resolveLocal(name, nil)
+	if local == nil {
+		return types.Untyped{}
+	}
+
+	if !inCurrentEnv {
+		local = local.createShadow()
+		c.addLocal(name, local)
+	}
+	narrowedType := c.differenceType(localType, typ)
+	local.typ = narrowedType
+	return narrowedType
+}
+
 func (c *Checker) narrowCondition(node ast.ExpressionNode, assume assumption) {
 	switch n := node.(type) {
+	case *ast.MatchExpressionNode:
+		c.narrowMatch(n, assume)
 	case *ast.UnaryExpressionNode:
 		c.narrowUnary(n, assume)
 	case *ast.BinaryExpressionNode:
@@ -111,6 +159,15 @@ func (c *Checker) narrowCondition(node ast.ExpressionNode, assume assumption) {
 		c.narrowLocal(c.identifierToName(n.Name), c.TypeOf(n), assume)
 	case *ast.AssignmentExpressionNode:
 		c.narrowAssignment(n, assume)
+	}
+}
+
+func (c *Checker) narrowMatch(node *ast.MatchExpressionNode, assume assumption) {
+	switch assume {
+	case assumptionTruthy:
+		c.narrowToType(node.Expression, c.TypeOf(node.Pattern))
+	case assumptionFalsy:
+		c.narrowExcludeType(node.Expression, c.TypeOf(node.Pattern))
 	}
 }
 

@@ -3,7 +3,7 @@ module Std::Elk::AST
     UInt64 literal eg. `5u64`, `125_355u64`, `0xffu64`
   ]##
   sealed primitive class UInt64LiteralNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode
 
     ##[

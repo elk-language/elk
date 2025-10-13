@@ -9,6 +9,81 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestPatternExpression(t *testing.T) {
+	tests := testTable{
+		"parses a valid pattern": {
+			input: "pattern String() || > 5",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(22, 1, 23))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(22, 1, 23))),
+						ast.NewPatternExpressionNode(
+							L(S(P(0, 1, 1), P(22, 1, 23))),
+							ast.NewBinaryPatternNode(
+								L(S(P(8, 1, 9), P(22, 1, 23))),
+								T(L(S(P(17, 1, 18), P(18, 1, 19))), token.OR_OR),
+								ast.NewObjectPatternNode(
+									L(S(P(8, 1, 9), P(15, 1, 16))),
+									ast.NewPublicConstantNode(L(S(P(8, 1, 9), P(13, 1, 14))), "String"),
+									nil,
+								),
+								ast.NewUnaryExpressionNode(
+									L(S(P(20, 1, 21), P(22, 1, 23))),
+									T(L(S(P(20, 1, 21), P(20, 1, 21))), token.GREATER),
+									ast.NewIntLiteralNode(L(S(P(22, 1, 23), P(22, 1, 23))), "5"),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestMatchExpression(t *testing.T) {
+	tests := testTable{
+		"accepts a simple pattern": {
+			input: "a + 2 match > 10",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(15, 1, 16))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(15, 1, 16))),
+						ast.NewMatchExpressionNode(
+							L(S(P(0, 1, 1), P(15, 1, 16))),
+							ast.NewBinaryExpressionNode(
+								L(S(P(0, 1, 1), P(4, 1, 5))),
+								T(L(S(P(2, 1, 3), P(2, 1, 3))), token.PLUS),
+								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(0, 1, 1))), "a"),
+								ast.NewIntLiteralNode(L(S(P(4, 1, 5), P(4, 1, 5))), "2"),
+							),
+							ast.NewUnaryExpressionNode(
+								L(S(P(12, 1, 13), P(15, 1, 16))),
+								T(L(S(P(12, 1, 13), P(12, 1, 13))), token.GREATER),
+								ast.NewIntLiteralNode(L(S(P(14, 1, 15), P(15, 1, 16))), "10"),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestSwitch(t *testing.T) {
 	tests := testTable{
 		"cannot be empty": {

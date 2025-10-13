@@ -14,7 +14,7 @@ import (
 // should implement this interface.
 type IdentifierNode interface {
 	Node
-	PatternExpressionNode
+	LiteralPatternNode
 	identifierNode()
 }
 

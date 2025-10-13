@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents a generic constant in type annotations eg. `ArrayList[String]`
   ]##
   sealed primitive class GenericConstantNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode,
             UsingEntryNode,
             ComplexConstantNode

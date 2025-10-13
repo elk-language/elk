@@ -257,6 +257,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents a key value pattern eg. `foo => bar`", false, true, true, false, value.ToSymbol("KeyValuePatternNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a labeled expression eg. `$foo: 1 + 2`", false, true, true, false, value.ToSymbol("LabeledExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a List pattern eg. `[1, a, >= 10]`", false, true, true, false, value.ToSymbol("ListPatternNode"), objectClass, env)
+				{
+					namespace := namespace.TryDefineMixin("Represents AST nodes that are valid expressions and patterns.", false, value.ToSymbol("LiteralPatternNode"), env)
+					namespace.TryDefineInterface("", value.ToSymbol("Convertible"), env)
+					namespace.Name() // noop - avoid unused variable error
+				}
 				namespace.TryDefineClass("Expression of a logical operator with two operands eg. `foo && bar`", false, true, true, false, value.ToSymbol("LogicalExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `loop` expression.", false, true, true, false, value.ToSymbol("LoopExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Create a new macro boundary node.\nIt's a block of code with an isolated scope\neg.\n\n```\ndo macro 'Dupa'\n  print(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("MacroBoundaryNode"), objectClass, env)
@@ -264,6 +269,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents a macro definition eg. `macro foo(a: Elk::AST::StringLiteralNode); a; end`", false, true, true, false, value.ToSymbol("MacroDefinitionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a macro name eg. `foo!`.", false, true, true, false, value.ToSymbol("MacroNameNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a Map pattern eg. `{ foo: 5, bar: a, 5 => >= 10 }`", false, true, true, false, value.ToSymbol("MapPatternNode"), objectClass, env)
+				namespace.TryDefineClass("An expression that matches a value against a pattern eg. `a match Foo(a: \"lol\", b: > 2)`", false, true, true, false, value.ToSymbol("MatchExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a method call eg. `'123'.to_int()`", false, true, true, false, value.ToSymbol("MethodCallNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a method definition eg. `def foo: String then 'hello world'`", false, true, true, false, value.ToSymbol("MethodDefinitionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a method lookup with as in using declarations\neg. `Foo::bar as Bar`.", false, true, true, false, value.ToSymbol("MethodLookupAsNode"), objectClass, env)
@@ -294,11 +300,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents an Object pattern eg. `Foo(foo: 5, bar: a, c)`", false, true, true, false, value.ToSymbol("ObjectPatternNode"), objectClass, env)
 				namespace.TryDefineMixin("All nodes that should be valid in parameter declaration lists\nof methods or functions should implement this interface.", true, value.ToSymbol("ParameterNode"), env)
 				namespace.TryDefineClass("Formal parameter optionally terminated with a newline or a semicolon.", false, true, true, false, value.ToSymbol("ParameterStatementNode"), objectClass, env)
-				{
-					namespace := namespace.TryDefineMixin("Represents AST nodes that are valid expressions and patterns.", false, value.ToSymbol("PatternExpressionNode"), env)
-					namespace.TryDefineInterface("", value.ToSymbol("Convertible"), env)
-					namespace.Name() // noop - avoid unused variable error
-				}
+				namespace.TryDefineClass("Represents a pattern expression `type Foo(a: String, b: > 5)`", false, true, true, false, value.ToSymbol("PatternExpressionNode"), objectClass, env)
 				{
 					namespace := namespace.TryDefineMixin("All nodes that should be valid in pattern matching should\nimplement this interface", false, value.ToSymbol("PatternNode"), env)
 					namespace.TryDefineInterface("Represents a value that can be converted to an Elk AST Pattern Node.", value.ToSymbol("Convertible"), env)
@@ -1584,7 +1586,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Include mixins and implement interfaces
 
 						// Define methods
-						namespace.DefineMethod("Parses a time span string and creates a `Date::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"3Y\", \"-2.5M\" or \"5Y4M\".\nValid date units are \"Y\", \"M\", \"D\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("str"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("Parses a time span string and creates a `Date::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"3Y\", \"-2.5M\" or \"5Y4M\".\nValid date units are \"Y\", \"M\", \"D\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("str"), NameToType("Std::String", env), NormalParameterKind, false)}, NewInstanceOf(Self{}), NameToType("Std::FormatError", env))
 
 						// Define constants
 
@@ -1702,7 +1704,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					IncludeMixin(namespace, NameToType("Std::Duration", env).(*Mixin))
 
 					// Define methods
-					method = namespace.DefineMethod("Create a new datetime span.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("years"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("months"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("days"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("hours"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("minutes"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("seconds"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("nanoseconds"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+					method = namespace.DefineMethod("Create a new datetime span.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("years"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("months"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("days"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("hours"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("minutes"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("seconds"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("milliseconds"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("microseconds"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("nanoseconds"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 					method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::DateTime::Span", env), Never{})
 					method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::DateTime::Span", env), Never{}, namespace))
 					method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::DateTime::Span", env), Never{}, namespace))
@@ -1766,7 +1768,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Include mixins and implement interfaces
 
 						// Define methods
-						namespace.DefineMethod("Parses a time span string and creates a `Time::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"2Y\", \"5D2h10m\", \"300ms\", \"-1.5h\" or \"2h45m\".\nValid datetime units are \"Y\", \"M\", \"D\", \"h\", \"m\", \"s\", \"ms\", \"us\" (or \"µs\"), \"ns\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("str"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("Parses a time span string and creates a `Time::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"2Y\", \"5D2h10m\", \"300ms\", \"-1.5h\" or \"2h45m\".\nValid datetime units are \"Y\", \"M\", \"D\", \"h\", \"m\", \"s\", \"ms\", \"us\" (or \"µs\"), \"ns\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("str"), NameToType("Std::String", env), NormalParameterKind, false)}, NewInstanceOf(Self{}), NameToType("Std::FormatError", env))
 
 						// Define constants
 
@@ -2082,10 +2084,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
 						// Define constants
 
@@ -2193,7 +2195,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -2227,7 +2229,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -2245,7 +2247,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -2262,7 +2264,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -2448,10 +2450,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Include mixins and implement interfaces
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
 						// Define constants
 
@@ -2465,10 +2467,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Include mixins and implement interfaces
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("stack_trace_var"), NewNilable(NameToType("Std::Elk::AST::IdentifierNode", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("stack_trace_var"), NewNilable(NameToType("Std::Elk::AST::IdentifierNode", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("stack_trace_var"), nil, nil, NewNilable(NameToType("Std::Elk::AST::IdentifierNode", env)), Never{})
 
 						// Define constants
@@ -2481,7 +2483,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -2546,7 +2548,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
 
@@ -2601,7 +2603,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ComplexConstantNode", env).(*Mixin))
@@ -2725,7 +2727,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::SimpleStringLiteralNode", env).(*Mixin))
@@ -2846,7 +2848,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -2863,7 +2865,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -2897,7 +2899,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -2931,7 +2933,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -2968,10 +2970,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("in_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("in_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 
 						// Define constants
@@ -3008,7 +3010,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ComplexConstantNode", env).(*Mixin))
@@ -3198,7 +3200,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -3216,7 +3218,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -3233,7 +3235,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -3251,7 +3253,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_ident_node"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
@@ -3470,7 +3472,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -3504,7 +3506,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -3538,7 +3540,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -3572,7 +3574,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -3620,7 +3622,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::IntCollectionContentNode", env).(*Mixin))
 
@@ -3675,7 +3677,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::RegexLiteralNode", env).(*Mixin))
 
 						// Define methods
@@ -3700,7 +3702,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralNode", env).(*Mixin))
 
@@ -3719,7 +3721,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::SymbolLiteralNode", env).(*Mixin))
 
@@ -3756,7 +3758,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Include mixins and implement interfaces
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::StatementNode", env).(*Mixin))
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::StructBodyStatementNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ParameterNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
@@ -3818,8 +3820,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Elk::AST::PatternExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::PatternExpressionNode", env), Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Elk::AST::LiteralPatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::LiteralPatternNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
@@ -3861,6 +3863,37 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define constants
 
 						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("LiteralPatternNode").(*Mixin)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_pattern_expr_node"), nil, nil, NameToType("Std::Elk::AST::LiteralPatternNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+
+						{
+							namespace := namespace.MustSubtypeString("Convertible").(*Interface)
+
+							namespace.Name() // noop - avoid unused variable error
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+							namespace.DefineMethod("", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_pattern_expr_node"), nil, nil, NameToType("Std::Elk::AST::LiteralPatternNode", env), Never{})
+
+							// Define constants
+
+							// Define instance variables
+						}
 					}
 					{
 						namespace := namespace.MustSubtypeString("LogicalExpressionNode").(*Class)
@@ -3905,7 +3938,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Include mixins and implement interfaces
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -3993,6 +4026,24 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("MatchExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
 						// Define constants
 
@@ -4168,10 +4219,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("then_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("in_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("then_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("in_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 
 						// Define constants
@@ -4324,7 +4375,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ComplexConstantNode", env).(*Mixin))
@@ -4529,35 +4580,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
-						namespace := namespace.MustSubtypeString("PatternExpressionNode").(*Mixin)
+						namespace := namespace.MustSubtypeString("PatternExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
 
 						// Define methods
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_pattern_expr_node"), nil, nil, NameToType("Std::Elk::AST::PatternExpressionNode", env), Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
 						// Define constants
 
 						// Define instance variables
-
-						{
-							namespace := namespace.MustSubtypeString("Convertible").(*Interface)
-
-							namespace.Name() // noop - avoid unused variable error
-
-							// Include mixins and implement interfaces
-
-							// Define methods
-							namespace.DefineMethod("", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_pattern_expr_node"), nil, nil, NameToType("Std::Elk::AST::PatternExpressionNode", env), Never{})
-
-							// Define constants
-
-							// Define instance variables
-						}
 					}
 					{
 						namespace := namespace.MustSubtypeString("PatternNode").(*Mixin)
@@ -4599,9 +4636,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::StatementNode", env).(*Mixin))
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
 						// Define constants
 
@@ -4631,7 +4668,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ComplexConstantNode", env).(*Mixin))
@@ -4668,7 +4705,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::IdentifierNode", env).(*Mixin))
 
 						// Define methods
@@ -4738,7 +4775,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingSubentryNode", env).(*Mixin))
@@ -4761,7 +4798,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingSubentryNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::IdentifierNode", env).(*Mixin))
 
@@ -4821,7 +4858,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("start"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("end_node"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -4840,7 +4877,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -4859,7 +4896,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::WordCollectionContentNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::StringLiteralNode", env).(*Mixin))
@@ -4988,7 +5025,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 
@@ -5154,7 +5191,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::SymbolCollectionContentNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::SymbolLiteralNode", env).(*Mixin))
@@ -5309,7 +5346,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 
@@ -5394,7 +5431,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -5412,7 +5449,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -5443,7 +5480,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -5529,7 +5566,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -5697,7 +5734,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -5731,7 +5768,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -5765,7 +5802,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -5799,7 +5836,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -5833,7 +5870,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 
 						// Define methods
@@ -5867,7 +5904,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(value.ToSymbol("right"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -5920,7 +5957,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Include mixins and implement interfaces
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NameToType("Std::Elk::AST::Node", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -5937,7 +5974,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::RegexLiteralNode", env).(*Mixin))
 
 						// Define methods
@@ -5998,7 +6035,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::TypeNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ConstantNode", env).(*Mixin))
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::IdentifierNode", env).(*Mixin))
@@ -6168,10 +6205,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
 						// Define constants
 
@@ -6206,10 +6243,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
 						// Define constants
 
@@ -6279,7 +6316,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -6297,7 +6334,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -6328,7 +6365,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.Name() // noop - avoid unused variable error
 
 						// Include mixins and implement interfaces
-						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternExpressionNode", env).(*Mixin))
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::LiteralPatternNode", env).(*Mixin))
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
@@ -9492,7 +9529,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					IncludeMixin(namespace, NameToType("Std::Duration", env).(*Mixin))
 
 					// Define methods
-					method = namespace.DefineMethod("Create a new time span.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("hours"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("minutes"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("seconds"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("nanoseconds"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+					method = namespace.DefineMethod("Create a new time span.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("hours"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("minutes"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("seconds"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("milliseconds"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("microseconds"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("nanoseconds"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 					method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
 					method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{}, namespace))
 					method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{}, namespace))

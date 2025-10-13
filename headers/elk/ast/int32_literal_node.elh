@@ -3,7 +3,7 @@ module Std::Elk::AST
     Int32 literal eg. `5i32`, `1_20i32`, `0xffi32`
   ]##
   sealed primitive class Int32LiteralNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode
 
     ##[

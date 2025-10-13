@@ -33,7 +33,7 @@ func initPatternStatementNode() {
 
 	vm.Def(
 		c,
-		"pattern",
+		"pattern_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PatternStatementNode)
 			result := value.Ref(self.Pattern)

@@ -20,4 +20,13 @@ func initError() {
 		DefWithParameters(1),
 	)
 
+	Def(
+		c,
+		"message",
+		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			self := args[0].AsReference().(*value.Object)
+			return self.Message(), value.Undefined
+		},
+	)
+
 }

@@ -31,7 +31,7 @@ module ::Std::Test
         assert! calc.add(2, 2) == 4
       end
   ]##
-  def test(name: String, fn: %||: void); end
+  def test(name: String, fn: %||: void ! any); end
 
   ##[
     Creates a test case with the given name prefixed with "it".
@@ -42,7 +42,7 @@ module ::Std::Test
         assert! calc.add(2, 2) == 4
       end
   ]##
-  def it(name: String, fn: %||: void); end
+  def it(name: String, fn: %||: void ! any); end
 
   ##[
     Creates a test case with the given name prefixed with "should".
@@ -54,7 +54,7 @@ module ::Std::Test
         assert! calc.add(2, 2) == 4
       end
   ]##
-  def should(name: String, fn: %||: void); end
+  def should(name: String, fn: %||: void ! any); end
 
   ##[
     Registers a closure that will run before each test case
@@ -66,7 +66,7 @@ module ::Std::Test
         println "test case start"
       end
   ]##
-  def before_each(fn: %||: void); end
+  def before_each(fn: %||: void ! any); end
 
   ##[
     Registers a closure that will run once before all test cases
@@ -78,7 +78,7 @@ module ::Std::Test
         Database.connect
       end
   ]##
-  def before_all(fn: %||: void); end
+  def before_all(fn: %||: void ! any); end
 
   ##[
     Registers a closure that will run after each test case
@@ -90,7 +90,7 @@ module ::Std::Test
         println "test case finished"
       end
   ]##
-  def after_each(fn: %||: void); end
+  def after_each(fn: %||: void ! any); end
 
   ##[
     Registers a closure that will run once after all test cases
@@ -102,5 +102,5 @@ module ::Std::Test
         Database.disconnect
       end
   ]##
-  def after_all(fn: %||: void); end
+  def after_all(fn: %||: void ! any); end
 end

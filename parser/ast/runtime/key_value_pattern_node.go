@@ -13,7 +13,7 @@ func initKeyValuePatternNode() {
 		c,
 		"#init",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
-			argKey := args[1].MustReference().(ast.PatternExpressionNode)
+			argKey := args[1].MustReference().(ast.LiteralPatternNode)
 			argValue := args[2].MustReference().(ast.PatternNode)
 
 			var argLoc *position.Location

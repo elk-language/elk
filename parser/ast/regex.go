@@ -28,7 +28,7 @@ func (*RegexLiteralContentSectionNode) regexLiteralContentNode() {}
 // implement this interface.
 type RegexLiteralNode interface {
 	Node
-	PatternExpressionNode
+	LiteralPatternNode
 	regexLiteralNode()
 }
 

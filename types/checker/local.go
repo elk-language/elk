@@ -88,14 +88,19 @@ func (l *localEnvironment) getLocal(name string) *local {
 func (l *localEnvironment) resolveLocal(name string, unhygienic bool) (*local, bool) {
 	nameSymbol := value.ToSymbol(name)
 	currentEnv := l
+
 	for {
-		if currentEnv == nil || currentEnv.macroBoundary && !unhygienic {
+		if currentEnv == nil {
 			return nil, false
 		}
 		loc, ok := currentEnv.locals[nameSymbol]
 		if ok {
 			return loc, l == currentEnv
 		}
+		if currentEnv.macroBoundary && !unhygienic {
+			return nil, false
+		}
+
 		currentEnv = currentEnv.parent
 	}
 }

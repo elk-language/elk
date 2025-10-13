@@ -40,7 +40,7 @@ func initCaseNode() {
 
 	vm.Def(
 		c,
-		"pattern",
+		"pattern_node",
 		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CaseNode)
 			result := value.Ref(self.Pattern)

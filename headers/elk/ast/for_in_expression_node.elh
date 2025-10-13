@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class ForInExpressionNode
     include ExpressionNode
 
-    init(pattern: PatternNode, in_expression: ExpressionNode, then_body: ArrayTuple[StatementNode], location: FS::Location = loop; end); end
-    def pattern: PatternNode; end
+    init(pattern_node: PatternNode, in_expression: ExpressionNode, then_body: ArrayTuple[StatementNode], location: FS::Location = loop; end); end
+    def pattern_node: PatternNode; end
     def in_expression: ExpressionNode; end
     def then_body: ArrayTuple[StatementNode]; end
     def location: FS::Location; end

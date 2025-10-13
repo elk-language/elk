@@ -258,7 +258,7 @@ func NewWordArrayTupleLiteralExpressionNode(loc *position.Location, elements []W
 }
 
 // Same as [NewWordArrayTupleLiteralNode] but returns an interface.
-func NewWordArrayTupleLiteralPatternExpressionNode(loc *position.Location, elements []WordCollectionContentNode) PatternExpressionNode {
+func NewWordArrayTupleLiteralPatternNode(loc *position.Location, elements []WordCollectionContentNode) LiteralPatternNode {
 	return NewWordArrayTupleLiteralNode(loc, elements)
 }
 
@@ -390,7 +390,7 @@ func NewSymbolArrayTupleLiteralExpressionNode(loc *position.Location, elements [
 }
 
 // Same as [NewSymbolArrayTupleLiteralNode] but returns an interface.
-func NewSymbolArrayTupleLiteralPatternExpressionNode(loc *position.Location, elements []SymbolCollectionContentNode) PatternExpressionNode {
+func NewSymbolArrayTupleLiteralPatternNode(loc *position.Location, elements []SymbolCollectionContentNode) LiteralPatternNode {
 	return NewSymbolArrayTupleLiteralNode(loc, elements)
 }
 
@@ -521,7 +521,7 @@ func NewHexArrayTupleLiteralExpressionNode(loc *position.Location, elements []In
 }
 
 // Same as [NewHexArrayTupleLiteralNode] but returns an interface.
-func NewHexArrayTupleLiteralPatternExpressionNode(loc *position.Location, elements []IntCollectionContentNode) PatternExpressionNode {
+func NewHexArrayTupleLiteralPatternNode(loc *position.Location, elements []IntCollectionContentNode) LiteralPatternNode {
 	return NewHexArrayTupleLiteralNode(loc, elements)
 }
 
@@ -656,7 +656,7 @@ func NewBinArrayTupleLiteralExpressionNode(loc *position.Location, elements []In
 }
 
 // Same as [NewBinArrayTupleLiteralNode] but returns an interface.
-func NewBinArrayTupleLiteralPatternExpressionNode(loc *position.Location, elements []IntCollectionContentNode) PatternExpressionNode {
+func NewBinArrayTupleLiteralPatternNode(loc *position.Location, elements []IntCollectionContentNode) LiteralPatternNode {
 	return NewBinArrayTupleLiteralNode(loc, elements)
 }
 

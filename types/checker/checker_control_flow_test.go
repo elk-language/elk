@@ -2799,6 +2799,29 @@ func TestIfExpression(t *testing.T) {
 			`,
 		},
 
+		"narrow pattern": {
+			input: `
+				var a: String | Int = 2
+
+				if a match String()
+					var b: String = a
+				else
+					var b: Int = a
+				end
+			`,
+		},
+		"narrow and define variables in pattern": {
+			input: `
+				var a: String | Int = 2
+
+				if a match String(to_int: i)
+					var b: String = a
+					var c: Int = i
+				else
+					var b: Int = a
+				end
+			`,
+		},
 		"narrow Bool variable type by using truthiness": {
 			input: `
 				var a = false

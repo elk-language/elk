@@ -96,6 +96,7 @@ const (
 	inferClosureThrowTypeFlag
 	generatorFlag
 	unhygienicFlag
+	conditionFlag     // checked expression is a part of an if/unless condition
 	definedMacrosFlag // indicates that the typechecker has defined some macros
 	incrementalFlag   // indicates the typechecker should check and compiler code incrementally (REPL)
 )
@@ -1017,8 +1018,10 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 	case *ast.IncludeExpressionNode:
 		c.checkIncludeExpressionNode(n)
 		return n
-	case *ast.TypeExpressionNode:
-		n.TypeNode = c.checkTypeNode(n.TypeNode)
+	case *ast.MatchExpressionNode:
+		c.checkMatchExpressionNode(n)
+		return n
+	case *ast.TypeExpressionNode, *ast.PatternExpressionNode:
 		return n
 	case *ast.IntLiteralNode:
 		n.SetType(types.NewIntLiteral(n.Value))
@@ -1330,8 +1333,8 @@ func (c *Checker) StdPatternNode() *types.Mixin {
 	return constant.Type.(*types.Mixin)
 }
 
-func (c *Checker) StdPatternExpressionNode() *types.Mixin {
-	constant, _ := c.StdAST().Subtype(symbol.PatternExpressionNode)
+func (c *Checker) StdLiteralPatternNode() *types.Mixin {
+	constant, _ := c.StdAST().Subtype(symbol.LiteralPatternNode)
 	return constant.Type.(*types.Mixin)
 }
 
@@ -1370,8 +1373,8 @@ func (c *Checker) StdPatternNodeConvertible() *types.Interface {
 	return constant.Type.(*types.Interface)
 }
 
-func (c *Checker) StdPatternExpressionNodeConvertible() *types.Interface {
-	constant, _ := c.StdPatternExpressionNode().Subtype(symbol.Convertible)
+func (c *Checker) StdLiteralPatternNodeConvertible() *types.Interface {
+	constant, _ := c.StdLiteralPatternNode().Subtype(symbol.Convertible)
 	return constant.Type.(*types.Interface)
 }
 
@@ -3177,7 +3180,12 @@ func (c *Checker) checkModifierIfElseNode(node *ast.ModifierIfElseNode, tailPosi
 
 func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition bool) ast.ExpressionNode {
 	c.pushNestedLocalEnv()
+
+	prevConditionFlagValue := c.flags.HasFlag(conditionFlag)
+	c.flags.SetFlag(conditionFlag)
 	node.Condition = c.checkExpression(node.Condition)
+	c.flags.SetFlagValue(conditionFlag, prevConditionFlagValue)
+
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
 	c.pushNestedLocalEnv()
@@ -4112,7 +4120,7 @@ func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.Q
 	exprConvertible := c.StdExpressionNodeConvertible()
 	constConvertible := c.StdConstantNodeConvertible()
 	patternConvertible := c.StdPatternNodeConvertible()
-	patternExprConvertible := c.StdPatternExpressionNodeConvertible()
+	patternExprConvertible := c.StdLiteralPatternNodeConvertible()
 	typeConvertible := c.StdTypeNodeConvertible()
 	identConvertible := c.StdIdentifierNodeConvertible()
 	ivarConvertible := c.StdInstanceVariableNodeConvertible()
@@ -4322,6 +4330,19 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 			)
 		}
 	}
+}
+
+func (c *Checker) checkMatchExpressionNode(node *ast.MatchExpressionNode) {
+	node.Expression = c.checkExpression(node.Expression)
+	exprType := c.TypeOf(node.Expression)
+	node.Pattern, _ = c.checkPattern(node.Pattern, exprType)
+	if !c.flags.HasFlag(conditionFlag) && ast.PatternDeclaresVariables(node.Pattern) {
+		c.addFailure(
+			"patterns in match expressions outside conditions cannot declare variables",
+			node.Pattern.Location(),
+		)
+	}
+	node.SetType(types.Bool{})
 }
 
 type instanceVariableOverride struct {

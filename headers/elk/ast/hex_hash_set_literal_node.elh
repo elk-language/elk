@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents a hex HashSet literal eg. `^x[ff ee]`
   ]##
   sealed primitive class HexHashSetLiteralNode
-    include PatternExpressionNode
+    include LiteralPatternNode
 
     init(
       elements: ArrayTuple[IntCollectionContentNode] = loop; end,

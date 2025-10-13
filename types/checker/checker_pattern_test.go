@@ -6,6 +6,25 @@ import (
 	"github.com/elk-language/elk/position/diagnostic"
 )
 
+func TestMatchExpression(t *testing.T) {
+	tests := testTable{
+		"cannot define variables": {
+			input: `
+				r := 5 match Int(to_string: str)
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 2, 18), P(36, 2, 36)), "patterns in match expressions outside conditions cannot declare variables"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestIdentifierPattern(t *testing.T) {
 	tests := testTable{
 		"cannot use void in initialiser": {

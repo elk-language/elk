@@ -3,7 +3,7 @@ module Std::Elk::AST
     Int literal eg. `5`, `125_355`, `0xff`
   ]##
   sealed primitive class IntLiteralNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode,
             IntCollectionContentNode
 

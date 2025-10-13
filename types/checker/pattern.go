@@ -527,7 +527,7 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) (*as
 			newE, _ := c.checkPattern(e, valueType)
 			node.Elements[i] = newE
 		case *ast.KeyValuePatternNode:
-			e.Key = c.checkExpression(e.Key).(ast.PatternExpressionNode)
+			e.Key = c.checkExpression(e.Key).(ast.LiteralPatternNode)
 			patternKeyType := c.TypeOf(e.Key)
 			c.checkCanMatch(keyType, patternKeyType, e.Location())
 			e.Value, _ = c.checkPattern(e.Value, valueType)
@@ -569,7 +569,7 @@ func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type
 			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Location())
 			node.Elements[i], _ = c.checkPattern(e, valueType)
 		case *ast.KeyValuePatternNode:
-			e.Key = c.checkExpression(e.Key).(ast.PatternExpressionNode)
+			e.Key = c.checkExpression(e.Key).(ast.LiteralPatternNode)
 			patternKeyType := c.TypeOf(e.Key)
 			c.checkCanMatch(keyType, patternKeyType, e.Location())
 			e.Value, _ = c.checkPattern(e.Value, valueType)
@@ -629,7 +629,7 @@ func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) 
 	return node, types.Never{}
 }
 
-func (c *Checker) checkSpecialCollectionLiteralPattern(node ast.PatternExpressionNode, patternType, typ types.Type, location *position.Location) (ast.PatternNode, types.Type) {
+func (c *Checker) checkSpecialCollectionLiteralPattern(node ast.LiteralPatternNode, patternType, typ types.Type, location *position.Location) (ast.PatternNode, types.Type) {
 	c.checkCanMatch(typ, patternType, location)
 	node.SetType(patternType)
 	return node, types.Never{}
@@ -643,7 +643,7 @@ func (c *Checker) checkRegexLiteralPattern(node ast.RegexLiteralNode, typ types.
 	return node, types.Never{}
 }
 
-func (c *Checker) checkSimpleLiteralPattern(node ast.PatternExpressionNode, typ types.Type) (ast.PatternNode, types.Type) {
+func (c *Checker) checkSimpleLiteralPattern(node ast.LiteralPatternNode, typ types.Type) (ast.PatternNode, types.Type) {
 	n := c.checkExpression(node)
 	nodeType := c.TypeOf(n)
 	c.checkCanMatch(typ, nodeType, n.Location())

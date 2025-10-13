@@ -1,0 +1,13 @@
+module Std::Elk::AST
+  ##[
+    An expression that matches a value against a pattern eg. `a match Foo(a: "lol", b: > 2)`
+  ]##
+  sealed primitive class MatchExpressionNode
+    include ExpressionNode
+
+    init(expression: ExpressionNode, pattern_node: PatternNode, location: FS::Location = loop; end); end
+    def expression: ExpressionNode; end
+    def pattern_node: PatternNode; end
+    def location: FS::Location; end
+  end
+end

@@ -3,7 +3,7 @@ module Std::Elk::AST
     Represents an interpolated string literal eg. `"foo ${bar} baz"`
   ]##
   sealed primitive class InterpolatedStringLiteralNode
-    include PatternExpressionNode,
+    include LiteralPatternNode,
             TypeNode,
             StringLiteralNode
 

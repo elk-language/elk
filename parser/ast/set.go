@@ -342,7 +342,7 @@ func NewWordHashSetLiteralNodeI(loc *position.Location, elements []WordCollectio
 }
 
 // Same as [NewWordHashSetLiteralNode] but returns an interface.
-func NewWordHashSetLiteralPatternExpressionNode(loc *position.Location, elements []WordCollectionContentNode) PatternExpressionNode {
+func NewWordHashSetLiteralPatternNode(loc *position.Location, elements []WordCollectionContentNode) LiteralPatternNode {
 	return NewWordHashSetLiteralNode(loc, elements, nil)
 }
 
@@ -523,7 +523,7 @@ func NewSymbolHashSetLiteralNodeI(loc *position.Location, elements []SymbolColle
 }
 
 // Same as [NewSymbolHashSetLiteralNode] but returns an interface.
-func NewSymbolHashSetLiteralPatternExpressionNode(loc *position.Location, elements []SymbolCollectionContentNode) PatternExpressionNode {
+func NewSymbolHashSetLiteralPatternNode(loc *position.Location, elements []SymbolCollectionContentNode) LiteralPatternNode {
 	return NewSymbolHashSetLiteralNode(loc, elements, nil)
 }
 
@@ -704,7 +704,7 @@ func NewHexHashSetLiteralNodeI(loc *position.Location, elements []IntCollectionC
 }
 
 // Same as [NewHexHashSetLiteralNode] but returns an interface.
-func NewHexHashSetLiteralPatternExpressionNode(loc *position.Location, elements []IntCollectionContentNode) PatternExpressionNode {
+func NewHexHashSetLiteralPatternNode(loc *position.Location, elements []IntCollectionContentNode) LiteralPatternNode {
 	return NewHexHashSetLiteralNode(loc, elements, nil)
 }
 
@@ -889,7 +889,7 @@ func NewBinHashSetLiteralNodeI(loc *position.Location, elements []IntCollectionC
 }
 
 // Same as [NewBinHashSetLiteralNode] but returns an interface.
-func NewBinHashSetLiteralPatternExpressionNode(loc *position.Location, elements []IntCollectionContentNode) PatternExpressionNode {
+func NewBinHashSetLiteralPatternNode(loc *position.Location, elements []IntCollectionContentNode) LiteralPatternNode {
 	return NewBinHashSetLiteralNode(loc, elements, nil)
 }
 

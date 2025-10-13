@@ -97,6 +97,6 @@ func NewInvalidPatternNode(loc *position.Location, tok *token.Token) PatternNode
 	return NewInvalidNode(loc, tok)
 }
 
-func NewInvalidPatternExpressionNode(loc *position.Location, tok *token.Token) PatternExpressionNode {
+func NewInvalidLiteralPatternNode(loc *position.Location, tok *token.Token) LiteralPatternNode {
 	return NewInvalidNode(loc, tok)
 }

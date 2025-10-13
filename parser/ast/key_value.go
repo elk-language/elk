@@ -316,14 +316,14 @@ func NewSymbolKeyValuePatternNode(loc *position.Location, key string, val Patter
 // Represents a key value pattern eg. `foo => bar`
 type KeyValuePatternNode struct {
 	NodeBase
-	Key   PatternExpressionNode
+	Key   LiteralPatternNode
 	Value PatternNode
 }
 
 func (n *KeyValuePatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &KeyValuePatternNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Key:      n.Key.splice(loc, args, unquote).(PatternExpressionNode),
+		Key:      n.Key.splice(loc, args, unquote).(LiteralPatternNode),
 		Value:    n.Value.splice(loc, args, unquote).(PatternNode),
 	}
 }
@@ -405,7 +405,7 @@ func (n *KeyValuePatternNode) Error() string {
 }
 
 // Create a key value pattern node eg. `foo => bar`
-func NewKeyValuePatternNode(loc *position.Location, key PatternExpressionNode, val PatternNode) *KeyValuePatternNode {
+func NewKeyValuePatternNode(loc *position.Location, key LiteralPatternNode, val PatternNode) *KeyValuePatternNode {
 	return &KeyValuePatternNode{
 		NodeBase: NodeBase{loc: loc},
 		Key:      key,

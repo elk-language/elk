@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"strconv"
 	"strings"
+
+	"github.com/elk-language/elk/value/durationscanner"
 )
 
 // Represents the difference between two datetimes.
@@ -41,11 +44,15 @@ func (d *DateTimeSpan) Normalise() {
 	}
 }
 
-func (d *DateTimeSpan) Copy() Reference {
+func (d *DateTimeSpan) Dup() *DateTimeSpan {
 	return &DateTimeSpan{
 		DateSpan: d.DateSpan,
 		TimeSpan: d.TimeSpan,
 	}
+}
+
+func (d *DateTimeSpan) Copy() Reference {
+	return d.Dup()
 }
 
 func (*DateTimeSpan) Class() *Class {
@@ -86,6 +93,9 @@ func (d *DateTimeSpan) String() string {
 		buff.WriteString(d.DateSpan.String())
 	}
 	if d.TimeSpan != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
 		buff.WriteString(d.TimeSpan.String())
 	}
 
@@ -300,6 +310,11 @@ func (d *DateTimeSpan) AddTimeSpan(other TimeSpan) *DateTimeSpan {
 	)
 }
 
+func (d *DateTimeSpan) AddMutTimeSpan(other TimeSpan) *DateTimeSpan {
+	d.TimeSpan = d.TimeSpan.AddTimeSpan(other)
+	return d
+}
+
 func (d *DateTimeSpan) AddDateSpan(other DateSpan) *DateTimeSpan {
 	return NewDateTimeSpan(
 		d.DateSpan.AddDateSpan(other),
@@ -312,6 +327,12 @@ func (d *DateTimeSpan) AddDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
 		d.DateSpan.AddDateSpan(other.DateSpan),
 		d.TimeSpan.AddTimeSpan(other.TimeSpan),
 	)
+}
+
+func (d *DateTimeSpan) AddMutDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
+	d.DateSpan = d.DateSpan.AddDateSpan(other.DateSpan)
+	d.TimeSpan = d.TimeSpan.AddTimeSpan(other.TimeSpan)
+	return d
 }
 
 func (d *DateTimeSpan) Subtract(other Value) (Value, Value) {
@@ -634,6 +655,210 @@ func (d *DateTimeSpan) DivideBigFloat(other *BigFloat) *DateTimeSpan {
 		newDateSpan,
 		newTimeSpan,
 	)
+}
+
+// Parses a time span string and creates a datetime span value.
+// A datetime span string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m".
+// Valid time units are "Y", "M", "D", "h", "m", "s", "ms", "us" (or "µs"), "ns".
+func ParseDateTimeSpan(str string) (result *DateTimeSpan, err Value) {
+	scanner := durationscanner.New(str)
+	result = &DateTimeSpan{}
+
+tokenLoop:
+	for {
+		token, value := scanner.Next()
+		switch token {
+		case durationscanner.END_OF_FILE:
+			break tokenLoop
+		case durationscanner.ERROR:
+			return nil, Ref(Errorf(
+				FormatErrorClass,
+				"invalid date time span string: %s",
+				value,
+			))
+		case durationscanner.YEARS_INT:
+			bigYears, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			years := int32(bigYears.ToSmallInt())
+			result.DateSpan.months += years * 12
+		case durationscanner.YEARS_FLOAT:
+			years, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in datetime span string: %s",
+					er.Error(),
+				))
+			}
+			yearsSpan := MakeDateSpan(1, 0, 0).MultiplyFloat(Float(years))
+			result.AddMutDateTimeSpan(yearsSpan)
+		case durationscanner.MONTHS_INT:
+			bigMonths, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			months := int32(bigMonths.ToSmallInt())
+			result.DateSpan.months += months
+		case durationscanner.MONTHS_FLOAT:
+			months, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in datetime span string: %s",
+					er.Error(),
+				))
+			}
+			monthsSpan := MakeDateSpan(0, 1, 0).MultiplyFloat(Float(months))
+			result.AddMutDateTimeSpan(monthsSpan)
+		case durationscanner.DAYS_INT:
+			bigDays, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			days := int32(bigDays.ToSmallInt())
+			result.DateSpan.days += days
+		case durationscanner.DAYS_FLOAT:
+			days, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in datetime span string: %s",
+					er.Error(),
+				))
+			}
+			daysSpan := MakeDateSpan(0, 0, 1).MultiplyFloat(Float(days))
+			result.AddMutDateTimeSpan(daysSpan)
+		case durationscanner.HOURS_INT:
+			bigHours, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			hours := TimeSpan(bigHours.ToSmallInt())
+			result.TimeSpan += hours * Hour
+		case durationscanner.HOURS_FLOAT:
+			hours, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in datetime span string: %s",
+					er.Error(),
+				))
+			}
+			hoursSpan := Hour.MultiplyFloat(Float(hours))
+			result.AddMutTimeSpan(hoursSpan)
+		case durationscanner.MINUTES_INT:
+			bigMinutes, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			minutes := TimeSpan(bigMinutes.ToSmallInt())
+			result.TimeSpan += minutes * Minute
+		case durationscanner.MINUTES_FLOAT:
+			minutes, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in datetime span string: %s",
+					er.Error(),
+				))
+			}
+			minutesSpan := Minute.MultiplyFloat(Float(minutes))
+			result.AddMutTimeSpan(minutesSpan)
+		case durationscanner.SECONDS_INT:
+			bigSeconds, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			seconds := TimeSpan(bigSeconds.ToSmallInt())
+			result.TimeSpan += seconds * Second
+		case durationscanner.SECONDS_FLOAT:
+			seconds, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in datetime span string: %s",
+					er.Error(),
+				))
+			}
+			secondsSpan := Second.MultiplyFloat(Float(seconds))
+			result.AddMutTimeSpan(secondsSpan)
+		case durationscanner.MILLISECONDS_INT:
+			bigMilliseconds, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			milliseconds := TimeSpan(bigMilliseconds.ToSmallInt())
+			result.TimeSpan += milliseconds * Millisecond
+		case durationscanner.MILLISECONDS_FLOAT:
+			milliseconds, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in datetime span string: %s",
+					er.Error(),
+				))
+			}
+			millisecondsSpan := Millisecond.MultiplyFloat(Float(milliseconds))
+			result.AddMutTimeSpan(millisecondsSpan)
+		case durationscanner.MICROSECONDS_INT:
+			bigMicroseconds, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			microseconds := TimeSpan(bigMicroseconds.ToSmallInt())
+			result.TimeSpan += microseconds * Microsecond
+		case durationscanner.MICROSECONDS_FLOAT:
+			microseconds, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in datetime span string: %s",
+					er.Error(),
+				))
+			}
+			microsecondsSpan := Microsecond.MultiplyFloat(Float(microseconds))
+			result.AddMutTimeSpan(microsecondsSpan)
+		case durationscanner.NANOSECONDS_INT:
+			bigNanoseconds, err := ParseBigInt(value, 10)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+
+			nanoseconds := TimeSpan(bigNanoseconds.ToSmallInt())
+			result.TimeSpan += nanoseconds * Nanosecond
+		case durationscanner.NANOSECONDS_FLOAT:
+			nanoseconds, er := strconv.ParseFloat(value, 64)
+			if er != nil {
+				return nil, Ref(Errorf(
+					FormatErrorClass,
+					"invalid float in datetime span string: %s",
+					er.Error(),
+				))
+			}
+			nanosecondsSpan := Nanosecond.MultiplyFloat(Float(nanoseconds))
+			result.AddMutTimeSpan(nanosecondsSpan)
+		default:
+			return nil, Ref(Errorf(
+				FormatErrorClass,
+				"undefined datetime span token: %s",
+				token.String(),
+			))
+		}
+
+	}
+
+	result.Normalise()
+	return result, Undefined
 }
 
 func initDateTimeSpan() {

@@ -41,6 +41,15 @@ func (b *BitField8) SetFlag(flag BitFlag8) {
 	b.bitfield = b.bitfield | flag
 }
 
+// Turn on/off the given bit-flag.
+func (b *BitField8) SetFlagValue(flag BitFlag8, val bool) {
+	if val {
+		b.SetFlag(flag)
+	} else {
+		b.UnsetFlag(flag)
+	}
+}
+
 // Turn off the given bit-flag.
 func (b *BitField8) UnsetFlag(flag BitFlag8) {
 	b.bitfield = b.bitfield &^ flag
