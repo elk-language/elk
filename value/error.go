@@ -167,6 +167,17 @@ func NewIndexOutOfRangeError(index string, length int) *Object {
 
 // Create a new error that signals that
 // the big float precision is out of range (negative or too large).
+func NewIncompatibleTimeFormatError(formatString, input string) *Object {
+	return Errorf(
+		FormatErrorClass,
+		"time format string `%s` is incompatible with parsed input `%s`",
+		String(formatString).Inspect(),
+		String(input).Inspect(),
+	)
+}
+
+// Create a new error that signals that
+// the big float precision is out of range (negative or too large).
 func NewBigFloatPrecisionError(precision string) *Object {
 	return Errorf(
 		OutOfRangeErrorClass,
