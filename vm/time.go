@@ -15,6 +15,20 @@ func initTime() {
 			return value.Ref(value.TimeNow()), value.Undefined
 		},
 	)
+	Def(
+		c,
+		"parse",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			formatString := args[1].AsString().String()
+			input := args[2].AsString().String()
+			result, err := value.ParseTime(formatString, input)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
+			return result.ToValue(), value.Undefined
+		},
+		DefWithParameters(2),
+	)
 
 	// Instance methods
 	c = &value.TimeClass.MethodContainer

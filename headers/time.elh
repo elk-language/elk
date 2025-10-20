@@ -7,6 +7,11 @@ sealed primitive class ::Std::Time
 			Returns the current time.
 		]##
 		def now: Time; end
+
+		##[
+			Parse the time string according to the given format.
+		]##
+		def parse(format: String, input: String): Time ! FormatError; end
 	end
 
 	const DEFAULT_FORMAT: String
