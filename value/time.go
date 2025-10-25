@@ -201,7 +201,7 @@ func (t Time) MustFormat(formatString string) string {
 	return result
 }
 
-func parseDigits(s string, maxChars int, spacePadded, allowNoDigits bool) (int, string) {
+func parseDigits(s string, maxChars int, spacePadded bool) (int, string) {
 	if len(s) == 0 {
 		return -1, ""
 	}
@@ -226,11 +226,46 @@ func parseDigits(s string, maxChars int, spacePadded, allowNoDigits bool) (int, 
 		i++
 	}
 
-	if !allowNoDigits && i == 0 {
+	if i == 0 {
 		return -1, ""
 	}
 
 	return n, s[i:]
+}
+
+func parseBigDigits(s string, maxChars int, spacePadded bool) (*BigInt, string) {
+	result := &big.Int{}
+	ten := big.NewInt(10)
+	if len(s) == 0 {
+		return ToElkBigInt(result), ""
+	}
+
+	i := 0
+
+	if spacePadded {
+		for ; i < len(s) && i < maxChars && s[i] == ' '; i++ {
+		}
+	}
+
+	for {
+		if i >= len(s) || i >= maxChars {
+			break
+		}
+		ch := s[i]
+		if ch < '0' || ch > '9' {
+			break
+		}
+
+		result.Mul(result, ten)
+		result.Add(result, big.NewInt(int64(ch-'0')))
+		i++
+	}
+
+	if i == 0 {
+		return nil, ""
+	}
+
+	return ToElkBigInt(result), s[i:]
 }
 
 // Create a string formatted according to the given format string.
@@ -476,7 +511,7 @@ tokenLoop:
 
 func parseTimeHour(formatString, input string, currentInput *string, result *Time, spacePadded bool) Value {
 	var n int
-	n, *currentInput = parseDigits(*currentInput, 2, spacePadded, false)
+	n, *currentInput = parseDigits(*currentInput, 2, spacePadded)
 	if n < 0 {
 		return Ref(NewIncompatibleTimeFormatError(formatString, input))
 	}
@@ -494,7 +529,7 @@ func parseTimeHour(formatString, input string, currentInput *string, result *Tim
 
 func parseTimeMinute(formatString, input string, currentInput *string, result *Time, spacePadded bool) Value {
 	var n int
-	n, *currentInput = parseDigits(*currentInput, 2, spacePadded, false)
+	n, *currentInput = parseDigits(*currentInput, 2, spacePadded)
 	if n < 0 {
 		return Ref(NewIncompatibleTimeFormatError(formatString, input))
 	}
@@ -512,7 +547,7 @@ func parseTimeMinute(formatString, input string, currentInput *string, result *T
 
 func parseTimeSecond(formatString, input string, currentInput *string, result *Time, spacePadded bool) Value {
 	var n int
-	n, *currentInput = parseDigits(*currentInput, 2, spacePadded, false)
+	n, *currentInput = parseDigits(*currentInput, 2, spacePadded)
 	if n < 0 {
 		return Ref(NewIncompatibleTimeFormatError(formatString, input))
 	}
@@ -530,7 +565,7 @@ func parseTimeSecond(formatString, input string, currentInput *string, result *T
 
 func parseTimeMillisecond(formatString, input string, currentInput *string, result *Time, spacePadded bool) Value {
 	var n int
-	n, *currentInput = parseDigits(*currentInput, 3, spacePadded, false)
+	n, *currentInput = parseDigits(*currentInput, 3, spacePadded)
 	if n < 0 {
 		return Ref(NewIncompatibleTimeFormatError(formatString, input))
 	}
@@ -548,7 +583,7 @@ func parseTimeMillisecond(formatString, input string, currentInput *string, resu
 
 func parseTimeMicrosecond(formatString, input string, currentInput *string, result *Time, spacePadded bool) Value {
 	var n int
-	n, *currentInput = parseDigits(*currentInput, 6, spacePadded, false)
+	n, *currentInput = parseDigits(*currentInput, 6, spacePadded)
 	if n < 0 {
 		return Ref(NewIncompatibleTimeFormatError(formatString, input))
 	}
@@ -566,7 +601,7 @@ func parseTimeMicrosecond(formatString, input string, currentInput *string, resu
 
 func parseTimeNanosecond(formatString, input string, currentInput *string, result *Time, spacePadded bool) Value {
 	var n int
-	n, *currentInput = parseDigits(*currentInput, 9, spacePadded, false)
+	n, *currentInput = parseDigits(*currentInput, 9, spacePadded)
 	if n < 0 {
 		return Ref(NewIncompatibleTimeFormatError(formatString, input))
 	}
@@ -603,25 +638,26 @@ func parseTimeMatchText(formatString, input string, currentInput *string, text s
 const nanosecondDigitsInSecond = 9
 
 func parseTimeSubNanosecond(digits int, name, formatString, input string, currentInput *string, result *Time, spacePadded bool) Value {
-	var n1, n2 int
+	var n *BigInt
 	leftDigits := digits - nanosecondDigitsInSecond
-	n1, *currentInput = parseDigits(*currentInput, nanosecondDigitsInSecond, spacePadded, true)
-	if n1 < 0 {
+	n, *currentInput = parseBigDigits(*currentInput, digits, spacePadded)
+	if n == nil {
 		return Ref(NewIncompatibleTimeFormatError(formatString, input))
 	}
 
-	n2, *currentInput = parseDigits(*currentInput, leftDigits, spacePadded, false)
-	if n2 < 0 {
-		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+	divisor := SmallInt(10).ExponentiateSmallInt(SmallInt(leftDigits))
+	newVal, err := n.DivideVal(divisor)
+	if !err.IsUndefined() {
+		return err
 	}
 
-	result.duration += TimeSpan(n1) * Nanosecond
+	result.duration += TimeSpan(newVal.AsNativeInt64()) * Nanosecond
 	return Undefined
 }
 
 func parseTime12Hour(formatString, input string, currentInput *string, result *Time, spacePadded bool) Value {
 	var n int
-	n, *currentInput = parseDigits(*currentInput, 2, false, false)
+	n, *currentInput = parseDigits(*currentInput, 2, false)
 	if n == -1 {
 		return Ref(NewIncompatibleTimeFormatError(formatString, input))
 	}

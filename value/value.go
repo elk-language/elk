@@ -527,6 +527,14 @@ func (v Value) AsInt() int {
 	return int(v.AsSmallInt())
 }
 
+func (v Value) AsNativeInt64() int64 {
+	if v.IsReference() {
+		return int64(v.AsBigInt().ToInt64())
+	}
+
+	return int64(v.AsSmallInt())
+}
+
 func (v Value) IsUInt() bool {
 	return v.flag == UINT_FLAG
 }
