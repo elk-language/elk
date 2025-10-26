@@ -234,12 +234,12 @@ func parseDigits(s string, maxChars int, spacePadded bool) (int, string) {
 }
 
 func parseBigDigits(s string, maxChars int, spacePadded bool) (*BigInt, string) {
-	result := &big.Int{}
-	ten := big.NewInt(10)
 	if len(s) == 0 {
-		return ToElkBigInt(result), ""
+		return nil, ""
 	}
 
+	result := &big.Int{}
+	ten := big.NewInt(10)
 	i := 0
 
 	if spacePadded {
@@ -644,6 +644,9 @@ func parseTimeSubNanosecond(digits int, name, formatString, input string, curren
 	if n == nil {
 		return Ref(NewIncompatibleTimeFormatError(formatString, input))
 	}
+	if lessThanZero, _ := n.LessThan(SmallInt(0).ToValue()); lessThanZero {
+		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+	}
 
 	divisor := SmallInt(10).ExponentiateSmallInt(SmallInt(leftDigits))
 	newVal, err := n.DivideVal(divisor)
@@ -657,7 +660,7 @@ func parseTimeSubNanosecond(digits int, name, formatString, input string, curren
 
 func parseTime12Hour(formatString, input string, currentInput *string, result *Time, spacePadded bool) Value {
 	var n int
-	n, *currentInput = parseDigits(*currentInput, 2, false)
+	n, *currentInput = parseDigits(*currentInput, 2, spacePadded)
 	if n == -1 {
 		return Ref(NewIncompatibleTimeFormatError(formatString, input))
 	}
