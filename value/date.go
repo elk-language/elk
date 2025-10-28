@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/elk-language/elk/value/timescanner"
 )
@@ -138,14 +140,26 @@ func (d Date) Year() int {
 	return int(y - dateYearBias) // remove bias
 }
 
+func (d *Date) SetYear(v int) {
+	*d = MakeDate(v, d.Month(), d.Day())
+}
+
 func (d Date) Month() int {
 	m := int32((d.bits >> 5) & 0b1111)
 	return int(m)
 }
 
+func (d *Date) SetMonth(v int) {
+	*d = MakeDate(d.Year(), v, d.Day())
+}
+
 func (d Date) Day() int {
 	m := int32(d.bits & 0b11111)
 	return int(m)
+}
+
+func (d *Date) SetDay(v int) {
+	*d = MakeDate(d.Year(), d.Month(), v)
 }
 
 func (d Date) ToGoTime() time.Time {
@@ -388,6 +402,287 @@ tokenLoop:
 	}
 
 	return buffer.String(), err
+}
+
+func ParseDate(formatString, input string) (result Date, err Value) {
+	scanner := timescanner.New(formatString)
+	currentInput := input
+
+tokenLoop:
+	for {
+		token, value := scanner.Next()
+		switch token {
+		case timescanner.END_OF_FILE:
+			if len(currentInput) > 0 {
+				return Date{}, Ref(NewIncompatibleDateFormatError(formatString, input))
+			}
+			break tokenLoop
+		case timescanner.INVALID_FORMAT_DIRECTIVE:
+			return Date{}, Ref(Errorf(
+				FormatErrorClass,
+				"invalid date format directive: %s",
+				value,
+			))
+		case timescanner.PERCENT:
+			err = parseDateMatchText(formatString, input, &currentInput, "%")
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.NEWLINE:
+			err = parseDateMatchText(formatString, input, &currentInput, "\n")
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.TAB:
+			err = parseDateMatchText(formatString, input, &currentInput, "\t")
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.TEXT:
+			err = parseDateMatchText(formatString, input, &currentInput, value)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.FULL_YEAR_WEEK_BASED, timescanner.FULL_YEAR_WEEK_BASED_ZERO_PADDED:
+			err = parseDateYearWeekBased(formatString, input, &currentInput, &result, false)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.FULL_YEAR_WEEK_BASED_SPACE_PADDED:
+			err = parseDateYearWeekBased(formatString, input, &currentInput, &result, true)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.FULL_YEAR, timescanner.FULL_YEAR_ZERO_PADDED:
+			err = parseDateYear(formatString, input, &currentInput, &result, false)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.FULL_YEAR_SPACE_PADDED:
+			err = parseDateYear(formatString, input, &currentInput, &result, true)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.CENTURY, timescanner.CENTURY_ZERO_PADDED:
+			err = parseDateCentury(formatString, input, &currentInput, &result, false)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.CENTURY_SPACE_PADDED:
+			err = parseDateCentury(formatString, input, &currentInput, &result, true)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.YEAR_LAST_TWO, timescanner.YEAR_LAST_TWO_ZERO_PADDED:
+			err = parseDateYearLastTwo(formatString, input, &currentInput, &result, false)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.YEAR_LAST_TWO_SPACE_PADDED:
+			err = parseDateYearLastTwo(formatString, input, &currentInput, &result, true)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.YEAR_LAST_TWO_WEEK_BASED, timescanner.YEAR_LAST_TWO_WEEK_BASED_ZERO_PADDED:
+			err = parseDateYearLastTwoWeekBased(formatString, input, &currentInput, &result, false)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.YEAR_LAST_TWO_WEEK_BASED_SPACE_PADDED:
+			err = parseDateYearLastTwoWeekBased(formatString, input, &currentInput, &result, true)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.MONTH, timescanner.MONTH_ZERO_PADDED:
+			err = parseDateMonth(formatString, input, &currentInput, &result, false)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.MONTH_SPACE_PADDED:
+			err = parseDateMonth(formatString, input, &currentInput, &result, true)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.MONTH_FULL_NAME, timescanner.MONTH_FULL_NAME_UPPERCASE:
+			err = parseDateMonthName(&currentInput, &result)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+		case timescanner.MONTH_ABBREVIATED_NAME:
+			err = parseDateMonthName(&currentInput, &result)
+			if !err.IsUndefined() {
+				return Date{}, err
+			}
+			// TODO: finish date parsing
+		default:
+			return Date{}, Ref(Errorf(
+				FormatErrorClass,
+				"unsupported date format directive: %s",
+				token.String(),
+			))
+		}
+
+	}
+
+	return result, err
+}
+
+var months = map[string]int{
+	"january":   1,
+	"february":  2,
+	"march":     3,
+	"april":     4,
+	"may":       5,
+	"june":      6,
+	"july":      7,
+	"august":    8,
+	"september": 9,
+	"october":   10,
+	"november":  11,
+	"december":  12,
+}
+
+var days = map[string]int{
+	"monday":    1,
+	"tuesday":   2,
+	"wednesday": 3,
+	"thursday":  4,
+	"friday":    5,
+	"saturday":  6,
+	"sunday":    7,
+}
+
+func parseDateMonthName(currentInput *string, result *Date) Value {
+	var buffer strings.Builder
+
+	for len(*currentInput) > 0 {
+		char, size := utf8.DecodeRuneInString(*currentInput)
+		*currentInput = (*currentInput)[size:]
+		if !unicode.IsLetter(char) {
+			break
+		}
+		buffer.WriteRune(unicode.ToLower(char))
+	}
+
+	monthName := buffer.String()
+	monthNumber, ok := months[monthName]
+	if !ok {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"invalid date month name: %s",
+			monthName,
+		))
+	}
+
+	result.SetMonth(monthNumber)
+	return Undefined
+}
+
+func parseDateMonth(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+	var n int
+	var ok bool
+	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 2, spacePadded)
+	if !ok {
+		return Ref(NewIncompatibleDateFormatError(formatString, input))
+	}
+	if n < 1 || n > 12 {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"value for date month out of range: %d",
+			n,
+		))
+	}
+
+	result.SetMonth(n)
+	return Undefined
+}
+
+func parseDateYearLastTwoWeekBased(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+	var n int
+	var ok bool
+	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 2, spacePadded)
+	if !ok {
+		return Ref(NewIncompatibleDateFormatError(formatString, input))
+	}
+
+	var century int
+	if result.Year() == 0 {
+		century = DateNow().Century()
+	} else {
+		century = result.Century()
+	}
+	yearStart := datetimeISOYearStart(century*100 + n)
+	*result = yearStart.Date()
+	return Undefined
+}
+
+func parseDateYearLastTwo(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+	var n int
+	var ok bool
+	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 2, spacePadded)
+	if !ok {
+		return Ref(NewIncompatibleDateFormatError(formatString, input))
+	}
+
+	if result.Year() == 0 {
+		result.SetYear(DateNow().Century()*100 + n)
+	} else {
+		result.SetYear(result.Century()*100 + n)
+	}
+	return Undefined
+}
+
+func parseDateCentury(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+	var n int
+	var ok bool
+	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 2, spacePadded)
+	if !ok {
+		return Ref(NewIncompatibleDateFormatError(formatString, input))
+	}
+
+	result.SetYear((result.Year() % 100) + n*100)
+	return Undefined
+}
+
+func parseDateYear(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+	var n int
+	var ok bool
+	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 4, spacePadded)
+	if !ok {
+		return Ref(NewIncompatibleDateFormatError(formatString, input))
+	}
+
+	result.SetYear(n)
+	return Undefined
+}
+
+func parseDateYearWeekBased(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+	var n int
+	var ok bool
+	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 4, spacePadded)
+	if !ok {
+		return Ref(NewIncompatibleDateFormatError(formatString, input))
+	}
+
+	yearStart := datetimeISOYearStart(n)
+	*result = yearStart.Date()
+	return Undefined
+}
+
+func datetimeISOYearStart(year int) DateTime {
+	// ISO week 1 is the week with the year's first Thursday in it.
+	// So we start from Jan 4th (always in week 1) and adjust.
+	jan4 := MakeDateTime(year, 1, 4, 0, 0, 0, 0, nil)
+
+	weekday := jan4.WeekdayFromMonday()
+	diff := -weekday + 1
+	yearStart := jan4.Subtract(TimeSpan(diff) * Day)
+
+	return *yearStart
+}
+
+func parseDateMatchText(formatString, input string, currentInput *string, text string) Value {
+	return parseTemporalMatchText("date", formatString, input, currentInput, text)
 }
 
 func initDate() {
