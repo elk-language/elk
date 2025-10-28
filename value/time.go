@@ -268,7 +268,6 @@ func parseBigDigits(s string, maxChars int, spacePadded bool) (*BigInt, string) 
 	return ToElkBigInt(result), s[i:]
 }
 
-// Create a string formatted according to the given format string.
 func ParseTime(formatString, input string) (result Time, err Value) {
 	scanner := timescanner.New(formatString)
 	currentInput := input
@@ -523,6 +522,9 @@ func parseTimeHour(formatString, input string, currentInput *string, result *Tim
 		))
 	}
 
+	hours := result.duration / Hour
+	result.duration -= hours * Hour
+
 	result.duration += TimeSpan(n) * Hour
 	return Undefined
 }
@@ -540,6 +542,9 @@ func parseTimeMinute(formatString, input string, currentInput *string, result *T
 			n,
 		))
 	}
+
+	minutes := result.duration / Minute % 60
+	result.duration -= minutes * Minute
 
 	result.duration += TimeSpan(n) * Minute
 	return Undefined
@@ -559,6 +564,9 @@ func parseTimeSecond(formatString, input string, currentInput *string, result *T
 		))
 	}
 
+	seconds := result.duration / Second % 60
+	result.duration -= seconds * Second
+
 	result.duration += TimeSpan(n) * Second
 	return Undefined
 }
@@ -576,6 +584,9 @@ func parseTimeMillisecond(formatString, input string, currentInput *string, resu
 			n,
 		))
 	}
+
+	milliseconds := result.duration / Millisecond % 1000
+	result.duration -= milliseconds * Millisecond
 
 	result.duration += TimeSpan(n) * Millisecond
 	return Undefined
@@ -595,6 +606,9 @@ func parseTimeMicrosecond(formatString, input string, currentInput *string, resu
 		))
 	}
 
+	microseconds := result.duration / Microsecond % 1_000_000
+	result.duration -= microseconds * Microsecond
+
 	result.duration += TimeSpan(n) * Microsecond
 	return Undefined
 }
@@ -613,19 +627,23 @@ func parseTimeNanosecond(formatString, input string, currentInput *string, resul
 		))
 	}
 
+	nanoseconds := result.duration / Nanosecond % 1_000_000_000
+	result.duration -= nanoseconds * Nanosecond
+
 	result.duration += TimeSpan(n) * Nanosecond
 	return Undefined
 }
 
-func parseTimeMatchText(formatString, input string, currentInput *string, text string) Value {
+func parseTemporalMatchText(kind, formatString, input string, currentInput *string, text string) Value {
 	if len(*currentInput) < len(text) {
-		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+		return Ref(NewIncompatibleTemporalFormatError(kind, formatString, input))
 	}
 	got := (*currentInput)[:len(text)]
 	if got != text {
 		return Ref(Errorf(
 			FormatErrorClass,
-			"cannot parse time string, expected `%s`, got `%s`",
+			"cannot parse %s string, expected `%s`, got `%s`",
+			kind,
 			String(text).Inspect(),
 			String(got).Inspect(),
 		))
@@ -633,6 +651,10 @@ func parseTimeMatchText(formatString, input string, currentInput *string, text s
 	*currentInput = (*currentInput)[len(text):]
 
 	return Undefined
+}
+
+func parseTimeMatchText(formatString, input string, currentInput *string, text string) Value {
+	return parseTemporalMatchText("time", formatString, input, currentInput, text)
 }
 
 const nanosecondDigitsInSecond = 9
@@ -654,6 +676,9 @@ func parseTimeSubNanosecond(digits int, name, formatString, input string, curren
 		return err
 	}
 
+	nanoseconds := result.duration / Nanosecond % 1_000_000_000
+	result.duration -= nanoseconds * Nanosecond
+
 	result.duration += TimeSpan(newVal.AsNativeInt64()) * Nanosecond
 	return Undefined
 }
@@ -671,6 +696,9 @@ func parseTime12Hour(formatString, input string, currentInput *string, result *T
 			n,
 		))
 	}
+
+	hours := result.duration / Hour
+	result.duration -= hours * Hour
 
 	result.duration += TimeSpan(n) * Hour
 	return Undefined

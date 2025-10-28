@@ -14,8 +14,27 @@ describe "Time", ->
 		end
 
 		context "parse", ->
+			should "parse a custom format", ->
+				t := Time.parse("%H-%M-%S:%N", "22-15-10:22")
+				assert! t <<: Time
+				assert! t.to_string == "22:15:10.000000022"
+				assert! t.hour == 22
+				assert! t.minute == 15
+				assert! t.second == 10
+				assert! t.nanoseconds_in_second == 22
+			end
+
 			context "hour", ->
 				context "zero padded", ->
+					should "parse repeated hours", ->
+						t := Time.parse("%H %M %S %H", "15 25 9 12")
+						assert! t <<: Time
+						assert! t.to_string == "12:25:09.000000000"
+						assert! t.hour == 12
+						assert! t.minute == 25
+						assert! t.second == 9
+					end
+
 					should "parse two digits", ->
 						t := Time.parse("%H", "15")
 						assert! t <<: Time
@@ -158,6 +177,15 @@ describe "Time", ->
 
 			context "hour 12", ->
 				context "zero padded", ->
+					should "parse repeated hours", ->
+						t := Time.parse("%I %M %S %I", "2 25 9 10")
+						assert! t <<: Time
+						assert! t.to_string == "10:25:09.000000000"
+						assert! t.hour == 10
+						assert! t.minute == 25
+						assert! t.second == 9
+					end
+
 					should "parse two digits", ->
 						t := Time.parse("%I", "10")
 						assert! t <<: Time
@@ -422,6 +450,15 @@ describe "Time", ->
 
 			context "minute", ->
 				context "zero padded", ->
+					should "parse repeated minutes", ->
+						t := Time.parse("%H %M %S %M", "15 25 9 12")
+						assert! t <<: Time
+						assert! t.to_string == "15:12:09.000000000"
+						assert! t.hour == 15
+						assert! t.minute == 12
+						assert! t.second == 9
+					end
+
 					should "parse two digits", ->
 						t := Time.parse("%M", "15")
 						assert! t <<: Time
@@ -564,6 +601,15 @@ describe "Time", ->
 
 			context "second", ->
 				context "zero padded", ->
+					should "parse repeated seconds", ->
+						t := Time.parse("%H %M %S %S", "15 25 9 12")
+						assert! t <<: Time
+						assert! t.to_string == "15:25:12.000000000"
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 12
+					end
+
 					should "parse all digits", ->
 						t := Time.parse("%S", "52")
 						assert! t <<: Time
@@ -706,6 +752,16 @@ describe "Time", ->
 
 			context "millisecond", ->
 				context "zero padded", ->
+					should "parse repeated milliseconds", ->
+						t := Time.parse("%L %H %M %S %L", "120 15 25 9 552")
+						assert! t <<: Time
+						assert! t.to_string == "15:25:09.552000000"
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+					end
+
 					should "parse all digits", ->
 						t := Time.parse("%L", "152")
 						assert! t <<: Time
@@ -858,6 +914,17 @@ describe "Time", ->
 
 			context "microsecond", ->
 				context "zero padded", ->
+					should "parse repeated microseconds", ->
+						t := Time.parse("%6N %H %M %S %6N", "152420 15 25 9 552992")
+						assert! t <<: Time
+						assert! t.to_string == "15:25:09.552992000"
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+					end
+
 					should "parse all digits", ->
 						t := Time.parse("%6N", "152420")
 						assert! t <<: Time
@@ -1020,6 +1087,18 @@ describe "Time", ->
 
 			context "nanosecond", ->
 				context "zero padded", ->
+					should "parse repeated nanoseconds", ->
+						t := Time.parse("%N %H %M %S %N", "944152420 15 25 9 552992164")
+						assert! t <<: Time
+						assert! t.to_string == "15:25:09.552992164"
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+						assert! t.nanosecond == 164
+					end
+
 					should "parse all digits", ->
 						t := Time.parse("%N", "944152420")
 						assert! t <<: Time
@@ -1228,6 +1307,18 @@ describe "Time", ->
 
 			context "picosecond", ->
 				context "zero padded", ->
+					should "parse repeated picoseconds", ->
+						t := Time.parse("%12N %H %M %S %12N", "944152420212 15 25 9 552992164888")
+						assert! t <<: Time
+						assert! t.to_string == "15:25:09.552992164"
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+						assert! t.nanosecond == 164
+					end
+
 					should "parse all digits", ->
 						t := Time.parse("%12N", "944152420212")
 						assert! t <<: Time
@@ -1400,6 +1491,18 @@ describe "Time", ->
 
 			context "femtosecond", ->
 				context "zero padded", ->
+					should "parse repeated femtoseconds", ->
+						t := Time.parse("%15N %H %M %S %15N", "944152420212794 15 25 9 552992164888376")
+						assert! t <<: Time
+						assert! t.to_string == "15:25:09.552992164"
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+						assert! t.nanosecond == 164
+					end
+
 					should "parse all digits", ->
 						t := Time.parse("%15N", "944152420212794")
 						assert! t <<: Time
@@ -1572,6 +1675,18 @@ describe "Time", ->
 
 			context "attosecond", ->
 				context "zero padded", ->
+					should "parse repeated attoseconds", ->
+						t := Time.parse("%18N %H %M %S %18N", "944152420212794111 15 25 9 552992164888376909")
+						assert! t <<: Time
+						assert! t.to_string == "15:25:09.552992164"
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+						assert! t.nanosecond == 164
+					end
+
 					should "parse all digits", ->
 						t := Time.parse("%18N", "944152420212794111")
 						assert! t <<: Time
@@ -1744,6 +1859,18 @@ describe "Time", ->
 
 			context "zeptosecond", ->
 				context "zero padded", ->
+					should "parse repeated zeptoseconds", ->
+						t := Time.parse("%21N %H %M %S %21N", "944152420212794111327 15 25 9 552992164888376909773")
+						assert! t <<: Time
+						assert! t.to_string == "15:25:09.552992164"
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+						assert! t.nanosecond == 164
+					end
+
 					should "parse all digits", ->
 						t := Time.parse("%21N", "944152420212794111327")
 						assert! t <<: Time
@@ -1916,6 +2043,18 @@ describe "Time", ->
 
 			context "yoctosecond", ->
 				context "zero padded", ->
+					should "parse repeated yoctoseconds", ->
+						t := Time.parse("%24N %H %M %S %24N", "944152420212794111327666 15 25 9 552992164888376909773445")
+						assert! t <<: Time
+						assert! t.to_string == "15:25:09.552992164"
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+						assert! t.nanosecond == 164
+					end
+
 					should "parse all digits", ->
 						t := Time.parse("%24N", "944152420212794111327666")
 						assert! t <<: Time
