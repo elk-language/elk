@@ -11,6 +11,17 @@ import (
 
 var DateTimeClass *Class // ::Std::DateTime
 
+const (
+	SundayAlt = iota
+	Monday
+	Tuesday
+	Wednesday
+	Thursday
+	Friday
+	Saturday
+	Sunday
+)
+
 // Elk's DateTime value
 type DateTime struct {
 	Go time.Time
