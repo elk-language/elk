@@ -504,11 +504,11 @@ tokenLoop:
 			buffer.WriteByte('\t')
 		case timescanner.TEXT:
 			buffer.WriteString(value)
-		case timescanner.FULL_YEAR_WEEK_BASED:
+		case timescanner.FULL_ISO_YEAR:
 			fmt.Fprintf(&buffer, "%d", t.ISOYear())
-		case timescanner.FULL_YEAR_WEEK_BASED_SPACE_PADDED:
+		case timescanner.FULL_ISO_YEAR_SPACE_PADDED:
 			fmt.Fprintf(&buffer, "%4d", t.ISOYear())
-		case timescanner.FULL_YEAR_WEEK_BASED_ZERO_PADDED:
+		case timescanner.FULL_ISO_YEAR_ZERO_PADDED:
 			fmt.Fprintf(&buffer, "%04d", t.ISOYear())
 		case timescanner.FULL_YEAR:
 			fmt.Fprintf(&buffer, "%d", t.Year())
@@ -646,11 +646,11 @@ tokenLoop:
 			fmt.Fprintf(&buffer, "%d%018d000", t.UnixSeconds(), t.AttosecondsInSecond())
 		case timescanner.UNIX_YOCTOSECONDS:
 			fmt.Fprintf(&buffer, "%d%018d000000", t.UnixSeconds(), t.AttosecondsInSecond())
-		case timescanner.WEEK_OF_WEEK_BASED_YEAR:
+		case timescanner.ISO_WEEK:
 			fmt.Fprintf(&buffer, "%d", t.ISOWeek())
-		case timescanner.WEEK_OF_WEEK_BASED_YEAR_SPACE_PADDED:
+		case timescanner.ISO_WEEK_SPACE_PADDED:
 			fmt.Fprintf(&buffer, "%2d", t.ISOWeek())
-		case timescanner.WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED:
+		case timescanner.ISO_WEEK_ZERO_PADDED:
 			fmt.Fprintf(&buffer, "%02d", t.ISOWeek())
 		case timescanner.WEEK_OF_YEAR:
 			fmt.Fprintf(&buffer, "%d", t.WeekFromMonday())

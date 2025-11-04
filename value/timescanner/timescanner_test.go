@@ -69,8 +69,8 @@ func TestTimescanner(t *testing.T) {
 		"only format directives": {
 			input: "%G%V%u%H%M%S%z",
 			want: []tokenValue{
-				T(timescanner.FULL_YEAR_WEEK_BASED_ZERO_PADDED),
-				T(timescanner.WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED),
+				T(timescanner.FULL_ISO_YEAR_ZERO_PADDED),
+				T(timescanner.ISO_WEEK_ZERO_PADDED),
 				T(timescanner.DAY_OF_WEEK_NUMBER),
 				T(timescanner.HOUR_OF_DAY_ZERO_PADDED),
 				T(timescanner.MINUTE_OF_HOUR_ZERO_PADDED),
@@ -136,11 +136,11 @@ func TestTimescanner(t *testing.T) {
 			input: "Today is %G,%n of %V through %u%H,%tin %M:%S:%z",
 			want: []tokenValue{
 				V(timescanner.TEXT, "Today is "),
-				T(timescanner.FULL_YEAR_WEEK_BASED_ZERO_PADDED),
+				T(timescanner.FULL_ISO_YEAR_ZERO_PADDED),
 				V(timescanner.TEXT, ","),
 				T(timescanner.NEWLINE),
 				V(timescanner.TEXT, " of "),
-				T(timescanner.WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED),
+				T(timescanner.ISO_WEEK_ZERO_PADDED),
 				V(timescanner.TEXT, " through "),
 				T(timescanner.DAY_OF_WEEK_NUMBER),
 				T(timescanner.HOUR_OF_DAY_ZERO_PADDED),

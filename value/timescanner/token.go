@@ -19,9 +19,9 @@ const (
 	NEWLINE                                             // "%n" Literal newline character
 	TAB                                                 // "%t" Literal tab character
 	TEXT                                                // Literal text
-	FULL_YEAR_WEEK_BASED                                // "%-G" The ISO 8601 week-based year with century as a decimal number. The year corresponding to the ISO week number (see %V). This has the same format and value as %-Y, except that if the ISO week number belongs to the previous or next year, that year is used instead.
-	FULL_YEAR_WEEK_BASED_SPACE_PADDED                   // "%_G" (space-padded) The ISO 8601 week-based year with century as a decimal number. The year corresponding to the ISO week number (see %V). This has the same format and value as %_Y, except that if the ISO week number belongs to the previous or next year, that year is used instead.
-	FULL_YEAR_WEEK_BASED_ZERO_PADDED                    // "%G" (zero-padded) The ISO 8601 week-based year with century as a decimal number. The 4-digit year corresponding to the ISO week number (see %V). This has the same format and value as %Y, except that if the ISO week number belongs to the previous or next year, that year is used instead.
+	FULL_ISO_YEAR                                       // "%-G" The ISO 8601 week-based year with century as a decimal number. The year corresponding to the ISO week number (see %V). This has the same format and value as %-Y, except that if the ISO week number belongs to the previous or next year, that year is used instead.
+	FULL_ISO_YEAR_SPACE_PADDED                          // "%_G" (space-padded) The ISO 8601 week-based year with century as a decimal number. The year corresponding to the ISO week number (see %V). This has the same format and value as %_Y, except that if the ISO week number belongs to the previous or next year, that year is used instead.
+	FULL_ISO_YEAR_ZERO_PADDED                           // "%G" (zero-padded) The ISO 8601 week-based year with century as a decimal number. The 4-digit year corresponding to the ISO week number (see %V). This has the same format and value as %Y, except that if the ISO week number belongs to the previous or next year, that year is used instead.
 	FULL_YEAR                                           // "%-Y" Year with century (can be negative)
 	FULL_YEAR_SPACE_PADDED                              // "%_Y" Year with century (can be negative, space padded)
 	FULL_YEAR_ZERO_PADDED                               // "%Y" Year with century (can be negative, 4 digits at least, zero padded)
@@ -82,9 +82,9 @@ const (
 	UNIX_ATTOSECONDS                                    // "%18s" Number of attoseconds since 1970-01-01 00:00:00 UTC.
 	UNIX_ZEPTOSECONDS                                   // "%21s" Number of zeptoseconds since 1970-01-01 00:00:00 UTC.
 	UNIX_YOCTOSECONDS                                   // "%24s" Number of yoctoseconds since 1970-01-01 00:00:00 UTC.
-	WEEK_OF_WEEK_BASED_YEAR                             // "%-V" Week number of the week-based year (1..53)
-	WEEK_OF_WEEK_BASED_YEAR_SPACE_PADDED                // "%_V" Week number of the week-based year, space-padded ( 1..53)
-	WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED                 // "%V" Week number of the week-based year, zero-padded (01..53)
+	ISO_WEEK                                            // "%-V" Week number of the week-based year (1..53)
+	ISO_WEEK_SPACE_PADDED                               // "%_V" Week number of the week-based year, space-padded ( 1..53)
+	ISO_WEEK_ZERO_PADDED                                // "%V" Week number of the week-based year, zero-padded (01..53)
 	WEEK_OF_YEAR                                        // "%-W" Week number of the year. The week starts with Monday. (0..53) The week number of the current year as a decimal number, range 00 to 53, starting with the first Monday as the first day of week 01.
 	WEEK_OF_YEAR_SPACE_PADDED                           // "%_W" Week number of the year. The week starts with Monday. Space-padded ( 0..53). The week number of the current year as a decimal number, range 00 to 53, starting with the first Monday as the first day of week 01.
 	WEEK_OF_YEAR_ZERO_PADDED                            // "%W" Week number of the year. The week starts with Monday. Zero-padded (00..53). The week number of the current year as a decimal number, range 00 to 53, starting with the first Monday as the first day of week 01.
@@ -130,9 +130,9 @@ var tokenNames = [...]string{
 	NEWLINE:                                "%n",
 	TAB:                                    "%t",
 	TEXT:                                   "TEXT",
-	FULL_YEAR_WEEK_BASED:                   "%-G",
-	FULL_YEAR_WEEK_BASED_SPACE_PADDED:      "%_G",
-	FULL_YEAR_WEEK_BASED_ZERO_PADDED:       "%G",
+	FULL_ISO_YEAR:                          "%-G",
+	FULL_ISO_YEAR_SPACE_PADDED:             "%_G",
+	FULL_ISO_YEAR_ZERO_PADDED:              "%G",
 	FULL_YEAR:                              "%-Y",
 	FULL_YEAR_SPACE_PADDED:                 "%_Y",
 	FULL_YEAR_ZERO_PADDED:                  "%Y",
@@ -193,9 +193,9 @@ var tokenNames = [...]string{
 	UNIX_ATTOSECONDS:                       "%18s",
 	UNIX_ZEPTOSECONDS:                      "%21s",
 	UNIX_YOCTOSECONDS:                      "%24s",
-	WEEK_OF_WEEK_BASED_YEAR:                "%-V",
-	WEEK_OF_WEEK_BASED_YEAR_SPACE_PADDED:   "%_V",
-	WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED:    "%V",
+	ISO_WEEK:                               "%-V",
+	ISO_WEEK_SPACE_PADDED:                  "%_V",
+	ISO_WEEK_ZERO_PADDED:                   "%V",
 	WEEK_OF_YEAR:                           "%-W",
 	WEEK_OF_YEAR_SPACE_PADDED:              "%_W",
 	WEEK_OF_YEAR_ZERO_PADDED:               "%W",

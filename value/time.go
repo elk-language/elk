@@ -503,7 +503,7 @@ tokenLoop:
 		default:
 			return Time{}, Ref(Errorf(
 				FormatErrorClass,
-				"unsupported format directive: %s",
+				"unsupported time format directive: %s",
 				token.String(),
 			))
 		}

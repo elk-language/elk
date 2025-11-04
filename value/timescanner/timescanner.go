@@ -143,13 +143,13 @@ func (t *Timescanner) scan() (Token, string) {
 					return MILLISECOND_OF_SECOND, ""
 				}
 				if t.matchChar('G') {
-					return FULL_YEAR_WEEK_BASED, ""
+					return FULL_ISO_YEAR, ""
 				}
 				if t.matchChar('g') {
 					return YEAR_LAST_TWO_WEEK_BASED, ""
 				}
 				if t.matchChar('V') {
-					return WEEK_OF_WEEK_BASED_YEAR, ""
+					return ISO_WEEK, ""
 				}
 				if t.matchChar('U') {
 					return WEEK_OF_YEAR_ALT, ""
@@ -230,13 +230,13 @@ func (t *Timescanner) scan() (Token, string) {
 					return MILLISECOND_OF_SECOND_SPACE_PADDED, ""
 				}
 				if t.matchChar('G') {
-					return FULL_YEAR_WEEK_BASED_SPACE_PADDED, ""
+					return FULL_ISO_YEAR_SPACE_PADDED, ""
 				}
 				if t.matchChar('g') {
 					return YEAR_LAST_TWO_WEEK_BASED_SPACE_PADDED, ""
 				}
 				if t.matchChar('V') {
-					return WEEK_OF_WEEK_BASED_YEAR_SPACE_PADDED, ""
+					return ISO_WEEK_SPACE_PADDED, ""
 				}
 				if t.matchChar('U') {
 					return WEEK_OF_YEAR_ALT_SPACE_PADDED, ""
@@ -386,13 +386,13 @@ func (t *Timescanner) scan() (Token, string) {
 				return DAY_OF_WEEK_NUMBER_ALT, ""
 			}
 			if t.matchChar('G') {
-				return FULL_YEAR_WEEK_BASED_ZERO_PADDED, ""
+				return FULL_ISO_YEAR_ZERO_PADDED, ""
 			}
 			if t.matchChar('g') {
 				return YEAR_LAST_TWO_WEEK_BASED_ZERO_PADDED, ""
 			}
 			if t.matchChar('V') {
-				return WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED, ""
+				return ISO_WEEK_ZERO_PADDED, ""
 			}
 			if t.matchChar('U') {
 				return WEEK_OF_YEAR_ALT_ZERO_PADDED, ""

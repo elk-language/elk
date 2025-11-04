@@ -7,6 +7,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value/timescanner"
 )
 
@@ -38,7 +39,7 @@ type Date struct {
 
 func DateNow() Date {
 	t := time.Now()
-	return MakeDate(t.Year(), int(t.Month()), t.Day())
+	return MakeDateNormalize(t.Year(), int(t.Month()), t.Day())
 }
 
 // Make and validate a new date
@@ -77,7 +78,11 @@ func MakeValidatedDate(year, month, day int) (Date, Value) {
 		)
 	}
 
-	return MakeDate(year, month, day), Undefined
+	return MakeDateNormalize(year, month, day), Undefined
+}
+
+func MakeDateNormalize(year, month, day int) Date {
+	return MakeDate(year, month, day).Normalize()
 }
 
 // Make a new date
@@ -87,11 +92,18 @@ func MakeDate(year, month, day int) Date {
 	d := uint32(day)
 	bits := (y << 9) | (m << 5) | d
 
-	return Date{bits: bits}.Normalize()
+	return Date{bits: bits}
 }
 
 func (d Date) Normalize() Date {
-	return d.ToDateTime().Date()
+	if d.Month() == 0 {
+		d.SetMonth(1)
+	}
+	if d.Day() == 0 {
+		d.SetDay(1)
+	}
+	d = d.ToDateTime().Date()
+	return d
 }
 
 func (d Date) ToValue() Value {
@@ -303,11 +315,11 @@ tokenLoop:
 			buffer.WriteByte('\t')
 		case timescanner.TEXT:
 			buffer.WriteString(value)
-		case timescanner.FULL_YEAR_WEEK_BASED:
+		case timescanner.FULL_ISO_YEAR:
 			fmt.Fprintf(&buffer, "%d", d.ISOYear())
-		case timescanner.FULL_YEAR_WEEK_BASED_SPACE_PADDED:
+		case timescanner.FULL_ISO_YEAR_SPACE_PADDED:
 			fmt.Fprintf(&buffer, "%4d", d.ISOYear())
-		case timescanner.FULL_YEAR_WEEK_BASED_ZERO_PADDED:
+		case timescanner.FULL_ISO_YEAR_ZERO_PADDED:
 			fmt.Fprintf(&buffer, "%04d", d.ISOYear())
 		case timescanner.FULL_YEAR:
 			fmt.Fprintf(&buffer, "%d", d.Year())
@@ -371,11 +383,11 @@ tokenLoop:
 			fmt.Fprintf(&buffer, "%d", d.WeekdayFromMonday())
 		case timescanner.DAY_OF_WEEK_NUMBER_ALT:
 			fmt.Fprintf(&buffer, "%d", d.WeekdayFromSunday())
-		case timescanner.WEEK_OF_WEEK_BASED_YEAR:
+		case timescanner.ISO_WEEK:
 			fmt.Fprintf(&buffer, "%d", d.ISOWeek())
-		case timescanner.WEEK_OF_WEEK_BASED_YEAR_SPACE_PADDED:
+		case timescanner.ISO_WEEK_SPACE_PADDED:
 			fmt.Fprintf(&buffer, "%2d", d.ISOWeek())
-		case timescanner.WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED:
+		case timescanner.ISO_WEEK_ZERO_PADDED:
 			fmt.Fprintf(&buffer, "%02d", d.ISOWeek())
 		case timescanner.WEEK_OF_YEAR:
 			fmt.Fprintf(&buffer, "%d", d.WeekFromMonday())
@@ -406,9 +418,49 @@ tokenLoop:
 	return buffer.String(), err
 }
 
+const (
+	dateHasCentury bitfield.BitFlag16 = 1 << iota
+	dateHasYear
+	dateHasMonth
+	dateHasWeekFromMonday
+	dateHasWeekFromSunday
+	dateHasDay
+
+	dateHasDayOfYear
+
+	dateHasIsoYear
+	dateHasIsoWeek
+
+	dateHasWeekdayFromMonday
+	dateHasWeekdayFromSunday
+)
+
+type tmpDate struct {
+	// gregorian components
+	century        int
+	year           int
+	month          int
+	weekFromMonday int
+	weekFromSunday int
+	day            int
+
+	dayOfYear int
+
+	// ISO week data
+	isoYear int
+	isoWeek int
+
+	weekdayFromMonday int
+	weekdayFromSunday int
+
+	flags bitfield.BitField16
+}
+
 func ParseDate(formatString, input string) (result Date, err Value) {
 	scanner := timescanner.New(formatString)
 	currentInput := input
+
+	var tmp tmpDate
 
 tokenLoop:
 	for {
@@ -445,148 +497,148 @@ tokenLoop:
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
-		case timescanner.FULL_YEAR_WEEK_BASED, timescanner.FULL_YEAR_WEEK_BASED_ZERO_PADDED:
-			err = parseDateYearWeekBased(formatString, input, &currentInput, &result, false)
+		case timescanner.FULL_ISO_YEAR, timescanner.FULL_ISO_YEAR_ZERO_PADDED:
+			err = parseDateISOYear(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
-		case timescanner.FULL_YEAR_WEEK_BASED_SPACE_PADDED:
-			err = parseDateYearWeekBased(formatString, input, &currentInput, &result, true)
+		case timescanner.FULL_ISO_YEAR_SPACE_PADDED:
+			err = parseDateISOYear(formatString, input, &currentInput, &tmp, true)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.FULL_YEAR, timescanner.FULL_YEAR_ZERO_PADDED:
-			err = parseDateYear(formatString, input, &currentInput, &result, false)
+			err = parseDateYear(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.FULL_YEAR_SPACE_PADDED:
-			err = parseDateYear(formatString, input, &currentInput, &result, true)
+			err = parseDateYear(formatString, input, &currentInput, &tmp, true)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.CENTURY, timescanner.CENTURY_ZERO_PADDED:
-			err = parseDateCentury(formatString, input, &currentInput, &result, false)
+			err = parseDateCentury(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.CENTURY_SPACE_PADDED:
-			err = parseDateCentury(formatString, input, &currentInput, &result, true)
+			err = parseDateCentury(formatString, input, &currentInput, &tmp, true)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.YEAR_LAST_TWO, timescanner.YEAR_LAST_TWO_ZERO_PADDED:
-			err = parseDateYearLastTwo(formatString, input, &currentInput, &result, false)
+			err = parseDateYearLastTwo(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.YEAR_LAST_TWO_SPACE_PADDED:
-			err = parseDateYearLastTwo(formatString, input, &currentInput, &result, true)
+			err = parseDateYearLastTwo(formatString, input, &currentInput, &tmp, true)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.YEAR_LAST_TWO_WEEK_BASED, timescanner.YEAR_LAST_TWO_WEEK_BASED_ZERO_PADDED:
-			err = parseDateYearLastTwoWeekBased(formatString, input, &currentInput, &result, false)
+			err = parseDateYearLastTwoWeekBased(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.YEAR_LAST_TWO_WEEK_BASED_SPACE_PADDED:
-			err = parseDateYearLastTwoWeekBased(formatString, input, &currentInput, &result, true)
+			err = parseDateYearLastTwoWeekBased(formatString, input, &currentInput, &tmp, true)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.MONTH, timescanner.MONTH_ZERO_PADDED:
-			err = parseDateMonth(formatString, input, &currentInput, &result, false)
+			err = parseDateMonth(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.MONTH_SPACE_PADDED:
-			err = parseDateMonth(formatString, input, &currentInput, &result, true)
+			err = parseDateMonth(formatString, input, &currentInput, &tmp, true)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.MONTH_FULL_NAME, timescanner.MONTH_FULL_NAME_UPPERCASE:
-			err = parseDateMonthName(&currentInput, &result)
+			err = parseDateMonthName(&currentInput, &tmp)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.MONTH_ABBREVIATED_NAME, timescanner.MONTH_ABBREVIATED_NAME_UPPERCASE:
-			err = parseDateAbbreviatedMonthName(&currentInput, &result)
+			err = parseDateAbbreviatedMonthName(&currentInput, &tmp)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.DAY_OF_MONTH, timescanner.DAY_OF_MONTH_ZERO_PADDED:
-			err = parseDateDayOfMonth(formatString, input, &currentInput, &result, false)
+			err = parseDateDayOfMonth(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.DAY_OF_MONTH_SPACE_PADDED:
-			err = parseDateDayOfMonth(formatString, input, &currentInput, &result, true)
+			err = parseDateDayOfMonth(formatString, input, &currentInput, &tmp, true)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.DAY_OF_YEAR, timescanner.DAY_OF_YEAR_ZERO_PADDED:
-			err = parseDateDayOfYear(formatString, input, &currentInput, &result, false)
+			err = parseDateDayOfYear(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.DAY_OF_YEAR_SPACE_PADDED:
-			err = parseDateDayOfYear(formatString, input, &currentInput, &result, true)
+			err = parseDateDayOfYear(formatString, input, &currentInput, &tmp, true)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.DAY_OF_WEEK_FULL_NAME, timescanner.DAY_OF_WEEK_FULL_NAME_UPPERCASE:
-			err = parseDateDayOfWeek(&currentInput, &result)
+			err = parseDateDayOfWeekName(&currentInput)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.DAY_OF_WEEK_ABBREVIATED_NAME, timescanner.DAY_OF_WEEK_ABBREVIATED_NAME_UPPERCASE:
-			err = parseDateAbbreviatedDayOfWeek(&currentInput, &result)
+			err = parseDateAbbreviatedDayOfWeekName(&currentInput)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.DAY_OF_WEEK_NUMBER:
-			err = parseDateDayOfWeekNumber(formatString, input, &currentInput, &result)
+			err = parseDateDayOfWeekNumber(formatString, input, &currentInput, &tmp)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.DAY_OF_WEEK_NUMBER_ALT:
-			err = parseDateDayOfWeekNumberAlt(formatString, input, &currentInput, &result)
+			err = parseDateDayOfWeekNumberAlt(formatString, input, &currentInput, &tmp)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
-		case timescanner.WEEK_OF_WEEK_BASED_YEAR, timescanner.WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED:
-			err = parseWeekOfWeekBasedYear(formatString, input, &currentInput, &result, false)
+		case timescanner.ISO_WEEK, timescanner.ISO_WEEK_ZERO_PADDED:
+			err = parseISOWeek(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
-		case timescanner.WEEK_OF_WEEK_BASED_YEAR_SPACE_PADDED:
-			err = parseWeekOfWeekBasedYear(formatString, input, &currentInput, &result, true)
+		case timescanner.ISO_WEEK_SPACE_PADDED:
+			err = parseISOWeek(formatString, input, &currentInput, &tmp, true)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.WEEK_OF_YEAR, timescanner.WEEK_OF_YEAR_ZERO_PADDED:
-			err = parseWeekOfYear(formatString, input, &currentInput, &result, false)
+			err = parseWeekOfYear(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.WEEK_OF_YEAR_SPACE_PADDED:
-			err = parseWeekOfYear(formatString, input, &currentInput, &result, true)
+			err = parseWeekOfYear(formatString, input, &currentInput, &tmp, true)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.WEEK_OF_YEAR_ALT, timescanner.WEEK_OF_YEAR_ALT_ZERO_PADDED:
-			err = parseWeekOfYearAlt(formatString, input, &currentInput, &result, false)
+			err = parseWeekOfYearAlt(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.WEEK_OF_YEAR_ALT_SPACE_PADDED:
-			err = parseWeekOfYearAlt(formatString, input, &currentInput, &result, true)
+			err = parseWeekOfYearAlt(formatString, input, &currentInput, &tmp, true)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.DATE:
-			err = parseDateMonth(formatString, input, &currentInput, &result, false)
+			err = parseDateMonth(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
@@ -594,7 +646,7 @@ tokenLoop:
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
-			err = parseDateDayOfMonth(formatString, input, &currentInput, &result, false)
+			err = parseDateDayOfMonth(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
@@ -602,12 +654,12 @@ tokenLoop:
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
-			err = parseDateYearLastTwo(formatString, input, &currentInput, &result, false)
+			err = parseDateYearLastTwo(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.ISO8601_DATE:
-			err = parseDateYear(formatString, input, &currentInput, &result, false)
+			err = parseDateYear(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
@@ -615,7 +667,7 @@ tokenLoop:
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
-			err = parseDateMonth(formatString, input, &currentInput, &result, false)
+			err = parseDateMonth(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
@@ -623,7 +675,7 @@ tokenLoop:
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
-			err = parseDateDayOfMonth(formatString, input, &currentInput, &result, false)
+			err = parseDateDayOfMonth(formatString, input, &currentInput, &tmp, false)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
@@ -637,7 +689,69 @@ tokenLoop:
 
 	}
 
-	return result, err
+	if tmp.flags.HasFlag(dateHasCentury) {
+		result.SetYear(tmp.century * 100)
+	}
+
+	if tmp.flags.HasFlag(dateHasIsoYear) {
+		yearStart := datetimeISOYearStart(tmp.century*100 + tmp.isoYear)
+		weekDate := yearStart
+		result = weekDate.Date()
+	}
+	if tmp.flags.HasFlag(dateHasIsoWeek) {
+		yearStart := datetimeISOYearStart(result.Year())
+		datetime := yearStart.Add(TimeSpan(tmp.isoWeek) * Week)
+		result = datetime.Date()
+	}
+
+	if tmp.flags.HasFlag(dateHasYear) {
+		result.SetYear(tmp.century*100 + tmp.year)
+	}
+	if tmp.flags.HasFlag(dateHasDayOfYear) {
+		year := result.Year()
+		startOfYear := MakeDateTime(year, 1, 1, 0, 0, 0, 0, nil)
+		dateTime := startOfYear.Add(TimeSpan(tmp.dayOfYear) * Day)
+		result = dateTime.Date()
+	}
+	if tmp.flags.HasFlag(dateHasMonth) {
+		result.SetMonth(tmp.month)
+	}
+	if tmp.flags.HasFlag(dateHasWeekFromMonday) {
+		if tmp.weekFromMonday == 0 {
+			result = MakeDate(result.Year(), 1, 1)
+		} else {
+			firstWeek := datetimeMondayOfFirstGregorianWeek(result.Year())
+			fmt.Printf("firstWeek: %s\n", Ref(&firstWeek))
+			datetime := firstWeek.Add(TimeSpan(tmp.weekFromMonday-1) * Week)
+			result = datetime.Date()
+		}
+	}
+	if tmp.flags.HasFlag(dateHasWeekFromSunday) {
+		if tmp.weekFromSunday == 0 {
+			result = MakeDate(result.Year(), 1, 1)
+		} else {
+			firstWeek := datetimeSundayOfFirstGregorianWeek(result.Year())
+			datetime := firstWeek.Add(TimeSpan(tmp.weekFromSunday-1) * Week)
+			result = datetime.Date()
+		}
+	}
+	if tmp.flags.HasFlag(dateHasDay) {
+		result.SetDay(tmp.day)
+	}
+	if tmp.flags.HasFlag(dateHasWeekdayFromMonday) {
+		currentDay := result.WeekdayFromMonday()
+		diff := tmp.weekdayFromMonday - currentDay
+		datetime := result.ToDateTimeValue()
+		result = datetime.Add(TimeSpan(diff) * Day).Date()
+	}
+	if tmp.flags.HasFlag(dateHasWeekdayFromSunday) {
+		currentDay := result.WeekdayFromSunday()
+		diff := tmp.weekdayFromSunday - currentDay
+		datetime := result.ToDateTimeValue()
+		result = datetime.Add(TimeSpan(diff) * Day).Date()
+	}
+
+	return result.Normalize(), err
 }
 
 var months = map[string]int{
@@ -691,28 +805,28 @@ var abbreviatedDays = map[string]int{
 }
 
 func datetimeMondayOfFirstGregorianWeek(year int) DateTime {
-	yearStart := MakeDateTime(year, 1, 0, 0, 0, 0, 0, nil)
+	yearStart := MakeDateTime(year, 1, 1, 0, 0, 0, 0, nil)
 	firstDay := yearStart.WeekdayFromMonday()
 
 	if firstDay == Monday {
 		return yearStart
 	}
 
-	return *yearStart.Add(TimeSpan(8-firstDay) * Day)
+	return *(yearStart.Add(TimeSpan(8-firstDay) * Day))
 }
 
 func datetimeSundayOfFirstGregorianWeek(year int) DateTime {
-	yearStart := MakeDateTime(year, 1, 0, 0, 0, 0, 0, nil)
+	yearStart := MakeDateTime(year, 1, 1, 0, 0, 0, 0, nil)
 	firstDay := yearStart.WeekdayFromSunday()
 
 	if firstDay == SundayAlt {
 		return yearStart
 	}
 
-	return *yearStart.Add(TimeSpan(7-firstDay) * Day)
+	return *(yearStart.Add(TimeSpan(7-firstDay) * Day))
 }
 
-func parseWeekOfYearAlt(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+func parseWeekOfYearAlt(formatString, input string, currentInput *string, result *tmpDate, spacePadded bool) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 2, spacePadded)
@@ -728,19 +842,13 @@ func parseWeekOfYearAlt(formatString, input string, currentInput *string, result
 		))
 	}
 
-	if n == 0 {
-		*result = MakeDate(result.Year(), 1, 1)
-		return Undefined
-	}
-
-	firstWeek := datetimeSundayOfFirstGregorianWeek(result.Year())
-	datetime := firstWeek.Add(TimeSpan(n) * Week)
-	*result = datetime.Date()
+	result.flags.SetFlag(dateHasWeekFromSunday)
+	result.weekFromSunday = n
 
 	return Undefined
 }
 
-func parseWeekOfYear(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+func parseWeekOfYear(formatString, input string, currentInput *string, result *tmpDate, spacePadded bool) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 2, spacePadded)
@@ -756,19 +864,13 @@ func parseWeekOfYear(formatString, input string, currentInput *string, result *D
 		))
 	}
 
-	if n == 0 {
-		*result = MakeDate(result.Year(), 1, 1)
-		return Undefined
-	}
-
-	firstWeek := datetimeMondayOfFirstGregorianWeek(result.Year())
-	datetime := firstWeek.Add(TimeSpan(n) * Week)
-	*result = datetime.Date()
+	result.flags.SetFlag(dateHasWeekFromMonday)
+	result.weekFromMonday = n
 
 	return Undefined
 }
 
-func parseWeekOfWeekBasedYear(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+func parseISOWeek(formatString, input string, currentInput *string, result *tmpDate, spacePadded bool) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 2, spacePadded)
@@ -784,14 +886,13 @@ func parseWeekOfWeekBasedYear(formatString, input string, currentInput *string, 
 		))
 	}
 
-	yearStart := datetimeISOYearStart(result.Year())
-	datetime := yearStart.Add(TimeSpan(n) * Week)
-	*result = datetime.Date()
+	result.flags.SetFlag(dateHasIsoWeek)
+	result.isoWeek = n
 
 	return Undefined
 }
 
-func parseDateDayOfWeekNumberAlt(formatString, input string, currentInput *string, result *Date) Value {
+func parseDateDayOfWeekNumberAlt(formatString, input string, currentInput *string, result *tmpDate) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 1, false)
@@ -806,16 +907,13 @@ func parseDateDayOfWeekNumberAlt(formatString, input string, currentInput *strin
 			n,
 		))
 	}
-
-	currentDay := result.WeekdayFromSunday()
-	diff := n - currentDay
-	datetime := result.ToDateTimeValue()
-	*result = datetime.Add(TimeSpan(diff) * Day).Date()
+	result.flags.SetFlag(dateHasWeekdayFromSunday)
+	result.weekdayFromSunday = n
 
 	return Undefined
 }
 
-func parseDateDayOfWeekNumber(formatString, input string, currentInput *string, result *Date) Value {
+func parseDateDayOfWeekNumber(formatString, input string, currentInput *string, result *tmpDate) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 1, false)
@@ -831,15 +929,13 @@ func parseDateDayOfWeekNumber(formatString, input string, currentInput *string, 
 		))
 	}
 
-	currentDay := result.WeekdayFromMonday()
-	diff := n - currentDay
-	datetime := result.ToDateTimeValue()
-	*result = datetime.Add(TimeSpan(diff) * Day).Date()
+	result.flags.SetFlag(dateHasWeekdayFromMonday)
+	result.weekFromMonday = n
 
 	return Undefined
 }
 
-func parseDateAbbreviatedDayOfWeek(currentInput *string, result *Date) Value {
+func parseDateAbbreviatedDayOfWeekName(currentInput *string) Value {
 	var buffer strings.Builder
 
 	for len(*currentInput) > 0 {
@@ -864,7 +960,7 @@ func parseDateAbbreviatedDayOfWeek(currentInput *string, result *Date) Value {
 	return Undefined
 }
 
-func parseDateDayOfWeek(currentInput *string, result *Date) Value {
+func parseDateDayOfWeekName(currentInput *string) Value {
 	var buffer strings.Builder
 
 	for len(*currentInput) > 0 {
@@ -889,7 +985,7 @@ func parseDateDayOfWeek(currentInput *string, result *Date) Value {
 	return Undefined
 }
 
-func parseDateDayOfYear(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+func parseDateDayOfYear(formatString, input string, currentInput *string, result *tmpDate, spacePadded bool) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 3, spacePadded)
@@ -905,15 +1001,13 @@ func parseDateDayOfYear(formatString, input string, currentInput *string, result
 		))
 	}
 
-	year := result.Year()
-	startOfYear := MakeDateTime(year, 1, 1, 0, 0, 0, 0, nil)
-	dateTime := startOfYear.Add(TimeSpan(n) * Day)
-	*result = dateTime.Date()
+	result.dayOfYear = n
+	result.flags.SetFlag(dateHasDayOfYear)
 
 	return Undefined
 }
 
-func parseDateDayOfMonth(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+func parseDateDayOfMonth(formatString, input string, currentInput *string, result *tmpDate, spacePadded bool) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 2, spacePadded)
@@ -929,11 +1023,13 @@ func parseDateDayOfMonth(formatString, input string, currentInput *string, resul
 		))
 	}
 
-	result.SetDay(n)
+	result.flags.SetFlag(dateHasDay)
+	result.day = n
+
 	return Undefined
 }
 
-func parseDateAbbreviatedMonthName(currentInput *string, result *Date) Value {
+func parseDateAbbreviatedMonthName(currentInput *string, result *tmpDate) Value {
 	var buffer strings.Builder
 
 	for len(*currentInput) > 0 {
@@ -955,11 +1051,13 @@ func parseDateAbbreviatedMonthName(currentInput *string, result *Date) Value {
 		))
 	}
 
-	result.SetMonth(monthNumber)
+	result.flags.SetFlag(dateHasMonth)
+	result.month = monthNumber
+
 	return Undefined
 }
 
-func parseDateMonthName(currentInput *string, result *Date) Value {
+func parseDateMonthName(currentInput *string, result *tmpDate) Value {
 	var buffer strings.Builder
 
 	for len(*currentInput) > 0 {
@@ -981,11 +1079,13 @@ func parseDateMonthName(currentInput *string, result *Date) Value {
 		))
 	}
 
-	result.SetMonth(monthNumber)
+	result.flags.SetFlag(dateHasMonth)
+	result.month = monthNumber
+
 	return Undefined
 }
 
-func parseDateMonth(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+func parseDateMonth(formatString, input string, currentInput *string, result *tmpDate, spacePadded bool) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 2, spacePadded)
@@ -1000,11 +1100,13 @@ func parseDateMonth(formatString, input string, currentInput *string, result *Da
 		))
 	}
 
-	result.SetMonth(n)
+	result.flags.SetFlag(dateHasMonth)
+	result.month = n
+
 	return Undefined
 }
 
-func parseDateYearLastTwoWeekBased(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+func parseDateYearLastTwoWeekBased(formatString, input string, currentInput *string, result *tmpDate, spacePadded bool) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 2, spacePadded)
@@ -1012,18 +1114,19 @@ func parseDateYearLastTwoWeekBased(formatString, input string, currentInput *str
 		return Ref(NewIncompatibleDateFormatError(formatString, input))
 	}
 
-	var century int
-	if result.Year() == 0 {
-		century = DateNow().Century()
-	} else {
-		century = result.Century()
+	if !result.flags.HasFlag(dateHasCentury) {
+		d := DateNow()
+		result.century = d.Century()
+		result.flags.SetFlag(dateHasCentury)
 	}
-	yearStart := datetimeISOYearStart(century*100 + n)
-	*result = yearStart.Date()
+
+	result.flags.SetFlag(dateHasIsoYear)
+	result.isoYear = n
+
 	return Undefined
 }
 
-func parseDateYearLastTwo(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+func parseDateYearLastTwo(formatString, input string, currentInput *string, result *tmpDate, spacePadded bool) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 2, spacePadded)
@@ -1031,15 +1134,19 @@ func parseDateYearLastTwo(formatString, input string, currentInput *string, resu
 		return Ref(NewIncompatibleDateFormatError(formatString, input))
 	}
 
-	if result.Year() == 0 {
-		result.SetYear(DateNow().Century()*100 + n)
-	} else {
-		result.SetYear(result.Century()*100 + n)
+	if !result.flags.HasFlag(dateHasCentury) {
+		d := DateNow()
+		result.century = d.Century()
+		result.flags.SetFlag(dateHasCentury)
 	}
+
+	result.flags.SetFlag(dateHasYear)
+	result.year = n
+
 	return Undefined
 }
 
-func parseDateCentury(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+func parseDateCentury(formatString, input string, currentInput *string, result *tmpDate, spacePadded bool) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 2, spacePadded)
@@ -1047,11 +1154,13 @@ func parseDateCentury(formatString, input string, currentInput *string, result *
 		return Ref(NewIncompatibleDateFormatError(formatString, input))
 	}
 
-	result.SetYear((result.Year() % 100) + n*100)
+	result.flags.SetFlag(dateHasCentury)
+	result.century = n
+
 	return Undefined
 }
 
-func parseDateYear(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+func parseDateYear(formatString, input string, currentInput *string, result *tmpDate, spacePadded bool) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 4, spacePadded)
@@ -1059,11 +1168,13 @@ func parseDateYear(formatString, input string, currentInput *string, result *Dat
 		return Ref(NewIncompatibleDateFormatError(formatString, input))
 	}
 
-	result.SetYear(n)
+	result.flags.SetFlag(dateHasYear)
+	result.year = n
+
 	return Undefined
 }
 
-func parseDateYearWeekBased(formatString, input string, currentInput *string, result *Date, spacePadded bool) Value {
+func parseDateISOYear(formatString, input string, currentInput *string, result *tmpDate, spacePadded bool) Value {
 	var n int
 	var ok bool
 	n, *currentInput, ok = parseTemporalDigitsOk(*currentInput, 4, spacePadded)
@@ -1071,8 +1182,8 @@ func parseDateYearWeekBased(formatString, input string, currentInput *string, re
 		return Ref(NewIncompatibleDateFormatError(formatString, input))
 	}
 
-	yearStart := datetimeISOYearStart(n)
-	*result = yearStart.Date()
+	result.flags.SetFlag(dateHasIsoYear)
+	result.isoYear = n
 	return Undefined
 }
 
@@ -1083,7 +1194,7 @@ func datetimeISOYearStart(year int) DateTime {
 
 	weekday := jan4.WeekdayFromMonday()
 	diff := -weekday + 1
-	yearStart := jan4.Subtract(TimeSpan(diff) * Day)
+	yearStart := jan4.Add(TimeSpan(diff) * Day)
 
 	return *yearStart
 }

@@ -1509,6 +1509,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define methods
 					namespace.DefineMethod("Returns the current date.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("now"), nil, nil, NameToType("Std::Date", env), Never{})
+					namespace.DefineMethod("Parse the date string according to the given format.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("format"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("input"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Date", env), NameToType("Std::FormatError", env))
 
 					// Define constants
 

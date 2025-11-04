@@ -9,6 +9,11 @@ sealed primitive class ::Std::Date < Value
 			Returns the current date.
 		]##
 		def now: Date; end
+
+		##[
+			Parse the date string according to the given format.
+		]##
+		def parse(format: String, input: String): Date ! FormatError; end
 	end
 
 	init(year: Int = 0, month: Int = 1, day: Int = 1); end

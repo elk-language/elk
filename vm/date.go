@@ -1,8 +1,6 @@
 package vm
 
 import (
-	"time"
-
 	"github.com/elk-language/elk/value"
 )
 
@@ -14,9 +12,22 @@ func initDate() {
 		c,
 		"now",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			year, month, day := time.Now().Date()
-			return value.MakeDate(year, int(month), day).ToValue(), value.Undefined
+			return value.DateNow().ToValue(), value.Undefined
 		},
+	)
+	Def(
+		c,
+		"parse",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			formatString := args[1].AsString().String()
+			input := args[2].AsString().String()
+			result, err := value.ParseDate(formatString, input)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
+			return result.ToValue(), value.Undefined
+		},
+		DefWithParameters(2),
 	)
 
 	// Instance methods
