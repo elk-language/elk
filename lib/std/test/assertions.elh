@@ -22,6 +22,19 @@ module ::Std::Test
       end
     end
 
+    macro assert_match(match_expr: MatchExpressionNode): ExpressionNode
+      quote
+        unless !{match_expr.expression} match !{match_expr.pattern_node}
+          throw unchecked ::Std::Test::AssertionError("value `${unquote(match_expr.expression.to_string)}` does not match pattern `${unquote(match_expr.pattern_node.to_string)}`")
+        end
+      end
+    end
+
+    ##[
+      Checks whether the given string matches the given regex.
+    ]##
+    def assert_matches_regex(regex: Regex, got: String, message: String? = nil); end
+
     ##[
       Checks whether the given value is truthy.
     ]##

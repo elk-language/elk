@@ -75,6 +75,18 @@ sealed noinit primitive class ::Std::String
 	def lowercase: String; end
 
 	##[
+		Create a new string right justified
+		to the given length using the given char for padding.
+	]##
+	def rjust(len: Int, padding: Char): String; end
+
+	##[
+		Create a new string left justified
+		to the given length using the given char for padding.
+	]##
+	def ljust(len: Int, padding: Char): String; end
+
+	##[
 		Get the number of Unicode code points
 		that this `String` contains.
 	]##

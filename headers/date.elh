@@ -36,9 +36,19 @@ sealed primitive class ::Std::Date < Value
 	def to_string: String; end
 
 	##[
+		Returns the century.
+	]##
+	def century: Int; end
+
+	##[
 		Returns the year.
 	]##
 	def year: Int; end
+
+	##[
+		Returns the last two digits of the year.
+	]##
+	def year_last_two: Int; end
 
 	##[
 		Returns the day of the month in range `1...12`
@@ -55,6 +65,11 @@ sealed primitive class ::Std::Date < Value
 		Returns the ISO 8601 year in which `self` occurs.
 	]##
 	def iso_year: Int; end
+
+	##[
+		Returns the last two digits of the ISO 8601 year in which `self` occurs.
+	]##
+	def iso_year_last_two: Int; end
 
 	##[
 		The week number of the current year as a decimal number,

@@ -105,6 +105,14 @@ func initDate() {
 	Alias(c, "strftime", "format")
 	Def(
 		c,
+		"century",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return value.SmallInt(self.Century()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
@@ -113,10 +121,26 @@ func initDate() {
 	)
 	Def(
 		c,
+		"year_last_two",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return value.SmallInt(self.YearLastTwo()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"iso_year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.ISOYear()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"iso_year_last_two",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return value.SmallInt(self.ISOYearLastTwo()).ToValue(), value.Undefined
 		},
 	)
 	Def(

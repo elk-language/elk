@@ -105,6 +105,28 @@ func initString() {
 	)
 	Def(
 		c,
+		"rjust",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(value.String)
+			len := args[1].AsInt()
+			padding := args[2].AsChar()
+			return value.Ref(self.RJust(len, padding)), value.Undefined
+		},
+		DefWithParameters(2),
+	)
+	Def(
+		c,
+		"ljust",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(value.String)
+			len := args[1].AsInt()
+			padding := args[2].AsChar()
+			return value.Ref(self.LJust(len, padding)), value.Undefined
+		},
+		DefWithParameters(2),
+	)
+	Def(
+		c,
 		"char_at",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)

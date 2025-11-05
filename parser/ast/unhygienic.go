@@ -57,13 +57,7 @@ func (n *UnhygienicNode) Equal(other value.Value) bool {
 
 // Return a string representation of the node.
 func (n *UnhygienicNode) String() string {
-	var buff strings.Builder
-
-	buff.WriteString("unhygienic(")
-	buff.WriteString(n.Node.String())
-	buff.WriteRune(')')
-
-	return buff.String()
+	return n.Node.String()
 }
 
 func (n *UnhygienicNode) IsStatic() bool {

@@ -190,6 +190,37 @@ func (s String) ReverseGraphemes() String {
 	return String(uniseg.ReverseString(string(s)))
 }
 
+func (s String) RJust(targetLen int, padding Char) String {
+	if len(s) >= targetLen {
+		return s
+	}
+
+	var buff strings.Builder
+
+	for range targetLen - len(s) {
+		buff.WriteRune(padding.Rune())
+	}
+
+	buff.WriteString(s.String())
+
+	return String(buff.String())
+}
+
+func (s String) LJust(targetLen int, padding Char) String {
+	if len(s) >= targetLen {
+		return s
+	}
+
+	var buff strings.Builder
+	buff.WriteString(s.String())
+
+	for range targetLen - len(s) {
+		buff.WriteRune(padding.Rune())
+	}
+
+	return String(buff.String())
+}
+
 // Concatenate another value with this string and return the result.
 // If the operation is illegal an error will be returned.
 func (s String) Concat(other Value) (result String, err Value) {

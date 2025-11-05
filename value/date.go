@@ -97,10 +97,10 @@ func MakeDate(year, month, day int) Date {
 
 func (d Date) Normalize() Date {
 	if d.Month() == 0 {
-		d.SetMonth(1)
+		d.SetMonth(int(time.Now().Month()))
 	}
 	if d.Day() == 0 {
-		d.SetDay(1)
+		d.SetDay(int(time.Now().Day()))
 	}
 	d = d.ToDateTime().Date()
 	return d
@@ -689,14 +689,17 @@ tokenLoop:
 
 	}
 
+	var hasYear bool
 	if tmp.flags.HasFlag(dateHasCentury) {
 		result.SetYear(tmp.century * 100)
+		hasYear = true
 	}
 
 	if tmp.flags.HasFlag(dateHasIsoYear) {
 		yearStart := datetimeISOYearStart(tmp.century*100 + tmp.isoYear)
 		weekDate := yearStart
 		result = weekDate.Date()
+		hasYear = true
 	}
 	if tmp.flags.HasFlag(dateHasIsoWeek) {
 		yearStart := datetimeISOYearStart(result.Year())
@@ -706,6 +709,7 @@ tokenLoop:
 
 	if tmp.flags.HasFlag(dateHasYear) {
 		result.SetYear(tmp.century*100 + tmp.year)
+		hasYear = true
 	}
 	if tmp.flags.HasFlag(dateHasDayOfYear) {
 		year := result.Year()
@@ -721,7 +725,6 @@ tokenLoop:
 			result = MakeDate(result.Year(), 1, 1)
 		} else {
 			firstWeek := datetimeMondayOfFirstGregorianWeek(result.Year())
-			fmt.Printf("firstWeek: %s\n", Ref(&firstWeek))
 			datetime := firstWeek.Add(TimeSpan(tmp.weekFromMonday-1) * Week)
 			result = datetime.Date()
 		}
@@ -751,6 +754,9 @@ tokenLoop:
 		result = datetime.Add(TimeSpan(diff) * Day).Date()
 	}
 
+	if !hasYear {
+		result.SetYear(time.Now().Year())
+	}
 	return result.Normalize(), err
 }
 

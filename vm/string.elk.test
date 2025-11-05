@@ -1,0 +1,48 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+describe "String", ->
+	context "rjust", ->
+		should "return self when equal length", ->
+			s := "foo".rjust(3, ` `)
+			assert! s == "foo"
+		end
+
+		should "return self when greater length", ->
+			s := "foobar".rjust(3, ` `)
+			assert! s == "foobar"
+		end
+
+		should "apply space padding when smaller length", ->
+			s := "foo".rjust(10, ` `)
+			assert! s == "       foo"
+		end
+
+		should "apply dash padding when smaller length", ->
+			s := "foo".rjust(10, `-`)
+			assert! s == "-------foo"
+		end
+	end
+
+	context "ljust", ->
+		should "return self when equal length", ->
+			s := "foo".ljust(3, ` `)
+			assert! s == "foo"
+		end
+
+		should "return self when greater length", ->
+			s := "foobar".ljust(3, ` `)
+			assert! s == "foobar"
+		end
+
+		should "apply space padding when smaller length", ->
+			s := "foo".ljust(10, ` `)
+			assert! s == "foo       "
+		end
+
+		should "apply dash padding when smaller length", ->
+			s := "foo".ljust(10, `-`)
+			assert! s == "foo-------"
+		end
+	end
+end

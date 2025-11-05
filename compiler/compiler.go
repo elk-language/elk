@@ -1142,7 +1142,7 @@ func (c *Compiler) compileNode(node ast.Node, valueIsIgnored bool) expressionRes
 	case *ast.MacroBoundaryNode:
 		c.compileMacroBoundaryNode(node)
 	case *ast.UnhygienicNode:
-		c.compileUnhygienicNode(node, valueIsIgnored)
+		c.compileUnhygienicExpressionNode(node, valueIsIgnored)
 	case *ast.IfExpressionNode:
 		return c.compileIfExpression(
 			false,
@@ -1601,11 +1601,20 @@ func (c *Compiler) compileMacroBoundaryNode(node *ast.MacroBoundaryNode) {
 	c.leaveScope(location.EndPos.Line)
 }
 
-func (c *Compiler) compileUnhygienicNode(node *ast.UnhygienicNode, valueIsIgnored bool) {
+func (c *Compiler) compileUnhygienicExpressionNode(node *ast.UnhygienicNode, valueIsIgnored bool) {
 	prevUnhygienic := c.unhygienic
 	c.unhygienic = true
 
 	c.compileNode(node.Node, valueIsIgnored)
+
+	c.unhygienic = prevUnhygienic
+}
+
+func (c *Compiler) compileUnhygienicPatternNode(node *ast.UnhygienicNode) {
+	prevUnhygienic := c.unhygienic
+	c.unhygienic = true
+
+	c.pattern(node.Node.(ast.PatternNode))
 
 	c.unhygienic = prevUnhygienic
 }
@@ -3734,6 +3743,8 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 	case *ast.MacroBoundaryNode:
 		stmt := pat.Body[0].(*ast.PatternStatementNode)
 		c.pattern(stmt.Pattern)
+	case *ast.UnhygienicNode:
+		c.compileUnhygienicPatternNode(pat)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("compilation of this pattern has not been implemented: %T", pattern),
