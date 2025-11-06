@@ -128,8 +128,8 @@ func (s String) ToChar() (Char, bool) {
 }
 
 // Convert this String to an Int.
-func (s String) ToInt() (Value, Value) {
-	return ParseInt(string(s), 0)
+func (s String) ToInt(base int) (Value, Value) {
+	return ParseInt(string(s), base)
 }
 
 // Return a new string that has all characters turned to lowercase.

@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -200,6 +201,76 @@ func initAssertions(testModule *value.Module) {
 				),
 			)
 			return value.Undefined, err
+		},
+		vm.DefWithParameters(2),
+	)
+
+	vm.Def(
+		c,
+		"assert_stdout",
+		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			expected := args[1].AsString()
+			callable := args[2]
+
+			prevStdout := v.Stdout
+			var buff strings.Builder
+			v.Stdout = &buff
+
+			v.CallCallable(callable)
+
+			v.Stdout = prevStdout
+
+			got := value.String(buff.String())
+			if expected != got {
+				err = value.Ref(
+					value.NewError(
+						AssertionErrorClass,
+						fmt.Sprintf(
+							"invalid stdout, expected: `%s`, got: `%s`",
+							expected.Inspect(),
+							got.Inspect(),
+						),
+					),
+				)
+				return value.Undefined, err
+			}
+
+			return value.Nil, value.Undefined
+		},
+		vm.DefWithParameters(2),
+	)
+
+	vm.Def(
+		c,
+		"assert_stderr",
+		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			expected := args[1].AsString()
+			callable := args[2]
+
+			prevStderr := v.Stderr
+			var buff strings.Builder
+			v.Stderr = &buff
+
+			v.CallCallable(callable)
+
+			v.Stderr = prevStderr
+
+			got := value.String(buff.String())
+			if expected != got {
+				err = value.Ref(
+					value.NewError(
+						AssertionErrorClass,
+						fmt.Sprintf(
+							"invalid stderr, expected: `%s`, got: `%s`",
+							expected.Inspect(),
+							got.Inspect(),
+						),
+					),
+				)
+				return value.Undefined, err
+			}
+
+			return value.Nil, value.Undefined
 		},
 		vm.DefWithParameters(2),
 	)

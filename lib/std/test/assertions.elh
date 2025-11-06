@@ -36,6 +36,18 @@ module ::Std::Test
     def assert_matches_regex(regex: Regex, got: String, message: String? = nil); end
 
     ##[
+      Call the given closure and checks whether the produced stdout
+      matches the expected value.
+    ]##
+    def assert_stdout(expected: String, fn: ||: void); end
+
+    ##[
+      Call the given closure and checks whether the produced stderr
+      matches the expected value.
+    ]##
+    def assert_stderr(expected: String, fn: ||: void); end
+
+    ##[
       Checks whether the given value is truthy.
     ]##
     def assert_truthy(got: any, message: String? = nil); end

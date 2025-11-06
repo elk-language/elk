@@ -218,8 +218,15 @@ func initString() {
 		"to_int",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
-			return self.ToInt()
+
+			var base int
+			if !args[1].IsUndefined() {
+				base = args[1].AsInt()
+			}
+
+			return self.ToInt(base)
 		},
+		DefWithParameters(1),
 	)
 	Def(
 		c,

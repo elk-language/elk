@@ -536,6 +536,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineInterface("Represents a value that can be incremented using\nthe `++` operator like `a++`", value.ToSymbol("Incrementable"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineClass("Thrown when an index in array/string access is out of range.", false, false, false, false, value.ToSymbol("IndexError"), objectClass, env)
 		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a human readable string\nthat represents the structure of the value.", value.ToSymbol("Inspectable"), env)
 		{
 			namespace := namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, true, value.ToSymbol("Int"), objectClass, env)
@@ -7477,6 +7478,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtypeString("IndexError").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtypeString("Inspectable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -9120,15 +9135,15 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Get the byte with the given index.\nIndices start at 0.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("byte_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::UInt8", env), Never{})
 				namespace.DefineMethod("Get the number of bytes that this\nstring contains.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("byte_count"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Iterates over all bytes of a `String`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("byte_iter"), nil, nil, NameToType("Std::String::ByteIterator", env), Never{})
+				namespace.DefineMethod("Get the Unicode code point with the given index.\nIndices start at 0.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("char_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Char", env), Never{})
 				namespace.DefineMethod("Get the number of Unicode code points\nthat this `String` contains.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("char_count"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Iterates over all unicode code points of a `String`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("char_iter"), nil, nil, NameToType("Std::String::CharIterator", env), Never{})
-				namespace.DefineMethod("Get the Unicode code point with the given index.\nIndices start at 0.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("chat_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Char", env), Never{})
 				namespace.DefineMethod("Concatenate this `String`\nwith another `String` or `Char`.\n\nCreates a new `String` containing the content\nof both operands.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("concat"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NewUnion(NameToType("Std::String", env), NameToType("Std::Char", env)), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Get the Unicode grapheme cluster with the given index.\nIndices start at 0.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("grapheme_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Get the number of unicode grapheme clusters\npresent in this string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("grapheme_count"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Iterates over all grapheme clusters of a `String`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("grapheme_iter"), nil, nil, NameToType("Std::String::GraphemeIterator", env), Never{})
 				namespace.DefineMethod("Calculates a hash of the string.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("hash"), nil, nil, NameToType("Std::UInt64", env), Never{})
-				namespace.DefineMethod("Check whether the `String` is empty.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_empty"), nil, nil, NameToType("Std::Bool", env), Never{})
+				namespace.DefineMethod("Check whether the `String` is empty.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_empty"), nil, nil, Bool{}, Never{})
 				namespace.DefineMethod("Iterates over all unicode code points of a `String`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, NameToType("Std::String::CharIterator", env), Never{})
 				namespace.DefineMethod("Get the number of Unicode code points\nthat this `String` contains.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Create a new string left justified\nto the given length using the given char for padding.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("ljust"), nil, []*Parameter{NewParameter(value.ToSymbol("len"), NameToType("Std::Int", env), NormalParameterKind, false), NewParameter(value.ToSymbol("padding"), NameToType("Std::Char", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
@@ -9144,7 +9159,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_pattern_expr_node"), nil, nil, NameToType("Std::Elk::AST::DoubleQuotedStringLiteralNode", env), Never{})
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_pattern_node"), nil, nil, NameToType("Std::Elk::AST::DoubleQuotedStringLiteralNode", env), Never{})
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_type_node"), nil, nil, NameToType("Std::Elk::AST::DoubleQuotedStringLiteralNode", env), Never{})
-				namespace.DefineMethod("Convert the `String` to an `Int`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int"), nil, nil, NameToType("Std::Int", env), NameToType("Std::FormatError", env))
+				namespace.DefineMethod("Convert the `String` to an `Int` interpreting\nthe chars according to the given `base`.\n\nIf no `base` is given `10` is assumed.\nWhen the string contains one of the predefined prefixes\nit will be used to infer the base:\n- `0x` - hexadecimal\n- `0d` - base 12\n- `0o` - base 8\n- `0b` - base 2", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_int"), nil, []*Parameter{NewParameter(value.ToSymbol("base"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, NameToType("Std::Int", env), NameToType("Std::FormatError", env))
 				namespace.DefineMethod("Returns itself.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Convert the `String` to a `Symbol`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 				namespace.DefineMethod("Create a new string with all of the characters\nof this one turned into uppercase.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("uppercase"), nil, nil, NameToType("Std::String", env), Never{})
