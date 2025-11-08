@@ -24,8 +24,9 @@ module ::Std::Test
 
     macro assert_match(match_expr: MatchExpressionNode): ExpressionNode
       quote
-        unless !{match_expr.expression} match !{match_expr.pattern_node}
-          throw unchecked ::Std::Test::AssertionError("value `${unquote(match_expr.expression.to_string)}` does not match pattern `${unquote(match_expr.pattern_node.to_string)}`")
+        v := !{match_expr.expression}
+        unless v match !{match_expr.pattern_node}
+          throw unchecked ::Std::Test::AssertionError("value `${v.inspect}` does not match pattern `${unquote(match_expr.pattern_node.to_string)}`")
         end
       end
     end

@@ -588,12 +588,12 @@ tokenLoop:
 				return Date{}, err
 			}
 		case timescanner.DAY_OF_WEEK_FULL_NAME, timescanner.DAY_OF_WEEK_FULL_NAME_UPPERCASE:
-			err = parseDateDayOfWeekName(&currentInput)
+			err = parseDateDayOfWeekName(&currentInput, &tmp)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.DAY_OF_WEEK_ABBREVIATED_NAME, timescanner.DAY_OF_WEEK_ABBREVIATED_NAME_UPPERCASE:
-			err = parseDateAbbreviatedDayOfWeekName(&currentInput)
+			err = parseDateAbbreviatedDayOfWeekName(&currentInput, &tmp)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
@@ -689,7 +689,7 @@ tokenLoop:
 
 	}
 
-	var hasYear bool
+	var hasYear, hasMonth, hasWeek bool
 	if tmp.flags.HasFlag(dateHasCentury) {
 		result.SetYear(tmp.century * 100)
 		hasYear = true
@@ -705,6 +705,7 @@ tokenLoop:
 		yearStart := datetimeISOYearStart(result.Year())
 		datetime := yearStart.Add(TimeSpan(tmp.isoWeek) * Week)
 		result = datetime.Date()
+		hasWeek = true
 	}
 
 	if tmp.flags.HasFlag(dateHasYear) {
@@ -714,11 +715,12 @@ tokenLoop:
 	if tmp.flags.HasFlag(dateHasDayOfYear) {
 		year := result.Year()
 		startOfYear := MakeDateTime(year, 1, 1, 0, 0, 0, 0, nil)
-		dateTime := startOfYear.Add(TimeSpan(tmp.dayOfYear) * Day)
+		dateTime := startOfYear.Add(TimeSpan(tmp.dayOfYear-1) * Day)
 		result = dateTime.Date()
 	}
 	if tmp.flags.HasFlag(dateHasMonth) {
 		result.SetMonth(tmp.month)
+		hasMonth = true
 	}
 	if tmp.flags.HasFlag(dateHasWeekFromMonday) {
 		if tmp.weekFromMonday == 0 {
@@ -728,6 +730,7 @@ tokenLoop:
 			datetime := firstWeek.Add(TimeSpan(tmp.weekFromMonday-1) * Week)
 			result = datetime.Date()
 		}
+		hasWeek = true
 	}
 	if tmp.flags.HasFlag(dateHasWeekFromSunday) {
 		if tmp.weekFromSunday == 0 {
@@ -737,23 +740,28 @@ tokenLoop:
 			datetime := firstWeek.Add(TimeSpan(tmp.weekFromSunday-1) * Week)
 			result = datetime.Date()
 		}
+		hasWeek = true
 	}
 	if tmp.flags.HasFlag(dateHasDay) {
 		result.SetDay(tmp.day)
 	}
-	if tmp.flags.HasFlag(dateHasWeekdayFromMonday) {
-		currentDay := result.WeekdayFromMonday()
-		diff := tmp.weekdayFromMonday - currentDay
-		datetime := result.ToDateTimeValue()
-		result = datetime.Add(TimeSpan(diff) * Day).Date()
+	if hasWeek {
+		if tmp.flags.HasFlag(dateHasWeekdayFromMonday) {
+			currentDay := result.WeekdayFromMonday()
+			diff := tmp.weekdayFromMonday - currentDay
+			datetime := result.ToDateTimeValue()
+			result = datetime.Add(TimeSpan(diff) * Day).Date()
+		}
+		if tmp.flags.HasFlag(dateHasWeekdayFromSunday) {
+			currentDay := result.WeekdayFromSunday()
+			diff := tmp.weekdayFromSunday - currentDay
+			datetime := result.ToDateTimeValue()
+			result = datetime.Add(TimeSpan(diff) * Day).Date()
+		}
 	}
-	if tmp.flags.HasFlag(dateHasWeekdayFromSunday) {
-		currentDay := result.WeekdayFromSunday()
-		diff := tmp.weekdayFromSunday - currentDay
-		datetime := result.ToDateTimeValue()
-		result = datetime.Add(TimeSpan(diff) * Day).Date()
+	if result.Day() == 0 && hasMonth {
+		result.SetDay(1)
 	}
-
 	if !hasYear {
 		result.SetYear(time.Now().Year())
 	}
@@ -936,25 +944,25 @@ func parseDateDayOfWeekNumber(formatString, input string, currentInput *string, 
 	}
 
 	result.flags.SetFlag(dateHasWeekdayFromMonday)
-	result.weekFromMonday = n
+	result.weekdayFromMonday = n
 
 	return Undefined
 }
 
-func parseDateAbbreviatedDayOfWeekName(currentInput *string) Value {
+func parseDateAbbreviatedDayOfWeekName(currentInput *string, result *tmpDate) Value {
 	var buffer strings.Builder
 
 	for len(*currentInput) > 0 {
 		char, size := utf8.DecodeRuneInString(*currentInput)
-		*currentInput = (*currentInput)[size:]
 		if !unicode.IsLetter(char) {
 			break
 		}
+		*currentInput = (*currentInput)[size:]
 		buffer.WriteRune(unicode.ToLower(char))
 	}
 
 	dayName := buffer.String()
-	_, ok := abbreviatedDays[dayName]
+	dayNumber, ok := abbreviatedDays[dayName]
 	if !ok {
 		return Ref(Errorf(
 			FormatErrorClass,
@@ -963,23 +971,26 @@ func parseDateAbbreviatedDayOfWeekName(currentInput *string) Value {
 		))
 	}
 
+	result.weekdayFromMonday = dayNumber
+	result.flags.SetFlag(dateHasWeekdayFromMonday)
+
 	return Undefined
 }
 
-func parseDateDayOfWeekName(currentInput *string) Value {
+func parseDateDayOfWeekName(currentInput *string, result *tmpDate) Value {
 	var buffer strings.Builder
 
 	for len(*currentInput) > 0 {
 		char, size := utf8.DecodeRuneInString(*currentInput)
-		*currentInput = (*currentInput)[size:]
 		if !unicode.IsLetter(char) {
 			break
 		}
+		*currentInput = (*currentInput)[size:]
 		buffer.WriteRune(unicode.ToLower(char))
 	}
 
 	dayName := buffer.String()
-	_, ok := days[dayName]
+	dayNumber, ok := days[dayName]
 	if !ok {
 		return Ref(Errorf(
 			FormatErrorClass,
@@ -987,6 +998,9 @@ func parseDateDayOfWeekName(currentInput *string) Value {
 			dayName,
 		))
 	}
+
+	result.weekdayFromMonday = dayNumber
+	result.flags.SetFlag(dateHasWeekdayFromMonday)
 
 	return Undefined
 }
@@ -1040,10 +1054,10 @@ func parseDateAbbreviatedMonthName(currentInput *string, result *tmpDate) Value 
 
 	for len(*currentInput) > 0 {
 		char, size := utf8.DecodeRuneInString(*currentInput)
-		*currentInput = (*currentInput)[size:]
 		if !unicode.IsLetter(char) {
 			break
 		}
+		*currentInput = (*currentInput)[size:]
 		buffer.WriteRune(unicode.ToLower(char))
 	}
 
@@ -1068,10 +1082,10 @@ func parseDateMonthName(currentInput *string, result *tmpDate) Value {
 
 	for len(*currentInput) > 0 {
 		char, size := utf8.DecodeRuneInString(*currentInput)
-		*currentInput = (*currentInput)[size:]
 		if !unicode.IsLetter(char) {
 			break
 		}
+		*currentInput = (*currentInput)[size:]
 		buffer.WriteRune(unicode.ToLower(char))
 	}
 
