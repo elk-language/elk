@@ -2281,8 +2281,311 @@ describe "Time", ->
 					assert_throws! Time.parse("%T", "15:90:15") match FormatError(message: "value for minute out of range: 90")
 				end
 			end
-
 		end
+	end
+
+	context "strftime", ->
+		context "hour", ->
+			should "build one digit with zero padding", ->
+				t := Time(hour: 8)
+				assert! t.strftime("%H") == "08"
+			end
+
+			should "build one digit without padding", ->
+				t := Time(hour: 8)
+				assert! t.strftime("%-H") == "8"
+			end
+
+			should "build one digit with space padding", ->
+				t := Time(hour: 8)
+				assert! t.strftime("%_H") == " 8"
+			end
+		end
+
+		context "hour 12", ->
+			should "build AM", ->
+				t := Time(hour: 8)
+				assert! t.strftime("%I") == "08"
+			end
+
+			should "build PM", ->
+				t := Time(hour: 16)
+				assert! t.strftime("%I") == "04"
+			end
+
+			should "build one digit with zero padding", ->
+				t := Time(hour: 18)
+				assert! t.strftime("%I") == "06"
+			end
+
+			should "build one digit without padding", ->
+				t := Time(hour: 8)
+				assert! t.strftime("%-H") == "8"
+			end
+
+			should "build one digit with space padding", ->
+				t := Time(hour: 8)
+				assert! t.strftime("%_H") == " 8"
+			end
+		end
+
+		context "meridiem", ->
+			should "build one digit PM with zero padding", ->
+				t := Time(hour: 16)
+				assert! t.strftime("%I %P") == "04 pm"
+			end
+
+			should "build 12 PM", ->
+				t := Time(hour: 12)
+				assert! t.strftime("%I %P") == "12 pm"
+			end
+
+			should "build 12 AM", ->
+				t := Time(hour: 0)
+				assert! t.strftime("%I %P") == "12 am"
+			end
+
+			should "build lowercase 6 AM", ->
+				t := Time(hour: 6)
+				assert! t.strftime("%I %P") == "06 am"
+			end
+
+			should "build uppercase 6 AM", ->
+				t := Time(hour: 6)
+				assert! t.strftime("%I %^P") == "06 AM"
+			end
+
+			should "build one digit without padding", ->
+				t := Time(hour: 8)
+				assert! t.strftime("%-I") == "8"
+			end
+
+			should "build one digit with space padding", ->
+				t := Time(hour: 8)
+				assert! t.strftime("%_I") == " 8"
+			end
+		end
+
+		context "minute", ->
+			should "build two digits", ->
+				t := Time(minute: 28)
+				assert! t.strftime("%M") == "28"
+			end
+
+			should "build one digit with zero padding", ->
+				t := Time(minute: 9)
+				assert! t.strftime("%M") == "09"
+			end
+
+			should "build one digit without padding", ->
+				t := Time(minute: 9)
+				assert! t.strftime("%-M") == "9"
+			end
+
+			should "build one digit with space padding", ->
+				t := Time(minute: 9)
+				assert! t.strftime("%_M") == " 9"
+			end
+		end
+
+		context "second", ->
+			should "build two digits", ->
+				t := Time(second: 28)
+				assert! t.strftime("%S") == "28"
+			end
+
+			should "build one digit with zero padding", ->
+				t := Time(second: 9)
+				assert! t.strftime("%S") == "09"
+			end
+
+			should "build one digit without padding", ->
+				t := Time(second: 9)
+				assert! t.strftime("%-S") == "9"
+			end
+
+			should "build one digit with space padding", ->
+				t := Time(second: 9)
+				assert! t.strftime("%_S") == " 9"
+			end
+		end
+
+		context "millisecond", ->
+			should "build three digits", ->
+				t := Time(millisecond: 282)
+				assert! t.strftime("%L") == "282"
+			end
+
+			should "build one digit with zero padding", ->
+				t := Time(millisecond: 9)
+				assert! t.strftime("%L") == "009"
+			end
+
+			should "build one digit without padding", ->
+				t := Time(millisecond: 9)
+				assert! t.strftime("%-L") == "9"
+			end
+
+			should "build one digit with space padding", ->
+				t := Time(millisecond: 9)
+				assert! t.strftime("%_L") == "  9"
+			end
+		end
+
+		context "microsecond", ->
+			should "build all digits", ->
+				t := Time(microsecond: 282_984)
+				assert! t.strftime("%6N") == "282984"
+			end
+
+			should "build one digit with zero padding", ->
+				t := Time(microsecond: 9)
+				assert! t.strftime("%6N") == "000009"
+			end
+
+			should "build one digit without padding", ->
+				t := Time(microsecond: 9)
+				assert! t.strftime("%-6N") == "9"
+			end
+
+			should "build one digit with space padding", ->
+				t := Time(microsecond: 9)
+				assert! t.strftime("%_6N") == "     9"
+			end
+		end
+
+		context "nanosecond", ->
+			should "build all digits", ->
+				t := Time(nanosecond: 282_984_777)
+				assert! t.strftime("%9N") == "282984777"
+			end
+
+			should "build one digit with zero padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%9N") == "000000009"
+			end
+
+			should "build one digit without padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%-9N") == "9"
+			end
+
+			should "build one digit with space padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%_9N") == "        9"
+			end
+		end
+
+		context "picosecond", ->
+			should "build all digits", ->
+				t := Time(nanosecond: 282_984_777)
+				assert! t.strftime("%12N") == "282984777000"
+			end
+
+			should "build with zero padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%12N") == "000000009000"
+			end
+
+			should "build without padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%-12N") == "9000"
+			end
+
+			should "build with space padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%_12N") == "        9000"
+			end
+		end
+
+		context "femtosecond", ->
+			should "build all digits", ->
+				t := Time(nanosecond: 282_984_777)
+				assert! t.strftime("%15N") == "282984777000000"
+			end
+
+			should "build with zero padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%15N") == "000000009000000"
+			end
+
+			should "build without padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%-15N") == "9000000"
+			end
+
+			should "build with space padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%_15N") == "        9000000"
+			end
+		end
+
+		context "attosecond", ->
+			should "build all digits", ->
+				t := Time(nanosecond: 282_984_777)
+				assert! t.strftime("%18N") == "282984777000000000"
+			end
+
+			should "build with zero padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%18N") == "000000009000000000"
+			end
+
+			should "build without padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%-18N") == "9000000000"
+			end
+
+			should "build with space padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%_18N") == "        9000000000"
+			end
+		end
+
+		context "zeptosecond", ->
+			should "build all digits", ->
+				t := Time(nanosecond: 282_984_777)
+				assert! t.strftime("%21N") == "282984777000000000000"
+			end
+
+			should "build with zero padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%21N") == "000000009000000000000"
+			end
+
+			should "build without padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%-21N") == "9000000000000"
+			end
+
+			should "build with space padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%_21N") == "        9000000000000"
+			end
+		end
+
+		context "yoctosecond", ->
+			should "build all digits", ->
+				t := Time(nanosecond: 282_984_777)
+				assert! t.strftime("%24N") == "282984777000000000000000"
+			end
+
+			should "build with zero padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%24N") == "000000009000000000000000"
+			end
+
+			should "build without padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%-24N") == "9000000000000000"
+			end
+
+			should "build with space padding", ->
+				t := Time(nanosecond: 9)
+				assert! t.strftime("%_24N") == "        9000000000000000"
+			end
+		end
+
 	end
 
 end

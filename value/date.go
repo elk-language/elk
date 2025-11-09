@@ -719,7 +719,7 @@ tokenLoop:
 	}
 	if tmp.flags.HasFlag(dateHasDayOfYear) {
 		year := result.Year()
-		startOfYear := MakeDateTime(year, 1, 1, 0, 0, 0, 0, nil)
+		startOfYear := MakeDateTime(year, 1, 1, 0, 0, 0, 0, 0, 0, nil)
 		dateTime := startOfYear.Add(TimeSpan(tmp.dayOfYear-1) * Day)
 		result = dateTime.Date()
 	}
@@ -824,7 +824,7 @@ var abbreviatedDays = map[string]int{
 }
 
 func datetimeMondayOfFirstGregorianWeek(year int) DateTime {
-	yearStart := MakeDateTime(year, 1, 1, 0, 0, 0, 0, nil)
+	yearStart := MakeDateTime(year, 1, 1, 0, 0, 0, 0, 0, 0, nil)
 	firstDay := yearStart.WeekdayFromMonday()
 
 	if firstDay == Monday {
@@ -835,7 +835,7 @@ func datetimeMondayOfFirstGregorianWeek(year int) DateTime {
 }
 
 func datetimeSundayOfFirstGregorianWeek(year int) DateTime {
-	yearStart := MakeDateTime(year, 1, 1, 0, 0, 0, 0, nil)
+	yearStart := MakeDateTime(year, 1, 1, 0, 0, 0, 0, 0, 0, nil)
 	firstDay := yearStart.WeekdayFromSunday()
 
 	if firstDay == SundayAlt {
@@ -1215,7 +1215,7 @@ func parseDateISOYear(formatString, input string, currentInput *string, result *
 func datetimeISOYearStart(year int) DateTime {
 	// ISO week 1 is the week with the year's first Thursday in it.
 	// So we start from Jan 4th (always in week 1) and adjust.
-	jan4 := MakeDateTime(year, 1, 4, 0, 0, 0, 0, nil)
+	jan4 := MakeDateTime(year, 1, 4, 0, 0, 0, 0, 0, 0, nil)
 
 	weekday := jan4.WeekdayFromMonday()
 	diff := -weekday + 1

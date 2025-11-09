@@ -16,6 +16,8 @@ sealed primitive class ::Std::Time
 
 	const DEFAULT_FORMAT: String
 
+	init(hour: Int = 0, minute: Int = 0, second: Int = 0, millisecond: Int = 0, microsecond: Int = 0, nanosecond: Int = 0); end
+
 	##[
 		Create a string formatted according to the given format string.
 	]##

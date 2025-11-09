@@ -9488,6 +9488,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins and implement interfaces
 
 				// Define methods
+				method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("hour"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("minute"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("second"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("millisecond"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("microsecond"), NameToType("Std::Int", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("nanosecond"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol(">"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Time", env), NormalParameterKind, false)}, Bool{}, Never{})

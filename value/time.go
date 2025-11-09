@@ -20,14 +20,16 @@ var TimeClass *Class // ::Std::Time
 
 func TimeNow() Time {
 	t := time.Now()
-	return MakeTime(t.Hour(), t.Minute(), t.Second(), t.Nanosecond())
+	return MakeTime(t.Hour(), t.Minute(), t.Second(), 0, 0, t.Nanosecond())
 }
 
 // Create a new Time value.
-func MakeTime(hour, min, sec, nsec int) Time {
+func MakeTime(hour, min, sec, millisec, microsec, nsec int) Time {
 	duration := TimeSpan(hour)*Hour +
 		TimeSpan(min)*Minute +
 		TimeSpan(sec)*Second +
+		TimeSpan(millisec)*Millisecond +
+		TimeSpan(microsec)*Microsecond +
 		TimeSpan(nsec)*Nanosecond
 
 	duration %= Day

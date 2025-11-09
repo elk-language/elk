@@ -75,21 +75,31 @@ func (t DateTime) String() string {
 }
 
 // Create a new DateTime object.
-func NewDateTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) *DateTime {
-	t := MakeDateTime(year, month, day, hour, min, sec, nsec, zone)
+func NewDateTime(year, month, day, hour, min, sec, millisec, microsec, nsec int, zone *Timezone) *DateTime {
+	t := MakeDateTime(year, month, day, hour, min, sec, millisec, microsec, nsec, zone)
 	return &t
 }
 
 // Create a new DateTime value.
-func MakeDateTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) DateTime {
+func MakeDateTime(year, month, day, hour, min, sec, millisec, microsec, nsec int, zone *Timezone) DateTime {
 	var location *time.Location
 	if zone == nil {
 		location = time.UTC
 	} else {
 		location = zone.ToGoLocation()
 	}
+
 	return DateTime{
-		Go: time.Date(year, time.Month(month), day, hour, min, sec, nsec, location),
+		Go: time.Date(
+			year,
+			time.Month(month),
+			day,
+			hour,
+			min,
+			sec,
+			millisec*int(Millisecond)+microsec*int(Microsecond)+nsec,
+			location,
+		),
 	}
 }
 
@@ -110,6 +120,8 @@ func (t *DateTime) Time() Time {
 		t.Hour(),
 		t.Minute(),
 		t.Second(),
+		t.Millisecond(),
+		t.Microsecond(),
 		t.Nanosecond(),
 	)
 }

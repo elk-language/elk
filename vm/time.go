@@ -34,6 +34,44 @@ func initTime() {
 	c = &value.TimeClass.MethodContainer
 	Def(
 		c,
+		"#init",
+		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			var hour int
+			if !args[1].IsUndefined() {
+				hour = args[1].AsInt()
+			}
+
+			var minute int
+			if !args[2].IsUndefined() {
+				minute = args[2].AsInt()
+			}
+
+			var second int
+			if !args[3].IsUndefined() {
+				second = args[3].AsInt()
+			}
+
+			var millisecond int
+			if !args[4].IsUndefined() {
+				millisecond = args[4].AsInt()
+			}
+
+			var microsecond int
+			if !args[5].IsUndefined() {
+				microsecond = args[5].AsInt()
+			}
+
+			var nanosecond int
+			if !args[6].IsUndefined() {
+				nanosecond = args[6].AsInt()
+			}
+
+			return value.MakeTime(hour, minute, second, millisecond, microsecond, nanosecond).ToValue(), value.Undefined
+		},
+		DefWithParameters(6),
+	)
+	Def(
+		c,
 		"format",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
