@@ -1549,7 +1549,595 @@ describe "Date", ->
 				end
 			end
 
-		# TODO: add more tests
+			context "iso week", ->
+				context "zero padded", ->
+					should "parse repeated week", ->
+						t := Date.parse("%V %y %V", "26 22 11")
+						assert! t <<: Date
+
+						assert! t.to_string == "2022-03-20"
+
+						assert! t.year == 2022
+						assert! t.month == 3
+						assert! t.day == 20
+					end
+
+					should "parse all digits", ->
+						t := Date.parse("%V", "12")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-03-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 3
+						assert! t.day >= 1
+					end
+
+					should "parse one digit", ->
+						t := Date.parse("%V", "2")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse with leading zero", ->
+						t := Date.parse("%V", "02")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "raise format error when > 53", ->
+						assert_throws! Date.parse("%V", "54") match FormatError(message: "value for ISO week out of range: 54")
+					end
+
+					should "raise format error when < 1", ->
+						assert_throws! Date.parse("%V", "0") match FormatError(message: "value for ISO week out of range: 0")
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! Date.parse("%V", " 7") match FormatError(message: 'date format string `"%V"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! Date.parse("%V", "") match FormatError(message: 'date format string `"%V"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! Date.parse("%V", "foo") match FormatError(message: 'date format string `"%V"` is incompatible with parsed input `"foo"`')
+					end
+				end
+
+				context "no padding", ->
+					should "parse all digits", ->
+						t := Date.parse("%-V", "12")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-03-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 3
+						assert! t.day >= 1
+					end
+
+					should "parse one digit", ->
+						t := Date.parse("%-V", "2")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse with leading zero", ->
+						t := Date.parse("%-V", "02")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! Date.parse("%-V", " 7") match FormatError(message: 'date format string `"%-V"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! Date.parse("%-V", "") match FormatError(message: 'date format string `"%-V"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! Date.parse("%-V", "foo") match FormatError(message: 'date format string `"%-V"` is incompatible with parsed input `"foo"`')
+					end
+				end
+
+				context "space padded", ->
+					should "parse all digits", ->
+						t := Date.parse("%_V", "12")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-03-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 3
+						assert! t.day >= 1
+					end
+
+					should "parse one digit", ->
+						t := Date.parse("%_V", "2")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse with leading zero", ->
+						t := Date.parse("%_V", "02")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse with leading space", ->
+						t := Date.parse("%_V", " 2")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! Date.parse("%_V", "") match FormatError(message: 'date format string `"%_V"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! Date.parse("%_V", "foo") match FormatError(message: 'date format string `"%_V"` is incompatible with parsed input `"foo"`')
+					end
+				end
+			end
+
+			context "week", ->
+				context "zero padded", ->
+					should "parse repeated week", ->
+						t := Date.parse("%W %y %W", "26 22 11")
+						assert! t <<: Date
+
+						assert! t.to_string == "2022-03-14"
+
+						assert! t.year == 2022
+						assert! t.month == 3
+						assert! t.day == 14
+						assert! t.weekday_name == "Monday"
+					end
+
+					should "parse all digits", ->
+						t := Date.parse("%W", "12")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-03-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 3
+						assert! t.day >= 1
+					end
+
+					should "parse one digit", ->
+						t := Date.parse("%W", "2")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse with leading zero", ->
+						t := Date.parse("%W", "02")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse zero", ->
+						t := Date.parse("%W", "0")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-01$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day == 1
+					end
+
+					should "raise format error when > 53", ->
+						assert_throws! Date.parse("%W", "54") match FormatError(message: "value for week out of range: 54")
+					end
+					should "raise format error for leading space", ->
+						assert_throws! Date.parse("%W", " 7") match FormatError(message: 'date format string `"%W"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! Date.parse("%W", "") match FormatError(message: 'date format string `"%W"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! Date.parse("%W", "foo") match FormatError(message: 'date format string `"%W"` is incompatible with parsed input `"foo"`')
+					end
+				end
+
+				context "no padding", ->
+					should "parse all digits", ->
+						t := Date.parse("%-W", "12")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-03-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 3
+						assert! t.day >= 1
+					end
+
+					should "parse one digit", ->
+						t := Date.parse("%-W", "2")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse with leading zero", ->
+						t := Date.parse("%-W", "02")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! Date.parse("%-W", " 7") match FormatError(message: 'date format string `"%-W"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! Date.parse("%-W", "") match FormatError(message: 'date format string `"%-W"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! Date.parse("%-W", "foo") match FormatError(message: 'date format string `"%-W"` is incompatible with parsed input `"foo"`')
+					end
+				end
+
+				context "space padded", ->
+					should "parse all digits", ->
+						t := Date.parse("%_W", "12")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-03-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 3
+						assert! t.day >= 1
+					end
+
+					should "parse one digit", ->
+						t := Date.parse("%_W", "2")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse with leading zero", ->
+						t := Date.parse("%_W", "02")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse with leading space", ->
+						t := Date.parse("%_W", " 2")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! Date.parse("%_W", "") match FormatError(message: 'date format string `"%_W"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! Date.parse("%_W", "foo") match FormatError(message: 'date format string `"%_W"` is incompatible with parsed input `"foo"`')
+					end
+				end
+			end
+
+			context "week alt", ->
+				context "zero padded", ->
+					should "parse repeated week", ->
+						t := Date.parse("%U %y %U", "26 22 11")
+						assert! t <<: Date
+
+						assert! t.to_string == "2022-03-13"
+
+						assert! t.year == 2022
+						assert! t.month == 3
+						assert! t.day == 13
+						assert! t.weekday_name == "Sunday"
+					end
+
+					should "parse all digits", ->
+						t := Date.parse("%U", "12")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-03-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 3
+						assert! t.day >= 1
+					end
+
+					should "parse one digit", ->
+						t := Date.parse("%U", "2")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse with leading zero", ->
+						t := Date.parse("%U", "02")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse zero", ->
+						t := Date.parse("%U", "0")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-01$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day == 1
+					end
+
+					should "raise format error when > 53", ->
+						assert_throws! Date.parse("%U", "54") match FormatError(message: "value for week out of range: 54")
+					end
+					should "raise format error for leading space", ->
+						assert_throws! Date.parse("%U", " 7") match FormatError(message: 'date format string `"%U"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! Date.parse("%U", "") match FormatError(message: 'date format string `"%U"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! Date.parse("%U", "foo") match FormatError(message: 'date format string `"%U"` is incompatible with parsed input `"foo"`')
+					end
+				end
+
+				context "no padding", ->
+					should "parse all digits", ->
+						t := Date.parse("%-U", "12")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-03-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 3
+						assert! t.day >= 1
+					end
+
+					should "parse one digit", ->
+						t := Date.parse("%-U", "2")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse with leading zero", ->
+						t := Date.parse("%-U", "02")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! Date.parse("%-U", " 7") match FormatError(message: 'date format string `"%-U"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! Date.parse("%-U", "") match FormatError(message: 'date format string `"%-U"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! Date.parse("%-U", "foo") match FormatError(message: 'date format string `"%-U"` is incompatible with parsed input `"foo"`')
+					end
+				end
+
+				context "space padded", ->
+					should "parse all digits", ->
+						t := Date.parse("%_U", "12")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-03-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 3
+						assert! t.day >= 1
+					end
+
+					should "parse one digit", ->
+						t := Date.parse("%_U", "2")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse with leading zero", ->
+						t := Date.parse("%_U", "02")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "parse with leading space", ->
+						t := Date.parse("%_U", " 2")
+						assert! t <<: Date
+						now := Date.now
+
+						assert! t.to_string match %/^\d{4}-01-\d{2}$/
+
+						assert! t.year == now.year
+						assert! t.month == 1
+						assert! t.day >= 1
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! Date.parse("%_U", "") match FormatError(message: 'date format string `"%_U"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! Date.parse("%_U", "foo") match FormatError(message: 'date format string `"%_U"` is incompatible with parsed input `"foo"`')
+					end
+				end
+			end
+
+			context "date", ->
+				should "parse", ->
+					t := Date.parse("%D", "12/20/02")
+					assert! t <<: Date
+					now := Date.now
+
+					assert! t.to_string == "2002-12-20"
+
+					assert! t.year == 2002
+					assert! t.month == 12
+					assert! t.day == 20
+				end
+
+				should "raise format error when incompatible string", ->
+					assert_throws! Date.parse("%D", "54-02-1992") match FormatError(message: "value for date month out of range: 54")
+				end
+			end
+
+			context "iso date", ->
+				should "parse", ->
+					t := Date.parse("%F", "2002-10-17")
+					assert! t <<: Date
+					now := Date.now
+
+					assert! t.to_string == "2002-10-17"
+
+					assert! t.year == 2002
+					assert! t.month == 10
+					assert! t.day == 17
+				end
+
+				should "raise format error when incompatible string", ->
+					assert_throws! Date.parse("%F", "12-02-1992") match FormatError(message: "date format string `\"%F\"` is incompatible with parsed input `\"12-02-1992\"`")
+				end
+			end
+
 		end
 
 	end

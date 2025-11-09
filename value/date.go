@@ -702,7 +702,12 @@ tokenLoop:
 		hasYear = true
 	}
 	if tmp.flags.HasFlag(dateHasIsoWeek) {
-		yearStart := datetimeISOYearStart(result.Year())
+		var yearStart DateTime
+		if tmp.flags.HasFlag(dateHasIsoYear) {
+			yearStart = *result.ToDateTime()
+		} else {
+			yearStart = datetimeISOYearStart(result.Year())
+		}
 		datetime := yearStart.Add(TimeSpan(tmp.isoWeek) * Week)
 		result = datetime.Date()
 		hasWeek = true
