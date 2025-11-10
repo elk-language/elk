@@ -20,6 +20,67 @@ func initDateTime() {
 	c = &value.DateTimeClass.MethodContainer
 	Def(
 		c,
+		"#init",
+		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			var year int
+			if !args[1].IsUndefined() {
+				year = args[1].AsInt()
+			}
+
+			var month int
+			if !args[2].IsUndefined() {
+				month = args[2].AsInt()
+			}
+
+			var day int
+			if !args[3].IsUndefined() {
+				day = args[3].AsInt()
+			}
+
+			var hour int
+			if !args[4].IsUndefined() {
+				hour = args[4].AsInt()
+			}
+
+			var minute int
+			if !args[5].IsUndefined() {
+				minute = args[5].AsInt()
+			}
+
+			var second int
+			if !args[6].IsUndefined() {
+				second = args[6].AsInt()
+			}
+
+			var millisecond int
+			if !args[7].IsUndefined() {
+				millisecond = args[7].AsInt()
+			}
+
+			var microsecond int
+			if !args[8].IsUndefined() {
+				microsecond = args[8].AsInt()
+			}
+
+			var nanosecond int
+			if !args[9].IsUndefined() {
+				nanosecond = args[9].AsInt()
+			}
+
+			var zone *value.Timezone
+			if args[10].IsUndefined() {
+				zone = value.LocalTimezone
+			} else {
+				zone = (*value.Timezone)(args[10].Pointer())
+			}
+
+			return value.Ref(value.NewDateTime(year, month, day, hour, minute, second, millisecond, microsecond, nanosecond, zone)), value.Undefined
+		},
+		DefWithParameters(10),
+	)
+
+	Def(
+		c,
 		"format",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)

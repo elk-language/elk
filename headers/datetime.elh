@@ -11,6 +11,19 @@ sealed primitive class ::Std::DateTime
 
 	const DEFAULT_FORMAT: String
 
+	init(
+		year: Int = 0,
+		month: Int = 0,
+		day: Int = 0,
+		hour: Int = 0,
+		minute: Int = 0,
+		second: Int = 0,
+		millisecond: Int = 0,
+		microsecond: Int = 0,
+		nanosecond: Int = 0,
+		zone: Timezone = Timezone::LOCAL,
+	); end
+
 	##[
 		Adds the given duration to the datetime.
 		Returns a new datetime object.
@@ -21,7 +34,8 @@ sealed primitive class ::Std::DateTime
 		Subtracts the given duration from the datetime.
 		Returns a new datetime object.
 	]##
-	def -(other: Duration): DateTime; end
+	overload def -(other: Duration): DateTime; end
+	overload def -(other: DateTime): Duration; end
 
 	##[
 		Calculates the difference between two datetime objects.

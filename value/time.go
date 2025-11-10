@@ -32,11 +32,17 @@ func MakeTime(hour, min, sec, millisec, microsec, nsec int) Time {
 		TimeSpan(microsec)*Microsecond +
 		TimeSpan(nsec)*Nanosecond
 
-	duration %= Day
-
 	return Time{
 		duration: duration,
+	}.Normalise()
+}
+
+func (t Time) Normalise() Time {
+	t.duration %= Day
+	if t.duration < 0 {
+		t.duration = 24*Hour + t.duration
 	}
+	return t
 }
 
 func (t Time) ToTimeSpan() TimeSpan {
@@ -49,7 +55,8 @@ func (t Time) ToDateTime() *DateTime {
 }
 
 func (t Time) ToDateTimeValue() DateTime {
-	goTime := time.Date(0, 1, 1, t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.UTC)
+	now := DateTimeNow()
+	goTime := time.Date(now.Year(), time.Month(now.Month()), now.Day(), t.Hour(), t.Minute(), t.Second(), t.NanosecondsInSecond(), now.Go.Location())
 	return ToElkDateTimeValue(goTime)
 }
 
@@ -139,13 +146,13 @@ func (t Time) AttosecondsInSecond() int64 {
 }
 
 func (t Time) ZeptosecondsInSecond() *BigInt {
-	i := big.NewInt(int64(t.Nanosecond()))
+	i := big.NewInt(int64(t.NanosecondsInSecond()))
 	i.Mul(i, big.NewInt(1000_000_000_000))
 	return ToElkBigInt(i)
 }
 
 func (t Time) YoctosecondsInSecond() *BigInt {
-	i := big.NewInt(int64(t.Nanosecond()))
+	i := big.NewInt(int64(t.NanosecondsInSecond()))
 	i.Mul(i, big.NewInt(1000_000_000_000_000))
 	return ToElkBigInt(i)
 }
@@ -192,6 +199,61 @@ func (t Time) Hour12() int {
 	}
 
 	return hour - 12
+}
+
+func (t Time) Cmp(other Time) int {
+	if t.duration > other.duration {
+		return 1
+	}
+	if t.duration < other.duration {
+		return -1
+	}
+	return 0
+}
+
+func (t Time) GreaterThan(other Time) bool {
+	return t.duration > other.duration
+}
+
+func (t Time) GreaterThanEqual(other Time) bool {
+	return t.duration >= other.duration
+}
+
+func (t Time) LessThan(other Time) bool {
+	return t.duration < other.duration
+}
+
+func (t Time) LessThanEqual(other Time) bool {
+	return t.duration <= other.duration
+}
+
+// Adds the given duration to the time.
+// Returns a new time structure.
+func (t Time) Add(val TimeSpan) Time {
+	return t.duration.AddTimeSpan(val).ToTime()
+}
+
+func (t Time) Subtract(val Value) (Value, Value) {
+	if val.IsInlineTime() {
+		return t.Diff(val.AsInlineTime()).ToValue(), Undefined
+	}
+	if val.IsInlineTimeSpan() {
+		return t.SubtractTimeSpan(val.AsInlineTimeSpan()).ToValue(), Undefined
+	}
+
+	return Undefined, Ref(NewCoerceError(TimeClass, val.Class()))
+}
+
+// Subtracts the given duration from the time.
+// Returns a new time structure.
+func (t Time) SubtractTimeSpan(val TimeSpan) Time {
+	return t.duration.SubtractTimeSpan(val).ToTime()
+}
+
+// Calculates the difference between two time values.
+// Returns a duration.
+func (t Time) Diff(val Time) TimeSpan {
+	return t.duration.SubtractTimeSpan(val.duration)
 }
 
 func (t Time) MustFormat(formatString string) string {

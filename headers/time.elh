@@ -19,6 +19,25 @@ sealed primitive class ::Std::Time
 	init(hour: Int = 0, minute: Int = 0, second: Int = 0, millisecond: Int = 0, microsecond: Int = 0, nanosecond: Int = 0); end
 
 	##[
+		Adds the given time span to this time.
+		Returns a new time value.
+	]##
+	def +(other: Span): Time; end
+
+	##[
+		Subtracts the given time span from the time.
+		Returns a new time value.
+	]##
+	overload def -(other: Span): Time; end
+	overload def -(other: Time): Span; end
+
+	##[
+		Calculates the difference between two time values.
+		Returns a time span.
+	]##
+	def diff(other: Time): Span; end
+
+	##[
 		Create a string formatted according to the given format string.
 	]##
 	def strftime(fmt: String): String; end
@@ -26,11 +45,23 @@ sealed primitive class ::Std::Time
 
 	def to_string: String; end
 	def to_time_span: Time::Span; end
+	def to_time: Time; end
+	def to_datetime: DateTime; end
 
 	##[
 		Returns the hour offset within the day specified by `self` in the range `0...23`
 	]##
 	def hour: Int; end
+
+	##[
+		Returns the hour of the day in a twelve hour clock.
+	]##
+	def hour12: Int; end
+
+	##[
+		Returns `"AM"` or `"PM"` based on the hour.
+	]##
+	def meridiem: String; end
 
 	##[
 		Returns the minute offset within the hour specified by `self` in the range `0...59`
@@ -70,7 +101,7 @@ sealed primitive class ::Std::Time
 	##[
 		Returns the picosecond offset within the second specified by `self` in the range `0...999_999_999_999`
 	]##
-	def picoseconds_in_seconds: Int; end
+	def picoseconds_in_second: Int; end
 
 	##[
 		Returns the femtosecond offset within the second specified by `self` in the range `0...999_999_999_999_999`
@@ -92,60 +123,7 @@ sealed primitive class ::Std::Time
 	]##
 	def yoctoseconds_in_second: Int; end
 
-	##[
-		Returns the number of seconds elapsed since January 1, 1970 UTC
-	]##
-	def unix_seconds: Int; end
-
-	##[
-		Returns the number of milliseconds elapsed since January 1, 1970 UTC
-	]##
-	def unix_milliseconds: Int; end
-
-	##[
-		Returns the number of microseconds elapsed since January 1, 1970 UTC
-	]##
-	def unix_microseconds: Int; end
-
-	##[
-		Returns the number of nanoseconds elapsed since January 1, 1970 UTC
-	]##
-	def unix_nanoseconds: Int; end
-
-	##[
-		Returns the number of picoseconds elapsed since January 1, 1970 UTC
-	]##
-	def unix_picoseconds: Int; end
-
-	##[
-		Returns the number of femtoseconds elapsed since January 1, 1970 UTC
-	]##
-	def unix_femtoseconds: Int; end
-
-	##[
-		Returns the number of attoseconds elapsed since January 1, 1970 UTC
-	]##
-	def unix_attoseconds: Int; end
-
-	##[
-		Returns the number of zeptoseconds elapsed since January 1, 1970 UTC
-	]##
-	def unix_zeptoseconds: Int; end
-
-	##[
-		Returns the number of yoctoseconds elapsed since January 1, 1970 UTC
-	]##
-	def unix_yoctoseconds: Int; end
-
-	##[
-		Returns `"AM"` or `"PM"` based on the hour.
-	]##
-	def meridiem: String; end
-
-	##[
-		Returns the hour of the day in a twelve hour clock.
-	]##
-	def hour12: Int; end
+	sealed def <=>(other: Time): Int; end
 
 	sealed def >=(other: Time): bool; end
 

@@ -2585,7 +2585,638 @@ describe "Time", ->
 				assert! t.strftime("%_24N") == "        9000000000000000"
 			end
 		end
+	end
 
+	context "to_string", ->
+		should "render all components", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500
+			)
+
+			assert! t.to_string == "15:59:20.005985500"
+		end
+	end
+
+	context "to_time", ->
+		should "return self", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.to_time == t
+		end
+	end
+
+	context "to_datetime", ->
+		should "return self", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500,
+			)
+
+			now := DateTime.now
+			expected := DateTime(
+				year: now.year,
+				month: now.month,
+				day: now.day,
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500,
+			)
+			assert! t.to_datetime == expected
+		end
+	end
+
+	context "to_time_span", ->
+		should "return an equivalent span", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			s := t.to_time_span
+			assert! s <<: Time::Span
+			assert! s.to_string == "15h 59m 20s 5ms 985µs 500ns"
+		end
+	end
+
+	context "hour", ->
+		should "return the hour component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.hour == 15
+		end
+	end
+
+	context "hour12", ->
+		should "return unchanged hour under 12", ->
+			t := Time(
+				hour: 8,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.hour12 == 8
+		end
+
+		should "return clamped hour over 12", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.hour12 == 3
+		end
+	end
+
+	context "meridiem", ->
+		should "return PM", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+			)
+			assert! t.meridiem == "PM"
+		end
+
+		should "return AM", ->
+			t := Time(
+				hour: 8,
+				minute: 59,
+				second: 20,
+			)
+			assert! t.meridiem == "AM"
+		end
+
+		should "return AM for 24:00", ->
+			t := Time(
+				hour: 24,
+			)
+			assert! t.meridiem == "AM"
+		end
+
+		should "return PM for 12:00", ->
+			t := Time(
+				hour: 12,
+			)
+			assert! t.meridiem == "PM"
+		end
+	end
+
+	context "minute", ->
+		should "return the minute component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.minute == 59
+		end
+	end
+
+	context "second", ->
+		should "return the second component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.second == 20
+		end
+	end
+
+	context "millisecond", ->
+		should "return the millisecond component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.millisecond == 5
+		end
+	end
+
+	context "microsecond", ->
+		should "return the microsecond component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.microsecond == 985
+		end
+	end
+
+	context "microseconds_in_second", ->
+		should "return the microsecond component when no milliseconds", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.microseconds_in_second == 985
+		end
+
+		should "return combined milliseconds and microseconds", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 235,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.microseconds_in_second == 235_985
+		end
+	end
+
+	context "nanosecond", ->
+		should "return the nanosecond component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 5,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.nanosecond == 500
+		end
+	end
+
+	context "nanoseconds_in_second", ->
+		should "return the nanosecond component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				nanosecond: 500
+			)
+			assert! t.nanoseconds_in_second == 500
+		end
+
+		should "return combined subseconds", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 235,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.nanoseconds_in_second == 235_985_500
+		end
+	end
+
+	context "picoseconds_in_second", ->
+		should "return the nanosecond component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				nanosecond: 500
+			)
+			assert! t.picoseconds_in_second == 500_000
+		end
+
+		should "return combined subseconds", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 235,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.picoseconds_in_second == 235_985_500_000
+		end
+	end
+
+	context "femtoseconds_in_second", ->
+		should "return the nanosecond component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				nanosecond: 500
+			)
+			assert! t.femtoseconds_in_second == 500_000_000
+		end
+
+		should "return combined subseconds", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 235,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.femtoseconds_in_second == 235_985_500_000_000
+		end
+	end
+
+	context "attoseconds_in_second", ->
+		should "return the nanosecond component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				nanosecond: 500
+			)
+			assert! t.attoseconds_in_second == 500_000_000_000
+		end
+
+		should "return combined subseconds", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 235,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.attoseconds_in_second == 235_985_500_000_000_000
+		end
+	end
+
+	context "zeptoseconds_in_second", ->
+		should "return the nanosecond component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				nanosecond: 500
+			)
+			assert! t.zeptoseconds_in_second == 500_000_000_000_000
+		end
+
+		should "return combined subseconds", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 235,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.zeptoseconds_in_second == 235_985_500_000_000_000_000
+		end
+	end
+
+	context "yoctoseconds_in_second", ->
+		should "return the nanosecond component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				nanosecond: 500
+			)
+			assert! t.yoctoseconds_in_second == 500_000_000_000_000_000
+		end
+
+		should "return combined subseconds", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 235,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.yoctoseconds_in_second == 235_985_500_000_000_000_000_000
+		end
+	end
+
+	context "yoctoseconds_in_second", ->
+		should "return the nanosecond component", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				nanosecond: 500
+			)
+			assert! t.yoctoseconds_in_second == 500_000_000_000_000_000
+		end
+
+		should "return combined subseconds", ->
+			t := Time(
+				hour: 15,
+				minute: 59,
+				second: 20,
+				millisecond: 235,
+				microsecond: 985,
+				nanosecond: 500
+			)
+			assert! t.yoctoseconds_in_second == 235_985_500_000_000_000_000_000
+		end
+	end
+
+	context "+", ->
+		should "add a span", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t + 1.hour == Time(hour: 16, minute: 30, second: 20)
+		end
+
+		should "add a span with overflow", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t + 12.hour == Time(hour: 3, minute: 30, second: 20)
+		end
+	end
+
+	context "-", ->
+		should "return a positive Time when other is a span", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t - 1.hour == Time(hour: 14, minute: 30, second: 20)
+		end
+
+		should "return a positive Time with underflow when other is a span", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t - 20.hour == Time(hour: 19, minute: 30, second: 20)
+		end
+
+		should "return a positive span when other is a Time", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t - Time(hour: 14, minute: 30, second: 20) == 1.hour
+		end
+
+		should "return a negative span when other is a Time", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t - Time(hour: 18, minute: 30, second: 20) == -3.hour
+		end
+	end
+
+	context "diff", ->
+		should "return a positive span", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t.diff(Time(hour: 14, minute: 30, second: 20)) == 1.hour
+		end
+
+		should "return a negative span", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t.diff(Time(hour: 18, minute: 30, second: 20)) == -3.hour
+		end
+	end
+
+	context "<=>", ->
+		should "return 1 when greater", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t <=> Time(hour: 13) == 1
+		end
+
+		should "return 0 when equal", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t <=> Time(hour: 15, minute: 30, second: 20) == 0
+		end
+
+		should "return -1 when less", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t <=> Time(hour: 18) == -1
+		end
+	end
+
+	context ">=", ->
+		should "return true when greater", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t >= Time(hour: 13) == true
+		end
+
+		should "return true when equal", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t >= Time(hour: 15, minute: 30, second: 20) == true
+		end
+
+		should "return false when less", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t >= Time(hour: 18) == false
+		end
+	end
+
+	context ">", ->
+		should "return true when greater", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t > Time(hour: 13) == true
+		end
+
+		should "return false when equal", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t > Time(hour: 15, minute: 30, second: 20) == false
+		end
+
+		should "return false when less", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t > Time(hour: 18) == false
+		end
+	end
+
+	context "<=", ->
+		should "return false when greater", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t <= Time(hour: 13) == false
+		end
+
+		should "return true when equal", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t <= Time(hour: 15, minute: 30, second: 20) == true
+		end
+
+		should "return true when less", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t <= Time(hour: 18) == true
+		end
+	end
+
+	context "<", ->
+		should "return false when greater", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t < Time(hour: 13) == false
+		end
+
+		should "return false when equal", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t < Time(hour: 15, minute: 30, second: 20) == false
+		end
+
+		should "return true when less", ->
+			t := Time(
+				hour: 15,
+				minute: 30,
+				second: 20,
+			)
+			assert! t < Time(hour: 18) == true
+		end
 	end
 
 end

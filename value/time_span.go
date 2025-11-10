@@ -199,6 +199,10 @@ func DurationUntil(t DateTime) TimeSpan {
 	return TimeSpan(time.Until(t.Go))
 }
 
+func (t TimeSpan) ToTime() Time {
+	return Time{duration: t}.Normalise()
+}
+
 func (t TimeSpan) Go() time.Duration {
 	return time.Duration(t)
 }
