@@ -124,13 +124,9 @@ sealed primitive class ::Std::Time
 	def yoctoseconds_in_second: Int; end
 
 	sealed def <=>(other: Time): Int; end
-
 	sealed def >=(other: Time): bool; end
-
 	sealed def >(other: Time): bool; end
-
 	sealed def <=(other: Time): bool; end
-
 	sealed def <(other: Time): bool; end
 
 end

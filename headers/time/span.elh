@@ -60,10 +60,20 @@ sealed primitive class ::Std::Time::Span < Value
 	overload def /(other: Float): Time::Span; end
 	overload def /(other: BigFloat): Time::Span; end
 
+	sealed def <=>(other: Time::Span): Int; end
+	sealed def >=(other: Time::Span): bool; end
+	sealed def >(other: Time::Span): bool; end
+	sealed def <=(other: Time::Span): bool; end
+	sealed def <(other: Time::Span): bool; end
+
 	##[
 		Returns the string representation of the span in the format "51h15m0.12s".
 	]##
 	def to_string: String; end
+
+	def to_time_span: Time::Span; end
+	def to_time: Time; end
+	def to_datetime_span: DateTime::Span; end
 
 	##[
 		Returns the count of nanoseconds in this span as a Float.

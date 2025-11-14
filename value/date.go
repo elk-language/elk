@@ -113,10 +113,6 @@ func (d Date) ToValue() Value {
 	}
 }
 
-func (d Date) Copy() Reference {
-	return d
-}
-
 func (Date) Class() *Class {
 	return DateClass
 }
@@ -172,16 +168,164 @@ func (d Date) Day() int {
 	return int(m)
 }
 
+func (d Date) ISOYearDay() int {
+	datetime := d.ToDateTimeValue()
+	return datetime.ISOYearDay()
+}
+
+func (d Date) AddDateSpan(val DateSpan) Date {
+	datetime := d.ToDateTimeValue()
+	return datetime.AddDateSpan(val).Date()
+}
+
+func (d Date) AddTimeSpan(val TimeSpan) *DateTime {
+	datetime := d.ToDateTimeValue()
+	return datetime.AddTimeSpan(val)
+}
+
+func (d Date) AddDateTimeSpan(val *DateTimeSpan) *DateTime {
+	datetime := d.ToDateTimeValue()
+	return datetime.AddDateTimeSpan(val)
+}
+
+func (d Date) Subtract(val Value) (Value, Value) {
+	switch val.flag {
+	case DATE_SPAN_FLAG:
+		return d.SubtractDateSpan(val.AsInlineDateSpan()).ToValue(), Undefined
+	case DATE_FLAG:
+		return d.DiffDate(val.AsDate()).ToValue(), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), DateClass.Inspect()))
+	}
+
+	switch v := val.AsReference().(type) {
+	case DateSpan:
+		return d.SubtractDateSpan(v).ToValue(), Undefined
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), DateClass.Inspect()))
+	}
+}
+
+// Subtracts the given date span from the date.
+func (d Date) SubtractDateSpan(val DateSpan) Date {
+	result := d.ToDateTime()
+	result = result.SubtractDateSpan(val)
+	return result.Date()
+}
+
+// Subtracts the given time span from the date.
+func (d Date) SubtractTimeSpan(val TimeSpan) *DateTime {
+	result := d.ToDateTime()
+	return result.SubtractTimeSpan(val)
+}
+
+// Subtracts the given datetime span from the date.
+func (d Date) SubtractDateTimeSpan(val *DateTimeSpan) *DateTime {
+	result := d.ToDateTime()
+	return result.SubtractDateTimeSpan(val)
+}
+
+func (d Date) Diff(val Value) (Value, Value) {
+	switch val.flag {
+	case DATE_FLAG:
+		return d.DiffDate(val.AsDate()).ToValue(), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), DateClass.Inspect()))
+	}
+
+	switch v := val.AsReference().(type) {
+	case DateSpan:
+		return d.SubtractDateSpan(v).ToValue(), Undefined
+	case *DateTimeSpan:
+		return Ref(d.SubtractDateTimeSpan(v)), Undefined
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), DateClass.Inspect()))
+	}
+}
+
+// Calculates the difference between this date and a datetime values.
+// Returns a span.
+func (d Date) DiffDateTime(val *DateTime) *DateTimeSpan {
+	result := d.ToDateTime()
+	return result.DiffDateTime(val)
+}
+
+// Calculates the difference between two date values.
+// Returns a span.
+func (d Date) DiffDate(val Date) DateSpan {
+	result := d.ToDateTime()
+	return result.DiffDate(val).DateSpan
+}
+
 func (d *Date) SetDay(v int) {
 	*d = MakeDate(d.Year(), d.Month(), v)
 }
 
+func (d Date) Equal(other Value) bool {
+	if !other.IsDate() {
+		return false
+	}
+
+	o := other.AsDate()
+	return d.Year() == o.Year() &&
+		d.Month() == o.Month() &&
+		d.Day() == o.Day()
+}
+
+func (d Date) Cmp(other Date) int {
+	return d.ToDateTime().Cmp(other.ToDateTime())
+}
+
+func (d Date) CompareVal(other Value) (Value, Value) {
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *DateTime:
+			return SmallInt(d.ToDateTime().Cmp(o)).ToValue(), Undefined
+		default:
+			return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case DATE_FLAG:
+		return SmallInt(d.Cmp(other.AsDate())).ToValue(), Undefined
+	default:
+		return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+func (d Date) GreaterThan(other Value) (bool, Value) {
+	return d.ToDateTime().GreaterThan(other)
+}
+
+func (d Date) GreaterThanEqual(other Value) (bool, Value) {
+	return d.ToDateTime().GreaterThanEqual(other)
+}
+
+func (d Date) LessThan(other Value) (bool, Value) {
+	return d.ToDateTime().LessThan(other)
+}
+
+func (d Date) LessThanEqual(other Value) (bool, Value) {
+	return d.ToDateTime().LessThanEqual(other)
+}
+
 func (d Date) ToGoTime() time.Time {
-	return time.Date(d.Year(), time.Month(d.Month()), d.Day(), 0, 0, 0, 0, time.UTC)
+	return time.Date(d.Year(), time.Month(d.Month()), d.Day(), 0, 0, 0, 0, time.Local)
 }
 
 func (d Date) ToDateTime() *DateTime {
 	return ToElkDateTime(d.ToGoTime())
+}
+
+func (d Date) ToDateSpan() DateSpan {
+	return MakeDateSpan(d.Year(), d.Month()-1, d.Day()-1)
+}
+
+func (d Date) ToDateTimeSpan() *DateTimeSpan {
+	return d.ToDateSpan().ToDateTimeSpan()
 }
 
 func (d Date) ToDateTimeValue() DateTime {
@@ -202,6 +346,10 @@ func (d Date) YearLastTwo() int {
 
 func (d Date) Century() int {
 	return d.Year() / 100
+}
+
+func (d Date) Millenium() int {
+	return d.Year() / 1000
 }
 
 func (d Date) MonthName() string {
@@ -708,7 +856,7 @@ tokenLoop:
 		} else {
 			yearStart = datetimeISOYearStart(result.Year())
 		}
-		datetime := yearStart.Add(TimeSpan(tmp.isoWeek) * Week)
+		datetime := yearStart.AddTimeSpan(TimeSpan(tmp.isoWeek) * Week)
 		result = datetime.Date()
 		hasWeek = true
 	}
@@ -720,7 +868,7 @@ tokenLoop:
 	if tmp.flags.HasFlag(dateHasDayOfYear) {
 		year := result.Year()
 		startOfYear := MakeDateTime(year, 1, 1, 0, 0, 0, 0, 0, 0, nil)
-		dateTime := startOfYear.Add(TimeSpan(tmp.dayOfYear-1) * Day)
+		dateTime := startOfYear.AddTimeSpan(TimeSpan(tmp.dayOfYear-1) * Day)
 		result = dateTime.Date()
 	}
 	if tmp.flags.HasFlag(dateHasMonth) {
@@ -732,7 +880,7 @@ tokenLoop:
 			result = MakeDate(result.Year(), 1, 1)
 		} else {
 			firstWeek := datetimeMondayOfFirstGregorianWeek(result.Year())
-			datetime := firstWeek.Add(TimeSpan(tmp.weekFromMonday-1) * Week)
+			datetime := firstWeek.AddTimeSpan(TimeSpan(tmp.weekFromMonday-1) * Week)
 			result = datetime.Date()
 		}
 		hasWeek = true
@@ -742,7 +890,7 @@ tokenLoop:
 			result = MakeDate(result.Year(), 1, 1)
 		} else {
 			firstWeek := datetimeSundayOfFirstGregorianWeek(result.Year())
-			datetime := firstWeek.Add(TimeSpan(tmp.weekFromSunday-1) * Week)
+			datetime := firstWeek.AddTimeSpan(TimeSpan(tmp.weekFromSunday-1) * Week)
 			result = datetime.Date()
 		}
 		hasWeek = true
@@ -755,13 +903,13 @@ tokenLoop:
 			currentDay := result.WeekdayFromMonday()
 			diff := tmp.weekdayFromMonday - currentDay
 			datetime := result.ToDateTimeValue()
-			result = datetime.Add(TimeSpan(diff) * Day).Date()
+			result = datetime.AddTimeSpan(TimeSpan(diff) * Day).Date()
 		}
 		if tmp.flags.HasFlag(dateHasWeekdayFromSunday) {
 			currentDay := result.WeekdayFromSunday()
 			diff := tmp.weekdayFromSunday - currentDay
 			datetime := result.ToDateTimeValue()
-			result = datetime.Add(TimeSpan(diff) * Day).Date()
+			result = datetime.AddTimeSpan(TimeSpan(diff) * Day).Date()
 		}
 	}
 	if result.Day() == 0 && hasMonth {
@@ -831,7 +979,7 @@ func datetimeMondayOfFirstGregorianWeek(year int) DateTime {
 		return yearStart
 	}
 
-	return *(yearStart.Add(TimeSpan(8-firstDay) * Day))
+	return *(yearStart.AddTimeSpan(TimeSpan(8-firstDay) * Day))
 }
 
 func datetimeSundayOfFirstGregorianWeek(year int) DateTime {
@@ -842,7 +990,7 @@ func datetimeSundayOfFirstGregorianWeek(year int) DateTime {
 		return yearStart
 	}
 
-	return *(yearStart.Add(TimeSpan(7-firstDay) * Day))
+	return *(yearStart.AddTimeSpan(TimeSpan(7-firstDay) * Day))
 }
 
 func parseWeekOfYearAlt(formatString, input string, currentInput *string, result *tmpDate, spacePadded bool) Value {
@@ -1219,7 +1367,7 @@ func datetimeISOYearStart(year int) DateTime {
 
 	weekday := jan4.WeekdayFromMonday()
 	diff := -weekday + 1
-	yearStart := jan4.Add(TimeSpan(diff) * Day)
+	yearStart := jan4.AddTimeSpan(TimeSpan(diff) * Day)
 
 	return *yearStart
 }

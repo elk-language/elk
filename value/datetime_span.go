@@ -102,6 +102,185 @@ func (d *DateTimeSpan) String() string {
 	return buff.String()
 }
 
+func (d *DateTimeSpan) ToDateTime() *DateTime {
+	return d.ToDateTimeWithZone(LocalTimezone)
+}
+
+func (d *DateTimeSpan) ToDateTimeWithZone(zone *Timezone) *DateTime {
+	date := d.DateSpan.ToDate()
+	time := d.TimeSpan.ToTime()
+
+	return NewDateTime(
+		date.Year(),
+		date.Month(),
+		date.Day(),
+		time.Hour(),
+		time.Minute(),
+		time.Second(),
+		time.Millisecond(),
+		time.Microsecond(),
+		time.Nanosecond(),
+		zone,
+	)
+}
+
+func (x *DateTimeSpan) Cmp(y *DateTimeSpan) int {
+	dtx := MakeZeroDateTime()
+	dtx = *dtx.AddDateTimeSpan(x)
+
+	dty := MakeZeroDateTime()
+	dty = *dty.AddDateTimeSpan(y)
+
+	return dtx.Cmp(&dty)
+}
+
+func (d *DateTimeSpan) CompareVal(other Value) (Value, Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return SmallInt(d.Cmp(other.AsDateSpan().ToDateTimeSpan())).ToValue(), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+
+	if !other.IsReference() {
+		return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
+	case DateSpan:
+		return SmallInt(d.Cmp(o.ToDateTimeSpan())).ToValue(), Undefined
+	case *DateTimeSpan:
+		return SmallInt(d.Cmp(o)).ToValue(), Undefined
+	default:
+		return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+// Check whether d is greater than other and return an error
+// if something went wrong.
+func (d *DateTimeSpan) GreaterThan(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return d.Cmp(other.AsDateSpan().ToDateTimeSpan()) == 1, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+
+	if !other.IsReference() {
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
+	case DateSpan:
+		return d.Cmp(o.ToDateTimeSpan()) == 1, err
+	case *DateTimeSpan:
+		return d.Cmp(o) == 1, err
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+func (d *DateTimeSpan) GreaterThanVal(other Value) (Value, Value) {
+	result, err := d.GreaterThan(other)
+	return ToElkBool(result), err
+}
+
+// Check whether d is greater than or equal to other and return an error
+// if something went wrong.
+func (d *DateTimeSpan) GreaterThanEqual(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return d.Cmp(other.AsDateSpan().ToDateTimeSpan()) >= 0, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+
+	if !other.IsReference() {
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
+	case DateSpan:
+		return d.Cmp(o.ToDateTimeSpan()) >= 0, err
+	case *DateTimeSpan:
+		return d.Cmp(o) >= 0, err
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+func (d *DateTimeSpan) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := d.GreaterThanEqual(other)
+	return ToElkBool(result), err
+}
+
+// Check whether d is less than other and return an error
+// if something went wrong.
+func (d *DateTimeSpan) LessThan(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return d.Cmp(other.AsDateSpan().ToDateTimeSpan()) == -1, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+
+	if !other.IsReference() {
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
+	case DateSpan:
+		return d.Cmp(o.ToDateTimeSpan()) == -1, err
+	case *DateTimeSpan:
+		return d.Cmp(o) == -1, err
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+func (d *DateTimeSpan) LessThanVal(other Value) (Value, Value) {
+	result, err := d.LessThan(other)
+	return ToElkBool(result), err
+}
+
+// Check whether d is less than or equal to other and return an error
+// if something went wrong.
+func (d *DateTimeSpan) LessThanEqual(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return d.Cmp(other.AsDateSpan().ToDateTimeSpan()) <= 0, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+
+	if !other.IsReference() {
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
+	case DateSpan:
+		return d.Cmp(o.ToDateTimeSpan()) <= 0, err
+	case *DateTimeSpan:
+		return d.Cmp(o) <= 0, err
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+func (d *DateTimeSpan) Equal(other Value) bool {
+	if !other.IsReference() {
+		return false
+	}
+
+	o, ok := other.AsReference().(*DateTimeSpan)
+	if !ok {
+		return false
+	}
+
+	return d.DateSpan.Equal(o.DateSpan.ToValue()) &&
+		d.TimeSpan.Equal(o.TimeSpan.ToValue())
+}
+
 func (d *DateTimeSpan) ToString() String {
 	return String(d.String())
 }

@@ -2617,7 +2617,7 @@ describe "Time", ->
 	end
 
 	context "to_datetime", ->
-		should "return self", ->
+		should "build a datetime with current date", ->
 			t := Time(
 				hour: 15,
 				minute: 59,

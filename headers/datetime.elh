@@ -28,20 +28,29 @@ sealed primitive class ::Std::DateTime
 		Adds the given duration to the datetime.
 		Returns a new datetime object.
 	]##
-	def +(other: Duration): DateTime; end
+	overload def +(other: Duration): DateTime; end
+	overload def +(other: Span): DateTime; end
+	overload def +(other: Time::Span): DateTime; end
+	overload def +(other: Date::Span): DateTime; end
 
 	##[
 		Subtracts the given duration from the datetime.
 		Returns a new datetime object.
 	]##
 	overload def -(other: Duration): DateTime; end
-	overload def -(other: DateTime): Duration; end
+	overload def -(other: Span): DateTime; end
+	overload def -(other: Time::Span): DateTime; end
+	overload def -(other: Date::Span): DateTime; end
+	overload def -(other: DateTime): Span; end
+	overload def -(other: Date): Span; end
 
 	##[
 		Calculates the difference between two datetime objects.
 		Returns a duration.
 	]##
-	def diff(other: DateTime): Duration; end
+	overload def diff(other: DateTime | Date): Span; end
+	overload def diff(other: DateTime): Span; end
+	overload def diff(other: Date): Span; end
 
 	##[
 		Create a string formatted according to the given format string.
@@ -133,9 +142,34 @@ sealed primitive class ::Std::DateTime
 	def year_day: Int; end
 
 	##[
+		Returns the day of the ISO year.
+	]##
+	def iso_year_day: Int; end
+
+	##[
 		Returns the name of the day of the week.
 	]##
 	def weekday_name: String; end
+
+	##[
+		Returns the abbreviated (3-letter) name of the day of the week.
+	]##
+	def abbreviated_weekday_name: String; end
+
+	##[
+		Returns a new DateTime representing the same time instant
+		but with the given timezone.
+
+		Reinterprets the date and time in the given timezone.
+	]##
+	def in_zone(zone: Timezone): DateTime; end
+
+	##[
+		Returns a new DateTime with the exact same component but with the given timezone.
+
+		Does not reinterpret the date and time.
+	]##
+	def with_zone(zone: Timezone): DateTime; end
 
 	##[
 		Returns the number of the day of the week, where 1 is Monday, 7 is Sunday
@@ -336,11 +370,8 @@ sealed primitive class ::Std::DateTime
 	def hour12: Int; end
 
 	sealed def >=(other: DateTime): bool; end
-
 	sealed def >(other: DateTime): bool; end
-
 	sealed def <=(other: DateTime): bool; end
-
 	sealed def <(other: DateTime): bool; end
 
 end

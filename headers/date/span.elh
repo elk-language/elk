@@ -57,10 +57,20 @@ sealed primitive class ::Std::Date::Span < Value
 	overload def /(other: Float): DateTime::Span; end
 	overload def /(other: BigFloat): DateTime::Span; end
 
+	sealed def <=>(other: Date::Span | DateTime::Span): Int; end
+	sealed def >=(other: Date::Span | DateTime::Span): bool; end
+	sealed def >(other: Date::Span | DateTime::Span): bool; end
+	sealed def <=(other: Date::Span | DateTime::Span): bool; end
+	sealed def <(other: Date::Span | DateTime::Span): bool; end
+
 	##[
 		Returns the string representation of the date span in the format "5Y2M10D".
 	]##
 	def to_string: String; end
+
+	def to_date_span: Date::Span; end
+	def to_date: Date; end
+	def to_datetime_span: DateTime::Span; end
 
 	##[
 		Returns the approximate count of years in this span as a Float.

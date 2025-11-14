@@ -19,10 +19,28 @@ sealed primitive class ::Std::Date < Value
 	init(year: Int = 0, month: Int = 1, day: Int = 1); end
 
 	##[
-		Calculates the difference between two date objects.
+		Adds the given date span to this date.
+		Returns a new date value.
+	]##
+	overload def +(other: Span): Date; end
+	overload def +(other: DateTime::Span): DateTime; end
+	overload def +(other: Time::Span): DateTime; end
+
+	##[
+		Subtracts the given date span from the date.
+		Returns a new date value.
+	]##
+	overload def -(other: Span): Date; end
+	overload def -(other: Date): Span; end
+	overload def -(other: DateTime): DateTime::Span; end
+
+	##[
+		Calculates the difference between two date values.
 		Returns a date span.
 	]##
-	def diff(other: Date): Span; end
+	overload def diff(other: Date | DateTime): Duration; end
+	overload def diff(other: Date): Span; end
+	overload def diff(other: DateTime): DateTime::Span; end
 
 	##[
 		Create a string formatted according to the given format string.
@@ -36,7 +54,19 @@ sealed primitive class ::Std::Date < Value
 	def to_string: String; end
 
 	##[
-		Returns the century.
+		Converts this `Date` to a `DateTime` with the time component zeroed out.
+	]##
+	def to_datetime: DateTime; end
+	def to_date: Date; end
+	def to_date_span: Span; end
+
+	##[
+		Returns the millenium (year / 1000)
+	]##
+	def millenium: Int; end
+
+	##[
+		Returns the century (year / 100)
 	]##
 	def century: Int; end
 
@@ -79,7 +109,6 @@ sealed primitive class ::Std::Date < Value
 	def week_from_monday: Int; end
 	alias week week_from_monday
 
-
 	##[
 		The week number of the current year as a decimal number,
 		range 0 to 53, starting with the first Sunday
@@ -99,9 +128,19 @@ sealed primitive class ::Std::Date < Value
 	def year_day: Int; end
 
 	##[
+		Returns the day of the ISO year.
+	]##
+	def iso_year_day: Int; end
+
+	##[
 		Returns the name of the day of the week.
 	]##
 	def weekday_name: String; end
+
+	##[
+		Returns the abbreviated (3-letter) name of the day of the week.
+	]##
+	def abbreviated_weekday_name: String; end
 
 	##[
 		Returns the number of the day of the week, where 1 is Monday, 7 is Sunday
@@ -149,11 +188,9 @@ sealed primitive class ::Std::Date < Value
 	]##
 	def is_sunday: bool; end
 
-	sealed def >=(other: Date): bool; end
-
-	sealed def >(other: Date): bool; end
-
-	sealed def <=(other: Date): bool; end
-
-	sealed def <(other: Date): bool; end
+	sealed def <=>(other: Date | DateTime): Int; end
+	sealed def >=(other: Date | DateTime): bool; end
+	sealed def >(other: Date | DateTime): bool; end
+	sealed def <=(other: Date | DateTime): bool; end
+	sealed def <(other: Date | DateTime): bool; end
 end

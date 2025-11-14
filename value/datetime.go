@@ -80,11 +80,15 @@ func NewDateTime(year, month, day, hour, min, sec, millisec, microsec, nsec int,
 	return &t
 }
 
+func MakeZeroDateTime() DateTime {
+	return MakeDateTime(0, 1, 1, 0, 0, 0, 0, 0, 0, nil)
+}
+
 // Create a new DateTime value.
 func MakeDateTime(year, month, day, hour, min, sec, millisec, microsec, nsec int, zone *Timezone) DateTime {
 	var location *time.Location
 	if zone == nil {
-		location = time.UTC
+		location = time.Local
 	} else {
 		location = zone.ToGoLocation()
 	}
@@ -126,26 +130,165 @@ func (t *DateTime) Time() Time {
 	)
 }
 
-// Adds the given duration to the time.
-// Returns a new time structure.
-func (t *DateTime) Add(val TimeSpan) *DateTime {
+func (t *DateTime) InZone(zone *Timezone) *DateTime {
+	time := t.Go.In(zone.ToGoLocation())
+	return &DateTime{Go: time}
+}
+
+func (t *DateTime) WithZone(zone *Timezone) *DateTime {
+	return NewDateTime(
+		t.Year(),
+		t.Month(),
+		t.Day(),
+		t.Hour(),
+		t.Minute(),
+		t.Second(),
+		t.Millisecond(),
+		t.Microsecond(),
+		t.Nanosecond(),
+		zone,
+	)
+}
+
+func (t *DateTime) Add(val Value) (Value, Value) {
+	switch val.flag {
+	case DATE_SPAN_FLAG:
+		return Ref(t.AddTimeSpan(val.AsInlineTimeSpan())), Undefined
+	case TIME_SPAN_FLAG:
+		return Ref(t.AddTimeSpan(val.AsInlineTimeSpan())), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), durationUnionType))
+	}
+
+	switch v := val.AsReference().(type) {
+	case TimeSpan:
+		return Ref(t.AddTimeSpan(v)), Undefined
+	case DateSpan:
+		return Ref(t.AddDateSpan(v)), Undefined
+	case *DateTimeSpan:
+		return Ref(t.AddDateTimeSpan(v)), Undefined
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), durationUnionType))
+	}
+}
+
+func (t *DateTime) AddDateTimeSpan(val *DateTimeSpan) *DateTime {
+	t = t.AddTimeSpan(val.TimeSpan)
+	t = t.AddDateSpan(val.DateSpan)
+	return t
+}
+
+func (t *DateTime) AddTimeSpan(val TimeSpan) *DateTime {
 	return ToElkDateTime(t.Go.Add(val.Go()))
 }
 
-// Subtracts the given duration from the time.
-// Returns a new time structure.
-func (t *DateTime) Subtract(val TimeSpan) *DateTime {
+func daysOfMonth(year, month int) int {
+	d := MakeDateTime(year, month+1, 1, 0, 0, 0, 0, 0, 0, nil)
+	lastDay := d.SubtractTimeSpan(Day)
+	return lastDay.Day()
+}
+
+func (t *DateTime) AddDateSpan(val DateSpan) *DateTime {
+	result := t.AddTimeSpan(TimeSpan(val.Days()) * Day)
+	oldDay := result.Day()
+
+	month := result.Month() + int(val.months)
+	year := result.Year() + month/12
+	month %= 12
+
+	daysOfNewMonth := daysOfMonth(year, month)
+	newDay := min(oldDay, daysOfNewMonth)
+
+	return NewDateTime(
+		year,
+		month,
+		newDay,
+		result.Hour(),
+		result.Minute(),
+		result.Second(),
+		result.Millisecond(),
+		result.Microsecond(),
+		result.Nanosecond(),
+		result.Zone(),
+	)
+}
+
+func (t *DateTime) Subtract(val Value) (Value, Value) {
+	switch val.flag {
+	case DATE_SPAN_FLAG:
+		return Ref(t.SubtractTimeSpan(val.AsInlineTimeSpan())), Undefined
+	case TIME_SPAN_FLAG:
+		return Ref(t.SubtractTimeSpan(val.AsInlineTimeSpan())), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), durationUnionType))
+	}
+
+	switch v := val.AsReference().(type) {
+	case TimeSpan:
+		return Ref(t.SubtractTimeSpan(v)), Undefined
+	case DateSpan:
+		return Ref(t.SubtractDateSpan(v)), Undefined
+	case *DateTimeSpan:
+		return Ref(t.SubtractDateTimeSpan(v)), Undefined
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), durationUnionType))
+	}
+}
+
+func (t *DateTime) SubtractDateTimeSpan(val *DateTimeSpan) *DateTime {
+	t = t.SubtractTimeSpan(val.TimeSpan)
+	t = t.SubtractDateSpan(val.DateSpan)
+	return t
+}
+
+func (t *DateTime) SubtractDateSpan(val DateSpan) *DateTime {
+	return t.ToDateTimeSpan().SubtractDateSpan(val).ToDateTime()
+}
+
+func (t *DateTime) SubtractTimeSpan(val TimeSpan) *DateTime {
 	return ToElkDateTime(t.Go.Add(-val.Go()))
 }
 
-// Calculates the difference between two time objects.
-// Returns a duration.
-func (t *DateTime) Diff(val *DateTime) TimeSpan {
-	return TimeSpan(t.Go.Sub(val.Go))
+func (t *DateTime) Diff(val Value) (Value, Value) {
+	switch val.flag {
+	case DATE_SPAN_FLAG:
+		return Ref(t.DiffDate(val.AsDate())), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), DateTimeClass.Inspect()))
+	}
+
+	switch v := val.AsReference().(type) {
+	case *DateTime:
+		return Ref(t.DiffDateTime(v)), Undefined
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), DateTimeClass.Inspect()))
+	}
+}
+
+// Calculates the difference between two datetime objects.
+// Returns a span.
+func (t *DateTime) DiffDate(val Date) *DateTimeSpan {
+	return t.ToDateTimeSpan().SubtractDateSpan(val.ToDateSpan())
+}
+
+// Calculates the difference between two datetime objects.
+// Returns a span.
+func (t *DateTime) DiffDateTime(val *DateTime) *DateTimeSpan {
+	return t.ToDateTimeSpan().SubtractDateTimeSpan(val.ToDateTimeSpan())
 }
 
 func (t DateTime) ToGoTime() time.Time {
 	return t.Go
+}
+
+func (t DateTime) ToDateTimeSpan() *DateTimeSpan {
+	return NewDateTimeSpan(
+		t.Date().ToDateSpan(),
+		t.Time().ToTimeSpan(),
+	)
 }
 
 func (t DateTime) Zone() *Timezone {
@@ -173,6 +316,10 @@ func (t DateTime) Century() int {
 	return t.Go.Year() / 100
 }
 
+func (t DateTime) Millenium() int {
+	return t.Go.Year() / 1000
+}
+
 func (t DateTime) Month() int {
 	return int(t.Go.Month())
 }
@@ -192,6 +339,18 @@ func (t DateTime) Day() int {
 // Day of the year.
 func (t DateTime) YearDay() int {
 	return t.Go.YearDay()
+}
+
+func (t *DateTime) ToDate() Date {
+	return MakeDate(t.Year(), t.Month(), t.Day())
+}
+
+// Day of the ISO year.
+func (t DateTime) ISOYearDay() int {
+	yearStart := datetimeISOYearStart(t.ISOYear())
+	yearStartDate := yearStart.ToDate()
+	span := t.ToDate().DiffDate(yearStartDate)
+	return int(span.TotalDays().AsSmallInt())
 }
 
 // Hour in a 24 hour clock.
@@ -480,6 +639,24 @@ func (t *DateTime) Local() *DateTime {
 //	  +1 if x >  y
 func (x *DateTime) Cmp(y *DateTime) int {
 	return x.Go.Compare(y.Go)
+}
+
+func (d *DateTime) CompareVal(other Value) (Value, Value) {
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *DateTime:
+			return SmallInt(d.Cmp(o)).ToValue(), Undefined
+		default:
+			return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case DATE_FLAG:
+		return SmallInt(d.Cmp(other.AsDate().ToDateTime())).ToValue(), Undefined
+	default:
+		return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
 }
 
 func (t DateTime) MustFormat(formatString string) string {
@@ -800,79 +977,131 @@ tokenLoop:
 
 // Check whether t is greater than other and return an error
 // if something went wrong.
-func (t *DateTime) GreaterThan(other Value) (result Value, err Value) {
+func (t *DateTime) GreaterThan(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_FLAG:
+		return t.Cmp(other.AsDate().ToDateTime()) == 1, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
+	}
+
 	if !other.IsReference() {
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case *DateTime:
-		return ToElkBool(t.Cmp(o) == 1), err
+		return t.Cmp(o) == 1, err
 	default:
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
+}
+
+func (t *DateTime) GreaterThanVal(other Value) (Value, Value) {
+	result, err := t.GreaterThan(other)
+	return ToElkBool(result), err
 }
 
 // Check whether t is greater than or equal to other and return an error
 // if something went wrong.
-func (t *DateTime) GreaterThanEqual(other Value) (result Value, err Value) {
+func (t *DateTime) GreaterThanEqual(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_FLAG:
+		return t.Cmp(other.AsDate().ToDateTime()) >= 0, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
+	}
+
 	if !other.IsReference() {
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case *DateTime:
-		return ToElkBool(t.Cmp(o) >= 0), err
+		return t.Cmp(o) >= 0, err
 	default:
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
+}
+
+func (t *DateTime) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := t.GreaterThanEqual(other)
+	return ToElkBool(result), err
 }
 
 // Check whether t is less than other and return an error
 // if something went wrong.
-func (t *DateTime) LessThan(other Value) (result Value, err Value) {
+func (t *DateTime) LessThan(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_FLAG:
+		return t.Cmp(other.AsDate().ToDateTime()) == -1, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
+	}
+
 	if !other.IsReference() {
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case *DateTime:
-		return ToElkBool(t.Cmp(o) == -1), err
+		return t.Cmp(o) == -1, err
 	default:
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
+}
+
+func (t *DateTime) LessThanVal(other Value) (Value, Value) {
+	result, err := t.LessThan(other)
+	return ToElkBool(result), err
 }
 
 // Check whether t is less than or equal to other and return an error
 // if something went wrong.
-func (t *DateTime) LessThanEqual(other Value) (result Value, err Value) {
+func (t *DateTime) LessThanEqual(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_FLAG:
+		return t.Cmp(other.AsDate().ToDateTime()) <= 0, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
+	}
+
 	if !other.IsReference() {
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case *DateTime:
-		return ToElkBool(t.Cmp(o) <= 0), err
+		return t.Cmp(o) <= 0, err
 	default:
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 }
 
-func (t *DateTime) LaxEqual(other Value) Value {
+func (t *DateTime) LessThanEqualVal(other Value) (Value, Value) {
+	result, err := t.LessThanEqual(other)
+	return ToElkBool(result), err
+}
+
+func (t *DateTime) LaxEqual(other Value) bool {
 	return t.Equal(other)
 }
 
 // Check whether t is equal to other and return an error
 // if something went wrong.
-func (t *DateTime) Equal(other Value) Value {
+func (t *DateTime) Equal(other Value) bool {
 	if !other.IsReference() {
-		return False
+		return false
 	}
 	switch o := other.AsReference().(type) {
 	case *DateTime:
-		return ToElkBool(t.Cmp(o) == 0)
+		return t.Cmp(o) == 0
 	default:
-		return False
+		return false
 	}
 }
 
-func (t *DateTime) StrictEqual(other Value) Value {
+func (t *DateTime) StrictEqual(other Value) bool {
 	return t.Equal(other)
 }
 

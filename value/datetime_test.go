@@ -446,12 +446,12 @@ func TestDateTimeFormat(t *testing.T) {
 			want:   "16:09:07",
 		},
 		"date1": {
-			time:   value.NewDateTime(2023, 2, 3, 16, 9, 7, 0, 0, 0, nil),
+			time:   value.NewDateTime(2023, 2, 3, 16, 9, 7, 0, 0, 0, value.UTCTimezone),
 			format: "%+",
 			want:   "Fri Feb  3 16:09:07 UTC 2023",
 		},
 		"date1 uppercase": {
-			time:   value.NewDateTime(2023, 2, 3, 16, 9, 7, 0, 0, 0, nil),
+			time:   value.NewDateTime(2023, 2, 3, 16, 9, 7, 0, 0, 0, value.UTCTimezone),
 			format: "%^+",
 			want:   "FRI FEB  3 16:09:07 UTC 2023",
 		},

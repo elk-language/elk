@@ -257,6 +257,29 @@ func initTimeSpan() {
 	)
 	Def(
 		c,
+		"to_time",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustTimeSpan()
+			return self.ToTime().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_datetime_span",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustTimeSpan()
+			return value.Ref(self.ToDateTimeSpan()), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_time_span",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
 		"total_nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
@@ -480,4 +503,65 @@ func initTimeSpan() {
 			return self.InYears().ToValue(), value.Undefined
 		},
 	)
+
+	Def(
+		c,
+		"<=>",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			return value.SmallInt(self.Cmp(args[1].AsTimeSpan())).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		">=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			return value.ToElkBool(self >= args[1].AsTimeSpan()), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		">",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			return value.ToElkBool(self > args[1].AsTimeSpan()), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"<=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			return value.ToElkBool(self <= args[1].AsTimeSpan()), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"<",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			return value.ToElkBool(self < args[1].AsTimeSpan()), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"==",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTimeSpan()
+			other := args[1]
+			return value.ToElkBool(self.Equal(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "===", "==")
 }

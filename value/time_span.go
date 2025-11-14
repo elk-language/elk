@@ -203,6 +203,45 @@ func (t TimeSpan) ToTime() Time {
 	return Time{duration: t}.Normalise()
 }
 
+func (t TimeSpan) ToDateTimeSpan() *DateTimeSpan {
+	return NewDateTimeSpan(DateSpan{}, t)
+}
+
+func (t TimeSpan) Equal(other Value) bool {
+	o, ok := other.AsTimeSpanOk()
+	if !ok {
+		return false
+	}
+
+	return t == o
+}
+
+func (t TimeSpan) Cmp(other TimeSpan) int {
+	if t > other {
+		return 1
+	}
+	if t < other {
+		return -1
+	}
+	return 0
+}
+
+func (t TimeSpan) GreaterThan(other TimeSpan) bool {
+	return t > other
+}
+
+func (t TimeSpan) GreaterThanEqual(other TimeSpan) bool {
+	return t >= other
+}
+
+func (t TimeSpan) LessThan(other TimeSpan) bool {
+	return t < other
+}
+
+func (t TimeSpan) LessThanEqual(other TimeSpan) bool {
+	return t <= other
+}
+
 func (t TimeSpan) Go() time.Duration {
 	return time.Duration(t)
 }

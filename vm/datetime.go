@@ -28,12 +28,16 @@ func initDateTime() {
 			}
 
 			var month int
-			if !args[2].IsUndefined() {
+			if args[2].IsUndefined() {
+				month = 1
+			} else {
 				month = args[2].AsInt()
 			}
 
 			var day int
-			if !args[3].IsUndefined() {
+			if args[3].IsUndefined() {
+				day = 1
+			} else {
 				day = args[3].AsInt()
 			}
 
@@ -109,28 +113,123 @@ func initDateTime() {
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			dur := args[1].MustInlineTimeSpan()
-			return value.Ref(self.Subtract(dur)), value.Undefined
+			return self.Subtract(args[1])
 		},
 		DefWithParameters(1),
 	)
+	Def(
+		c,
+		"-@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			span := (*value.DateTimeSpan)(args[1].Pointer())
+			return value.Ref(self.SubtractDateTimeSpan(span)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"-@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return value.Ref(self.SubtractTimeSpan(args[1].AsTimeSpan())), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"-@3",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return value.Ref(self.SubtractDateSpan(args[1].AsDateSpan())), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"-@4",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			other := (*value.DateTime)(args[1].Pointer())
+			return value.Ref(self.DiffDateTime(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"-@5",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			other := args[1].AsDate()
+			return value.Ref(self.DiffDate(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
 	Def(
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			dur := args[1].MustInlineTimeSpan()
-			return value.Ref(self.Add(dur)), value.Undefined
+			return self.Add(args[1])
 		},
 		DefWithParameters(1),
 	)
 	Def(
 		c,
+		"+@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			span := (*value.DateTimeSpan)(args[1].Pointer())
+			return value.Ref(self.AddDateTimeSpan(span)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"+@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return value.Ref(self.AddTimeSpan(args[1].AsTimeSpan())), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"+@3",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return value.Ref(self.AddDateSpan(args[1].AsDateSpan())), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
 		"diff",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
+			return self.Diff(args[1])
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"diff@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
 			other := args[1].MustReference().(*value.DateTime)
-			return self.Diff(other).ToValue(), value.Undefined
+			return value.Ref(self.DiffDateTime(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"diff@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			other := args[1].AsDate()
+			return value.Ref(self.DiffDate(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -271,10 +370,26 @@ func initDateTime() {
 	)
 	Def(
 		c,
+		"iso_year_day",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return value.SmallInt(self.ISOYearDay()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"weekday_name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
 			return value.Ref(value.String(self.WeekdayName())), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"abbreviated_weekday_name",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return value.Ref(value.String(self.AbbreviatedWeekdayName())), value.Undefined
 		},
 	)
 	Def(
@@ -602,11 +717,42 @@ func initDateTime() {
 
 	Def(
 		c,
+		"in_zone",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTime)(args[0].Pointer())
+			zone := (*value.Timezone)(args[1].Pointer())
+			return value.Ref(self.InZone(zone)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"with_zone",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTime)(args[0].Pointer())
+			zone := (*value.Timezone)(args[1].Pointer())
+			return value.Ref(self.WithZone(zone)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"<=>",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return self.CompareVal(args[1])
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		">",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
 			other := args[1]
-			return self.GreaterThan(other)
+			return self.GreaterThanVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -616,7 +762,7 @@ func initDateTime() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
 			other := args[1]
-			return self.GreaterThanEqual(other)
+			return self.GreaterThanEqualVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -626,7 +772,7 @@ func initDateTime() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
 			other := args[1]
-			return self.LessThan(other)
+			return self.LessThanVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -636,7 +782,7 @@ func initDateTime() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
 			other := args[1]
-			return self.LessThanEqual(other)
+			return self.LessThanEqualVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -646,7 +792,7 @@ func initDateTime() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
 			other := args[1]
-			return self.Equal(other), value.Undefined
+			return value.ToElkBool(self.Equal(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)

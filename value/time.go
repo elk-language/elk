@@ -202,13 +202,7 @@ func (t Time) Hour12() int {
 }
 
 func (t Time) Cmp(other Time) int {
-	if t.duration > other.duration {
-		return 1
-	}
-	if t.duration < other.duration {
-		return -1
-	}
-	return 0
+	return t.duration.Cmp(other.duration)
 }
 
 func (t Time) GreaterThan(other Time) bool {
@@ -227,6 +221,15 @@ func (t Time) LessThanEqual(other Time) bool {
 	return t.duration <= other.duration
 }
 
+func (t Time) Equal(other Value) bool {
+	o, ok := other.AsTimeOk()
+	if !ok {
+		return false
+	}
+
+	return t.duration.Equal(o.duration.ToValue())
+}
+
 // Adds the given duration to the time.
 // Returns a new time structure.
 func (t Time) Add(val TimeSpan) Time {
@@ -234,14 +237,24 @@ func (t Time) Add(val TimeSpan) Time {
 }
 
 func (t Time) Subtract(val Value) (Value, Value) {
-	if val.IsInlineTime() {
-		return t.Diff(val.AsInlineTime()).ToValue(), Undefined
-	}
-	if val.IsInlineTimeSpan() {
-		return t.SubtractTimeSpan(val.AsInlineTimeSpan()).ToValue(), Undefined
+	switch val.flag {
+	case TIME_SPAN_FLAG:
+		return Ref(t.SubtractTimeSpan(val.AsInlineTimeSpan())), Undefined
+	case TIME_FLAG:
+		return Ref(t.Diff(val.AsInlineTime())), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewCoerceError(TimeClass, val.Class()))
 	}
 
-	return Undefined, Ref(NewCoerceError(TimeClass, val.Class()))
+	switch val := val.AsReference().(type) {
+	case TimeSpan:
+		return Ref(t.SubtractTimeSpan(val)), Undefined
+	case Time:
+		return Ref(t.Diff(val)), Undefined
+	default:
+		return Undefined, Ref(NewCoerceError(TimeClass, val.Class()))
+	}
 }
 
 // Subtracts the given duration from the time.

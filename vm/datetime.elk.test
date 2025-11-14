@@ -2,16 +2,21 @@ using Std::Test::Assertions::*
 using Std::Test::*
 
 describe "DateTime", ->
-	context "now", ->
-		should "return current time", ->
-			t := DateTime.now
-			assert! t <: DateTime
-			assert! t.year > 2024
-			assert! t.month > 0
-			assert! t.day > 0
-			assert! t.hour >= 0
-			assert! t.minute >= 0
-			assert! t.second >= 0
+	context "singleton", ->
+		context "now", ->
+			should "return current time", ->
+				t := DateTime.now
+				assert! t <: DateTime
+				assert! t.year > 2024
+				assert! t.month > 0
+				assert! t.day > 0
+				assert! t.hour >= 0
+				assert! t.minute >= 0
+				assert! t.second >= 0
+			end
 		end
+
 	end
+
+
 end

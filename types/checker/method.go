@@ -2140,7 +2140,7 @@ func (c *Checker) checkBinaryOpMethodCall(
 			node.Location(),
 			receiver,
 			token.New(node.Location(), token.DOT),
-			ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+			ast.NewPublicIdentifierNode(node.Op.Location(), chosenMethodName.String()),
 			args,
 			nil,
 		)

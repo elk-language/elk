@@ -277,6 +277,7 @@ func initDateTimeSpan() {
 			return self.DateSpan.ToValue(), value.Undefined
 		},
 	)
+	Alias(c, "to_date_span", "date_span")
 
 	Def(
 		c,
@@ -284,6 +285,15 @@ func initDateTimeSpan() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TimeSpan.ToValue(), value.Undefined
+		},
+	)
+	Alias(c, "to_time_span", "time_span")
+
+	Def(
+		c,
+		"to_datetime_span",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
 		},
 	)
 
@@ -333,6 +343,22 @@ func initDateTimeSpan() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TotalMonths(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"in_weeks",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			return self.InWeeks().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"total_weeks",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			return self.TotalWeeks(), value.Undefined
 		},
 	)
 	Def(
@@ -511,4 +537,83 @@ func initDateTimeSpan() {
 			return value.Ref(self.ToString()), value.Undefined
 		},
 	)
+	Def(
+		c,
+		"to_datetime",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+
+			var zone *value.Timezone
+			if !args[1].IsUndefined() {
+				zone = (*value.Timezone)(args[1].Pointer())
+			}
+
+			return value.Ref(self.ToDateTimeWithZone(zone)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"<=>",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			return self.CompareVal(args[1])
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		">=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			ok, err := self.GreaterThanEqual(args[1])
+			return value.ToElkBool(ok), err
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		">",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			ok, err := self.GreaterThan(args[1])
+			return value.ToElkBool(ok), err
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"<=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			ok, err := self.LessThanEqual(args[1])
+			return value.ToElkBool(ok), err
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"<",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			ok, err := self.LessThan(args[1])
+			return value.ToElkBool(ok), err
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"==",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.DateTimeSpan)(args[0].Pointer())
+			other := args[1]
+			return value.ToElkBool(self.Equal(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "===", "==")
 }

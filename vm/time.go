@@ -280,22 +280,13 @@ func initTime() {
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
-			return self.Subtract(args[1])
-		},
-		DefWithParameters(1),
-	)
-	Def(
-		c,
-		"-@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsTime()
 			return self.SubtractTimeSpan(args[1].AsTimeSpan()).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
 	Def(
 		c,
-		"-@2",
+		"-@1",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return self.Diff(args[1].AsTime()).ToValue(), value.Undefined
@@ -315,20 +306,20 @@ func initTime() {
 
 	Def(
 		c,
-		">=",
+		"<=>",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
-			return value.ToElkBool(self.GreaterThanEqual(args[1].AsTime())), value.Undefined
+			return value.SmallInt(self.Cmp(args[1].AsTime())).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
 
 	Def(
 		c,
-		"<=>",
+		">=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
-			return value.SmallInt(self.Cmp(args[1].AsTime())).ToValue(), value.Undefined
+			return value.ToElkBool(self.GreaterThanEqual(args[1].AsTime())), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -362,4 +353,16 @@ func initTime() {
 		},
 		DefWithParameters(1),
 	)
+
+	Def(
+		c,
+		"==",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTime()
+			other := args[1]
+			return value.ToElkBool(self.Equal(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "===", "==")
 }
