@@ -382,8 +382,13 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "throw format error on 15 pm", ->
-						assert_throws! Time.parse("%H %P", "15 pm") match FormatError(message: 'value for 12 hour out of range: 15')
+					should "ignore PM when a 24 hour is present", ->
+						t := Time.parse("%H %P", "15 pm")
+						assert! t <<: Time
+						assert! t.to_string == "15:00:00.000000000"
+						assert! t.hour == 15
+						assert! t.minute == 0
+						assert! t.second == 0
 					end
 				end
 
@@ -442,8 +447,13 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "throw format error on 15 PM", ->
-						assert_throws! Time.parse("%H %p", "15 PM") match FormatError(message: 'value for 12 hour out of range: 15')
+					should "ignore PM when a 24 hour is present", ->
+						t := Time.parse("%H %p", "15 PM")
+						assert! t <<: Time
+						assert! t.to_string == "15:00:00.000000000"
+						assert! t.hour == 15
+						assert! t.minute == 0
+						assert! t.second == 0
 					end
 				end
 			end
