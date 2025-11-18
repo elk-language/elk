@@ -297,23 +297,25 @@ func loadOffsetTimezone(name string, matches [][]byte) (zone *Timezone, err erro
 	}
 
 	hourStr := matches[2]
-	hour, er := strconv.Atoi(string(hourStr))
-	if er != nil {
+	hour, err := strconv.Atoi(string(hourStr))
+	if err != nil {
 		return nil, err
 	}
 
 	minuteStr := matches[3]
-	minute, er := strconv.Atoi(string(minuteStr))
-	if er != nil {
+	minute, err := strconv.Atoi(string(minuteStr))
+	if err != nil {
 		return nil, err
 	}
 
 	var second int
-	if len(matches) > 4 {
-		secondStr := matches[4]
-		second, er = strconv.Atoi(string(secondStr))
-		if er != nil {
-			return nil, err
+	if len(matches) > 5 {
+		secondStr := matches[5]
+		if len(secondStr) > 0 {
+			second, err = strconv.Atoi(string(secondStr))
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 

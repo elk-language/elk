@@ -7,6 +7,11 @@ sealed primitive class ::Std::DateTime
 			Returns the current datetime.
 		]##
 		def now: DateTime; end
+
+		##[
+			Parse the datetime string according to the given format.
+		]##
+		def parse(format: String, input: String): DateTime ! FormatError; end
 	end
 
 	const DEFAULT_FORMAT: String

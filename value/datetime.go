@@ -1084,7 +1084,7 @@ inputLoop:
 			}
 		}
 		*currentInput = (*currentInput)[size:]
-		buffer.WriteRune(unicode.ToLower(char))
+		buffer.WriteRune(char)
 	}
 
 	timezoneName := buffer.String()
@@ -1110,7 +1110,7 @@ func parseDateTimeTimezoneAbbreviation(formatString, input string, currentInput 
 			break
 		}
 		*currentInput = (*currentInput)[size:]
-		buffer.WriteRune(unicode.ToLower(char))
+		buffer.WriteRune(unicode.ToUpper(char))
 	}
 
 	timezoneName := buffer.String()
@@ -1324,24 +1324,30 @@ tokenLoop:
 		case timescanner.TIMEZONE_NAME:
 			buffer.WriteString(t.ZoneAbbreviatedName())
 		case timescanner.TIMEZONE_OFFSET:
-			hours := t.ZoneOffsetHours()
-			minutes := t.ZoneOffsetHourMinutes()
+			offset := t.ZoneOffsetSeconds()
 			var sign string
-			if hours >= 0 {
+			if offset >= 0 {
 				sign = "+"
 			} else {
 				sign = "-"
+				offset = -offset
 			}
+
+			hours := offset / tzHour
+			minutes := (offset % tzHour) / tzMinute
 			fmt.Fprintf(&buffer, "%s%02d%02d", sign, hours, minutes)
 		case timescanner.TIMEZONE_OFFSET_COLON:
-			hours := t.ZoneOffsetHours()
-			minutes := t.ZoneOffsetHourMinutes()
+			offset := t.ZoneOffsetSeconds()
 			var sign string
-			if hours >= 0 {
+			if offset >= 0 {
 				sign = "+"
 			} else {
 				sign = "-"
+				offset = -offset
 			}
+
+			hours := offset / tzHour
+			minutes := (offset % tzHour) / tzMinute
 			fmt.Fprintf(&buffer, "%s%02d:%02d", sign, hours, minutes)
 		case timescanner.DAY_OF_WEEK_FULL_NAME:
 			buffer.WriteString(t.WeekdayName())
