@@ -786,44 +786,12 @@ tokenLoop:
 				return Date{}, err
 			}
 		case timescanner.DATE:
-			err = parseDateMonth(formatString, input, &currentInput, &tmp, false)
-			if !err.IsUndefined() {
-				return Date{}, err
-			}
-			err = parseDateMatchText(formatString, input, &currentInput, "/")
-			if !err.IsUndefined() {
-				return Date{}, err
-			}
-			err = parseDateDayOfMonth(formatString, input, &currentInput, &tmp, false)
-			if !err.IsUndefined() {
-				return Date{}, err
-			}
-			err = parseDateMatchText(formatString, input, &currentInput, "/")
-			if !err.IsUndefined() {
-				return Date{}, err
-			}
-			err = parseDateYearLastTwo(formatString, input, &currentInput, &tmp, false)
+			err = parseDate(formatString, input, &currentInput, &tmp)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
 		case timescanner.ISO8601_DATE:
-			err = parseDateYear(formatString, input, &currentInput, &tmp, false)
-			if !err.IsUndefined() {
-				return Date{}, err
-			}
-			err = parseDateMatchText(formatString, input, &currentInput, "-")
-			if !err.IsUndefined() {
-				return Date{}, err
-			}
-			err = parseDateMonth(formatString, input, &currentInput, &tmp, false)
-			if !err.IsUndefined() {
-				return Date{}, err
-			}
-			err = parseDateMatchText(formatString, input, &currentInput, "-")
-			if !err.IsUndefined() {
-				return Date{}, err
-			}
-			err = parseDateDayOfMonth(formatString, input, &currentInput, &tmp, false)
+			err = parseISO8601Date(formatString, input, &currentInput, &tmp)
 			if !err.IsUndefined() {
 				return Date{}, err
 			}
@@ -836,6 +804,62 @@ tokenLoop:
 		}
 
 	}
+
+	return constructDateFromTmp(tmp), err
+}
+
+func parseDate(formatString, input string, currentInput *string, tmp *tmpDate) (err Value) {
+	err = parseDateMonth(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateMatchText(formatString, input, currentInput, "/")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateDayOfMonth(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateMatchText(formatString, input, currentInput, "/")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateYearLastTwo(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+
+	return Undefined
+}
+
+func parseISO8601Date(formatString, input string, currentInput *string, tmp *tmpDate) (err Value) {
+	err = parseDateYear(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateMatchText(formatString, input, currentInput, "-")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateMonth(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateMatchText(formatString, input, currentInput, "-")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateDayOfMonth(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+
+	return Undefined
+}
+
+func constructDateFromTmp(tmp tmpDate) Date {
+	var result Date
 
 	var hasYear, hasMonth, hasWeek bool
 	if tmp.flags.HasFlag(dateHasCentury) {
@@ -918,7 +942,7 @@ tokenLoop:
 	if !hasYear {
 		result.SetYear(time.Now().Year())
 	}
-	return result.Normalize(), err
+	return result.Normalize()
 }
 
 var months = map[string]int{

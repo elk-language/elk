@@ -108,6 +108,13 @@ func (t *Timescanner) scan() (Token, string) {
 				t.advanceChar()
 				return INVALID_FORMAT_DIRECTIVE, t.value()
 			}
+			if t.matchChar('#') {
+				if t.matchChar('Z') {
+					return TIMEZONE_IANA_NAME, ""
+				}
+				t.advanceChar()
+				return INVALID_FORMAT_DIRECTIVE, t.value()
+			}
 			if t.matchChar('-') {
 				if t.matchChar('Y') {
 					return FULL_YEAR, ""

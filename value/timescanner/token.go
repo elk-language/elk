@@ -64,6 +64,7 @@ const (
 	MILLISECOND_OF_SECOND                               // "%-L" Millisecond of the second (0..999)
 	MILLISECOND_OF_SECOND_SPACE_PADDED                  // "%_L" Millisecond of the second, space-padded (  0..999)
 	MILLISECOND_OF_SECOND_ZERO_PADDED                   // "%L" Millisecond of the second, zero-padded (000..999)
+	TIMEZONE_IANA_NAME                                  // "%#Z" Timezone name from IANA DB like "Europe/Warsaw"
 	TIMEZONE_NAME                                       // "%Z" Timezone name
 	TIMEZONE_OFFSET                                     // "%z" Time zone as hour and minute offset from UTC (e.g. +0900)
 	TIMEZONE_OFFSET_COLON                               // "%:z" hour and minute offset from UTC with a colon (e.g. +09:00)
@@ -91,8 +92,8 @@ const (
 	WEEK_OF_YEAR_ALT                                    // "%-U" Week number of the year. The week starts with Sunday. (0..53)
 	WEEK_OF_YEAR_ALT_SPACE_PADDED                       // "%_U" Week number of the year. The week starts with Sunday. Space-padded ( 0..53)
 	WEEK_OF_YEAR_ALT_ZERO_PADDED                        // "%U" Week number of the year. The week starts with Sunday. Zero-padded (00..53)
-	DATE_AND_TIME                                       // "%c" date and time (%a %b %e %T %Y)
-	DATE_AND_TIME_UPPERCASE                             // "%^c" date and time (%a %b %e %T %Y)
+	DATE_AND_TIME                                       // "%c" date and time (%a %b %_d %T %Y)
+	DATE_AND_TIME_UPPERCASE                             // "%^c" date and time (%a %b %_d %T %Y)
 	DATE                                                // "%D" Date (%m/%d/%y)
 	ISO8601_DATE                                        // "%F" Equivalent to %Y-%m-%d (the ISO 8601 date format).
 	TIME12                                              // "%r" 12-hour time (%I:%M:%S %p)

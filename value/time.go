@@ -540,65 +540,17 @@ tokenLoop:
 				return Time{}, err
 			}
 		case timescanner.TIME12:
-			err = parseTime12Hour(formatString, input, &currentInput, &tmp, false)
-			if !err.IsUndefined() {
-				return Time{}, err
-			}
-			err = parseTimeMatchText(formatString, input, &currentInput, ":")
-			if !err.IsUndefined() {
-				return Time{}, err
-			}
-			err = parseTimeMinute(formatString, input, &currentInput, &tmp, false)
-			if !err.IsUndefined() {
-				return Time{}, err
-			}
-			err = parseTimeMatchText(formatString, input, &currentInput, ":")
-			if !err.IsUndefined() {
-				return Time{}, err
-			}
-			err = parseTimeSecond(formatString, input, &currentInput, &tmp, false)
-			if !err.IsUndefined() {
-				return Time{}, err
-			}
-			err = parseTimeMatchText(formatString, input, &currentInput, " ")
-			if !err.IsUndefined() {
-				return Time{}, err
-			}
-			err = parseTimeMeridiem(formatString, input, &currentInput, &tmp)
+			err = parseTime12(formatString, input, &currentInput, &tmp)
 			if !err.IsUndefined() {
 				return Time{}, err
 			}
 		case timescanner.TIME24:
-			err = parseTimeHour(formatString, input, &currentInput, &tmp, false)
-			if !err.IsUndefined() {
-				return Time{}, err
-			}
-			err = parseTimeMatchText(formatString, input, &currentInput, ":")
-			if !err.IsUndefined() {
-				return Time{}, err
-			}
-			err = parseTimeMinute(formatString, input, &currentInput, &tmp, false)
+			err = parseTime24(formatString, input, &currentInput, &tmp)
 			if !err.IsUndefined() {
 				return Time{}, err
 			}
 		case timescanner.TIME24_SECONDS:
-			err = parseTimeHour(formatString, input, &currentInput, &tmp, false)
-			if !err.IsUndefined() {
-				return Time{}, err
-			}
-			err = parseTimeMatchText(formatString, input, &currentInput, ":")
-			if !err.IsUndefined() {
-				return Time{}, err
-			}
-			err = parseTimeMinute(formatString, input, &currentInput, &tmp, false)
-			if !err.IsUndefined() {
-				return Time{}, err
-			}
-			err = parseTimeMatchText(formatString, input, &currentInput, ":")
-			if !err.IsUndefined() {
-				return Time{}, err
-			}
-			err = parseTimeSecond(formatString, input, &currentInput, &tmp, false)
+			err = parseTime24Seconds(formatString, input, &currentInput, &tmp)
 			if !err.IsUndefined() {
 				return Time{}, err
 			}
@@ -612,6 +564,86 @@ tokenLoop:
 
 	}
 
+	return constructTimeFromTmp(tmp), err
+}
+
+func parseTime12(formatString, input string, currentInput *string, tmp *tmpTime) (err Value) {
+	err = parseTime12Hour(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMatchText(formatString, input, currentInput, ":")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMinute(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMatchText(formatString, input, currentInput, ":")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeSecond(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMatchText(formatString, input, currentInput, " ")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMeridiem(formatString, input, currentInput, tmp)
+	if !err.IsUndefined() {
+		return err
+	}
+
+	return Undefined
+}
+
+func parseTime24(formatString, input string, currentInput *string, tmp *tmpTime) (err Value) {
+	err = parseTimeHour(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMatchText(formatString, input, currentInput, ":")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMinute(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+
+	return Undefined
+}
+
+func parseTime24Seconds(formatString, input string, currentInput *string, tmp *tmpTime) (err Value) {
+	err = parseTimeHour(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMatchText(formatString, input, currentInput, ":")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMinute(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMatchText(formatString, input, currentInput, ":")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeSecond(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+
+	return Undefined
+}
+
+func constructTimeFromTmp(tmp tmpTime) Time {
+	var result Time
 	if tmp.flags.HasFlag(timeHasHour12) {
 		hour := calcTimeHour12(tmp)
 		result.duration += TimeSpan(hour) * Hour
@@ -631,7 +663,7 @@ tokenLoop:
 		result.duration += TimeSpan(tmp.nanosecond) * Nanosecond
 	}
 
-	return result.Normalise(), err
+	return result.Normalise()
 }
 
 func parseTimeHour(formatString, input string, currentInput *string, tmp *tmpTime, spacePadded bool) Value {
