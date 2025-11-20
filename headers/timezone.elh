@@ -22,6 +22,18 @@ sealed primitive class ::Std::Timezone
 	]##
 	def name: String; end
 
+	##[
+		Returns the standard/default offset of this timezone.
+	]##
+	def offset: Time::Span; end
+	alias standard_offset offset
+
+	##[
+		Returns the DST - daylight saving time offset of this timezone.
+		If there is no DST it returns the same offset as `standard_offset`.
+	]##
+	def dst_offset: Time::Span; end
+
 	def is_utc: bool; end
 	def is_local: bool; end
 

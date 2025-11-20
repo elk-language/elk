@@ -86,16 +86,10 @@ sealed primitive class ::Std::DateTime
 	alias timezone_name zone_name
 
 	##[
-		Returns the offset of the timezone in seconds east of UTC.
+		Returns the offset of the timezone east of UTC.
 	]##
-	def zone_offset_seconds: Int; end
-	alias timezone_offset_seconds zone_offset_seconds
-
-	##[
-		Returns the offset of the timezone in hours east of UTC.
-	]##
-	def zone_offset_hours: Int; end
-	alias timezone_offset_hours zone_offset_hours
+	def zone_offset: Time::Span; end
+	alias timezone_offset zone_offset
 
 	def to_string: String; end
 

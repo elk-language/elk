@@ -480,6 +480,11 @@ func (t DateTime) ZoneAbbreviatedName() string {
 	return name
 }
 
+func (t DateTime) ZoneOffset() TimeSpan {
+	_, offset := t.Go.Zone()
+	return TimeSpan(offset) * Second
+}
+
 func (t DateTime) ZoneOffsetSeconds() int {
 	_, offset := t.Go.Zone()
 	return offset
@@ -1013,12 +1018,22 @@ tokenLoop:
 				return nil, err
 			}
 		case timescanner.TIMEZONE_NAME:
-			err = parseDateTimeTimezoneAbbreviation(formatString, input, &currentInput, &tmp)
+			err = parseDateTimeTimezoneName(formatString, input, &currentInput, &tmp)
 			if !err.IsUndefined() {
 				return nil, err
 			}
 		case timescanner.TIMEZONE_IANA_NAME:
-			err = parseDateTimeTimezoneName(formatString, input, &currentInput, &tmp)
+			err = parseDateTimeTimezoneIANAName(formatString, input, &currentInput, &tmp)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.TIMEZONE_OFFSET:
+			err = parseDateTimeTimezoneOffset(formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.TIMEZONE_OFFSET_COLON:
+			err = parseDateTimeTimezoneOffset(formatString, input, &currentInput, &tmp, true)
 			if !err.IsUndefined() {
 				return nil, err
 			}
@@ -1050,7 +1065,7 @@ tokenLoop:
 		default:
 			return nil, Ref(Errorf(
 				FormatErrorClass,
-				"unsupported date format directive: %s",
+				"unsupported datetime format directive: %s",
 				token.String(),
 			))
 		}
@@ -1070,7 +1085,67 @@ tokenLoop:
 	return &r, err
 }
 
-func parseDateTimeTimezoneName(formatString, input string, currentInput *string, tmp *tmpDateTime) (err Value) {
+func parseDateTimeTimezoneOffset(formatString, input string, currentInput *string, tmp *tmpDateTime, colon bool) Value {
+	if len(*currentInput) < 1 {
+		return Ref(NewIncompatibleDateTimeFormatError(formatString, input))
+	}
+
+	signChar := (*currentInput)[0]
+	*currentInput = (*currentInput)[1:]
+
+	var sign int
+	switch signChar {
+	case '+':
+		sign = 1
+	case '-':
+		sign = -1
+	default:
+		return Ref(Errorf(
+			FormatErrorClass,
+			"invalid datetime timezone sign: %c",
+			signChar,
+		))
+	}
+
+	var hours, minutes int
+
+	hours, *currentInput = parseTemporalDigits(*currentInput, 2, false)
+	if hours < 0 {
+		return Ref(NewIncompatibleDateTimeFormatError(formatString, input))
+	}
+	if hours >= 24 {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"value for datetime timezone offset hours out of range: %d",
+			hours,
+		))
+	}
+
+	if colon {
+		err := parseDateTimeMatchText(formatString, input, currentInput, ":")
+		if !err.IsUndefined() {
+			return err
+		}
+	}
+
+	minutes, *currentInput = parseTemporalDigits(*currentInput, 2, false)
+	if minutes < 0 {
+		return Ref(NewIncompatibleDateTimeFormatError(formatString, input))
+	}
+	if minutes >= 60 {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"value for datetime timezone offset minutes out of range: %d",
+			hours,
+		))
+	}
+
+	offset := TimeSpan(sign) * (TimeSpan(hours)*Hour + TimeSpan(minutes)*Minute)
+	tmp.zone = NewTimezoneFromOffset(offset)
+	return Undefined
+}
+
+func parseDateTimeTimezoneIANAName(formatString, input string, currentInput *string, tmp *tmpDateTime) (err Value) {
 	var buffer strings.Builder
 
 inputLoop:
@@ -1101,7 +1176,7 @@ inputLoop:
 	return Undefined
 }
 
-func parseDateTimeTimezoneAbbreviation(formatString, input string, currentInput *string, tmp *tmpDateTime) (err Value) {
+func parseDateTimeTimezoneName(formatString, input string, currentInput *string, tmp *tmpDateTime) (err Value) {
 	var buffer strings.Builder
 
 	for len(*currentInput) > 0 {
@@ -1160,7 +1235,7 @@ func parseDate1(formatString, input string, currentInput *string, tmp *tmpDateTi
 	if !err.IsUndefined() {
 		return err
 	}
-	err = parseDateTimeTimezoneAbbreviation(formatString, input, currentInput, tmp)
+	err = parseDateTimeTimezoneName(formatString, input, currentInput, tmp)
 	if !err.IsUndefined() {
 		return err
 	}
@@ -1324,7 +1399,7 @@ tokenLoop:
 		case timescanner.TIMEZONE_NAME:
 			buffer.WriteString(t.ZoneAbbreviatedName())
 		case timescanner.TIMEZONE_OFFSET:
-			offset := t.ZoneOffsetSeconds()
+			offset := t.ZoneOffset()
 			var sign string
 			if offset >= 0 {
 				sign = "+"
@@ -1333,11 +1408,11 @@ tokenLoop:
 				offset = -offset
 			}
 
-			hours := offset / tzHour
-			minutes := (offset % tzHour) / tzMinute
+			hours := offset / Hour
+			minutes := (offset % Hour) / Minute
 			fmt.Fprintf(&buffer, "%s%02d%02d", sign, hours, minutes)
 		case timescanner.TIMEZONE_OFFSET_COLON:
-			offset := t.ZoneOffsetSeconds()
+			offset := t.ZoneOffset()
 			var sign string
 			if offset >= 0 {
 				sign = "+"
@@ -1346,8 +1421,8 @@ tokenLoop:
 				offset = -offset
 			}
 
-			hours := offset / tzHour
-			minutes := (offset % tzHour) / tzMinute
+			hours := offset / Hour
+			minutes := (offset % Hour) / Minute
 			fmt.Fprintf(&buffer, "%s%02d:%02d", sign, hours, minutes)
 		case timescanner.DAY_OF_WEEK_FULL_NAME:
 			buffer.WriteString(t.WeekdayName())

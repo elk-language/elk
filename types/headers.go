@@ -1687,8 +1687,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the time component of this DateTime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("time"), nil, nil, NameToType("Std::Time", env), Never{})
 				namespace.DefineMethod("Return the timezone associated with this DateTime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone"), nil, nil, NameToType("Std::Timezone", env), Never{})
 				namespace.DefineMethod("Return the name of the timezone associated with this DateTime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone_name"), nil, nil, NameToType("Std::String", env), Never{})
-				namespace.DefineMethod("Returns the offset of the timezone in hours east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone_offset_hours"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the offset of the timezone in seconds east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone_offset_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the offset of the timezone east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timezone_offset"), nil, nil, NameToType("Std::Time::Span", env), Never{})
 				namespace.DefineMethod("Convert the datetime to the local timezone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_local"), nil, nil, NameToType("Std::DateTime", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Convert the datetime to the UTC zone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_utc"), nil, nil, NameToType("Std::DateTime", env), Never{})
@@ -1716,8 +1715,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the zeptosecond offset within the second specified by `self` in the range `0...999_999_999_999_999_999_999`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zeptoseconds_in_second"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Return the timezone associated with this DateTime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone"), nil, nil, NameToType("Std::Timezone", env), Never{})
 				namespace.DefineMethod("Return the name of the timezone associated with this DateTime object.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone_name"), nil, nil, NameToType("Std::String", env), Never{})
-				namespace.DefineMethod("Returns the offset of the timezone in hours east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone_offset_hours"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the offset of the timezone in seconds east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone_offset_seconds"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the offset of the timezone east of UTC.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("zone_offset"), nil, nil, NameToType("Std::Time::Span", env), Never{})
 
 				// Define constants
 				namespace.DefineConstant(value.ToSymbol("DEFAULT_FORMAT"), NameToType("Std::String", env))
@@ -9681,9 +9679,12 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins and implement interfaces
 
 				// Define methods
+				namespace.DefineMethod("Returns the DST - daylight saving time offset of this timezone.\nIf there is no DST it returns the same offset as `standard_offset`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("dst_offset"), nil, nil, NameToType("Std::Time::Span", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_local"), nil, nil, Bool{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_utc"), nil, nil, Bool{}, Never{})
 				namespace.DefineMethod("Returns the name of the Timezone eg. `\"Local\"`, `\"UTC\"`, `\"Europe/Warsaw\"`", 0|METHOD_NATIVE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the standard/default offset of this timezone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("offset"), nil, nil, NameToType("Std::Time::Span", env), Never{})
+				namespace.DefineMethod("Returns the standard/default offset of this timezone.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("standard_offset"), nil, nil, NameToType("Std::Time::Span", env), Never{})
 
 				// Define constants
 				namespace.DefineConstant(value.ToSymbol("LOCAL"), NameToType("Std::Timezone", env))

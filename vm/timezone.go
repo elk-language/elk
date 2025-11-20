@@ -33,6 +33,25 @@ func initTimezone() {
 
 	Def(
 		c,
+		"offset",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.Timezone)
+			return self.StandardOffset().ToValue(), value.Undefined
+		},
+	)
+	Alias(c, "standard_offset", "offset")
+
+	Def(
+		c,
+		"dst_offset",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.Timezone)
+			return self.DSTOffset().ToValue(), value.Undefined
+		},
+	)
+
+	Def(
+		c,
 		"is_utc",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Timezone)

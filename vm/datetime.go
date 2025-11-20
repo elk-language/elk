@@ -288,23 +288,13 @@ func initDateTime() {
 
 	Def(
 		c,
-		"zone_offset_seconds",
+		"zone_offset",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.SmallInt(self.ZoneOffsetSeconds()).ToValue(), value.Undefined
+			return value.SmallInt(self.ZoneOffset()).ToValue(), value.Undefined
 		},
 	)
-	Alias(c, "timezone_offset_seconds", "zone_offset_seconds")
-
-	Def(
-		c,
-		"zone_offset_hours",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*value.DateTime)
-			return value.SmallInt(self.ZoneOffsetHours()).ToValue(), value.Undefined
-		},
-	)
-	Alias(c, "timezone_offset_hours", "zone_offset_hours")
+	Alias(c, "timezone_offset", "zone_offset")
 
 	Def(
 		c,
