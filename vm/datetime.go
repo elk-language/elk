@@ -317,10 +317,34 @@ func initDateTime() {
 
 	Def(
 		c,
+		"millenium",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return value.SmallInt(self.Millenium()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"century",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return value.SmallInt(self.Century()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.Year()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"year_last_two",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return value.SmallInt(self.YearLastTwo()).ToValue(), value.Undefined
 		},
 	)
 	Def(

@@ -176,6 +176,7 @@ var tokenNames = [...]string{
 	MILLISECOND_OF_SECOND:                  "%-L",
 	MILLISECOND_OF_SECOND_SPACE_PADDED:     "%_L",
 	MILLISECOND_OF_SECOND_ZERO_PADDED:      "%L",
+	TIMEZONE_IANA_NAME:                     "%#Z",
 	TIMEZONE_NAME:                          "%Z",
 	TIMEZONE_OFFSET:                        "%z",
 	TIMEZONE_OFFSET_COLON:                  "%:z",

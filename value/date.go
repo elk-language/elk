@@ -556,7 +556,7 @@ tokenLoop:
 		default:
 			return "", Ref(Errorf(
 				FormatErrorClass,
-				"unsupported format directive: %s",
+				"unsupported date format directive: %s",
 				token.String(),
 			))
 		}

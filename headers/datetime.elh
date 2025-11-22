@@ -98,9 +98,24 @@ sealed primitive class ::Std::DateTime
 	def to_string: String; end
 
 	##[
+		Returns the millenium (year / 1000)
+	]##
+	def millenium: Int; end
+
+	##[
+		Returns the century (year / 100)
+	]##
+	def century: Int; end
+
+	##[
 		Returns the year in which `self` occurs.
 	]##
 	def year: Int; end
+
+	##[
+		Returns the last two digits of the year.
+	]##
+	def year_last_two: Int; end
 
 	##[
 		Returns the ISO 8601 year in which `self` occurs.
@@ -233,7 +248,7 @@ sealed primitive class ::Std::DateTime
 	##[
 		Returns the picosecond offset within the second specified by `self` in the range `0...999_999_999_999`
 	]##
-	def picoseconds_in_seconds: Int; end
+	def picoseconds_in_second: Int; end
 
 	##[
 		Returns the femtosecond offset within the second specified by `self` in the range `0...999_999_999_999_999`
