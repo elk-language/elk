@@ -18,5 +18,1073 @@ describe "DateTime", ->
 
 	end
 
+	context "+", ->
+		should "add a datetime span", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+
+			expected := DateTime(
+				year: 1999,
+				month: 3,
+				day: 20,
+				hour: 15,
+				minute: 38,
+				second: 10,
+			)
+			assert! d + DateTime::Span(months: 1, hours: 2) == expected
+		end
+
+		should "add a date span", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+
+			expected := DateTime(
+				year: 2000,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			assert! d + 1.year == expected
+		end
+
+		should "add a time span", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+
+			expected := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 14,
+				minute: 38,
+				second: 10,
+			)
+			assert! d + 1.hour == expected
+		end
+	end
+
+	context "-", ->
+		should "return a DateTime when other is a date span", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			expected := DateTime(
+				year: 1998,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			assert! d - 1.year == expected
+		end
+
+		should "return a DateTime when other is a datetime span", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			expected := DateTime(
+				year: 1997,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 28,
+				second: 10,
+			)
+			assert! d - DateTime::Span(years: 2, minutes: 10) == expected
+		end
+
+		should "return a positive DateTime when other is a time span", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			expected := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 8,
+				minute: 38,
+				second: 10,
+			)
+			assert! d - 5.hours == expected
+		end
+
+		should "return a positive datetime span when other is a DateTime", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			other := DateTime(
+				year: 1997,
+				month: 5,
+				hour: 8,
+			)
+			assert! d - other == 1.year + 9.months + 19.days + 5.hours + 38.minutes + 10.second
+		end
+
+		should "return a negative datetime span when other is a DateTime", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+			)
+			assert! d - DateTime(year: 2005, month: 2, day: 20) == DateTime::Span(years: -6)
+		end
+
+		should "return a positive datetime span when other is a Date", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			other := Date(
+				year: 1997,
+				month: 5,
+			)
+			assert! d - other == 1.year + 9.months + 19.days + 13.hours + 38.minutes + 10.second
+		end
+
+	end
+
+	context "diff", ->
+		context "date", ->
+			should "return a positive datetime span", ->
+				d := DateTime(
+					year: 1999,
+					month: 2,
+					day: 20,
+					hour: 13,
+					minute: 38,
+					second: 10,
+				)
+				other := Date(
+					year: 1997,
+					month: 5,
+				)
+				assert! d.diff(other) == 1.year + 9.months + 19.days + 13.hours + 38.minutes + 10.second
+			end
+
+			should "return a negative datetime span", ->
+				d := DateTime(
+					year: 1999,
+					month: 2,
+					day: 20,
+					hour: 13,
+					minute: 38,
+					second: 10,
+				)
+				other := Date(
+					year: 2005,
+					month: 5,
+				)
+				assert! d.diff(other) == -6.years - 3.months + 19.days + 13.hour + 38.minutes + 10.seconds
+			end
+		end
+
+		context "datetime", ->
+			should "return a positive datetime span", ->
+				d := DateTime(
+					year: 1999,
+					month: 2,
+					day: 20,
+					hour: 13,
+					minute: 38,
+					second: 10,
+				)
+				other := DateTime(year: 1990)
+				assert! d.diff(other) == DateTime::Span(years: 9, months: 1, days: 19, hours: 13, minutes: 38, seconds: 10)
+			end
+
+			should "return a negative datetime span", ->
+				d := DateTime(
+					year: 1999,
+					month: 2,
+					day: 20,
+					hour: 13,
+					minute: 38,
+					second: 10,
+				)
+				other := DateTime(year: 2005, month: 2, day: 20)
+				assert! d.diff(other) == DateTime::Span(years: -6, hours: 13, minutes: 38, seconds: 10)
+			end
+		end
+	end
+
+	context "date", ->
+		should "return the date component", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			date := Date(
+				year: 1999,
+				month: 2,
+				day: 20,
+			)
+			assert! d.to_date == date
+		end
+	end
+
+	context "time", ->
+		should "return the time component", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			time := Time(
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			assert! d.to_time == time
+		end
+	end
+
+	context "to_datetime", ->
+		should "return self", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			assert! d.to_datetime == d
+		end
+	end
+
+	context "zone", ->
+		should "return the local timezone by default", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			assert! d.zone == Timezone::LOCAL
+		end
+
+		should "return the set timezone", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+				zone: Timezone::UTC
+			)
+			assert! d.zone == Timezone::UTC
+		end
+	end
+
+	context "zone_name", ->
+		should "return the local name by default", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+			)
+			assert! d.zone_name == "Local"
+		end
+
+		should "return the set UTC name", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+				zone: Timezone::UTC
+			)
+			assert! d.zone_name == "UTC"
+		end
+
+		should "return a custom timezone name", ->
+			d := DateTime(
+				year: 1999,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+				zone: Timezone['Europe/Warsaw']
+			)
+			assert! d.zone_name == 'Europe/Warsaw'
+		end
+	end
+
+	context "zone_offset", ->
+		should "return the UTC offset", ->
+			d := DateTime(
+				year: 2025,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+				zone: Timezone::UTC
+			)
+			assert! d.zone_offset == 0.hours
+		end
+
+		should "return the standard offset", ->
+			d := DateTime(
+				year: 2025,
+				month: 12,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+				zone: Timezone["Europe/Warsaw"]
+			)
+			assert! d.zone_offset == 1.hours
+		end
+
+		should "return the DST offset", ->
+			d := DateTime(
+				year: 2025,
+				month: 6,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+				zone: Timezone["Europe/Warsaw"]
+			)
+			assert! d.zone_offset == 2.hours
+		end
+	end
+
+	context "to_string", ->
+		should "convert to string", ->
+			d := DateTime(
+				year: 2025,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+				zone: Timezone::UTC
+			)
+			assert! d.to_string == "2025-02-20 13:38:10.000000000 +00:00"
+		end
+	end
+
+	context "year", ->
+		should "return the year component", ->
+			d := DateTime(
+				year: 2025,
+				month: 2,
+				day: 20,
+				hour: 13,
+				minute: 38,
+				second: 10,
+				zone: Timezone::UTC
+			)
+			assert! d.year == 2025
+		end
+	end
+
+	context "iso_year", ->
+		should "return the previous year", ->
+			d := DateTime(
+				year: 2023,
+				month: 1,
+				day: 1,
+			)
+			assert! d.iso_year == 2022
+		end
+
+		should "return the current year", ->
+			d := DateTime(
+				year: 2026,
+				month: 1,
+				day: 1,
+			)
+			assert! d.iso_year == 2026
+		end
+	end
+
+	context "iso_year_last_two", ->
+		should "return the previous year", ->
+			d := DateTime(
+				year: 2023,
+				month: 1,
+				day: 1,
+			)
+			assert! d.iso_year_last_two == 22
+		end
+
+		should "return the current year", ->
+			d := DateTime(
+				year: 2026,
+				month: 1,
+				day: 1,
+			)
+			assert! d.iso_year_last_two == 26
+		end
+	end
+
+	context "week_from_monday", ->
+		should "return 0 for first partial week", ->
+			d := DateTime(
+				year: 2025,
+				month: 1,
+				day: 1,
+			)
+			assert! d.week_from_monday == 0
+		end
+
+		should "return a valid calculated week", ->
+			d := DateTime(
+				year: 2025,
+				month: 4,
+				day: 26,
+			)
+			assert! d.week_from_monday == 16
+		end
+	end
+
+	context "week_from_sunday", ->
+		should "return 0 for first partial week", ->
+			d := DateTime(
+				year: 2025,
+				month: 1,
+				day: 1,
+			)
+			assert! d.week_from_sunday == 0
+		end
+
+		should "return a valid calculated week", ->
+			d := DateTime(
+				year: 2025,
+				month: 4,
+				day: 27,
+			)
+			assert! d.week_from_sunday == 17
+		end
+	end
+
+	context "iso_week", ->
+		should "return 52 for first week of gregorian year", ->
+			d := DateTime(
+				year: 2023,
+				month: 1,
+				day: 1,
+			)
+			assert! d.iso_year == 2022
+			assert! d.iso_week == 52
+		end
+
+		should "return a valid calculated week", ->
+			d := DateTime(
+				year: 2025,
+				month: 4,
+				day: 27,
+			)
+			assert! d.iso_week == 17
+		end
+	end
+
+	context "year_day", ->
+		should "return 1 for first day", ->
+			d := DateTime(
+				year: 2023,
+				month: 1,
+				day: 1,
+			)
+			assert! d.year_day == 1
+		end
+
+		should "return a valid calculated day", ->
+			d := DateTime(
+				year: 2025,
+				month: 4,
+				day: 27,
+			)
+			assert! d.year_day == 117
+		end
+	end
+
+	context "iso_year_day", ->
+		should "return 1 for first day", ->
+			d := DateTime(
+				year: 2023,
+				month: 1,
+				day: 1,
+			)
+			assert! d.iso_year == 2022
+			assert! d.iso_year_day == 363
+		end
+
+		should "return a valid calculated day", ->
+			d := DateTime(
+				year: 2025,
+				month: 4,
+				day: 27,
+			)
+			assert! d.iso_year == 2025
+			assert! d.iso_year_day == 118
+		end
+	end
+
+	context "weekday_name", ->
+		should "return the weekday name", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 14,
+			)
+			assert! d.weekday_name == "Friday"
+		end
+	end
+
+	context "abbreviated_weekday_name", ->
+		should "return the weekday name", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 14,
+			)
+			assert! d.abbreviated_weekday_name == "Fri"
+		end
+	end
+
+	context "weekday_from_monday", ->
+		should "return 7 for sunday", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 16,
+			)
+			assert! d.weekday_from_monday == 7
+		end
+
+		should "return the weekday number", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 14,
+			)
+			assert! d.weekday_from_monday == 5
+		end
+	end
+
+	context "weekday_from_sunday", ->
+		should "return 0 for sunday", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 16,
+			)
+			assert! d.weekday_from_sunday == 0
+		end
+
+		should "return the weekday number", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 14,
+			)
+			assert! d.weekday_from_sunday == 5
+		end
+	end
+
+	context "is_monday", ->
+		should "return true for monday", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 10,
+			)
+			assert! d.is_monday == true
+		end
+
+		should "return false for other days", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 13,
+			)
+			assert! d.is_monday == false
+		end
+	end
+
+	context "is_tuesday", ->
+		should "return true for tuesday", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 11,
+			)
+			assert! d.is_tuesday == true
+		end
+
+		should "return false for other days", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 13,
+			)
+			assert! d.is_tuesday == false
+		end
+	end
+
+	context "is_wednesday", ->
+		should "return true for wednesday", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 12,
+			)
+			assert! d.is_wednesday == true
+		end
+
+		should "return false for other days", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 13,
+			)
+			assert! d.is_wednesday == false
+		end
+	end
+
+	context "is_thursday", ->
+		should "return true for thursday", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 13,
+			)
+			assert! d.is_thursday == true
+		end
+
+		should "return false for other days", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 9,
+			)
+			assert! d.is_thursday == false
+		end
+	end
+
+	context "is_friday", ->
+		should "return true for friday", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 14,
+			)
+			assert! d.is_friday == true
+		end
+
+		should "return false for other days", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 9,
+			)
+			assert! d.is_friday == false
+		end
+	end
+
+	context "is_saturday", ->
+		should "return true for saturday", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 15,
+			)
+			assert! d.is_saturday == true
+		end
+
+		should "return false for other days", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 9,
+			)
+			assert! d.is_saturday == false
+		end
+	end
+
+	context "is_sunday", ->
+		should "return true for sunday", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 16,
+			)
+			assert! d.is_sunday == true
+		end
+
+		should "return false for other days", ->
+			d := DateTime(
+				year: 2025,
+				month: 11,
+				day: 10,
+			)
+			assert! d.is_sunday == false
+		end
+	end
+
+	context "<=>", ->
+		context "date argument", ->
+			should "return 1 for greater", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d <=> Date(2025, 10, 15) == 1
+			end
+
+			should "return 0 for equal", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d <=> Date(2025, 11, 10) == 0
+			end
+
+			should "return -1 for less", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d <=> Date(2025, 12, 4) == -1
+			end
+		end
+
+		context "datetime argument", ->
+			should "return 1 for greater", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d <=> DateTime(2025, 10, 15) == 1
+			end
+
+			should "return 0 for equal", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d <=> DateTime(2025, 11, 10) == 0
+			end
+
+			should "return -1 for less", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d <=> DateTime(2025, 12, 4) == -1
+			end
+		end
+	end
+
+	context ">=", ->
+		context "date argument", ->
+			should "return true for greater", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d >= Date(2025, 10, 15) == true
+			end
+
+			should "return true for equal", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d >= Date(2025, 11, 10) == true
+			end
+
+			should "return false for less", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d >= Date(2025, 12, 4) == false
+			end
+		end
+
+		context "datetime argument", ->
+			should "return true for greater", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d >= DateTime(2025, 10, 15) == true
+			end
+
+			should "return true for equal", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d >= DateTime(2025, 11, 10) == true
+			end
+
+			should "return false for less", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d >= DateTime(2025, 12, 4) == false
+			end
+		end
+	end
+
+	context ">", ->
+		context "date argument", ->
+			should "return true for greater", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d > Date(2025, 10, 15) == true
+			end
+
+			should "return false for equal", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d > Date(2025, 11, 10) == false
+			end
+
+			should "return false for less", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d > Date(2025, 12, 4) == false
+			end
+		end
+
+		context "datetime argument", ->
+			should "return true for greater", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d > DateTime(2025, 10, 15) == true
+			end
+
+			should "return false for equal", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d > DateTime(2025, 11, 10) == false
+			end
+
+			should "return false for less", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d > DateTime(2025, 12, 4) == false
+			end
+		end
+	end
+
+	context "<=", ->
+		context "date argument", ->
+			should "return false for greater", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d <= Date(2025, 10, 15) == false
+			end
+
+			should "return true for equal", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d <= Date(2025, 11, 10) == true
+			end
+
+			should "return true for less", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d <= Date(2025, 12, 4) == true
+			end
+		end
+
+		context "datetime argument", ->
+			should "return false for greater", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d <= DateTime(2025, 10, 15) == false
+			end
+
+			should "return true for equal", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d <= DateTime(2025, 11, 10) == true
+			end
+
+			should "return true for less", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d <= DateTime(2025, 12, 4) == true
+			end
+		end
+	end
+
+	context "<", ->
+		context "date argument", ->
+			should "return false for greater", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d < Date(2025, 10, 15) == false
+			end
+
+			should "return false for equal", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d < Date(2025, 11, 10) == false
+			end
+
+			should "return true for less", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d < Date(2025, 12, 4) == true
+			end
+		end
+
+		context "datetime argument", ->
+			should "return false for greater", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d < DateTime(2025, 10, 15) == false
+			end
+
+			should "return false for equal", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d < DateTime(2025, 11, 10) == false
+			end
+
+			should "return true for less", ->
+				d := DateTime(
+					year: 2025,
+					month: 11,
+					day: 10,
+				)
+				assert! d < DateTime(2025, 12, 4) == true
+			end
+		end
+	end
 
 end

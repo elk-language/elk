@@ -250,12 +250,21 @@ func initDateTime() {
 
 	Def(
 		c,
+		"to_datetime",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+
+	Def(
+		c,
 		"date",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(*value.DateTime)
 			return self.Date().ToValue(), value.Undefined
 		},
 	)
+	Alias(c, "to_date", "date")
 
 	Def(
 		c,
@@ -265,6 +274,7 @@ func initDateTime() {
 			return self.Time().ToValue(), value.Undefined
 		},
 	)
+	Alias(c, "to_time", "time")
 
 	Def(
 		c,
@@ -291,7 +301,7 @@ func initDateTime() {
 		"zone_offset",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.SmallInt(self.ZoneOffset()).ToValue(), value.Undefined
+			return self.ZoneOffset().ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "timezone_offset", "zone_offset")
@@ -319,6 +329,14 @@ func initDateTime() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
 			return value.SmallInt(self.ISOYear()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"iso_year_last_two",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.DateTime)
+			return value.SmallInt(self.ISOYearLastTwo()).ToValue(), value.Undefined
 		},
 	)
 	Def(

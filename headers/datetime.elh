@@ -67,11 +67,15 @@ sealed primitive class ::Std::DateTime
 		Returns the date component of this DateTime object.
 	]##
 	def date: Date; end
+	alias to_date date
 
 	##[
 		Returns the time component of this DateTime object.
 	]##
 	def time: Time; end
+	alias to_time time
+
+	def to_datetime: DateTime; end
 
 	##[
 		Return the timezone associated with this DateTime object.
@@ -102,6 +106,11 @@ sealed primitive class ::Std::DateTime
 		Returns the ISO 8601 year in which `self` occurs.
 	]##
 	def iso_year: Int; end
+
+	##[
+		Returns the last two digits of the ISO 8601 year in which `self` occurs.
+	]##
+	def iso_year_last_two: Int; end
 
 	##[
 		Returns the month in which `self` occurs.
@@ -368,9 +377,10 @@ sealed primitive class ::Std::DateTime
 	]##
 	def hour12: Int; end
 
-	sealed def >=(other: DateTime): bool; end
-	sealed def >(other: DateTime): bool; end
-	sealed def <=(other: DateTime): bool; end
-	sealed def <(other: DateTime): bool; end
+	sealed def <=>(other: DateTime | Date): Int; end
+	sealed def >=(other: DateTime | Date): bool; end
+	sealed def >(other: DateTime | Date): bool; end
+	sealed def <=(other: DateTime | Date): bool; end
+	sealed def <(other: DateTime | Date): bool; end
 
 end
