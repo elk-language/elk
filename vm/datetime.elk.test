@@ -4423,6 +4423,224 @@ describe "DateTime", ->
 					assert_throws! DateTime.parse("%T", "15:90:15") match FormatError(message: "value for minute out of range: 90")
 				end
 			end
+
+			context "timezone offset",  ->
+				should "parse UTC offset", ->
+					t := DateTime.parse("%z", "+0000")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \+00:00$/
+					assert! t.zone == Timezone.from_offset(0.hours)
+					assert! t.zone.name == "UTC+00:00:00"
+				end
+
+				should "parse CET offset", ->
+					t := DateTime.parse("%z", "+0100")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \+01:00$/
+					assert! t.zone_offset == 1.hour
+					assert! t.zone == Timezone.from_offset(1.hour)
+					assert! t.zone.name == "UTC+01:00:00"
+				end
+
+				should "parse negative offset", ->
+					t := DateTime.parse("%z", "-0845")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \-08:45$/
+					assert! t.zone_offset == -8.hours - 45.minutes
+					assert! t.zone == Timezone.from_offset(-8.hours - 45.minutes)
+					assert! t.zone.name == "UTC-08:45:00"
+				end
+
+				should "throw a format error on wrong sign char", ->
+					assert_throws! DateTime.parse("%z", ":0000") match FormatError(message: "invalid datetime timezone sign: :")
+				end
+
+				should "throw a format error on out of range", ->
+					assert_throws! DateTime.parse("%z", "+123456") match FormatError(message: "datetime format string `\"%z\"` is incompatible with parsed input `\"+123456\"`")
+				end
+			end
+
+			context "timezone offset colon",  ->
+				should "parse UTC offset", ->
+					t := DateTime.parse("%:z", "+00:00")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \+00:00$/
+					assert! t.zone == Timezone.from_offset(0.hours)
+					assert! t.zone.name == "UTC+00:00:00"
+				end
+
+				should "parse CET offset", ->
+					t := DateTime.parse("%:z", "+01:00")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \+01:00$/
+					assert! t.zone_offset == 1.hour
+					assert! t.zone == Timezone.from_offset(1.hour)
+					assert! t.zone.name == "UTC+01:00:00"
+				end
+
+				should "parse negative offset", ->
+					t := DateTime.parse("%:z", "-08:45")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \-08:45$/
+					assert! t.zone_offset == -8.hours - 45.minutes
+					assert! t.zone == Timezone.from_offset(-8.hours - 45.minutes)
+					assert! t.zone.name == "UTC-08:45:00"
+				end
+
+				should "throw a format error on wrong sign char", ->
+					assert_throws! DateTime.parse("%:z", ":00:00") match FormatError(message: "invalid datetime timezone sign: :")
+				end
+
+				should "throw a format error on out of range", ->
+					assert_throws! DateTime.parse("%:z", "+12:34:56") match FormatError(message: "datetime format string `\"%:z\"` is incompatible with parsed input `\"+12:34:56\"`")
+				end
+			end
+
+			context "timezone name",  ->
+				should "parse UTC", ->
+					t := DateTime.parse("%Z", "UTC")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \+00:00$/
+					assert! t.zone == Timezone.from_offset(0.hours)
+					assert! t.zone.name == "UTC+00:00:00"
+				end
+
+				should "parse CET", ->
+					t := DateTime.parse("%Z", "CET")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \+01:00$/
+					assert! t.zone_offset == 1.hour
+					assert! t.zone == Timezone.from_offset(1.hour)
+					assert! t.zone.name == "UTC+01:00:00"
+				end
+
+				should "parse MIT", ->
+					t := DateTime.parse("%Z", "MIT")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \-09:30$/
+					assert! t.zone_offset == -9.hours - 30.minutes
+					assert! t.zone == Timezone.from_offset(-9.hour - 30.minutes)
+					assert! t.zone.name == "UTC-09:30:00"
+				end
+
+				should "throw a format error on ambiguous ACT", ->
+					assert_throws! DateTime.parse("%Z", "ACT") match FormatError(message: "invalid datetime timezone abbreviation: ACT")
+				end
+
+				should "throw a format error on nonexistent zone name", ->
+					assert_throws! DateTime.parse("%Z", "FOO") match FormatError(message: "invalid datetime timezone abbreviation: FOO")
+				end
+			end
+
+			context "timezone IANA name",  ->
+				should "parse UTC", ->
+					t := DateTime.parse('%#Z', "UTC")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \+00:00$/
+					assert! t.zone == Timezone::UTC
+				end
+
+				should "parse american timezones", ->
+					t := DateTime.parse('%y-%m-%d %#Z', "25-01-01 America/Indiana/Tell_City")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^2025-01-01 00:00:00\.000000000 \-06:00$/
+					assert! t.zone_offset == -6.hour
+					assert! t.zone == Timezone['America/Indiana/Tell_City']
+				end
+
+				should "parse warsaw standard offset", ->
+					t := DateTime.parse('%y-%m-%d %#Z', "25-01-01 Europe/Warsaw")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^2025-01-01 00:00:00\.000000000 \+01:00$/
+					assert! t.zone_offset == 1.hour
+					assert! t.zone == Timezone['Europe/Warsaw']
+				end
+
+				should "parse warsaw dst offset", ->
+					t := DateTime.parse('%y-%m-%d %#Z', "25-07-01 Europe/Warsaw")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^2025-07-01 00:00:00\.000000000 \+02:00$/
+					assert! t.zone_offset == 2.hour
+					assert! t.zone == Timezone['Europe/Warsaw']
+				end
+
+				should "throw a format error on nonexistent zone name", ->
+					assert_throws! DateTime.parse('%#Z', "Europe/Foobar") match FormatError(message: "invalid datetime timezone name: Europe/Foobar")
+				end
+			end
+
+			context "date and time",  ->
+				should "parse valid input", ->
+					t := DateTime.parse("%c", "Tue Jan 25 15:53:22 2025")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^2025-01-25 15:53:22\.000000000 (\+|\-)\d{2}:\d{2}$/
+					assert! t.year == 2025
+					assert! t.month == 1
+					assert! t.day == 25
+					assert! t.hour == 15
+					assert! t.minute == 53
+					assert! t.second == 22
+					assert! t.zone == Timezone::LOCAL
+				end
+
+				should "parse uppercase", ->
+					t := DateTime.parse("%^c", "TUE JAN 25 15:53:22 2025")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^2025-01-25 15:53:22\.000000000 (\+|\-)\d{2}:\d{2}$/
+					assert! t.year == 2025
+					assert! t.month == 1
+					assert! t.day == 25
+					assert! t.hour == 15
+					assert! t.minute == 53
+					assert! t.second == 22
+					assert! t.zone == Timezone::LOCAL
+				end
+
+				should "throw a format error on wrong separator", ->
+					assert_throws! DateTime.parse("%c", "Tue Jan 25 15.53.22 2025") match FormatError(message: "cannot parse time string, expected `\":\"`, got `\".\"`")
+				end
+
+				should "throw a format error on out of range hour", ->
+					assert_throws! DateTime.parse("%c", "Tue Jan 25 25:53:22 2025") match FormatError(message: "value for hour out of range: 25")
+				end
+			end
+
+			context "date1",  ->
+				should "parse valid input", ->
+					t := DateTime.parse("%+", "Fri Feb  3 16:09:07 UTC 2023")
+					assert! t <<: DateTime
+					assert! t.to_string == "2023-02-03 16:09:07.000000000 +00:00"
+					assert! t.year == 2023
+					assert! t.month == 2
+					assert! t.day == 3
+					assert! t.hour == 16
+					assert! t.minute == 9
+					assert! t.second == 7
+					assert! t.zone == Timezone.from_offset(0.hours)
+				end
+
+				should "parse uppercase", ->
+					t := DateTime.parse("%^+", "FRI FEB  3 16:09:07 CET 2023")
+					assert! t <<: DateTime
+					assert! t.to_string == "2023-02-03 16:09:07.000000000 +01:00"
+					assert! t.year == 2023
+					assert! t.month == 2
+					assert! t.day == 3
+					assert! t.hour == 16
+					assert! t.minute == 9
+					assert! t.second == 7
+					assert! t.zone == Timezone.from_offset(1.hours)
+				end
+
+				should "throw a format error on wrong separator", ->
+					assert_throws! DateTime.parse("%+", "Fri Feb  3 16-09:07 UTC 2023") match FormatError(message: "cannot parse time string, expected `\":\"`, got `\"-\"`")
+				end
+
+				should "throw a format error on out of range hour", ->
+					assert_throws! DateTime.parse("%+", "Tue Jan 25 25:53:22 UTC 2025") match FormatError(message: "value for hour out of range: 25")
+				end
+			end
+
 		end
 
 	end

@@ -92,6 +92,18 @@ func (t *Timezone) Offsets() (TimeSpan, TimeSpan) {
 	return offsets[1], offsets[0]
 }
 
+func (t *Timezone) Equal(other Value) bool {
+	otherTz, ok := other.SafeAsReference().(*Timezone)
+	if !ok {
+		return false
+	}
+
+	return t == otherTz ||
+		t.Name() == otherTz.Name() &&
+			t.StandardOffset() == otherTz.StandardOffset() &&
+			t.DSTOffset() == otherTz.DSTOffset()
+}
+
 func (t *Timezone) StandardOffset() TimeSpan {
 	offset, _ := t.Offsets()
 	return offset

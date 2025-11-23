@@ -15,6 +15,11 @@ sealed primitive class ::Std::Timezone
 		]##
 		def get(name: String): Timezone; end
 		alias [] get
+
+		##[
+			Create a fixed timezone for a particular offset.
+		]##
+		def from_offset(offset: Time::Span): Timezone; end
 	end
 
 	##[

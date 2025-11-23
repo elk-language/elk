@@ -18,6 +18,15 @@ func initTimezone() {
 		DefWithParameters(1),
 	)
 	Alias(c, "[]", "get")
+	Def(
+		c,
+		"from_offset",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			offset := args[1].AsTimeSpan()
+			return value.Ref(value.NewTimezoneFromOffset(offset)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
 
 	// Instance methods
 	c = &value.TimezoneClass.MethodContainer
@@ -65,6 +74,16 @@ func initTimezone() {
 			self := args[0].MustReference().(*value.Timezone)
 			return value.ToElkBool(self.IsLocal()), value.Undefined
 		},
+	)
+	Def(
+		c,
+		"==",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.Timezone)
+			other := args[1]
+			return value.ToElkBool(self.Equal(other)), value.Undefined
+		},
+		DefWithParameters(1),
 	)
 
 }

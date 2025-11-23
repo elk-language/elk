@@ -1239,6 +1239,14 @@ func parseDate1(formatString, input string, currentInput *string, tmp *tmpDateTi
 	if !err.IsUndefined() {
 		return err
 	}
+	err = parseDateTimeMatchText(formatString, input, currentInput, " ")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateYear(formatString, input, currentInput, &tmp.date, true)
+	if !err.IsUndefined() {
+		return err
+	}
 	return Undefined
 }
 
@@ -1268,6 +1276,10 @@ func parseDateAndTime(formatString, input string, currentInput *string, tmp *tmp
 		return err
 	}
 	err = parseTime24Seconds(formatString, input, currentInput, &tmp.time)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateTimeMatchText(formatString, input, currentInput, " ")
 	if !err.IsUndefined() {
 		return err
 	}
