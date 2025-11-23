@@ -2140,6 +2140,351 @@ describe "Date", ->
 		end
 	end
 
+	context "strftime", ->
+		context "full iso year", ->
+			should "build all digits", ->
+				t := DateTime(2023, 1, 1)
+				assert! t.strftime("%G") == "2022"
+			end
+
+			should "build one digit with zero padding", ->
+				t := DateTime(8)
+				assert! t.strftime("%G") == "0008"
+			end
+
+			should "build one digit without padding", ->
+				t := DateTime(8)
+				assert! t.strftime("%-G") == "8"
+			end
+
+			should "build one digit with space padding", ->
+				t := DateTime(8)
+				assert! t.strftime("%_G") == "   8"
+			end
+		end
+
+		context "full year", ->
+			should "build all digits", ->
+				t := DateTime(2023, 1, 1)
+				assert! t.strftime("%Y") == "2023"
+			end
+
+			should "build one digit with zero padding", ->
+				t := DateTime(8)
+				assert! t.strftime("%Y") == "0008"
+			end
+
+			should "build one digit without padding", ->
+				t := DateTime(8)
+				assert! t.strftime("%-Y") == "8"
+			end
+
+			should "build one digit with space padding", ->
+				t := DateTime(8)
+				assert! t.strftime("%_Y") == "   8"
+			end
+		end
+
+		context "century", ->
+			should "build all digits", ->
+				t := DateTime(2023, 1, 1)
+				assert! t.strftime("%C") == "20"
+			end
+
+			should "build one digit with zero padding", ->
+				t := DateTime(800)
+				assert! t.strftime("%C") == "08"
+			end
+
+			should "build one digit without padding", ->
+				t := DateTime(800)
+				assert! t.strftime("%-C") == "8"
+			end
+
+			should "build one digit with space padding", ->
+				t := DateTime(800)
+				assert! t.strftime("%_C") == " 8"
+			end
+		end
+
+		context "iso year last two", ->
+			should "build all digits", ->
+				t := DateTime(2023, 1, 1)
+				assert! t.strftime("%g") == "22"
+			end
+
+			should "build one digit with zero padding", ->
+				t := DateTime(8)
+				assert! t.strftime("%g") == "08"
+			end
+
+			should "build one digit without padding", ->
+				t := DateTime(8)
+				assert! t.strftime("%-g") == "8"
+			end
+
+			should "build one digit with space padding", ->
+				t := DateTime(8)
+				assert! t.strftime("%_g") == " 8"
+			end
+		end
+
+		context "year last two", ->
+			should "build one digit with zero padding", ->
+				t := DateTime(2023, 1, 1)
+				assert! t.strftime("%y") == "23"
+			end
+
+			should "build one digit with zero padding", ->
+				t := DateTime(8)
+				assert! t.strftime("%y") == "08"
+			end
+
+			should "build one digit without padding", ->
+				t := DateTime(8)
+				assert! t.strftime("%-y") == "8"
+			end
+
+			should "build one digit with space padding", ->
+				t := DateTime(8)
+				assert! t.strftime("%_y") == " 8"
+			end
+		end
+
+		context "month", ->
+			should "build all digits", ->
+				t := DateTime(2023, 11, 1)
+				assert! t.strftime("%m") == "11"
+			end
+
+			should "build one digit with zero padding", ->
+				t := DateTime(2025, 8)
+				assert! t.strftime("%m") == "08"
+			end
+
+			should "build one digit without padding", ->
+				t := DateTime(2025, 8)
+				assert! t.strftime("%-m") == "8"
+			end
+
+			should "build one digit with space padding", ->
+				t := DateTime(2025, 8)
+				assert! t.strftime("%_m") == " 8"
+			end
+		end
+
+		context "month full name", ->
+			should "build november", ->
+				t := DateTime(2023, 11, 1)
+				assert! t.strftime("%B") == "November"
+			end
+
+			should "build uppercase", ->
+				t := DateTime(2023, 3, 1)
+				assert! t.strftime("%^B") == "MARCH"
+			end
+		end
+
+		context "month abbreviated name", ->
+			should "build november", ->
+				t := DateTime(2023, 11, 1)
+				assert! t.strftime("%b") == "Nov"
+			end
+
+			should "build uppercase", ->
+				t := DateTime(2023, 3, 1)
+				assert! t.strftime("%^b") == "MAR"
+			end
+		end
+
+		context "day", ->
+			should "build all digits", ->
+				t := DateTime(2023, 11, 15)
+				assert! t.strftime("%d") == "15"
+			end
+
+			should "build one digit with zero padding", ->
+				t := DateTime(2025, 10, 8)
+				assert! t.strftime("%d") == "08"
+			end
+
+			should "build one digit without padding", ->
+				t := DateTime(2025, 10, 8)
+				assert! t.strftime("%-d") == "8"
+			end
+
+			should "build one digit with space padding", ->
+				t := DateTime(2025, 10, 8)
+				assert! t.strftime("%_d") == " 8"
+			end
+		end
+
+		context "day of year", ->
+			should "build all digits", ->
+				t := DateTime(2023, 11, 15)
+				assert! t.strftime("%j") == "319"
+			end
+
+			should "build one digit with zero padding", ->
+				t := DateTime(2025, 1, 8)
+				assert! t.strftime("%j") == "008"
+			end
+
+			should "build one digit without padding", ->
+				t := DateTime(2025, 1, 8)
+				assert! t.strftime("%-j") == "8"
+			end
+
+			should "build one digit with space padding", ->
+				t := DateTime(2025, 1, 8)
+				assert! t.strftime("%_j") == "  8"
+			end
+		end
+
+		context "day of week full name", ->
+			should "build monday", ->
+				t := DateTime(2025, 11, 24)
+				assert! t.strftime("%A") == "Monday"
+			end
+
+			should "build uppercase", ->
+				t := DateTime(2025, 11, 27)
+				assert! t.strftime("%^A") == "THURSDAY"
+			end
+		end
+
+		context "day of week abbreviated name", ->
+			should "build monday", ->
+				t := DateTime(2025, 11, 24)
+				assert! t.strftime("%a") == "Mon"
+			end
+
+			should "build uppercase", ->
+				t := DateTime(2025, 11, 27)
+				assert! t.strftime("%^a") == "THU"
+			end
+		end
+
+		context "day of week number", ->
+			should "build 7 for sunday", ->
+				t := DateTime(2025, 11, 23)
+				assert! t.strftime("%u") == "7"
+			end
+
+			should "build 4 for thursday", ->
+				t := DateTime(2025, 11, 27)
+				assert! t.strftime("%u") == "4"
+			end
+		end
+
+		context "day of week number alt", ->
+			should "build 0 for sunday", ->
+				t := DateTime(2025, 11, 23)
+				assert! t.strftime("%w") == "0"
+			end
+
+			should "build 4 for thursday", ->
+				t := DateTime(2025, 11, 27)
+				assert! t.strftime("%w") == "4"
+			end
+		end
+
+		context "iso week", ->
+			should "build for previous year", ->
+				t := DateTime(2023, 1, 1)
+				assert! t.strftime("%V %G") == "52 2022"
+			end
+
+			should "build all digits", ->
+				t := DateTime(2023, 11, 15)
+				assert! t.strftime("%V") == "46"
+			end
+
+			should "build one digit with zero padding", ->
+				t := DateTime(2025, 1, 8)
+				assert! t.strftime("%V") == "02"
+			end
+
+			should "build one digit without padding", ->
+				t := DateTime(2025, 1, 8)
+				assert! t.strftime("%-V") == "2"
+			end
+
+			should "build one digit with space padding", ->
+				t := DateTime(2025, 1, 8)
+				assert! t.strftime("%_V") == " 2"
+			end
+		end
+
+		context "year week", ->
+			should "always build for current year", ->
+				t := DateTime(2023, 1, 1)
+				assert! t.strftime("%W %Y") == "00 2023"
+			end
+
+			should "build all digits", ->
+				t := DateTime(2023, 11, 15)
+				assert! t.strftime("%W") == "46"
+			end
+
+			should "build one digit with zero padding", ->
+				t := DateTime(2025, 1, 8)
+				assert! t.strftime("%W") == "01"
+			end
+
+			should "build one digit without padding", ->
+				t := DateTime(2025, 1, 8)
+				assert! t.strftime("%-W") == "1"
+			end
+
+			should "build one digit with space padding", ->
+				t := DateTime(2025, 1, 8)
+				assert! t.strftime("%_W") == " 1"
+			end
+		end
+
+		context "year week alt", ->
+			should "always build for current year", ->
+				t := DateTime(2023, 1, 1)
+				assert! t.strftime("%U %Y") == "01 2023"
+			end
+
+			should "build all digits", ->
+				t := DateTime(2023, 11, 15)
+				assert! t.strftime("%U") == "46"
+			end
+
+			should "build one digit with zero padding", ->
+				t := DateTime(2025, 1, 8)
+				assert! t.strftime("%U") == "01"
+			end
+
+			should "build one digit without padding", ->
+				t := DateTime(2025, 1, 8)
+				assert! t.strftime("%-U") == "1"
+			end
+
+			should "build one digit with space padding", ->
+				t := DateTime(2025, 1, 8)
+				assert! t.strftime("%_U") == " 1"
+			end
+		end
+
+		context "date", ->
+			should "build", ->
+				t := DateTime(2023, 2, 3)
+				assert! t.strftime("%D") == "02/03/23"
+			end
+		end
+
+		context "ISO8601 date", ->
+			should "build", ->
+				t := DateTime(2023, 2, 3)
+				assert! t.strftime("%F") == "2023-02-03"
+			end
+		end
+	end
+
 	context "+", ->
 		should "add a date span", ->
 			d := Date(
