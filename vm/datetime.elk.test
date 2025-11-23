@@ -2145,6 +2145,2284 @@ describe "DateTime", ->
 					assert_throws! DateTime.parse("%F", "12-02-1992") match FormatError(message: "datetime format string `\"%F\"` is incompatible with parsed input `\"12-02-1992\"`")
 				end
 			end
+
+			should "parse a custom format", ->
+				t := DateTime.parse("%H-%M-%S:%N", "22-15-10:22")
+				assert! t <<: DateTime
+				assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 22:15:10\.000000022 (\+|\-)\d{2}:\d{2}$/
+				assert! t.hour == 22
+				assert! t.minute == 15
+				assert! t.second == 10
+				assert! t.nanoseconds_in_second == 22
+			end
+
+			context "hour", ->
+				context "zero padded", ->
+					should "parse repeated hours", ->
+						t := DateTime.parse("%H %M %S %H", "15 25 9 12")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 12:25:09\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 12
+						assert! t.minute == 25
+						assert! t.second == 9
+					end
+
+					should "parse two digits", ->
+						t := DateTime.parse("%H", "15")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 15:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 15
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%H", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%H", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%H", " 7") match FormatError(message: 'time format string `"%H"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%H", "") match FormatError(message: 'time format string `"%H"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%H", "foo") match FormatError(message: 'time format string `"%H"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%H", "57") match FormatError(message: 'value for hour out of range: 57')
+					end
+				end
+
+				context "no padding", ->
+					should "parse two digits", ->
+						t := DateTime.parse("%-H", "15")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 15:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 15
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%-H", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%-H", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%-H", " 7") match FormatError(message: 'time format string `"%-H"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%-H", "") match FormatError(message: 'time format string `"%-H"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%-H", "foo") match FormatError(message: 'time format string `"%-H"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%-H", "57") match FormatError(message: 'value for hour out of range: 57')
+					end
+				end
+
+				context "space padded", ->
+					should "parse two digits", ->
+						t := DateTime.parse("%_H", "15")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 15:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 15
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%_H", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%_H", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse with leading space", ->
+						t := DateTime.parse("%_H", " 7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%_H", "") match FormatError(message: 'time format string `"%_H"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%_H", "foo") match FormatError(message: 'time format string `"%_H"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%_H", "57") match FormatError(message: 'value for hour out of range: 57')
+					end
+				end
+			end
+
+			context "hour 12", ->
+				context "zero padded", ->
+					should "parse repeated hours", ->
+						t := DateTime.parse("%I %M %S %I", "2 25 9 10")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 10:25:09\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 10
+						assert! t.minute == 25
+						assert! t.second == 9
+					end
+
+					should "parse two digits", ->
+						t := DateTime.parse("%I", "10")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 10:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 10
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%I", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%I", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%I", " 7") match FormatError(message: 'time format string `"%I"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%I", "") match FormatError(message: 'time format string `"%I"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%I", "foo") match FormatError(message: 'time format string `"%I"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%I", "13") match FormatError(message: "value for 12 hour out of range: 13")
+					end
+				end
+
+				context "no padding", ->
+					should "parse two digits", ->
+						t := DateTime.parse("%-I", "11")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 11:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 11
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%-I", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%-I", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%-I", " 7") match FormatError(message: 'time format string `"%-I"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%-I", "") match FormatError(message: 'time format string `"%-I"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%-I", "foo") match FormatError(message: 'time format string `"%-I"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%-I", "13") match FormatError(message: 'value for 12 hour out of range: 13')
+					end
+				end
+
+				context "space padded", ->
+					should "parse two digits", ->
+						t := DateTime.parse("%_I", "9")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 09:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 9
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%_I", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%_I", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse with leading space", ->
+						t := DateTime.parse("%_I", " 7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%_I", "") match FormatError(message: 'time format string `"%_I"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%_I", "foo") match FormatError(message: 'time format string `"%_I"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%_I", "14") match FormatError(message: 'value for 12 hour out of range: 14')
+					end
+				end
+			end
+
+			context "meridiem", ->
+				context "lowercase", ->
+					should "parse 7 am", ->
+						t := DateTime.parse("%I %P", "7 am")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse 7 AM", ->
+						t := DateTime.parse("%I %P", "7 AM")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse 7 pm", ->
+						t := DateTime.parse("%I %P", "7 pm")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 19:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 19
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse 7 PM", ->
+						t := DateTime.parse("%I %P", "7 PM")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 19:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 19
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse 12 pm", ->
+						t := DateTime.parse("%I %P", "12 pm")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 12:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 12
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse 12 am", ->
+						t := DateTime.parse("%I %P", "12 am")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "ignore PM when a 24 hour is present", ->
+						t := DateTime.parse("%H %P", "15 pm")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 15:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 15
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+				end
+
+				context "uppercase", ->
+					should "parse 7 AM", ->
+						t := DateTime.parse("%I %p", "7 AM")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse 7 am", ->
+						t := DateTime.parse("%I %p", "7 am")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 07:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 7
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse 7 PM", ->
+						t := DateTime.parse("%I %p", "7 PM")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 19:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 19
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse 7 pm", ->
+						t := DateTime.parse("%I %p", "7 pm")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 19:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 19
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse 12 PM", ->
+						t := DateTime.parse("%I %p", "12 PM")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 12:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 12
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "parse 12 AM", ->
+						t := DateTime.parse("%I %p", "12 AM")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+
+					should "ignore PM when a 24 hour is present", ->
+						t := DateTime.parse("%H %p", "15 PM")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 15:00:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 15
+						assert! t.minute == 0
+						assert! t.second == 0
+					end
+				end
+			end
+
+			context "minute", ->
+				context "zero padded", ->
+					should "parse repeated minutes", ->
+						t := DateTime.parse("%H %M %S %M", "15 25 9 12")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 15:12:09\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 15
+						assert! t.minute == 12
+						assert! t.second == 9
+					end
+
+					should "parse two digits", ->
+						t := DateTime.parse("%M", "15")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:15:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 15
+						assert! t.second == 0
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%M", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:07:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 7
+						assert! t.second == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%M", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:07:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 7
+						assert! t.second == 0
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%M", " 7") match FormatError(message: 'time format string `"%M"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%M", "") match FormatError(message: 'time format string `"%M"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%M", "foo") match FormatError(message: 'time format string `"%M"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%M", "61") match FormatError(message: 'value for minute out of range: 61')
+					end
+				end
+
+				context "no padding", ->
+					should "parse two digits", ->
+						t := DateTime.parse("%-M", "15")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:15:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 15
+						assert! t.second == 0
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%-M", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:07:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 7
+						assert! t.second == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%-M", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:07:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 7
+						assert! t.second == 0
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%-M", " 7") match FormatError(message: 'time format string `"%-M"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%-M", "") match FormatError(message: 'time format string `"%-M"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%-M", "foo") match FormatError(message: 'time format string `"%-M"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%-M", "78") match FormatError(message: 'value for minute out of range: 78')
+					end
+				end
+
+				context "space padded", ->
+					should "parse two digits", ->
+						t := DateTime.parse("%_M", "15")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:15:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 15
+						assert! t.second == 0
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%_M", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:07:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 7
+						assert! t.second == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%_M", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:07:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 7
+						assert! t.second == 0
+					end
+
+					should "parse with leading space", ->
+						t := DateTime.parse("%_M", " 7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:07:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 7
+						assert! t.second == 0
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%_M", "") match FormatError(message: 'time format string `"%_M"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%_M", "foo") match FormatError(message: 'time format string `"%_M"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%_M", "92") match FormatError(message: 'value for minute out of range: 92')
+					end
+				end
+			end
+
+			context "second", ->
+				context "zero padded", ->
+					should "parse repeated seconds", ->
+						t := DateTime.parse("%H %M %S %S", "15 25 9 12")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 15:25:12\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 12
+					end
+
+					should "parse all digits", ->
+						t := DateTime.parse("%S", "52")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:52\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 52
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%S", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:07\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 7
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%S", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:07\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 7
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%S", " 7") match FormatError(message: 'time format string `"%S"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%S", "") match FormatError(message: 'time format string `"%S"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%S", "foo") match FormatError(message: 'time format string `"%S"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%S", "61") match FormatError(message: 'value for second out of range: 61')
+					end
+				end
+
+				context "no padding", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%-S", "56")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:56\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 56
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%-S", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:07\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 7
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%-S", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:07\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 7
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%-S", " 7") match FormatError(message: 'time format string `"%-S"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%-S", "") match FormatError(message: 'time format string `"%-S"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%-S", "foo") match FormatError(message: 'time format string `"%-S"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%-S", "78") match FormatError(message: 'value for second out of range: 78')
+					end
+				end
+
+				context "space padded", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%_S", "52")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:52\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 52
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%_S", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:07\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 7
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%_S", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:07\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 7
+					end
+
+					should "parse with leading space", ->
+						t := DateTime.parse("%_S", " 7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:07\.000000000 (\+|\-)\d{2}:\d{2}$/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 7
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%_S", "") match FormatError(message: 'time format string `"%_S"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%_S", "foo") match FormatError(message: 'time format string `"%_S"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%_S", "92") match FormatError(message: 'value for second out of range: 92')
+					end
+				end
+			end
+
+			context "millisecond", ->
+				context "zero padded", ->
+					should "parse repeated milliseconds", ->
+						t := DateTime.parse("%L %H %M %S %L", "120 15 25 9 552")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 15:25:09\.552000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+					end
+
+					should "parse all digits", ->
+						t := DateTime.parse("%L", "152")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.152000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 152
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%L", "5")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.005000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 5
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%L", "075")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.075000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 75
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%L", " 7") match FormatError(message: 'time format string `"%L"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%L", "") match FormatError(message: 'time format string `"%L"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%L", "foo") match FormatError(message: 'time format string `"%L"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%L", "1520") match FormatError(message: 'datetime format string `"%L"` is incompatible with parsed input `"1520"`')
+					end
+				end
+
+				context "no padding", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%-L", "560")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.560000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 560
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%-L", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.007000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 7
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%-L", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.007000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 7
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%-L", " 7") match FormatError(message: 'time format string `"%-L"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%-L", "") match FormatError(message: 'time format string `"%-L"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%-L", "foo") match FormatError(message: 'time format string `"%-L"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%-L", "7800") match FormatError(message: "datetime format string `\"%-L\"` is incompatible with parsed input `\"7800\"`")
+					end
+				end
+
+				context "space padded", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%_L", "520")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.520000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 520
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%_L", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.007000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 7
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%_L", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.007000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 7
+					end
+
+					should "parse with leading space", ->
+						t := DateTime.parse("%_L", " 7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.007000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 7
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%_L", "") match FormatError(message: 'time format string `"%_L"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%_L", "foo") match FormatError(message: 'time format string `"%_L"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%_L", "9200") match FormatError(message: "datetime format string `\"%_L\"` is incompatible with parsed input `\"9200\"`")
+					end
+				end
+			end
+
+			context "microsecond", ->
+				context "zero padded", ->
+					should "parse repeated microseconds", ->
+						t := DateTime.parse("%6N %H %M %S %6N", "152420 15 25 9 552992")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 15:25:09\.552992000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+					end
+
+					should "parse all digits", ->
+						t := DateTime.parse("%6N", "152420")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.152420000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 152
+						assert! t.microsecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%6N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000007000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 7
+					end
+
+					should "parse with leading zeros", ->
+						t := DateTime.parse("%6N", "000075")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000075000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 75
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%6N", " 7") match FormatError(message: 'time format string `"%6N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%6N", "") match FormatError(message: 'time format string `"%6N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%6N", "foo") match FormatError(message: 'time format string `"%6N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%6N", "1520000") match FormatError(message: 'datetime format string `"%6N"` is incompatible with parsed input `"1520000"`')
+					end
+				end
+
+				context "no padding", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%-6N", "152420")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.152420000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 152
+						assert! t.microsecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%-6N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000007000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 7
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%-6N", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000007000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 7
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%-6N", " 7") match FormatError(message: 'time format string `"%-6N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%-6N", "") match FormatError(message: 'time format string `"%-6N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%-6N", "foo") match FormatError(message: 'time format string `"%-6N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%-6N", "1520000") match FormatError(message: "datetime format string `\"%-6N\"` is incompatible with parsed input `\"1520000\"`")
+					end
+				end
+
+				context "space padded", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%_6N", "152420")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.152420000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 152
+						assert! t.microsecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%_6N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000007000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 7
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%_6N", "07")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000007000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 7
+					end
+
+					should "parse with leading space", ->
+						t := DateTime.parse("%_6N", " 7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000007000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 7
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%_6N", "") match FormatError(message: 'time format string `"%_6N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%_6N", "foo") match FormatError(message: 'time format string `"%_6N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%_6N", "1520000") match FormatError(message: "datetime format string `\"%_6N\"` is incompatible with parsed input `\"1520000\"`")
+					end
+				end
+			end
+
+			context "nanosecond", ->
+				context "zero padded", ->
+					should "parse repeated nanoseconds", ->
+						t := DateTime.parse("%N %H %M %S %N", "944152420 15 25 9 552992164")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 15:25:09\.552992164 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+						assert! t.nanosecond == 164
+					end
+
+					should "parse all digits", ->
+						t := DateTime.parse("%N", "944152420")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse with 9N format", ->
+						t := DateTime.parse("%9N", "944152420")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000007 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 7
+					end
+
+					should "parse with leading zeros", ->
+						t := DateTime.parse("%N", "000000075")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000075 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 75
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%N", " 7") match FormatError(message: 'time format string `"%N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%N", "") match FormatError(message: 'time format string `"%N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%N", "foo") match FormatError(message: 'time format string `"%N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%N", "1520000000") match FormatError(message: 'datetime format string `"%N"` is incompatible with parsed input `"1520000000"`')
+					end
+				end
+
+				context "no padding", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%-N", "944152420")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse with -9N format", ->
+						t := DateTime.parse("%-9N", "944152420")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%-N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000007 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 7
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%-N", "000000075")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000075 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 75
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%-N", " 7") match FormatError(message: 'time format string `"%-N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%-N", "") match FormatError(message: 'time format string `"%-N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%-N", "foo") match FormatError(message: 'time format string `"%-N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%-N", "1520000000") match FormatError(message: "datetime format string `\"%-N\"` is incompatible with parsed input `\"1520000000\"`")
+					end
+				end
+
+				context "space padded", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%_N", "944152420")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse with _9N format", ->
+						t := DateTime.parse("%_9N", "944152420")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%_N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000007 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 7
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%_N", "000000075")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000075 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 75
+					end
+
+					should "parse with leading space", ->
+						t := DateTime.parse("%_N", "    7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000007 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 7
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%_N", "") match FormatError(message: 'time format string `"%_N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%_N", "foo") match FormatError(message: 'time format string `"%_N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%_N", "1520000000") match FormatError(message: "datetime format string `\"%_N\"` is incompatible with parsed input `\"1520000000\"`")
+					end
+				end
+			end
+
+			context "picosecond", ->
+				context "zero padded", ->
+					should "parse repeated picoseconds", ->
+						t := DateTime.parse("%12N %H %M %S %12N", "944152420212 15 25 9 552992164888")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 15:25:09\.552992164 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+						assert! t.nanosecond == 164
+					end
+
+					should "parse all digits", ->
+						t := DateTime.parse("%12N", "944152420212")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%12N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zeros", ->
+						t := DateTime.parse("%12N", "000152420212")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%12N", " 7") match FormatError(message: 'time format string `"%12N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%12N", "") match FormatError(message: 'time format string `"%12N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%12N", "foo") match FormatError(message: 'time format string `"%12N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%12N", "1520000000000") match FormatError(message: 'datetime format string `"%12N"` is incompatible with parsed input `"1520000000000"`')
+					end
+				end
+
+				context "no padding", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%-12N", "944152420212")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%-12N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%-12N", "000152420212")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%-12N", " 7") match FormatError(message: 'time format string `"%-12N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%-12N", "") match FormatError(message: 'time format string `"%-12N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%-12N", "foo") match FormatError(message: 'time format string `"%-12N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%-12N", "1520000000000") match FormatError(message: "datetime format string `\"%-12N\"` is incompatible with parsed input `\"1520000000000\"`")
+					end
+				end
+
+				context "space padded", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%_12N", "944152420212")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%_12N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%_12N", "000152420212")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse with leading space", ->
+						t := DateTime.parse("%_12N", "   152420212")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%_12N", "") match FormatError(message: 'time format string `"%_12N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%_12N", "foo") match FormatError(message: 'time format string `"%_12N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%_12N", "1520000000000") match FormatError(message: "datetime format string `\"%_12N\"` is incompatible with parsed input `\"1520000000000\"`")
+					end
+				end
+			end
+
+			context "femtosecond", ->
+				context "zero padded", ->
+					should "parse repeated femtoseconds", ->
+						t := DateTime.parse("%15N %H %M %S %15N", "944152420212794 15 25 9 552992164888376")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 15:25:09\.552992164 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+						assert! t.nanosecond == 164
+					end
+
+					should "parse all digits", ->
+						t := DateTime.parse("%15N", "944152420212794")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%15N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zeros", ->
+						t := DateTime.parse("%15N", "000152420212794")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%15N", " 7") match FormatError(message: 'time format string `"%15N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%15N", "") match FormatError(message: 'time format string `"%15N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%15N", "foo") match FormatError(message: 'time format string `"%15N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%15N", "1520000000000000") match FormatError(message: 'datetime format string `"%15N"` is incompatible with parsed input `"1520000000000000"`')
+					end
+				end
+
+				context "no padding", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%-15N", "944152420212794")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%-15N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%-15N", "000152420212794")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%-15N", " 7") match FormatError(message: 'time format string `"%-15N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%-15N", "") match FormatError(message: 'time format string `"%-15N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%-15N", "foo") match FormatError(message: 'time format string `"%-15N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%-15N", "1520000000000000") match FormatError(message: "datetime format string `\"%-15N\"` is incompatible with parsed input `\"1520000000000000\"`")
+					end
+				end
+
+				context "space padded", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%_15N", "944152420212794")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%_15N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%_15N", "000152420212794")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse with leading space", ->
+						t := DateTime.parse("%_15N", "   152420212794")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%_15N", "") match FormatError(message: 'time format string `"%_15N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%_15N", "foo") match FormatError(message: 'time format string `"%_15N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%_15N", "1520000000000000") match FormatError(message: "datetime format string `\"%_15N\"` is incompatible with parsed input `\"1520000000000000\"`")
+					end
+				end
+			end
+
+			context "attosecond", ->
+				context "zero padded", ->
+					should "parse repeated attoseconds", ->
+						t := DateTime.parse("%18N %H %M %S %18N", "944152420212794111 15 25 9 552992164888376909")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 15:25:09\.552992164 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+						assert! t.nanosecond == 164
+					end
+
+					should "parse all digits", ->
+						t := DateTime.parse("%18N", "944152420212794111")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%18N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zeros", ->
+						t := DateTime.parse("%18N", "000152420212794111")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%18N", " 7") match FormatError(message: 'time format string `"%18N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%18N", "") match FormatError(message: 'time format string `"%18N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%18N", "foo") match FormatError(message: 'time format string `"%18N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%18N", "1520000000000000000") match FormatError(message: 'datetime format string `"%18N"` is incompatible with parsed input `"1520000000000000000"`')
+					end
+				end
+
+				context "no padding", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%-18N", "944152420212794111")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%-18N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%-18N", "000152420212794111")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%-18N", " 7") match FormatError(message: 'time format string `"%-18N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%-18N", "") match FormatError(message: 'time format string `"%-18N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%-18N", "foo") match FormatError(message: 'time format string `"%-18N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%-18N", "1520000000000000000") match FormatError(message: "datetime format string `\"%-18N\"` is incompatible with parsed input `\"1520000000000000000\"`")
+					end
+				end
+
+				context "space padded", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%_18N", "944152420212794111")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%_18N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%_18N", "000152420212794111")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse with leading space", ->
+						t := DateTime.parse("%_18N", "   152420212794111")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%_18N", "") match FormatError(message: 'time format string `"%_18N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%_18N", "foo") match FormatError(message: 'time format string `"%_18N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%_18N", "1520000000000000000") match FormatError(message: "datetime format string `\"%_18N\"` is incompatible with parsed input `\"1520000000000000000\"`")
+					end
+				end
+			end
+
+			context "zeptosecond", ->
+				context "zero padded", ->
+					should "parse repeated zeptoseconds", ->
+						t := DateTime.parse("%21N %H %M %S %21N", "944152420212794111327 15 25 9 552992164888376909773")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 15:25:09\.552992164 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+						assert! t.nanosecond == 164
+					end
+
+					should "parse all digits", ->
+						t := DateTime.parse("%21N", "944152420212794111327")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%21N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zeros", ->
+						t := DateTime.parse("%21N", "000152420212794111327")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%21N", " 7") match FormatError(message: 'time format string `"%21N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%21N", "") match FormatError(message: 'time format string `"%21N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%21N", "foo") match FormatError(message: 'time format string `"%21N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%21N", "1520000000000000000000") match FormatError(message: 'datetime format string `"%21N"` is incompatible with parsed input `"1520000000000000000000"`')
+					end
+				end
+
+				context "no padding", ->
+					should "parse two digits", ->
+						t := DateTime.parse("%-21N", "944152420212794111327")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%-21N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%-21N", "000152420212794111327")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%-21N", " 7") match FormatError(message: 'time format string `"%-21N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%-21N", "") match FormatError(message: 'time format string `"%-21N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%-21N", "foo") match FormatError(message: 'time format string `"%-21N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%-21N", "1520000000000000000000") match FormatError(message: "datetime format string `\"%-21N\"` is incompatible with parsed input `\"1520000000000000000000\"`")
+					end
+				end
+
+				context "space padded", ->
+					should "parse two digits", ->
+						t := DateTime.parse("%_21N", "944152420212794111327")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%_21N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%_21N", "000152420212794111327")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse with leading space", ->
+						t := DateTime.parse("%_21N", "   152420212794111327")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420 (\+|\-)\d{2}:\d{2}/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%_21N", "") match FormatError(message: 'time format string `"%_21N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%_21N", "foo") match FormatError(message: 'time format string `"%_21N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%_21N", "1520000000000000000000") match FormatError(message: "datetime format string `\"%_21N\"` is incompatible with parsed input `\"1520000000000000000000\"`")
+					end
+				end
+			end
+
+			context "yoctosecond", ->
+				context "zero padded", ->
+					should "parse repeated yoctoseconds", ->
+						t := DateTime.parse("%24N %H %M %S %24N", "944152420212794111327666 15 25 9 552992164888376909773445")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 15:25:09\.552992164/
+						assert! t.hour == 15
+						assert! t.minute == 25
+						assert! t.second == 9
+						assert! t.millisecond == 552
+						assert! t.microsecond == 992
+						assert! t.nanosecond == 164
+					end
+
+					should "parse all digits", ->
+						t := DateTime.parse("%24N", "944152420212794111327666")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%24N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zeros", ->
+						t := DateTime.parse("%24N", "000152420212794111327666")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%24N", " 7") match FormatError(message: 'time format string `"%24N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%24N", "") match FormatError(message: 'time format string `"%24N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%24N", "foo") match FormatError(message: 'time format string `"%24N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%24N", "1520000000000000000000000") match FormatError(message: 'datetime format string `"%24N"` is incompatible with parsed input `"1520000000000000000000000"`')
+					end
+				end
+
+				context "no padding", ->
+					should "parse all digits", ->
+						t := DateTime.parse("%-24N", "944152420212794111327666")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%-24N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%-24N", "000152420212794111327666")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for leading space", ->
+						assert_throws! DateTime.parse("%-24N", " 7") match FormatError(message: 'time format string `"%-24N"` is incompatible with parsed input `" 7"`')
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%-24N", "") match FormatError(message: 'time format string `"%-24N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%-24N", "foo") match FormatError(message: 'time format string `"%-24N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%-24N", "1520000000000000000000000") match FormatError(message: "datetime format string `\"%-24N\"` is incompatible with parsed input `\"1520000000000000000000000\"`")
+					end
+				end
+
+				context "space padded", ->
+					should "parse two digits", ->
+						t := DateTime.parse("%_24N", "944152420212794111327666")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.944152420/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 944
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse one digit", ->
+						t := DateTime.parse("%_24N", "7")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000000000/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 0
+						assert! t.nanosecond == 0
+					end
+
+					should "parse with leading zero", ->
+						t := DateTime.parse("%_24N", "000152420212794111327666")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "parse with leading space", ->
+						t := DateTime.parse("%_24N", "   152420212794111327666")
+						assert! t <<: DateTime
+						assert! t.to_string match %/\d{4}-\d{2}-\d{2} 00:00:00\.000152420/
+						assert! t.hour == 0
+						assert! t.minute == 0
+						assert! t.second == 0
+						assert! t.millisecond == 0
+						assert! t.microsecond == 152
+						assert! t.nanosecond == 420
+					end
+
+					should "raise format error for no digits", ->
+						assert_throws! DateTime.parse("%_24N", "") match FormatError(message: 'time format string `"%_24N"` is incompatible with parsed input `""`')
+					end
+
+					should "raise format error for text", ->
+						assert_throws! DateTime.parse("%_24N", "foo") match FormatError(message: 'time format string `"%_24N"` is incompatible with parsed input `"foo"`')
+					end
+
+					should "raise format error for out of bounds", ->
+						assert_throws! DateTime.parse("%_24N", "1520000000000000000000000") match FormatError(message: "datetime format string `\"%_24N\"` is incompatible with parsed input `\"1520000000000000000000000\"`")
+					end
+				end
+			end
+
+			context "time12",  ->
+				should "parse valid input", ->
+					t := DateTime.parse("%r", "10:34:15 pm")
+					assert! t <<: DateTime
+					assert! t.to_string match %/\d{4}-\d{2}-\d{2} 22:34:15\.000000000 (\+|\-)\d{2}:\d{2}/
+					assert! t.hour == 22
+					assert! t.minute == 34
+					assert! t.second == 15
+				end
+
+				should "throw a format error on wrong separator", ->
+					assert_throws! DateTime.parse("%r", "10-34:15 pm") match FormatError(message: "cannot parse time string, expected `\":\"`, got `\"-\"`")
+				end
+
+				should "throw a format error on out of range minute", ->
+					assert_throws! DateTime.parse("%r", "10:90:15 pm") match FormatError(message: "value for minute out of range: 90")
+				end
+			end
+
+			context "time24",  ->
+				should "parse valid input", ->
+					t := DateTime.parse("%R", "15:34")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 15:34:00\.000000000 (\+|\-)\d{2}:\d{2}$/
+					assert! t.hour == 15
+					assert! t.minute == 34
+					assert! t.second == 0
+				end
+
+				should "throw a format error on wrong separator", ->
+					assert_throws! DateTime.parse("%R", "15-34") match FormatError(message: "cannot parse time string, expected `\":\"`, got `\"-\"`")
+				end
+
+				should "throw a format error on out of range minute", ->
+					assert_throws! DateTime.parse("%R", "10:90") match FormatError(message: "value for minute out of range: 90")
+				end
+			end
+
+			context "time24 with seconds",  ->
+				should "parse valid input", ->
+					t := DateTime.parse("%T", "15:34:15")
+					assert! t <<: DateTime
+					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 15:34:15\.000000000 (\+|\-)\d{2}:\d{2}$/
+					assert! t.hour == 15
+					assert! t.minute == 34
+					assert! t.second == 15
+				end
+
+				should "throw a format error on wrong separator", ->
+					assert_throws! DateTime.parse("%T", "15-34:15") match FormatError(message: "cannot parse time string, expected `\":\"`, got `\"-\"`")
+				end
+
+				should "throw a format error on out of range minute", ->
+					assert_throws! DateTime.parse("%T", "15:90:15") match FormatError(message: "value for minute out of range: 90")
+				end
+			end
 		end
 
 	end
