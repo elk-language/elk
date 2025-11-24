@@ -4430,7 +4430,7 @@ describe "DateTime", ->
 					assert! t <<: DateTime
 					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \+00:00$/
 					assert! t.zone == Timezone.from_offset(0.hours)
-					assert! t.zone.name == "UTC+00:00:00"
+					assert! t.zone.name == "UTC"
 				end
 
 				should "parse CET offset", ->
@@ -4466,7 +4466,7 @@ describe "DateTime", ->
 					assert! t <<: DateTime
 					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \+00:00$/
 					assert! t.zone == Timezone.from_offset(0.hours)
-					assert! t.zone.name == "UTC+00:00:00"
+					assert! t.zone.name == "UTC"
 				end
 
 				should "parse CET offset", ->
@@ -4502,7 +4502,7 @@ describe "DateTime", ->
 					assert! t <<: DateTime
 					assert! t.to_string match %/^\d{4}-\d{2}-\d{2} 00:00:00\.000000000 \+00:00$/
 					assert! t.zone == Timezone.from_offset(0.hours)
-					assert! t.zone.name == "UTC+00:00:00"
+					assert! t.zone.name == "UTC"
 				end
 
 				should "parse CET", ->

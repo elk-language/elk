@@ -565,6 +565,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("`Interface` is the class of all interfaces.", false, false, false, true, value.ToSymbol("Interface"), objectClass, env)
+		namespace.TryDefineClass("Thrown when encountering a nonexistent timezone.", false, false, false, false, value.ToSymbol("InvalidTimezoneError"), objectClass, env)
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be iterated over in a `for` loop and implement\nmany useful methods.", value.ToSymbol("Iterable"), env)
 			{
@@ -7987,6 +7988,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtypeString("InvalidTimezoneError").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtypeString("Iterable").(*Interface)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -9669,7 +9684,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Include mixins and implement interfaces
 
 						// Define methods
-						namespace.DefineMethod("Parses a time span string and creates a `Time::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"300ms\", \"-1.5h\" or \"2h45m\".\nValid time units are \"h\", \"m\", \"s\", \"ms\", \"us\" (or \"µs\"), \"ns\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("str"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
+						namespace.DefineMethod("Parses a time span string and creates a `Time::Span` value.\nThe string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as \"300ms\", \"-1.5h\" or \"2h45m\".\nValid time units are \"h\", \"m\", \"s\", \"ms\", \"us\" (or \"µs\"), \"ns\".", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("str"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), NameToType("Std::FormatError", env))
 						namespace.DefineMethod("Returns the amount of elapsed since the given `DateTime`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("since"), nil, []*Parameter{NewParameter(value.ToSymbol("datetime"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
 						namespace.DefineMethod("Returns the amount of time that is left until the given `DateTime`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("until"), nil, []*Parameter{NewParameter(value.ToSymbol("datetime"), NameToType("Std::DateTime", env), NormalParameterKind, false)}, NameToType("Std::Time::Span", env), Never{})
 
@@ -9708,9 +9723,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Include mixins and implement interfaces
 
 					// Define methods
-					namespace.DefineMethod("Returns the Timezone for the given name.\n\nIf the name is \"\" or \"UTC\" the UTC timezone gets returned. If the name is \"Local\", the local (system) timezone gets returned.\n\nOtherwise, the name is taken to be a location name corresponding to a file in the IANA Time Zone database, such as `\"Europe/Warsaw\"`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Timezone", env), Never{})
-					namespace.DefineMethod("Create a fixed timezone for a particular offset.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("from_offset"), nil, []*Parameter{NewParameter(value.ToSymbol("offset"), NameToType("Std::Time::Span", env), NormalParameterKind, false)}, NameToType("Std::Timezone", env), Never{})
-					namespace.DefineMethod("Returns the Timezone for the given name.\n\nIf the name is \"\" or \"UTC\" the UTC timezone gets returned. If the name is \"Local\", the local (system) timezone gets returned.\n\nOtherwise, the name is taken to be a location name corresponding to a file in the IANA Time Zone database, such as `\"Europe/Warsaw\"`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("get"), nil, []*Parameter{NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Timezone", env), Never{})
+					namespace.DefineMethod("Returns the Timezone for the given name.\n\nIf the name is \"\" or \"UTC\" the UTC timezone gets returned. If the name is \"Local\", the local (system) timezone gets returned.\n\nOtherwise, the name is taken to be a location name corresponding to a file in the IANA Time Zone database, such as `\"Europe/Warsaw\"`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Timezone", env), NameToType("Std::InvalidTimezoneError", env))
+					namespace.DefineMethod("Create a fixed timezone for a particular offset.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("from_offset"), nil, []*Parameter{NewParameter(value.ToSymbol("offset"), NameToType("Std::Time::Span", env), NormalParameterKind, false)}, NameToType("Std::Timezone", env), NameToType("Std::OutOfRangeError", env))
+					namespace.DefineMethod("Returns the Timezone for the given name.\n\nIf the name is \"\" or \"UTC\" the UTC timezone gets returned. If the name is \"Local\", the local (system) timezone gets returned.\n\nOtherwise, the name is taken to be a location name corresponding to a file in the IANA Time Zone database, such as `\"Europe/Warsaw\"`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("get"), nil, []*Parameter{NewParameter(value.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Timezone", env), NameToType("Std::InvalidTimezoneError", env))
 
 					// Define constants
 

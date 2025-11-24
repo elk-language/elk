@@ -23,7 +23,7 @@ func initTimezone() {
 		"from_offset",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			offset := args[1].AsTimeSpan()
-			return value.Ref(value.NewTimezoneFromOffset(offset)), value.Undefined
+			return value.RefErr(value.NewTimezoneFromOffsetErr(offset))
 		},
 		DefWithParameters(1),
 	)

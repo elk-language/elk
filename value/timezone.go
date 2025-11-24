@@ -1,6 +1,7 @@
 package value
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -57,11 +58,11 @@ func (t *Timezone) Name() string {
 }
 
 func (t *Timezone) IsUTC() bool {
-	return t.Name() == "UTC"
+	return t.ToGoLocation() == time.UTC
 }
 
 func (t *Timezone) IsLocal() bool {
-	return t.Name() == "Local"
+	return t.ToGoLocation() == time.Local
 }
 
 // Returns the standard and DST offsets.
@@ -121,6 +122,9 @@ func NewTimezone(loc *time.Location) *Timezone {
 
 func NewFixedTimezone(hour, minute, second int) *Timezone {
 	offset := TimeSpan(hour)*Hour + TimeSpan(minute)*Minute + TimeSpan(second)*Second
+	if offset == 0 {
+		return UTCTimezone
+	}
 
 	var sign rune
 	if offset < 0 {
@@ -367,12 +371,37 @@ func loadOffsetTimezone(name string, matches [][]byte) (zone *Timezone, err erro
 	}
 
 	offset := positive * (TimeSpan(hour)*Hour + TimeSpan(minute)*Minute + TimeSpan(second)*Second)
+	if offset == 0 {
+		return UTCTimezone, Undefined
+	}
+	if offset >= 24*Hour || offset <= -24*Hour {
+		return nil, errors.New("offset out of range")
+	}
 	loc := time.FixedZone(name, int(offset/Second))
 	return NewTimezone(loc), err
 }
 
+// Create a new timezone based on a fixed offset and return an error for invalid values
+func NewTimezoneFromOffsetErr(offset TimeSpan) (*Timezone, Value) {
+	if offset >= 24*Hour || offset <= -24*Hour {
+		return nil, Ref(
+			Errorf(
+				OutOfRangeErrorClass,
+				"invalid timezone offset: `%s`",
+				offset.Inspect(),
+			),
+		)
+	}
+
+	return NewTimezoneFromOffset(offset), Undefined
+}
+
 // Create a new timezone based on a fixed offset.
 func NewTimezoneFromOffset(offset TimeSpan) *Timezone {
+	if offset == 0 {
+		return UTCTimezone
+	}
+
 	var sign rune
 	var rest TimeSpan
 	if offset < 0 {

@@ -263,7 +263,7 @@ func (TimeSpan) SingletonClass() *Class {
 }
 
 func (t TimeSpan) Inspect() string {
-	return fmt.Sprintf("Std::Time::Span('%s')", t.String())
+	return fmt.Sprintf("Std::Time::Span.parse('%s')", t.String())
 }
 
 func (TimeSpan) InstanceVariables() *InstanceVariables {

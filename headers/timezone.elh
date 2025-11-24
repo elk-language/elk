@@ -13,13 +13,13 @@ sealed primitive class ::Std::Timezone
 
 			Otherwise, the name is taken to be a location name corresponding to a file in the IANA Time Zone database, such as `"Europe/Warsaw"`.
 		]##
-		def get(name: String): Timezone; end
+		def get(name: String): Timezone ! InvalidTimezoneError; end
 		alias [] get
 
 		##[
 			Create a fixed timezone for a particular offset.
 		]##
-		def from_offset(offset: Time::Span): Timezone; end
+		def from_offset(offset: Time::Span): Timezone ! OutOfRangeError; end
 	end
 
 	##[

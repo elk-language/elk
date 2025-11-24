@@ -38,4 +38,7 @@ class Std::OpenClosureError < Std::Error; end
 ]##
 class Std::IndexError < Std::Error; end
 
-
+##[
+	Thrown when encountering a nonexistent timezone.
+]##
+class Std::InvalidTimezoneError < Std::Error; end
