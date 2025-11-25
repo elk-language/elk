@@ -633,6 +633,20 @@ describe "Date::Span", ->
 		end
 	end
 
+	context "total_weeks", ->
+		should "return total weeks", ->
+			s := Date::Span(10, 2, 9)
+			assert! s.total_weeks == 531
+		end
+	end
+
+	context "in_weeks", ->
+		should "calculate float weeks", ->
+			s := Date::Span(10, 2, 16)
+			assert! s.in_weeks == 532.7678571428571
+		end
+	end
+
 	context "days", ->
 		should "return modulo days", ->
 			s := Date::Span(10, 2, 9)
@@ -780,5 +794,210 @@ describe "Date::Span", ->
 		end
 	end
 
+	context "<=>", ->
+		context "date span", ->
+			should "return 1 when greater", ->
+				d := Date::Span(10, 2, 9)
+				assert! d <=> Date::Span(9, 10, 9) == 1
+			end
+
+			should "return 0 when equal", ->
+				d := Date::Span(10, 2, 9)
+				assert! d <=> Date::Span(10, 2, 9) == 0
+			end
+
+			should "return -1 when less", ->
+				d := Date::Span(10, 2, 9)
+				assert! d <=> Date::Span(10, 10, 9) == -1
+			end
+		end
+
+		context "datetime span", ->
+			should "return 1 when greater", ->
+				d := Date::Span(10, 2, 9)
+				assert! d <=> DateTime::Span(9, 10, 9) == 1
+			end
+
+			should "return 0 when equal", ->
+				d := Date::Span(10, 2, 9)
+				assert! d <=> DateTime::Span(10, 2, 9) == 0
+			end
+
+			should "return -1 when less", ->
+				d := Date::Span(10, 2, 9)
+				assert! d <=> DateTime::Span(10, 10, 9) == -1
+			end
+		end
+	end
+
+	context ">=", ->
+		context "date span", ->
+			should "return true when greater", ->
+				d := Date::Span(10, 2, 9)
+				assert! d >= Date::Span(9, 10, 9) == true
+			end
+
+			should "return true when equal", ->
+				d := Date::Span(10, 2, 9)
+				assert! d >= Date::Span(10, 2, 9) == true
+			end
+
+			should "return false when less", ->
+				d := Date::Span(10, 2, 9)
+				assert! d >= Date::Span(10, 10, 9) == false
+			end
+		end
+
+		context "datetime span", ->
+			should "return true when greater", ->
+				d := Date::Span(10, 2, 9)
+				assert! d >= DateTime::Span(9, 10, 9) == true
+			end
+
+			should "return true when equal", ->
+				d := Date::Span(10, 2, 9)
+				assert! d >= DateTime::Span(10, 2, 9) == true
+			end
+
+			should "return false when less", ->
+				d := Date::Span(10, 2, 9)
+				assert! d >= DateTime::Span(10, 10, 9) == false
+			end
+		end
+	end
+
+	context ">", ->
+		context "date span", ->
+			should "return true when greater", ->
+				d := Date::Span(10, 2, 9)
+				assert! d > Date::Span(9, 10, 9) == true
+			end
+
+			should "return false when equal", ->
+				d := Date::Span(10, 2, 9)
+				assert! d > Date::Span(10, 2, 9) == false
+			end
+
+			should "return false when less", ->
+				d := Date::Span(10, 2, 9)
+				assert! d > Date::Span(10, 10, 9) == false
+			end
+		end
+
+		context "datetime span", ->
+			should "return true when greater", ->
+				d := Date::Span(10, 2, 9)
+				assert! d > DateTime::Span(9, 10, 9) == true
+			end
+
+			should "return false when equal", ->
+				d := Date::Span(10, 2, 9)
+				assert! d > DateTime::Span(10, 2, 9) == false
+			end
+
+			should "return false when less", ->
+				d := Date::Span(10, 2, 9)
+				assert! d > DateTime::Span(10, 10, 9) == false
+			end
+		end
+	end
+
+	context "<=", ->
+		context "date span", ->
+			should "return false when greater", ->
+				d := Date::Span(10, 2, 9)
+				assert! d <= Date::Span(9, 10, 9) == false
+			end
+
+			should "return true when equal", ->
+				d := Date::Span(10, 2, 9)
+				assert! d <= Date::Span(10, 2, 9) == true
+			end
+
+			should "return true when less", ->
+				d := Date::Span(10, 2, 9)
+				assert! d <= Date::Span(10, 10, 9) == true
+			end
+		end
+
+		context "datetime span", ->
+			should "return false when greater", ->
+				d := Date::Span(10, 2, 9)
+				assert! d <= DateTime::Span(9, 10, 9) == false
+			end
+
+			should "return true when equal", ->
+				d := Date::Span(10, 2, 9)
+				assert! d <= DateTime::Span(10, 2, 9) == true
+			end
+
+			should "return true when less", ->
+				d := Date::Span(10, 2, 9)
+				assert! d <= DateTime::Span(10, 10, 9) == true
+			end
+		end
+	end
+
+	context "<", ->
+		context "date span", ->
+			should "return false when greater", ->
+				d := Date::Span(10, 2, 9)
+				assert! d < Date::Span(9, 10, 9) == false
+			end
+
+			should "return false when equal", ->
+				d := Date::Span(10, 2, 9)
+				assert! d < Date::Span(10, 2, 9) == false
+			end
+
+			should "return true when less", ->
+				d := Date::Span(10, 2, 9)
+				assert! d < Date::Span(10, 10, 9) == true
+			end
+		end
+
+		context "datetime span", ->
+			should "return false when greater", ->
+				d := Date::Span(10, 2, 9)
+				assert! d < DateTime::Span(9, 10, 9) == false
+			end
+
+			should "return false when equal", ->
+				d := Date::Span(10, 2, 9)
+				assert! d < DateTime::Span(10, 2, 9) == false
+			end
+
+			should "return true when less", ->
+				d := Date::Span(10, 2, 9)
+				assert! d < DateTime::Span(10, 10, 9) == true
+			end
+		end
+	end
+
+	context "to_date_span", ->
+		should "return self", ->
+			d := Date::Span(10, 2, 9)
+			assert! d.to_date_span == d
+		end
+	end
+
+	context "to_date", ->
+		should "convert to an equivalent date", ->
+			d := Date::Span(10, 2, 9)
+			assert! d.to_date == Date(10, 3, 10)
+		end
+
+		should "convert to an equivalent date when values out of range", ->
+			d := Date::Span(10, 2, 59)
+			assert! d.to_date == Date(10, 4, 29)
+		end
+	end
+
+	context "to_datetime_span", ->
+		should "convert to an equivalent datetime span", ->
+			d := Date::Span(10, 2, 9)
+			assert! d.to_datetime_span == DateTime::Span(10, 2, 9)
+		end
+	end
 
 end

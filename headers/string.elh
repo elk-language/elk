@@ -48,7 +48,7 @@ sealed noinit primitive class ::Std::String
 		Get the Unicode code point with the given index.
 		Indices start at 0.
 	]##
-	def chat_at(index: AnyInt): Char; end
+	def char_at(index: AnyInt): Char; end
 
 	##[
 		Get the byte with the given index.
@@ -75,6 +75,18 @@ sealed noinit primitive class ::Std::String
 	def lowercase: String; end
 
 	##[
+		Create a new string right justified
+		to the given length using the given char for padding.
+	]##
+	def rjust(len: Int, padding: Char): String; end
+
+	##[
+		Create a new string left justified
+		to the given length using the given char for padding.
+	]##
+	def ljust(len: Int, padding: Char): String; end
+
+	##[
 		Get the number of Unicode code points
 		that this `String` contains.
 	]##
@@ -99,9 +111,18 @@ sealed noinit primitive class ::Std::String
 	def to_symbol: Symbol; end
 
 	##[
-		Convert the `String` to an `Int`.
+		Convert the `String` to an `Int` interpreting
+		the chars according to the given `base`.
+
+		If no `base` is given `10` is assumed.
+		When the string contains one of the predefined prefixes
+		it will be used to infer the base:
+		- `0x` - hexadecimal
+		- `0d` - base 12
+		- `0o` - base 8
+		- `0b` - base 2
 	]##
-	def to_int: Int ! FormatError; end
+	def to_int(base: Int = 0): Int ! FormatError; end
 
 	##[
 		Returns itself.
@@ -111,7 +132,7 @@ sealed noinit primitive class ::Std::String
 	##[
 		Check whether the `String` is empty.
 	]##
-	def is_empty: Bool; end
+	def is_empty: bool; end
 
 	##[
 		Iterates over all unicode code points of a `String`.

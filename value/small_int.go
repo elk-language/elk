@@ -161,17 +161,9 @@ func (i SmallInt) AddVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			iBigInt := big.NewInt(int64(i))
-			iBigInt.Add(iBigInt, o.ToGoBigInt())
-			if iBigInt.IsInt64() {
-				return SmallInt(iBigInt.Int64()).ToValue(), Undefined
-			}
-			return Ref(ToElkBigInt(iBigInt)), Undefined
+			return i.AddBigInt(o), Undefined
 		case *BigFloat:
-			prec := max(o.Precision(), 64)
-			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
-			iBigFloat.AddBigFloat(iBigFloat, o)
-			return Ref(iBigFloat), Undefined
+			return Ref(i.AddBigFloat(o)), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
@@ -179,18 +171,41 @@ func (i SmallInt) AddVal(other Value) (Value, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		o := other.AsSmallInt()
-		result, ok := i.AddOverflow(o)
-		if !ok {
-			iBigInt := big.NewInt(int64(i))
-			return Ref(ToElkBigInt(iBigInt.Add(iBigInt, big.NewInt(int64(o))))), Undefined
-		}
-		return result.ToValue(), Undefined
+		return i.AddSmallInt(other.AsSmallInt()), Undefined
 	case FLOAT_FLAG:
-		return (Float(i) + other.AsFloat()).ToValue(), Undefined
+		return i.AddFloat(other.AsFloat()).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i SmallInt) AddBigFloat(other *BigFloat) *BigFloat {
+	prec := max(other.Precision(), 64)
+	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
+	iBigFloat.AddBigFloat(iBigFloat, other)
+	return iBigFloat
+}
+
+func (i SmallInt) AddFloat(other Float) Float {
+	return Float(i) + other
+}
+
+func (i SmallInt) AddSmallInt(other SmallInt) Value {
+	result, ok := i.AddOverflow(other)
+	if !ok {
+		iBigInt := big.NewInt(int64(i))
+		return Ref(ToElkBigInt(iBigInt.Add(iBigInt, big.NewInt(int64(other)))))
+	}
+	return result.ToValue()
+}
+
+func (i SmallInt) AddBigInt(other *BigInt) Value {
+	iBigInt := big.NewInt(int64(i))
+	iBigInt.Add(iBigInt, other.ToGoBigInt())
+	if iBigInt.IsInt64() {
+		return SmallInt(iBigInt.Int64()).ToValue()
+	}
+	return Ref(ToElkBigInt(iBigInt))
 }
 
 // Subtract two small ints and check for overflow/underflow.
@@ -208,17 +223,9 @@ func (i SmallInt) SubtractVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			iBigInt := big.NewInt(int64(i))
-			iBigInt.Sub(iBigInt, o.ToGoBigInt())
-			if iBigInt.IsInt64() {
-				return SmallInt(iBigInt.Int64()).ToValue(), Undefined
-			}
-			return Ref(ToElkBigInt(iBigInt)), Undefined
+			return i.SubtractBigInt(o), Undefined
 		case *BigFloat:
-			prec := max(o.Precision(), 64)
-			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
-			iBigFloat.SubBigFloat(iBigFloat, o)
-			return Ref(iBigFloat), Undefined
+			return Ref(i.SubtractBigFloat(o)), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
@@ -226,18 +233,41 @@ func (i SmallInt) SubtractVal(other Value) (Value, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		o := other.AsSmallInt()
-		result, ok := i.SubtractOverflow(o)
-		if !ok {
-			iBigInt := big.NewInt(int64(i))
-			return Ref(ToElkBigInt(iBigInt.Sub(iBigInt, big.NewInt(int64(o))))), Undefined
-		}
-		return result.ToValue(), Undefined
+		return i.SubtractSmallInt(other.AsSmallInt()), Undefined
 	case FLOAT_FLAG:
-		return (Float(i) - other.AsFloat()).ToValue(), Undefined
+		return i.SubtractFloat(other.AsFloat()).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i SmallInt) SubtractBigFloat(other *BigFloat) *BigFloat {
+	prec := max(other.Precision(), 64)
+	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
+	iBigFloat.SubBigFloat(iBigFloat, other)
+	return iBigFloat
+}
+
+func (i SmallInt) SubtractFloat(other Float) Float {
+	return Float(i) - other
+}
+
+func (i SmallInt) SubtractSmallInt(other SmallInt) Value {
+	result, ok := i.SubtractOverflow(other)
+	if !ok {
+		iBigInt := big.NewInt(int64(i))
+		return Ref(ToElkBigInt(iBigInt.Sub(iBigInt, big.NewInt(int64(other)))))
+	}
+	return result.ToValue()
+}
+
+func (i SmallInt) SubtractBigInt(other *BigInt) Value {
+	iBigInt := big.NewInt(int64(i))
+	iBigInt.Sub(iBigInt, other.ToGoBigInt())
+	if iBigInt.IsInt64() {
+		return SmallInt(iBigInt.Int64()).ToValue()
+	}
+	return Ref(ToElkBigInt(iBigInt))
 }
 
 // Multiply two small ints and check for overflow/underflow.
@@ -260,17 +290,9 @@ func (i SmallInt) MultiplyVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			iBigInt := big.NewInt(int64(i))
-			iBigInt.Mul(iBigInt, o.ToGoBigInt())
-			if iBigInt.IsInt64() {
-				return SmallInt(iBigInt.Int64()).ToValue(), Undefined
-			}
-			return Ref(ToElkBigInt(iBigInt)), Undefined
+			return i.MultiplyBigInt(o), Undefined
 		case *BigFloat:
-			prec := max(o.Precision(), 64)
-			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
-			iBigFloat.MulBigFloat(iBigFloat, o)
-			return Ref(iBigFloat), Undefined
+			return Ref(i.MultiplyBigFloat(o)), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
@@ -278,18 +300,41 @@ func (i SmallInt) MultiplyVal(other Value) (Value, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		o := other.AsSmallInt()
-		result, ok := i.MultiplyOverflow(o)
-		if !ok {
-			iBigInt := big.NewInt(int64(i))
-			return Ref(ToElkBigInt(iBigInt.Mul(iBigInt, big.NewInt(int64(o))))), Undefined
-		}
-		return result.ToValue(), Undefined
+		return i.MultiplySmallInt(other.AsSmallInt()), Undefined
 	case FLOAT_FLAG:
-		return (Float(i) * other.AsFloat()).ToValue(), Undefined
+		return i.MultiplyFloat(other.AsFloat()).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i SmallInt) MultiplyBigFloat(other *BigFloat) *BigFloat {
+	prec := max(other.Precision(), 64)
+	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
+	iBigFloat.MulBigFloat(iBigFloat, other)
+	return iBigFloat
+}
+
+func (i SmallInt) MultiplyFloat(other Float) Float {
+	return Float(i) * other
+}
+
+func (i SmallInt) MultiplySmallInt(other SmallInt) Value {
+	result, ok := i.MultiplyOverflow(other)
+	if !ok {
+		iBigInt := big.NewInt(int64(i))
+		return Ref(ToElkBigInt(iBigInt.Mul(iBigInt, big.NewInt(int64(other)))))
+	}
+	return result.ToValue()
+}
+
+func (i SmallInt) MultiplyBigInt(other *BigInt) Value {
+	iBigInt := big.NewInt(int64(i))
+	iBigInt.Mul(iBigInt, other.ToGoBigInt())
+	if iBigInt.IsInt64() {
+		return SmallInt(iBigInt.Int64()).ToValue()
+	}
+	return Ref(ToElkBigInt(iBigInt))
 }
 
 // Divide two small ints and check for overflow/underflow.
@@ -307,20 +352,9 @@ func (i SmallInt) DivideVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			if o.IsZero() {
-				return Undefined, Ref(NewZeroDivisionError())
-			}
-			iBigInt := big.NewInt(int64(i))
-			iBigInt.Div(iBigInt, o.ToGoBigInt())
-			if iBigInt.IsInt64() {
-				return SmallInt(iBigInt.Int64()).ToValue(), Undefined
-			}
-			return Ref(ToElkBigInt(iBigInt)), Undefined
+			return i.DivideBigInt(o)
 		case *BigFloat:
-			prec := max(o.Precision(), 64)
-			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
-			iBigFloat.DivBigFloat(iBigFloat, o)
-			return Ref(iBigFloat), Undefined
+			return Ref(i.DivideBigFloat(o)), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
@@ -328,21 +362,47 @@ func (i SmallInt) DivideVal(other Value) (Value, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		o := other.AsSmallInt()
-		if o == 0 {
-			return Undefined, Ref(NewZeroDivisionError())
-		}
-		result, ok := i.DivideOverflow(o)
-		if !ok {
-			iBigInt := big.NewInt(int64(i))
-			return Ref(ToElkBigInt(iBigInt.Div(iBigInt, big.NewInt(int64(o))))), Undefined
-		}
-		return result.ToValue(), Undefined
+		return i.DivideSmallInt(other.AsSmallInt())
 	case FLOAT_FLAG:
-		return (Float(i) / other.AsFloat()).ToValue(), Undefined
+		return i.DivideFloat(other.AsFloat()).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i SmallInt) DivideBigFloat(other *BigFloat) *BigFloat {
+	prec := max(other.Precision(), 64)
+	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
+	iBigFloat.DivBigFloat(iBigFloat, other)
+	return iBigFloat
+}
+
+func (i SmallInt) DivideFloat(other Float) Float {
+	return Float(i) / other
+}
+
+func (i SmallInt) DivideBigInt(other *BigInt) (Value, Value) {
+	if other.IsZero() {
+		return Undefined, Ref(NewZeroDivisionError())
+	}
+	iBigInt := big.NewInt(int64(i))
+	iBigInt.Div(iBigInt, other.ToGoBigInt())
+	if iBigInt.IsInt64() {
+		return SmallInt(iBigInt.Int64()).ToValue(), Undefined
+	}
+	return Ref(ToElkBigInt(iBigInt)), Undefined
+}
+
+func (i SmallInt) DivideSmallInt(other SmallInt) (Value, Value) {
+	if other == 0 {
+		return Undefined, Ref(NewZeroDivisionError())
+	}
+	result, ok := i.DivideOverflow(other)
+	if !ok {
+		iBigInt := big.NewInt(int64(i))
+		return Ref(ToElkBigInt(iBigInt.Div(iBigInt, big.NewInt(int64(other))))), Undefined
+	}
+	return result.ToValue(), Undefined
 }
 
 // ExponentiateVal by another value and return an error
@@ -351,17 +411,9 @@ func (i SmallInt) ExponentiateVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			iBigInt := big.NewInt(int64(i))
-			iBigInt.Exp(iBigInt, o.ToGoBigInt(), nil)
-			if iBigInt.IsInt64() {
-				return SmallInt(iBigInt.Int64()).ToValue(), Undefined
-			}
-			return Ref(ToElkBigInt(iBigInt)), Undefined
+			return i.ExponentiateBigInt(o), Undefined
 		case *BigFloat:
-			prec := max(o.Precision(), 64)
-			iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
-			iBigFloat.ExpBigFloat(iBigFloat, o)
-			return Ref(iBigFloat), Undefined
+			return Ref(i.ExponentiateBigFloat(o)), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
@@ -369,19 +421,42 @@ func (i SmallInt) ExponentiateVal(other Value) (Value, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		o := other.AsSmallInt()
-		iBigInt := big.NewInt(int64(i))
-		oBigInt := big.NewInt(int64(o))
-		iBigInt.Exp(iBigInt, oBigInt, nil)
-		if iBigInt.IsInt64() {
-			return SmallInt(iBigInt.Int64()).ToValue(), Undefined
-		}
-		return Ref(ToElkBigInt(iBigInt)), Undefined
+		return i.ExponentiateSmallInt(other.AsSmallInt()), Undefined
 	case FLOAT_FLAG:
-		return (Float(math.Pow(float64(i), float64(other.AsFloat())))).ToValue(), Undefined
+		return i.ExponentiateFloat(other.AsFloat()).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i SmallInt) ExponentiateBigFloat(other *BigFloat) *BigFloat {
+	prec := max(other.Precision(), 64)
+	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
+	iBigFloat.ExpBigFloat(iBigFloat, other)
+	return iBigFloat
+}
+
+func (i SmallInt) ExponentiateFloat(other Float) Float {
+	return Float(math.Pow(float64(i), float64(other)))
+}
+
+func (i SmallInt) ExponentiateBigInt(other *BigInt) Value {
+	iBigInt := big.NewInt(int64(i))
+	iBigInt.Exp(iBigInt, other.ToGoBigInt(), nil)
+	if iBigInt.IsInt64() {
+		return SmallInt(iBigInt.Int64()).ToValue()
+	}
+	return Ref(ToElkBigInt(iBigInt))
+}
+
+func (i SmallInt) ExponentiateSmallInt(other SmallInt) Value {
+	iBigInt := big.NewInt(int64(i))
+	oBigInt := big.NewInt(int64(other))
+	iBigInt.Exp(iBigInt, oBigInt, nil)
+	if iBigInt.IsInt64() {
+		return SmallInt(iBigInt.Int64()).ToValue()
+	}
+	return Ref(ToElkBigInt(iBigInt))
 }
 
 // Cmp compares x and y and returns:

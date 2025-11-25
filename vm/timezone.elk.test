@@ -1,0 +1,150 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+describe "Timezone", ->
+	context "singleton", ->
+		context "get", ->
+			should "return UTC", ->
+				tz := Timezone.get('UTC')
+				assert! tz.name == 'UTC'
+				assert! tz.standard_offset == 0.hours
+				assert! tz.dst_offset == 0.hours
+			end
+
+			should "return warsaw", ->
+				tz := Timezone.get('Europe/Warsaw')
+				assert! tz.name == 'Europe/Warsaw'
+				assert! tz.standard_offset == 1.hours
+				assert! tz.dst_offset == 2.hours
+			end
+
+			should "return a fixed timezone", ->
+				tz := Timezone.get('UTC-05:37')
+				assert! tz.name == 'UTC-05:37'
+				assert! tz.standard_offset == -5.hours - 37.minutes
+				assert! tz.dst_offset == -5.hours - 37.minutes
+			end
+
+			should "throw an error for nonexistent timezone", ->
+				assert_throws! Timezone.get('FOO') match Std::InvalidTimezoneError(message: "invalid timezone: FOO")
+			end
+
+			should "throw an error for too large negative offset", ->
+				assert_throws! Timezone.get('UTC-24:00') match Std::InvalidTimezoneError(message: "invalid timezone: UTC-24:00")
+			end
+
+			should "throw an error for too large positive offset", ->
+				assert_throws! Timezone.get('UTC+24:00') match Std::InvalidTimezoneError(message: "invalid timezone: UTC+24:00")
+			end
+		end
+
+		context "from_offset", ->
+			should "build UTC", ->
+				tz := Timezone.from_offset(0.hours)
+				assert! tz.name == 'UTC'
+				assert! tz.standard_offset == 0.hours
+				assert! tz.dst_offset == 0.hours
+			end
+
+			should "build positive offset", ->
+				tz := Timezone.from_offset(3.hours + 13.minutes)
+				assert! tz.name == 'UTC+03:13:00'
+				assert! tz.standard_offset == 3.hours + 13.minutes
+				assert! tz.dst_offset == 3.hours + 13.minutes
+			end
+
+			should "throw an error for too large negative offset", ->
+				assert_throws! Timezone.from_offset(-24.hours) match Std::OutOfRangeError(message: "invalid timezone offset: `Std::Time::Span.parse('-24h')`")
+			end
+
+			should "throw an error for too large positive offset", ->
+				assert_throws! Timezone.from_offset(24.hours) match Std::OutOfRangeError(message: "invalid timezone offset: `Std::Time::Span.parse('24h')`")
+			end
+		end
+	end
+
+	context "name", ->
+		should "return an IANA name", ->
+			tz := Timezone.get('Europe/Warsaw')
+			assert! tz.name == 'Europe/Warsaw'
+		end
+
+		should "return a fixed offset name", ->
+			tz := Timezone.from_offset(3.hours + 13.minutes)
+			assert! tz.name == 'UTC+03:13:00'
+		end
+	end
+
+	context "standard_offset", ->
+		should "return sdt offset for warsaw", ->
+			tz := Timezone.get('Europe/Warsaw')
+			assert! tz.standard_offset == 1.hour
+		end
+
+		should "return a fixed offset", ->
+			tz := Timezone.from_offset(3.hours + 13.minutes)
+			assert! tz.standard_offset == 3.hours + 13.minutes
+		end
+	end
+
+	context "dst_offset", ->
+		should "return dst offset for warsaw", ->
+			tz := Timezone.get('Europe/Warsaw')
+			assert! tz.dst_offset == 2.hours
+		end
+
+		should "return a fixed offset", ->
+			tz := Timezone.from_offset(3.hours + 13.minutes)
+			assert! tz.dst_offset == 3.hours + 13.minutes
+		end
+	end
+
+	context "is_utc", ->
+		should "return true for IANA UTC", ->
+			tz := Timezone::UTC
+			assert! tz.is_utc == true
+		end
+
+		should "return true for fixed UTC", ->
+			tz := Timezone.from_offset(0.hours)
+			assert! tz.is_utc == true
+		end
+
+		should "return false for other fixed zone", ->
+			tz := Timezone.from_offset(3.hours)
+			assert! tz.is_utc == false
+		end
+
+		should "return false for other IANA zone", ->
+			tz := Timezone.get('Europe/Warsaw')
+			assert! tz.is_utc == false
+		end
+	end
+
+	context "is_local", ->
+		should "return false for IANA UTC", ->
+			tz := Timezone::UTC
+			assert! tz.is_local == false
+		end
+
+		should "return false for fixed UTC", ->
+			tz := Timezone.from_offset(0.hours)
+			assert! tz.is_local == false
+		end
+
+		should "return false for other fixed zone", ->
+			tz := Timezone.from_offset(3.hours)
+			assert! tz.is_local == false
+		end
+
+		should "return false for other IANA zone", ->
+			tz := Timezone.get('Europe/Warsaw')
+			assert! tz.is_local == false
+		end
+
+		should "return true for local", ->
+			tz := Timezone::LOCAL
+			assert! tz.is_local == true
+		end
+	end
+end

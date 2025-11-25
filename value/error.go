@@ -165,6 +165,30 @@ func NewIndexOutOfRangeError(index string, length int) *Object {
 	)
 }
 
+func NewIncompatibleTimeFormatError(formatString, input string) *Object {
+	return NewIncompatibleTemporalFormatError("time", formatString, input)
+}
+
+func NewIncompatibleDateFormatError(formatString, input string) *Object {
+	return NewIncompatibleTemporalFormatError("date", formatString, input)
+}
+
+func NewIncompatibleDateTimeFormatError(formatString, input string) *Object {
+	return NewIncompatibleTemporalFormatError("datetime", formatString, input)
+}
+
+// Create a new error for incompatible temporal object format,
+// date, datetime or time.
+func NewIncompatibleTemporalFormatError(kind, formatString, input string) *Object {
+	return Errorf(
+		FormatErrorClass,
+		"%s format string `%s` is incompatible with parsed input `%s`",
+		kind,
+		String(formatString).Inspect(),
+		String(input).Inspect(),
+	)
+}
+
 // Create a new error that signals that
 // the big float precision is out of range (negative or too large).
 func NewBigFloatPrecisionError(precision string) *Object {

@@ -67,14 +67,23 @@ sealed primitive class ::Std::DateTime::Span
 	def to_string: String; end
 
 	##[
+		Convert this span to a `DateTime` with an optional timezone.
+		Uses the local timezone by default.
+	]##
+	def to_datetime(zone: Timezone = Timezone::LOCAL): DateTime; end
+	def to_datetime_span: DateTime::Span; end
+
+	##[
 		Returns the date span component of this datetime span.
 	]##
 	def date_span: Date::Span; end
+	alias to_date_span date_span
 
 	##[
 		Returns the time span component of this datetime span.
 	]##
 	def time_span: Time::Span; end
+	alias to_time_span time_span
 
 	##[
 		Returns the approximate count of years in this span as a Float.

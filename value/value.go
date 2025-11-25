@@ -527,6 +527,14 @@ func (v Value) AsInt() int {
 	return int(v.AsSmallInt())
 }
 
+func (v Value) AsNativeInt64() int64 {
+	if v.IsReference() {
+		return int64(v.AsBigInt().ToInt64())
+	}
+
+	return int64(v.AsSmallInt())
+}
+
 func (v Value) IsUInt() bool {
 	return v.flag == UINT_FLAG
 }
@@ -786,6 +794,17 @@ func (v Value) AsTimeSpan() TimeSpan {
 	}
 }
 
+func (v Value) AsTimeSpanOk() (TimeSpan, bool) {
+	if v.IsReference() {
+		t, ok := v.AsReference().(TimeSpan)
+		return t, ok
+	} else if v.IsInlineTimeSpan() {
+		return v.AsInlineTimeSpan(), true
+	}
+
+	return 0, false
+}
+
 func (v Value) MustTimeSpan() TimeSpan {
 	if v.IsReference() {
 		return v.AsReference().(TimeSpan)
@@ -841,6 +860,17 @@ func (v Value) AsTime() Time {
 	}
 }
 
+func (v Value) AsTimeOk() (Time, bool) {
+	if v.IsReference() {
+		t, ok := v.AsReference().(Time)
+		return t, ok
+	} else if v.IsInlineTime() {
+		return v.AsInlineTime(), true
+	}
+
+	return Time{}, false
+}
+
 func (v Value) MustTime() Time {
 	if v.IsReference() {
 		return v.AsReference().(Time)
@@ -865,6 +895,17 @@ func (v Value) AsDateSpan() DateSpan {
 	} else {
 		return v.AsInlineDateSpan()
 	}
+}
+
+func (v Value) AsDateSpanOk() (DateSpan, bool) {
+	if v.IsReference() {
+		t, ok := v.AsReference().(DateSpan)
+		return t, ok
+	} else if v.IsInlineDateSpan() {
+		return v.AsInlineDateSpan(), true
+	}
+
+	return DateSpan{}, false
 }
 
 func (v Value) MustDateSpan() DateSpan {

@@ -475,4 +475,91 @@ func initDateSpan() {
 			return value.Ref(self.ToString()), value.Undefined
 		},
 	)
+	Def(
+		c,
+		"to_datetime_span",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return value.Ref(self.ToDateTimeSpan()), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_date",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.ToDate().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_date_span",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"<=>",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			return self.CompareVal(args[1])
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		">=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			ok, err := self.GreaterThanEqual(args[1])
+			return value.ToElkBool(ok), err
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		">",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			ok, err := self.GreaterThan(args[1])
+			return value.ToElkBool(ok), err
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"<=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			ok, err := self.LessThanEqual(args[1])
+			return value.ToElkBool(ok), err
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"<",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			ok, err := self.LessThan(args[1])
+			return value.ToElkBool(ok), err
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"==",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDateSpan()
+			other := args[1]
+			return value.ToElkBool(self.Equal(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "===", "==")
 }

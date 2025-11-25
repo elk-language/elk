@@ -1020,6 +1020,20 @@ describe "DateTime::Span", ->
 		end
 	end
 
+	context "total_weeks", ->
+		should "return total weeks", ->
+			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
+			assert! s.total_weeks == 543
+		end
+	end
+
+	context "in_weeks", ->
+		should "calculate float weeks", ->
+			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
+			assert! s.in_weeks == 543.8673745544659
+		end
+	end
+
 	context "days", ->
 		should "return modulo days", ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
@@ -1164,6 +1178,34 @@ describe "DateTime::Span", ->
 		should "calculate float nanoseconds", ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.in_nanoseconds == 328930988130540928.0
+		end
+	end
+
+	context "to_datetime", ->
+		should "convert to a datetime equivalent", ->
+			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
+			assert! s.to_datetime == DateTime(10, 6, 3, 9, 13, 8, 130, 540, 931)
+		end
+	end
+
+	context "to_datetime_span", ->
+		should "return self", ->
+			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
+			assert! s.to_datetime_span == s
+		end
+	end
+
+	context "to_date_span", ->
+		should "return the date span component", ->
+			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
+			assert! s.to_date_span == Date::Span(10, 5, 2)
+		end
+	end
+
+	context "to_time_span", ->
+		should "return the time span component", ->
+			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
+			assert! s.to_time_span == Time::Span(9, 13, 8, 130, 540, 931)
 		end
 	end
 

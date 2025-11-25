@@ -13,14 +13,31 @@ sealed primitive class ::Std::Timezone
 
 			Otherwise, the name is taken to be a location name corresponding to a file in the IANA Time Zone database, such as `"Europe/Warsaw"`.
 		]##
-		def get(name: String): Timezone; end
+		def get(name: String): Timezone ! InvalidTimezoneError; end
 		alias [] get
+
+		##[
+			Create a fixed timezone for a particular offset.
+		]##
+		def from_offset(offset: Time::Span): Timezone ! OutOfRangeError; end
 	end
 
 	##[
 		Returns the name of the Timezone eg. `"Local"`, `"UTC"`, `"Europe/Warsaw"`
 	]##
 	def name: String; end
+
+	##[
+		Returns the standard/default offset of this timezone.
+	]##
+	def offset: Time::Span; end
+	alias standard_offset offset
+
+	##[
+		Returns the DST - daylight saving time offset of this timezone.
+		If there is no DST it returns the same offset as `standard_offset`.
+	]##
+	def dst_offset: Time::Span; end
 
 	def is_utc: bool; end
 	def is_local: bool; end

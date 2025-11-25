@@ -128,8 +128,8 @@ func (s String) ToChar() (Char, bool) {
 }
 
 // Convert this String to an Int.
-func (s String) ToInt() (Value, Value) {
-	return ParseInt(string(s), 0)
+func (s String) ToInt(base int) (Value, Value) {
+	return ParseInt(string(s), base)
 }
 
 // Return a new string that has all characters turned to lowercase.
@@ -188,6 +188,37 @@ func (s String) ReverseChars() String {
 // Reverse the string while preserving the grapheme clusters.
 func (s String) ReverseGraphemes() String {
 	return String(uniseg.ReverseString(string(s)))
+}
+
+func (s String) RJust(targetLen int, padding Char) String {
+	if len(s) >= targetLen {
+		return s
+	}
+
+	var buff strings.Builder
+
+	for range targetLen - len(s) {
+		buff.WriteRune(padding.Rune())
+	}
+
+	buff.WriteString(s.String())
+
+	return String(buff.String())
+}
+
+func (s String) LJust(targetLen int, padding Char) String {
+	if len(s) >= targetLen {
+		return s
+	}
+
+	var buff strings.Builder
+	buff.WriteString(s.String())
+
+	for range targetLen - len(s) {
+		buff.WriteRune(padding.Rune())
+	}
+
+	return String(buff.String())
 }
 
 // Concatenate another value with this string and return the result.

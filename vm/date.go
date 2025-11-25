@@ -1,8 +1,6 @@
 package vm
 
 import (
-	"time"
-
 	"github.com/elk-language/elk/value"
 )
 
@@ -14,9 +12,22 @@ func initDate() {
 		c,
 		"now",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			year, month, day := time.Now().Date()
-			return value.MakeDate(year, int(month), day).ToValue(), value.Undefined
+			return value.DateNow().ToValue(), value.Undefined
 		},
+	)
+	Def(
+		c,
+		"parse",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			formatString := args[1].AsString().String()
+			input := args[2].AsString().String()
+			result, err := value.ParseDate(formatString, input)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
+			return result.ToValue(), value.Undefined
+		},
+		DefWithParameters(2),
 	)
 
 	// Instance methods
@@ -70,6 +81,94 @@ func initDate() {
 	)
 	Def(
 		c,
+		"+",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return self.AddDateSpan(args[1].AsDateSpan()).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"+@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			span := (*value.DateTimeSpan)(args[1].Pointer())
+			return value.Ref(self.AddDateTimeSpan(span)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"+@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			span := args[1].AsTimeSpan()
+			return value.Ref(self.AddTimeSpan(span)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"-",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return self.Subtract(args[1])
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"-@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return self.DiffDate(args[1].AsDate()).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"-@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			other := (*value.DateTime)(args[1].Pointer())
+			return value.Ref(self.DiffDateTime(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"diff",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return self.Diff(args[1])
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"diff@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return self.DiffDate(args[1].AsDate()).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"diff@2",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			other := (*value.DateTime)(args[1].Pointer())
+			return value.Ref(self.DiffDateTime(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
 		"format",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
@@ -94,6 +193,22 @@ func initDate() {
 	Alias(c, "strftime", "format")
 	Def(
 		c,
+		"century",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return value.SmallInt(self.Century()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"millenium",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return value.SmallInt(self.Millenium()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
@@ -102,10 +217,26 @@ func initDate() {
 	)
 	Def(
 		c,
+		"year_last_two",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return value.SmallInt(self.YearLastTwo()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"iso_year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.ISOYear()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"iso_year_last_two",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return value.SmallInt(self.ISOYearLastTwo()).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -122,6 +253,29 @@ func initDate() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDate()
 			return value.Ref(self.ToString()), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_date_span",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustDate()
+			return self.ToDateSpan().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_datetime",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustDate()
+			return value.Ref(self.ToDateTime()), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_date",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
 		},
 	)
 	Def(
@@ -169,10 +323,26 @@ func initDate() {
 	)
 	Def(
 		c,
+		"iso_year_day",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return value.SmallInt(self.ISOYearDay()).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"weekday_name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.Ref(value.String(self.WeekdayName())), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"abbreviated_weekday_name",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return value.Ref(value.String(self.AbbreviatedWeekdayName())), value.Undefined
 		},
 	)
 	Def(
@@ -250,4 +420,69 @@ func initDate() {
 			return value.ToElkBool(self.IsSunday()), value.Undefined
 		},
 	)
+
+	Def(
+		c,
+		"<=>",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			return self.CompareVal(args[1])
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		">=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			ok, err := self.GreaterThanEqual(args[1])
+			return value.ToElkBool(ok), err
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		">",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			ok, err := self.GreaterThan(args[1])
+			return value.ToElkBool(ok), err
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"<=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			ok, err := self.LessThanEqual(args[1])
+			return value.ToElkBool(ok), err
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"<",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			ok, err := self.LessThan(args[1])
+			return value.ToElkBool(ok), err
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"==",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsDate()
+			other := args[1]
+			return value.ToElkBool(self.Equal(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "===", "==")
 }

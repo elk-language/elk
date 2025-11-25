@@ -32,3 +32,13 @@ class Std::GlobError < Std::Error; end
 	on the stack of the thread that created it.
 ]##
 class Std::OpenClosureError < Std::Error; end
+
+##[
+	Thrown when an index in array/string access is out of range.
+]##
+class Std::IndexError < Std::Error; end
+
+##[
+	Thrown when encountering a nonexistent timezone.
+]##
+class Std::InvalidTimezoneError < Std::Error; end

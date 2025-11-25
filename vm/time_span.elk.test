@@ -848,6 +848,151 @@ describe "Time::Span", ->
 		end
 	end
 
+	context "<=>", ->
+		should "return 1 when greater", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t <=> Time::Span(hours: 13) == 1
+		end
+
+		should "return 0 when equal", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t <=> Time::Span(hours: 15, minutes: 30, seconds: 20) == 0
+		end
+
+		should "return -1 when less", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t <=> Time::Span(hours: 18) == -1
+		end
+	end
+
+	context ">=", ->
+		should "return true when greater", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t >= Time::Span(hours: 13) == true
+		end
+
+		should "return true when equal", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t >= Time::Span(hours: 15, minutes: 30, seconds: 20) == true
+		end
+
+		should "return false when less", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t >= Time::Span(hours: 18) == false
+		end
+	end
+
+	context ">", ->
+		should "return true when greater", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t > Time::Span(hours: 13) == true
+		end
+
+		should "return false when equal", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t > Time::Span(hours: 15, minutes: 30, seconds: 20) == false
+		end
+
+		should "return false when less", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t > Time::Span(hours: 18) == false
+		end
+	end
+
+	context "<=", ->
+		should "return false when greater", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t <= Time::Span(hours: 13) == false
+		end
+
+		should "return true when equal", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t <= Time::Span(hours: 15, minutes: 30, seconds: 20) == true
+		end
+
+		should "return true when less", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t <= Time::Span(hours: 18) == true
+		end
+	end
+
+	context "<", ->
+		should "return false when greater", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t < Time::Span(hours: 13) == false
+		end
+
+		should "return false when equal", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t < Time::Span(hours: 15, minutes: 30, seconds: 20) == false
+		end
+
+		should "return true when less", ->
+			t := Time::Span(
+				hours: 15,
+				minutes: 30,
+				seconds: 20,
+			)
+			assert! t < Time::Span(hours: 18) == true
+		end
+	end
+
 	context "years", ->
 		should "return int years", ->
 			s := Time::Span(8800, 13, 8, 130, 540, 931)
@@ -892,6 +1037,20 @@ describe "Time::Span", ->
 		should "calculate float months", ->
 			s := Time::Span(8800, 13, 8, 130, 540, 931)
 			assert! s.in_months == 366.02220249849455
+		end
+	end
+
+	context "total_weeks", ->
+		should "return total weeks", ->
+			s := Time::Span(16000, 13, 8, 130, 540, 931)
+			assert! s.total_weeks == 95
+		end
+	end
+
+	context "in_weeks", ->
+		should "calculate float weeks", ->
+			s := Time::Span(8800, 13, 8, 130, 540, 931)
+			assert! s.in_weeks == 52.382255506846775
 		end
 	end
 
@@ -1039,6 +1198,27 @@ describe "Time::Span", ->
 		should "calculate float nanoseconds", ->
 			s := Time::Span(9, 13, 8, 130, 540, 931)
 			assert! s.in_nanoseconds == 33188130540931.0
+		end
+	end
+
+	context "to_time_span", ->
+		should "return self", ->
+			s := Time::Span(9, 13, 8, 130, 540, 931)
+			assert! s.to_time_span == s
+		end
+	end
+
+	context "to_datetime_span", ->
+		should "convert to datetime span", ->
+			s := Time::Span(9, 13, 8, 130, 540, 931)
+			assert! s.to_datetime_span == DateTime::Span(0, 0, 0, 9, 13, 8, 130, 540, 931)
+		end
+	end
+
+	context "to_time", ->
+		should "convert to time", ->
+			s := Time::Span(9, 13, 8, 130, 540, 931)
+			assert! s.to_time == Time(9, 13, 8, 130, 540, 931)
 		end
 	end
 end

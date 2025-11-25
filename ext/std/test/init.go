@@ -66,8 +66,30 @@ func typecheckerInit(checker types.Checker) {
 				),
 			)
 
-			binExpr, ok := expr.(*ast.BinaryExpressionNode)
-			if !ok {
+			var binExpr *ast.BinaryExpressionNode
+
+			switch expr := expr.(type) {
+			case *ast.BinaryExpressionNode:
+				binExpr = expr
+			case *ast.MatchExpressionNode:
+				match := ast.NewMatchExpressionNode(
+					expr.Location(),
+					ast.Unhygienic(expr.Expression),
+					ast.Unhygienic(expr.Pattern),
+				)
+				result := ast.NewScopedMacroCallNode(
+					position.ZeroLocation,
+					ast.MACRO_EXPRESSION_KIND,
+					assertionsConstant,
+					ast.NewPublicIdentifierNode(
+						position.ZeroLocation,
+						"assert_match",
+					),
+					[]ast.ExpressionNode{match},
+					nil,
+				)
+				return value.Ref(result), value.Undefined
+			default:
 				result := ast.NewMethodCallNode(
 					position.ZeroLocation,
 					assertionsConstant,

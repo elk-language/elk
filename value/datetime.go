@@ -5,11 +5,24 @@ import (
 	"math/big"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/elk-language/elk/value/timescanner"
 )
 
 var DateTimeClass *Class // ::Std::DateTime
+
+const (
+	SundayAlt = iota
+	Monday
+	Tuesday
+	Wednesday
+	Thursday
+	Friday
+	Saturday
+	Sunday
+)
 
 // Elk's DateTime value
 type DateTime struct {
@@ -64,21 +77,50 @@ func (t DateTime) String() string {
 }
 
 // Create a new DateTime object.
-func NewDateTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) *DateTime {
-	t := MakeDateTime(year, month, day, hour, min, sec, nsec, zone)
+func NewDateTime(year, month, day, hour, min, sec, millisec, microsec, nsec int, zone *Timezone) *DateTime {
+	t := MakeDateTime(year, month, day, hour, min, sec, millisec, microsec, nsec, zone)
 	return &t
 }
 
+func MakeDateTimeFromDateAndTime(date Date, time Time, zone *Timezone) DateTime {
+	return MakeDateTime(
+		date.Year(),
+		date.Month(),
+		date.Day(),
+		time.Hour(),
+		time.Minute(),
+		time.Second(),
+		time.Millisecond(),
+		time.Microsecond(),
+		time.Nanosecond(),
+		zone,
+	)
+}
+
+func MakeZeroDateTime() DateTime {
+	return MakeDateTime(0, 1, 1, 0, 0, 0, 0, 0, 0, nil)
+}
+
 // Create a new DateTime value.
-func MakeDateTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) DateTime {
+func MakeDateTime(year, month, day, hour, min, sec, millisec, microsec, nsec int, zone *Timezone) DateTime {
 	var location *time.Location
 	if zone == nil {
-		location = time.UTC
+		location = time.Local
 	} else {
 		location = zone.ToGoLocation()
 	}
+
 	return DateTime{
-		Go: time.Date(year, time.Month(month), day, hour, min, sec, nsec, location),
+		Go: time.Date(
+			year,
+			time.Month(month),
+			day,
+			hour,
+			min,
+			sec,
+			millisec*int(Millisecond)+microsec*int(Microsecond)+nsec,
+			location,
+		),
 	}
 }
 
@@ -99,30 +141,171 @@ func (t *DateTime) Time() Time {
 		t.Hour(),
 		t.Minute(),
 		t.Second(),
+		t.Millisecond(),
+		t.Microsecond(),
 		t.Nanosecond(),
 	)
 }
 
-// Adds the given duration to the time.
-// Returns a new time structure.
-func (t *DateTime) Add(val TimeSpan) *DateTime {
+func (t *DateTime) InZone(zone *Timezone) *DateTime {
+	time := t.Go.In(zone.ToGoLocation())
+	return &DateTime{Go: time}
+}
+
+func (t *DateTime) WithZone(zone *Timezone) *DateTime {
+	return NewDateTime(
+		t.Year(),
+		t.Month(),
+		t.Day(),
+		t.Hour(),
+		t.Minute(),
+		t.Second(),
+		t.Millisecond(),
+		t.Microsecond(),
+		t.Nanosecond(),
+		zone,
+	)
+}
+
+func (t *DateTime) Add(val Value) (Value, Value) {
+	switch val.flag {
+	case DATE_SPAN_FLAG:
+		return Ref(t.AddTimeSpan(val.AsInlineTimeSpan())), Undefined
+	case TIME_SPAN_FLAG:
+		return Ref(t.AddTimeSpan(val.AsInlineTimeSpan())), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), durationUnionType))
+	}
+
+	switch v := val.AsReference().(type) {
+	case TimeSpan:
+		return Ref(t.AddTimeSpan(v)), Undefined
+	case DateSpan:
+		return Ref(t.AddDateSpan(v)), Undefined
+	case *DateTimeSpan:
+		return Ref(t.AddDateTimeSpan(v)), Undefined
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), durationUnionType))
+	}
+}
+
+func (t *DateTime) AddDateTimeSpan(val *DateTimeSpan) *DateTime {
+	t = t.AddTimeSpan(val.TimeSpan)
+	t = t.AddDateSpan(val.DateSpan)
+	return t
+}
+
+func (t *DateTime) AddTimeSpan(val TimeSpan) *DateTime {
 	return ToElkDateTime(t.Go.Add(val.Go()))
 }
 
-// Subtracts the given duration from the time.
-// Returns a new time structure.
-func (t *DateTime) Subtract(val TimeSpan) *DateTime {
+func daysOfMonth(year, month int) int {
+	d := MakeDateTime(year, month+1, 1, 0, 0, 0, 0, 0, 0, nil)
+	lastDay := d.SubtractTimeSpan(Day)
+	return lastDay.Day()
+}
+
+func (t *DateTime) AddDateSpan(val DateSpan) *DateTime {
+	result := t.AddTimeSpan(TimeSpan(val.Days()) * Day)
+	oldDay := result.Day()
+
+	month := result.Month() + int(val.months)
+	year := result.Year() + month/12
+	month %= 12
+
+	daysOfNewMonth := daysOfMonth(year, month)
+	newDay := min(oldDay, daysOfNewMonth)
+
+	return NewDateTime(
+		year,
+		month,
+		newDay,
+		result.Hour(),
+		result.Minute(),
+		result.Second(),
+		result.Millisecond(),
+		result.Microsecond(),
+		result.Nanosecond(),
+		result.Zone(),
+	)
+}
+
+func (t *DateTime) Subtract(val Value) (Value, Value) {
+	switch val.flag {
+	case DATE_SPAN_FLAG:
+		return Ref(t.SubtractTimeSpan(val.AsInlineTimeSpan())), Undefined
+	case TIME_SPAN_FLAG:
+		return Ref(t.SubtractTimeSpan(val.AsInlineTimeSpan())), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), durationUnionType))
+	}
+
+	switch v := val.AsReference().(type) {
+	case TimeSpan:
+		return Ref(t.SubtractTimeSpan(v)), Undefined
+	case DateSpan:
+		return Ref(t.SubtractDateSpan(v)), Undefined
+	case *DateTimeSpan:
+		return Ref(t.SubtractDateTimeSpan(v)), Undefined
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), durationUnionType))
+	}
+}
+
+func (t *DateTime) SubtractDateTimeSpan(val *DateTimeSpan) *DateTime {
+	t = t.SubtractTimeSpan(val.TimeSpan)
+	t = t.SubtractDateSpan(val.DateSpan)
+	return t
+}
+
+func (t *DateTime) SubtractDateSpan(val DateSpan) *DateTime {
+	return t.ToDateTimeSpan().SubtractDateSpan(val).ToDateTime()
+}
+
+func (t *DateTime) SubtractTimeSpan(val TimeSpan) *DateTime {
 	return ToElkDateTime(t.Go.Add(-val.Go()))
 }
 
-// Calculates the difference between two time objects.
-// Returns a duration.
-func (t *DateTime) Diff(val *DateTime) TimeSpan {
-	return TimeSpan(t.Go.Sub(val.Go))
+func (t *DateTime) Diff(val Value) (Value, Value) {
+	switch val.flag {
+	case DATE_SPAN_FLAG:
+		return Ref(t.DiffDate(val.AsDate())), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), DateTimeClass.Inspect()))
+	}
+
+	switch v := val.AsReference().(type) {
+	case *DateTime:
+		return Ref(t.DiffDateTime(v)), Undefined
+	default:
+		return Undefined, Ref(NewArgumentTypeError("other", val.Class().Inspect(), DateTimeClass.Inspect()))
+	}
+}
+
+// Calculates the difference between two datetime objects.
+// Returns a span.
+func (t *DateTime) DiffDate(val Date) *DateTimeSpan {
+	return t.ToDateTimeSpan().SubtractDateSpan(val.ToDateSpan())
+}
+
+// Calculates the difference between two datetime objects.
+// Returns a span.
+func (t *DateTime) DiffDateTime(val *DateTime) *DateTimeSpan {
+	return t.ToDateTimeSpan().SubtractDateTimeSpan(val.ToDateTimeSpan())
 }
 
 func (t DateTime) ToGoTime() time.Time {
 	return t.Go
+}
+
+func (t DateTime) ToDateTimeSpan() *DateTimeSpan {
+	return NewDateTimeSpan(
+		t.Date().ToDateSpan(),
+		t.Time().ToTimeSpan(),
+	)
 }
 
 func (t DateTime) Zone() *Timezone {
@@ -150,6 +333,10 @@ func (t DateTime) Century() int {
 	return t.Go.Year() / 100
 }
 
+func (t DateTime) Millenium() int {
+	return t.Go.Year() / 1000
+}
+
 func (t DateTime) Month() int {
 	return int(t.Go.Month())
 }
@@ -169,6 +356,18 @@ func (t DateTime) Day() int {
 // Day of the year.
 func (t DateTime) YearDay() int {
 	return t.Go.YearDay()
+}
+
+func (t *DateTime) ToDate() Date {
+	return MakeDate(t.Year(), t.Month(), t.Day())
+}
+
+// Day of the ISO year.
+func (t DateTime) ISOYearDay() int {
+	yearStart := datetimeISOYearStart(t.ISOYear())
+	yearStartDate := yearStart.ToDate()
+	span := t.ToDate().DiffDate(yearStartDate)
+	return int(span.TotalDays().AsSmallInt())
 }
 
 // Hour in a 24 hour clock.
@@ -279,6 +478,11 @@ func (t DateTime) ZoneName() string {
 func (t DateTime) ZoneAbbreviatedName() string {
 	name, _ := t.Go.Zone()
 	return name
+}
+
+func (t DateTime) ZoneOffset() TimeSpan {
+	_, offset := t.Go.Zone()
+	return TimeSpan(offset) * Second
 }
 
 func (t DateTime) ZoneOffsetSeconds() int {
@@ -459,6 +663,24 @@ func (x *DateTime) Cmp(y *DateTime) int {
 	return x.Go.Compare(y.Go)
 }
 
+func (d *DateTime) CompareVal(other Value) (Value, Value) {
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *DateTime:
+			return SmallInt(d.Cmp(o)).ToValue(), Undefined
+		default:
+			return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case DATE_FLAG:
+		return SmallInt(d.Cmp(other.AsDate().ToDateTime())).ToValue(), Undefined
+	default:
+		return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
 func (t DateTime) MustFormat(formatString string) string {
 	result, err := t.Format(formatString)
 	if !err.IsUndefined() {
@@ -466,6 +688,607 @@ func (t DateTime) MustFormat(formatString string) string {
 	}
 
 	return result
+}
+
+func parseDateTimeMatchText(formatString, input string, currentInput *string, text string) Value {
+	return parseTemporalMatchText("datetime", formatString, input, currentInput, text)
+}
+
+type tmpDateTime struct {
+	date tmpDate
+	time tmpTime
+
+	zone *Timezone
+}
+
+func ParseDateTime(formatString, input string) (result *DateTime, err Value) {
+	scanner := timescanner.New(formatString)
+	currentInput := input
+
+	var tmp tmpDateTime
+
+tokenLoop:
+	for {
+		token, value := scanner.Next()
+		switch token {
+		case timescanner.END_OF_FILE:
+			if len(currentInput) > 0 {
+				return nil, Ref(NewIncompatibleDateTimeFormatError(formatString, input))
+			}
+			break tokenLoop
+		case timescanner.INVALID_FORMAT_DIRECTIVE:
+			return nil, Ref(Errorf(
+				FormatErrorClass,
+				"invalid date format directive: %s",
+				value,
+			))
+		case timescanner.PERCENT:
+			err = parseDateTimeMatchText(formatString, input, &currentInput, "%")
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.NEWLINE:
+			err = parseDateTimeMatchText(formatString, input, &currentInput, "\n")
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.TAB:
+			err = parseDateTimeMatchText(formatString, input, &currentInput, "\t")
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.TEXT:
+			err = parseDateTimeMatchText(formatString, input, &currentInput, value)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.FULL_ISO_YEAR, timescanner.FULL_ISO_YEAR_ZERO_PADDED:
+			err = parseDateISOYear(formatString, input, &currentInput, &tmp.date, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.FULL_ISO_YEAR_SPACE_PADDED:
+			err = parseDateISOYear(formatString, input, &currentInput, &tmp.date, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.FULL_YEAR, timescanner.FULL_YEAR_ZERO_PADDED:
+			err = parseDateYear(formatString, input, &currentInput, &tmp.date, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.FULL_YEAR_SPACE_PADDED:
+			err = parseDateYear(formatString, input, &currentInput, &tmp.date, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.CENTURY, timescanner.CENTURY_ZERO_PADDED:
+			err = parseDateCentury(formatString, input, &currentInput, &tmp.date, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.CENTURY_SPACE_PADDED:
+			err = parseDateCentury(formatString, input, &currentInput, &tmp.date, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.YEAR_LAST_TWO, timescanner.YEAR_LAST_TWO_ZERO_PADDED:
+			err = parseDateYearLastTwo(formatString, input, &currentInput, &tmp.date, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.YEAR_LAST_TWO_SPACE_PADDED:
+			err = parseDateYearLastTwo(formatString, input, &currentInput, &tmp.date, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.YEAR_LAST_TWO_WEEK_BASED, timescanner.YEAR_LAST_TWO_WEEK_BASED_ZERO_PADDED:
+			err = parseDateYearLastTwoWeekBased(formatString, input, &currentInput, &tmp.date, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.YEAR_LAST_TWO_WEEK_BASED_SPACE_PADDED:
+			err = parseDateYearLastTwoWeekBased(formatString, input, &currentInput, &tmp.date, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.MONTH, timescanner.MONTH_ZERO_PADDED:
+			err = parseDateMonth(formatString, input, &currentInput, &tmp.date, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.MONTH_SPACE_PADDED:
+			err = parseDateMonth(formatString, input, &currentInput, &tmp.date, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.MONTH_FULL_NAME, timescanner.MONTH_FULL_NAME_UPPERCASE:
+			err = parseDateMonthName(&currentInput, &tmp.date)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.MONTH_ABBREVIATED_NAME, timescanner.MONTH_ABBREVIATED_NAME_UPPERCASE:
+			err = parseDateAbbreviatedMonthName(&currentInput, &tmp.date)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.DAY_OF_MONTH, timescanner.DAY_OF_MONTH_ZERO_PADDED:
+			err = parseDateDayOfMonth(formatString, input, &currentInput, &tmp.date, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.DAY_OF_MONTH_SPACE_PADDED:
+			err = parseDateDayOfMonth(formatString, input, &currentInput, &tmp.date, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.DAY_OF_YEAR, timescanner.DAY_OF_YEAR_ZERO_PADDED:
+			err = parseDateDayOfYear(formatString, input, &currentInput, &tmp.date, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.DAY_OF_YEAR_SPACE_PADDED:
+			err = parseDateDayOfYear(formatString, input, &currentInput, &tmp.date, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.DAY_OF_WEEK_FULL_NAME, timescanner.DAY_OF_WEEK_FULL_NAME_UPPERCASE:
+			err = parseDateDayOfWeekName(&currentInput, &tmp.date)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.DAY_OF_WEEK_ABBREVIATED_NAME, timescanner.DAY_OF_WEEK_ABBREVIATED_NAME_UPPERCASE:
+			err = parseDateAbbreviatedDayOfWeekName(&currentInput, &tmp.date)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.DAY_OF_WEEK_NUMBER:
+			err = parseDateDayOfWeekNumber(formatString, input, &currentInput, &tmp.date)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.DAY_OF_WEEK_NUMBER_ALT:
+			err = parseDateDayOfWeekNumberAlt(formatString, input, &currentInput, &tmp.date)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.ISO_WEEK, timescanner.ISO_WEEK_ZERO_PADDED:
+			err = parseISOWeek(formatString, input, &currentInput, &tmp.date, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.ISO_WEEK_SPACE_PADDED:
+			err = parseISOWeek(formatString, input, &currentInput, &tmp.date, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.WEEK_OF_YEAR, timescanner.WEEK_OF_YEAR_ZERO_PADDED:
+			err = parseWeekOfYear(formatString, input, &currentInput, &tmp.date, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.WEEK_OF_YEAR_SPACE_PADDED:
+			err = parseWeekOfYear(formatString, input, &currentInput, &tmp.date, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.WEEK_OF_YEAR_ALT, timescanner.WEEK_OF_YEAR_ALT_ZERO_PADDED:
+			err = parseWeekOfYearAlt(formatString, input, &currentInput, &tmp.date, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.WEEK_OF_YEAR_ALT_SPACE_PADDED:
+			err = parseWeekOfYearAlt(formatString, input, &currentInput, &tmp.date, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.DATE:
+			err = parseDate(formatString, input, &currentInput, &tmp.date)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.ISO8601_DATE:
+			err = parseISO8601Date(formatString, input, &currentInput, &tmp.date)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.HOUR_OF_DAY, timescanner.HOUR_OF_DAY_ZERO_PADDED:
+			err = parseTimeHour(formatString, input, &currentInput, &tmp.time, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.HOUR_OF_DAY_SPACE_PADDED:
+			err = parseTimeHour(formatString, input, &currentInput, &tmp.time, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.HOUR_OF_DAY12, timescanner.HOUR_OF_DAY12_ZERO_PADDED:
+			err = parseTime12Hour(formatString, input, &currentInput, &tmp.time, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.HOUR_OF_DAY12_SPACE_PADDED:
+			err = parseTime12Hour(formatString, input, &currentInput, &tmp.time, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.MERIDIEM_INDICATOR_LOWERCASE, timescanner.MERIDIEM_INDICATOR_UPPERCASE:
+			err = parseTimeMeridiem(formatString, input, &currentInput, &tmp.time)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.MINUTE_OF_HOUR, timescanner.MINUTE_OF_HOUR_ZERO_PADDED:
+			err = parseTimeMinute(formatString, input, &currentInput, &tmp.time, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.MINUTE_OF_HOUR_SPACE_PADDED:
+			err = parseTimeMinute(formatString, input, &currentInput, &tmp.time, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.SECOND_OF_MINUTE, timescanner.SECOND_OF_MINUTE_ZERO_PADDED:
+			err = parseTimeSecond(formatString, input, &currentInput, &tmp.time, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.SECOND_OF_MINUTE_SPACE_PADDED:
+			err = parseTimeSecond(formatString, input, &currentInput, &tmp.time, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.MILLISECOND_OF_SECOND, timescanner.MILLISECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeMillisecond(formatString, input, &currentInput, &tmp.time, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.MILLISECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeMillisecond(formatString, input, &currentInput, &tmp.time, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.MICROSECOND_OF_SECOND, timescanner.MICROSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeMicrosecond(formatString, input, &currentInput, &tmp.time, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.MICROSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeMicrosecond(formatString, input, &currentInput, &tmp.time, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.NANOSECOND_OF_SECOND, timescanner.NANOSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeNanosecond(formatString, input, &currentInput, &tmp.time, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.NANOSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeNanosecond(formatString, input, &currentInput, &tmp.time, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.PICOSECOND_OF_SECOND, timescanner.PICOSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeSubNanosecond(12, "picosecond", formatString, input, &currentInput, &tmp.time, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.PICOSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeSubNanosecond(12, "picosecond", formatString, input, &currentInput, &tmp.time, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.FEMTOSECOND_OF_SECOND, timescanner.FEMTOSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeSubNanosecond(15, "femtosecond", formatString, input, &currentInput, &tmp.time, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.FEMTOSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeSubNanosecond(15, "femtosecond", formatString, input, &currentInput, &tmp.time, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.ATTOSECOND_OF_SECOND, timescanner.ATTOSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeSubNanosecond(18, "attosecond", formatString, input, &currentInput, &tmp.time, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.ATTOSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeSubNanosecond(18, "attosecond", formatString, input, &currentInput, &tmp.time, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.ZEPTOSECOND_OF_SECOND, timescanner.ZEPTOSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeSubNanosecond(21, "zeptosecond", formatString, input, &currentInput, &tmp.time, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.ZEPTOSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeSubNanosecond(21, "zeptosecond", formatString, input, &currentInput, &tmp.time, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.YOCTOSECOND_OF_SECOND, timescanner.YOCTOSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeSubNanosecond(24, "yoctosecond", formatString, input, &currentInput, &tmp.time, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.YOCTOSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeSubNanosecond(24, "yoctosecond", formatString, input, &currentInput, &tmp.time, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.TIMEZONE_NAME:
+			err = parseDateTimeTimezoneName(formatString, input, &currentInput, &tmp)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.TIMEZONE_IANA_NAME:
+			err = parseDateTimeTimezoneIANAName(formatString, input, &currentInput, &tmp)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.TIMEZONE_OFFSET:
+			err = parseDateTimeTimezoneOffset(formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.TIMEZONE_OFFSET_COLON:
+			err = parseDateTimeTimezoneOffset(formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.TIME12:
+			err = parseTime12(formatString, input, &currentInput, &tmp.time)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.TIME24:
+			err = parseTime24(formatString, input, &currentInput, &tmp.time)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.TIME24_SECONDS:
+			err = parseTime24Seconds(formatString, input, &currentInput, &tmp.time)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.DATE_AND_TIME, timescanner.DATE_AND_TIME_UPPERCASE:
+			err = parseDateAndTime(formatString, input, &currentInput, &tmp)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		case timescanner.DATE1_FORMAT, timescanner.DATE1_FORMAT_UPPERCASE:
+			err = parseDate1(formatString, input, &currentInput, &tmp)
+			if !err.IsUndefined() {
+				return nil, err
+			}
+		default:
+			return nil, Ref(Errorf(
+				FormatErrorClass,
+				"unsupported datetime format directive: %s",
+				token.String(),
+			))
+		}
+
+	}
+
+	date := constructDateFromTmp(tmp.date)
+	time := constructTimeFromTmp(tmp.time)
+	var zone *Timezone
+	if tmp.zone != nil {
+		zone = tmp.zone
+	} else {
+		zone = LocalTimezone
+	}
+
+	r := MakeDateTimeFromDateAndTime(date, time, zone)
+	return &r, err
+}
+
+func parseDateTimeTimezoneOffset(formatString, input string, currentInput *string, tmp *tmpDateTime, colon bool) Value {
+	if len(*currentInput) < 1 {
+		return Ref(NewIncompatibleDateTimeFormatError(formatString, input))
+	}
+
+	signChar := (*currentInput)[0]
+	*currentInput = (*currentInput)[1:]
+
+	var sign int
+	switch signChar {
+	case '+':
+		sign = 1
+	case '-':
+		sign = -1
+	default:
+		return Ref(Errorf(
+			FormatErrorClass,
+			"invalid datetime timezone sign: %c",
+			signChar,
+		))
+	}
+
+	var hours, minutes int
+
+	hours, *currentInput = parseTemporalDigits(*currentInput, 2, false)
+	if hours < 0 {
+		return Ref(NewIncompatibleDateTimeFormatError(formatString, input))
+	}
+	if hours >= 24 {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"value for datetime timezone offset hours out of range: %d",
+			hours,
+		))
+	}
+
+	if colon {
+		err := parseDateTimeMatchText(formatString, input, currentInput, ":")
+		if !err.IsUndefined() {
+			return err
+		}
+	}
+
+	minutes, *currentInput = parseTemporalDigits(*currentInput, 2, false)
+	if minutes < 0 {
+		return Ref(NewIncompatibleDateTimeFormatError(formatString, input))
+	}
+	if minutes >= 60 {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"value for datetime timezone offset minutes out of range: %d",
+			hours,
+		))
+	}
+
+	offset := TimeSpan(sign) * (TimeSpan(hours)*Hour + TimeSpan(minutes)*Minute)
+	tmp.zone = NewTimezoneFromOffset(offset)
+	return Undefined
+}
+
+func parseDateTimeTimezoneIANAName(formatString, input string, currentInput *string, tmp *tmpDateTime) (err Value) {
+	var buffer strings.Builder
+
+inputLoop:
+	for len(*currentInput) > 0 {
+		char, size := utf8.DecodeRuneInString(*currentInput)
+		switch char {
+		case '/', '+', '-', '_':
+		default:
+			if !unicode.IsLetter(char) && !unicode.IsDigit(char) {
+				break inputLoop
+			}
+		}
+		*currentInput = (*currentInput)[size:]
+		buffer.WriteRune(char)
+	}
+
+	timezoneName := buffer.String()
+	location, er := time.LoadLocation(timezoneName)
+	if er != nil {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"invalid datetime timezone name: %s",
+			timezoneName,
+		))
+	}
+
+	tmp.zone = NewTimezone(location)
+	return Undefined
+}
+
+func parseDateTimeTimezoneName(formatString, input string, currentInput *string, tmp *tmpDateTime) (err Value) {
+	var buffer strings.Builder
+
+	for len(*currentInput) > 0 {
+		char, size := utf8.DecodeRuneInString(*currentInput)
+		if !unicode.IsLetter(char) {
+			break
+		}
+		*currentInput = (*currentInput)[size:]
+		buffer.WriteRune(unicode.ToUpper(char))
+	}
+
+	timezoneName := buffer.String()
+	offset, ok := tzAbbrevOffsets[timezoneName]
+	if !ok {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"invalid datetime timezone abbreviation: %s",
+			timezoneName,
+		))
+	}
+
+	tmp.zone = NewTimezoneFromOffset(offset)
+	return Undefined
+}
+
+func parseDate1(formatString, input string, currentInput *string, tmp *tmpDateTime) (err Value) {
+	err = parseDateAbbreviatedDayOfWeekName(currentInput, &tmp.date)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateTimeMatchText(formatString, input, currentInput, " ")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateAbbreviatedMonthName(currentInput, &tmp.date)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateTimeMatchText(formatString, input, currentInput, " ")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateDayOfMonth(formatString, input, currentInput, &tmp.date, true)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateTimeMatchText(formatString, input, currentInput, " ")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTime24Seconds(formatString, input, currentInput, &tmp.time)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateTimeMatchText(formatString, input, currentInput, " ")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateTimeTimezoneName(formatString, input, currentInput, tmp)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateTimeMatchText(formatString, input, currentInput, " ")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateYear(formatString, input, currentInput, &tmp.date, true)
+	if !err.IsUndefined() {
+		return err
+	}
+	return Undefined
+}
+
+func parseDateAndTime(formatString, input string, currentInput *string, tmp *tmpDateTime) (err Value) {
+	err = parseDateAbbreviatedDayOfWeekName(currentInput, &tmp.date)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateTimeMatchText(formatString, input, currentInput, " ")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateAbbreviatedMonthName(currentInput, &tmp.date)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateTimeMatchText(formatString, input, currentInput, " ")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateDayOfMonth(formatString, input, currentInput, &tmp.date, true)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateTimeMatchText(formatString, input, currentInput, " ")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTime24Seconds(formatString, input, currentInput, &tmp.time)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateTimeMatchText(formatString, input, currentInput, " ")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseDateYear(formatString, input, currentInput, &tmp.date, false)
+	if !err.IsUndefined() {
+		return err
+	}
+
+	return Undefined
 }
 
 // Create a string formatted according to the given format string.
@@ -493,11 +1316,11 @@ tokenLoop:
 			buffer.WriteByte('\t')
 		case timescanner.TEXT:
 			buffer.WriteString(value)
-		case timescanner.FULL_YEAR_WEEK_BASED:
+		case timescanner.FULL_ISO_YEAR:
 			fmt.Fprintf(&buffer, "%d", t.ISOYear())
-		case timescanner.FULL_YEAR_WEEK_BASED_SPACE_PADDED:
+		case timescanner.FULL_ISO_YEAR_SPACE_PADDED:
 			fmt.Fprintf(&buffer, "%4d", t.ISOYear())
-		case timescanner.FULL_YEAR_WEEK_BASED_ZERO_PADDED:
+		case timescanner.FULL_ISO_YEAR_ZERO_PADDED:
 			fmt.Fprintf(&buffer, "%04d", t.ISOYear())
 		case timescanner.FULL_YEAR:
 			fmt.Fprintf(&buffer, "%d", t.Year())
@@ -583,27 +1406,35 @@ tokenLoop:
 			fmt.Fprintf(&buffer, "%3d", t.Millisecond())
 		case timescanner.MILLISECOND_OF_SECOND_ZERO_PADDED:
 			fmt.Fprintf(&buffer, "%03d", t.Millisecond())
+		case timescanner.TIMEZONE_IANA_NAME:
+			buffer.WriteString(t.ZoneName())
 		case timescanner.TIMEZONE_NAME:
 			buffer.WriteString(t.ZoneAbbreviatedName())
 		case timescanner.TIMEZONE_OFFSET:
-			hours := t.ZoneOffsetHours()
-			minutes := t.ZoneOffsetHourMinutes()
+			offset := t.ZoneOffset()
 			var sign string
-			if hours >= 0 {
+			if offset >= 0 {
 				sign = "+"
 			} else {
 				sign = "-"
+				offset = -offset
 			}
+
+			hours := offset / Hour
+			minutes := (offset % Hour) / Minute
 			fmt.Fprintf(&buffer, "%s%02d%02d", sign, hours, minutes)
 		case timescanner.TIMEZONE_OFFSET_COLON:
-			hours := t.ZoneOffsetHours()
-			minutes := t.ZoneOffsetHourMinutes()
+			offset := t.ZoneOffset()
 			var sign string
-			if hours >= 0 {
+			if offset >= 0 {
 				sign = "+"
 			} else {
 				sign = "-"
+				offset = -offset
 			}
+
+			hours := offset / Hour
+			minutes := (offset % Hour) / Minute
 			fmt.Fprintf(&buffer, "%s%02d:%02d", sign, hours, minutes)
 		case timescanner.DAY_OF_WEEK_FULL_NAME:
 			buffer.WriteString(t.WeekdayName())
@@ -635,11 +1466,11 @@ tokenLoop:
 			fmt.Fprintf(&buffer, "%d%018d000", t.UnixSeconds(), t.AttosecondsInSecond())
 		case timescanner.UNIX_YOCTOSECONDS:
 			fmt.Fprintf(&buffer, "%d%018d000000", t.UnixSeconds(), t.AttosecondsInSecond())
-		case timescanner.WEEK_OF_WEEK_BASED_YEAR:
+		case timescanner.ISO_WEEK:
 			fmt.Fprintf(&buffer, "%d", t.ISOWeek())
-		case timescanner.WEEK_OF_WEEK_BASED_YEAR_SPACE_PADDED:
+		case timescanner.ISO_WEEK_SPACE_PADDED:
 			fmt.Fprintf(&buffer, "%2d", t.ISOWeek())
-		case timescanner.WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED:
+		case timescanner.ISO_WEEK_ZERO_PADDED:
 			fmt.Fprintf(&buffer, "%02d", t.ISOWeek())
 		case timescanner.WEEK_OF_YEAR:
 			fmt.Fprintf(&buffer, "%d", t.WeekFromMonday())
@@ -777,79 +1608,131 @@ tokenLoop:
 
 // Check whether t is greater than other and return an error
 // if something went wrong.
-func (t *DateTime) GreaterThan(other Value) (result Value, err Value) {
+func (t *DateTime) GreaterThan(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_FLAG:
+		return t.Cmp(other.AsDate().ToDateTime()) == 1, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
+	}
+
 	if !other.IsReference() {
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case *DateTime:
-		return ToElkBool(t.Cmp(o) == 1), err
+		return t.Cmp(o) == 1, err
 	default:
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
+}
+
+func (t *DateTime) GreaterThanVal(other Value) (Value, Value) {
+	result, err := t.GreaterThan(other)
+	return ToElkBool(result), err
 }
 
 // Check whether t is greater than or equal to other and return an error
 // if something went wrong.
-func (t *DateTime) GreaterThanEqual(other Value) (result Value, err Value) {
+func (t *DateTime) GreaterThanEqual(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_FLAG:
+		return t.Cmp(other.AsDate().ToDateTime()) >= 0, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
+	}
+
 	if !other.IsReference() {
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case *DateTime:
-		return ToElkBool(t.Cmp(o) >= 0), err
+		return t.Cmp(o) >= 0, err
 	default:
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
+}
+
+func (t *DateTime) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := t.GreaterThanEqual(other)
+	return ToElkBool(result), err
 }
 
 // Check whether t is less than other and return an error
 // if something went wrong.
-func (t *DateTime) LessThan(other Value) (result Value, err Value) {
+func (t *DateTime) LessThan(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_FLAG:
+		return t.Cmp(other.AsDate().ToDateTime()) == -1, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
+	}
+
 	if !other.IsReference() {
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case *DateTime:
-		return ToElkBool(t.Cmp(o) == -1), err
+		return t.Cmp(o) == -1, err
 	default:
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
+}
+
+func (t *DateTime) LessThanVal(other Value) (Value, Value) {
+	result, err := t.LessThan(other)
+	return ToElkBool(result), err
 }
 
 // Check whether t is less than or equal to other and return an error
 // if something went wrong.
-func (t *DateTime) LessThanEqual(other Value) (result Value, err Value) {
+func (t *DateTime) LessThanEqual(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_FLAG:
+		return t.Cmp(other.AsDate().ToDateTime()) <= 0, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(t.Class(), other.Class()))
+	}
+
 	if !other.IsReference() {
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 	switch o := other.AsReference().(type) {
 	case *DateTime:
-		return ToElkBool(t.Cmp(o) <= 0), err
+		return t.Cmp(o) <= 0, err
 	default:
 		return result, Ref(NewCoerceError(t.Class(), other.Class()))
 	}
 }
 
-func (t *DateTime) LaxEqual(other Value) Value {
+func (t *DateTime) LessThanEqualVal(other Value) (Value, Value) {
+	result, err := t.LessThanEqual(other)
+	return ToElkBool(result), err
+}
+
+func (t *DateTime) LaxEqual(other Value) bool {
 	return t.Equal(other)
 }
 
 // Check whether t is equal to other and return an error
 // if something went wrong.
-func (t *DateTime) Equal(other Value) Value {
+func (t *DateTime) Equal(other Value) bool {
 	if !other.IsReference() {
-		return False
+		return false
 	}
 	switch o := other.AsReference().(type) {
 	case *DateTime:
-		return ToElkBool(t.Cmp(o) == 0)
+		return t.Cmp(o) == 0
 	default:
-		return False
+		return false
 	}
 }
 
-func (t *DateTime) StrictEqual(other Value) Value {
+func (t *DateTime) StrictEqual(other Value) bool {
 	return t.Equal(other)
 }
 

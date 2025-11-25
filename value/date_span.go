@@ -88,6 +88,170 @@ func (d DateSpan) ToString() String {
 	return String(d.String())
 }
 
+func (d DateSpan) ToDate() Date {
+	d.months += 1
+	date := MakeDate(
+		d.Years(),
+		d.Months(),
+		1,
+	)
+	date = date.AddDateSpan(MakeDateSpan(0, 0, d.Days()))
+
+	return date
+}
+
+func (x DateSpan) Cmp(y DateSpan) int {
+	xDays := x.InDaysBigFloat()
+	yDays := y.InDaysBigFloat()
+	return xDays.Cmp(yDays)
+}
+
+func (d DateSpan) CompareVal(other Value) (Value, Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return SmallInt(d.Cmp(other.AsDateSpan())).ToValue(), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+
+	if !other.IsReference() {
+		return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
+	case DateSpan:
+		return SmallInt(d.Cmp(o)).ToValue(), Undefined
+	case *DateTimeSpan:
+		return SmallInt(d.ToDateTimeSpan().Cmp(o)).ToValue(), Undefined
+	default:
+		return Undefined, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+// Check whether d is greater than other and return an error
+// if something went wrong.
+func (d DateSpan) GreaterThan(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return d.Cmp(other.AsDateSpan()) == 1, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+
+	if !other.IsReference() {
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
+	case DateSpan:
+		return d.Cmp(o) == 1, err
+	case *DateTimeSpan:
+		return d.ToDateTimeSpan().Cmp(o) == 1, Undefined
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+func (d DateSpan) GreaterThanVal(other Value) (Value, Value) {
+	result, err := d.GreaterThan(other)
+	return ToElkBool(result), err
+}
+
+// Check whether d is greater than or equal to other and return an error
+// if something went wrong.
+func (d DateSpan) GreaterThanEqual(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return d.Cmp(other.AsDateSpan()) >= 0, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+
+	if !other.IsReference() {
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
+	case DateSpan:
+		return d.Cmp(o) >= 0, err
+	case *DateTimeSpan:
+		return d.ToDateTimeSpan().Cmp(o) >= 0, Undefined
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+func (d DateSpan) GreaterThanEqualVal(other Value) (Value, Value) {
+	result, err := d.GreaterThanEqual(other)
+	return ToElkBool(result), err
+}
+
+// Check whether d is less than other and return an error
+// if something went wrong.
+func (d DateSpan) LessThan(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return d.Cmp(other.AsDateSpan()) == -1, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+
+	if !other.IsReference() {
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
+	case DateSpan:
+		return d.Cmp(o) == -1, err
+	case *DateTimeSpan:
+		return d.ToDateTimeSpan().Cmp(o) == -1, Undefined
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+func (d DateSpan) LessThanVal(other Value) (Value, Value) {
+	result, err := d.LessThan(other)
+	return ToElkBool(result), err
+}
+
+// Check whether d is less than or equal to other and return an error
+// if something went wrong.
+func (d DateSpan) LessThanEqual(other Value) (result bool, err Value) {
+	switch other.flag {
+	case DATE_SPAN_FLAG:
+		return d.Cmp(other.AsDateSpan()) <= 0, err
+	case REFERENCE_FLAG:
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+
+	if !other.IsReference() {
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+	switch o := other.AsReference().(type) {
+	case DateSpan:
+		return d.Cmp(o) <= 0, err
+	case *DateTimeSpan:
+		return d.ToDateTimeSpan().Cmp(o) <= 0, Undefined
+	default:
+		return result, Ref(NewCoerceError(d.Class(), other.Class()))
+	}
+}
+
+func (d DateSpan) Equal(other Value) bool {
+	o, ok := other.AsDateSpanOk()
+	if !ok {
+		return false
+	}
+
+	return d.months == o.months && d.days == o.days
+}
+
+func (d DateSpan) ToDateTimeSpan() *DateTimeSpan {
+	return NewDateTimeSpan(d, 0)
+}
+
 func (d DateSpan) Negate() DateSpan {
 	return DateSpan{
 		months: -d.months,
@@ -185,6 +349,18 @@ func (d DateSpan) InDays() Float {
 	return Float(d.months)*MonthDays + Float(d.days)
 }
 
+func (d DateSpan) InDaysBigFloat() *BigFloat {
+	bf := (&BigFloat{}).SetPrecision(128)
+	bf.SetInt64(int64(d.days))
+
+	monthsBf := (&BigFloat{}).SetPrecision(128)
+	monthsBf.SetInt64(int64(d.months))
+	monthsBf.MulBigFloat(monthsBf, NewBigFloat(MonthDays))
+	bf.AddBigFloat(bf, monthsBf)
+
+	return bf
+}
+
 func (d DateSpan) Months() int {
 	return int(d.months % 12)
 }
@@ -267,9 +443,9 @@ func (d DateSpan) AddDateTimeSpan(other *DateTimeSpan) *DateTimeSpan {
 func (d DateSpan) Subtract(other Value) (Value, Value) {
 	switch other.flag {
 	case DATE_SPAN_FLAG:
-		return d.SubtractDateSpan(other.AsDateSpan()).ToValue(), Undefined
+		return d.SubtractDateSpan(other.AsInlineDateSpan()).ToValue(), Undefined
 	case TIME_SPAN_FLAG:
-		return Ref(d.SubtractTimeSpan(other.AsTimeSpan())), Undefined
+		return Ref(d.SubtractTimeSpan(other.AsInlineTimeSpan())), Undefined
 	case REFERENCE_FLAG:
 	default:
 		return Undefined, Ref(NewArgumentTypeError("other", other.Class().Inspect(), durationUnionType))
@@ -283,7 +459,6 @@ func (d DateSpan) Subtract(other Value) (Value, Value) {
 	case *DateTimeSpan:
 		return Ref(d.SubtractDateTimeSpan(other)), Undefined
 	default:
-
 		return Undefined, Ref(NewArgumentTypeError("other", other.Class().Inspect(), durationUnionType))
 	}
 }

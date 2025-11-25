@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value/timescanner"
 )
 
@@ -20,21 +21,29 @@ var TimeClass *Class // ::Std::Time
 
 func TimeNow() Time {
 	t := time.Now()
-	return MakeTime(t.Hour(), t.Minute(), t.Second(), t.Nanosecond())
+	return MakeTime(t.Hour(), t.Minute(), t.Second(), 0, 0, t.Nanosecond())
 }
 
 // Create a new Time value.
-func MakeTime(hour, min, sec, nsec int) Time {
+func MakeTime(hour, min, sec, millisec, microsec, nsec int) Time {
 	duration := TimeSpan(hour)*Hour +
 		TimeSpan(min)*Minute +
 		TimeSpan(sec)*Second +
+		TimeSpan(millisec)*Millisecond +
+		TimeSpan(microsec)*Microsecond +
 		TimeSpan(nsec)*Nanosecond
-
-	duration %= Day
 
 	return Time{
 		duration: duration,
+	}.Normalise()
+}
+
+func (t Time) Normalise() Time {
+	t.duration %= Day
+	if t.duration < 0 {
+		t.duration = 24*Hour + t.duration
 	}
+	return t
 }
 
 func (t Time) ToTimeSpan() TimeSpan {
@@ -47,7 +56,8 @@ func (t Time) ToDateTime() *DateTime {
 }
 
 func (t Time) ToDateTimeValue() DateTime {
-	goTime := time.Date(0, 1, 1, t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.UTC)
+	now := DateTimeNow()
+	goTime := time.Date(now.Year(), time.Month(now.Month()), now.Day(), t.Hour(), t.Minute(), t.Second(), t.NanosecondsInSecond(), now.Go.Location())
 	return ToElkDateTimeValue(goTime)
 }
 
@@ -137,13 +147,13 @@ func (t Time) AttosecondsInSecond() int64 {
 }
 
 func (t Time) ZeptosecondsInSecond() *BigInt {
-	i := big.NewInt(int64(t.Nanosecond()))
+	i := big.NewInt(int64(t.NanosecondsInSecond()))
 	i.Mul(i, big.NewInt(1000_000_000_000))
 	return ToElkBigInt(i)
 }
 
 func (t Time) YoctosecondsInSecond() *BigInt {
-	i := big.NewInt(int64(t.Nanosecond()))
+	i := big.NewInt(int64(t.NanosecondsInSecond()))
 	i.Mul(i, big.NewInt(1000_000_000_000_000))
 	return ToElkBigInt(i)
 }
@@ -192,6 +202,74 @@ func (t Time) Hour12() int {
 	return hour - 12
 }
 
+func (t Time) Cmp(other Time) int {
+	return t.duration.Cmp(other.duration)
+}
+
+func (t Time) GreaterThan(other Time) bool {
+	return t.duration > other.duration
+}
+
+func (t Time) GreaterThanEqual(other Time) bool {
+	return t.duration >= other.duration
+}
+
+func (t Time) LessThan(other Time) bool {
+	return t.duration < other.duration
+}
+
+func (t Time) LessThanEqual(other Time) bool {
+	return t.duration <= other.duration
+}
+
+func (t Time) Equal(other Value) bool {
+	o, ok := other.AsTimeOk()
+	if !ok {
+		return false
+	}
+
+	return t.duration.Equal(o.duration.ToValue())
+}
+
+// Adds the given duration to the time.
+// Returns a new time structure.
+func (t Time) Add(val TimeSpan) Time {
+	return t.duration.AddTimeSpan(val).ToTime()
+}
+
+func (t Time) Subtract(val Value) (Value, Value) {
+	switch val.flag {
+	case TIME_SPAN_FLAG:
+		return Ref(t.SubtractTimeSpan(val.AsInlineTimeSpan())), Undefined
+	case TIME_FLAG:
+		return Ref(t.Diff(val.AsInlineTime())), Undefined
+	case REFERENCE_FLAG:
+	default:
+		return Undefined, Ref(NewCoerceError(TimeClass, val.Class()))
+	}
+
+	switch val := val.AsReference().(type) {
+	case TimeSpan:
+		return Ref(t.SubtractTimeSpan(val)), Undefined
+	case Time:
+		return Ref(t.Diff(val)), Undefined
+	default:
+		return Undefined, Ref(NewCoerceError(TimeClass, val.Class()))
+	}
+}
+
+// Subtracts the given duration from the time.
+// Returns a new time structure.
+func (t Time) SubtractTimeSpan(val TimeSpan) Time {
+	return t.duration.SubtractTimeSpan(val).ToTime()
+}
+
+// Calculates the difference between two time values.
+// Returns a duration.
+func (t Time) Diff(val Time) TimeSpan {
+	return t.duration.SubtractTimeSpan(val.duration)
+}
+
 func (t Time) MustFormat(formatString string) string {
 	result, err := t.Format(formatString)
 	if !err.IsUndefined() {
@@ -199,6 +277,612 @@ func (t Time) MustFormat(formatString string) string {
 	}
 
 	return result
+}
+
+func parseTemporalDigits(s string, maxChars int, spacePadded bool) (int, string) {
+	n, str, _ := parseTemporalDigitsOk(s, maxChars, spacePadded)
+	return n, str
+}
+
+func parseTemporalDigitsOk(s string, maxChars int, spacePadded bool) (int, string, bool) {
+	if len(s) == 0 {
+		return -1, "", false
+	}
+
+	n := 0
+	i := 0
+
+	if spacePadded {
+		for ; i < len(s) && i < maxChars && s[i] == ' '; i++ {
+		}
+	}
+
+	for {
+		if i >= len(s) || i >= maxChars {
+			break
+		}
+		ch := s[i]
+		if ch < '0' || ch > '9' {
+			break
+		}
+		n = n*10 + int(ch-'0')
+		i++
+	}
+
+	if i == 0 {
+		return -1, "", false
+	}
+
+	return n, s[i:], true
+}
+
+func parseBigDigits(s string, maxChars int, spacePadded bool) (*BigInt, string) {
+	if len(s) == 0 {
+		return nil, ""
+	}
+
+	result := &big.Int{}
+	ten := big.NewInt(10)
+	i := 0
+
+	if spacePadded {
+		for ; i < len(s) && i < maxChars && s[i] == ' '; i++ {
+		}
+	}
+
+	for {
+		if i >= len(s) || i >= maxChars {
+			break
+		}
+		ch := s[i]
+		if ch < '0' || ch > '9' {
+			break
+		}
+
+		result.Mul(result, ten)
+		result.Add(result, big.NewInt(int64(ch-'0')))
+		i++
+	}
+
+	if i == 0 {
+		return nil, ""
+	}
+
+	return ToElkBigInt(result), s[i:]
+}
+
+const (
+	timeHasHour bitfield.BitFlag16 = 1 << iota
+	timeHasMinute
+	timeHasSecond
+	timeHasNanosecond
+
+	timeHasHour12
+	timeHasPM
+)
+
+type tmpTime struct {
+	hour       int
+	minute     int
+	second     int
+	nanosecond int64
+
+	hour12 int
+	isPM   bool
+
+	flags bitfield.BitField16
+}
+
+func ParseTime(formatString, input string) (result Time, err Value) {
+	scanner := timescanner.New(formatString)
+	currentInput := input
+
+	var tmp tmpTime
+
+tokenLoop:
+	for {
+		token, value := scanner.Next()
+		switch token {
+		case timescanner.END_OF_FILE:
+			if len(currentInput) > 0 {
+				return Time{}, Ref(NewIncompatibleTimeFormatError(formatString, input))
+			}
+			break tokenLoop
+		case timescanner.INVALID_FORMAT_DIRECTIVE:
+			return Time{}, Ref(Errorf(
+				FormatErrorClass,
+				"invalid time format directive: %s",
+				value,
+			))
+		case timescanner.PERCENT:
+			err = parseTimeMatchText(formatString, input, &currentInput, "%")
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.NEWLINE:
+			err = parseTimeMatchText(formatString, input, &currentInput, "\n")
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.TAB:
+			err = parseTimeMatchText(formatString, input, &currentInput, "\t")
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.TEXT:
+			err = parseTimeMatchText(formatString, input, &currentInput, value)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.HOUR_OF_DAY, timescanner.HOUR_OF_DAY_ZERO_PADDED:
+			err = parseTimeHour(formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.HOUR_OF_DAY_SPACE_PADDED:
+			err = parseTimeHour(formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.HOUR_OF_DAY12, timescanner.HOUR_OF_DAY12_ZERO_PADDED:
+			err = parseTime12Hour(formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.HOUR_OF_DAY12_SPACE_PADDED:
+			err = parseTime12Hour(formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.MERIDIEM_INDICATOR_LOWERCASE, timescanner.MERIDIEM_INDICATOR_UPPERCASE:
+			err = parseTimeMeridiem(formatString, input, &currentInput, &tmp)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.MINUTE_OF_HOUR, timescanner.MINUTE_OF_HOUR_ZERO_PADDED:
+			err = parseTimeMinute(formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.MINUTE_OF_HOUR_SPACE_PADDED:
+			err = parseTimeMinute(formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.SECOND_OF_MINUTE, timescanner.SECOND_OF_MINUTE_ZERO_PADDED:
+			err = parseTimeSecond(formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.SECOND_OF_MINUTE_SPACE_PADDED:
+			err = parseTimeSecond(formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.MILLISECOND_OF_SECOND, timescanner.MILLISECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeMillisecond(formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.MILLISECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeMillisecond(formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.MICROSECOND_OF_SECOND, timescanner.MICROSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeMicrosecond(formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.MICROSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeMicrosecond(formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.NANOSECOND_OF_SECOND, timescanner.NANOSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeNanosecond(formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.NANOSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeNanosecond(formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.PICOSECOND_OF_SECOND, timescanner.PICOSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeSubNanosecond(12, "picosecond", formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.PICOSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeSubNanosecond(12, "picosecond", formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.FEMTOSECOND_OF_SECOND, timescanner.FEMTOSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeSubNanosecond(15, "femtosecond", formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.FEMTOSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeSubNanosecond(15, "femtosecond", formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.ATTOSECOND_OF_SECOND, timescanner.ATTOSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeSubNanosecond(18, "attosecond", formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.ATTOSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeSubNanosecond(18, "attosecond", formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.ZEPTOSECOND_OF_SECOND, timescanner.ZEPTOSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeSubNanosecond(21, "zeptosecond", formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.ZEPTOSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeSubNanosecond(21, "zeptosecond", formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.YOCTOSECOND_OF_SECOND, timescanner.YOCTOSECOND_OF_SECOND_ZERO_PADDED:
+			err = parseTimeSubNanosecond(24, "yoctosecond", formatString, input, &currentInput, &tmp, false)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.YOCTOSECOND_OF_SECOND_SPACE_PADDED:
+			err = parseTimeSubNanosecond(24, "yoctosecond", formatString, input, &currentInput, &tmp, true)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.TIME12:
+			err = parseTime12(formatString, input, &currentInput, &tmp)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.TIME24:
+			err = parseTime24(formatString, input, &currentInput, &tmp)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		case timescanner.TIME24_SECONDS:
+			err = parseTime24Seconds(formatString, input, &currentInput, &tmp)
+			if !err.IsUndefined() {
+				return Time{}, err
+			}
+		default:
+			return Time{}, Ref(Errorf(
+				FormatErrorClass,
+				"unsupported time format directive: %s",
+				token.String(),
+			))
+		}
+
+	}
+
+	return constructTimeFromTmp(tmp), err
+}
+
+func parseTime12(formatString, input string, currentInput *string, tmp *tmpTime) (err Value) {
+	err = parseTime12Hour(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMatchText(formatString, input, currentInput, ":")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMinute(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMatchText(formatString, input, currentInput, ":")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeSecond(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMatchText(formatString, input, currentInput, " ")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMeridiem(formatString, input, currentInput, tmp)
+	if !err.IsUndefined() {
+		return err
+	}
+
+	return Undefined
+}
+
+func parseTime24(formatString, input string, currentInput *string, tmp *tmpTime) (err Value) {
+	err = parseTimeHour(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMatchText(formatString, input, currentInput, ":")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMinute(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+
+	return Undefined
+}
+
+func parseTime24Seconds(formatString, input string, currentInput *string, tmp *tmpTime) (err Value) {
+	err = parseTimeHour(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMatchText(formatString, input, currentInput, ":")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMinute(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeMatchText(formatString, input, currentInput, ":")
+	if !err.IsUndefined() {
+		return err
+	}
+	err = parseTimeSecond(formatString, input, currentInput, tmp, false)
+	if !err.IsUndefined() {
+		return err
+	}
+
+	return Undefined
+}
+
+func constructTimeFromTmp(tmp tmpTime) Time {
+	var result Time
+	if tmp.flags.HasFlag(timeHasHour12) {
+		hour := calcTimeHour12(tmp)
+		result.duration += TimeSpan(hour) * Hour
+	}
+	if tmp.flags.HasFlag(timeHasHour) {
+		hours := result.duration / Hour
+		result.duration -= hours * Hour
+		result.duration += TimeSpan(tmp.hour) * Hour
+	}
+	if tmp.flags.HasFlag(timeHasMinute) {
+		result.duration += TimeSpan(tmp.minute) * Minute
+	}
+	if tmp.flags.HasFlag(timeHasSecond) {
+		result.duration += TimeSpan(tmp.second) * Second
+	}
+	if tmp.flags.HasFlag(timeHasNanosecond) {
+		result.duration += TimeSpan(tmp.nanosecond) * Nanosecond
+	}
+
+	return result.Normalise()
+}
+
+func parseTimeHour(formatString, input string, currentInput *string, tmp *tmpTime, spacePadded bool) Value {
+	var n int
+	n, *currentInput = parseTemporalDigits(*currentInput, 2, spacePadded)
+	if n < 0 {
+		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+	}
+	if n > 23 {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"value for hour out of range: %d",
+			n,
+		))
+	}
+
+	tmp.hour = n
+	tmp.flags.SetFlag(timeHasHour)
+	return Undefined
+}
+
+func parseTimeMinute(formatString, input string, currentInput *string, tmp *tmpTime, spacePadded bool) Value {
+	var n int
+	n, *currentInput = parseTemporalDigits(*currentInput, 2, spacePadded)
+	if n < 0 {
+		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+	}
+	if n > 59 {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"value for minute out of range: %d",
+			n,
+		))
+	}
+
+	tmp.minute = n
+	tmp.flags.SetFlag(timeHasMinute)
+	return Undefined
+}
+
+func parseTimeSecond(formatString, input string, currentInput *string, tmp *tmpTime, spacePadded bool) Value {
+	var n int
+	n, *currentInput = parseTemporalDigits(*currentInput, 2, spacePadded)
+	if n < 0 {
+		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+	}
+	if n > 59 {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"value for second out of range: %d",
+			n,
+		))
+	}
+
+	tmp.second = n
+	tmp.flags.SetFlag(timeHasSecond)
+	return Undefined
+}
+
+func parseTimeMillisecond(formatString, input string, currentInput *string, tmp *tmpTime, spacePadded bool) Value {
+	var n int
+	n, *currentInput = parseTemporalDigits(*currentInput, 3, spacePadded)
+	if n < 0 {
+		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+	}
+	if n > 999 {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"value for millisecond out of range: %d",
+			n,
+		))
+	}
+
+	tmp.nanosecond = int64(n) * 1_000_000
+	tmp.flags.SetFlag(timeHasNanosecond)
+	return Undefined
+}
+
+func parseTimeMicrosecond(formatString, input string, currentInput *string, tmp *tmpTime, spacePadded bool) Value {
+	var n int
+	n, *currentInput = parseTemporalDigits(*currentInput, 6, spacePadded)
+	if n < 0 {
+		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+	}
+	if n > 999_999 {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"value for microsecond out of range: %d",
+			n,
+		))
+	}
+
+	tmp.nanosecond = int64(n) * 1000
+	tmp.flags.SetFlag(timeHasNanosecond)
+	return Undefined
+}
+
+func parseTimeNanosecond(formatString, input string, currentInput *string, tmp *tmpTime, spacePadded bool) Value {
+	var n int
+	n, *currentInput = parseTemporalDigits(*currentInput, 9, spacePadded)
+	if n < 0 {
+		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+	}
+	if n > 999_999_999 {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"value for nanosecond out of range: %d",
+			n,
+		))
+	}
+
+	tmp.nanosecond = int64(n)
+	tmp.flags.SetFlag(timeHasNanosecond)
+	return Undefined
+}
+
+func parseTemporalMatchText(kind, formatString, input string, currentInput *string, text string) Value {
+	if len(*currentInput) < len(text) {
+		return Ref(NewIncompatibleTemporalFormatError(kind, formatString, input))
+	}
+	got := (*currentInput)[:len(text)]
+	if got != text {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"cannot parse %s string, expected `%s`, got `%s`",
+			kind,
+			String(text).Inspect(),
+			String(got).Inspect(),
+		))
+	}
+	*currentInput = (*currentInput)[len(text):]
+
+	return Undefined
+}
+
+func parseTimeMatchText(formatString, input string, currentInput *string, text string) Value {
+	return parseTemporalMatchText("time", formatString, input, currentInput, text)
+}
+
+const nanosecondDigitsInSecond = 9
+
+func parseTimeSubNanosecond(digits int, name, formatString, input string, currentInput *string, tmp *tmpTime, spacePadded bool) Value {
+	var n *BigInt
+	leftDigits := digits - nanosecondDigitsInSecond
+	n, *currentInput = parseBigDigits(*currentInput, digits, spacePadded)
+	if n == nil {
+		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+	}
+	if lessThanZero, _ := n.LessThan(SmallInt(0).ToValue()); lessThanZero {
+		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+	}
+
+	divisor := SmallInt(10).ExponentiateSmallInt(SmallInt(leftDigits))
+	newVal, err := n.DivideVal(divisor)
+	if !err.IsUndefined() {
+		return err
+	}
+
+	tmp.nanosecond = newVal.AsNativeInt64()
+	tmp.flags.SetFlag(timeHasNanosecond)
+	return Undefined
+}
+
+func parseTime12Hour(formatString, input string, currentInput *string, tmp *tmpTime, spacePadded bool) Value {
+	var n int
+	n, *currentInput = parseTemporalDigits(*currentInput, 2, spacePadded)
+	if n == -1 {
+		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+	}
+	if n < 1 || n > 12 {
+		return Ref(Errorf(
+			FormatErrorClass,
+			"value for 12 hour out of range: %d",
+			n,
+		))
+	}
+
+	tmp.hour12 = n
+	tmp.flags.SetFlag(timeHasHour12)
+	return Undefined
+}
+
+func parseTimeMeridiem(formatString, input string, currentInput *string, tmp *tmpTime) Value {
+	if len(*currentInput) < 2 {
+		return Ref(NewIncompatibleTimeFormatError(formatString, input))
+	}
+
+	meridiem := (*currentInput)[:2]
+	*currentInput = (*currentInput)[2:]
+
+	switch meridiem {
+	case "am", "AM":
+	case "pm", "PM":
+		tmp.isPM = true
+	default:
+		return Ref(Errorf(
+			FormatErrorClass,
+			"invalid meridiem indicator: %s, expected `\"am\"` or `\"pm\"`",
+			meridiem,
+		))
+	}
+
+	tmp.flags.SetFlag(timeHasPM)
+	return Undefined
+}
+
+func calcTimeHour12(tmp tmpTime) int {
+	if !tmp.flags.HasFlag(timeHasPM) {
+		return tmp.hour12
+	}
+
+	if tmp.isPM {
+		if tmp.hour12 != 12 {
+			return tmp.hour12 + 12
+		}
+	} else if tmp.hour12 == 12 {
+		return 0
+	}
+	return tmp.hour12
 }
 
 // Create a string formatted according to the given format string.
@@ -215,7 +899,7 @@ tokenLoop:
 		case timescanner.INVALID_FORMAT_DIRECTIVE:
 			return "", Ref(Errorf(
 				FormatErrorClass,
-				"invalid format directive: %s",
+				"invalid time format directive: %s",
 				value,
 			))
 		case timescanner.PERCENT:

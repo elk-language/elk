@@ -75,7 +75,7 @@ func BitField16FromBitFlag(f BitFlag16) BitField16 {
 	}
 }
 
-// Create a new 8-bit bit field from an int.
+// Create a new 16-bit bit field from an int.
 func BitField16FromInt[T ~uint8 | ~int8 | ~uint16 | ~int16 | ~uint32 | ~int32 | ~uint64 | ~int64 | ~uint | ~int](i T) BitField16 {
 	return BitField16{
 		bitfield: BitFlag16(i),
@@ -106,5 +106,55 @@ func (b BitField16) ToBitFlag() BitFlag16 {
 	return b.bitfield
 }
 func (b BitField16) Uint16() uint16 {
+	return uint16(b.bitfield)
+}
+
+// 32-bit bit-flag
+type BitFlag32 uint32
+
+// An 32-bit bit field.
+// Zero value is ready to use.
+type BitField32 struct {
+	bitfield BitFlag32
+}
+
+// Create a new 16-bit bit field from an int.
+func BitField32FromBitFlag(f BitFlag32) BitField32 {
+	return BitField32{
+		bitfield: f,
+	}
+}
+
+// Create a new 32-bit bit field from an int.
+func BitField32FromInt[T ~uint8 | ~int8 | ~uint16 | ~int16 | ~uint32 | ~int32 | ~uint64 | ~int64 | ~uint | ~int](i T) BitField32 {
+	return BitField32{
+		bitfield: BitFlag32(i),
+	}
+}
+
+// Check whether any bit flag is on.
+func (b BitField32) IsAnyFlagSet() bool {
+	return b.bitfield != 0
+}
+
+// Check whether the given bit-flag is on.
+func (b BitField32) HasFlag(flag BitFlag32) bool {
+	return b.bitfield&flag != 0
+}
+
+// Turn on the given bit-flag.
+func (b *BitField32) SetFlag(flag BitFlag32) {
+	b.bitfield = b.bitfield | flag
+}
+
+// Turn off the given bit-flag.
+func (b *BitField32) UnsetFlag(flag BitFlag32) {
+	b.bitfield = b.bitfield &^ flag
+}
+
+func (b BitField32) ToBitFlag() BitFlag32 {
+	return b.bitfield
+}
+func (b BitField32) Uint16() uint16 {
 	return uint16(b.bitfield)
 }

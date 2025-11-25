@@ -203,9 +203,18 @@ func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 func PrintError(stderr io.Writer, stackTrace *value.StackTrace, err value.Value) {
 	fmt.Fprint(stderr, stackTrace.String())
 	c := color.New(color.FgRed, color.Bold)
-	c.Fprint(stderr, "Error! Uncaught thrown value:")
-	fmt.Fprint(stderr, " ")
-	fmt.Fprintln(stderr, lexer.Colorize(err.Inspect()))
+	if value.IsA(err, value.ErrorClass) {
+		errObj := (*value.Object)(err.Pointer())
+		c.Fprint(stderr, "Error! Uncaught error ")
+		fmt.Fprint(stderr, lexer.Colorize(errObj.Class().Name))
+		fmt.Fprint(stderr, ": ")
+		fmt.Fprintln(stderr, lexer.ColorizeEmbellishedText(errObj.Message().AsString().String()))
+	} else {
+		c.Fprint(stderr, "Error! Uncaught thrown value:")
+		fmt.Fprint(stderr, " ")
+		fmt.Fprintln(stderr, lexer.Colorize(err.Inspect()))
+	}
+
 	fmt.Fprintln(stderr)
 }
 

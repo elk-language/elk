@@ -15,9 +15,61 @@ func initTime() {
 			return value.Ref(value.TimeNow()), value.Undefined
 		},
 	)
+	Def(
+		c,
+		"parse",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			formatString := args[1].AsString().String()
+			input := args[2].AsString().String()
+			result, err := value.ParseTime(formatString, input)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
+			return result.ToValue(), value.Undefined
+		},
+		DefWithParameters(2),
+	)
 
 	// Instance methods
 	c = &value.TimeClass.MethodContainer
+	Def(
+		c,
+		"#init",
+		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			var hour int
+			if !args[1].IsUndefined() {
+				hour = args[1].AsInt()
+			}
+
+			var minute int
+			if !args[2].IsUndefined() {
+				minute = args[2].AsInt()
+			}
+
+			var second int
+			if !args[3].IsUndefined() {
+				second = args[3].AsInt()
+			}
+
+			var millisecond int
+			if !args[4].IsUndefined() {
+				millisecond = args[4].AsInt()
+			}
+
+			var microsecond int
+			if !args[5].IsUndefined() {
+				microsecond = args[5].AsInt()
+			}
+
+			var nanosecond int
+			if !args[6].IsUndefined() {
+				nanosecond = args[6].AsInt()
+			}
+
+			return value.MakeTime(hour, minute, second, millisecond, microsecond, nanosecond).ToValue(), value.Undefined
+		},
+		DefWithParameters(6),
+	)
 	Def(
 		c,
 		"format",
@@ -57,6 +109,21 @@ func initTime() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return self.ToTimeSpan().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_datetime",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTime()
+			return value.Ref(self.ToDateTime()), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_time",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
 		},
 	)
 	Def(
@@ -197,4 +264,105 @@ func initTime() {
 			return value.SmallInt(self.Hour12()).ToValue(), value.Undefined
 		},
 	)
+
+	Def(
+		c,
+		"+",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTime()
+			return self.Add(args[1].AsTimeSpan()).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"-",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTime()
+			return self.SubtractTimeSpan(args[1].AsTimeSpan()).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"-@1",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTime()
+			return self.Diff(args[1].AsTime()).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"diff",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTime()
+			return self.Diff(args[1].AsTime()).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"<=>",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTime()
+			return value.SmallInt(self.Cmp(args[1].AsTime())).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		">=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTime()
+			return value.ToElkBool(self.GreaterThanEqual(args[1].AsTime())), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		">",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTime()
+			return value.ToElkBool(self.GreaterThan(args[1].AsTime())), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"<=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTime()
+			return value.ToElkBool(self.LessThanEqual(args[1].AsTime())), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"<",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTime()
+			return value.ToElkBool(self.LessThan(args[1].AsTime())), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"==",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsTime()
+			other := args[1]
+			return value.ToElkBool(self.Equal(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "===", "==")
 }

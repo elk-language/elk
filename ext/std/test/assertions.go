@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -203,6 +204,110 @@ func initAssertions(testModule *value.Module) {
 		},
 		vm.DefWithParameters(2),
 	)
+
+	vm.Def(
+		c,
+		"assert_stdout",
+		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			expected := args[1].AsString()
+			callable := args[2]
+
+			prevStdout := v.Stdout
+			var buff strings.Builder
+			v.Stdout = &buff
+
+			v.CallCallable(callable)
+
+			v.Stdout = prevStdout
+
+			got := value.String(buff.String())
+			if expected != got {
+				err = value.Ref(
+					value.NewError(
+						AssertionErrorClass,
+						fmt.Sprintf(
+							"invalid stdout, expected: `%s`, got: `%s`",
+							expected.Inspect(),
+							got.Inspect(),
+						),
+					),
+				)
+				return value.Undefined, err
+			}
+
+			return value.Nil, value.Undefined
+		},
+		vm.DefWithParameters(2),
+	)
+
+	vm.Def(
+		c,
+		"assert_stderr",
+		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			expected := args[1].AsString()
+			callable := args[2]
+
+			prevStderr := v.Stderr
+			var buff strings.Builder
+			v.Stderr = &buff
+
+			v.CallCallable(callable)
+
+			v.Stderr = prevStderr
+
+			got := value.String(buff.String())
+			if expected != got {
+				err = value.Ref(
+					value.NewError(
+						AssertionErrorClass,
+						fmt.Sprintf(
+							"invalid stderr, expected: `%s`, got: `%s`",
+							expected.Inspect(),
+							got.Inspect(),
+						),
+					),
+				)
+				return value.Undefined, err
+			}
+
+			return value.Nil, value.Undefined
+		},
+		vm.DefWithParameters(2),
+	)
+
+	vm.Def(
+		c,
+		"assert_matches_regex",
+		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			argRegex := (*value.Regex)(args[1].Pointer())
+			argString := args[2].AsString()
+
+			if argRegex.MatchesString(argString.String()) {
+				return value.Nil, value.Undefined
+			}
+
+			var message string
+			if args[3].IsUndefined() {
+				message = fmt.Sprintf(
+					"string `%s` does not match regex `%s`",
+					argString.Inspect(),
+					argRegex.Inspect(),
+				)
+			} else {
+				message = args[3].AsString().String()
+			}
+
+			err = value.Ref(
+				value.NewError(
+					AssertionErrorClass,
+					message,
+				),
+			)
+			return value.Undefined, err
+		},
+		vm.DefWithParameters(3),
+	)
+
 	vm.Def(
 		c,
 		"assert_is_a",
