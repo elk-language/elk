@@ -1517,6 +1517,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the last two digits of the year.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("year_last_two"), nil, nil, NameToType("Std::Int", env), Never{})
 
 				// Define constants
+				namespace.DefineConstant(value.ToSymbol("DEFAULT_FORMAT"), NameToType("Std::String", env))
 
 				// Define instance variables
 
@@ -1529,7 +1530,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define methods
 					namespace.DefineMethod("Returns the current date.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("now"), nil, nil, NameToType("Std::Date", env), Never{})
-					namespace.DefineMethod("Parse the date string according to the given format.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("format"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("input"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Date", env), NameToType("Std::FormatError", env))
+					namespace.DefineMethod("Parse the date string according to the given format.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("input"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("format"), NameToType("Std::String", env), DefaultValueParameterKind, false)}, NameToType("Std::Date", env), NameToType("Std::FormatError", env))
 
 					// Define constants
 
@@ -1740,7 +1741,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define methods
 					namespace.DefineMethod("Returns the current datetime.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("now"), nil, nil, NameToType("Std::DateTime", env), Never{})
-					namespace.DefineMethod("Parse the datetime string according to the given format.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("format"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("input"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::DateTime", env), NameToType("Std::FormatError", env))
+					namespace.DefineMethod("Parse the datetime string according to the given format.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("input"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("format"), NameToType("Std::String", env), DefaultValueParameterKind, false)}, NameToType("Std::DateTime", env), NameToType("Std::FormatError", env))
 
 					// Define constants
 
@@ -9598,7 +9599,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define methods
 					namespace.DefineMethod("Returns the current time.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("now"), nil, nil, NameToType("Std::Time", env), Never{})
-					namespace.DefineMethod("Parse the time string according to the given format.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("format"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("input"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::Time", env), NameToType("Std::FormatError", env))
+					namespace.DefineMethod("Parse the time string according to the given format.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parse"), nil, []*Parameter{NewParameter(value.ToSymbol("input"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("format"), NameToType("Std::String", env), DefaultValueParameterKind, false)}, NameToType("Std::Time", env), NameToType("Std::FormatError", env))
 
 					// Define constants
 

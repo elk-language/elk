@@ -13,8 +13,10 @@ sealed primitive class ::Std::Date < Value
 		##[
 			Parse the date string according to the given format.
 		]##
-		def parse(format: String, input: String): Date ! FormatError; end
+		def parse(input: String, format: String = DEFAULT_FORMAT): Date ! FormatError; end
 	end
+
+	const DEFAULT_FORMAT: String
 
 	init(year: Int = 0, month: Int = 1, day: Int = 1); end
 

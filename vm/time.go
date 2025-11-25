@@ -19,8 +19,15 @@ func initTime() {
 		c,
 		"parse",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			formatString := args[1].AsString().String()
-			input := args[2].AsString().String()
+			input := args[1].AsString().String()
+
+			var formatString string
+			if args[2].IsUndefined() {
+				formatString = value.DefaultTimeFormat
+			} else {
+				formatString = args[2].AsString().String()
+			}
+
 			result, err := value.ParseTime(formatString, input)
 			if !err.IsUndefined() {
 				return value.Undefined, err

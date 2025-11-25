@@ -11,7 +11,7 @@ sealed primitive class ::Std::Time
 		##[
 			Parse the time string according to the given format.
 		]##
-		def parse(format: String, input: String): Time ! FormatError; end
+		def parse(input: String, format: String = DEFAULT_FORMAT): Time ! FormatError; end
 	end
 
 	const DEFAULT_FORMAT: String

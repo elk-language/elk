@@ -11,7 +11,7 @@ sealed primitive class ::Std::DateTime
 		##[
 			Parse the datetime string according to the given format.
 		]##
-		def parse(format: String, input: String): DateTime ! FormatError; end
+		def parse(input: String, format: String = DEFAULT_FORMAT): DateTime ! FormatError; end
 	end
 
 	const DEFAULT_FORMAT: String
