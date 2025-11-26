@@ -3,6 +3,12 @@
 ]##
 module Std::Kernel
   ##[
+    Causes the program to exit with the given status code.
+    Zero indicates success, non-zero an error.
+  ]##
+  def exit(code: Int = 0); end
+
+  ##[
     Converts the values to `String`
     and prints them to stdout.
   ]##

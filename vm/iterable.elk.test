@@ -1,0 +1,99 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+class IterableBaseTestObject[V, E = never]
+	include Iterable::Base[V, E]
+
+	attr iter: Iterator[V, E]
+
+	init(@iter: Iterator[V, E]); end
+
+	def inspect: String
+		"IterableBaseTestObject{}"
+	end
+end
+
+describe "Iterable", ->
+	describe "Base", ->
+		context "contains", ->
+			should "return true when the element exists", ->
+				obj := IterableBaseTestObject((1...10).iter)
+				assert! obj.contains(5) == true
+			end
+
+			should "return false when the element does not exist", ->
+				obj := IterableBaseTestObject((1...10).iter)
+				assert! obj.contains(15) == false
+			end
+		end
+
+		context "is_empty", ->
+			should "return true when no element", ->
+				obj := IterableBaseTestObject([].iter)
+				assert! obj.is_empty == true
+			end
+
+			should "return false when elements exist", ->
+				obj := IterableBaseTestObject(5.iter)
+				assert! obj.is_empty == false
+			end
+		end
+
+		context "first", ->
+			should "return the first yielded element", ->
+				obj := IterableBaseTestObject((4...10).iter)
+				assert! obj.first == 4
+			end
+
+			should "throw an error when no objects where yielded", ->
+				obj := IterableBaseTestObject([].iter)
+				assert_throws! obj.first match Iterable::NotFoundError(message: "cannot get first element of `IterableBaseTestObject{}`")
+			end
+		end
+
+		context "try_first", ->
+			should "return the first yielded element", ->
+				obj := IterableBaseTestObject((4...10).iter)
+				assert! obj.try_first == 4
+			end
+
+			should "return nil when no objects where yielded", ->
+				obj := IterableBaseTestObject([].iter)
+				assert! obj.try_first == nil
+			end
+		end
+
+		context "last", ->
+			should "return the last yielded element", ->
+				obj := IterableBaseTestObject((4...10).iter)
+				assert! obj.last == 10
+			end
+
+			should "throw an error when no objects where yielded", ->
+				obj := IterableBaseTestObject([].iter)
+				assert_throws! obj.last match Iterable::NotFoundError(message: "cannot get last element of `IterableBaseTestObject{}`")
+			end
+		end
+
+		context "try_last", ->
+			should "return the last yielded element", ->
+				obj := IterableBaseTestObject((4...10).iter)
+				assert! obj.try_last == 10
+			end
+
+			should "return nil when no objects where yielded", ->
+				obj := IterableBaseTestObject([].iter)
+				assert! obj.try_last == nil
+			end
+		end
+
+		context "map", ->
+			should "create an ArrayList with transformed elements", ->
+				obj := IterableBaseTestObject((4...10).iter)
+				result := obj.map |v| -> v * 2
+				assert! result == [8, 10, 12, 14, 16, 18, 20]
+			end
+		end
+
+	end
+end

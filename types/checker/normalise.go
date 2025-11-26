@@ -110,8 +110,8 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		)
 		return inferredType
 	case *types.Generic:
-		g, ok := givenType.(*types.Generic)
-		if !ok {
+		gNamespace, ok := givenType.(types.Namespace)
+		if !ok || !c.isSubtype(gNamespace, p.Namespace, nil) {
 			newArgMap := make(types.TypeArgumentMap, len(p.ArgumentMap))
 			for _, argName := range p.ArgumentOrder {
 				pArg := p.ArgumentMap[argName]
@@ -129,33 +129,55 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 				),
 			)
 		}
-		if !c.isSubtype(g.Namespace, p.Namespace, nil) {
-			return p
-		}
-		if len(g.ArgumentOrder) < len(p.ArgumentOrder) {
-			return p
+		gGeneric, ok := gNamespace.(*types.Generic)
+		if ok && c.IsTheSameNamespace(gGeneric.Namespace, p.Namespace) {
+			newArgMap := make(types.TypeArgumentMap, len(p.ArgumentMap))
+			for _, argName := range p.ArgumentOrder {
+				pArg := p.ArgumentMap[argName]
+				gArg := gGeneric.ArgumentMap[argName]
+				if gArg == nil || pArg == nil {
+					return nil
+				}
+				result := c.inferTypeArguments(gArg.Type, pArg.Type, typeArgMap, errLocation)
+				if result == nil {
+					return nil
+				}
+				newArgMap[argName] = types.NewTypeArgument(result, gArg.Variance)
+			}
+			return types.NewGeneric(
+				p.Namespace,
+				types.NewTypeArguments(
+					newArgMap,
+					p.ArgumentOrder,
+				),
+			)
 		}
 
-		newArgMap := make(types.TypeArgumentMap, len(p.ArgumentMap))
-		for _, argName := range p.ArgumentOrder {
-			pArg := p.ArgumentMap[argName]
-			gArg := g.ArgumentMap[argName]
-			if gArg == nil || pArg == nil {
-				return nil
+		var resolvedG *types.Generic
+		var isSubtype bool
+		for gParent := range types.Parents(gNamespace) {
+			gGenericParent, ok := gParent.(*types.Generic)
+			if !ok {
+				continue
 			}
-			result := c.inferTypeArguments(gArg.Type, pArg.Type, typeArgMap, errLocation)
-			if result == nil {
-				return nil
+			if resolvedG == nil {
+				resolvedG = gGenericParent
+				continue
 			}
-			newArgMap[argName] = types.NewTypeArgument(result, gArg.Variance)
+			resolvedG = c.replaceTypeParametersInGeneric(gGenericParent, resolvedG.ArgumentMap, false)
+
+			if !c.IsTheSameNamespace(gGenericParent.Namespace, p.Namespace) {
+				continue
+			}
+
+			isSubtype = true
+			break
 		}
-		return types.NewGeneric(
-			p.Namespace,
-			types.NewTypeArguments(
-				newArgMap,
-				p.ArgumentOrder,
-			),
-		)
+		if isSubtype {
+			return c.inferTypeArguments(resolvedG, p, typeArgMap, errLocation)
+		}
+
+		return nil
 	case *types.SingletonOf:
 		switch g := givenType.(type) {
 		case *types.SingletonClass:

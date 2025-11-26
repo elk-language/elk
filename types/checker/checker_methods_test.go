@@ -3441,6 +3441,30 @@ func TestConstructorCall(t *testing.T) {
 				Foo::[String]("foo")
 			`,
 		},
+		"instantiate a generic class and infer simple type arg": {
+			input: `
+				class Foo[V]
+					init(a: V); end
+				end
+				var f: Foo[String] = Foo("foo")
+			`,
+		},
+		"instantiate a generic class and infer generic type arg from non-generic argument": {
+			input: `
+				class Foo[V, E = never]
+					init(iter: Iterator[V, E]); end
+				end
+				var f: Foo[Int] = Foo(5.iter)
+			`,
+		},
+		"instantiate a generic class and infer generic type arg from generic argument": {
+			input: `
+				class Foo[V, E = never]
+					init(iter: Iterator[V, E]); end
+				end
+				var f: Foo[Int] = Foo((1...5).iter)
+			`,
+		},
 		"instantiate a generic class with valid type arguments": {
 			input: `
 				class Foo[V]

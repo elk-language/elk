@@ -2,6 +2,7 @@ package vm
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/elk-language/elk/value"
@@ -10,6 +11,19 @@ import (
 // ::Std::Kernel
 func initKernel() {
 	c := &value.KernelModule.SingletonClass().MethodContainer
+	Def(
+		c,
+		"exit",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			var code int
+			if !args[1].IsUndefined() {
+				code = args[1].AsInt()
+			}
+			os.Exit(code)
+			return value.Nil, value.Undefined
+		},
+		DefWithParameters(1),
+	)
 	Def(
 		c,
 		"print",

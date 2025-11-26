@@ -10,7 +10,7 @@ module ::Std::Test
       quote
         caught := false
         do
-          !{match_expr.expression}
+          !{unhygienic(match_expr.expression)}
         catch !{match_expr.pattern_node}
           caught = true
         catch err
@@ -24,7 +24,7 @@ module ::Std::Test
 
     macro assert_match(match_expr: MatchExpressionNode): ExpressionNode
       quote
-        v := !{match_expr.expression}
+        v := !{unhygienic(match_expr.expression)}
         unless v match !{match_expr.pattern_node}
           throw unchecked ::Std::Test::AssertionError("value `${v.inspect}` does not match pattern `${unquote(match_expr.pattern_node.to_string)}`")
         end

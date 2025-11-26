@@ -2,7 +2,6 @@ package vm
 
 import (
 	"encoding/binary"
-	"reflect"
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/elk-language/elk/lexer"
@@ -127,15 +126,11 @@ func initValue() {
 }
 
 func ObjectHash(val value.Value) value.UInt64 {
-	v := reflect.ValueOf(val)
-	if v.Kind() != reflect.Pointer {
-		if !v.CanAddr() {
-			return value.UInt64(0)
-		}
-
-		v = v.Addr()
+	if !val.IsReference() {
+		return value.UInt64(0)
 	}
-	ptr := v.Pointer()
+
+	ptr := uintptr(val.Pointer())
 	b := make([]byte, 8)
 	d := xxhash.New()
 	binary.LittleEndian.PutUint64(b, uint64(ptr))

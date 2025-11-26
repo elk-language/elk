@@ -23,6 +23,8 @@ func InitGlobalEnvironment() {
 	initMixin()
 	initModule()
 	initInterface()
+	initIterableFiniteBase()
+	initIterableBase()
 	initClosedRange()
 	initClosedRangeIterator()
 	initComparable()

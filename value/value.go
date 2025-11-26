@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"iter"
 	"math"
 	"slices"
 	"strings"
@@ -3752,6 +3753,30 @@ func Next(val Value) (result, err Value) {
 		return v.Next()
 	default:
 		return Undefined, Undefined
+	}
+}
+
+// Represents an iterator defined in Go
+type NativeIterator interface {
+	Next() (Value, Value)
+}
+
+func IterateNativeIterator(iter NativeIterator) iter.Seq2[Value, Value] {
+	return func(yield func(Value, Value) bool) {
+		for {
+			element, err := iter.Next()
+			if err.IsUndefined() {
+				if !yield(element, Undefined) {
+					return
+				}
+				continue
+			}
+
+			if err != stopIterationSymbol.ToValue() {
+				yield(Undefined, err)
+			}
+			return
+		}
 	}
 }
 
