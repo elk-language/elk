@@ -45,6 +45,18 @@ func (i *BigInt) IsZero() bool {
 	return len(i.ToGoBigInt().Bits()) == 0
 }
 
+func (i *BigInt) IsEven() bool {
+	bigInt := i.ToGoBigInt()
+	result := bigInt.Mod(bigInt, big.NewInt(2))
+	return len(result.Bits()) == 0
+}
+
+func (i *BigInt) IsOdd() bool {
+	bigInt := i.ToGoBigInt()
+	result := bigInt.Mod(bigInt, big.NewInt(2))
+	return len(result.Bits()) != 0
+}
+
 // Returns the SmallInt representation of i.
 func (i *BigInt) ToSmallInt() SmallInt {
 	return SmallInt(i.ToGoBigInt().Int64())

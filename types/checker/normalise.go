@@ -91,6 +91,9 @@ func (c *Checker) inferTypeArguments(givenType, paramType types.Type, typeArgMap
 		if givenType == nil {
 			return nil
 		}
+		if _, ok := givenType.(*types.TypeParameter); ok {
+			return p
+		}
 
 		inferredType := c.ToNonLiteral(givenType, false)
 		if !c.isSubtype(givenType, p.UpperBound, nil) {

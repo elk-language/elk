@@ -464,6 +464,15 @@ func initIterableFiniteBase() {
 			self := args[0]
 			count := args[1].AsInt()
 
+			if count < 0 {
+				return value.Undefined, value.Ref(
+					value.Errorf(
+						value.OutOfRangeErrorClass,
+						"tried to drop a negative amount of values `%d` from an iterable",
+						count,
+					),
+				)
+			}
 			var result value.ArrayList
 
 			for elem, err := range Iterate(vm, self) {
@@ -529,6 +538,15 @@ func initIterableFiniteBase() {
 			self := args[0]
 			count := args[1].AsInt()
 
+			if count < 0 {
+				return value.Undefined, value.Ref(
+					value.Errorf(
+						value.OutOfRangeErrorClass,
+						"tried to take a negative amount of values `%d` from an iterable",
+						count,
+					),
+				)
+			}
 			var result value.ArrayList
 
 			for elem, err := range Iterate(vm, self) {

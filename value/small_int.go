@@ -100,6 +100,14 @@ func (i SmallInt) ToString() String {
 	return String(i.Inspect())
 }
 
+func (i SmallInt) IsEven() bool {
+	return i%2 == 0
+}
+
+func (i SmallInt) IsOdd() bool {
+	return i%2 == 1
+}
+
 // Convert to Elk Float.
 func (i SmallInt) ToFloat() Float {
 	return Float(i)

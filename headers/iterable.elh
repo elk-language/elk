@@ -178,7 +178,7 @@ interface ::Std::Iterable[+Val, +Err = never]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig reduce[A, E](fn: |accum: A, element: Val|: A ! E): A ! E | Err
+	sig reduce[V := Val, E](fn: |accum: V, element: V|: V ! E): V ! E | Err
 
 	##[
 		Reduces the elements of this iterable to a single value by
@@ -243,7 +243,7 @@ interface ::Std::Iterable[+Val, +Err = never]
 		def drop_while[E](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err; end
 		def take(n: Int): Iterable[Val, Err] ! Err; end
 		def take_while[E](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err; end
-		def reduce[A, E](fn: |accum: A, element: Val|: A ! E): A ! E | Err; end
+		def reduce[V := Val, E](fn: |accum: V, element: V|: V ! E): V ! E | Err; end
 		def fold[I, E](initial: I, fn: |accum: I, element: Val|: I ! E): I ! E | Err; end
 		def to_list[T > Val]: List[T] ! Err; end
 		def to_tuple: Tuple[Val] ! Err; end

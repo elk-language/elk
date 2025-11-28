@@ -134,6 +134,16 @@ sealed noinit primitive class ::Std::Int < Value
 	sealed def %(other: Int): Int; end
 
 	##[
+		Returns `true` when the integer is even.
+	]##
+	def is_even: bool; end
+
+	##[
+		Returns `true` when the integer is odd.
+	]##
+	def is_odd: bool; end
+
+	##[
 		Returns itself.
 	]##
 	def to_int: Int; end

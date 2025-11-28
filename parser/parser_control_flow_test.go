@@ -3324,6 +3324,31 @@ func TestTry(t *testing.T) {
 				},
 			),
 		},
+		"chained": {
+			input: `foo && bar().try`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(15, 1, 16))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(15, 1, 16))),
+						ast.NewLogicalExpressionNode(
+							L(S(P(0, 1, 1), P(15, 1, 16))),
+							T(L(S(P(4, 1, 5), P(5, 1, 6))), token.AND_AND),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							ast.NewTryExpressionNode(
+								L(S(P(7, 1, 8), P(15, 1, 16))),
+								ast.NewReceiverlessMethodCallNode(
+									L(S(P(7, 1, 8), P(11, 1, 12))),
+									ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "bar"),
+									nil,
+									nil,
+								),
+							),
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

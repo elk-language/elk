@@ -141,6 +141,40 @@ func initInt() {
 	)
 	Def(
 		c,
+		"is_even",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			if self.IsSmallInt() {
+				return value.ToElkBool(self.AsSmallInt().IsEven()), value.Undefined
+			}
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return value.ToElkBool(s.IsEven()), value.Undefined
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+		},
+	)
+	Def(
+		c,
+		"is_odd",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			if self.IsSmallInt() {
+				return value.ToElkBool(self.AsSmallInt().IsOdd()), value.Undefined
+			}
+
+			switch s := self.SafeAsReference().(type) {
+			case *value.BigInt:
+				return value.ToElkBool(s.IsOdd()), value.Undefined
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+		},
+	)
+	Def(
+		c,
 		"**",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]

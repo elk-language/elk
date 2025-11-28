@@ -1548,7 +1548,7 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 
 	var inferArgs []inferArg
 	var currentParamIndex int
-	// check all positional argument before the rest parameter
+	// check all positional arguments before the rest parameter
 	for ; currentParamIndex < len(positionalArguments); currentParamIndex++ {
 		posArg := positionalArguments[currentParamIndex]
 		if currentParamIndex == positionalRestParamIndex {
@@ -1568,12 +1568,14 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 		posArgType := c.TypeOf(typedPosArg)
 
 		inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
+
 		var retry bool
-		if inferredParamType == nil {
+		switch inferredParamType {
+		case nil:
 			param.Type = types.Untyped{}
-		} else if inferredParamType == param.Type {
+		case param.Type:
 			retry = true
-		} else {
+		default:
 			param.Type = inferredParamType
 		}
 		inferArgs = append(inferArgs, inferArg{

@@ -1818,6 +1818,17 @@ methodCallLoop:
 				receiver,
 			)
 			continue
+		case token.TRY:
+			if opToken.Type != token.DOT {
+				p.errorMessageLocation("invalid try operator", opToken.Location())
+			}
+			nameTok := p.advance()
+			location := receiver.Location().Join(nameTok.Location())
+			receiver = ast.NewTryExpressionNode(
+				location,
+				receiver,
+			)
+			continue
 		}
 
 		methodName := p.methodCallIdentifier()

@@ -6979,6 +6979,7 @@ func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast
 		node.SetType(types.Untyped{})
 		return node
 	}
+
 	if !local.initialised {
 		c.addUninitialisedLocalError(node.Value, node.Location())
 	}
