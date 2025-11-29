@@ -9,6 +9,15 @@ type StringLiteral struct {
 	Value string
 }
 
+func (s *StringLiteral) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(s, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(s, parent)
+	}
+}
+
 func (s *StringLiteral) StringValue() string {
 	return s.Value
 }

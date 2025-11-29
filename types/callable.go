@@ -36,6 +36,15 @@ func NewCallableWithMethod(docComment string, flags bitfield.BitFlag16, name val
 	return callable
 }
 
+func (c *Callable) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(c, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(c, parent)
+	}
+}
+
 func (c *Callable) Copy() *Callable {
 	return &Callable{
 		Body: c.Body,

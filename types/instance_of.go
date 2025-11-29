@@ -14,6 +14,21 @@ func NewInstanceOf(typ Type) *InstanceOf {
 	}
 }
 
+func (i *InstanceOf) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseContinue:
+		return leave(i, parent)
+	}
+
+	if i.Type.traverse(i, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(i, parent)
+}
+
 func (s *InstanceOf) ToNonLiteral(env *GlobalEnvironment) Type {
 	return s
 }

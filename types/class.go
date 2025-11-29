@@ -24,6 +24,15 @@ type Class struct {
 	NamespaceBase
 }
 
+func (c *Class) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(c, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(c, parent)
+	}
+}
+
 func (c *Class) IvarIndices() *value.IvarIndices {
 	return c.ivarIndices
 }

@@ -9,6 +9,15 @@ type CharLiteral struct {
 	Value rune
 }
 
+func (c *CharLiteral) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(c, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(c, parent)
+	}
+}
+
 func (c *CharLiteral) StringValue() string {
 	return string(c.Value)
 }

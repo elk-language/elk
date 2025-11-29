@@ -19,6 +19,15 @@ type ConstantPlaceholder struct {
 	Replaced  bool
 }
 
+func (c *ConstantPlaceholder) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(c, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(c, parent)
+	}
+}
+
 func IsConstantPlaceholder(typ Type) bool {
 	_, ok := typ.(*ConstantPlaceholder)
 	return ok

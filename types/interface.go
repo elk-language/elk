@@ -15,6 +15,15 @@ type Interface struct {
 	NamespaceBase
 }
 
+func (i *Interface) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(i, parent)
+	}
+}
+
 func (i *Interface) IsGeneric() bool {
 	return len(i.typeParameters) > 0
 }

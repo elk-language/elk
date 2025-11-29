@@ -14,6 +14,15 @@ func NewNamedType(name string, typ Type) *NamedType {
 	}
 }
 
+func (n *NamedType) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(n, parent)
+	}
+}
+
 func (n *NamedType) ToNonLiteral(env *GlobalEnvironment) Type {
 	return n
 }

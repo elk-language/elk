@@ -8,6 +8,21 @@ type Not struct {
 	Type Type
 }
 
+func (n *Not) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(Void{}, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseContinue:
+		return leave(n, parent)
+	}
+
+	if n.Type.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
+}
+
 func NewNot(typ Type) *Not {
 	return &Not{
 		Type: typ,

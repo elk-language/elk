@@ -51,6 +51,27 @@ type TypeParameter struct {
 	Variance   Variance
 }
 
+// Returns the default inferred type for the type parameter
+func (t *TypeParameter) InferredType() Type {
+	if t.Default != nil {
+		return t.Default
+	}
+	if !IsNever(t.LowerBound) {
+		return t.LowerBound
+	}
+
+	return t.UpperBound
+}
+
+func (t *TypeParameter) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(t, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(t, parent)
+	}
+}
+
 func (t *TypeParameter) Copy() *TypeParameter {
 	return &TypeParameter{
 		Name:       t.Name,

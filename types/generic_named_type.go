@@ -20,6 +20,27 @@ func NewGenericNamedType(name string, typ Type, typeVars []*TypeParameter) *Gene
 	}
 }
 
+func (g *GenericNamedType) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(g, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseContinue:
+		return leave(g, parent)
+	}
+
+	if g.Type.traverse(g, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	for _, typeParam := range g.TypeParameters {
+		if typeParam.traverse(g, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
+	}
+
+	return leave(g, parent)
+}
+
 func (g *GenericNamedType) ToNonLiteral(env *GlobalEnvironment) Type {
 	return g
 }

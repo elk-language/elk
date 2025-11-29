@@ -111,9 +111,12 @@ func callCaseClosure(
 		)
 		caseReport.duration = time.Since(startTime)
 		v.ResetError()
+		v.ClearStackFrames()
 		return false
 	}
 
+	v.ResetError()
+	v.ClearStackFrames()
 	return true
 }
 

@@ -5,6 +5,15 @@ package types
 // It is the top type.
 type Any struct{}
 
+func (a Any) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(a, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(a, parent)
+	}
+}
+
 func (n Any) ToNonLiteral(env *GlobalEnvironment) Type {
 	return n
 }

@@ -16,6 +16,23 @@ func NewUnion(elements ...Type) *Union {
 	}
 }
 
+func (u *Union) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(u, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseContinue:
+		return leave(u, parent)
+	}
+
+	for _, element := range u.Elements {
+		if element.traverse(u, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
+	}
+
+	return leave(u, parent)
+}
+
 func (u *Union) ToNonLiteral(env *GlobalEnvironment) Type {
 	return u
 }

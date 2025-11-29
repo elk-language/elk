@@ -10,6 +10,24 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+func (c *Checker) typeContainsCallable(typ types.Type) bool {
+	var result bool
+	types.Traverse(
+		typ,
+		func(typ, parent types.Type) types.TraverseOption {
+			if _, ok := typ.(*types.Callable); ok {
+				result = true
+				return types.TraverseBreak
+			}
+
+			return types.TraverseContinue
+		},
+		nil,
+	)
+
+	return result
+}
+
 func (c *Checker) IsClosure(typ types.Namespace) bool {
 	return types.IsClosure(typ)
 }

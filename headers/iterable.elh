@@ -80,41 +80,41 @@ interface ::Std::Iterable[+Val, +Err = never]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig map[V, E](fn: |element: Val|: V ! E): Iterable[V, Err] ! E | Err
+	sig map[V, E = never](fn: |element: Val|: V ! E): Iterable[V, Err] ! E | Err
 
 	##[
 		Returns a new iterable containing only elements matching the given predicate.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig filter[E](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err
+	sig filter[E = never](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err
 
 	##[
 		Returns the number of elements matching the given predicate.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig count[E](fn: |element: Val|: bool ! E): Int ! E | Err
+	sig count[E = never](fn: |element: Val|: bool ! E): Int ! E | Err
 
 	##[
 		Returns a new iterable containing only elements not matching the given predicate.
 
 		Never returns if the iterable is infinite.
 	]##
-	sig reject[E](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err
+	sig reject[E = never](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err
 
 	##[
 		Checks whether any element of this iterable satisfies the given predicate.
 
 		May never return if the iterable is infinite.
 	]##
-	sig any[E](fn: |element: Val|: bool ! E): bool ! E | Err
+	sig any[E = never](fn: |element: Val|: bool ! E): bool ! E | Err
 
 	##[
 		Checks whether every element of this iterable satisfies the given predicate.
 		Never returns if the iterable is infinite.
 	]##
-	sig every[E](fn: |element: Val|: bool ! E): bool ! E | Err
+	sig every[E = never](fn: |element: Val|: bool ! E): bool ! E | Err
 
 	##[
 		Returns the first element matching the given predicate.
@@ -122,7 +122,7 @@ interface ::Std::Iterable[+Val, +Err = never]
 
 		May never return if the iterable is infinite.
 	]##
-	sig find[E](fn: |element: Val|: bool ! E): Val ! NotFoundError | E | Err
+	sig find[E = never](fn: |element: Val|: bool ! E): Val ! NotFoundError | E | Err
 
 	##[
 		Returns the first element matching the given predicate.
@@ -130,7 +130,7 @@ interface ::Std::Iterable[+Val, +Err = never]
 
 		May never return if the iterable is infinite.
 	]##
-	sig try_find[E](fn: |element: Val|: bool ! E): Val? ! E | Err
+	sig try_find[E = never](fn: |element: Val|: bool ! E): Val? ! E | Err
 
 	##[
 		Returns the first index of element, or -1 if it could not be found.
@@ -144,7 +144,7 @@ interface ::Std::Iterable[+Val, +Err = never]
 
 		May never return if the iterable is infinite.
 	]##
-	sig find_index[E](fn: |element: Val|: bool ! E): Int ! E | Err
+	sig find_index[E = never](fn: |element: Val|: bool ! E): Int ! E | Err
 
 	##[
 		Returns a new iterable containing all elements except first `n` elements.
@@ -158,7 +158,7 @@ interface ::Std::Iterable[+Val, +Err = never]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig drop_while[E](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err
+	sig drop_while[E = never](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err
 
 	##[
 		Returns a new iterable containing only the first `n` elements.
@@ -170,7 +170,7 @@ interface ::Std::Iterable[+Val, +Err = never]
 
 		May never return if the iterable is infinite.
 	]##
-	sig take_while[E](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err
+	sig take_while[E = never](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err
 
 	##[
 		Reduces the elements of this iterable to a single value by
@@ -178,7 +178,7 @@ interface ::Std::Iterable[+Val, +Err = never]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig reduce[V := Val, E](fn: |accum: V, element: V|: V ! E): V ! E | Err
+	sig reduce[V > Val, E = never](fn: |accum: V, element: V|: V ! E): V ! E | Err
 
 	##[
 		Reduces the elements of this iterable to a single value by
@@ -186,7 +186,7 @@ interface ::Std::Iterable[+Val, +Err = never]
 
 		Never returns if the iterable is infinite.
 	]##
-	sig fold[I, E](initial: I, fn: |accum: I, element: Val|: I ! E): I ! E | Err
+	sig fold[I = Val, E = never](initial: I, fn: |accum: I, element: Val|: I ! E): I ! E | Err
 
 	##[
 		Creates a new list that contains the elements of this iterable.
@@ -229,22 +229,22 @@ interface ::Std::Iterable[+Val, +Err = never]
 		def try_first: Val? ! Err; end
 		def last: Val ! NotFoundError | Err; end
 		def try_last: Val? ! Err; end
-		def map[V, E](fn: |element: Val|: V ! E): Iterable[V, Err] ! E | Err; end
-		def filter[E](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err; end
-		def count[E](fn: |element: Val|: bool ! E): Int ! E | Err; end
-		def reject[E](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err; end
-		def any[E](fn: |element: Val|: bool ! E): bool ! E | Err; end
-		def every[E](fn: |element: Val|: bool ! E): bool ! E | Err; end
-		def find[E](fn: |element: Val|: bool ! E): Val ! NotFoundError | E | Err; end
-		def try_find[E](fn: |element: Val|: bool ! E): Val? ! E | Err; end
+		def map[V, E = never](fn: |element: Val|: V ! E): Iterable[V, Err] ! E | Err; end
+		def filter[E = never](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err; end
+		def count[E = never](fn: |element: Val|: bool ! E): Int ! E | Err; end
+		def reject[E = never](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err; end
+		def any[E = never](fn: |element: Val|: bool ! E): bool ! E | Err; end
+		def every[E = never](fn: |element: Val|: bool ! E): bool ! E | Err; end
+		def find[E = never](fn: |element: Val|: bool ! E): Val ! NotFoundError | E | Err; end
+		def try_find[E = never](fn: |element: Val|: bool ! E): Val? ! E | Err; end
 		def index_of[V := Val](element: V): Int ! Err; end
-		def find_index[E](fn: |element: Val|: bool ! E): Int ! E | Err; end
+		def find_index[E = never](fn: |element: Val|: bool ! E): Int ! E | Err; end
 		def drop(n: Int): Iterable[Val, Err] ! Err; end
-		def drop_while[E](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err; end
+		def drop_while[E = never](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err; end
 		def take(n: Int): Iterable[Val, Err] ! Err; end
-		def take_while[E](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err; end
-		def reduce[V := Val, E](fn: |accum: V, element: V|: V ! E): V ! E | Err; end
-		def fold[I, E](initial: I, fn: |accum: I, element: Val|: I ! E): I ! E | Err; end
+		def take_while[E = never](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Err; end
+		def reduce[V > Val, E = never](fn: |accum: V, element: V|: V ! E): V ! E | Err; end
+		def fold[I, E = never](initial: I, fn: |accum: I, element: Val|: I ! E): I ! E | Err; end
 		def to_list[T > Val]: List[T] ! Err; end
 		def to_tuple: Tuple[Val] ! Err; end
 		def to_immutable_collection: ImmutableCollection[Val] ! Err; end

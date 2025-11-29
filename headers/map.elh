@@ -22,7 +22,7 @@ abstract mixin ::Std::Map[Key, Value]
 		Mutates the map in place replacing the values with the ones
 		returned by the given closure.
 	]##
-	def map_values_mut[E](fn: |value: Value|: Value ! E): self ! E; end
+	def map_values_mut[E = never](fn: |value: Value|: Value ! E): self ! E; end
 
 	##[
 		Iterates over the key value pairs of this map,
@@ -31,6 +31,6 @@ abstract mixin ::Std::Map[Key, Value]
 		Returns a new map that consists of the key value pairs returned
 		by the given closure.
 	]##
-	def map_pairs[K, V, E](fn: |pair: Pair[Key, Value]|: Pair[K, V] ! E): Map[K, V] ! E; end
+	def map_pairs[K, V, E = never](fn: |pair: Pair[Key, Value]|: Pair[K, V] ! E): Map[K, V] ! E; end
 
 end

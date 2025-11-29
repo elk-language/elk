@@ -1494,6 +1494,10 @@ func (vm *VM) captureUpvalue(slot *value.Value) *Upvalue {
 	return newUpvalue
 }
 
+func (vm *VM) ClearStackFrames() {
+	vm.cfpSet(&vm.callFrames[0])
+}
+
 // Restore the state of the VM to the last call frame.
 //
 //go:inline
@@ -1514,7 +1518,7 @@ func (vm *VM) restoreLastFrame() bool {
 }
 
 func (vm *VM) ResetError() {
-	vm.state = runningState
+	vm.state = idleState
 	vm.errStackTrace = nil
 }
 

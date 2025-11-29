@@ -14,6 +14,21 @@ func NewNilable(typ Type) *Nilable {
 	}
 }
 
+func (n *Nilable) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseContinue:
+		return leave(n, parent)
+	}
+
+	if n.Type.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(n, parent)
+}
+
 func (n *Nilable) ToNonLiteral(env *GlobalEnvironment) Type {
 	return n
 }

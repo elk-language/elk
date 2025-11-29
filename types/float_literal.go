@@ -11,6 +11,15 @@ type FloatLiteral struct {
 	isNegative bool
 }
 
+func (f *FloatLiteral) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(f, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(f, parent)
+	}
+}
+
 func (f *FloatLiteral) StringValue() string {
 	return f.Value
 }
@@ -54,6 +63,15 @@ func (f *FloatLiteral) CopyNumeric() NumericLiteral {
 type Float64Literal struct {
 	Value      string
 	isNegative bool
+}
+
+func (f *Float64Literal) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(f, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(f, parent)
+	}
 }
 
 func (f *Float64Literal) StringValue() string {
@@ -101,6 +119,15 @@ type Float32Literal struct {
 	isNegative bool
 }
 
+func (f *Float32Literal) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(f, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(f, parent)
+	}
+}
+
 func (f *Float32Literal) StringValue() string {
 	return f.Value
 }
@@ -144,6 +171,15 @@ func (f *Float32Literal) CopyNumeric() NumericLiteral {
 type BigFloatLiteral struct {
 	Value      string
 	isNegative bool
+}
+
+func (f *BigFloatLiteral) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(f, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(f, parent)
+	}
 }
 
 func (f *BigFloatLiteral) StringValue() string {

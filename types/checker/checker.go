@@ -864,6 +864,20 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 	}
 }
 
+func (c *Checker) checkExpressionWithTypeArgs(node ast.ExpressionNode, typ types.Type, typeArgsMap types.TypeArgumentMap) ast.ExpressionNode {
+	switch n := node.(type) {
+	case *ast.ClosureLiteralNode:
+		switch t := typ.(type) {
+		case *types.NamedType:
+			return c.checkExpressionWithType(node, t.Type)
+		case *types.Callable:
+			return c.checkClosureLiteralNodeWithType(n, t, typeArgsMap)
+		}
+	}
+
+	return c.checkExpressionWithType(node, typ)
+}
+
 func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Type) ast.ExpressionNode {
 	switch n := node.(type) {
 	case *ast.ClosureLiteralNode:
@@ -871,7 +885,7 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 		case *types.NamedType:
 			return c.checkExpressionWithType(node, t.Type)
 		case *types.Callable:
-			return c.checkClosureLiteralNodeWithType(n, t)
+			return c.checkClosureLiteralNodeWithType(n, t, nil)
 		}
 	case *ast.ArrayListLiteralNode:
 		generic, ok := typ.(*types.Generic)
@@ -5193,7 +5207,6 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, ta
 func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.ClosureLiteralNode, name string) ast.ExpressionNode {
 	closure := types.NewCallable(nil, true)
 	method, mod := c.declareMethod(
-		nil,
 		closure,
 		"",
 		false,
@@ -5232,10 +5245,11 @@ func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.Closure
 	return node
 }
 
-func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, baseMethod *types.Method) ast.ExpressionNode {
+func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, baseMethod *types.Method, typeArgMap types.TypeArgumentMap) ast.ExpressionNode {
 	closure := types.NewCallable(nil, true)
-	method, mod := c.declareMethod(
+	method, mod := c.declareMethodWithBase(
 		baseMethod,
+		typeArgMap,
 		closure,
 		"",
 		false,
@@ -5270,13 +5284,13 @@ func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, 
 	return node
 }
 
-func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Callable) ast.ExpressionNode {
-	baseMethod := closureType.Method(symbol.L_call)
-	return c.checkClosureLiteralNodeWithBase(node, baseMethod)
+func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Callable, typeArgMap types.TypeArgumentMap) ast.ExpressionNode {
+	baseMethod := closureType.Body
+	return c.checkClosureLiteralNodeWithBase(node, baseMethod, typeArgMap)
 }
 
 func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.ExpressionNode {
-	return c.checkClosureLiteralNodeWithBase(node, nil)
+	return c.checkClosureLiteralNodeWithBase(node, nil, nil)
 }
 
 func (c *Checker) checkGoExpressionNode(node *ast.GoExpressionNode) ast.ExpressionNode {
@@ -6942,7 +6956,6 @@ func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeNode) ast.Ty
 func (c *Checker) checkCallableTypeNode(node *ast.CallableTypeNode) ast.TypeNode {
 	callable := types.NewCallable(nil, node.IsClosure)
 	method, mod := c.declareMethod(
-		nil,
 		callable,
 		"",
 		false,

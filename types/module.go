@@ -16,6 +16,15 @@ type Module struct {
 	NamespaceBase
 }
 
+func (m *Module) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(m, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(m, parent)
+	}
+}
+
 func (m *Module) IvarIndices() *value.IvarIndices {
 	return m.ivarIndices
 }

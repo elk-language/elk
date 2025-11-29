@@ -81,7 +81,6 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		)
 	}
 	method, mod := c.declareMethod(
-		nil,
 		c.currentMethodScope().container,
 		initNode.DocComment(),
 		false,
@@ -437,7 +436,6 @@ func (c *Checker) checkUsingEntryWithSubentriesForMethods(node *ast.UsingEntryWi
 func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 	definedUnder := c.currentMethodScope().container
 	method, mod := c.declareMethod(
-		nil,
 		definedUnder,
 		node.DocComment(),
 		node.IsAbstract(),
@@ -463,7 +461,6 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 
 func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefinitionNode) {
 	method, mod := c.declareMethod(
-		nil,
 		c.currentMethodScope().container,
 		node.DocComment(),
 		true,
@@ -639,7 +636,6 @@ func (c *Checker) checkMethodInConstant(method *types.Method, usedInConstants ds
 func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docComment string) {
 	name := c.identifierToName(node.Name)
 	method, mod := c.declareMethod(
-		nil,
 		c.currentMethodScope().container,
 		docComment,
 		false,
@@ -758,7 +754,6 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		),
 	}
 	method, mod := c.declareMethod(
-		nil,
 		methodScope.container,
 		docComment,
 		false,
@@ -1427,9 +1422,10 @@ func (c *Checker) addToThrowType(typ types.Type) {
 }
 
 type inferArg struct {
-	typedArg ast.ExpressionNode
-	param    *types.Parameter
-	retry    bool
+	typedArg  ast.ExpressionNode
+	isClosure bool
+	param     *types.Parameter
+	retry     bool
 }
 
 func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
@@ -1564,6 +1560,15 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 		}
 		param := method.Params[currentParamIndex]
 
+		if _, ok := posArg.(*ast.ClosureLiteralNode); ok {
+			inferArgs = append(inferArgs, inferArg{
+				typedArg:  posArg,
+				isClosure: true,
+				param:     param,
+				retry:     true,
+			})
+			continue
+		}
 		typedPosArg := c.checkExpressionWithType(posArg, param.Type)
 		posArgType := c.TypeOf(typedPosArg)
 
@@ -1591,6 +1596,10 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 		param := inferArg.param
 
 		if inferArg.retry {
+			if inferArg.isClosure {
+				typedPosArg = c.checkExpressionWithTypeArgs(typedPosArg, param.Type, typeArgMap)
+				posArgType = c.TypeOf(typedPosArg)
+			}
 			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
 			if inferredParamType == nil {
 				param.Type = types.Untyped{}
@@ -2180,7 +2189,44 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *
 }
 
 func (c *Checker) declareMethod(
+	methodNamespace types.Namespace,
+	docComment string,
+	abstract bool,
+	sealed bool,
+	inferReturnType bool,
+	generator bool,
+	async bool,
+	overload bool,
+	name value.Symbol,
+	typeParamNodes []ast.TypeParameterNode,
+	paramNodes []ast.ParameterNode,
+	returnTypeNode,
+	throwTypeNode ast.TypeNode,
+	location *position.Location,
+) (*types.Method, *types.TypeParamNamespace) {
+	return c.declareMethodWithBase(
+		nil,
+		nil,
+		methodNamespace,
+		docComment,
+		abstract,
+		sealed,
+		inferReturnType,
+		generator,
+		async,
+		overload,
+		name,
+		typeParamNodes,
+		paramNodes,
+		returnTypeNode,
+		throwTypeNode,
+		location,
+	)
+}
+
+func (c *Checker) declareMethodWithBase(
 	baseMethod *types.Method,
+	typeArgMap types.TypeArgumentMap,
 	methodNamespace types.Namespace,
 	docComment string,
 	abstract bool,
@@ -2301,6 +2347,7 @@ func (c *Checker) declareMethod(
 				declaredType = c.TypeOf(p.TypeNode)
 			} else if baseMethod != nil && len(baseMethod.Params) > i {
 				declaredType = baseMethod.Params[i].Type
+				declaredType = c.inferTypeArgumentsWithFlags(declaredType, declaredType, typeArgMap, nil, bitfield.BitField8FromBitFlag(inferTypeArgumentsInferFromDefaults))
 			} else {
 				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", pName),

@@ -8,10 +8,34 @@ import (
 	"github.com/elk-language/elk/lexer"
 )
 
+// Value used to decide what whether to skip the subtypes of a type,
+// break the traversal or continue in the type Traverse method.
+// The zero value continues the traversal.
+type TraverseOption uint8
+
+const (
+	TraverseContinue TraverseOption = iota
+	TraverseSkip
+	TraverseBreak
+)
+
 type Type interface {
 	ToNonLiteral(*GlobalEnvironment) Type
 	IsLiteral() bool
 	inspect() string
+	traverse(parent Type, enter func(typ, parent Type) TraverseOption, leave func(typ, parent Type) TraverseOption) TraverseOption
+}
+
+func noopTraverse(typ, parent Type) TraverseOption { return TraverseContinue }
+
+func Traverse(typ Type, enter func(typ, parent Type) TraverseOption, leave func(typ, parent Type) TraverseOption) {
+	if enter == nil {
+		enter = noopTraverse
+	}
+	if leave == nil {
+		leave = noopTraverse
+	}
+	typ.traverse(nil, enter, leave)
 }
 
 func DeepCopyNamespacePath(constantPath []string, oldEnv, newEnv *GlobalEnvironment) Namespace {

@@ -10,6 +10,15 @@ type ModulePlaceholder struct {
 	Module
 }
 
+func (m *ModulePlaceholder) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(m, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(m, parent)
+	}
+}
+
 func NewModulePlaceholder(name string) *ModulePlaceholder {
 	return &ModulePlaceholder{
 		Module: Module{

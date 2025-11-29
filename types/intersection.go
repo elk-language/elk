@@ -16,6 +16,23 @@ func NewIntersection(elements ...Type) *Intersection {
 	}
 }
 
+func (i *Intersection) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseContinue:
+		return leave(i, parent)
+	}
+
+	for _, element := range i.Elements {
+		if element.traverse(i, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
+	}
+
+	return leave(i, parent)
+}
+
 func (u *Intersection) ToNonLiteral(env *GlobalEnvironment) Type {
 	return u
 }

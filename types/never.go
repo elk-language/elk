@@ -9,6 +9,15 @@ package types
 // It is used to detect unreachable code.
 type Never struct{}
 
+func (Never) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(Never{}, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(Never{}, parent)
+	}
+}
+
 func (n Never) ToNonLiteral(env *GlobalEnvironment) Type {
 	return n
 }

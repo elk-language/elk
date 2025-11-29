@@ -17,6 +17,15 @@ type Mixin struct {
 	NamespaceBase
 }
 
+func (m *Mixin) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(m, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(m, parent)
+	}
+}
+
 func (m *Mixin) IsGeneric() bool {
 	return len(m.typeParameters) > 0
 }

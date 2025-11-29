@@ -12,6 +12,15 @@ type TypeParamNamespace struct {
 	subtypes   ConstantMap
 }
 
+func (t *TypeParamNamespace) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(t, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(t, parent)
+	}
+}
+
 func NewTypeParamNamespace(docComment string, forMethod bool) *TypeParamNamespace {
 	return &TypeParamNamespace{
 		docComment: docComment,

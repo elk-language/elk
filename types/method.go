@@ -50,6 +50,21 @@ func (p *Parameter) Copy() *Parameter {
 	}
 }
 
+func (p *Parameter) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(p, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseContinue:
+		return leave(p, parent)
+	}
+
+	if p.Type.traverse(p, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(p, parent)
+}
+
 func (p *Parameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Parameter {
 	newParam := p.Copy()
 	newParam.Type = DeepCopyEnv(newParam.Type, oldEnv, newEnv)
@@ -179,6 +194,15 @@ type Method struct {
 	InitialisedInstanceVariables ds.Set[value.Symbol] // a set of names of instance variables that have been initialised, used when checking constructors
 	CalledMethods                []*Method            // list of methods called in this method's body
 	Node                         AstNode
+}
+
+func (m *Method) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(m, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(m, parent)
+	}
 }
 
 func NewMethodPlaceholder(fullName string, name value.Symbol, definedUnder Namespace, location *position.Location) *Method {

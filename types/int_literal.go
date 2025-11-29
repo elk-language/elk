@@ -11,6 +11,15 @@ type IntLiteral struct {
 	isNegative bool
 }
 
+func (i *IntLiteral) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(i, parent)
+	}
+}
+
 func (i *IntLiteral) StringValue() string {
 	return i.Value
 }
@@ -54,6 +63,15 @@ func (i *IntLiteral) CopyNumeric() NumericLiteral {
 type Int64Literal struct {
 	Value      string
 	isNegative bool
+}
+
+func (i *Int64Literal) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(i, parent)
+	}
 }
 
 func (i *Int64Literal) StringValue() string {
@@ -101,6 +119,15 @@ type Int32Literal struct {
 	isNegative bool
 }
 
+func (i *Int32Literal) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(i, parent)
+	}
+}
+
 func (i *Int32Literal) StringValue() string {
 	return i.Value
 }
@@ -144,6 +171,15 @@ func (i *Int32Literal) CopyNumeric() NumericLiteral {
 type Int16Literal struct {
 	Value      string
 	isNegative bool
+}
+
+func (i *Int16Literal) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(i, parent)
+	}
 }
 
 func (i *Int16Literal) StringValue() string {
@@ -191,6 +227,15 @@ type Int8Literal struct {
 	isNegative bool
 }
 
+func (i *Int8Literal) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(i, parent)
+	}
+}
+
 func (i *Int8Literal) StringValue() string {
 	return i.Value
 }
@@ -234,6 +279,15 @@ func (i *Int8Literal) CopyNumeric() NumericLiteral {
 type UIntLiteral struct {
 	Value      string
 	isNegative bool
+}
+
+func (i *UIntLiteral) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(i, parent)
+	}
 }
 
 func (i *UIntLiteral) StringValue() string {
@@ -281,6 +335,15 @@ type UInt64Literal struct {
 	isNegative bool
 }
 
+func (i *UInt64Literal) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(i, parent)
+	}
+}
+
 func (i *UInt64Literal) StringValue() string {
 	return i.Value
 }
@@ -324,6 +387,15 @@ func (i *UInt64Literal) CopyNumeric() NumericLiteral {
 type UInt32Literal struct {
 	Value      string
 	isNegative bool
+}
+
+func (i *UInt32Literal) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(i, parent)
+	}
 }
 
 func (i *UInt32Literal) StringValue() string {
@@ -371,6 +443,15 @@ type UInt16Literal struct {
 	isNegative bool
 }
 
+func (i *UInt16Literal) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(i, parent)
+	}
+}
+
 func (i *UInt16Literal) StringValue() string {
 	return i.Value
 }
@@ -414,6 +495,15 @@ func (i *UInt16Literal) CopyNumeric() NumericLiteral {
 type UInt8Literal struct {
 	Value      string
 	isNegative bool
+}
+
+func (i *UInt8Literal) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(i, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(i, parent)
+	}
 }
 
 func (i *UInt8Literal) StringValue() string {

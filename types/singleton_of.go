@@ -14,6 +14,21 @@ func NewSingletonOf(typ Type) *SingletonOf {
 	}
 }
 
+func (s *SingletonOf) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(s, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseContinue:
+		return leave(s, parent)
+	}
+
+	if s.Type.traverse(s, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	return leave(s, parent)
+}
+
 func (s *SingletonOf) ToNonLiteral(env *GlobalEnvironment) Type {
 	return s
 }

@@ -4,6 +4,15 @@ package types
 // It is used to mark constants of pure types, that do not have a runtime value.
 type NoValue struct{}
 
+func (NoValue) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(NoValue{}, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(NoValue{}, parent)
+	}
+}
+
 func (n NoValue) ToNonLiteral(env *GlobalEnvironment) Type {
 	return n
 }

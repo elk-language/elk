@@ -112,7 +112,7 @@ func (s *PlainReporter) finishReport(report *SuiteReport) {
 	}
 
 	fmt.Printf(
-		"Finished in %s\n",
+		"\nFinished in %s\n",
 		report.duration.String(),
 	)
 	fmt.Printf(
