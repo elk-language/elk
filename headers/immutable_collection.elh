@@ -22,6 +22,46 @@ interface ::Std::ImmutableCollection[+Val]
 	sig map[V, E](fn: |element: Val|: V ! E): ImmutableCollection[V] ! E
 
 	##[
+		Returns a new collection containing only elements matching the given predicate.
+
+		Never returns if the collection is infinite.
+	]##
+	sig filter[E = never](fn: |element: Val|: bool ! E): ImmutableCollection[Val] ! E
+
+	##[
+		Returns a new collection containing only elements not matching the given predicate.
+
+		Never returns if the collection is infinite.
+	]##
+	sig reject[E = never](fn: |element: Val|: bool ! E): ImmutableCollection[Val] ! E
+
+	##[
+		Returns a new collection containing all elements except first `n` elements.
+
+		Never returns if the collection is infinite.
+	]##
+	sig drop(n: Int): ImmutableCollection[Val]
+
+	##[
+		Returns a new collection containing all elements except first elements that satisfy the given predicate.
+
+		Never returns if the collection is infinite.
+	]##
+	sig drop_while[E = never](fn: |element: Val|: bool ! E): ImmutableCollection[Val] ! E
+
+	##[
+		Returns a new collection containing only the first `n` elements.
+	]##
+	sig take(n: Int): ImmutableCollection[Val]
+
+	##[
+		Returns a new collection containing first elements satisfying the given predicate.
+
+		May never return if the collection is infinite.
+	]##
+	sig take_while[E = never](fn: |element: Val|: bool ! E): ImmutableCollection[Val] ! E
+
+	##[
 		Provides default implementations of most immutable collection methods.
 	]##
 	abstract mixin Base[+Val]
@@ -29,6 +69,12 @@ interface ::Std::ImmutableCollection[+Val]
 		include Iterable::FiniteBase[Val]
 
 		def map[V, E](fn: |element: Val|: V ! E): ImmutableCollection[V] ! E; end
+		def filter[E = never](fn: |element: Val|: bool ! E): ImmutableCollection[Val] ! E; end
+		def reject[E = never](fn: |element: Val|: bool ! E): ImmutableCollection[Val] ! E; end
+		def drop(n: Int): ImmutableCollection[Val]; end
+		def drop_while[E = never](fn: |element: Val|: bool ! E): ImmutableCollection[Val] ! E; end
+		def take(n: Int): ImmutableCollection[Val]; end
+		def take_while[E = never](fn: |element: Val|: bool ! E): ImmutableCollection[Val] ! E; end
 	end
 
 end

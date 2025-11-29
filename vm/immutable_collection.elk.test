@@ -1,0 +1,435 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+class ImmutableCollectionBaseTestObject[V]
+	include ImmutableCollection::Base[V]
+
+	attr iter: Iterator[V]
+
+	init(@iter: Iterator[V]); end
+
+	def length: Int then 3
+
+	def inspect: String
+		"IterableBaseTestObject{}"
+	end
+end
+
+describe "ImmutableCollection", ->
+	describe "Base", ->
+		context "contains", ->
+			should "return true when the element exists", ->
+				obj := ImmutableCollectionBaseTestObject((1...10).iter)
+				assert! obj.contains(5) == true
+			end
+
+			should "return false when the element does not exist", ->
+				obj := ImmutableCollectionBaseTestObject((1...10).iter)
+				assert! obj.contains(15) == false
+			end
+		end
+
+		context "is_empty", ->
+			should "return true when no element", ->
+				obj := ImmutableCollectionBaseTestObject([].iter)
+				assert! obj.is_empty == true
+			end
+
+			should "return false when elements exist", ->
+				obj := ImmutableCollectionBaseTestObject(5.iter)
+				assert! obj.is_empty == false
+			end
+		end
+
+		context "first", ->
+			should "return the first yielded element", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert! obj.first == 4
+			end
+
+			should "throw an error when no objects where yielded", ->
+				obj := ImmutableCollectionBaseTestObject([].iter)
+				assert_throws! obj.first match Iterable::NotFoundError(message: "cannot get first element of `IterableBaseTestObject{}`")
+			end
+		end
+
+		context "try_first", ->
+			should "return the first yielded element", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert! obj.try_first == 4
+			end
+
+			should "return nil when no objects where yielded", ->
+				obj := ImmutableCollectionBaseTestObject([].iter)
+				assert! obj.try_first == nil
+			end
+		end
+
+		context "last", ->
+			should "return the last yielded element", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert! obj.last == 10
+			end
+
+			should "throw an error when no objects where yielded", ->
+				obj := ImmutableCollectionBaseTestObject([].iter)
+				assert_throws! obj.last match Iterable::NotFoundError(message: "cannot get last element of `IterableBaseTestObject{}`")
+			end
+		end
+
+		context "try_last", ->
+			should "return the last yielded element", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert! obj.try_last == 10
+			end
+
+			should "return nil when no objects where yielded", ->
+				obj := ImmutableCollectionBaseTestObject([].iter)
+				assert! obj.try_last == nil
+			end
+		end
+
+		context "map", ->
+			should "create an ArrayTuple with transformed elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.map |v| -> v * 2
+				assert! result == %[8, 10, 12, 14, 16, 18, 20]
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! ((obj.map |v| -> throw "Foo") match "Foo")
+			end
+		end
+
+		context "filter", ->
+			should "create an ArrayTuple with matching elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.filter |v| -> v.is_even
+				assert! result == %[4, 6, 8, 10]
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! ((obj.filter |v| -> throw "Foo") match "Foo")
+			end
+		end
+
+		context "count", ->
+			should "return the count of matching elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.count |v| -> v.is_even
+				assert! result == 4
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! ((obj.count |v| -> throw "Foo") match "Foo")
+			end
+		end
+
+		context "reject", ->
+			should "create an ArrayTuple with non-matching elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.reject |v| -> v.is_even
+				assert! result == %[5, 7, 9]
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! ((obj.reject |v| -> throw "Foo") match "Foo")
+			end
+		end
+
+		context "any", ->
+			should "return true if multiple elements match", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.any |v| -> v.is_even
+				assert! result == true
+			end
+
+			should "return true if one element matches", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.any |v| -> v == 5
+				assert! result == true
+			end
+
+			should "return false if no elements match", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.any |v| -> v == 15
+				assert! result == false
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! ((obj.any |v| -> throw "Foo") match "Foo")
+			end
+		end
+
+		context "every", ->
+			should "return true if all elements match", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.every |v| -> v > 2
+				assert! result == true
+			end
+
+			should "return false if multiple elements match", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.every |v| -> v.is_even
+				assert! result == false
+			end
+
+			should "return false if one element matches", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.every |v| -> v == 5
+				assert! result == false
+			end
+
+			should "return false if no elements match", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.every |v| -> v == 15
+				assert! result == false
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! ((obj.every |v| -> throw "Foo") match "Foo")
+			end
+		end
+
+		context "find", ->
+			should "return the first matching element", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.find |v| -> v.is_odd
+				assert! result == 5
+			end
+
+			should "throw an error when no element matches", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! ((obj.find |v| -> v > 20) match Iterable::NotFoundError(message: "could not find element of `IterableBaseTestObject{}`"))
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! ((obj.find |v| -> throw "Foo") match "Foo")
+			end
+		end
+
+		context "try_find", ->
+			should "return the first matching element", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.try_find |v| -> v.is_odd
+				assert! result == 5
+			end
+
+			should "return nil when no element matches", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.try_find |v| -> v > 20
+				assert! result == nil
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! ((obj.try_find |v| -> throw "Foo") match "Foo")
+			end
+		end
+
+		context "index_of", ->
+			should "return the index of the first matching element", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.index_of(6)
+				assert! result == 2
+			end
+
+			should "return -1 when no element matches", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.index_of(20)
+				assert! result == -1
+			end
+		end
+
+		context "find_index", ->
+			should "return the index of the first matching element", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.find_index |v| -> v.is_odd
+				assert! result == 1
+			end
+
+			should "return -1 when no element matches", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.find_index |v| -> v > 20
+				assert! result == -1
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! ((obj.find_index |v| -> throw "Foo") match "Foo")
+			end
+		end
+
+		context "drop", ->
+			should "create an ArrayTuple with all elements when count is zero", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.drop(0)
+				assert! result == %[4, 5, 6, 7, 8, 9, 10]
+			end
+
+			should "create an ArrayTuple without first 3 elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.drop(3)
+				assert! result == %[7, 8, 9, 10]
+			end
+
+			should "create an empty ArrayTuple when drop count is higher that the number of elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.drop(30)
+				assert! result == %[]
+			end
+
+			should "throw an error when count is negative", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! obj.drop(-30) match OutOfRangeError(message: "tried to drop a negative amount of values `-30` from an iterable")
+			end
+		end
+
+		context "drop_while", ->
+			should "create an ArrayTuple with all elements after encountering a non-matching one", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.drop_while |v| -> v < 6 || v > 8
+				assert! result == %[6, 7, 8, 9, 10]
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! ((obj.drop_while |v| -> throw "Foo") match "Foo")
+			end
+		end
+
+		context "take", ->
+			should "create an empty ArrayTuple when count is zero", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.take(0)
+				assert! result == %[]
+			end
+
+			should "create an ArrayTuple with first 3 elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.take(3)
+				assert! result == %[4, 5, 6]
+			end
+
+			should "create an ArrayTuple with all elements when drop count is higher that the number of elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.take(30)
+				assert! result == %[4, 5, 6, 7, 8, 9, 10]
+			end
+
+			should "throw an error when count is negative", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! obj.take(-30) match OutOfRangeError(message: "tried to take a negative amount of values `-30` from an iterable")
+			end
+		end
+
+		context "take_while", ->
+			should "create an ArrayTuple with all elements prior to encountering a non-matching one", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.take_while |v| -> v != 7
+				assert! result == %[4, 5, 6]
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				assert_throws! ((obj.take_while |v| -> throw "Foo") match "Foo")
+			end
+		end
+
+		context "reduce", ->
+			should "sum all elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.reduce |a, b| -> a + b
+				assert! result == 49
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((1...3).iter)
+				assert_throws! do
+					obj.reduce |a, b| -> throw "Deliberate error"
+				end match "Deliberate error"
+			end
+		end
+
+		context "fold", ->
+			should "multiply all elements with an initial value of the same type" , ->
+				obj := ImmutableCollectionBaseTestObject((4...7).iter)
+				result := obj.fold 2, |a, b| -> a * b
+				assert! result == 1680
+			end
+
+			should "multiply all elements with an initial value of another type" , ->
+				obj := ImmutableCollectionBaseTestObject((4...7).iter)
+				result := obj.fold 2.5, |a, b| -> a * b.to_float
+				assert! result == 2100.0
+			end
+
+			should "sum all elements with initial value", ->
+				obj := ImmutableCollectionBaseTestObject((1...5).iter)
+				result := obj.fold 10, |a, b| -> a + b
+				assert! result == 25
+			end
+
+			should "work with empty iterable - returns initial value", ->
+				var arr: ArrayList[Int] = []
+				obj := ImmutableCollectionBaseTestObject(arr.iter)
+				result := obj.fold 42, |a, b| -> a + b
+				assert! result == 42
+			end
+
+			should "return the correct value when folding with subtraction", ->
+				obj := ImmutableCollectionBaseTestObject((3...6).iter)
+				result := obj.fold 20, |a, b| -> a - b
+				assert! result == 2
+			end
+
+			should "throw an error from closure", ->
+				obj := ImmutableCollectionBaseTestObject((1...3).iter)
+				assert_throws! do
+					obj.fold 0, |a, b| -> throw "Deliberate error"
+				end match "Deliberate error"
+			end
+		end
+
+		context "to_list", ->
+			should "create a list with all elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.to_list
+				assert! result == [4, 5, 6, 7, 8, 9, 10]
+			end
+		end
+
+		context "to_tuple", ->
+			should "create a tuple with all elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.to_tuple
+				assert! result == %[4, 5, 6, 7, 8, 9, 10]
+			end
+
+		end
+
+		context "to_immutable_collection", ->
+			should "create a tuple with all elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.to_immutable_collection
+				assert! result == %[4, 5, 6, 7, 8, 9, 10]
+			end
+		end
+
+		context "to_collection", ->
+			should "create a list with all elements", ->
+				obj := ImmutableCollectionBaseTestObject((4...10).iter)
+				result := obj.to_collection
+				assert! result == [4, 5, 6, 7, 8, 9, 10]
+			end
+		end
+
+	end
+end

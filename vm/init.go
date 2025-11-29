@@ -25,6 +25,7 @@ func InitGlobalEnvironment() {
 	initInterface()
 	initIterableFiniteBase()
 	initIterableBase()
+	initImmutableCollection()
 	initClosedRange()
 	initClosedRangeIterator()
 	initComparable()

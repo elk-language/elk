@@ -21,9 +21,6 @@ interface ::Std::Iterable[+Val, +Err = never]
 	]##
 	class NotFoundError < Error; end
 
-	# TODO
-	# Base methods
-
 	##[
 		Check whether the given `value` is present in this iterable.
 

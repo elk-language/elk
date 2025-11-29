@@ -25,7 +25,8 @@ func initIterable() {
 	IterableFiniteBase = NewMixin()
 	IterableInterface.AddConstantString("FiniteBase", Ref(IterableFiniteBase))
 
-	IterableBase = NewMixinWithOptions(MixinWithParent(IterableFiniteBase))
+	IterableBase = NewMixin()
+	IterableBase.IncludeMixin(IterableFiniteBase)
 	IterableInterface.AddConstantString("Base", Ref(IterableBase))
 
 	IterableNotFoundError = NewClassWithOptions(ClassWithSuperclass(ErrorClass))

@@ -90,6 +90,7 @@ func InitGlobalEnvironment() {
 	initRegex()
 	initIterator()
 	initIterable()
+	initImmutableCollection()
 	initTuple()
 	initList()
 	initArrayTuple()
