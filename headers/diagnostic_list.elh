@@ -63,7 +63,32 @@ sealed primitive class ::Std::DiagnosticList
 		Throws an unchecked error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	def [](index: AnyInt): Diagnostic; end
+	overload def [](index: AnyInt): Diagnostic; end
+	##[
+		Return a DiagnosticList that contains the elements from the given range of indices.
+		This list should be backed by the same buffer as the original list.
+
+		Throws an unchecked error if the range contains indices that are negative
+		or are greater or equal to `length`.
+	]##
+	overload def [](range: Range[Int]): DiagnosticList; end
+
+	##[
+		Get the element under the given index.
+
+		Throws an error if the index is a negative number
+		or is greater or equal to `length`.
+	]##
+	def at(index: AnyInt): Diagnostic ! OutOfRangeError; end
+
+	##[
+		Return a DiagnosticList that contains the elements from the given range of indices.
+		This list should be backed by the same buffer as the original list.
+
+		Throws an unchecked error if the range contains indices that are negative
+		or are greater or equal to `length`.
+	]##
+	def view(range: Range[Int]): DiagnosticList; end
 
 	##[
 		Set the element under the given index to the given value.

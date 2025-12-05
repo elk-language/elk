@@ -35,6 +35,7 @@ func initArrayTuple() {
 		},
 		DefWithParameters(1),
 	)
+	Alias(c, "at", "[]")
 	Def(
 		c,
 		"[]=",

@@ -94,6 +94,7 @@ var (
 
 // lowercase symbols
 var (
+	L_at                       = value.ToSymbol("at")
 	L_call                     = value.ToSymbol("call")
 	L_self                     = value.ToSymbol("self")
 	L_contains                 = value.ToSymbol("contains")
@@ -113,6 +114,9 @@ var (
 	L_to_ast_ident_node        = value.ToSymbol("to_ast_ident_node")
 	L_to_ast_ivar_node         = value.ToSymbol("to_ast_ivar_node")
 	L_message                  = value.ToSymbol("message")
+	L_remove                   = value.ToSymbol("remove")
+	L_push                     = value.ToSymbol("push")
+	L_view                     = value.ToSymbol("view")
 )
 
 // special symbols

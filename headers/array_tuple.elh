@@ -24,7 +24,32 @@ sealed primitive class ::Std::ArrayTuple[+Val]
 		Throws an unchecked error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	def [](index: AnyInt): Val; end
+	overload def [](index: AnyInt): Val; end
+	##[
+		Return an ArrayTuple that contains the elements from the given range of indices.
+		This new tuple will be backed by the same underlying data structure as the original tuple.
+
+		Throws an unchecked error if the range contains indices that are negative
+		or are greater or equal to `length`.
+	]##
+	overload def [](range: Range[Int]): ArrayTuple[Val]; end
+
+	##[
+		Get the element under the given index.
+
+		Throws an error if the index is a negative number
+		or is greater or equal to `length`.
+	]##
+	def at(index: AnyInt): Val ! OutOfRangeError; end
+
+	##[
+		Return an ArrayTuple that contains the elements from the given range of indices.
+		This new tuple will be backed by the same underlying data structure as the original tuple.
+
+		Throws an unchecked error if the range contains indices that are negative
+		or are greater or equal to `length`.
+	]##
+	def view(range: Range[Int]): ArrayTuple[Val]; end
 
 	##[
 		Create a new `ArrayTuple` containing the elements of `self`

@@ -30,7 +30,30 @@ sealed primitive class ::Std::Pair[+Key, +Value]
 		Get the element with the given index.
 		The key is `0`, value is `1`.
 	]##
-	def [](index: AnyInt): Key | Value; end
+	overload def [](index: AnyInt): Key | Value; end
+	##[
+		Return a Tuple that contains the elements from the given range of indices.
+
+		Throws an unchecked error if the range contains indices that are negative
+		or are greater or equal to `length`.
+	]##
+	overload def [](range: Range[Int]): ArrayTuple[Key | Value]; end
+
+	##[
+		Get the element under the given index.
+
+		Throws an error if the index is a negative number
+		or is greater or equal to `length`.
+	]##
+	def at(index: AnyInt): Key | Value ! OutOfRangeError; end
+
+	##[
+		Return a Tuple that contains the elements from the given range of indices.
+
+		Throws an unchecked error if the range contains indices that are negative
+		or are greater or equal to `length`.
+	]##
+	def view(range: Range[Int]): ArrayTuple[Key | Value]; end
 
 	##[
 		Check whether the given value

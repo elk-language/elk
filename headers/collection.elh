@@ -19,7 +19,7 @@ interface ::Std::Collection[Val]
 		Removes the element from the collection.
 
 		Returns `true` if the element has been removed,
-		otherwise returns `false.
+		otherwise returns `false`.
 	]##
 	sig remove(value: Val): bool
 
@@ -34,18 +34,9 @@ interface ::Std::Collection[Val]
 		Removes all given elements from the collection.
 
 		Returns `true` if any elements have been removed,
-		otherwise returns `false.
+		otherwise returns `false`.
 	]##
 	sig remove_all(*values: Val): bool
-
-	##[
-		Iterates over the elements of this collection,
-		yielding them to the given closure.
-
-		Returns a new collection that consists of the elements returned
-		by the given closure.
-	]##
-	sig map[V, E](fn: |element: Val|: V ! E): Collection[V] ! E
 
 	##[
 		Adds the given values to the collection.
@@ -58,6 +49,45 @@ interface ::Std::Collection[Val]
 	sig <<(value: Val): self
 
 	##[
+		Iterates over the elements of this collection,
+		yielding them to the given closure.
+
+		Returns a new collection that consists of the elements returned
+		by the given closure.
+	]##
+	sig map[V, E](fn: |element: Val|: V ! E): Collection[V] ! E
+
+	##[
+		Returns a new collection containing only elements matching the given predicate.
+	]##
+	sig filter[E = never](fn: |element: Val|: bool ! E): Collection[Val] ! E
+
+	##[
+		Returns a new collection containing only elements not matching the given predicate.
+	]##
+	sig reject[E = never](fn: |element: Val|: bool ! E): Collection[Val] ! E
+
+	##[
+		Returns a new collection containing all elements except first `n` elements.
+	]##
+	sig drop(n: Int): Collection[Val]
+
+	##[
+		Returns a new collection containing all elements except first elements that satisfy the given predicate.
+	]##
+	sig drop_while[E = never](fn: |element: Val|: bool ! E): Collection[Val] ! E
+
+	##[
+		Returns a new collection containing only the first `n` elements.
+	]##
+	sig take(n: Int): Collection[Val]
+
+	##[
+		Returns a new collection containing first elements satisfying the given predicate.
+	]##
+	sig take_while[E = never](fn: |element: Val|: bool ! E): Collection[Val] ! E
+
+	##[
 		Provides default implementations of most collection methods.
 	]##
 	abstract mixin Base[Val]
@@ -65,8 +95,14 @@ interface ::Std::Collection[Val]
 		include ImmutableCollection::Base[Val]
 
 		def remove_all(*values: Val): bool; end
-		def map[V, E](fn: |element: Val|: V ! E): Collection[V] ! E; end
 		def append(*values: Val): self; end
 		def <<(value: Val): self; end
+		def map[V, E](fn: |element: Val|: V ! E): Collection[V] ! E; end
+		def filter[E = never](fn: |element: Val|: bool ! E): Collection[Val] ! E; end
+		def reject[E = never](fn: |element: Val|: bool ! E): Collection[Val] ! E; end
+		def drop(n: Int): Collection[Val]; end
+		def drop_while[E = never](fn: |element: Val|: bool ! E): Collection[Val] ! E; end
+		def take(n: Int): Collection[Val]; end
+		def take_while[E = never](fn: |element: Val|: bool ! E): Collection[Val] ! E; end
 	end
 end

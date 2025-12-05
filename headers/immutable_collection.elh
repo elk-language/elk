@@ -23,29 +23,21 @@ interface ::Std::ImmutableCollection[+Val]
 
 	##[
 		Returns a new collection containing only elements matching the given predicate.
-
-		Never returns if the collection is infinite.
 	]##
 	sig filter[E = never](fn: |element: Val|: bool ! E): ImmutableCollection[Val] ! E
 
 	##[
 		Returns a new collection containing only elements not matching the given predicate.
-
-		Never returns if the collection is infinite.
 	]##
 	sig reject[E = never](fn: |element: Val|: bool ! E): ImmutableCollection[Val] ! E
 
 	##[
 		Returns a new collection containing all elements except first `n` elements.
-
-		Never returns if the collection is infinite.
 	]##
 	sig drop(n: Int): ImmutableCollection[Val]
 
 	##[
 		Returns a new collection containing all elements except first elements that satisfy the given predicate.
-
-		Never returns if the collection is infinite.
 	]##
 	sig drop_while[E = never](fn: |element: Val|: bool ! E): ImmutableCollection[Val] ! E
 
@@ -56,8 +48,6 @@ interface ::Std::ImmutableCollection[+Val]
 
 	##[
 		Returns a new collection containing first elements satisfying the given predicate.
-
-		May never return if the collection is infinite.
 	]##
 	sig take_while[E = never](fn: |element: Val|: bool ! E): ImmutableCollection[Val] ! E
 

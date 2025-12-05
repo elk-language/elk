@@ -189,9 +189,13 @@ func (c *Checker) methodScopesCopy() []methodScope {
 		return c.methodScopesCopyCache
 	}
 
-	scopesCopy := slices.Clone(c.methodScopes)
+	scopesCopy := c.methodScopesCopyWithoutCache()
 	c.methodScopesCopyCache = scopesCopy
 	return scopesCopy
+}
+
+func (c *Checker) methodScopesCopyWithoutCache() []methodScope {
+	return slices.Clone(c.methodScopes)
 }
 
 func (c *Checker) clearMethodScopeCopyCache() {

@@ -77,6 +77,18 @@ func (m *OrderedMap[K, V]) Insert(key K, val V) bool {
 	return true
 }
 
+// Insert adds a new pair if the key is not already present in the map and returns the newly added value
+// otherwise it does nothing and returns the already existing value
+func (m *OrderedMap[K, V]) InsertGet(key K, val V) V {
+	existingVal, present := m.data[key]
+	if present {
+		return existingVal
+	}
+
+	m.Set(key, val)
+	return val
+}
+
 // Delete removes the given key and returns true when the key was
 // found
 func (m *OrderedMap[K, V]) Delete(key K) bool {

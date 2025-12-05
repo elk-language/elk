@@ -22,6 +22,93 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+func (c *Checker) checkAllMethodSignaturesOfNamespace(namespace types.Namespace) {
+	if c.signatureChecks == nil {
+		return
+	}
+
+	methodSignatures := c.signatureChecks.Get(namespace.Name())
+	c.checkSignatures(methodSignatures)
+}
+
+type signatureCheckEntry struct {
+	constantScopes []constantScope
+	methodScopes   []methodScope
+	selfType       types.Type
+	flags          bitfield.BitField8
+	mode           mode
+	node           ast.Node
+}
+
+func (c *Checker) registerSignatureCheck(node ast.Node) {
+	namespaceName := c.currentMethodScope().container.Name()
+	entry := signatureCheckEntry{
+		constantScopes: c.constantScopesCopyWithoutCache(),
+		methodScopes:   c.methodScopesCopyWithoutCache(),
+		node:           node,
+		flags:          c.flags,
+		mode:           c.mode,
+		selfType:       c.selfType,
+	}
+
+	if entries, exists := c.signatureChecks.GetOk(namespaceName); exists {
+		*entries = append(*entries, entry)
+	} else {
+		c.signatureChecks.Insert(namespaceName, &[]signatureCheckEntry{entry})
+	}
+}
+
+func (c *Checker) checkAllSignatures() {
+	for _, methodSignatures := range c.signatureChecks.All() {
+		c.checkSignatures(methodSignatures)
+	}
+	c.signatureChecks = nil
+}
+
+func (c *Checker) checkSignatures(methodSignatures *[]signatureCheckEntry) {
+	if methodSignatures == nil {
+		return
+	}
+	for _, signatureCheck := range *methodSignatures {
+		prevConstantScopes := c.constantScopes
+		prevMethodScopes := c.methodScopes
+		prevSelfType := c.selfType
+		prevFlags := c.flags
+		prevMode := c.mode
+
+		c.constantScopes = signatureCheck.constantScopes
+		c.methodScopes = signatureCheck.methodScopes
+		c.selfType = signatureCheck.selfType
+		c.flags = signatureCheck.flags
+		c.mode = signatureCheck.mode
+
+		switch node := signatureCheck.node.(type) {
+		case *ast.MethodDefinitionNode:
+			c.checkSignatureOfMethodDefinition(node)
+		case *ast.AliasDeclarationNode:
+			c.checkSignatureOfAliasDeclaration(node)
+		case *ast.MethodSignatureDefinitionNode:
+			c.checkSignatureOfMethodSignatureDefinition(node)
+		case *ast.InstanceVariableDeclarationNode:
+			c.checkSignatureOfInstanceVariableDeclaration(node)
+		case *ast.GetterDeclarationNode:
+			c.checkSignatureOfGetterDeclaration(node)
+		case *ast.SetterDeclarationNode:
+			c.checkSignatureOfSetterDeclaration(node)
+		case *ast.AttrDeclarationNode:
+			c.checkSignatureOfAttrDeclaration(node)
+		default:
+			panic(fmt.Sprintf("invalid signature definition node: %T", node))
+		}
+
+		c.constantScopes = prevConstantScopes
+		c.methodScopes = prevMethodScopes
+		c.selfType = prevSelfType
+		c.flags = prevFlags
+		c.mode = prevMode
+	}
+}
+
 // Gathers all declarations of methods, constants and instance variables
 func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 	for _, statement := range statements {
@@ -80,23 +167,6 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 			initNode.Location(),
 		)
 	}
-	method, mod := c.declareMethod(
-		c.currentMethodScope().container,
-		initNode.DocComment(),
-		false,
-		false,
-		false,
-		false,
-		false,
-		false,
-		symbol.S_init,
-		nil,
-		initNode.Parameters,
-		nil,
-		initNode.ThrowType,
-		initNode.Location(),
-	)
-	initNode.SetType(method)
 	newNode := ast.NewMethodDefinitionNode(
 		initNode.Location(),
 		initNode.DocComment(),
@@ -108,15 +178,15 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		initNode.ThrowType,
 		initNode.Body,
 	)
-	newNode.SetType(method)
-	c.registerMethodCheck(method, newNode)
-	if mod != nil {
-		c.popConstScope()
-	}
+	c.registerSignatureCheck(newNode)
 	return newNode
 }
 
 func (c *Checker) hoistAliasDeclaration(node *ast.AliasDeclarationNode) {
+	c.registerSignatureCheck(node)
+}
+
+func (c *Checker) checkSignatureOfAliasDeclaration(node *ast.AliasDeclarationNode) {
 	node.SetType(types.Untyped{})
 	namespace := c.currentMethodScope().container
 	for _, entry := range node.Entries {
@@ -434,6 +504,10 @@ func (c *Checker) checkUsingEntryWithSubentriesForMethods(node *ast.UsingEntryWi
 }
 
 func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
+	c.registerSignatureCheck(node)
+}
+
+func (c *Checker) checkSignatureOfMethodDefinition(node *ast.MethodDefinitionNode) {
 	definedUnder := c.currentMethodScope().container
 	method, mod := c.declareMethod(
 		definedUnder,
@@ -453,13 +527,17 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 	)
 	method.Node = node
 	node.SetType(method)
-	c.registerMethodCheck(method, node)
+	c.registerMethodBodyCheck(method, node)
 	if mod != nil {
 		c.popConstScope()
 	}
 }
 
 func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefinitionNode) {
+	c.registerSignatureCheck(node)
+}
+
+func (c *Checker) checkSignatureOfMethodSignatureDefinition(node *ast.MethodSignatureDefinitionNode) {
 	method, mod := c.declareMethod(
 		c.currentMethodScope().container,
 		node.DocComment(),
@@ -536,7 +614,7 @@ func (c *Checker) checkMethodPlaceholders() {
 	c.methodPlaceholders = nil
 }
 
-type methodCheckEntry struct {
+type methodBodyCheckEntry struct {
 	method         *types.Method
 	constantScopes []constantScope
 	methodScopes   []methodScope
@@ -544,11 +622,11 @@ type methodCheckEntry struct {
 	headerMode     bool
 }
 
-func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
-	c.methodChecks = append(c.methodChecks, methodCheckEntry{
+func (c *Checker) registerMethodBodyCheck(method *types.Method, node *ast.MethodDefinitionNode) {
+	c.methodBodyChecks = append(c.methodBodyChecks, methodBodyCheckEntry{
 		method:         method,
-		constantScopes: c.constantScopesCopy(),
-		methodScopes:   c.methodScopesCopy(),
+		constantScopes: c.constantScopesCopyWithoutCache(),
+		methodScopes:   c.methodScopesCopyWithoutCache(),
 		node:           node,
 		headerMode:     c.IsHeader(),
 	})
@@ -556,11 +634,11 @@ func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefi
 
 var MethodCheckConcurrencyLimit = 100
 
-func (c *Checker) checkMethods() {
+func (c *Checker) checkMethodBodies() {
 	concurrent.Foreach(
 		MethodCheckConcurrencyLimit,
-		c.methodChecks,
-		func(methodCheck methodCheckEntry) {
+		c.methodBodyChecks,
+		func(methodCheck methodBodyCheckEntry) {
 			method := methodCheck.method
 			node := methodCheck.node
 
@@ -596,7 +674,7 @@ func (c *Checker) checkMethods() {
 		},
 	)
 
-	c.methodChecks = nil
+	c.methodBodyChecks = nil
 }
 
 // Check whether method calls in constant definitions are valid.
@@ -683,7 +761,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		body,
 	)
 	methodNode.SetType(method)
-	c.registerMethodCheck(
+	c.registerMethodBodyCheck(
 		method,
 		methodNode,
 	)
@@ -783,7 +861,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		nil,
 	)
 	methodNode.SetType(method)
-	c.registerMethodCheck(
+	c.registerMethodBodyCheck(
 		method,
 		methodNode,
 	)
@@ -1039,11 +1117,6 @@ func (c *Checker) checkMethod(
 	isClosure := types.IsCallable(methodNamespace)
 
 	if methodNamespace != nil {
-		currentMethod := c.resolveMethodInNamespace(methodNamespace, name)
-		if checkedMethod != currentMethod && checkedMethod.IsSealed() {
-			c.addOverrideSealedMethodError(checkedMethod, currentMethod.Location())
-		}
-
 		parent := methodNamespace.Parent()
 
 		if parent != nil {

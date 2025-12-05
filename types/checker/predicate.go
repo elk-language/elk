@@ -1104,6 +1104,10 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 	c.throwType = b
 
 	var incorrectMethods []methodOverride
+
+	c.checkAllMethodSignaturesOfNamespace(a)
+	c.checkAllMethodSignaturesOfNamespace(b)
+
 abstractLoop:
 	for _, abstractMethod := range c.methodsInNamespace(b) {
 		method := c.resolveMethodInNamespace(a, abstractMethod.Name)

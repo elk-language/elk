@@ -91,6 +91,7 @@ func InitGlobalEnvironment() {
 	initIterator()
 	initIterable()
 	initImmutableCollection()
+	initCollection()
 	initTuple()
 	initList()
 	initArrayTuple()

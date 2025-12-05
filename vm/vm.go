@@ -518,9 +518,6 @@ func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
 	self := *vm.spAdd(-args - 1)
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
-	if method == nil {
-		fmt.Printf("name: %s, self: %s\n", name.String(), self.Inspect())
-	}
 	return vm.callMethodOnStack(method, args)
 }
 
@@ -1904,17 +1901,6 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 
 	self := vm.selfValue()
 	class := self.DirectClass()
-
-	defer func() {
-		r := recover()
-		if r != nil {
-			fmt.Printf("panicked self: %s", self.Inspect())
-
-			vm.bytecode.DisassembleStdout()
-			fmt.Printf("ip: %d, location: %s\n", vm.ipOffset(), vm.bytecode.Location.String())
-			panic(r)
-		}
-	}()
 	// shift all arguments one slot forward to make room for self
 	for i := range callInfo.ArgumentCount {
 		*vm.spAdd(-i) = *vm.spAdd(-i - 1)
@@ -2176,7 +2162,7 @@ func (vm *VM) opCallMethodTCO(callInfoIndex int) (err value.Value) {
 	case *SetterMethod:
 		return vm.callSetterMethod(m)
 	default:
-		panic(fmt.Sprintf("tried to call an invalid method: %T", method))
+		panic(fmt.Sprintf("tried to call an invalid method: %T (%s) of class: %s (%s)", method, callInfo.Name, class.Name, self.Inspect()))
 	}
 }
 
@@ -4071,7 +4057,7 @@ func (vm *VM) opAs() {
 // Throw an error and attempt to find code
 // that catches it.
 func (vm *VM) throw(err value.Value) {
-	vm.rethrow(err, vm.GetStackTrace())
+	vm.rethrow(err, vm.BuildStackTrace())
 }
 
 func (vm *VM) rethrow(err value.Value, stackTrace *value.StackTrace) {
@@ -4105,7 +4091,7 @@ func (vm *VM) rethrow(err value.Value, stackTrace *value.StackTrace) {
 }
 
 func (vm *VM) throwNoCatch(err value.Value) {
-	vm.rethrowNoCatch(err, vm.GetStackTrace())
+	vm.rethrowNoCatch(err, vm.BuildStackTrace())
 }
 
 func (vm *VM) rethrowNoCatch(err value.Value, stackTrace *value.StackTrace) {

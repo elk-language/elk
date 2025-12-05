@@ -528,6 +528,44 @@ func (v Value) AsInt() int {
 	return int(v.AsSmallInt())
 }
 
+func (v Value) AsAnyInt() int {
+	if v.IsReference() {
+		switch v := v.AsReference().(type) {
+		case *BigInt:
+			return int(v.ToSmallInt())
+		case Int64:
+			return int(v.ToSmallInt())
+		case UInt64:
+			return int(v.ToSmallInt())
+		default:
+			panic(fmt.Sprintf("value `%s` is not an integer", v.Inspect()))
+		}
+	}
+
+	switch v.flag {
+	case SMALL_INT_FLAG:
+		return int(v.AsSmallInt())
+	case INT64_FLAG:
+		return int(v.AsInt64())
+	case UINT64_FLAG:
+		return int(v.AsUInt64())
+	case INT32_FLAG:
+		return int(v.AsInt32())
+	case UINT32_FLAG:
+		return int(v.AsUInt32())
+	case INT16_FLAG:
+		return int(v.AsInt16())
+	case UINT16_FLAG:
+		return int(v.AsUInt16())
+	case INT8_FLAG:
+		return int(v.AsInt8())
+	case UINT8_FLAG:
+		return int(v.AsUInt8())
+	default:
+		panic(fmt.Sprintf("value `%s` is not an integer", v.Inspect()))
+	}
+}
+
 func (v Value) AsNativeInt64() int64 {
 	if v.IsReference() {
 		return int64(v.AsBigInt().ToInt64())
@@ -986,6 +1024,10 @@ func (v Value) MustNil() NilType {
 
 func (v Value) IsUndefined() bool {
 	return v.flag == UNDEFINED_FLAG
+}
+
+func (v Value) IsNotUndefined() bool {
+	return v.flag != UNDEFINED_FLAG
 }
 
 func (v Value) AsUndefined() UndefinedType {

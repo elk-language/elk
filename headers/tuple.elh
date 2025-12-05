@@ -2,18 +2,8 @@
 	Represents an ordered, immutable collection
 	of elements indexed by integers starting at `0`.
 ]##
-abstract mixin ::Std::Tuple[+Element]
-	include ImmutableCollection::Base[Element]
-
-	##[
-		Get the element under the given index.
-
-		Throws an unchecked error if the index is a negative number
-		or is greater or equal to `length`.
-	]##
-	sig [](index: AnyInt): Element
-
-	# Base methods
+abstract mixin ::Std::Tuple[+Val]
+	include ImmutableCollection::Base[Val]
 
 	##[
 		Get the element under the given index.
@@ -21,7 +11,43 @@ abstract mixin ::Std::Tuple[+Element]
 		Throws an error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	def at(index: AnyInt): Element ! OutOfRangeError; end
+	sig at(index: AnyInt): Val ! OutOfRangeError
+
+	##[
+		Return a Tuple that contains the elements from the given range of indices.
+		If it's possible this tuple should be backed by the same underlying data structure as the original tuple.
+
+		Throws an unchecked error if the range contains indices that are negative
+		or are greater or equal to `length`.
+	]##
+	sig view(range: Range[Int]): Tuple[Val]
+
+	# Base methods
+
+	##[
+		Get the element under the given index.
+
+		Throws an unchecked error if the index is a negative number
+		or is greater or equal to `length`.
+	]##
+	overload def [](index: AnyInt): Val; end
+	##[
+		Return a Tuple that contains the elements from the given range of indices.
+		This tuple should be backed by the same buffer as the original tuple.
+
+		Throws an unchecked error if the range contains indices that are negative
+		or are greater or equal to `length`.
+	]##
+	overload def [](range: Range[Int]): Tuple[Val]; end
+
+	##[
+		Return a Tuple that contains the elements from the given range of indices.
+		This tuple is brand new and contains a copy of a part of the original buffer.
+
+		Throws an unchecked error if the range contains indices that are negative
+		or are greater or equal to `length`.
+	]##
+	def slice(range: Range[Int]): Tuple[Val]; end
 
 	##[
 		Get the element under the given index.
@@ -29,7 +55,7 @@ abstract mixin ::Std::Tuple[+Element]
 		Returns `nil` if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	def try_at(index: AnyInt): Element?; end
+	def try_at(index: AnyInt): Val?; end
 
 	##[
 		Iterates over the elements of this tuple,
@@ -38,11 +64,41 @@ abstract mixin ::Std::Tuple[+Element]
 		Returns a new tuple that consists of the elements returned
 		by the given closure.
 	]##
-	def map[V, E](fn: |element: Element|: V ! E): Tuple[V] ! E; end
+	def map[V, E](fn: |element: Val|: V ! E): Tuple[V] ! E; end
+
+	##[
+		Returns a new tuple containing only elements matching the given predicate.
+	]##
+	def filter[E = never](fn: |element: Val|: bool ! E): Tuple[Val] ! E; end
+
+	##[
+		Returns a new tuple containing only elements not matching the given predicate.
+	]##
+	def reject[E = never](fn: |element: Val|: bool ! E): Tuple[Val] ! E; end
+
+	##[
+		Returns a new tuple containing all elements except first `n` elements.
+	]##
+	def drop(n: Int): Tuple[Val]; end
+
+	##[
+		Returns a new tuple containing all elements except first elements that satisfy the given predicate.
+	]##
+	def drop_while[E = never](fn: |element: Val|: bool ! E): Tuple[Val] ! E; end
+
+	##[
+		Returns a new tuple containing only the first `n` elements.
+	]##
+	def take(n: Int): Tuple[Val]; end
+
+	##[
+		Returns a new tuple containing first elements satisfying the given predicate.
+	]##
+	def take_while[E = never](fn: |element: Val|: bool ! E): Tuple[Val] ! E; end
 
 	##[
 		Create a new `Tuple` containing the elements of `self`
 		and another given `Tuple`.
 	]##
-	sealed def +[V](other: Tuple[V]): Tuple[Element | V]; end
+	def +[V](other: Tuple[V]): Tuple[Val | V]; end
 end

@@ -261,13 +261,9 @@ func (l *ArrayTuple) ImmutableBoxOfVal(index Value) (*ImmutableBox, Value) {
 
 // Return a box pointing to the slot with the given index.
 func (l *ArrayTuple) ImmutableBoxOf(index int) (*ImmutableBox, Value) {
-	len := l.Length()
-	if index >= len || index < -len {
-		return nil, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len))
-	}
-
-	if index < 0 {
-		index = len + index
+	index, err := NormalizeArrayIndex(index, l.Length())
+	if !err.IsUndefined() {
+		return nil, err
 	}
 
 	box := (*ImmutableBox)(&(*l)[index])

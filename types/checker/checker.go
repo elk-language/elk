@@ -105,6 +105,7 @@ type phase uint8
 
 const (
 	initPhase phase = iota
+	methodSignatureCheckPhase
 	constantCheckPhase
 	methodCheckPhase
 	expressionPhase
@@ -127,13 +128,14 @@ type Checker struct {
 	methodScopes            []methodScope
 	methodScopesCopyCache   []methodScope
 	catchScopes             []catchScope
-	localEnvs               []*localEnvironment           // stack of local environments containing variable and value declarations
-	loops                   []*loop                       // list of loops the current expression falls under
-	namespacePlaceholders   []*types.NamespacePlaceholder // list of namespace placeholders, used when declaring a new namespace under another non-existent namespace, we keep track of these namespaces to make sure they get defined, otherwise we report errors
-	constantPlaceholders    []*types.ConstantPlaceholder  // list of constant/subtype placeholders, used in using statements
-	methodPlaceholders      []*types.Method               // list of method placeholders, used in using statements
-	macroChecks             []macroCheckEntry             // list of macros whose bodies have to be checked
-	methodChecks            []methodCheckEntry            // list of methods whose bodies have to be checked
+	localEnvs               []*localEnvironment                            // stack of local environments containing variable and value declarations
+	loops                   []*loop                                        // list of loops the current expression falls under
+	namespacePlaceholders   []*types.NamespacePlaceholder                  // list of namespace placeholders, used when declaring a new namespace under another non-existent namespace, we keep track of these namespaces to make sure they get defined, otherwise we report errors
+	constantPlaceholders    []*types.ConstantPlaceholder                   // list of constant/subtype placeholders, used in using statements
+	methodPlaceholders      []*types.Method                                // list of method placeholders, used in using statements
+	macroChecks             []macroCheckEntry                              // list of macros whose bodies have to be checked
+	methodBodyChecks        []methodBodyCheckEntry                         // list of methods whose bodies have to be checked
+	signatureChecks         *ds.OrderedMap[string, *[]signatureCheckEntry] // map of namespaces and their methods whose signatures have to be checked
 	constantChecks          *constantDefinitionChecks
 	typeDefinitionChecks    *typeDefinitionChecks
 	methodCache             *concurrent.Slice[*types.Method] // used in constant definition checks, the list of methods used in the current constant declaration
@@ -158,6 +160,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		constantChecks:       newConstantDefinitionChecks(),
 		ASTCache:             concurrent.NewMap[string, *ast.ProgramNode](),
+		signatureChecks:      ds.NewOrderedMap[string, *[]signatureCheckEntry](),
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		extensions:           concurrent.NewSlice[*ext.Extension](),
 		threadPool:           threadPool,
@@ -291,8 +294,9 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 	c.constantScopesCopyCache = nil
 
 	c.Filename = sourceName
-	c.methodChecks = nil
+	c.methodBodyChecks = nil
 	c.macroChecks = nil
+	c.signatureChecks = ds.NewOrderedMap[string, *[]signatureCheckEntry]()
 	c.setDefinedMacros(false)
 	bytecodeFunc := c.checkProgram(ast)
 
@@ -371,12 +375,15 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	c.switchToMainCompiler()
 	c.namespacesWithIvars = ds.NewOrderedMap[string, *namespaceWithIvarsData]()
 	c.hoistMethodDefinitionsInFile(c.Filename, node)
+	c.phase = methodSignatureCheckPhase
+	c.checkAllSignatures()
+
 	c.assignIvarIndices(node.Location())
 	methodCompiler, offset := c.initMethodCompiler(node.Location())
 	c.checkConstantPlaceholders()
 	c.checkMethodPlaceholders()
 	c.checkConstants()
-	c.checkMethods()
+	c.checkMethodBodies()
 	c.compileMethods(methodCompiler, offset, node.Location())
 
 	c.checkClassesWithIvars(node.Location())
@@ -4164,7 +4171,7 @@ func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.Q
 				case ast.UNQUOTE_INSTANCE_VARIABLE_KIND:
 					iface = ivarConvertible
 				default:
-					fmt.Printf("invalid unquote kind: %d", node.Kind)
+					panic(fmt.Sprintf("invalid unquote kind: %d", node.Kind))
 				}
 
 				c.checkCanAssign(unquoteType, iface, node.Location())
@@ -7080,6 +7087,10 @@ func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ typ
 }
 
 func (c *Checker) hoistGetterDeclaration(node *ast.GetterDeclarationNode) {
+	c.registerSignatureCheck(node)
+}
+
+func (c *Checker) checkSignatureOfGetterDeclaration(node *ast.GetterDeclarationNode) {
 	node.SetType(types.Untyped{})
 	for _, entry := range node.Entries {
 		attribute, ok := entry.(*ast.AttributeParameterNode)
@@ -7093,6 +7104,10 @@ func (c *Checker) hoistGetterDeclaration(node *ast.GetterDeclarationNode) {
 }
 
 func (c *Checker) hoistSetterDeclaration(node *ast.SetterDeclarationNode) {
+	c.registerSignatureCheck(node)
+}
+
+func (c *Checker) checkSignatureOfSetterDeclaration(node *ast.SetterDeclarationNode) {
 	node.SetType(types.Untyped{})
 	for _, entry := range node.Entries {
 		attribute, ok := entry.(*ast.AttributeParameterNode)
@@ -7106,6 +7121,10 @@ func (c *Checker) hoistSetterDeclaration(node *ast.SetterDeclarationNode) {
 }
 
 func (c *Checker) hoistAttrDeclaration(node *ast.AttrDeclarationNode) {
+	c.registerSignatureCheck(node)
+}
+
+func (c *Checker) checkSignatureOfAttrDeclaration(node *ast.AttrDeclarationNode) {
 	node.SetType(types.Untyped{})
 	for _, entry := range node.Entries {
 		attribute, ok := entry.(*ast.AttributeParameterNode)
@@ -7120,6 +7139,10 @@ func (c *Checker) hoistAttrDeclaration(node *ast.AttrDeclarationNode) {
 }
 
 func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
+	c.registerSignatureCheck(node)
+}
+
+func (c *Checker) checkSignatureOfInstanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
 	methodNamespace := c.currentMethodScope().container
 	name := c.instanceVariableToName(node.Name)
 	ivar, ivarNamespace := c.getInstanceVariableIn(value.ToSymbol(name), methodNamespace)

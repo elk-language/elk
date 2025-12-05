@@ -74,6 +74,7 @@ func initArrayList() {
 		},
 		DefWithParameters(1),
 	)
+	Alias(c, "at", "[]")
 	Def(
 		c,
 		"[]=",
@@ -190,9 +191,46 @@ func initArrayList() {
 		"append",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
-			values := args[1].MustReference().(*value.ArrayTuple)
-			self.Append(*values...)
+			values := args[1]
+			for val := range Iterate(vm, values) {
+				self.Append(val)
+			}
 			return value.Ref(self), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"remove",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.ArrayList)(args[0].Pointer())
+			val := args[1]
+
+			var removed bool
+			for i := 0; i < self.Length(); i++ {
+				elem := self.At(i)
+				isEqual, err := Equal(vm, elem, val)
+				if !err.IsUndefined() {
+					return value.Undefined, err
+				}
+
+				if value.Truthy(isEqual) {
+					self.RemoveAt(i)
+					removed = true
+				}
+			}
+
+			return value.ToElkBool(removed), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"remove_at",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := (*value.ArrayList)(args[0].Pointer())
+			val := args[1].AsInt()
+			return value.Nil, self.RemoveAtErr(val)
 		},
 		DefWithParameters(1),
 	)

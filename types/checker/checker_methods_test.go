@@ -793,7 +793,6 @@ func TestMethodDefinitionOverride(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(60, 4, 6), P(86, 4, 32)), "method `Bar.:baz` is not a valid override of `Bar.:baz`\n  is:        `def baz(a: Std::Int): Std::Int`\n  should be: `sealed def baz(a: Std::Int): Std::Int`\n\n  - method `Bar.:baz` is sealed and cannot be overridden"),
-				diagnostic.NewFailure(L("<main>", P(60, 4, 6), P(86, 4, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: `sealed def baz(a: Std::Int): Std::Int`"),
 			},
 		},
 		"redeclare method with a new sealed modifier": {
@@ -1877,7 +1876,7 @@ func TestMethodDefinition(t *testing.T) {
 				end
 			`,
 		},
-		"instance variable parameter declares an instance variable tha cannot be redeclared with a different type": {
+		"instance variable parameter declares an instance variable that cannot be redeclared with a different type": {
 			input: `
 				class Foo
 					def baz(@a: String?)

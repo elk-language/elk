@@ -21,6 +21,18 @@ var ArrayListIteratorClass *Class
 // Elk's ArrayList value
 type ArrayList []Value
 
+func NormalizeArrayIndex(index, length int) (int, Value) {
+	if index >= length || index < -length {
+		return 0, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), length))
+	}
+
+	if index < 0 {
+		index = length + index
+	}
+
+	return index, Undefined
+}
+
 func ArrayListConstructor(class *Class) Value {
 	return Ref(&ArrayList{})
 }
@@ -139,6 +151,22 @@ func (l *ArrayList) Capacity() int {
 	return cap(*l)
 }
 
+func (l *ArrayList) RemoveAtErr(index int) Value {
+	index, err := NormalizeArrayIndex(index, l.Length())
+	if !err.IsUndefined() {
+		return err
+	}
+
+	l.RemoveAt(index)
+	return Undefined
+}
+
+func (l *ArrayList) RemoveAt(i int) {
+	s := *l
+	copy(s[i:], s[i+1:])
+	*l = s[:len(s)-1]
+}
+
 func (l *ArrayList) LeftCapacity() int {
 	return l.Capacity() - l.Length()
 }
@@ -163,12 +191,9 @@ func (l *ArrayList) Grow(newSlots int) {
 // Get an element under the given index.
 func GetFromSlice[V any](collection *[]V, index int) (ret V, err Value) {
 	l := len(*collection)
-	if index >= l || index < -l {
-		return ret, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection)))
-	}
-
-	if index < 0 {
-		index = l + index
+	index, err = NormalizeArrayIndex(index, l)
+	if err.IsNotUndefined() {
+		return ret, err
 	}
 
 	return (*collection)[index], Undefined
@@ -176,13 +201,9 @@ func GetFromSlice[V any](collection *[]V, index int) (ret V, err Value) {
 
 // Set an element under the given index.
 func SetInSlice[V any](collection *[]V, index int, val V) (err Value) {
-	l := len(*collection)
-	if index >= l || index < -l {
-		return Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection)))
-	}
-
-	if index < 0 {
-		index = l + index
+	index, err = NormalizeArrayIndex(index, len(*collection))
+	if !err.IsUndefined() {
+		return err
 	}
 
 	(*collection)[index] = val
@@ -326,13 +347,9 @@ func (l *ArrayList) BoxOfVal(index Value) (*Box, Value) {
 
 // Return a box pointing to the slot with the given index.
 func (l *ArrayList) BoxOf(index int) (*Box, Value) {
-	len := l.Length()
-	if index >= len || index < -len {
-		return nil, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), len))
-	}
-
-	if index < 0 {
-		index = len + index
+	index, err := NormalizeArrayIndex(index, l.Length())
+	if !err.IsUndefined() {
+		return nil, err
 	}
 
 	box := (*Box)(&(*l)[index])
