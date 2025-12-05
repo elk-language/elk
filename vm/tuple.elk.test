@@ -16,10 +16,6 @@ class TupleTestObject[V]
 		@array.at(index)
 	end
 
-	def view(range: Range[Int]): Tuple[V]
-		@array.view(range)
-	end
-
 	def iter: Iterator[V]
 		@array.iter
 	end
@@ -31,14 +27,101 @@ end
 
 describe "Tuple", ->
 	context "[]", ->
-		should "return the element under the index", ->
-			obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-			assert! obj[3] == 4
+		context "integer index", ->
+			should "return the element under the index", ->
+				obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+				assert! obj[3] == 4
+			end
+
+			should "throw an untyped error when index is out of range", ->
+				obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+				assert_throws! obj[20] match Std::IndexError(message: "index 20 out of range: -10...10")
+			end
 		end
 
-		should "throw an untyped error when index is out of range", ->
+		context "range" ->
+			should "return a new tuple with copied elements for closed range", ->
+				obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+				assert! obj[3...5] == %[4, 5, 6]
+			end
+
+			should "return a new tuple with copied elements for left open range", ->
+				obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+				assert! obj[3<..5] == %[5, 6]
+			end
+
+			should "return a new tuple with copied elements for right open range", ->
+				obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+				assert! obj[3..<5] == %[4, 5]
+			end
+
+			should "return a new tuple with copied elements for open range", ->
+				obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+				assert! obj[3<.<6] == %[5, 6]
+			end
+
+			should "return a new tuple with copied elements for beginless open range", ->
+				obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+				assert! obj[..<6] == %[1, 2, 3, 4, 5, 6]
+			end
+
+			should "return a new tuple with copied elements for beginless closed range", ->
+				obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+				assert! obj[..<6] == %[1, 2, 3, 4, 5, 6]
+			end
+
+			should "return a new tuple with copied elements for endless open range", ->
+				obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+				assert! obj[3<..] == %[5, 6, 7, 8, 9, 10]
+			end
+
+			should "return a new tuple with copied elements for endless closed range", ->
+				obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+				assert! obj[3...] == %[4, 5, 6, 7, 8, 9, 10]
+			end
+		end
+
+	end
+
+	context "slice", ->
+		should "return a new tuple with copied elements for closed range", ->
 			obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-			assert_throws! obj[20] match Std::IndexError(message: "index 20 out of range: -10...10")
+			assert! obj.slice(3...5) == %[4, 5, 6]
+		end
+
+		should "return a new tuple with copied elements for left open range", ->
+			obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+			assert! obj.slice(3<..5) == %[5, 6]
+		end
+
+		should "return a new tuple with copied elements for right open range", ->
+			obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+			assert! obj.slice(3..<5) == %[4, 5]
+		end
+
+		should "return a new tuple with copied elements for open range", ->
+			obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+			assert! obj.slice(3<.<6) == %[5, 6]
+		end
+
+		should "return a new tuple with copied elements for beginless open range", ->
+			obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+			assert! obj.slice(..<6) == %[1, 2, 3, 4, 5, 6]
+		end
+
+		should "return a new tuple with copied elements for beginless closed range", ->
+			obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+			assert! obj.slice(..<6) == %[1, 2, 3, 4, 5, 6]
+		end
+
+		should "return a new tuple with copied elements for endless open range", ->
+			obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+			assert! obj.slice(3<..) == %[5, 6, 7, 8, 9, 10]
+		end
+
+		should "return a new tuple with copied elements for endless closed range", ->
+			obj := TupleTestObject(%[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+			assert! obj.slice(3...) == %[4, 5, 6, 7, 8, 9, 10]
 		end
 	end
 

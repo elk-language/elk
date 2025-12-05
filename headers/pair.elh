@@ -48,14 +48,6 @@ sealed primitive class ::Std::Pair[+Key, +Value]
 	def at(index: AnyInt): Key | Value ! OutOfRangeError; end
 
 	##[
-		Return a Tuple that contains the elements from the given range of indices.
-
-		Throws an unchecked error if the range contains indices that are negative
-		or are greater or equal to `length`.
-	]##
-	def view(range: Range[Int]): ArrayTuple[Key | Value]; end
-
-	##[
 		Check whether the given value
 		is a `Pair` that is equal to this `Pair`.
 	]##

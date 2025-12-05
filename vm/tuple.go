@@ -29,7 +29,7 @@ func initTuple() {
 			self := args[0]
 			rangeVal := args[1]
 
-			return vm.CallMethodByName(symbol.L_view, self, rangeVal)
+			return vm.CallMethodByName(symbol.L_slice, self, rangeVal)
 		},
 		DefWithParameters(1),
 	)
@@ -49,7 +49,7 @@ func initTuple() {
 			length := lengthVal.AsInt()
 
 			var start int
-			end := lengthVal.AsInt()
+			end := lengthVal.AsInt() - 1
 
 			switch r := rangeVal.(type) {
 			case *value.ClosedRange:

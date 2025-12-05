@@ -13,15 +13,6 @@ abstract mixin ::Std::Tuple[+Val]
 	]##
 	sig at(index: AnyInt): Val ! OutOfRangeError
 
-	##[
-		Return a Tuple that contains the elements from the given range of indices.
-		If it's possible this tuple should be backed by the same underlying data structure as the original tuple.
-
-		Throws an unchecked error if the range contains indices that are negative
-		or are greater or equal to `length`.
-	]##
-	sig view(range: Range[Int]): Tuple[Val]
-
 	# Base methods
 
 	##[

@@ -117,6 +117,7 @@ var (
 	L_remove                   = value.ToSymbol("remove")
 	L_push                     = value.ToSymbol("push")
 	L_view                     = value.ToSymbol("view")
+	L_slice                    = value.ToSymbol("slice")
 )
 
 // special symbols
