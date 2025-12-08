@@ -142,7 +142,7 @@ type Checker struct {
 	extensions              *concurrent.Slice[*ext.Extension]
 	method                  *types.Method
 	namespacesWithIvars     *ds.OrderedMap[string, *namespaceWithIvarsData] // namespaces that declare instance variables
-	compiler                *compiler.Compiler
+	compiler                *compiler.BytecodeCompiler
 	threadPool              *vm.ThreadPool
 }
 
@@ -399,7 +399,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 }
 
 // Compile method definitions
-func (c *Checker) compileMethods(methodCompiler *compiler.Compiler, offset int, location *position.Location) {
+func (c *Checker) compileMethods(methodCompiler *compiler.BytecodeCompiler, offset int, location *position.Location) {
 	if methodCompiler == nil {
 		return
 	}
@@ -412,7 +412,7 @@ func (c *Checker) shouldCompile() bool {
 }
 
 // Create a new compiler that will define all methods
-func (c *Checker) initMethodCompiler(location *position.Location) (*compiler.Compiler, int) {
+func (c *Checker) initMethodCompiler(location *position.Location) (*compiler.BytecodeCompiler, int) {
 	if c.IsHeader() || c.Errors.IsFailure() {
 		return nil, 0
 	}
@@ -437,7 +437,7 @@ func (c *Checker) initMacroCompiler(location *position.Location) {
 		return
 	}
 
-	c.compiler = compiler.CreateCompiler(c.compiler, c, location, c.Errors)
+	c.compiler = compiler.CreateBytecodeCompiler(c.compiler, c, location, c.Errors)
 }
 
 // Create a new compiler and emit bytecode
@@ -448,11 +448,11 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 	}
 
 	parent := c.compiler.Parent
-	var mainCompiler *compiler.Compiler
+	var mainCompiler *compiler.BytecodeCompiler
 	if parent != nil {
-		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors)
+		mainCompiler = parent.CreateMainBytecodeCompiler(c, location, c.Errors)
 	} else {
-		mainCompiler = compiler.CreateCompiler(parent, c, location, c.Errors)
+		mainCompiler = compiler.CreateBytecodeCompiler(parent, c, location, c.Errors)
 	}
 	c.compiler = mainCompiler.InitGlobalEnv()
 }
@@ -461,7 +461,7 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 func (c *Checker) assignIvarIndices(loc *position.Location) {
 	var offset int
 	if c.shouldCompile() {
-		var ivarCompiler *compiler.Compiler
+		var ivarCompiler *compiler.BytecodeCompiler
 		ivarCompiler, offset = c.compiler.InitIvarIndicesCompiler(loc)
 		c.compiler = ivarCompiler
 	}

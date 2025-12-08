@@ -590,7 +590,7 @@ func (c *Checker) newMethodChecker(
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		threadPool:           threadPool,
 	}
-	checker.compiler = compiler.CreateCompiler(c.compiler, checker, loc, c.Errors)
+	checker.compiler = compiler.CreateBytecodeCompiler(c.compiler, checker, loc, c.Errors)
 
 	return checker
 }
