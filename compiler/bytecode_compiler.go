@@ -23,14 +23,14 @@ import (
 const MainName = "<main>"
 
 func CreateBytecodeCompiler(parent *BytecodeCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *BytecodeCompiler {
-	compiler := New(loc.FilePath, topLevelMode, loc, checker)
+	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker)
 	compiler.Errors = errors
 	compiler.Parent = parent
 	return compiler
 }
 
 func (c *BytecodeCompiler) CreateMainBytecodeCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *BytecodeCompiler {
-	compiler := New(loc.FilePath, topLevelMode, loc, checker)
+	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker)
 	compiler.predefinedLocals = c.maxLocalIndex + 1
 	compiler.scopes = c.scopes
 	compiler.lastLocalIndex = c.lastLocalIndex
@@ -40,7 +40,7 @@ func (c *BytecodeCompiler) CreateMainBytecodeCompiler(checker types.Checker, loc
 }
 
 func (c *BytecodeCompiler) InitGlobalEnv() *BytecodeCompiler {
-	envCompiler := New("<namespaceDefinitions>", topLevelMode, c.Bytecode.Location, c.checker)
+	envCompiler := NewBytecodeCompiler("<namespaceDefinitions>", topLevelBytecodeCompilerMode, c.Bytecode.Location, c.checker)
 	envCompiler.Parent = c
 	envCompiler.Errors = c.Errors
 	envCompiler.compileGlobalEnv()
@@ -55,46 +55,46 @@ func (c *BytecodeCompiler) EmitExecInParent() {
 	parent.emit(location.StartPos.Line, bytecode.POP)
 }
 
-// Compiler mode
-type mode uint8
+// Compiler bytecodeCompilerMode
+type bytecodeCompilerMode uint8
 
 const (
-	topLevelMode mode = iota
-	namespaceMode
-	methodMode
-	macroMode
-	setterMethodMode
-	initMethodMode
-	valuePatternDeclarationNode
+	topLevelBytecodeCompilerMode bytecodeCompilerMode = iota
+	namespaceBytecodeCompilerMode
+	methodBytecodeCompilerMode
+	macroBytecodeCompilerMode
+	setterMethodBytecodeCompilerMode
+	initMethodBytecodeCompilerMode
+	valuePatternDeclarationBytecodeCompilerMode
 )
 
-// represents a local variable or value
-type local struct {
+// represents a bytecodeLocal variable or value
+type bytecodeLocal struct {
 	index      uint16
 	hasUpvalue bool
 }
 
-type localTable map[string]*local
+type bytecodeLocalTable map[string]*bytecodeLocal
 
-type scopeType uint8
+type bytecodeScopeType uint8
 
 const (
-	defaultScopeType       scopeType = iota
-	loopScopeType                    // this scope is a loop
-	doFinallyScopeType               // this scope is inside do with a finally block
-	macroBoundaryScopeType           // this scope is a macro boundary, locals from the outer scopes should be ignored
+	defaultBytecodeScopeType       bytecodeScopeType = iota
+	loopBytecodeScopeType                            // this scope is a loop
+	doFinallyBytecodeScopeType                       // this scope is inside do with a finally block
+	macroBoundaryBytecodeScopeType                   // this scope is a macro boundary, locals from the outer scopes should be ignored
 )
 
 // set of local variables
-type scope struct {
-	localTable localTable
+type bytecodeScope struct {
+	localTable bytecodeLocalTable
 	label      string
-	typ        scopeType
+	typ        bytecodeScopeType
 }
 
-func newScope(label string, typ scopeType) *scope {
-	return &scope{
-		localTable: localTable{},
+func newBytecodeScope(label string, typ bytecodeScopeType) *bytecodeScope {
+	return &bytecodeScope{
+		localTable: bytecodeLocalTable{},
 		label:      label,
 		typ:        typ,
 	}
@@ -102,50 +102,50 @@ func newScope(label string, typ scopeType) *scope {
 
 // indices represent scope depths
 // and elements are sets of local variable names in a particular scope
-type scopes []*scope
+type bytecodeScopes []*bytecodeScope
 
 // Get the last local variable scope.
-func (s scopes) last() *scope {
+func (s bytecodeScopes) last() *bytecodeScope {
 	return s[len(s)-1]
 }
 
-type loopJumpInfoType uint8
+type bytecodeLoopJumpInfoType uint8
 
 const (
-	breakLoopJump           loopJumpInfoType = iota // break
-	breakFinallyLoopJump                            // break inside of finally
-	continueLoopJump                                // continue
-	continueFinallyLoopJump                         // continue inside of finally
+	bytecodeBreakLoopJump           bytecodeLoopJumpInfoType = iota // break
+	bytecodeBreakFinallyLoopJump                                    // break inside of finally
+	bytecodeContinueLoopJump                                        // continue
+	bytecodeContinueFinallyLoopJump                                 // continue inside of finally
 )
 
-type loopJumpInfo struct {
-	typ      loopJumpInfoType
+type bytecodeLoopJumpInfo struct {
+	typ      bytecodeLoopJumpInfoType
 	offset   int
 	location *position.Location
 }
 
-type loopJumpSet struct {
+type bytecodeLoopJumpSet struct {
 	label                         string
 	returnsValueFromLastIteration bool
-	loopJumps                     []*loopJumpInfo
+	loopJumps                     []*bytecodeLoopJumpInfo
 }
 
-type upvalueKind uint8
+type bytecodeUpvalueKind uint8
 
 const (
-	upvalueParentLocal upvalueKind = iota
+	upvalueParentLocal bytecodeUpvalueKind = iota
 	upvalueParentUpvalue
 	upvalueOwnLocal
 )
 
-// Represents an upvalue, a captured variable from an outer context
-type upvalue struct {
+// Represents an bytecodeUpvalue, a captured variable from an outer context
+type bytecodeUpvalue struct {
 	index uint16 // index of the upvalue
 	// index of the captured local if `isLocal` is true,
 	// otherwise the index of the captured upvalue from the outer context
 	upIndex uint16
-	kind    upvalueKind // whether the captured variable is a local or an upvalue
-	local   *local      // the local that is captured through this upvalue
+	kind    bytecodeUpvalueKind // whether the captured variable is a local or an upvalue
+	local   *bytecodeLocal      // the local that is captured through this upvalue
 }
 
 // Holds the state of the BytecodeCompiler.
@@ -153,13 +153,13 @@ type BytecodeCompiler struct {
 	Name               string
 	Bytecode           *vm.BytecodeFunction
 	Errors             *diagnostic.SyncDiagnosticList
-	scopes             scopes
-	loopJumpSets       []*loopJumpSet
+	scopes             bytecodeScopes
+	loopJumpSets       []*bytecodeLoopJumpSet
 	offsetValueIds     []int // ids of integers in the value pool that represent bytecode offsets
 	lastLocalIndex     int   // index of the last local variable
 	maxLocalIndex      int   // max index of a local variable
 	predefinedLocals   int
-	mode               mode
+	mode               bytecodeCompilerMode
 	isGenerator        bool
 	isAsync            bool
 	unhygienic         bool
@@ -167,19 +167,19 @@ type BytecodeCompiler struct {
 	lastOpCode         bytecode.OpCode
 	patternNesting     int
 	Parent             *BytecodeCompiler
-	upvalues           []*upvalue
+	upvalues           []*bytecodeUpvalue
 	checker            types.Checker
 }
 
-// Instantiate a New Compiler instance.
-func New(name string, mode mode, loc *position.Location, checker types.Checker) *BytecodeCompiler {
+// Instantiate a NewBytecodeCompiler Compiler instance.
+func NewBytecodeCompiler(name string, mode bytecodeCompilerMode, loc *position.Location, checker types.Checker) *BytecodeCompiler {
 	c := &BytecodeCompiler{
 		Bytecode: vm.NewBytecodeFunctionSimple(
 			value.ToSymbol(name),
 			[]byte{},
 			loc,
 		),
-		scopes:         scopes{newScope("", defaultScopeType)}, // start with an empty set for the 0th scope
+		scopes:         bytecodeScopes{newBytecodeScope("", defaultBytecodeScopeType)}, // start with an empty set for the 0th scope
 		lastLocalIndex: -1,
 		maxLocalIndex:  -1,
 		Name:           name,
@@ -190,8 +190,8 @@ func New(name string, mode mode, loc *position.Location, checker types.Checker) 
 	// reserve the first slot on the stack for `self`
 	c.defineLocal("$self", position.DefaultLocation)
 	switch mode {
-	case topLevelMode, namespaceMode,
-		methodMode, setterMethodMode, initMethodMode, macroMode:
+	case topLevelBytecodeCompilerMode, namespaceBytecodeCompilerMode,
+		methodBytecodeCompilerMode, setterMethodBytecodeCompilerMode, initMethodBytecodeCompilerMode, macroBytecodeCompilerMode:
 		c.predefinedLocals = 1
 	}
 	return c
@@ -326,7 +326,7 @@ func (c *BytecodeCompiler) CompileInclude(target types.Namespace, mixin *types.M
 }
 
 func (c *BytecodeCompiler) InitExpressionCompiler(location *position.Location) *BytecodeCompiler {
-	exprCompiler := New("<file>", topLevelMode, location, c.checker)
+	exprCompiler := NewBytecodeCompiler("<file>", topLevelBytecodeCompilerMode, location, c.checker)
 	exprCompiler.Errors = c.Errors
 
 	c.emitValue(value.Ref(exprCompiler.Bytecode), location)
@@ -392,7 +392,7 @@ func (c *BytecodeCompiler) compileFunction(location *position.Location, paramete
 }
 
 func (c *BytecodeCompiler) InitMethodCompiler(location *position.Location) (*BytecodeCompiler, int) {
-	methodCompiler := New("<methodDefinitions>", topLevelMode, c.Bytecode.Location, c.checker)
+	methodCompiler := NewBytecodeCompiler("<methodDefinitions>", topLevelBytecodeCompilerMode, c.Bytecode.Location, c.checker)
 	methodCompiler.Errors = c.Errors
 	methodCompiler.Parent = c
 
@@ -407,7 +407,7 @@ func (c *BytecodeCompiler) InitMethodCompiler(location *position.Location) (*Byt
 var ivarIndicesSymbol = value.ToSymbol("<ivarIndices>")
 
 func (c *BytecodeCompiler) InitIvarIndicesCompiler(location *position.Location) (*BytecodeCompiler, int) {
-	ivarCompiler := New(ivarIndicesSymbol.String(), topLevelMode, c.Bytecode.Location, c.checker)
+	ivarCompiler := NewBytecodeCompiler(ivarIndicesSymbol.String(), topLevelBytecodeCompilerMode, c.Bytecode.Location, c.checker)
 	ivarCompiler.Errors = c.Errors
 	ivarCompiler.Parent = c
 
@@ -643,16 +643,16 @@ func (c *BytecodeCompiler) compileMethodsWithinType(typ types.Type, location *po
 }
 
 func (c *BytecodeCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.Symbol) *vm.BytecodeFunction {
-	var mode mode
+	var mode bytecodeCompilerMode
 	if node.IsSetter() {
-		mode = setterMethodMode
+		mode = setterMethodBytecodeCompilerMode
 	} else if identifierToName(node.Name) == "#init" {
-		mode = initMethodMode
+		mode = initMethodBytecodeCompilerMode
 	} else {
-		mode = methodMode
+		mode = methodBytecodeCompilerMode
 	}
 
-	methodCompiler := New(name.String(), mode, node.Location(), c.checker)
+	methodCompiler := NewBytecodeCompiler(name.String(), mode, node.Location(), c.checker)
 	methodCompiler.isGenerator = node.IsGenerator()
 	methodCompiler.isAsync = node.IsAsync()
 	methodCompiler.Errors = c.Errors
@@ -662,7 +662,7 @@ func (c *BytecodeCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, nam
 }
 
 func (c *BytecodeCompiler) CompileMacroBody(node *ast.MacroDefinitionNode, name value.Symbol) *vm.BytecodeFunction {
-	methodCompiler := New(name.String(), macroMode, node.Location(), c.checker)
+	methodCompiler := NewBytecodeCompiler(name.String(), macroBytecodeCompilerMode, node.Location(), c.checker)
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMacroBody(node.Location(), node.Parameters, node.Body)
 
@@ -844,14 +844,14 @@ func (c *BytecodeCompiler) prepLocals() {
 func (c *BytecodeCompiler) initLoopJumpSet(label string, returnsValFromLastIteration bool) {
 	c.loopJumpSets = append(
 		c.loopJumpSets,
-		&loopJumpSet{
+		&bytecodeLoopJumpSet{
 			label:                         label,
 			returnsValueFromLastIteration: returnsValFromLastIteration,
 		},
 	)
 }
 
-func (c *BytecodeCompiler) findLoopJumpSet(label string, location *position.Location) *loopJumpSet {
+func (c *BytecodeCompiler) findLoopJumpSet(label string, location *position.Location) *bytecodeLoopJumpSet {
 	if len(c.loopJumpSets) < 1 {
 		c.Errors.AddFailure(
 			"cannot jump with `break` or `continue` outside of a loop",
@@ -878,17 +878,17 @@ func (c *BytecodeCompiler) findLoopJumpSet(label string, location *position.Loca
 	return nil
 }
 
-func (c *BytecodeCompiler) addLoopJumpTo(jumpSet *loopJumpSet, typ loopJumpInfoType, offset int) {
+func (c *BytecodeCompiler) addLoopJumpTo(jumpSet *bytecodeLoopJumpSet, typ bytecodeLoopJumpInfoType, offset int) {
 	jumpSet.loopJumps = append(
 		jumpSet.loopJumps,
-		&loopJumpInfo{
+		&bytecodeLoopJumpInfo{
 			typ:    typ,
 			offset: offset,
 		},
 	)
 }
 
-func (c *BytecodeCompiler) addLoopJump(label string, typ loopJumpInfoType, offset int, location *position.Location) {
+func (c *BytecodeCompiler) addLoopJump(label string, typ bytecodeLoopJumpInfoType, offset int, location *position.Location) {
 	jumpSet := c.findLoopJumpSet(label, location)
 	if jumpSet == nil {
 		return
@@ -1413,7 +1413,7 @@ func (c *BytecodeCompiler) compileThrowExpressionNode(node *ast.ThrowExpressionN
 
 func (c *BytecodeCompiler) isNestedInFinally() bool {
 	for _, scope := range c.scopes {
-		if scope.typ == doFinallyScopeType {
+		if scope.typ == doFinallyBytecodeScopeType {
 			return true
 		}
 	}
@@ -1455,11 +1455,11 @@ func (c *BytecodeCompiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 
 	doStartOffset := c.nextInstructionOffset()
 
-	var scopeType scopeType
+	var scopeType bytecodeScopeType
 	if len(node.Finally) > 0 {
-		scopeType = doFinallyScopeType
+		scopeType = doFinallyBytecodeScopeType
 	} else {
-		scopeType = defaultScopeType
+		scopeType = defaultBytecodeScopeType
 	}
 
 	c.enterScope("", scopeType)
@@ -1469,7 +1469,7 @@ func (c *BytecodeCompiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 	doEndOffset := c.nextInstructionOffset()
 
 	if len(node.Finally) > 0 {
-		c.enterScope("", defaultScopeType)
+		c.enterScope("", defaultBytecodeScopeType)
 		// pop the return value of finally leaving the return value of do
 		c.compileStatementsWithoutResult(node.Finally)
 		c.leaveScope(location.EndPos.Line)
@@ -1486,7 +1486,7 @@ func (c *BytecodeCompiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 
 	c.registerCatch(doStartOffset, doEndOffset, catchStartOffset, false)
 
-	c.enterScope("", defaultScopeType)
+	c.enterScope("", defaultBytecodeScopeType)
 
 	for _, catchNode := range node.Catches {
 		location := catchNode.Location()
@@ -1592,7 +1592,7 @@ func (c *BytecodeCompiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 func (c *BytecodeCompiler) compileMacroBoundaryNode(node *ast.MacroBoundaryNode) {
 	location := node.Location()
 
-	c.enterScope("", defaultScopeType)
+	c.enterScope("", defaultBytecodeScopeType)
 	c.compileStatementsWithResult(node.Body, location)
 	c.leaveScope(location.EndPos.Line)
 }
@@ -1622,11 +1622,11 @@ func (c *BytecodeCompiler) countFinallyInLoop(label string) int {
 	var finallyCount int
 	for i := range c.scopes {
 		scope := c.scopes[len(c.scopes)-i-1]
-		if scope.typ == doFinallyScopeType {
+		if scope.typ == doFinallyBytecodeScopeType {
 			finallyCount++
 		}
 		if label == "" {
-			if scope.typ == loopScopeType {
+			if scope.typ == loopBytecodeScopeType {
 				break
 			}
 			continue
@@ -1646,7 +1646,7 @@ func (c *BytecodeCompiler) leaveScopeOnBreak(line int, label string) {
 		c.closeUpvaluesInScope(line, scope)
 
 		if label == "" {
-			if scope.typ == loopScopeType {
+			if scope.typ == loopBytecodeScopeType {
 				break
 			}
 			continue
@@ -1672,13 +1672,13 @@ func (c *BytecodeCompiler) compileBreakExpressionNode(node *ast.BreakExpressionN
 		c.leaveScopeOnBreak(location.StartPos.Line, labelName)
 
 		breakJumpOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP)
-		c.addLoopJump(labelName, breakLoopJump, breakJumpOffset, location)
+		c.addLoopJump(labelName, bytecodeBreakLoopJump, breakJumpOffset, location)
 		return
 	}
 
 	jumpOffsetId := c.emitLoadValue(value.Undefined, location)
 	c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
-	c.addLoopJump(labelName, breakFinallyLoopJump, jumpOffsetId, location)
+	c.addLoopJump(labelName, bytecodeBreakFinallyLoopJump, jumpOffsetId, location)
 
 	c.emitValue(value.SmallInt(finallyCount).ToValue(), location)
 	c.emit(location.StartPos.Line, bytecode.JUMP_TO_FINALLY)
@@ -1688,7 +1688,7 @@ func (c *BytecodeCompiler) leaveScopeOnContinue(line int, label string) {
 	if label == "" {
 		for i := range c.scopes {
 			scope := c.scopes[len(c.scopes)-i-1]
-			if scope.typ == loopScopeType {
+			if scope.typ == loopBytecodeScopeType {
 				break
 			}
 			c.closeUpvaluesInScope(line, scope)
@@ -1732,13 +1732,13 @@ func (c *BytecodeCompiler) compileContinueExpressionNode(node *ast.ContinueExpre
 		c.leaveScopeOnContinue(location.StartPos.Line, labelName)
 
 		continueJumpOffset := c.emitJump(location.StartPos.Line, bytecode.LOOP)
-		c.addLoopJumpTo(loop, continueLoopJump, continueJumpOffset)
+		c.addLoopJumpTo(loop, bytecodeContinueLoopJump, continueJumpOffset)
 		return
 	}
 
 	jumpOffsetId := c.emitLoadValue(value.Undefined, location)
 	c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
-	c.addLoopJump(labelName, continueFinallyLoopJump, jumpOffsetId, location)
+	c.addLoopJump(labelName, bytecodeContinueFinallyLoopJump, jumpOffsetId, location)
 
 	c.emitValue(value.SmallInt(finallyCount).ToValue(), location)
 	c.emit(location.StartPos.Line, bytecode.JUMP_TO_FINALLY)
@@ -1749,13 +1749,13 @@ func (c *BytecodeCompiler) patchLoopJumps(continueOffset int) {
 	lastLoopJumpSet := c.loopJumpSets[len(c.loopJumpSets)-1]
 	for _, loopJump := range lastLoopJumpSet.loopJumps {
 		switch loopJump.typ {
-		case breakFinallyLoopJump:
+		case bytecodeBreakFinallyLoopJump:
 			c.Bytecode.Values[loopJump.offset] = value.SmallInt(c.nextInstructionOffset()).ToValue()
-		case continueFinallyLoopJump:
+		case bytecodeContinueFinallyLoopJump:
 			c.Bytecode.Values[loopJump.offset] = value.SmallInt(continueOffset).ToValue()
-		case breakLoopJump:
+		case bytecodeBreakLoopJump:
 			c.patchJump(loopJump.offset, loopJump.location)
-		case continueLoopJump:
+		case bytecodeContinueLoopJump:
 			target := continueOffset - loopJump.offset
 			if target >= 0 {
 				// jump forward
@@ -1776,11 +1776,11 @@ func (c *BytecodeCompiler) patchLoopJumps(continueOffset int) {
 }
 
 func (c *BytecodeCompiler) compileLoopExpressionNode(label string, body []ast.StatementNode, location *position.Location) {
-	c.enterScope(label, loopScopeType)
+	c.enterScope(label, loopBytecodeScopeType)
 	c.initLoopJumpSet(label, false)
 
 	start := c.nextInstructionOffset()
-	c.enterScope("", defaultScopeType)
+	c.enterScope("", defaultBytecodeScopeType)
 	if c.compileStatementsOk(body) {
 		c.emit(location.EndPos.Line, bytecode.POP)
 	}
@@ -1807,7 +1807,7 @@ func (c *BytecodeCompiler) compileWhileExpressionNode(label string, node *ast.Wh
 		return
 	}
 
-	c.enterScope(label, loopScopeType)
+	c.enterScope(label, loopBytecodeScopeType)
 	c.initLoopJumpSet(label, true)
 
 	c.emit(location.StartPos.Line, bytecode.NIL)
@@ -1860,12 +1860,12 @@ func (c *BytecodeCompiler) modifierWhileExpression(label string, node *ast.Modif
 		conditionIsStaticFalsy = true
 	}
 
-	c.enterScope(label, loopScopeType)
+	c.enterScope(label, loopBytecodeScopeType)
 	c.initLoopJumpSet(label, true)
 
 	// loop start
 	start := c.nextInstructionOffset()
-	c.enterScope("", defaultScopeType)
+	c.enterScope("", defaultBytecodeScopeType)
 	var loopBodyOffset int
 
 	// loop body
@@ -1922,12 +1922,12 @@ func (c *BytecodeCompiler) modifierUntilExpression(label string, node *ast.Modif
 		conditionIsStaticTruthy = true
 	}
 
-	c.enterScope(label, loopScopeType)
+	c.enterScope(label, loopBytecodeScopeType)
 	c.initLoopJumpSet(label, true)
 
 	// loop start
 	start := c.nextInstructionOffset()
-	c.enterScope("", defaultScopeType)
+	c.enterScope("", defaultBytecodeScopeType)
 	var loopBodyOffset int
 
 	// loop body
@@ -1981,13 +1981,13 @@ func (c *BytecodeCompiler) compileUntilExpressionNode(label string, node *ast.Un
 		return
 	}
 
-	c.enterScope(label, loopScopeType)
+	c.enterScope(label, loopBytecodeScopeType)
 	c.initLoopJumpSet(label, true)
 
 	c.emit(location.StartPos.Line, bytecode.NIL)
 	// loop start
 	start := c.nextInstructionOffset()
-	c.enterScope("", defaultScopeType)
+	c.enterScope("", defaultBytecodeScopeType)
 	var loopBodyOffset int
 
 	if optimisedJumpOp, optimisedCond := c.optimiseCondition(bytecode.JUMP_IF, node.Condition, location); optimisedCond != nil {
@@ -2112,7 +2112,7 @@ func (c *BytecodeCompiler) compileForInAsNumericFor(
 }
 
 func (c *BytecodeCompiler) compileForInIntAsNumericFor(label string, inExpression ast.ExpressionNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, location *position.Location) bool {
-	c.enterScope("", defaultScopeType)
+	c.enterScope("", defaultBytecodeScopeType)
 
 	intVarName := fmt.Sprintf("#!forInt%d", len(c.scopes))
 
@@ -2167,7 +2167,7 @@ func (c *BytecodeCompiler) compileForInRangeAsNumericFor(label string, inExpress
 		return false
 	}
 
-	c.enterScope("", defaultScopeType)
+	c.enterScope("", defaultBytecodeScopeType)
 
 	rangeVarName := fmt.Sprintf("#!forRange%d", len(c.scopes))
 	rangeEndVarName := fmt.Sprintf("#!forRangeEnd%d", len(c.scopes))
@@ -2398,7 +2398,7 @@ func (c *BytecodeCompiler) compileForIn(
 		return
 	}
 
-	c.enterScope(label, loopScopeType)
+	c.enterScope(label, loopBytecodeScopeType)
 	c.initLoopJumpSet(label, false)
 
 	c.compileNode(inExpression, false)
@@ -2497,7 +2497,7 @@ func (c *BytecodeCompiler) compileNumericForExpressionNode(label string, node *a
 }
 
 func (c *BytecodeCompiler) compileNumericFor(label string, init, cond, increment ast.ExpressionNode, then func(), collectionLiteral bool, location *position.Location) {
-	c.enterScope(label, loopScopeType)
+	c.enterScope(label, loopBytecodeScopeType)
 	c.initLoopJumpSet(label, true)
 
 	// loop initialiser eg. `i := 0`
@@ -2661,7 +2661,7 @@ func (c *BytecodeCompiler) compilePostfixExpressionNode(node *ast.PostfixExpress
 		c.compileSubscriptSet(receiverType, node.Location())
 	case *ast.PublicInstanceVariableNode:
 		switch c.mode {
-		case topLevelMode:
+		case topLevelBytecodeCompilerMode:
 			c.Errors.AddFailure(
 				"instance variables cannot be set in the top level",
 				node.Location(),
@@ -2776,7 +2776,7 @@ func (c *BytecodeCompiler) attributeAssignment(node *ast.AssignmentExpressionNod
 
 func (c *BytecodeCompiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode, ivar *ast.PublicInstanceVariableNode, valueIsIgnored bool) expressionResult {
 	switch c.mode {
-	case topLevelMode:
+	case topLevelBytecodeCompilerMode:
 		c.Errors.AddFailure(
 			"instance variables cannot be set in the top level",
 			node.Location(),
@@ -3107,7 +3107,7 @@ func (c *BytecodeCompiler) compileLocalVariableAccess(name string, location *pos
 }
 
 // Resolve an upvalue from an outer context and get its index.
-func (c *BytecodeCompiler) resolveUpvalue(name string, location *position.Location) (*upvalue, bool) {
+func (c *BytecodeCompiler) resolveUpvalue(name string, location *position.Location) (*bytecodeUpvalue, bool) {
 	parent := c.Parent
 	if parent == nil {
 		return nil, false
@@ -3125,7 +3125,7 @@ func (c *BytecodeCompiler) resolveUpvalue(name string, location *position.Locati
 	return nil, false
 }
 
-func (c *BytecodeCompiler) addUpvalue(local *local, upIndex uint16, kind upvalueKind, location *position.Location) *upvalue {
+func (c *BytecodeCompiler) addUpvalue(local *bytecodeLocal, upIndex uint16, kind bytecodeUpvalueKind, location *position.Location) *bytecodeUpvalue {
 	for _, upvalue := range c.upvalues {
 		if upvalue.upIndex == upIndex && upvalue.kind == kind {
 			return upvalue
@@ -3139,7 +3139,7 @@ func (c *BytecodeCompiler) addUpvalue(local *local, upIndex uint16, kind upvalue
 		)
 	}
 
-	upvalue := &upvalue{
+	upvalue := &bytecodeUpvalue{
 		index:   uint16(len(c.upvalues)),
 		upIndex: upIndex,
 		local:   local,
@@ -3224,7 +3224,7 @@ func (c *BytecodeCompiler) compileIfExpression(unless bool, condition ast.Expres
 }
 
 func (c *BytecodeCompiler) compileIf(jumpOp bytecode.OpCode, condition, then, els func(), location *position.Location, valueIsIgnored bool) expressionResult {
-	c.enterScope("", defaultScopeType)
+	c.enterScope("", defaultBytecodeScopeType)
 	condition()
 
 	thenJumpOffset := c.emitJump(location.StartPos.Line, jumpOp)
@@ -3242,7 +3242,7 @@ func (c *BytecodeCompiler) compileIf(jumpOp bytecode.OpCode, condition, then, el
 
 	if compileElse {
 		if els != nil {
-			c.enterScope("", defaultScopeType)
+			c.enterScope("", defaultBytecodeScopeType)
 			els()
 			c.leaveScope(location.StartPos.Line)
 		} else if !valueIsIgnored {
@@ -3264,7 +3264,7 @@ func valueIgnoredToResult(valueIsIgnored bool) expressionResult {
 func (c *BytecodeCompiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), location *position.Location, valueIsIgnored bool) expressionResult {
 	if result := resolve(condition); !result.IsUndefined() {
 		// if gets optimised away
-		c.enterScope("", defaultScopeType)
+		c.enterScope("", defaultBytecodeScopeType)
 		defer c.leaveScope(location.StartPos.Line)
 
 		var checkFunc func(value.Value) bool
@@ -3692,7 +3692,7 @@ func (c *BytecodeCompiler) pattern(pattern ast.PatternNode) {
 		c.emitCallMethod(callInfo, location, false)
 	case *ast.PublicIdentifierNode:
 		switch c.mode {
-		case valuePatternDeclarationNode:
+		case valuePatternDeclarationBytecodeCompilerMode:
 			c.defineLocal(pat.Value, location)
 		default:
 			c.defineLocalOverrideCurrentScope(pat.Value, location)
@@ -3701,7 +3701,7 @@ func (c *BytecodeCompiler) pattern(pattern ast.PatternNode) {
 		c.emit(location.StartPos.Line, bytecode.TRUE)
 	case *ast.PrivateIdentifierNode:
 		switch c.mode {
-		case valuePatternDeclarationNode:
+		case valuePatternDeclarationBytecodeCompilerMode:
 			c.defineLocal(pat.Value, location)
 		default:
 			c.defineLocalOverrideCurrentScope(pat.Value, location)
@@ -3845,7 +3845,7 @@ func (c *BytecodeCompiler) asPattern(node *ast.AsPatternNode) {
 	}
 
 	switch c.mode {
-	case valuePatternDeclarationNode:
+	case valuePatternDeclarationBytecodeCompilerMode:
 		c.defineLocal(varName, location)
 	default:
 		c.defineLocalOverrideCurrentScope(varName, location)
@@ -3859,9 +3859,9 @@ func (c *BytecodeCompiler) identifierObjectPatternAttribute(name string, locatio
 	callInfo := value.NewCallSiteInfo(value.ToSymbol(name), 0)
 	c.emitCallMethod(callInfo, location, false)
 
-	var identVar *local
+	var identVar *bytecodeLocal
 	switch c.mode {
-	case valuePatternDeclarationNode:
+	case valuePatternDeclarationBytecodeCompilerMode:
 		identVar = c.defineLocal(name, location)
 	default:
 		identVar = c.defineLocalOverrideCurrentScope(name, location)
@@ -3948,9 +3948,9 @@ func (c *BytecodeCompiler) identifierMapPatternElement(name string, collectionTy
 	c.emitValue(value.ToSymbol(name).ToValue(), location)
 	c.compileSubscript(collectionType, location)
 
-	var identVar *local
+	var identVar *bytecodeLocal
 	switch c.mode {
-	case valuePatternDeclarationNode:
+	case valuePatternDeclarationBytecodeCompilerMode:
 		identVar = c.defineLocal(name, location)
 	default:
 		identVar = c.defineLocalOverrideCurrentScope(name, location)
@@ -4123,7 +4123,7 @@ func (c *BytecodeCompiler) listOrTuplePattern(typ types.Type, location *position
 		}
 	}
 	elementAfterRestCount := len(elements) - 1 - elementBeforeRestCount
-	var restListVar *local
+	var restListVar *bytecodeLocal
 	if restVariableName != "" {
 		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
@@ -4149,7 +4149,7 @@ func (c *BytecodeCompiler) listOrTuplePattern(typ types.Type, location *position
 	c.emit(location.StartPos.Line, bytecode.DUP)
 	callInfo := value.NewCallSiteInfo(symbol.L_length, 0)
 	c.emitCallMethod(callInfo, location, false)
-	var lengthVar *local
+	var lengthVar *bytecodeLocal
 	if elementBeforeRestCount != -1 {
 		lengthVar = c.defineLocal(fmt.Sprintf("#!listPatternLength%d", c.patternNesting), location)
 		c.emitSetLocalNoPop(location.StartPos.Line, lengthVar.index)
@@ -4294,13 +4294,13 @@ func (c *BytecodeCompiler) compileMatchExpressionNode(node *ast.MatchExpressionN
 func (c *BytecodeCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode, valueIsIgnored bool) expressionResult {
 	location := node.Location()
 
-	c.enterScope("", defaultScopeType)
+	c.enterScope("", defaultBytecodeScopeType)
 	c.compileNodeWithResult(node.Value)
 
 	var jumpToEndOffsets []int
 
 	for _, caseNode := range node.Cases {
-		c.enterScope("", defaultScopeType)
+		c.enterScope("", defaultBytecodeScopeType)
 
 		caseSpan := caseNode.Location()
 		c.pattern(caseNode.Pattern)
@@ -4530,7 +4530,7 @@ func (c *BytecodeCompiler) singletonBlockIsCompilable(node *ast.SingletonBlockEx
 	singletonType := c.typeOf(node).(*types.SingletonClass)
 	singletonName := singletonType.Name()
 
-	singletonCompiler := New(fmt.Sprintf("<singleton_class: %s>", singletonName), namespaceMode, location, c.checker)
+	singletonCompiler := NewBytecodeCompiler(fmt.Sprintf("<singleton_class: %s>", singletonName), namespaceBytecodeCompilerMode, location, c.checker)
 	singletonCompiler.Errors = c.Errors
 	if !singletonCompiler.compileNamespace(node) {
 		return false
@@ -4555,7 +4555,7 @@ func (c *BytecodeCompiler) compileSingletonBlockExpressionNode(node *ast.Singlet
 }
 
 func (c *BytecodeCompiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
-	closureCompiler := New("<closure>", methodMode, node.Location(), c.checker)
+	closureCompiler := NewBytecodeCompiler("<closure>", methodBytecodeCompilerMode, node.Location(), c.checker)
 	closureCompiler.Parent = c
 	closureCompiler.Errors = c.Errors
 	closureCompiler.compileFunction(node.Location(), nil, node.Body)
@@ -4593,7 +4593,7 @@ func (c *BytecodeCompiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
 }
 
 func (c *BytecodeCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
-	closureCompiler := New("<closure>", methodMode, node.Location(), c.checker)
+	closureCompiler := NewBytecodeCompiler("<closure>", methodBytecodeCompilerMode, node.Location(), c.checker)
 	closureCompiler.Parent = c
 	closureCompiler.Errors = c.Errors
 	closureCompiler.compileFunction(node.Location(), node.Parameters, node.Body)
@@ -4638,7 +4638,7 @@ func (c *BytecodeCompiler) mixinIsCompilable(node *ast.MixinDeclarationNode) boo
 
 	mixinType := c.typeOf(node).(*types.Mixin)
 
-	mixinCompiler := New(fmt.Sprintf("<mixin: %s>", mixinType.Name()), namespaceMode, node.Location(), c.checker)
+	mixinCompiler := NewBytecodeCompiler(fmt.Sprintf("<mixin: %s>", mixinType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker)
 	mixinCompiler.Errors = c.Errors
 	if !mixinCompiler.compileNamespace(node) {
 		return false
@@ -4669,7 +4669,7 @@ func (c *BytecodeCompiler) moduleIsCompilable(node *ast.ModuleDeclarationNode) b
 	}
 
 	modType := c.typeOf(node).(*types.Module)
-	modCompiler := New(fmt.Sprintf("<module: %s>", modType.Name()), namespaceMode, node.Location(), c.checker)
+	modCompiler := NewBytecodeCompiler(fmt.Sprintf("<module: %s>", modType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker)
 	modCompiler.Errors = c.Errors
 	if !modCompiler.compileNamespace(node) {
 		return false
@@ -4700,7 +4700,7 @@ func (c *BytecodeCompiler) interfaceIsCompilable(node *ast.InterfaceDeclarationN
 
 	ifaceType := c.typeOf(node).(*types.Interface)
 
-	ifaceCompiler := New(fmt.Sprintf("<interface: %s>", ifaceType.Name()), namespaceMode, node.Location(), c.checker)
+	ifaceCompiler := NewBytecodeCompiler(fmt.Sprintf("<interface: %s>", ifaceType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker)
 	ifaceCompiler.Errors = c.Errors
 	if !ifaceCompiler.compileNamespace(node) {
 		return false
@@ -4731,7 +4731,7 @@ func (c *BytecodeCompiler) classIsCompilable(node *ast.ClassDeclarationNode) boo
 
 	classType := c.typeOf(node).(*types.Class)
 
-	classCompiler := New(fmt.Sprintf("<class: %s>", classType.Name()), namespaceMode, node.Location(), c.checker)
+	classCompiler := NewBytecodeCompiler(fmt.Sprintf("<class: %s>", classType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker)
 	classCompiler.Errors = c.Errors
 	if !classCompiler.compileNamespace(node) {
 		return false
@@ -4757,7 +4757,7 @@ func (c *BytecodeCompiler) compileClassDeclarationNode(node *ast.ClassDeclaratio
 
 func (c *BytecodeCompiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) {
 	previousMode := c.mode
-	c.mode = valuePatternDeclarationNode
+	c.mode = valuePatternDeclarationBytecodeCompilerMode
 	defer func() {
 		c.mode = previousMode
 	}()
@@ -6852,7 +6852,7 @@ func (c *BytecodeCompiler) compileBoxOfExpressionNode(node *ast.BoxOfExpressionN
 		}
 
 		if !local.hasUpvalue {
-			upvalue := &upvalue{
+			upvalue := &bytecodeUpvalue{
 				index:   uint16(len(c.upvalues)),
 				upIndex: local.index,
 				local:   local,
@@ -6975,7 +6975,7 @@ func (c *BytecodeCompiler) emitReturn(location *position.Location, value ast.Nod
 	}
 
 	switch c.mode {
-	case setterMethodMode:
+	case setterMethodBytecodeCompilerMode:
 		if value != nil {
 			c.compileNodeWithResult(value)
 		}
@@ -6986,7 +6986,7 @@ func (c *BytecodeCompiler) emitReturn(location *position.Location, value ast.Nod
 		} else {
 			c.emit(location.EndPos.Line, bytecode.RETURN_FIRST_ARG)
 		}
-	case initMethodMode:
+	case initMethodBytecodeCompilerMode:
 		if value != nil {
 			c.compileNodeWithResult(value)
 		}
@@ -6997,7 +6997,7 @@ func (c *BytecodeCompiler) emitReturn(location *position.Location, value ast.Nod
 		} else {
 			c.emit(location.EndPos.Line, bytecode.RETURN_SELF)
 		}
-	case namespaceMode:
+	case namespaceBytecodeCompilerMode:
 		if value != nil {
 			c.compileNodeWithResult(value)
 		}
@@ -7538,8 +7538,8 @@ func (c *BytecodeCompiler) emitUint32(n uint32) {
 	c.Bytecode.AppendUint32(n)
 }
 
-func (c *BytecodeCompiler) enterScope(label string, typ scopeType) {
-	c.scopes = append(c.scopes, newScope(label, typ))
+func (c *BytecodeCompiler) enterScope(label string, typ bytecodeScopeType) {
+	c.scopes = append(c.scopes, newBytecodeScope(label, typ))
 }
 
 // Close upvalues in the current scope
@@ -7566,7 +7566,7 @@ func (c *BytecodeCompiler) closeUpvaluesInCurrentScope(line int) {
 	c.closeUpvaluesInScope(line, c.scopes[currentDepth])
 }
 
-func (c *BytecodeCompiler) closeUpvaluesInScope(line int, scope *scope) {
+func (c *BytecodeCompiler) closeUpvaluesInScope(line int, scope *bytecodeScope) {
 	lowestIndex := -1
 	for _, local := range scope.localTable {
 		if !local.hasUpvalue {
@@ -7584,7 +7584,7 @@ func (c *BytecodeCompiler) closeUpvaluesInScope(line int, scope *scope) {
 }
 
 // Register a local variable.
-func (c *BytecodeCompiler) defineLocal(name string, location *position.Location) *local {
+func (c *BytecodeCompiler) defineLocal(name string, location *position.Location) *bytecodeLocal {
 	varScope := c.scopes.last()
 	_, ok := varScope.localTable[name]
 	if ok {
@@ -7598,7 +7598,7 @@ func (c *BytecodeCompiler) defineLocal(name string, location *position.Location)
 }
 
 // Register a local variable, reusing the variable with the same name that has already been defined in this scope.
-func (c *BytecodeCompiler) defineLocalOverrideCurrentScope(name string, location *position.Location) *local {
+func (c *BytecodeCompiler) defineLocalOverrideCurrentScope(name string, location *position.Location) *bytecodeLocal {
 	varScope := c.scopes.last()
 	if currentVar, ok := varScope.localTable[name]; ok {
 		return currentVar
@@ -7606,7 +7606,7 @@ func (c *BytecodeCompiler) defineLocalOverrideCurrentScope(name string, location
 	return c.defineVariableInScope(varScope, name, location)
 }
 
-func (c *BytecodeCompiler) defineVariableInScope(scope *scope, name string, location *position.Location) *local {
+func (c *BytecodeCompiler) defineVariableInScope(scope *bytecodeScope, name string, location *position.Location) *bytecodeLocal {
 	if c.lastLocalIndex == math.MaxUint16 {
 		c.Errors.AddFailure(
 			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxUint16, name),
@@ -7619,7 +7619,7 @@ func (c *BytecodeCompiler) defineVariableInScope(scope *scope, name string, loca
 	if c.lastLocalIndex > c.maxLocalIndex {
 		c.maxLocalIndex = c.lastLocalIndex
 	}
-	newVar := &local{
+	newVar := &bytecodeLocal{
 		index: uint16(c.lastLocalIndex),
 	}
 	scope.localTable[name] = newVar
@@ -7627,8 +7627,8 @@ func (c *BytecodeCompiler) defineVariableInScope(scope *scope, name string, loca
 }
 
 // Resolve a local variable and get its index.
-func (c *BytecodeCompiler) resolveLocal(name string) (*local, bool) {
-	var localVal *local
+func (c *BytecodeCompiler) resolveLocal(name string) (*bytecodeLocal, bool) {
+	var localVal *bytecodeLocal
 	var found bool
 	for i := len(c.scopes) - 1; i >= 0; i-- {
 		varScope := c.scopes[i]
@@ -7638,7 +7638,7 @@ func (c *BytecodeCompiler) resolveLocal(name string) (*local, bool) {
 			found = true
 			break
 		}
-		if !c.unhygienic && varScope.typ == macroBoundaryScopeType {
+		if !c.unhygienic && varScope.typ == macroBoundaryBytecodeScopeType {
 			break
 		}
 	}
