@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"iter"
 	"slices"
 	"strings"
 
@@ -26,6 +27,20 @@ func HashMapConstructor(class *Class) Value {
 func NewHashMap(capacity int) *HashMap {
 	return &HashMap{
 		Table: make([]Pair, capacity),
+	}
+}
+
+func (h *HashMap) All() iter.Seq[Pair] {
+	return func(yield func(Pair) bool) {
+		for _, pair := range h.Table {
+			if pair.Key.IsUndefined() {
+				continue
+			}
+
+			if !yield(pair) {
+				return
+			}
+		}
 	}
 }
 

@@ -1301,6 +1301,10 @@ func (c *Checker) Env() *types.GlobalEnvironment {
 	return c.env
 }
 
+func (c *Checker) StdValue() *types.Class {
+	return c.env.StdSubtypeClass(symbol.Value)
+}
+
 func (c *Checker) StdInt() *types.Class {
 	return c.env.StdSubtypeClass(symbol.Int)
 }

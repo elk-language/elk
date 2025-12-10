@@ -6140,6 +6140,7 @@ func (c *BytecodeCompiler) compileIntLiteralNode(node *ast.IntLiteralNode) {
 		c.Errors.AddFailure(err.Error(), node.Location())
 		return
 	}
+
 	if i.IsSmallInt() {
 		c.emitValue(i.ToSmallInt().ToValue(), node.Location())
 		return
@@ -6550,6 +6551,10 @@ func (c *BytecodeCompiler) emitValue(val value.Value, location *position.Locatio
 			c.emitHashMap(v, location)
 		case *value.HashRecord:
 			c.emitHashRecord(v, location)
+		case value.Int64:
+			emitSignedInt(c, val, val.AsInlineInt64(), bytecode.LOAD_INT64_8, location)
+		case value.UInt64:
+			emitUnsignedInt(c, val, val.AsInlineUInt64(), bytecode.LOAD_UINT64_8, location)
 		default:
 			c.emitLoadValue(val, location)
 		}

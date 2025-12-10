@@ -1184,6 +1184,14 @@ func ParseInt(s string, base int) (Value, Value) {
 	return ParseIntWithErr(s, base, FormatErrorClass)
 }
 
+func MustParseInt(s string, base int) Value {
+	v, err := ParseInt(s, base)
+	if err.IsNotUndefined() {
+		panic(err)
+	}
+	return v
+}
+
 // Same as [ParseBigInt] but panics on error.
 func ParseBigIntPanic(s string, base int) *BigInt {
 	result, err := ParseBigInt(s, base)

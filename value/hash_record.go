@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 
 	"github.com/elk-language/elk/indent"
@@ -20,6 +21,20 @@ func NewHashRecord(capacity int) *HashRecord {
 
 func HashRecordConstructor(class *Class) Value {
 	return Ref(&HashRecord{})
+}
+
+func (h *HashRecord) All() iter.Seq[Pair] {
+	return func(yield func(Pair) bool) {
+		for _, pair := range h.Table {
+			if pair.Key.IsUndefined() {
+				continue
+			}
+
+			if !yield(pair) {
+				return
+			}
+		}
+	}
 }
 
 func (*HashRecord) Class() *Class {

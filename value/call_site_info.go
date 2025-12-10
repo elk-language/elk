@@ -9,10 +9,38 @@ import (
 type CallSiteInfo struct {
 	Name          Symbol
 	ArgumentCount int
-	Cache         [3]CallCache
+	Cache         [3]CallCacheEntry
 }
 
 type CallCache struct {
+	Entries [3]CallCacheEntry
+}
+
+func LookupMethodInCache(class *Class, name Symbol, cacheLoc **CallCache) Method {
+	cache := *cacheLoc
+	for i := range len(cache.Entries) {
+		cacheEntry := cache.Entries[i]
+		if cacheEntry.Class == class {
+			return cacheEntry.Method
+		}
+		if cacheEntry.Class == nil {
+			method := class.LookupMethod(name)
+			newEntries := cache.Entries
+			newEntries[i] = CallCacheEntry{
+				Class:  class,
+				Method: method,
+			}
+			*cacheLoc = &CallCache{
+				Entries: newEntries,
+			}
+			return method
+		}
+	}
+
+	return class.LookupMethod(name)
+}
+
+type CallCacheEntry struct {
 	Class  *Class
 	Method Method
 }

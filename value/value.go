@@ -1528,6 +1528,16 @@ func Hash(key Value) (result UInt64, err Value) {
 	}
 }
 
+func AddInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.AddVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.AddVal(right)
+}
+
 // AddVal two values.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -1675,6 +1685,16 @@ func SubtractVal(left, right Value) (result, err Value) {
 	}
 }
 
+func SubtractInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.SubtractVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.SubtractVal(right)
+}
+
 // MultiplyVal two values
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -1753,6 +1773,16 @@ func MultiplyVal(left, right Value) (result, err Value) {
 	}
 }
 
+func MultiplyInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.MultiplyVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.MultiplyVal(right)
+}
+
 // DivideVal two values
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -1820,6 +1850,16 @@ func DivideVal(left, right Value) (result, err Value) {
 	}
 }
 
+func DivideInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.DivideVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.DivideVal(right)
+}
+
 // NegateVal a value
 // When successful returns result.
 // When there are no builtin negation functions for the given type returns nil.
@@ -1884,6 +1924,16 @@ func NegateVal(operand Value) Value {
 	default:
 		return Undefined
 	}
+}
+
+func NegateInt(val Value) Value {
+	if val.IsReference() {
+		l := (*BigInt)(val.Pointer())
+		return Ref(l.Negate())
+	}
+
+	l := val.AsSmallInt()
+	return (-l).ToValue()
 }
 
 // IncrementVal a value
@@ -2143,6 +2193,16 @@ func ExponentiateVal(left, right Value) (result, err Value) {
 	}
 }
 
+func ExponentiateInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.DivideVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.DivideVal(right)
+}
+
 // Perform modulo on two values
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -2208,6 +2268,16 @@ func ModuloVal(left, right Value) (result, err Value) {
 	default:
 		return Undefined, Undefined
 	}
+}
+
+func ModuloInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.ModuloVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.ModuloVal(right)
 }
 
 // CompareVal two values.
@@ -2284,6 +2354,16 @@ func CompareVal(left, right Value) (result, err Value) {
 	default:
 		return Undefined, Undefined
 	}
+}
+
+func CompareInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.CompareVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.CompareVal(right)
 }
 
 // Check whether left is greater than right.
@@ -3902,4 +3982,30 @@ func NewInlineValueComparer(opts *cmp.Options) cmp.Option {
 		filter,
 		comparer,
 	)
+}
+
+func AddConstant(namespace Value, name Symbol, val Value) {
+	var cc ConstantContainer
+	switch n := namespace.SafeAsReference().(type) {
+	case *Class:
+		cc = n.ConstantContainer
+	case *Module:
+		cc = n.ConstantContainer
+	case *Interface:
+		cc = n.ConstantContainer
+	default:
+		panic(
+			fmt.Sprintf(
+				"tried to define %s under an invalid namespace: `%s`",
+				name,
+				namespace.Inspect(),
+			),
+		)
+	}
+
+	if _, ok := cc.Constants[name]; ok {
+		return
+	}
+
+	cc.AddConstant(name, val)
 }
