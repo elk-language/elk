@@ -8,6 +8,7 @@ package vm
 import (
 	"fmt"
 	"io"
+	"os"
 	"sync/atomic"
 
 	"github.com/elk-language/elk/config"
@@ -63,6 +64,15 @@ func WithStdin(stdin io.Reader) Option {
 	return func(vm *VM) {
 		vm.Stdin = stdin
 	}
+}
+
+func (vm *VM) PrintErrorValue(err value.Value) {
+	PrintError(vm.Stderr, vm.ErrStackTrace(), err)
+}
+
+func (vm *VM) Panic(err value.Value) {
+	vm.PrintErrorValue(err)
+	os.Exit(1)
 }
 
 // Assign the given io.Writer as the Stdout of the VM.

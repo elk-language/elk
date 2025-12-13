@@ -114,13 +114,15 @@ type goLocal struct {
 	name    string
 	elkType types.Type
 	goType  string
+	comment string
 }
 
-func newGoLocal(name string, elkType types.Type, goType string) *goLocal {
+func newGoLocal(name string, elkType types.Type, goType string, comment string) *goLocal {
 	return &goLocal{
 		name:    name,
 		elkType: elkType,
 		goType:  goType,
+		comment: comment,
 	}
 }
 
@@ -384,11 +386,15 @@ func (c *GoCompiler) SetParent(parent Compiler) {
 }
 
 func (c *GoCompiler) registerGoLocal(name string, elkType types.Type, goType string) {
+	c.registerGoLocalWithComment(name, elkType, goType, "")
+}
+
+func (c *GoCompiler) registerGoLocalWithComment(name string, elkType types.Type, goType string, comment string) {
 	_, exists := c.goLocals.GetOk(name)
 	if exists {
 		return
 	}
-	c.goLocals.Set(name, newGoLocal(name, elkType, goType))
+	c.goLocals.Set(name, newGoLocal(name, elkType, goType, comment))
 }
 
 func (c *GoCompiler) compileGlobalEnv() {
@@ -945,12 +951,17 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	}
 
 	if c.parent != nil {
-		c.parent.emit("%s()\n", c.FuncName)
+		c.parent.emit("%s(thread)\n", c.FuncName)
 	}
 
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "// file: %s\n", c.loc.FilePath)
-	fmt.Fprintf(&funcBuffer, "func %s() {\n", c.FuncName)
+	if c.FuncName == "main" {
+		fmt.Fprintf(&funcBuffer, "func %s() {\n", c.FuncName)
+		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n")
+	} else {
+		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.VM) {\n", c.FuncName)
+	}
 	c.compileLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}\n")
@@ -958,7 +969,11 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 
 func (c *GoCompiler) compileLocalsTo(buff io.Writer) {
 	for _, local := range c.goLocals.All() {
-		fmt.Fprintf(buff, "var %[1]s %[2]s;_ = %[1]s\n", local.name, local.goType)
+		fmt.Fprintf(buff, "var %s %s", local.name, local.goType)
+		if local.comment != "" {
+			fmt.Fprintf(buff, " // %s", local.comment)
+		}
+		fmt.Fprintf(buff, "\n_ = %s\n", local.name)
 	}
 	buff.Write([]byte("\n"))
 }
@@ -1013,7 +1028,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		}
 		if i.IsSmallInt() {
 			return newInlineGoValue(
-				fmt.Sprintf("value.SmallInt(%d)", i.ToSmallInt()),
+				fmt.Sprintf("value.SmallInt(%d).ToValue()", i.ToSmallInt()),
 				c.typeOf(node),
 			)
 		}
@@ -1494,7 +1509,7 @@ func (c *GoCompiler) defineTmpGoLocal(elkType types.Type, goType string) string 
 func (c *GoCompiler) emitErrorPropagation() {
 	switch c.mode {
 	case topLevelGoCompilerMode:
-		c.emit("if err.IsNotUndefined() { thread.PrintErrorValue(err); os.Exit(1) }\n")
+		c.emit("if err.IsNotUndefined() { thread.Panic(err) }\n")
 	default:
 		c.emit("if err.IsNotUndefined() { return value.Undefined, err }\n")
 	}
@@ -2185,8 +2200,8 @@ func (c *GoCompiler) valueToGoSource(val value.Value) *goValue {
 		return nilGoValue
 	case value.SMALL_INT_FLAG:
 		return newInlineGoValue(
-			fmt.Sprintf("value.SmallInt(%d)", val.AsSmallInt()),
-			c.checker.StdValue(),
+			fmt.Sprintf("value.SmallInt(%d).ToValue()", val.AsSmallInt()),
+			c.checker.StdInt(),
 		)
 	case value.INT64_FLAG:
 		return newInlineGoValue(
@@ -2291,7 +2306,7 @@ func (c *GoCompiler) convertToValue(v *goValue) string {
 	if c.checker.IsTheSameType(v.typ, c.checker.Std(symbol.Value)) {
 		return v.inline
 	}
-	if c.checker.IsTheSameType(v.typ, c.checker.StdInt()) {
+	if c.checker.IsSubtype(v.typ, c.checker.StdInt()) {
 		return v.inline
 	}
 	if c.checker.IsSubtype(v.typ, c.checker.Std(symbol.Object)) {
@@ -2430,7 +2445,7 @@ func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, t
 	}
 	scope.localTable[name] = newVar
 
-	c.registerGoLocal(newVar.goIdent(), typ, goValueType)
+	c.registerGoLocalWithComment(newVar.goIdent(), typ, goValueType, fmt.Sprintf("name: %s, type: %s", name, types.Inspect(typ)))
 
 	return newVar
 }

@@ -68,6 +68,10 @@ func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEn
 func CheckASTNative(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
 	checker := newChecker(sourceName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool)
 	cmp := checker.checkProgram(ast)
+	if cmp == nil {
+		return nil, checker.Errors.DiagnosticList
+	}
+
 	return cmp.(*compiler.GoCompiler), checker.Errors.DiagnosticList
 }
 
@@ -85,6 +89,9 @@ func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, flags bitfie
 func CheckFileNative(fileName string, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
 	checker := newChecker(fileName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool)
 	cmp := checker.checkFile(fileName)
+	if cmp == nil {
+		return nil, checker.Errors.DiagnosticList
+	}
 	return cmp.(*compiler.GoCompiler), checker.Errors.DiagnosticList
 }
 
@@ -380,6 +387,10 @@ func (c *Checker) checkNamespacePlaceholders() {
 	c.namespacePlaceholders = nil
 }
 
+func (c *Checker) resetLocalEnvs() {
+	c.localEnvs = []*localEnvironment{newLocalEnvironment(nil, false)}
+}
+
 func (c *Checker) initExtensions() {
 	c.env.Init = true
 	for _, extension := range c.extensions.Slice {
@@ -648,7 +659,9 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 		if c.shouldCompile() {
 			c.compiler = c.compiler.InitExpressionCompiler(importedAst.Location())
 		}
+		c.pushIsolatedLocalEnv()
 		c.checkExpressionsInFile(importPath, importedAst)
+		c.popLocalEnv()
 
 		c.compiler = prevCompiler
 		c.SetHeader(prevIsHeader)

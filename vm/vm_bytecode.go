@@ -1400,10 +1400,6 @@ func (vm *VM) PopCallFrame() {
 	vm.restoreLastFrame()
 }
 
-func (vm *VM) PrintErrorValue(err value.Value) {
-	PrintError(vm.Stderr, vm.ErrStackTrace(), err)
-}
-
 func (vm *VM) PrintError() {
 	vm.PrintErrorValue(vm.Err())
 }
