@@ -9,6 +9,7 @@ import (
 	"unicode"
 
 	"github.com/elk-language/elk/concurrent"
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
@@ -128,15 +129,15 @@ type goValue struct {
 	typ      types.Type
 }
 
-func (v *goValue) IsInline() bool {
+func (v *goValue) isInline() bool {
 	return v.inline != ""
 }
 
-func (v *goValue) IsTmp() bool {
+func (v *goValue) isTmp() bool {
 	return v.tmpLocal != ""
 }
 
-func (v *goValue) Value() string {
+func (v *goValue) value() string {
 	if v.inline != "" {
 		return v.inline
 	}
@@ -144,26 +145,31 @@ func (v *goValue) Value() string {
 	return v.tmpLocal
 }
 
-func newInlineValue(v string, typ types.Type) *goValue {
+func newInlineGoValue(v string, typ types.Type) *goValue {
 	return &goValue{
 		inline: v,
 		typ:    typ,
 	}
 }
 
-func newTmpValue(v string, typ types.Type) *goValue {
+func newTmpGoValue(v string, typ types.Type) *goValue {
 	return &goValue{
 		tmpLocal: v,
 		typ:      typ,
 	}
 }
 
+var errGoValue = newTmpGoValue("ERR", types.Untyped{})
+var nilGoValue = newInlineGoValue("value.Nil", types.Nil{})
+
 func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) *GoCompiler {
 	bigIntCache := concurrent.NewMap[string, *nativeBigInt]()
 	symbolCache := concurrent.NewMap[string, *nativeSymbol]()
 	compiler := NewGoCompiler("main", topLevelGoCompilerMode, loc, checker, bigIntCache, symbolCache, output)
 	compiler.Errors = errors
-	compiler.SetParent(parent)
+	if parent != nil {
+		compiler.SetParent(parent)
+	}
 	return compiler
 }
 
@@ -177,6 +183,8 @@ func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Loc
 
 func (c *GoCompiler) InitMainCompiler() {
 	c.emitPackage("package main\n\n")
+	c.emitPackage("import \"github.com/elk-language/elk/value\"\n")
+	c.emitPackage("import \"github.com/elk-language/elk/vm\"\n\n")
 }
 
 func (c *GoCompiler) InitGlobalEnv() Compiler {
@@ -205,6 +213,12 @@ func (c *GoCompiler) InitMethodCompiler(location *position.Location) (Compiler, 
 func (c *GoCompiler) CompileMethods(location *position.Location, execOffset int) {
 	c.registerGoLocal("class", c.checker.Std(symbol.Class), "*value.Class")
 	c.compileMethodsWithinModule(c.checker.Env().Root, location)
+
+	var funcBuffer bytes.Buffer
+	fmt.Fprintf(&funcBuffer, "func methodDefinitions() {\n")
+	c.compileLocalsTo(&funcBuffer)
+	c.emitPrependBytes(funcBuffer.Bytes())
+	c.emit("}\n")
 }
 
 func (c *GoCompiler) InitIvarIndicesCompiler(location *position.Location) (Compiler, int) {
@@ -212,12 +226,18 @@ func (c *GoCompiler) InitIvarIndicesCompiler(location *position.Location) (Compi
 	ivarCompiler.Errors = c.Errors
 	ivarCompiler.SetParent(c)
 
-	c.emit("ivarIndices()\n")
+	c.emit("ivarIndices(thread)\n")
 
 	return ivarCompiler, 0
 }
 
 func (c *GoCompiler) FinishIvarIndicesCompiler(location *position.Location, execOffset int) Compiler {
+	var funcBuffer bytes.Buffer
+	fmt.Fprintf(&funcBuffer, "func ivarIndices(thread *vm.VM) {\n")
+	c.compileLocalsTo(&funcBuffer)
+	c.emitPrependBytes(funcBuffer.Bytes())
+	c.emit("}")
+
 	return c.parent
 }
 
@@ -235,7 +255,7 @@ func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNod
 
 	init := c.compileExpression(node.Initialiser)
 	constNameSymbol := c.emitSymbol(constName.String())
-	c.emit("value.AddConstant(namespace, %s, %s)\n", constNameSymbol, init.Value())
+	c.emit("value.AddConstant(namespace, %s, %s)\n", constNameSymbol, c.convertToValue(init))
 }
 
 func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.Symbol) Compiler {
@@ -270,7 +290,7 @@ type GoCompiler struct {
 	loc               *position.Location
 	mode              goMode
 	children          concurrent.Slice[*GoCompiler]
-	goLocals          map[string]*goLocal
+	goLocals          ds.OrderedMap[string, *goLocal]
 	tmpLocalCounter   int
 	lastElkLocalIndex int
 	callCacheCounter  int
@@ -278,6 +298,7 @@ type GoCompiler struct {
 	symbolCache       *concurrent.Map[string, *nativeSymbol]
 	isGenerator       bool
 	isAsync           bool
+	unhygienic        bool
 }
 
 func NewGoCompiler(name string, mode goMode, loc *position.Location, checker types.Checker, bigIntCache *concurrent.Map[string, *nativeBigInt], symbolCache *concurrent.Map[string, *nativeSymbol], output io.Writer) *GoCompiler {
@@ -286,6 +307,7 @@ func NewGoCompiler(name string, mode goMode, loc *position.Location, checker typ
 		mode:              mode,
 		Errors:            diagnostic.NewSyncDiagnosticList(),
 		scopes:            nativeElkScopes{newNativeElkScope("", defaultNativeElkScopeType)}, // start with an empty set for the 0th scope
+		goLocals:          ds.MakeOrderedMap[string, *goLocal](),
 		lastElkLocalIndex: -1,
 		bigIntCache:       bigIntCache,
 		symbolCache:       symbolCache,
@@ -337,17 +359,21 @@ func (c *GoCompiler) flushInner() {
 }
 
 func (c *GoCompiler) SetParent(parent Compiler) {
+	if parent == nil {
+		return
+	}
+
 	p := parent.(*GoCompiler)
 	c.parent = p
 	p.children.Append(c)
 }
 
 func (c *GoCompiler) registerGoLocal(name string, elkType types.Type, goType string) {
-	_, exists := c.goLocals[name]
+	_, exists := c.goLocals.GetOk(name)
 	if exists {
 		return
 	}
-	c.goLocals[name] = newGoLocal(name, elkType, goType)
+	c.goLocals.Set(name, newGoLocal(name, elkType, goType))
 }
 
 func (c *GoCompiler) compileGlobalEnv() {
@@ -356,6 +382,7 @@ func (c *GoCompiler) compileGlobalEnv() {
 
 	c.emit("var parentNamespace, namespace value.Value\n")
 	c.emit("var class, superclass, mixin *value.Class\n")
+	c.emit("_ = parentNamespace; _ = namespace; _ = class; _ = superclass; _ = mixin\n")
 	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"))
 
 	c.emit("}\n")
@@ -392,7 +419,7 @@ func (c *GoCompiler) compileMethodFuncLiteralBody(parameters []ast.ParameterNode
 		if p.Initialiser != nil {
 			c.emit("if %s.IsUndefined() {\n", localName)
 			val := c.compileExpression(p.Initialiser)
-			c.emit("%s = %s", localName, val.Value())
+			c.emit("%s = %s", localName, c.convertToValue(val))
 			c.emit("}\n")
 		}
 
@@ -421,7 +448,7 @@ func (c *GoCompiler) compileMethodFuncLiteralBody(parameters []ast.ParameterNode
 
 	val := c.compileStatements(body)
 
-	c.emitReturn(val.Value())
+	c.emitReturn(c.convertToValue(val))
 	// TODO: implement generators
 	// c.emitFinalReturn(location, nil)
 }
@@ -797,7 +824,7 @@ func (c *GoCompiler) emitGetConst(name value.Symbol, typ types.Type) *goValue {
 	constNameSymbol := c.emitSymbol(name.String())
 	c.emit("%s = value.GetConstant(%s)\n", tmp, constNameSymbol)
 
-	return newTmpValue(
+	return newTmpGoValue(
 		tmp,
 		typ,
 	)
@@ -895,8 +922,8 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 }
 
 func (c *GoCompiler) compileLocalsTo(buff io.Writer) {
-	for _, local := range c.goLocals {
-		fmt.Fprintf(buff, "var %s %s\n", local.name, local.goType)
+	for _, local := range c.goLocals.All() {
+		fmt.Fprintf(buff, "var %[1]s %[2]s;_ = %[1]s\n", local.name, local.goType)
 	}
 	buff.Write([]byte("\n"))
 }
@@ -917,7 +944,7 @@ func (c *GoCompiler) compileStatements(nodes []ast.StatementNode) *goValue {
 	}
 
 	if lastValue == nil {
-		return newInlineValue("value.Nil", c.checker.Std(symbol.Nil))
+		return nilGoValue
 	}
 	return lastValue
 }
@@ -927,12 +954,22 @@ func (c *GoCompiler) compileStatement(node ast.StatementNode) *goValue {
 	case *ast.ExpressionStatementNode:
 		return c.compileExpression(node.Expression)
 	default:
-		return newInlineValue("value.Nil", c.checker.Std(symbol.Nil))
+		return nilGoValue
 	}
 }
 
 func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 	switch node := node.(type) {
+	case nil, *ast.AliasDeclarationNode, *ast.IncludeExpressionNode,
+		*ast.MethodDefinitionNode, *ast.UsingExpressionNode,
+		*ast.ConstantDeclarationNode, *ast.TypeDefinitionNode, *ast.GenericTypeDefinitionNode,
+		*ast.MethodSignatureDefinitionNode, *ast.ImplementExpressionNode,
+		*ast.StructDeclarationNode, *ast.GenericReceiverlessMethodCallNode,
+		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
+		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
+		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
+		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
+		return nilGoValue
 	case *ast.IntLiteralNode:
 		i, err := value.ParseBigInt(node.Value, 0)
 		if !err.IsUndefined() {
@@ -940,13 +977,13 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 			return nil
 		}
 		if i.IsSmallInt() {
-			return newInlineValue(
+			return newInlineGoValue(
 				fmt.Sprintf("value.SmallInt(%d)", i.ToSmallInt()),
 				c.typeOf(node),
 			)
 		}
 		bigIntVar := c.emitBigInt(node.Value)
-		return newTmpValue(
+		return newTmpGoValue(
 			bigIntVar,
 			c.typeOf(node),
 		)
@@ -956,7 +993,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 			c.Errors.AddFailure(err.Error(), node.Location())
 			return nil
 		}
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.Int8(%d)", i),
 			c.typeOf(node),
 		)
@@ -966,7 +1003,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 			c.Errors.AddFailure(err.Error(), node.Location())
 			return nil
 		}
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.Int16(%d)", i),
 			c.typeOf(node),
 		)
@@ -976,7 +1013,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 			c.Errors.AddFailure(err.Error(), node.Location())
 			return nil
 		}
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.Int32(%d)", i),
 			c.typeOf(node),
 		)
@@ -986,7 +1023,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 			c.Errors.AddFailure(err.Error(), node.Location())
 			return nil
 		}
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.Int64(%d)", i),
 			c.typeOf(node),
 		)
@@ -996,7 +1033,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 			c.Errors.AddFailure(err.Error(), node.Location())
 			return nil
 		}
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.UInt8(%d)", i),
 			c.typeOf(node),
 		)
@@ -1006,7 +1043,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 			c.Errors.AddFailure(err.Error(), node.Location())
 			return nil
 		}
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.UInt16(%d)", i),
 			c.typeOf(node),
 		)
@@ -1016,7 +1053,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 			c.Errors.AddFailure(err.Error(), node.Location())
 			return nil
 		}
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.UInt32(%d)", i),
 			c.typeOf(node),
 		)
@@ -1026,15 +1063,343 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 			c.Errors.AddFailure(err.Error(), node.Location())
 			return nil
 		}
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.UInt64(%d)", i),
 			c.typeOf(node),
 		)
 	case *ast.BinaryExpressionNode:
 		return c.compileBinaryExpressionNode(node)
+	case *ast.AssignmentExpressionNode:
+		return c.compileAssignmentExpressionNode(node)
+	case *ast.PublicIdentifierNode:
+		return c.compileLocalVariableAccess(node.Value)
+	case *ast.PrivateIdentifierNode:
+		return c.compileLocalVariableAccess(node.Value)
+	case *ast.IfExpressionNode:
+		return c.compileIfExpression(
+			ifConditionType,
+			node.Condition,
+			node.ThenBody,
+			node.ElseBody,
+			c.typeOf(node),
+		)
+	case *ast.UnlessExpressionNode:
+		return c.compileIfExpression(
+			unlessConditionType,
+			node.Condition,
+			node.ThenBody,
+			node.ElseBody,
+			c.typeOf(node),
+		)
+	case *ast.ModifierIfElseNode:
+		return c.compileModifierIfExpression(
+			ifConditionType,
+			node.Condition,
+			node.ThenExpression,
+			node.ElseExpression,
+			c.typeOf(node),
+		)
 	default:
 		panic(fmt.Sprintf("invalid expression node: %T", node))
 	}
+}
+
+func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressionNode) *goValue {
+	switch n := node.Left.(type) {
+	case *ast.PublicIdentifierNode:
+		return c.localVariableAssignment(n.Value, node.Op, node.Right, c.typeOf(node), node.Location())
+	case *ast.PrivateIdentifierNode:
+		return c.localVariableAssignment(n.Value, node.Op, node.Right, c.typeOf(node), node.Location())
+		// TODO: Implement all assignment types
+	// case *ast.SubscriptExpressionNode:
+	// 	return c.subscriptAssignment(node, n, valueIsIgnored)
+	// case *ast.PublicInstanceVariableNode:
+	// 	return c.instanceVariableAssignment(node, n, valueIsIgnored)
+	// case *ast.AttributeAccessNode:
+	// 	return c.attributeAssignment(node, n)
+	default:
+		c.Errors.AddFailure(
+			fmt.Sprintf("cannot assign to: %T", node.Left),
+			node.Location(),
+		)
+		return errGoValue
+	}
+}
+
+func (c *GoCompiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, typ types.Type, loc *position.Location) *goValue {
+	switch operator.Type {
+	case token.OR_OR_EQUAL:
+		result := c.defineTmpGoLocal(typ, goValueType)
+
+		varIdent := c.compileLocalVariableAccess(name)
+		c.emit("if value.Falsy(%s) {\n", c.convertToValue(varIdent))
+
+		rightVal := c.compileExpression(right)
+		c.emit("%s = %s\n", result, c.convertToValue(rightVal))
+
+		c.emit("}\n")
+
+		return newTmpGoValue(
+			varIdent.value(),
+			typ,
+		)
+	case token.AND_AND_EQUAL:
+		result := c.defineTmpGoLocal(typ, goValueType)
+
+		varIdent := c.compileLocalVariableAccess(name)
+		c.emit("if value.Truthy(%s) {\n", c.convertToValue(varIdent))
+
+		rightVal := c.compileExpression(right)
+		c.emit("%s = %s\n", result, c.convertToValue(rightVal))
+
+		c.emit("}\n")
+
+		return newTmpGoValue(
+			varIdent.value(),
+			typ,
+		)
+	case token.QUESTION_QUESTION_EQUAL:
+		result := c.defineTmpGoLocal(typ, goValueType)
+
+		varIdent := c.compileLocalVariableAccess(name)
+		c.emit("if value.IsNil(%s) {\n", c.convertToValue(varIdent))
+
+		rightVal := c.compileExpression(right)
+		c.emit("%s = %s\n", result, c.convertToValue(rightVal))
+
+		c.emit("}\n")
+
+		return newTmpGoValue(
+			varIdent.value(),
+			typ,
+		)
+	case token.EQUAL_OP:
+		return c.setLocal(name, right)
+	case token.COLON_EQUAL:
+		c.defineLocal(name, typ, loc)
+		return c.setLocal(name, right)
+	default:
+		c.Errors.AddFailure(
+			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.Name()),
+			loc,
+		)
+		return errGoValue
+	}
+}
+
+func (c *GoCompiler) setLocal(name string, valueNode ast.ExpressionNode) *goValue {
+	val := c.compileExpression(valueNode)
+	return c.emitSetLocal(name, c.convertToValue(val))
+}
+
+func (c *GoCompiler) emitSetLocal(name string, val string) *goValue {
+	var variable *nativeElkLocal
+	if local, ok := c.resolveLocal(name); ok {
+		variable = local
+	} else if upvalue, ok := c.resolveUpvalue(name); ok {
+		variable = upvalue
+	} else {
+		panic(fmt.Sprintf("undefined local: %s\n", name))
+	}
+
+	ident := variable.goIdent()
+	c.emit("%s = %s\n", ident, val)
+	return newTmpGoValue(
+		ident,
+		variable.typ,
+	)
+}
+
+func (c *GoCompiler) compileModifierIfExpression(condType conditionType, condition, then, els ast.ExpressionNode, typ types.Type) *goValue {
+	var elsFunc func() *goValue
+	if els != nil {
+		elsFunc = func() *goValue {
+			return c.compileExpression(els)
+		}
+	}
+
+	return c.compileIfWithConditionExpression(
+		condType,
+		condition,
+		func() *goValue {
+			return c.compileExpression(then)
+		},
+		elsFunc,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileIfExpression(condType conditionType, condition ast.ExpressionNode, then, els []ast.StatementNode, typ types.Type) *goValue {
+	var elsFunc func() *goValue
+	if els != nil {
+		elsFunc = func() *goValue {
+			return c.compileStatements(els)
+		}
+	}
+
+	return c.compileIfWithConditionExpression(
+		condType,
+		condition,
+		func() *goValue {
+			return c.compileStatements(then)
+		},
+		elsFunc,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileIfWithConditionExpression(condType conditionType, condition ast.ExpressionNode, then, els func() *goValue, typ types.Type) *goValue {
+	if result := resolve(condition); !result.IsUndefined() {
+		// if gets optimised away
+		c.enterScope("", defaultNativeElkScopeType)
+		defer c.leaveScope()
+
+		var checkFunc func(value.Value) bool
+		switch condType {
+		case ifConditionType:
+			checkFunc = value.Truthy
+		case unlessConditionType:
+			checkFunc = value.Falsy
+		case isNilConditionType:
+			checkFunc = value.IsNil
+		default:
+			panic(fmt.Sprintf("invalid if condition type: %d", condType))
+		}
+
+		if checkFunc(result) {
+			if then == nil {
+				return nilGoValue
+			}
+			return then()
+		}
+
+		if els == nil {
+			return nilGoValue
+		}
+		return els()
+	}
+
+	cond := func() *goValue {
+		return c.compileExpression(condition)
+	}
+
+	return c.compileIf(
+		condType,
+		cond,
+		then,
+		els,
+		typ,
+	)
+}
+
+type conditionType uint8
+
+const (
+	ifConditionType conditionType = iota
+	unlessConditionType
+	isNilConditionType
+)
+
+func (c *GoCompiler) compileIf(condType conditionType, condition, then, els func() *goValue, typ types.Type) *goValue {
+	c.enterScope("", defaultNativeElkScopeType)
+	condVal := condition()
+
+	ifResultVar := c.getTmpIdent()
+	c.registerGoLocal(ifResultVar, typ, goValueType)
+
+	var condFunc string
+	switch condType {
+	case ifConditionType:
+		condFunc = "value.Truthy"
+	case unlessConditionType:
+		condFunc = "value.Falsy"
+	case isNilConditionType:
+		condFunc = "value.IsNil"
+	default:
+		panic(fmt.Sprintf("invalid if condition type: %d", condType))
+	}
+
+	c.emit("if %s(%s) {\n", condFunc, c.convertToValue(condVal))
+	thenVal := then()
+	c.emit("%s = %s\n", ifResultVar, c.convertToValue(thenVal))
+	c.emit("}")
+
+	c.leaveScope()
+
+	if els != nil {
+		c.emit(" else {\n")
+		elseVal := els()
+		c.emit("%s = %s\n", ifResultVar, c.convertToValue(elseVal))
+		c.emit("}")
+	}
+
+	c.emit("\n")
+
+	return newTmpGoValue(
+		ifResultVar,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileLocalVariableAccess(name string) *goValue {
+	if local, ok := c.resolveLocal(name); ok {
+		return newInlineGoValue(
+			local.goIdent(),
+			local.typ,
+		)
+	}
+
+	if upvalue, ok := c.resolveUpvalue(name); ok {
+		return newInlineGoValue(
+			upvalue.goIdent(),
+			upvalue.typ,
+		)
+	}
+
+	panic(fmt.Sprintf("no such variable: %s", name))
+}
+
+// Resolve a local variable
+func (c *GoCompiler) resolveLocal(name string) (*nativeElkLocal, bool) {
+	var localVal *nativeElkLocal
+	var found bool
+	for i := len(c.scopes) - 1; i >= 0; i-- {
+		varScope := c.scopes[i]
+		local, ok := varScope.localTable[name]
+		if ok {
+			localVal = local
+			found = true
+			break
+		}
+		if !c.unhygienic && varScope.typ == macroBoundaryNativeElkScopeType {
+			break
+		}
+	}
+
+	if !found {
+		return localVal, false
+	}
+
+	return localVal, true
+}
+
+// Resolve an upvalue from an outer context
+func (c *GoCompiler) resolveUpvalue(name string) (*nativeElkLocal, bool) {
+	parent := c.parent
+	if parent == nil {
+		return nil, false
+	}
+	local, ok := parent.resolveLocal(name)
+	if ok {
+		return local, true
+	}
+
+	local, ok = parent.resolveUpvalue(name)
+	if ok {
+		return local, true
+	}
+
+	return nil, false
 }
 
 func (c *GoCompiler) emitBigInt(val string) string {
@@ -1078,6 +1443,12 @@ func (c *GoCompiler) emitSymbol(val string) string {
 func (c *GoCompiler) getTmpIdent() string {
 	c.tmpLocalCounter++
 	return fmt.Sprintf("t%d", c.tmpLocalCounter)
+}
+
+func (c *GoCompiler) defineTmpGoLocal(elkType types.Type, goType string) string {
+	tmp := c.getTmpIdent()
+	c.registerGoLocal(tmp, elkType, goType)
+	return tmp
 }
 
 func (c *GoCompiler) emitErrorPropagation() {
@@ -1128,10 +1499,10 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			tmp := c.getTmpIdent()
 			c.registerGoLocal(tmp, c.checker.Std(symbol.Value), goValueType)
 			c.registerErr()
-			c.emit("%s, err = value.AddInt(%s, %s)\n", tmp, left.Value(), c.convertToValue(right))
+			c.emit("%s, err = value.AddInt(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1143,7 +1514,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emit("%s, err = %s.AddVal(%s)\n", tmp, c.goValueAs(left, "AsFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1155,7 +1526,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emit("%s, err = %s.AddVal(%s)\n", tmp, c.goValueCast(left, "*value.BigFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1167,7 +1538,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emit("%s, err = value.AddVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1181,7 +1552,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpAdd, %s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
 		c.emitPopCallFrame()
 		c.emitErrorPropagation()
-		return newTmpValue(
+		return newTmpGoValue(
 			tmp,
 			c.checker.Std(symbol.Value),
 		)
@@ -1190,10 +1561,10 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			tmp := c.getTmpIdent()
 			c.registerGoLocal(tmp, c.checker.Std(symbol.Value), goValueType)
 			c.registerErr()
-			c.emit("%s, err = value.SubtractInt(%s, %s)\n", tmp, left.Value(), c.convertToValue(right))
+			c.emit("%s, err = value.SubtractInt(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1205,7 +1576,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emit("%s, err = %s.SubtractVal(%s)\n", tmp, c.goValueAs(left, "AsFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1217,7 +1588,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emit("%s, err = %s.SubtractVal(%s)\n", tmp, c.goValueCast(left, "*value.BigFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1229,7 +1600,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emit("%s, err = value.SubtractVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1243,7 +1614,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpSubtract, %s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
 		c.emitPopCallFrame()
 		c.emitErrorPropagation()
-		return newTmpValue(
+		return newTmpGoValue(
 			tmp,
 			c.checker.Std(symbol.Value),
 		)
@@ -1252,10 +1623,10 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			tmp := c.getTmpIdent()
 			c.registerGoLocal(tmp, c.checker.Std(symbol.Value), goValueType)
 			c.registerErr()
-			c.emit("%s, err = value.MultiplyInt(%s, %s)\n", tmp, left.Value(), c.convertToValue(right))
+			c.emit("%s, err = value.MultiplyInt(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1267,7 +1638,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emit("%s, err = %s.MultiplyVal(%s)\n", tmp, c.goValueAs(left, "AsFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1279,7 +1650,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emit("%s, err = %s.MultiplyVal(%s)\n", tmp, c.goValueCast(left, "*value.BigFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1291,7 +1662,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emit("%s, err = value.MultiplyVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1305,7 +1676,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpMultiply, %s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
 		c.emitPopCallFrame()
 		c.emitErrorPropagation()
-		return newTmpValue(
+		return newTmpGoValue(
 			tmp,
 			c.checker.Std(symbol.Value),
 		)
@@ -1316,11 +1687,11 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			tmp := c.getTmpIdent()
 			c.registerGoLocal(tmp, c.checker.Std(symbol.Value), goValueType)
 			c.registerErr()
-			c.emit("%s, err = value.DivideInt(%s, %s)\n", tmp, left.Value(), c.convertToValue(right))
+			c.emit("%s, err = value.DivideInt(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitPopCallFrame()
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1333,7 +1704,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emitPopCallFrame()
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1345,7 +1716,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emit("%s, err = %s.DivideVal(%s)\n", tmp, c.goValueCast(left, "*value.BigFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1358,7 +1729,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emitPopCallFrame()
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1371,7 +1742,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpMultiply, %s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
 		c.emitPopCallFrame()
 		c.emitErrorPropagation()
-		return newTmpValue(
+		return newTmpGoValue(
 			tmp,
 			c.checker.Std(symbol.Value),
 		)
@@ -1380,10 +1751,10 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			tmp := c.getTmpIdent()
 			c.registerGoLocal(tmp, c.checker.Std(symbol.Value), goValueType)
 			c.registerErr()
-			c.emit("%s, err = value.ExponentiateInt(%s, %s)\n", tmp, left.Value(), c.convertToValue(right))
+			c.emit("%s, err = value.ExponentiateInt(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1396,7 +1767,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emitPopCallFrame()
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1409,7 +1780,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emitPopCallFrame()
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1423,7 +1794,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpMultiply, %s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
 		c.emitPopCallFrame()
 		c.emitErrorPropagation()
-		return newTmpValue(
+		return newTmpGoValue(
 			tmp,
 			c.checker.Std(symbol.Value),
 		)
@@ -1436,7 +1807,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emitPopCallFrame()
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1450,7 +1821,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpLeftBitshift, %s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
 		c.emitPopCallFrame()
 		c.emitErrorPropagation()
-		return newTmpValue(
+		return newTmpGoValue(
 			tmp,
 			c.checker.Std(symbol.Value),
 		)
@@ -1463,7 +1834,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emitPopCallFrame()
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1477,7 +1848,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpLogicalLeftBitshift, %s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
 		c.emitPopCallFrame()
 		c.emitErrorPropagation()
-		return newTmpValue(
+		return newTmpGoValue(
 			tmp,
 			c.checker.Std(symbol.Value),
 		)
@@ -1490,7 +1861,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emitPopCallFrame()
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1504,7 +1875,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpRightBitshift, %s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
 		c.emitPopCallFrame()
 		c.emitErrorPropagation()
-		return newTmpValue(
+		return newTmpGoValue(
 			tmp,
 			c.checker.Std(symbol.Value),
 		)
@@ -1517,7 +1888,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emitPopCallFrame()
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1531,7 +1902,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpLogicalRightBitshift, %s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
 		c.emitPopCallFrame()
 		c.emitErrorPropagation()
-		return newTmpValue(
+		return newTmpGoValue(
 			tmp,
 			c.checker.Std(symbol.Value),
 		)
@@ -1544,7 +1915,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			c.emitPopCallFrame()
 			c.emitErrorPropagation()
 
-			return newTmpValue(
+			return newTmpGoValue(
 				tmp,
 				c.checker.Std(symbol.Value),
 			)
@@ -1558,7 +1929,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpAnd, %s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
 		c.emitPopCallFrame()
 		c.emitErrorPropagation()
-		return newTmpValue(
+		return newTmpGoValue(
 			tmp,
 			c.checker.Std(symbol.Value),
 		)
@@ -1745,12 +2116,12 @@ func (c *GoCompiler) valueToGoSource(val value.Value) *goValue {
 		case *value.HashRecord:
 			return c.hashRecordToGoSource(v)
 		case value.Int64:
-			return newInlineValue(
+			return newInlineGoValue(
 				fmt.Sprintf("value.Int64(%d)", v),
 				c.checker.Std(symbol.Int64),
 			)
 		case value.UInt64:
-			return newInlineValue(
+			return newInlineGoValue(
 				fmt.Sprintf("value.UInt64(%d)", v),
 				c.checker.Std(symbol.UInt64),
 			)
@@ -1761,72 +2132,69 @@ func (c *GoCompiler) valueToGoSource(val value.Value) *goValue {
 
 	switch val.ValueFlag() {
 	case value.TRUE_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			"value.True",
 			c.checker.StdValue(),
 		)
 	case value.FALSE_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			"value.False",
 			c.checker.StdValue(),
 		)
 	case value.NIL_FLAG:
-		return newInlineValue(
-			"value.Nil",
-			c.checker.StdValue(),
-		)
+		return nilGoValue
 	case value.SMALL_INT_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.SmallInt(%d)", val.AsSmallInt()),
 			c.checker.StdValue(),
 		)
 	case value.INT64_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.Int64(%d)", val.AsInt64()),
 			c.checker.Std(symbol.Int64),
 		)
 	case value.UINT64_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.UInt64(%d)", val.AsUInt64()),
 			c.checker.Std(symbol.UInt64),
 		)
 	case value.INT32_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.Int32(%d)", val.AsInt32()),
 			c.checker.Std(symbol.Int32),
 		)
 	case value.UINT32_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.UInt32(%d)", val.AsUInt32()),
 			c.checker.Std(symbol.UInt32),
 		)
 	case value.INT16_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.Int16(%d)", val.AsInt16()),
 			c.checker.Std(symbol.Int16),
 		)
 	case value.UINT16_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.UInt16(%d)", val.AsUInt16()),
 			c.checker.Std(symbol.UInt16),
 		)
 	case value.INT8_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.Int8(%d)", val.AsInt8()),
 			c.checker.Std(symbol.Int8),
 		)
 	case value.UINT8_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.UInt8(%d)", val.AsUInt8()),
 			c.checker.Std(symbol.UInt8),
 		)
 	case value.CHAR_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.Char(%q)", val.AsChar()),
 			c.checker.Std(symbol.Char),
 		)
 	case value.FLOAT_FLAG:
-		return newInlineValue(
+		return newInlineGoValue(
 			fmt.Sprintf("value.Float(%f)", val.AsFloat()),
 			c.checker.Std(symbol.Float),
 		)
@@ -1850,11 +2218,11 @@ func (c *GoCompiler) arrayListToGoSource(v *value.ArrayList) *goValue {
 	}
 
 	buff.WriteString(")")
-	return newInlineValue(buff.String(), c.checker.Std(symbol.ArrayList))
+	return newInlineGoValue(buff.String(), c.checker.Std(symbol.ArrayList))
 }
 
 func (c *GoCompiler) goValueAs(v *goValue, as string) string {
-	if v.IsTmp() {
+	if v.isTmp() {
 		return fmt.Sprintf("%s.%s()", v.tmpLocal, as)
 	}
 	if c.checker.IsTheSameType(v.typ, c.checker.Std(symbol.Value)) {
@@ -1865,7 +2233,7 @@ func (c *GoCompiler) goValueAs(v *goValue, as string) string {
 }
 
 func (c *GoCompiler) goValueCast(v *goValue, cast string) string {
-	if v.IsTmp() {
+	if v.isTmp() {
 		return fmt.Sprintf("(%s)(%s.Pointer())", cast, v.tmpLocal)
 	}
 	if c.checker.IsTheSameType(v.typ, c.checker.Std(symbol.Value)) {
@@ -1876,11 +2244,14 @@ func (c *GoCompiler) goValueCast(v *goValue, cast string) string {
 }
 
 func (c *GoCompiler) convertToValue(v *goValue) string {
-	if v.IsTmp() {
+	if v.isTmp() {
 		return v.tmpLocal
 	}
 
 	if c.checker.IsTheSameType(v.typ, c.checker.Std(symbol.Value)) {
+		return v.inline
+	}
+	if c.checker.IsTheSameType(v.typ, c.checker.StdInt()) {
 		return v.inline
 	}
 	if c.checker.IsSubtype(v.typ, c.checker.Std(symbol.Object)) {
@@ -1905,7 +2276,7 @@ func (c *GoCompiler) arrayTupleToGoSource(v *value.ArrayTuple) *goValue {
 	}
 
 	buff.WriteString(")")
-	return newInlineValue(buff.String(), c.checker.Std(symbol.ArrayTuple))
+	return newInlineGoValue(buff.String(), c.checker.Std(symbol.ArrayTuple))
 }
 
 func (c *GoCompiler) hashSetToGoSource(v *value.HashSet) *goValue {
@@ -1923,7 +2294,7 @@ func (c *GoCompiler) hashSetToGoSource(v *value.HashSet) *goValue {
 	}
 
 	buff.WriteString(")")
-	return newInlineValue(buff.String(), c.checker.Std(symbol.HashSet))
+	return newInlineGoValue(buff.String(), c.checker.Std(symbol.HashSet))
 }
 
 func (c *GoCompiler) hashMapToGoSource(v *value.HashMap) *goValue {
@@ -1941,7 +2312,7 @@ func (c *GoCompiler) hashMapToGoSource(v *value.HashMap) *goValue {
 	}
 
 	buff.WriteString(")")
-	return newInlineValue(buff.String(), c.checker.Std(symbol.HashMap))
+	return newInlineGoValue(buff.String(), c.checker.Std(symbol.HashMap))
 }
 
 func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecord) *goValue {
@@ -1959,7 +2330,7 @@ func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecord) *goValue {
 	}
 
 	buff.WriteString(")")
-	return newInlineValue(buff.String(), c.checker.Std(symbol.HashRecord))
+	return newInlineGoValue(buff.String(), c.checker.Std(symbol.HashRecord))
 }
 
 func (c *GoCompiler) valuePairToGoSource(p value.Pair) *goValue {
@@ -1972,7 +2343,7 @@ func (c *GoCompiler) valuePairToGoSource(p value.Pair) *goValue {
 		return nil
 	}
 
-	return newInlineValue(
+	return newInlineGoValue(
 		fmt.Sprintf("Pair{Key: %s, Value: %s}", k.inline, v.inline),
 		c.checker.Std(symbol.Pair),
 	)
@@ -1982,7 +2353,7 @@ func (c *GoCompiler) enterScope(label string, typ nativeElkScopeType) {
 	c.scopes = append(c.scopes, newNativeElkScope(label, typ))
 }
 
-func (c *GoCompiler) leaveScope(line int) {
+func (c *GoCompiler) leaveScope() {
 	currentDepth := len(c.scopes) - 1
 	c.scopes[currentDepth] = nil
 	c.scopes = c.scopes[:currentDepth]
@@ -2012,13 +2383,14 @@ func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, t
 	}
 
 	c.lastElkLocalIndex++
-	c.registerGoLocal(name, typ, goValueType)
-
 	newVar := &nativeElkLocal{
 		index: c.lastElkLocalIndex,
 		name:  name,
 		typ:   typ,
 	}
 	scope.localTable[name] = newVar
+
+	c.registerGoLocal(newVar.goIdent(), typ, goValueType)
+
 	return newVar
 }

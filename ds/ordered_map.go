@@ -9,6 +9,13 @@ type OrderedMap[K comparable, V any] struct {
 	order []K
 }
 
+// MakeOrderedMap creates a new ordered map value
+func MakeOrderedMap[K comparable, V any]() OrderedMap[K, V] {
+	return OrderedMap[K, V]{
+		data: make(map[K]V),
+	}
+}
+
 // NewOrderedMap instantiates a new ordered map
 func NewOrderedMap[K comparable, V any]() *OrderedMap[K, V] {
 	return &OrderedMap[K, V]{

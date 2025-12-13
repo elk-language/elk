@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"go/format"
 	"os"
 	"path"
 
@@ -37,6 +39,12 @@ func main() {
 			runMain()
 		} else {
 			runFile(os.Args[2])
+		}
+	case "compile":
+		if len(os.Args) < 3 {
+			compileMain()
+		} else {
+			compileFile(os.Args[2])
 		}
 	case "test":
 		fs := pflag.NewFlagSet("test", pflag.ExitOnError)
@@ -95,6 +103,70 @@ func runMain() {
 
 	mainPath := path.Join(cwd, "main.elk")
 	runFile(mainPath)
+}
+
+// Attempt to compile the given file.
+func compileFile(fileName string) {
+	absFileName, err := filepath.Abs(fileName)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not find file `%s`\n", fileName)
+		os.Exit(1)
+	}
+	_, err = os.Stat(absFileName)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not find file `%s`\n", absFileName)
+		os.Exit(1)
+	}
+
+	var buffer bytes.Buffer
+	goCompiler, diagnostics := checker.CheckFileNative(fileName, nil, &buffer, nil)
+	if diagnostics != nil {
+		fmt.Println()
+
+		diagnosticString, err := diagnostics.HumanString(true, lexer.Colorizer{})
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(diagnosticString)
+		if diagnostics.IsFailure() {
+			os.Exit(1)
+		}
+	}
+
+	goCompiler.Flush()
+	result, err := format.Source(buffer.Bytes())
+	if err != nil {
+		panic(err)
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	tmpPath := path.Join(cwd, "tmp")
+	err = os.MkdirAll(tmpPath, 0755)
+	if err != nil {
+		panic(err)
+	}
+	targetPath := path.Join(tmpPath, "main.go")
+	targetFile, err := os.Create(targetPath)
+	if err != nil {
+		panic(err)
+	}
+
+	targetFile.Write(result)
+}
+
+// Attempt to compile the main file in the current working directory
+func compileMain() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	mainPath := path.Join(cwd, "main.elk")
+	compileFile(mainPath)
 }
 
 func runTest(main string, grep string, paths []string) {

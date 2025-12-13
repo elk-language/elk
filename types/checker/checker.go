@@ -488,6 +488,8 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 	var mainCompiler compiler.Compiler
 	if parent != nil {
 		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors, c.output)
+	} else if c.flags.HasFlag(GoCompilerFlag) {
+		mainCompiler = compiler.CreateGoCompiler(nil, c, location, c.Errors, c.output)
 	} else {
 		mainCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors)
 	}
