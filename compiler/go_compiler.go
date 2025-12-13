@@ -59,6 +59,7 @@ const (
 	methodGoCompilerMode
 	initMethodGoCompilerMode
 	setterMethodGoCompilerMode
+	closureGoCompilerMode
 )
 
 // represents a nativeElkLocal variable or value
@@ -192,12 +193,16 @@ func (c *GoCompiler) InitGlobalEnv() Compiler {
 	envCompiler.SetParent(c)
 	envCompiler.Errors = c.Errors
 	envCompiler.compileGlobalEnv()
+
 	return envCompiler
 }
 
 func (c *GoCompiler) FinishGlobalEnvCompiler() {
-	parent := c.parent
-	parent.emit("%s()\n", c.FuncName)
+	if c.buff.Len() == 0 {
+		return
+	}
+
+	c.parent.emit("initGlobalEnv()\n")
 }
 
 func (c *GoCompiler) InitMethodCompiler(location *position.Location) (Compiler, int) {
@@ -205,14 +210,18 @@ func (c *GoCompiler) InitMethodCompiler(location *position.Location) (Compiler, 
 	methodCompiler.Errors = c.Errors
 	methodCompiler.SetParent(c)
 
-	c.emit("methodDefinitions()\n")
-
 	return methodCompiler, 0
 }
 
 func (c *GoCompiler) CompileMethods(location *position.Location, execOffset int) {
 	c.registerGoLocal("class", c.checker.Std(symbol.Class), "*value.Class")
 	c.compileMethodsWithinModule(c.checker.Env().Root, location)
+
+	if c.buff.Len() == 0 {
+		return
+	}
+
+	c.parent.emit("methodDefinitions()\n")
 
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "func methodDefinitions() {\n")
@@ -226,17 +235,23 @@ func (c *GoCompiler) InitIvarIndicesCompiler(location *position.Location) (Compi
 	ivarCompiler.Errors = c.Errors
 	ivarCompiler.SetParent(c)
 
-	c.emit("ivarIndices(thread)\n")
-
 	return ivarCompiler, 0
 }
 
 func (c *GoCompiler) FinishIvarIndicesCompiler(location *position.Location, execOffset int) Compiler {
+	if c.buff.Len() == 0 {
+		return c.parent
+	}
+
+	if c.parent != nil {
+		c.parent.emit("ivarIndices(thread)\n")
+	}
+
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "func ivarIndices(thread *vm.VM) {\n")
 	c.compileLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
-	c.emit("}")
+	c.emit("}\n")
 
 	return c.parent
 }
@@ -272,7 +287,7 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 	methodCompiler.isGenerator = node.IsGenerator()
 	methodCompiler.isAsync = node.IsAsync()
 	methodCompiler.Errors = c.Errors
-	methodCompiler.compileMethodBody(node.Parameters, node.Body)
+	methodCompiler.compileMethodBody(node.Parameters, node.Body, node.Location())
 
 	return methodCompiler
 }
@@ -378,22 +393,34 @@ func (c *GoCompiler) registerGoLocal(name string, elkType types.Type, goType str
 
 func (c *GoCompiler) compileGlobalEnv() {
 	env := c.checker.Env()
-	c.emit("func initGlobalEnv() {\n")
-
-	c.emit("var parentNamespace, namespace value.Value\n")
-	c.emit("var class, superclass, mixin *value.Class\n")
-	c.emit("_ = parentNamespace; _ = namespace; _ = class; _ = superclass; _ = mixin\n")
 	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"))
 
-	c.emit("}\n")
+	if c.buff.Len() == 0 {
+		return
+	}
+
+	valType := c.checker.Std(symbol.Value)
+	c.registerGoLocal("parentNamespace", valType, goValueType)
+	c.registerGoLocal("namespace", valType, goValueType)
+
+	classType := c.checker.Std(symbol.Class)
+	c.registerGoLocal("class", classType, "*value.Class")
+	c.registerGoLocal("superclass", classType, "*value.Class")
+	c.registerGoLocal("mixin", classType, "*value.Mixin")
+
+	var funcBuffer bytes.Buffer
+	fmt.Fprintf(&funcBuffer, "func initGlobalEnv() () {\n")
+	c.compileLocalsTo(&funcBuffer)
+	c.emitPrependBytes(funcBuffer.Bytes())
+	c.emit("}")
 }
 
 // Entry point for compiling the body of a method.
-func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []ast.StatementNode) {
+func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []ast.StatementNode, loc *position.Location) {
 	c.compileMethodFuncLiteralBody(parameters, body)
 
 	var funcBuffer bytes.Buffer
-	fmt.Fprintf(&funcBuffer, "func(thread *VM, args []value.Value) (value.Value, value.Value) {\n")
+	fmt.Fprintf(&funcBuffer, "func(thread *VM, args []value.Value) (value.Value, value.Value) { // loc: %s\n", loc.String())
 	c.compileLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}")
@@ -904,9 +931,8 @@ func mangleFileName(name string) string {
 func (c *GoCompiler) InitExpressionCompiler(location *position.Location) Compiler {
 	name := mangleFileName(location.FilePath)
 	exprCompiler := NewGoCompiler(name, topLevelGoCompilerMode, location, c.checker, c.bigIntCache, c.symbolCache, c.output)
+	exprCompiler.SetParent(c)
 	exprCompiler.Errors = c.Errors
-
-	c.emit("%s()\n", name)
 
 	return exprCompiler
 }
@@ -914,7 +940,16 @@ func (c *GoCompiler) InitExpressionCompiler(location *position.Location) Compile
 func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	c.compileProgram(node)
 
+	if c.buff.Len() == 0 {
+		return
+	}
+
+	if c.parent != nil {
+		c.parent.emit("%s()\n", c.FuncName)
+	}
+
 	var funcBuffer bytes.Buffer
+	fmt.Fprintf(&funcBuffer, "// file: %s\n", c.loc.FilePath)
 	fmt.Fprintf(&funcBuffer, "func %s() {\n", c.FuncName)
 	c.compileLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
@@ -1385,6 +1420,11 @@ func (c *GoCompiler) resolveLocal(name string) (*nativeElkLocal, bool) {
 
 // Resolve an upvalue from an outer context
 func (c *GoCompiler) resolveUpvalue(name string) (*nativeElkLocal, bool) {
+	if c.mode != closureGoCompilerMode {
+		// don't look into parent compilers if we aren't in a closure
+		return nil, false
+	}
+
 	parent := c.parent
 	if parent == nil {
 		return nil, false
