@@ -102,6 +102,15 @@ func (b *BitField16) UnsetFlag(flag BitFlag16) {
 	b.bitfield = b.bitfield &^ flag
 }
 
+// Turn on/off the given bit-flag.
+func (b *BitField16) SetFlagValue(flag BitFlag16, val bool) {
+	if val {
+		b.SetFlag(flag)
+	} else {
+		b.UnsetFlag(flag)
+	}
+}
+
 func (b BitField16) ToBitFlag() BitFlag16 {
 	return b.bitfield
 }
@@ -150,6 +159,15 @@ func (b *BitField32) SetFlag(flag BitFlag32) {
 // Turn off the given bit-flag.
 func (b *BitField32) UnsetFlag(flag BitFlag32) {
 	b.bitfield = b.bitfield &^ flag
+}
+
+// Turn on/off the given bit-flag.
+func (b *BitField32) SetFlagValue(flag BitFlag32, val bool) {
+	if val {
+		b.SetFlag(flag)
+	} else {
+		b.UnsetFlag(flag)
+	}
 }
 
 func (b BitField32) ToBitFlag() BitFlag32 {

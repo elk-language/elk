@@ -3,6 +3,7 @@ package compiler
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 	"math"
 	"slices"
 	"strconv"
@@ -25,11 +26,11 @@ const MainName = "<main>"
 func CreateBytecodeCompiler(parent *BytecodeCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *BytecodeCompiler {
 	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker)
 	compiler.Errors = errors
-	compiler.Parent = parent
+	compiler.parent = parent
 	return compiler
 }
 
-func (c *BytecodeCompiler) CreateMainBytecodeCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *BytecodeCompiler {
+func (c *BytecodeCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) Compiler {
 	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker)
 	compiler.predefinedLocals = c.maxLocalIndex + 1
 	compiler.scopes = c.scopes
@@ -39,18 +40,27 @@ func (c *BytecodeCompiler) CreateMainBytecodeCompiler(checker types.Checker, loc
 	return compiler
 }
 
-func (c *BytecodeCompiler) InitGlobalEnv() *BytecodeCompiler {
-	envCompiler := NewBytecodeCompiler("<namespaceDefinitions>", topLevelBytecodeCompilerMode, c.Bytecode.Location, c.checker)
-	envCompiler.Parent = c
+func (c *BytecodeCompiler) InitGlobalEnv() Compiler {
+	envCompiler := NewBytecodeCompiler("<namespaceDefinitions>", topLevelBytecodeCompilerMode, c.bytecode.Location, c.checker)
+	envCompiler.parent = c
 	envCompiler.Errors = c.Errors
 	envCompiler.compileGlobalEnv()
 	return envCompiler
 }
 
-func (c *BytecodeCompiler) EmitExecInParent() {
-	parent := c.Parent
-	location := parent.Bytecode.Location
-	parent.emitValue(value.Ref(c.Bytecode), location)
+func (c *BytecodeCompiler) InitMainCompiler() {}
+
+func (c *BytecodeCompiler) FinishGlobalEnvCompiler() {
+	if len(c.bytecode.Instructions) > 0 {
+		c.emitReturnNil()
+		c.emitExecInParent()
+	}
+}
+
+func (c *BytecodeCompiler) emitExecInParent() {
+	parent := c.parent
+	location := parent.bytecode.Location
+	parent.emitValue(value.Ref(c.bytecode), location)
 	parent.emit(location.StartPos.Line, bytecode.EXEC)
 	parent.emit(location.StartPos.Line, bytecode.POP)
 }
@@ -151,7 +161,7 @@ type bytecodeUpvalue struct {
 // Holds the state of the BytecodeCompiler.
 type BytecodeCompiler struct {
 	Name               string
-	Bytecode           *vm.BytecodeFunction
+	bytecode           *vm.BytecodeFunction
 	Errors             *diagnostic.SyncDiagnosticList
 	scopes             bytecodeScopes
 	loopJumpSets       []*bytecodeLoopJumpSet
@@ -166,7 +176,7 @@ type BytecodeCompiler struct {
 	secondToLastOpCode bytecode.OpCode
 	lastOpCode         bytecode.OpCode
 	patternNesting     int
-	Parent             *BytecodeCompiler
+	parent             *BytecodeCompiler
 	upvalues           []*bytecodeUpvalue
 	checker            types.Checker
 }
@@ -174,7 +184,7 @@ type BytecodeCompiler struct {
 // Instantiate a NewBytecodeCompiler Compiler instance.
 func NewBytecodeCompiler(name string, mode bytecodeCompilerMode, loc *position.Location, checker types.Checker) *BytecodeCompiler {
 	c := &BytecodeCompiler{
-		Bytecode: vm.NewBytecodeFunctionSimple(
+		bytecode: vm.NewBytecodeFunctionSimple(
 			value.ToSymbol(name),
 			[]byte{},
 			loc,
@@ -197,14 +207,39 @@ func NewBytecodeCompiler(name string, mode bytecodeCompilerMode, loc *position.L
 	return c
 }
 
-func (c *BytecodeCompiler) EmitReturnNil() {
-	location := c.Bytecode.Location
+func (c *BytecodeCompiler) Parent() Compiler {
+	if c.parent == nil {
+		return nil
+	}
+	return c.parent
+}
+
+func (c *BytecodeCompiler) SetParent(parent Compiler) {
+	if parent == nil {
+		c.parent = nil
+		return
+	}
+	c.parent = parent.(*BytecodeCompiler)
+}
+
+func (c *BytecodeCompiler) Bytecode() *vm.BytecodeFunction {
+	return c.bytecode
+}
+
+func (c *BytecodeCompiler) Method() value.Method {
+	return c.bytecode
+}
+
+func (c *BytecodeCompiler) Flush() {}
+
+func (c *BytecodeCompiler) emitReturnNil() {
+	location := c.bytecode.Location
 	c.emit(location.EndPos.Line, bytecode.NIL)
 	c.emit(location.EndPos.Line, bytecode.RETURN)
 }
 
 func (c *BytecodeCompiler) EmitReturn() {
-	location := c.Bytecode.Location
+	location := c.bytecode.Location
 	if c.lastOpCode != bytecode.RETURN {
 		c.emit(location.EndPos.Line, bytecode.RETURN)
 	}
@@ -216,7 +251,7 @@ func (c *BytecodeCompiler) typeOf(node ast.Node) types.Type {
 }
 
 func (c *BytecodeCompiler) compileGlobalEnv() {
-	location := c.Bytecode.Location
+	location := c.bytecode.Location
 	env := c.checker.Env()
 	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"), location)
 }
@@ -325,11 +360,11 @@ func (c *BytecodeCompiler) CompileInclude(target types.Namespace, mixin *types.M
 	c.emit(location.StartPos.Line, bytecode.INCLUDE)
 }
 
-func (c *BytecodeCompiler) InitExpressionCompiler(location *position.Location) *BytecodeCompiler {
+func (c *BytecodeCompiler) InitExpressionCompiler(location *position.Location) Compiler {
 	exprCompiler := NewBytecodeCompiler("<file>", topLevelBytecodeCompilerMode, location, c.checker)
 	exprCompiler.Errors = c.Errors
 
-	c.emitValue(value.Ref(exprCompiler.Bytecode), location)
+	c.emitValue(value.Ref(exprCompiler.bytecode), location)
 	c.emit(location.StartPos.Line, bytecode.EXEC)
 	c.emit(location.StartPos.Line, bytecode.POP)
 
@@ -360,7 +395,7 @@ func identifierToName(node ast.IdentifierNode) string {
 
 // Entry point for compiling the body of a function.
 func (c *BytecodeCompiler) compileFunction(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
-	c.Bytecode.SetParameterCount(len(parameters))
+	c.bytecode.SetParameterCount(len(parameters))
 
 	for _, param := range parameters {
 		p := param.(*ast.FormalParameterNode)
@@ -374,7 +409,7 @@ func (c *BytecodeCompiler) compileFunction(location *position.Location, paramete
 		c.predefinedLocals++
 
 		if p.Initialiser != nil {
-			c.Bytecode.IncrementOptionalParameterCount()
+			c.bytecode.IncrementOptionalParameterCount()
 
 			c.emitGetLocal(location.StartPos.Line, local.index)
 			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
@@ -391,13 +426,13 @@ func (c *BytecodeCompiler) compileFunction(location *position.Location, paramete
 	c.prepLocals()
 }
 
-func (c *BytecodeCompiler) InitMethodCompiler(location *position.Location) (*BytecodeCompiler, int) {
-	methodCompiler := NewBytecodeCompiler("<methodDefinitions>", topLevelBytecodeCompilerMode, c.Bytecode.Location, c.checker)
+func (c *BytecodeCompiler) InitMethodCompiler(location *position.Location) (Compiler, int) {
+	methodCompiler := NewBytecodeCompiler("<methodDefinitions>", topLevelBytecodeCompilerMode, c.bytecode.Location, c.checker)
 	methodCompiler.Errors = c.Errors
-	methodCompiler.Parent = c
+	methodCompiler.parent = c
 
 	offset := c.nextInstructionOffset()
-	c.emitValue(value.Ref(methodCompiler.Bytecode), location)
+	c.emitValue(value.Ref(methodCompiler.bytecode), location)
 	c.emit(location.StartPos.Line, bytecode.EXEC)
 	c.emit(location.StartPos.Line, bytecode.POP)
 
@@ -406,43 +441,43 @@ func (c *BytecodeCompiler) InitMethodCompiler(location *position.Location) (*Byt
 
 var ivarIndicesSymbol = value.ToSymbol("<ivarIndices>")
 
-func (c *BytecodeCompiler) InitIvarIndicesCompiler(location *position.Location) (*BytecodeCompiler, int) {
-	ivarCompiler := NewBytecodeCompiler(ivarIndicesSymbol.String(), topLevelBytecodeCompilerMode, c.Bytecode.Location, c.checker)
+func (c *BytecodeCompiler) InitIvarIndicesCompiler(location *position.Location) (Compiler, int) {
+	ivarCompiler := NewBytecodeCompiler(ivarIndicesSymbol.String(), topLevelBytecodeCompilerMode, c.bytecode.Location, c.checker)
 	ivarCompiler.Errors = c.Errors
-	ivarCompiler.Parent = c
+	ivarCompiler.parent = c
 
 	offset := c.nextInstructionOffset()
-	c.emitValue(value.Ref(ivarCompiler.Bytecode), location)
+	c.emitValue(value.Ref(ivarCompiler.bytecode), location)
 	c.emit(location.StartPos.Line, bytecode.EXEC)
 	c.emit(location.StartPos.Line, bytecode.POP)
 
 	return ivarCompiler, offset
 }
 
-func (c *BytecodeCompiler) FinishIvarIndicesCompiler(location *position.Location, execOffset int) *BytecodeCompiler {
-	if len(c.Bytecode.Instructions) > 0 {
+func (c *BytecodeCompiler) FinishIvarIndicesCompiler(location *position.Location, execOffset int) Compiler {
+	if len(c.bytecode.Instructions) > 0 {
 		c.emit(location.EndPos.Line, bytecode.NIL)
 		c.emit(location.EndPos.Line, bytecode.RETURN)
-		return c.Parent
+		return c.parent
 	}
 
 	// If no instructions were emitted, remove the EXEC instruction block
-	c.Parent.removeLastBytes(execOffset)
-	c.Parent.removeBytecodeFunction(ivarIndicesSymbol)
-	return c.Parent
+	c.parent.removeLastBytes(execOffset)
+	c.parent.removeBytecodeFunction(ivarIndicesSymbol)
+	return c.parent
 }
 
 func (c *BytecodeCompiler) CompileMethods(location *position.Location, execOffset int) {
 	c.compileMethodsWithinModule(c.checker.Env().Root, location)
-	if len(c.Bytecode.Instructions) > 0 {
+	if len(c.bytecode.Instructions) > 0 {
 		c.emit(location.EndPos.Line, bytecode.NIL)
 		c.emit(location.EndPos.Line, bytecode.RETURN)
 		return
 	}
 
 	// If no instructions were emitted, remove the EXEC instruction block
-	c.Parent.removeLastBytes(execOffset)
-	c.Parent.removeBytecodeFunction(methodDefinitionsSymbol)
+	c.parent.removeLastBytes(execOffset)
+	c.parent.removeBytecodeFunction(methodDefinitionsSymbol)
 }
 
 func (c *BytecodeCompiler) removeLastBytes(offset int) {
@@ -450,24 +485,24 @@ func (c *BytecodeCompiler) removeLastBytes(offset int) {
 }
 
 func (c *BytecodeCompiler) removeBytes(offset int, count int) {
-	c.Bytecode.Instructions = slices.Concat(c.Bytecode.Instructions[:offset], c.Bytecode.Instructions[offset+count:])
-	lineInfo := c.Bytecode.LineInfoList.GetLineInfo(offset)
+	c.bytecode.Instructions = slices.Concat(c.bytecode.Instructions[:offset], c.bytecode.Instructions[offset+count:])
+	lineInfo := c.bytecode.LineInfoList.GetLineInfo(offset)
 	lineInfo.InstructionCount -= count
 }
 
 var methodDefinitionsSymbol = value.ToSymbol("<methodDefinitions>")
 
 func (c *BytecodeCompiler) removeBytecodeFunction(name value.Symbol) {
-	for i, val := range c.Bytecode.Values {
+	for i, val := range c.bytecode.Values {
 		val, ok := val.SafeAsReference().(*vm.BytecodeFunction)
 		if !ok {
 			continue
 		}
 
 		if val.Name() == name {
-			c.Bytecode.Values[i] = value.Undefined
-			if i == len(c.Bytecode.Values)-1 {
-				c.Bytecode.Values = c.Bytecode.Values[:len(c.Bytecode.Values)-1]
+			c.bytecode.Values[i] = value.Undefined
+			if i == len(c.bytecode.Values)-1 {
+				c.bytecode.Values = c.bytecode.Values[:len(c.bytecode.Values)-1]
 			}
 			break
 		}
@@ -507,6 +542,7 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 	}
 
 	if method.Base != nil {
+		// handle aliases
 		method = method.Base
 
 		if method.IsNative() {
@@ -642,7 +678,7 @@ func (c *BytecodeCompiler) compileMethodsWithinType(typ types.Type, location *po
 	}
 }
 
-func (c *BytecodeCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.Symbol) *vm.BytecodeFunction {
+func (c *BytecodeCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.Symbol) Compiler {
 	var mode bytecodeCompilerMode
 	if node.IsSetter() {
 		mode = setterMethodBytecodeCompilerMode
@@ -658,7 +694,7 @@ func (c *BytecodeCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, nam
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethodBody(node.Location(), node.Parameters, node.Body)
 
-	return methodCompiler.Bytecode
+	return methodCompiler
 }
 
 func (c *BytecodeCompiler) CompileMacroBody(node *ast.MacroDefinitionNode, name value.Symbol) *vm.BytecodeFunction {
@@ -666,7 +702,7 @@ func (c *BytecodeCompiler) CompileMacroBody(node *ast.MacroDefinitionNode, name 
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMacroBody(node.Location(), node.Parameters, node.Body)
 
-	return methodCompiler.Bytecode
+	return methodCompiler.bytecode
 }
 
 const macroLocationParamName = "_location"
@@ -687,7 +723,7 @@ func (c *BytecodeCompiler) compileMacroBody(location *position.Location, paramet
 		c.predefinedLocals++
 
 		if p.Initialiser != nil {
-			c.Bytecode.IncrementOptionalParameterCount()
+			c.bytecode.IncrementOptionalParameterCount()
 
 			c.emitGetLocal(location.StartPos.Line, local.index)
 			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
@@ -699,7 +735,7 @@ func (c *BytecodeCompiler) compileMacroBody(location *position.Location, paramet
 		}
 	}
 
-	c.Bytecode.SetParameterCount(paramCount)
+	c.bytecode.SetParameterCount(paramCount)
 
 	c.compileStatements(body, location, false)
 
@@ -722,7 +758,7 @@ func (c *BytecodeCompiler) compileMethodBody(location *position.Location, parame
 		c.predefinedLocals++
 
 		if p.Initialiser != nil {
-			c.Bytecode.IncrementOptionalParameterCount()
+			c.bytecode.IncrementOptionalParameterCount()
 
 			c.emitGetLocal(location.StartPos.Line, local.index)
 			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
@@ -750,13 +786,13 @@ func (c *BytecodeCompiler) compileMethodBody(location *position.Location, parame
 		poolVar := c.defineLocal("_pool", location)
 		paramCount++
 		c.predefinedLocals++
-		c.Bytecode.IncrementOptionalParameterCount()
+		c.bytecode.IncrementOptionalParameterCount()
 
 		c.emitGetLocal(location.StartPos.Line, poolVar.index)
 		c.emit(location.StartPos.Line, bytecode.PROMISE)
 		c.emit(location.EndPos.Line, bytecode.RETURN)
 	}
-	c.Bytecode.SetParameterCount(paramCount)
+	c.bytecode.SetParameterCount(paramCount)
 
 	c.compileStatements(body, location, false)
 
@@ -812,32 +848,32 @@ func (c *BytecodeCompiler) prepLocals() {
 	var newBytes int
 	if c.maxLocalIndex >= math.MaxUint8 {
 		newBytes = 3
-		newInstructions = make([]byte, 0, len(c.Bytecode.Instructions)+newBytes)
+		newInstructions = make([]byte, 0, len(c.bytecode.Instructions)+newBytes)
 		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS16))
 		newInstructions = binary.BigEndian.AppendUint16(newInstructions, uint16(localCount))
 	} else {
 		newBytes = 2
-		newInstructions = make([]byte, 0, len(c.Bytecode.Instructions)+newBytes)
+		newInstructions = make([]byte, 0, len(c.bytecode.Instructions)+newBytes)
 		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS8), byte(localCount))
 	}
 
-	c.Bytecode.Instructions = append(
+	c.bytecode.Instructions = append(
 		newInstructions,
-		c.Bytecode.Instructions...,
+		c.bytecode.Instructions...,
 	)
-	lineInfo := c.Bytecode.LineInfoList.First()
+	lineInfo := c.bytecode.LineInfoList.First()
 	if lineInfo != nil {
 		lineInfo.InstructionCount += newBytes
 	}
-	for _, catchEntry := range c.Bytecode.CatchEntries {
+	for _, catchEntry := range c.bytecode.CatchEntries {
 		catchEntry.From += len(newInstructions)
 		catchEntry.To += len(newInstructions)
 		catchEntry.JumpAddress += len(newInstructions)
 	}
 
 	for _, id := range c.offsetValueIds {
-		currentValue := c.Bytecode.Values[id].MustSmallInt()
-		c.Bytecode.Values[id] = (currentValue + value.SmallInt(len(newInstructions))).ToValue()
+		currentValue := c.bytecode.Values[id].MustSmallInt()
+		c.bytecode.Values[id] = (currentValue + value.SmallInt(len(newInstructions))).ToValue()
 	}
 }
 
@@ -1428,8 +1464,8 @@ func (c *BytecodeCompiler) registerCatch(from, to, jumpAddress int, finally bool
 		jumpAddress,
 		finally,
 	)
-	c.Bytecode.CatchEntries = append(
-		c.Bytecode.CatchEntries,
+	c.bytecode.CatchEntries = append(
+		c.bytecode.CatchEntries,
 		doCatchEntry,
 	)
 }
@@ -1750,9 +1786,9 @@ func (c *BytecodeCompiler) patchLoopJumps(continueOffset int) {
 	for _, loopJump := range lastLoopJumpSet.loopJumps {
 		switch loopJump.typ {
 		case bytecodeBreakFinallyLoopJump:
-			c.Bytecode.Values[loopJump.offset] = value.SmallInt(c.nextInstructionOffset()).ToValue()
+			c.bytecode.Values[loopJump.offset] = value.SmallInt(c.nextInstructionOffset()).ToValue()
 		case bytecodeContinueFinallyLoopJump:
-			c.Bytecode.Values[loopJump.offset] = value.SmallInt(continueOffset).ToValue()
+			c.bytecode.Values[loopJump.offset] = value.SmallInt(continueOffset).ToValue()
 		case bytecodeBreakLoopJump:
 			c.patchJump(loopJump.offset, loopJump.location)
 		case bytecodeContinueLoopJump:
@@ -1760,12 +1796,12 @@ func (c *BytecodeCompiler) patchLoopJumps(continueOffset int) {
 			if target >= 0 {
 				// jump forward
 				// override the opcode to JUMP
-				c.Bytecode.Instructions[loopJump.offset-1] = byte(bytecode.JUMP)
+				c.bytecode.Instructions[loopJump.offset-1] = byte(bytecode.JUMP)
 				c.patchJumpWithTarget(target-2, loopJump.offset, loopJump.location)
 			} else {
 				// jump backward
 				// override the opcode to LOOP
-				c.Bytecode.Instructions[loopJump.offset-1] = byte(bytecode.LOOP)
+				c.bytecode.Instructions[loopJump.offset-1] = byte(bytecode.LOOP)
 				c.patchJumpWithTarget((-target)+2, loopJump.offset, loopJump.location)
 			}
 		default:
@@ -2997,7 +3033,7 @@ func (c *BytecodeCompiler) compileAssignmentExpressionNode(node *ast.AssignmentE
 
 // Return the offset of the next instruction.
 func (c *BytecodeCompiler) nextInstructionOffset() int {
-	return len(c.Bytecode.Instructions)
+	return len(c.bytecode.Instructions)
 }
 
 func (c *BytecodeCompiler) setLocalWithoutValue(name string, location *position.Location, valueIsIgnored bool) expressionResult {
@@ -3108,7 +3144,7 @@ func (c *BytecodeCompiler) compileLocalVariableAccess(name string, location *pos
 
 // Resolve an upvalue from an outer context and get its index.
 func (c *BytecodeCompiler) resolveUpvalue(name string, location *position.Location) (*bytecodeUpvalue, bool) {
-	parent := c.Parent
+	parent := c.parent
 	if parent == nil {
 		return nil, false
 	}
@@ -3146,7 +3182,7 @@ func (c *BytecodeCompiler) addUpvalue(local *bytecodeLocal, upIndex uint16, kind
 		kind:    kind,
 	}
 	c.upvalues = append(c.upvalues, upvalue)
-	c.Bytecode.UpvalueCount++
+	c.bytecode.UpvalueCount++
 	local.hasUpvalue = true
 	return upvalue
 }
@@ -4536,7 +4572,7 @@ func (c *BytecodeCompiler) singletonBlockIsCompilable(node *ast.SingletonBlockEx
 		return false
 	}
 
-	node.Bytecode = singletonCompiler.Bytecode
+	node.Bytecode = singletonCompiler.bytecode
 	return true
 }
 
@@ -4556,12 +4592,12 @@ func (c *BytecodeCompiler) compileSingletonBlockExpressionNode(node *ast.Singlet
 
 func (c *BytecodeCompiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
 	closureCompiler := NewBytecodeCompiler("<closure>", methodBytecodeCompilerMode, node.Location(), c.checker)
-	closureCompiler.Parent = c
+	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
 	closureCompiler.compileFunction(node.Location(), nil, node.Body)
 
 	line := node.Location().StartPos.Line
-	result := closureCompiler.Bytecode
+	result := closureCompiler.bytecode
 	c.emitValue(value.Ref(result), node.Location())
 
 	c.emit(line, bytecode.CLOSED_CLOSURE)
@@ -4594,11 +4630,11 @@ func (c *BytecodeCompiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
 
 func (c *BytecodeCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
 	closureCompiler := NewBytecodeCompiler("<closure>", methodBytecodeCompilerMode, node.Location(), c.checker)
-	closureCompiler.Parent = c
+	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
 	closureCompiler.compileFunction(node.Location(), node.Parameters, node.Body)
 
-	result := closureCompiler.Bytecode
+	result := closureCompiler.bytecode
 	c.emitValue(value.Ref(result), node.Location())
 
 	if node.Lambda {
@@ -4644,7 +4680,7 @@ func (c *BytecodeCompiler) mixinIsCompilable(node *ast.MixinDeclarationNode) boo
 		return false
 	}
 
-	node.Bytecode = mixinCompiler.Bytecode
+	node.Bytecode = mixinCompiler.bytecode
 	return true
 }
 
@@ -4674,7 +4710,7 @@ func (c *BytecodeCompiler) moduleIsCompilable(node *ast.ModuleDeclarationNode) b
 	if !modCompiler.compileNamespace(node) {
 		return false
 	}
-	node.Bytecode = modCompiler.Bytecode
+	node.Bytecode = modCompiler.bytecode
 	return true
 }
 
@@ -4705,7 +4741,7 @@ func (c *BytecodeCompiler) interfaceIsCompilable(node *ast.InterfaceDeclarationN
 	if !ifaceCompiler.compileNamespace(node) {
 		return false
 	}
-	node.Bytecode = ifaceCompiler.Bytecode
+	node.Bytecode = ifaceCompiler.bytecode
 	return true
 }
 
@@ -4736,7 +4772,7 @@ func (c *BytecodeCompiler) classIsCompilable(node *ast.ClassDeclarationNode) boo
 	if !classCompiler.compileNamespace(node) {
 		return false
 	}
-	node.Bytecode = classCompiler.Bytecode
+	node.Bytecode = classCompiler.bytecode
 	return true
 }
 
@@ -4882,7 +4918,7 @@ func (c *BytecodeCompiler) compileStatementsOk(collection []ast.StatementNode) b
 func (c *BytecodeCompiler) removeOpcode() {
 	c.lastOpCode = c.secondToLastOpCode
 	c.secondToLastOpCode = bytecode.NOOP
-	c.Bytecode.RemoveByte()
+	c.bytecode.RemoveByte()
 }
 
 func (c *BytecodeCompiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) {
@@ -6063,7 +6099,7 @@ func (c *BytecodeCompiler) compileUninterpolatedRegexLiteralNode(node *ast.Unint
 				errEndPos.Line += lineDifference
 				errEndPos.ByteOffset += byteDifference
 			}
-			err.Location.FilePath = c.Bytecode.Location.FilePath
+			err.Location.FilePath = c.bytecode.Location.FilePath
 
 			c.Errors.Append(err)
 		}
@@ -7069,8 +7105,8 @@ func (c *BytecodeCompiler) patchJumpWithTarget(target int, offset int, location 
 		return
 	}
 
-	c.Bytecode.Instructions[offset] = byte((target >> 8) & 0xff)
-	c.Bytecode.Instructions[offset+1] = byte(target & 0xff)
+	c.bytecode.Instructions[offset] = byte((target >> 8) & 0xff)
+	c.bytecode.Instructions[offset+1] = byte(target & 0xff)
 }
 
 // Overwrite the placeholder operand of a jump instruction
@@ -7240,14 +7276,14 @@ func (c *BytecodeCompiler) emitCloseUpvalues(line int, index uint16) {
 
 // Emit an instruction that loads a value from the pool
 func (c *BytecodeCompiler) emitAddValue(val value.Value, location *position.Location, opCode8, opCode16 bytecode.OpCode) int {
-	id, size := c.Bytecode.AddValue(val)
+	id, size := c.bytecode.AddValue(val)
 	switch size {
 	case bytecode.UINT8_SIZE:
-		c.Bytecode.AddInstruction(location.StartPos.Line, opCode8, byte(id))
+		c.bytecode.AddInstruction(location.StartPos.Line, opCode8, byte(id))
 	case bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.Bytecode.AddInstruction(location.StartPos.Line, opCode16, bytes...)
+		c.bytecode.AddInstruction(location.StartPos.Line, opCode16, bytes...)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
@@ -7271,7 +7307,7 @@ func (c *BytecodeCompiler) emitGetConst(val value.Symbol, location *position.Loc
 
 // Add a value to the value pool and emit appropriate bytecode.
 func (c *BytecodeCompiler) emitLoadValue(val value.Value, location *position.Location) int {
-	id, size := c.Bytecode.AddValue(val)
+	id, size := c.bytecode.AddValue(val)
 
 	switch id {
 	case 0:
@@ -7290,11 +7326,11 @@ func (c *BytecodeCompiler) emitLoadValue(val value.Value, location *position.Loc
 
 	switch size {
 	case bytecode.UINT8_SIZE:
-		c.Bytecode.AddInstruction(location.StartPos.Line, bytecode.LOAD_VALUE8, byte(id))
+		c.bytecode.AddInstruction(location.StartPos.Line, bytecode.LOAD_VALUE8, byte(id))
 	case bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.Bytecode.AddInstruction(location.StartPos.Line, bytecode.LOAD_VALUE16, bytes...)
+		c.bytecode.AddInstruction(location.StartPos.Line, bytecode.LOAD_VALUE16, bytes...)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
@@ -7309,14 +7345,14 @@ func (c *BytecodeCompiler) emitLoadValue(val value.Value, location *position.Loc
 // Emit an instruction that instantiates an object
 func (c *BytecodeCompiler) emitInstantiate(args int, location *position.Location) {
 	if args <= math.MaxUint8 {
-		c.Bytecode.AddInstruction(location.StartPos.Line, bytecode.INSTANTIATE8, byte(args))
+		c.bytecode.AddInstruction(location.StartPos.Line, bytecode.INSTANTIATE8, byte(args))
 		return
 	}
 
 	if args <= math.MaxUint16 {
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(args))
-		c.Bytecode.AddInstruction(location.StartPos.Line, bytecode.INSTANTIATE8, bytes...)
+		c.bytecode.AddInstruction(location.StartPos.Line, bytecode.INSTANTIATE8, bytes...)
 		return
 	}
 
@@ -7383,12 +7419,12 @@ func (c *BytecodeCompiler) emitSetInstanceVariableByIndex(index int, location *p
 
 // Emit an instruction that sets the value of an instance variable by name
 func (c *BytecodeCompiler) emitSetInstanceVariableByName(name value.Symbol, location *position.Location) {
-	id, size := c.Bytecode.AddValue(name.ToValue())
+	id, size := c.bytecode.AddValue(name.ToValue())
 	switch size {
 	case bytecode.UINT8_SIZE, bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.Bytecode.AddInstruction(location.StartPos.Line, bytecode.SET_IVAR_NAME16, bytes...)
+		c.bytecode.AddInstruction(location.StartPos.Line, bytecode.SET_IVAR_NAME16, bytes...)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
@@ -7449,12 +7485,12 @@ func (c *BytecodeCompiler) emitGetInstanceVariableByIndex(index int, location *p
 
 // Emit an instruction that reads the value of an instance variable by name.
 func (c *BytecodeCompiler) emitGetInstanceVariableByName(name value.Symbol, location *position.Location) int {
-	id, size := c.Bytecode.AddValue(name.ToValue())
+	id, size := c.bytecode.AddValue(name.ToValue())
 	switch size {
 	case bytecode.UINT8_SIZE, bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.Bytecode.AddInstruction(location.StartPos.Line, bytecode.GET_IVAR_NAME16, bytes...)
+		c.bytecode.AddInstruction(location.StartPos.Line, bytecode.GET_IVAR_NAME16, bytes...)
 	default:
 		c.Errors.AddFailure(
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
@@ -7528,19 +7564,19 @@ func (c *BytecodeCompiler) emitCallNext(callInfo *value.CallSiteInfo, location *
 func (c *BytecodeCompiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
 	c.secondToLastOpCode = c.lastOpCode
 	c.lastOpCode = op
-	c.Bytecode.AddInstruction(line, op, bytes...)
+	c.bytecode.AddInstruction(line, op, bytes...)
 }
 
 func (c *BytecodeCompiler) emitByte(byt byte) {
-	c.Bytecode.AddBytes(byt)
+	c.bytecode.AddBytes(byt)
 }
 
 func (c *BytecodeCompiler) emitUint16(n uint16) {
-	c.Bytecode.AppendUint16(n)
+	c.bytecode.AppendUint16(n)
 }
 
 func (c *BytecodeCompiler) emitUint32(n uint32) {
-	c.Bytecode.AppendUint32(n)
+	c.bytecode.AppendUint32(n)
 }
 
 func (c *BytecodeCompiler) enterScope(label string, typ bytecodeScopeType) {

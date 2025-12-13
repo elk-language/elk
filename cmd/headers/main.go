@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/checker"
@@ -23,7 +24,7 @@ func main() {
 		panic(err)
 	}
 	pathToMainFile := filepath.Join(workingDir, "headers", "main.elh")
-	_, errList := checker.CheckFile(pathToMainFile, env, true, nil)
+	_, errList := checker.CheckFile(pathToMainFile, env, bitfield.BitField16FromBitFlag(checker.HeaderFlag), nil)
 	if len(errList) > 0 {
 		fmt.Println(errList.HumanString(true, lexer.Colorizer{}))
 		os.Exit(1)

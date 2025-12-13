@@ -1069,6 +1069,11 @@ func SetInstanceVariableByName(object Value, name Symbol, val Value) (err Value)
 	return Undefined
 }
 
+// Set an object's instance variable with the given index to the given value
+func SetInstanceVariable(object Value, index int, val Value) {
+	object.InstanceVariables().Set(index, val)
+}
+
 // Get an object's instance variable with the given name
 func GetInstanceVariableByName(object Value, name Symbol) (val, err Value) {
 	class := object.DirectClass()
@@ -4008,4 +4013,8 @@ func AddConstant(namespace Value, name Symbol, val Value) {
 	}
 
 	cc.AddConstant(name, val)
+}
+
+func GetConstant(name Symbol) Value {
+	return RootModule.Constants.Get(name)
 }

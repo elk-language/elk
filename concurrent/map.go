@@ -19,6 +19,14 @@ func NewMapWithValues[K comparable, V any](m map[K]V) *Map[K, V] {
 	}
 }
 
+func (m *Map[K, V]) Lock() {
+	m.mu.Lock()
+}
+
+func (m *Map[K, V]) Unlock() {
+	m.mu.Unlock()
+}
+
 func (m *Map[K, V]) Len() int {
 	return len(m.Map)
 }

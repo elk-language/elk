@@ -3,6 +3,7 @@ package checker
 
 import (
 	"fmt"
+	"io"
 	"iter"
 	"maps"
 	"os"
@@ -33,28 +34,58 @@ import (
 	"github.com/rivo/uniseg"
 )
 
-// Check the types of Elk source code.
-func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, headerMode bool, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+// Check the types of Elk source code ang generate bytecode
+func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
 	}
 
-	return CheckAST(sourceName, ast, globalEnv, headerMode, threadPool)
+	return CheckAST(sourceName, ast, globalEnv, flags, threadPool)
 }
 
-// Check the types of an Elk AST.
-func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
-	checker := newChecker(sourceName, globalEnv, headerMode, threadPool)
-	bytecode := checker.checkProgram(ast)
-	return bytecode, checker.Errors.DiagnosticList
+// Check the types of Elk source code and generate Go source
+func CheckSourceNative(sourceName string, source string, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+	ast, err := parser.Parse(sourceName, source)
+	if err != nil {
+		return nil, err
+	}
+
+	return CheckASTNative(sourceName, ast, globalEnv, output, threadPool)
 }
 
-// Check the types of an Elk file.
-func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, headerMode bool, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
-	checker := newChecker(fileName, globalEnv, headerMode, threadPool)
-	bytecode := checker.checkFile(fileName)
-	return bytecode, checker.Errors.DiagnosticList
+// Check the types of an Elk AST and generate bytecode
+func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	checker := newChecker(sourceName, globalEnv, flags, nil, threadPool)
+	cmp := checker.checkProgram(ast)
+	if cmp == nil {
+		return nil, checker.Errors.DiagnosticList
+	}
+	return cmp.Bytecode(), checker.Errors.DiagnosticList
+}
+
+// Check the types of an Elk AST and generate Go source
+func CheckASTNative(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+	checker := newChecker(sourceName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool)
+	cmp := checker.checkProgram(ast)
+	return cmp.(*compiler.GoCompiler), checker.Errors.DiagnosticList
+}
+
+// Check the types of an Elk file and generate bytecode
+func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	checker := newChecker(fileName, globalEnv, flags, nil, threadPool)
+	cmp := checker.checkFile(fileName)
+	if cmp == nil {
+		return nil, checker.Errors.DiagnosticList
+	}
+	return cmp.Bytecode(), checker.Errors.DiagnosticList
+}
+
+// Check the types of an Elk file and generate Go source
+func CheckFileNative(fileName string, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+	checker := newChecker(fileName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool)
+	cmp := checker.checkFile(fileName)
+	return cmp.(*compiler.GoCompiler), checker.Errors.DiagnosticList
 }
 
 func I(typ types.Type) string {
@@ -91,7 +122,8 @@ const (
 )
 
 const (
-	headerFlag bitfield.BitFlag8 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
+	HeaderFlag bitfield.BitFlag16 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
+	GoCompilerFlag
 	inferClosureReturnTypeFlag
 	inferClosureThrowTypeFlag
 	generatorFlag
@@ -117,7 +149,7 @@ type Checker struct {
 	Errors                  *diagnostic.SyncDiagnosticList            // list of typechecking errors
 	ASTCache                *concurrent.Map[string, *ast.ProgramNode] // stores the ASTs of parsed source code files
 	env                     *types.GlobalEnvironment
-	flags                   bitfield.BitField8
+	flags                   bitfield.BitField16
 	phase                   phase
 	mode                    mode
 	returnType              types.Type
@@ -142,12 +174,14 @@ type Checker struct {
 	extensions              *concurrent.Slice[*ext.Extension]
 	method                  *types.Method
 	namespacesWithIvars     *ds.OrderedMap[string, *namespaceWithIvarsData] // namespaces that declare instance variables
-	compiler                *compiler.BytecodeCompiler
+	macroCompiler           *compiler.BytecodeCompiler
+	compiler                compiler.Compiler
+	output                  io.Writer
 	threadPool              *vm.ThreadPool
 }
 
 // Instantiate a new Checker instance.
-func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode bool, threadPool *vm.ThreadPool) *Checker {
+func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool) *Checker {
 	c := &Checker{
 		Filename:   filename,
 		returnType: types.Void{},
@@ -163,13 +197,12 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		signatureChecks:      ds.NewOrderedMap[string, *[]signatureCheckEntry](),
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		extensions:           concurrent.NewSlice[*ext.Extension](),
+		output:               output,
 		threadPool:           threadPool,
+		flags:                flags,
 	}
 	if threadPool == nil {
 		c.threadPool = vm.DefaultThreadPool
-	}
-	if headerMode {
-		c.SetHeader(headerMode)
 	}
 	if globalEnv == nil {
 		globalEnv = macros.NewGlobalEnvironment()
@@ -181,12 +214,12 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 
 // Instantiate a new Checker instance.
 func New() *Checker {
-	return newChecker("", nil, false, vm.DefaultThreadPool)
+	return newChecker("", nil, bitfield.BitField16{}, nil, vm.DefaultThreadPool)
 }
 
 // Instantiate a new Checker instance.
 func NewWithEnv(env *types.GlobalEnvironment) *Checker {
-	return newChecker("", env, false, vm.DefaultThreadPool)
+	return newChecker("", env, bitfield.BitField16{}, nil, vm.DefaultThreadPool)
 }
 
 func (c *Checker) SelfType() types.Type {
@@ -194,14 +227,14 @@ func (c *Checker) SelfType() types.Type {
 }
 
 func (c *Checker) IsHeader() bool {
-	return c.flags.HasFlag(headerFlag)
+	return c.flags.HasFlag(HeaderFlag)
 }
 
 func (c *Checker) SetHeader(val bool) {
 	if val {
-		c.flags.SetFlag(headerFlag)
+		c.flags.SetFlag(HeaderFlag)
 	} else {
-		c.flags.UnsetFlag(headerFlag)
+		c.flags.UnsetFlag(HeaderFlag)
 	}
 }
 
@@ -298,7 +331,7 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 	c.macroChecks = nil
 	c.signatureChecks = ds.NewOrderedMap[string, *[]signatureCheckEntry]()
 	c.setDefinedMacros(false)
-	bytecodeFunc := c.checkProgram(ast)
+	compiler := c.checkProgram(ast)
 
 	if c.Errors.IsFailure() {
 		// restore the previous global environment if the code
@@ -309,7 +342,10 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 		c.methodScopes = methodScopesCopy
 	}
 
-	return bytecodeFunc, c.Errors.DiagnosticList
+	if compiler == nil {
+		return nil, c.Errors.DiagnosticList
+	}
+	return compiler.Bytecode(), c.Errors.DiagnosticList
 }
 
 func (c *Checker) setGlobalEnv(newEnv *types.GlobalEnvironment) {
@@ -353,7 +389,7 @@ func (c *Checker) initExtensions() {
 	c.extensions = concurrent.NewSlice[*ext.Extension]()
 }
 
-func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
+func (c *Checker) checkProgram(node *ast.ProgramNode) compiler.Compiler {
 	var wg sync.WaitGroup
 	// parse all files of the project concurrently
 	c.checkImportsForFile(c.Filename, node, &wg)
@@ -395,11 +431,11 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	if !c.shouldCompile() {
 		return nil
 	}
-	return c.compiler.Bytecode
+	return c.compiler
 }
 
 // Compile method definitions
-func (c *Checker) compileMethods(methodCompiler *compiler.BytecodeCompiler, offset int, location *position.Location) {
+func (c *Checker) compileMethods(methodCompiler compiler.Compiler, offset int, location *position.Location) {
 	if methodCompiler == nil {
 		return
 	}
@@ -411,8 +447,12 @@ func (c *Checker) shouldCompile() bool {
 	return !c.IsHeader() && c.compiler != nil && !c.Errors.IsFailure()
 }
 
+func (c *Checker) shouldCompileMacro() bool {
+	return !c.IsHeader() && c.macroCompiler != nil && !c.Errors.IsFailure()
+}
+
 // Create a new compiler that will define all methods
-func (c *Checker) initMethodCompiler(location *position.Location) (*compiler.BytecodeCompiler, int) {
+func (c *Checker) initMethodCompiler(location *position.Location) (compiler.Compiler, int) {
 	if c.IsHeader() || c.Errors.IsFailure() {
 		return nil, 0
 	}
@@ -424,11 +464,8 @@ func (c *Checker) switchToMainCompiler() {
 		return
 	}
 
-	if len(c.compiler.Bytecode.Instructions) > 0 {
-		c.compiler.EmitReturnNil()
-		c.compiler.EmitExecInParent()
-	}
-	c.compiler = c.compiler.Parent
+	c.compiler.FinishGlobalEnvCompiler()
+	c.compiler = c.compiler.Parent()
 }
 
 // Create a new macro compiler
@@ -437,7 +474,7 @@ func (c *Checker) initMacroCompiler(location *position.Location) {
 		return
 	}
 
-	c.compiler = compiler.CreateBytecodeCompiler(c.compiler, c, location, c.Errors)
+	c.macroCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors)
 }
 
 // Create a new compiler and emit bytecode
@@ -447,13 +484,14 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 		return
 	}
 
-	parent := c.compiler.Parent
-	var mainCompiler *compiler.BytecodeCompiler
+	parent := c.compiler
+	var mainCompiler compiler.Compiler
 	if parent != nil {
-		mainCompiler = parent.CreateMainBytecodeCompiler(c, location, c.Errors)
+		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors, c.output)
 	} else {
-		mainCompiler = compiler.CreateBytecodeCompiler(parent, c, location, c.Errors)
+		mainCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors)
 	}
+	mainCompiler.InitMainCompiler()
 	c.compiler = mainCompiler.InitGlobalEnv()
 }
 
@@ -461,7 +499,7 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 func (c *Checker) assignIvarIndices(loc *position.Location) {
 	var offset int
 	if c.shouldCompile() {
-		var ivarCompiler *compiler.BytecodeCompiler
+		var ivarCompiler compiler.Compiler
 		ivarCompiler, offset = c.compiler.InitIvarIndicesCompiler(loc)
 		c.compiler = ivarCompiler
 	}
@@ -494,7 +532,7 @@ func (c *Checker) checkClassesWithIvars(loc *position.Location) {
 	c.namespacesWithIvars = nil
 }
 
-func (c *Checker) checkFile(filename string) *vm.BytecodeFunction {
+func (c *Checker) checkFile(filename string) compiler.Compiler {
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		c.addFailure(

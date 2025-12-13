@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/ext"
 	"github.com/elk-language/elk/ext/std/test"
 	"github.com/elk-language/elk/lexer"
@@ -63,7 +64,7 @@ func runFile(fileName string) {
 		os.Exit(1)
 	}
 
-	bytecode, diagnostics := checker.CheckFile(fileName, nil, false, nil)
+	bytecode, diagnostics := checker.CheckFile(fileName, nil, bitfield.BitField16{}, nil)
 	if diagnostics != nil {
 		fmt.Println()
 

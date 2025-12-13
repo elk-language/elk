@@ -1859,7 +1859,7 @@ func (vm *VM) opSetIvarName(nameIndex int) (err value.Value) {
 func (vm *VM) opSetIvar(index int) {
 	val := vm.popGet()
 	self := vm.selfValue()
-	self.InstanceVariables().Set(index, val)
+	value.SetInstanceVariable(self, index, val)
 }
 
 // Get the value of an instance variable by name
@@ -3015,25 +3015,8 @@ func (vm *VM) opDefConst() {
 	constVal := vm.popGet()
 	constName := vm.popGet().AsInlineSymbol()
 	namespace := vm.popGet()
-	var constants value.ConstantContainer
 
-	switch n := namespace.AsReference().(type) {
-	case *value.Class:
-		constants = n.ConstantContainer
-	case *value.Module:
-		constants = n.ConstantContainer
-	case *value.Interface:
-		constants = n.ConstantContainer
-	default:
-		panic(
-			fmt.Sprintf(
-				"tried to define a constant under an invalid namespace: %T",
-				namespace,
-			),
-		)
-	}
-
-	constants.AddConstant(constName, constVal)
+	value.AddConstant(namespace, constName, constVal)
 }
 
 // Register slots for local variables and values.

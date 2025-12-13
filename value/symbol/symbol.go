@@ -90,6 +90,10 @@ var (
 	InstanceVariableNode = value.ToSymbol("InstanceVariableNode")
 	AST                  = value.ToSymbol("AST")
 	Test                 = value.ToSymbol("Test")
+	Time                 = value.ToSymbol("Time")
+	Date                 = value.ToSymbol("Date")
+	DateTime             = value.ToSymbol("DateTime")
+	Span                 = value.ToSymbol("Span")
 )
 
 // lowercase symbols
