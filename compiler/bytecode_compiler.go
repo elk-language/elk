@@ -4441,6 +4441,7 @@ func (c *BytecodeCompiler) compileMethodCallNode(node *ast.MethodCallNode) {
 		node.Location(),
 	)
 }
+
 func (c *BytecodeCompiler) compileGenericMethodCallNode(node *ast.GenericMethodCallNode) {
 	c.compileMethodCall(
 		node.Receiver,
@@ -4844,9 +4845,6 @@ func (c *BytecodeCompiler) compileVariableDeclarationNode(node *ast.VariableDecl
 	}
 	if initialised {
 		c.compileNodeWithResult(node.Initialiser)
-	}
-
-	if initialised {
 		return c.emitSetLocal(node.Location().StartPos.Line, local.index, valueIsIgnored)
 	}
 

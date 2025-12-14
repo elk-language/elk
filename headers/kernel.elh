@@ -12,14 +12,23 @@ module Std::Kernel
     Converts the values to `String`
     and prints them to stdout.
   ]##
-  def print(*values: String::Convertible); end
+  overload def print(*values: String::Convertible); end
+  overload def print(value: String::Convertible); end
 
   ##[
     Converts the values to `String`
     and prints them to stdout with a newline.
   ]##
-  def println(*values: String::Convertible); end
-  alias puts println
+  overload def println(*values: String::Convertible); end
+  overload def println(value: String::Convertible); end
+
+
+  ##[
+    Converts the values to `String`
+    and prints them to stdout with a newline.
+  ]##
+  overload def puts(*values: String::Convertible); end
+  overload def puts(value: String::Convertible); end
 
   ##[
     Pauses the execution of the current thread for the amount

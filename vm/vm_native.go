@@ -131,6 +131,9 @@ func (vm *Thread) CallMethodByNameWithCache(name value.Symbol, cc **value.CallCa
 	self := args[0]
 	class := self.DirectClass()
 	method := value.LookupMethodInCache(class, name, cc)
+	if method == nil {
+		panic(fmt.Sprintf("no such method, class: %s, name: %s", class.Name, name))
+	}
 	return vm.CallMethod(method, args...)
 }
 

@@ -2863,6 +2863,26 @@ func LessThanEqualVal(left, right Value) (result, err Value) {
 	}
 }
 
+func LessThanEqualValInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LessThanEqualVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LessThanEqualVal(right)
+}
+
+func LessThanEqualInt(left, right Value) (bool, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LessThanEqual(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LessThanEqual(right)
+}
+
 func LessThanEqual(left, right Value) (result bool, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
