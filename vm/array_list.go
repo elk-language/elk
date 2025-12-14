@@ -12,7 +12,7 @@ func initArrayList() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			iterator := value.NewArrayListIterator(self)
 			return value.Ref(iterator), value.Undefined
@@ -21,7 +21,7 @@ func initArrayList() {
 	Def(
 		c,
 		"capacity",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
 		},
@@ -29,7 +29,7 @@ func initArrayList() {
 	Def(
 		c,
 		"length",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
@@ -37,7 +37,7 @@ func initArrayList() {
 	Def(
 		c,
 		"left_capacity",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
 		},
@@ -45,7 +45,7 @@ func initArrayList() {
 	Def(
 		c,
 		"box_of",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			other := args[1]
 			b, err := self.BoxOfVal(other)
@@ -56,7 +56,7 @@ func initArrayList() {
 	Def(
 		c,
 		"immutable_box_of",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			other := args[1]
 			b, err := self.ImmutableBoxOfVal(other)
@@ -67,7 +67,7 @@ func initArrayList() {
 	Def(
 		c,
 		"[]",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			other := args[1]
 			return self.Subscript(other)
@@ -78,7 +78,7 @@ func initArrayList() {
 	Def(
 		c,
 		"[]=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			key := args[1]
 			val := args[2]
@@ -93,7 +93,7 @@ func initArrayList() {
 	Def(
 		c,
 		"+",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			other := args[1]
 			return value.RefErr(self.Concat(other))
@@ -103,7 +103,7 @@ func initArrayList() {
 	Def(
 		c,
 		"*",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			other := args[1]
 			return value.RefErr(self.Repeat(other))
@@ -113,7 +113,7 @@ func initArrayList() {
 	Def(
 		c,
 		"contains",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			contains, err := ArrayListContains(vm, self, args[1])
 			if !err.IsUndefined() {
@@ -126,7 +126,7 @@ func initArrayList() {
 	Def(
 		c,
 		"==",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			switch other := args[1].SafeAsReference().(type) {
 			case *value.ArrayList:
@@ -144,7 +144,7 @@ func initArrayList() {
 	Def(
 		c,
 		"=~",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			switch other := args[1].SafeAsReference().(type) {
 			case *value.ArrayList:
@@ -168,7 +168,7 @@ func initArrayList() {
 	Def(
 		c,
 		"grow",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			nValue := args[1]
 			n, ok := value.IntToGoInt(nValue)
@@ -189,7 +189,7 @@ func initArrayList() {
 	Def(
 		c,
 		"append",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			values := args[1]
 			for val := range Iterate(vm, values) {
@@ -202,7 +202,7 @@ func initArrayList() {
 	Def(
 		c,
 		"remove",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			val := args[1]
 
@@ -227,7 +227,7 @@ func initArrayList() {
 	Def(
 		c,
 		"remove_at",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			val := args[1].AsInt()
 			return value.Nil, self.RemoveAtErr(val)
@@ -237,7 +237,7 @@ func initArrayList() {
 	Def(
 		c,
 		"<<",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			self.Append(args[1])
 			return value.Ref(self), value.Undefined
@@ -249,7 +249,7 @@ func initArrayList() {
 	Def(
 		c,
 		"map_mut",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			callable := args[1]
 			// callable is a closure
@@ -282,7 +282,7 @@ func initArrayList() {
 	Def(
 		c,
 		"map",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayList)(args[0].Pointer())
 			callable := args[1]
 			newList := value.NewArrayListWithLength(self.Length())
@@ -323,7 +323,7 @@ func initArrayListIterator() {
 	Def(
 		c,
 		"next",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayListIterator)(args[0].Pointer())
 			return self.Next()
 		},
@@ -331,14 +331,14 @@ func initArrayListIterator() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"reset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayListIterator)(args[0].Pointer())
 			self.Reset()
 			return args[0], value.Undefined
@@ -346,7 +346,7 @@ func initArrayListIterator() {
 	)
 }
 
-func ArrayListContains(vm *VM, list *value.ArrayList, val value.Value) (bool, value.Value) {
+func ArrayListContains(vm *Thread, list *value.ArrayList, val value.Value) (bool, value.Value) {
 	for _, element := range *list {
 		equal, err := vm.CallMethodByName(symbol.OpEqual, element, val)
 		if !err.IsUndefined() {
@@ -359,7 +359,7 @@ func ArrayListContains(vm *VM, list *value.ArrayList, val value.Value) (bool, va
 	return false, value.Undefined
 }
 
-func ArrayListEqual(vm *VM, x, y *value.ArrayList) (bool, value.Value) {
+func ArrayListEqual(vm *Thread, x, y *value.ArrayList) (bool, value.Value) {
 	xLen := x.Length()
 	if xLen != y.Length() {
 		return false, value.Undefined

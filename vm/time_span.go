@@ -11,7 +11,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"parse",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			str := args[1].AsReference().(value.String)
 			return value.ToValueErr(value.ParseTimeSpan(string(str)))
 		},
@@ -23,7 +23,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			var hours int
 			if !args[1].IsUndefined() {
 				hours = args[1].AsInt()
@@ -70,7 +70,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"-@",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			return (-self).ToValue(), value.Undefined
 		},
@@ -78,7 +78,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"+@",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
@@ -86,7 +86,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"+",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := args[1]
 			return self.Add(other)
@@ -96,7 +96,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"+@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := args[1].AsTimeSpan()
 			return self.AddTimeSpan(other).ToValue(), value.Undefined
@@ -106,7 +106,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"+@2",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := args[1].AsDateSpan()
 			return value.Ref(self.AddDateSpan(other)), value.Undefined
@@ -116,7 +116,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"+@3",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := (*value.DateTimeSpan)(args[1].Pointer())
 			return value.Ref(self.AddDateTimeSpan(other)), value.Undefined
@@ -127,7 +127,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"-",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			other := args[1]
 			return self.Subtract(other)
@@ -137,7 +137,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"-@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := args[1].AsTimeSpan()
 			return self.SubtractTimeSpan(other).ToValue(), value.Undefined
@@ -147,7 +147,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"-@2",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := args[1].AsDateSpan()
 			return value.Ref(self.SubtractDateSpan(other)), value.Undefined
@@ -157,7 +157,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"-@3",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := (*value.DateTimeSpan)(args[1].Pointer())
 			return value.Ref(self.SubtractDateTimeSpan(other)), value.Undefined
@@ -168,7 +168,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"*",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			other := args[1]
 			return value.ToValueErr(self.Multiply(other))
@@ -178,7 +178,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"*@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := args[1]
 			return self.MultiplyInt(other).ToValue(), value.Undefined
@@ -188,7 +188,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"*@2",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := args[1].AsFloat()
 			return self.MultiplyFloat(other).ToValue(), value.Undefined
@@ -198,7 +198,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"*@3",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := (*value.BigFloat)(args[1].Pointer())
 			return self.MultiplyBigFloat(other).ToValue(), value.Undefined
@@ -209,7 +209,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"/",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			other := args[1]
 			return value.ToValueErr(self.Divide(other))
@@ -219,7 +219,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"/@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := args[1]
 			return value.ToValueErr(self.DivideInt(other))
@@ -229,7 +229,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"/@2",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := args[1].AsFloat()
 			return value.ToValueErr(self.DivideFloat(other))
@@ -239,7 +239,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"/@3",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := (*value.BigFloat)(args[1].Pointer())
 			return value.ToValueErr(self.DivideBigFloat(other))
@@ -250,7 +250,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"to_string",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return value.Ref(self.ToString()), value.Undefined
 		},
@@ -258,7 +258,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"to_time",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.ToTime().ToValue(), value.Undefined
 		},
@@ -266,7 +266,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"to_datetime_span",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return value.Ref(self.ToDateTimeSpan()), value.Undefined
 		},
@@ -274,14 +274,14 @@ func initTimeSpan() {
 	Def(
 		c,
 		"to_time_span",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"total_nanoseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.TotalNanoseconds(), value.Undefined
 		},
@@ -289,7 +289,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"nanoseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return value.SmallInt(self.Nanoseconds()).ToValue(), value.Undefined
 		},
@@ -297,7 +297,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"in_nanoseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.InNanoseconds().ToValue(), value.Undefined
 		},
@@ -305,7 +305,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"total_microseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.TotalMicroseconds(), value.Undefined
 		},
@@ -313,7 +313,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"microseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return value.SmallInt(self.Microseconds()).ToValue(), value.Undefined
 		},
@@ -321,7 +321,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"in_microseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.InMicroseconds().ToValue(), value.Undefined
 		},
@@ -329,7 +329,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"total_milliseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.TotalMilliseconds(), value.Undefined
 		},
@@ -337,7 +337,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"milliseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return value.SmallInt(self.Milliseconds()).ToValue(), value.Undefined
 		},
@@ -345,7 +345,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"in_milliseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.InMilliseconds().ToValue(), value.Undefined
 		},
@@ -353,7 +353,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"total_seconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.TotalSeconds(), value.Undefined
 		},
@@ -361,7 +361,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"seconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return value.SmallInt(self.Seconds()).ToValue(), value.Undefined
 		},
@@ -369,7 +369,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"in_seconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.InSeconds().ToValue(), value.Undefined
 		},
@@ -377,7 +377,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"total_minutes",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.TotalMinutes(), value.Undefined
 		},
@@ -385,7 +385,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"minutes",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return value.SmallInt(self.Minutes()).ToValue(), value.Undefined
 		},
@@ -393,7 +393,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"in_minutes",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.InMinutes().ToValue(), value.Undefined
 		},
@@ -401,7 +401,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"total_hours",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.TotalHours(), value.Undefined
 		},
@@ -409,7 +409,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"hours",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return value.SmallInt(self.Hours()).ToValue(), value.Undefined
 		},
@@ -417,7 +417,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"in_hours",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.InHours().ToValue(), value.Undefined
 		},
@@ -425,7 +425,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"total_days",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.TotalDays(), value.Undefined
 		},
@@ -433,7 +433,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"in_days",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.InDays().ToValue(), value.Undefined
 		},
@@ -441,7 +441,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"days",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return value.SmallInt(self.Days()).ToValue(), value.Undefined
 		},
@@ -449,7 +449,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"total_weeks",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.TotalWeeks(), value.Undefined
 		},
@@ -457,7 +457,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"in_weeks",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.InWeeks().ToValue(), value.Undefined
 		},
@@ -465,7 +465,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"total_months",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.TotalMonths(), value.Undefined
 		},
@@ -473,7 +473,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"months",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return value.SmallInt(self.Months()).ToValue(), value.Undefined
 		},
@@ -481,7 +481,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"in_months",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.InMonths().ToValue(), value.Undefined
 		},
@@ -489,7 +489,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"total_years",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.TotalYears(), value.Undefined
 		},
@@ -498,7 +498,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"in_years",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustTimeSpan()
 			return self.InYears().ToValue(), value.Undefined
 		},
@@ -507,7 +507,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"<=>",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			return value.SmallInt(self.Cmp(args[1].AsTimeSpan())).ToValue(), value.Undefined
 		},
@@ -517,7 +517,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		">=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			return value.ToElkBool(self >= args[1].AsTimeSpan()), value.Undefined
 		},
@@ -527,7 +527,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		">",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			return value.ToElkBool(self > args[1].AsTimeSpan()), value.Undefined
 		},
@@ -537,7 +537,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"<=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			return value.ToElkBool(self <= args[1].AsTimeSpan()), value.Undefined
 		},
@@ -547,7 +547,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"<",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			return value.ToElkBool(self < args[1].AsTimeSpan()), value.Undefined
 		},
@@ -556,7 +556,7 @@ func initTimeSpan() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined

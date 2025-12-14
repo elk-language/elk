@@ -12,7 +12,7 @@ func initImportStatementNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argPath := args[1].MustReference().(ast.StringLiteralNode)
 
 			var argLoc *position.Location
@@ -34,7 +34,7 @@ func initImportStatementNode() {
 	vm.Def(
 		c,
 		"path",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ImportStatementNode)
 			result := value.Ref(self.Path)
 			return result, value.Undefined
@@ -45,7 +45,7 @@ func initImportStatementNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ImportStatementNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -55,7 +55,7 @@ func initImportStatementNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ImportStatementNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -66,7 +66,7 @@ func initImportStatementNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ImportStatementNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

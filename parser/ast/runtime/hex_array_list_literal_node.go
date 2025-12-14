@@ -12,7 +12,7 @@ func initHexArrayListLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argElements []ast.IntCollectionContentNode
 			if !args[1].IsUndefined() {
 				argElementsTuple := args[1].MustReference().(*value.ArrayTuple)
@@ -47,7 +47,7 @@ func initHexArrayListLiteralNode() {
 	vm.Def(
 		c,
 		"elements",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.HexArrayListLiteralNode)
 
 			collection := self.Elements
@@ -64,7 +64,7 @@ func initHexArrayListLiteralNode() {
 	vm.Def(
 		c,
 		"capacity",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.HexArrayListLiteralNode)
 			if self.Capacity == nil {
 				return value.Nil, value.Undefined
@@ -78,7 +78,7 @@ func initHexArrayListLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.HexArrayListLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -88,7 +88,7 @@ func initHexArrayListLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.HexArrayListLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -99,7 +99,7 @@ func initHexArrayListLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.HexArrayListLiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

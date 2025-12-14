@@ -12,7 +12,7 @@ func initIntLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
 			_, err := value.ParseBigIntWithErr(argValue, 0, value.IntLiteralNodeFormatErrorClass)
 			if !err.IsUndefined() {
@@ -38,7 +38,7 @@ func initIntLiteralNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IntLiteralNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
@@ -49,7 +49,7 @@ func initIntLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IntLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -59,7 +59,7 @@ func initIntLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IntLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -70,7 +70,7 @@ func initIntLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IntLiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -79,7 +79,7 @@ func initIntLiteralNode() {
 	vm.Def(
 		c,
 		"to_int",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IntLiteralNode)
 			return value.ParseIntWithErr(self.Value, 0, value.IntLiteralNodeFormatErrorClass)
 		},
@@ -89,7 +89,7 @@ func initIntLiteralNode() {
 	vm.Def(
 		c,
 		"to_ast_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var content string
 			if args[0].IsSmallInt() {
 				content = string(args[0].AsSmallInt().ToString())

@@ -12,7 +12,7 @@ func initMapPatternNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argElements []ast.PatternNode
 			if !args[1].IsUndefined() {
 				argElementsTuple := args[1].MustReference().(*value.ArrayTuple)
@@ -41,7 +41,7 @@ func initMapPatternNode() {
 	vm.Def(
 		c,
 		"elements",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MapPatternNode)
 
 			collection := self.Elements
@@ -58,7 +58,7 @@ func initMapPatternNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MapPatternNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -68,7 +68,7 @@ func initMapPatternNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MapPatternNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -79,7 +79,7 @@ func initMapPatternNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MapPatternNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

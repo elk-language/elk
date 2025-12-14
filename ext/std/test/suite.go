@@ -154,7 +154,7 @@ func shuffleCases(cases []*Case, rng *rand.Rand) []*Case {
 	return shuffled
 }
 
-func (s *Suite) Run(v *vm.VM, events chan<- *ReportEvent, rng *rand.Rand, ctx context.Context) *SuiteReport {
+func (s *Suite) Run(v *vm.Thread, events chan<- *ReportEvent, rng *rand.Rand, ctx context.Context) *SuiteReport {
 	if isDone(ctx) {
 		return nil
 	}
@@ -205,7 +205,7 @@ func (s *Suite) Run(v *vm.VM, events chan<- *ReportEvent, rng *rand.Rand, ctx co
 	return suiteReport
 }
 
-func (s *Suite) runBeforeAll(startTime time.Time, report *SuiteReport, v *vm.VM, events chan<- *ReportEvent, ctx context.Context) (*SuiteReport, bool) {
+func (s *Suite) runBeforeAll(startTime time.Time, report *SuiteReport, v *vm.Thread, events chan<- *ReportEvent, ctx context.Context) (*SuiteReport, bool) {
 	for _, hook := range s.BeforeAll {
 		if isDone(ctx) {
 			return nil, false
@@ -236,7 +236,7 @@ func (s *Suite) runBeforeAll(startTime time.Time, report *SuiteReport, v *vm.VM,
 	return report, true
 }
 
-func (s *Suite) runAfterAll(startTime time.Time, report *SuiteReport, v *vm.VM) {
+func (s *Suite) runAfterAll(startTime time.Time, report *SuiteReport, v *vm.Thread) {
 	for _, hook := range s.AfterAll {
 		_, err := v.CallClosure(hook)
 		if !err.IsUndefined() {

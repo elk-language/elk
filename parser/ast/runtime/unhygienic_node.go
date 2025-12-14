@@ -12,7 +12,7 @@ func initUnhygienicNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argNode := args[1].AsReference().(ast.Node)
 
 			var argLoc *position.Location
@@ -34,7 +34,7 @@ func initUnhygienicNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnhygienicNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -44,7 +44,7 @@ func initUnhygienicNode() {
 	vm.Def(
 		c,
 		"node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnhygienicNode)
 			result := value.Ref(self.Node)
 			return result, value.Undefined
@@ -54,7 +54,7 @@ func initUnhygienicNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnhygienicNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -65,7 +65,7 @@ func initUnhygienicNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnhygienicNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

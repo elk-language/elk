@@ -11,7 +11,7 @@ func initWaitGroup() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.WaitGroup)(args[0].Pointer())
 			nVal := args[1]
 			if nVal.IsUndefined() {
@@ -29,7 +29,7 @@ func initWaitGroup() {
 	Def(
 		c,
 		"add",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.WaitGroup)(args[0].Pointer())
 			nVal := args[1]
 			if nVal.IsReference() {
@@ -43,7 +43,7 @@ func initWaitGroup() {
 	Def(
 		c,
 		"remove",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.WaitGroup)(args[0].Pointer())
 			nVal := args[1]
 			if nVal.IsReference() {
@@ -57,7 +57,7 @@ func initWaitGroup() {
 	Def(
 		c,
 		"start",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.WaitGroup)(args[0].Pointer())
 			self.Start()
 			return value.Nil, value.Undefined
@@ -66,7 +66,7 @@ func initWaitGroup() {
 	Def(
 		c,
 		"end",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.WaitGroup)(args[0].Pointer())
 			self.End()
 			return value.Nil, value.Undefined
@@ -75,7 +75,7 @@ func initWaitGroup() {
 	Def(
 		c,
 		"wait",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.WaitGroup)(args[0].Pointer())
 			self.Wait()
 			return value.Nil, value.Undefined
@@ -84,7 +84,7 @@ func initWaitGroup() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.WaitGroup)(args[0].Pointer())
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},

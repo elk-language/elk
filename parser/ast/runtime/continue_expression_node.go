@@ -12,7 +12,7 @@ func initContinueExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argLabel ast.IdentifierNode
 			if !args[1].IsUndefined() {
 				argLabel = args[1].MustReference().(ast.IdentifierNode)
@@ -43,7 +43,7 @@ func initContinueExpressionNode() {
 	vm.Def(
 		c,
 		"label",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ContinueExpressionNode)
 			if self.Label == nil {
 				return value.Nil, value.Undefined
@@ -57,7 +57,7 @@ func initContinueExpressionNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ContinueExpressionNode)
 			if self.Value == nil {
 				return value.Nil, value.Undefined
@@ -71,7 +71,7 @@ func initContinueExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ContinueExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -81,7 +81,7 @@ func initContinueExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ContinueExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -92,7 +92,7 @@ func initContinueExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ContinueExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

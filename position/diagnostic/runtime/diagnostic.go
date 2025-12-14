@@ -16,7 +16,7 @@ func initDiagnostic() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Diagnostic)(args[0].Pointer())
 
 			message := string(args[1].AsReference().(value.String))
@@ -38,7 +38,7 @@ func initDiagnostic() {
 	vm.Def(
 		c,
 		"message",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Diagnostic)(args[0].Pointer())
 			return value.Ref(value.String(self.Message)), value.Undefined
 		},
@@ -47,7 +47,7 @@ func initDiagnostic() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Diagnostic)(args[0].Pointer())
 			return value.Ref((*value.Location)(self.Location)), value.Undefined
 		},
@@ -56,7 +56,7 @@ func initDiagnostic() {
 	vm.Def(
 		c,
 		"severity",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Diagnostic)(args[0].Pointer())
 			return (value.UInt8)(self.Severity).ToValue(), value.Undefined
 		},
@@ -65,7 +65,7 @@ func initDiagnostic() {
 	vm.Def(
 		c,
 		"severity_name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Diagnostic)(args[0].Pointer())
 			return value.Ref(value.String(self.Severity.String())), value.Undefined
 		},
@@ -74,7 +74,7 @@ func initDiagnostic() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Diagnostic)(args[0].Pointer())
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -83,7 +83,7 @@ func initDiagnostic() {
 	vm.Def(
 		c,
 		"to_human_string",
-		func(v *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(v *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*diagnostic.Diagnostic)(args[0].Pointer())
 
 			style := true

@@ -11,7 +11,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"parse",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			str := string(args[1].AsString())
 			return value.RefErr(value.ParseDateTimeSpan(str))
 		},
@@ -24,7 +24,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			var years int
 			if !args[1].IsUndefined() {
 				years = args[1].AsInt()
@@ -92,7 +92,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"-@",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return value.Ref(self.Negate()), value.Undefined
 		},
@@ -100,7 +100,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"+@",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
@@ -108,7 +108,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"+",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1]
 			return self.Add(other)
@@ -118,7 +118,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"+@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := (*value.DateTimeSpan)(args[1].Pointer())
 			return value.Ref(self.AddDateTimeSpan(other)), value.Undefined
@@ -128,7 +128,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"+@2",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1].AsTimeSpan()
 			return value.Ref(self.AddTimeSpan(other)), value.Undefined
@@ -138,7 +138,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"+@3",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1].AsDateSpan()
 			return value.Ref(self.AddDateSpan(other)), value.Undefined
@@ -149,7 +149,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"-",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1]
 			return self.Subtract(other)
@@ -159,7 +159,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"-@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := (*value.DateTimeSpan)(args[1].Pointer())
 			return value.Ref(self.SubtractDateTimeSpan(other)), value.Undefined
@@ -169,7 +169,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"-@2",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1].AsTimeSpan()
 			return value.Ref(self.SubtractTimeSpan(other)), value.Undefined
@@ -179,7 +179,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"-@3",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1].AsDateSpan()
 			return value.Ref(self.SubtractDateSpan(other)), value.Undefined
@@ -190,7 +190,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"*",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1]
 			return self.Multiply(other)
@@ -200,7 +200,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"*@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1]
 			return value.Ref(self.MultiplyInt(other)), value.Undefined
@@ -210,7 +210,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"*@2",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1].AsFloat()
 			return value.Ref(self.MultiplyFloat(other)), value.Undefined
@@ -220,7 +220,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"*@3",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := (*value.BigFloat)(args[1].Pointer())
 			return value.Ref(self.MultiplyBigFloat(other)), value.Undefined
@@ -231,7 +231,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"/",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1]
 			return self.Divide(other)
@@ -241,7 +241,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"/@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1]
 			return value.Ref(self.DivideInt(other)), value.Undefined
@@ -251,7 +251,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"/@2",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1].AsFloat()
 			return value.Ref(self.DivideFloat(other)), value.Undefined
@@ -261,7 +261,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"/@3",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := (*value.BigFloat)(args[1].Pointer())
 			return value.Ref(self.DivideBigFloat(other)), value.Undefined
@@ -272,7 +272,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"date_span",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.DateSpan.ToValue(), value.Undefined
 		},
@@ -282,7 +282,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"time_span",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TimeSpan.ToValue(), value.Undefined
 		},
@@ -292,7 +292,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"to_datetime_span",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
@@ -300,7 +300,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"years",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return value.SmallInt(self.Years()).ToValue(), value.Undefined
 		},
@@ -308,7 +308,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"in_years",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.InYears().ToValue(), value.Undefined
 		},
@@ -316,7 +316,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"total_years",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TotalYears(), value.Undefined
 		},
@@ -324,7 +324,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"months",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return value.SmallInt(self.Months()).ToValue(), value.Undefined
 		},
@@ -332,7 +332,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"in_months",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.InMonths().ToValue(), value.Undefined
 		},
@@ -340,7 +340,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"total_months",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TotalMonths(), value.Undefined
 		},
@@ -348,7 +348,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"in_weeks",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.InWeeks().ToValue(), value.Undefined
 		},
@@ -356,7 +356,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"total_weeks",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TotalWeeks(), value.Undefined
 		},
@@ -364,7 +364,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"days",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return value.SmallInt(self.Days()).ToValue(), value.Undefined
 		},
@@ -372,7 +372,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"in_days",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.InDays().ToValue(), value.Undefined
 		},
@@ -380,7 +380,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"total_days",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TotalDays(), value.Undefined
 		},
@@ -388,7 +388,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"hours",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return value.SmallInt(self.Hours()).ToValue(), value.Undefined
 		},
@@ -396,7 +396,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"in_hours",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.InHours().ToValue(), value.Undefined
 		},
@@ -404,7 +404,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"total_hours",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TotalHours(), value.Undefined
 		},
@@ -412,7 +412,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"minutes",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return value.SmallInt(self.Minutes()).ToValue(), value.Undefined
 		},
@@ -420,7 +420,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"in_minutes",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.InMinutes().ToValue(), value.Undefined
 		},
@@ -428,7 +428,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"total_minutes",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TotalMinutes(), value.Undefined
 		},
@@ -436,7 +436,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"seconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return value.SmallInt(self.Seconds()).ToValue(), value.Undefined
 		},
@@ -444,7 +444,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"in_seconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.InSeconds().ToValue(), value.Undefined
 		},
@@ -452,7 +452,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"total_seconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TotalSeconds(), value.Undefined
 		},
@@ -460,7 +460,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"milliseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return value.SmallInt(self.Milliseconds()).ToValue(), value.Undefined
 		},
@@ -468,7 +468,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"in_milliseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.InMilliseconds().ToValue(), value.Undefined
 		},
@@ -476,7 +476,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"total_milliseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TotalMilliseconds(), value.Undefined
 		},
@@ -484,7 +484,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"microseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return value.SmallInt(self.Microseconds()).ToValue(), value.Undefined
 		},
@@ -492,7 +492,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"in_microseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.InMicroseconds().ToValue(), value.Undefined
 		},
@@ -500,7 +500,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"total_microseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TotalMicroseconds(), value.Undefined
 		},
@@ -508,7 +508,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"nanoseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return value.SmallInt(self.Nanoseconds()).ToValue(), value.Undefined
 		},
@@ -516,7 +516,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"in_nanoseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.InNanoseconds().ToValue(), value.Undefined
 		},
@@ -524,7 +524,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"total_nanoseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.TotalNanoseconds(), value.Undefined
 		},
@@ -532,7 +532,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"to_string",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return value.Ref(self.ToString()), value.Undefined
 		},
@@ -540,7 +540,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"to_datetime",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 
 			var zone *value.Timezone
@@ -555,7 +555,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"<=>",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			return self.CompareVal(args[1])
 		},
@@ -565,7 +565,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		">=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			ok, err := self.GreaterThanEqual(args[1])
 			return value.ToElkBool(ok), err
@@ -576,7 +576,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		">",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			ok, err := self.GreaterThan(args[1])
 			return value.ToElkBool(ok), err
@@ -587,7 +587,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"<=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			ok, err := self.LessThanEqual(args[1])
 			return value.ToElkBool(ok), err
@@ -598,7 +598,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"<",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			ok, err := self.LessThan(args[1])
 			return value.ToElkBool(ok), err
@@ -608,7 +608,7 @@ func initDateTimeSpan() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DateTimeSpan)(args[0].Pointer())
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined

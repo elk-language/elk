@@ -12,7 +12,7 @@ func initMacroDefinitionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argParameters []ast.ParameterNode
@@ -72,7 +72,7 @@ func initMacroDefinitionNode() {
 	vm.Def(
 		c,
 		"doc_comment",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroDefinitionNode)
 			result := value.Ref(value.String(self.DocComment()))
 			return result, value.Undefined
@@ -83,7 +83,7 @@ func initMacroDefinitionNode() {
 	vm.Def(
 		c,
 		"name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroDefinitionNode)
 			result := value.Ref(self.Name)
 			return result, value.Undefined
@@ -94,7 +94,7 @@ func initMacroDefinitionNode() {
 	vm.Def(
 		c,
 		"parameters",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroDefinitionNode)
 
 			collection := self.Parameters
@@ -111,7 +111,7 @@ func initMacroDefinitionNode() {
 	vm.Def(
 		c,
 		"return_type",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroDefinitionNode)
 			if self.ReturnType == nil {
 				return value.Nil, value.Undefined
@@ -124,7 +124,7 @@ func initMacroDefinitionNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 
 			collection := self.Body
@@ -141,7 +141,7 @@ func initMacroDefinitionNode() {
 	vm.Def(
 		c,
 		"is_sealed",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.ToElkBool(self.IsSealed())
 			return result, value.Undefined
@@ -152,7 +152,7 @@ func initMacroDefinitionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -163,7 +163,7 @@ func initMacroDefinitionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -174,7 +174,7 @@ func initMacroDefinitionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -185,7 +185,7 @@ func initMacroDefinitionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

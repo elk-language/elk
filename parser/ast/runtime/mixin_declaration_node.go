@@ -12,7 +12,7 @@ func initMixinDeclarationNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argConstant := args[1].MustReference().(ast.ExpressionNode)
 
 			var argAbstract bool
@@ -66,7 +66,7 @@ func initMixinDeclarationNode() {
 	vm.Def(
 		c,
 		"doc_comment",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MixinDeclarationNode)
 			result := value.Ref(value.String(self.DocComment()))
 			return result, value.Undefined
@@ -77,7 +77,7 @@ func initMixinDeclarationNode() {
 	vm.Def(
 		c,
 		"is_abstract",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MixinDeclarationNode)
 			result := value.ToElkBool(self.Abstract)
 			return result, value.Undefined
@@ -88,7 +88,7 @@ func initMixinDeclarationNode() {
 	vm.Def(
 		c,
 		"constant",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MixinDeclarationNode)
 			if self.Constant == nil {
 				return value.Nil, value.Undefined
@@ -102,7 +102,7 @@ func initMixinDeclarationNode() {
 	vm.Def(
 		c,
 		"type_parameters",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MixinDeclarationNode)
 
 			collection := self.TypeParameters
@@ -119,7 +119,7 @@ func initMixinDeclarationNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MixinDeclarationNode)
 
 			collection := self.Body
@@ -136,7 +136,7 @@ func initMixinDeclarationNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MixinDeclarationNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -146,7 +146,7 @@ func initMixinDeclarationNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MixinDeclarationNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -157,7 +157,7 @@ func initMixinDeclarationNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MixinDeclarationNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

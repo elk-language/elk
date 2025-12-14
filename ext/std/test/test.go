@@ -39,7 +39,7 @@ func Run() *SuiteReport {
 }
 
 // Run the all tests under the root suite
-func RunWith(v *vm.VM, reporter Reporter, events chan *ReportEvent, seed uint64) *SuiteReport {
+func RunWith(v *vm.Thread, reporter Reporter, events chan *ReportEvent, seed uint64) *SuiteReport {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	shutdownCtx, shutdown := context.WithCancel(context.Background())
@@ -68,7 +68,7 @@ func initTest() *value.Module {
 	vm.Def(
 		c,
 		"describe",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argName := args[1].AsReference().(value.String).String()
 			argFn := args[2].AsReference().(*vm.Closure)
 
@@ -101,7 +101,7 @@ func initTest() *value.Module {
 	vm.Def(
 		c,
 		"test",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argName := args[1].AsReference().(value.String)
 			argFn := args[2].AsReference().(*vm.Closure)
 
@@ -118,7 +118,7 @@ func initTest() *value.Module {
 	vm.Def(
 		c,
 		"it",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argName := args[1].AsReference().(value.String)
 			argFn := args[2].AsReference().(*vm.Closure)
 
@@ -136,7 +136,7 @@ func initTest() *value.Module {
 	vm.Def(
 		c,
 		"should",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argName := args[1].AsReference().(value.String)
 			argFn := args[2].AsReference().(*vm.Closure)
 
@@ -154,7 +154,7 @@ func initTest() *value.Module {
 	vm.Def(
 		c,
 		"before_each",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argFn := args[1].AsReference().(*vm.Closure)
 			CurrentSuite.RegisterBeforeEach(argFn)
 			return value.Nil, value.Undefined
@@ -164,7 +164,7 @@ func initTest() *value.Module {
 	vm.Def(
 		c,
 		"before_all",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argFn := args[1].AsReference().(*vm.Closure)
 			CurrentSuite.RegisterBeforeAll(argFn)
 			return value.Nil, value.Undefined
@@ -174,7 +174,7 @@ func initTest() *value.Module {
 	vm.Def(
 		c,
 		"after_each",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argFn := args[1].AsReference().(*vm.Closure)
 			CurrentSuite.RegisterAfterEach(argFn)
 			return value.Nil, value.Undefined
@@ -184,7 +184,7 @@ func initTest() *value.Module {
 	vm.Def(
 		c,
 		"after_all",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argFn := args[1].AsReference().(*vm.Closure)
 			CurrentSuite.RegisterAfterAll(argFn)
 			return value.Nil, value.Undefined

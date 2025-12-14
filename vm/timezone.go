@@ -11,7 +11,7 @@ func initTimezone() {
 	Def(
 		c,
 		"get",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			name := args[1].MustReference().(value.String)
 			return value.RefErr(value.LoadTimezone(string(name)))
 		},
@@ -21,7 +21,7 @@ func initTimezone() {
 	Def(
 		c,
 		"from_offset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			offset := args[1].AsTimeSpan()
 			return value.RefErr(value.NewTimezoneFromOffsetErr(offset))
 		},
@@ -33,7 +33,7 @@ func initTimezone() {
 	Def(
 		c,
 		"name",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Timezone)
 			return value.Ref(value.String(self.Name())), value.Undefined
 		},
@@ -43,7 +43,7 @@ func initTimezone() {
 	Def(
 		c,
 		"offset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Timezone)
 			return self.StandardOffset().ToValue(), value.Undefined
 		},
@@ -53,7 +53,7 @@ func initTimezone() {
 	Def(
 		c,
 		"dst_offset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Timezone)
 			return self.DSTOffset().ToValue(), value.Undefined
 		},
@@ -62,7 +62,7 @@ func initTimezone() {
 	Def(
 		c,
 		"is_utc",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Timezone)
 			return value.ToElkBool(self.IsUTC()), value.Undefined
 		},
@@ -70,7 +70,7 @@ func initTimezone() {
 	Def(
 		c,
 		"is_local",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Timezone)
 			return value.ToElkBool(self.IsLocal()), value.Undefined
 		},
@@ -78,7 +78,7 @@ func initTimezone() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Timezone)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined

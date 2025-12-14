@@ -12,7 +12,7 @@ func initInterpolatedSymbolLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argContent := args[1].MustReference().(*ast.InterpolatedStringLiteralNode)
 
 			var argLoc *position.Location
@@ -34,7 +34,7 @@ func initInterpolatedSymbolLiteralNode() {
 	vm.Def(
 		c,
 		"content",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedSymbolLiteralNode)
 			result := value.Ref(self.Content)
 			return result, value.Undefined
@@ -45,7 +45,7 @@ func initInterpolatedSymbolLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedSymbolLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -55,7 +55,7 @@ func initInterpolatedSymbolLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedSymbolLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -66,7 +66,7 @@ func initInterpolatedSymbolLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedSymbolLiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

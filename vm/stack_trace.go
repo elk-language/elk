@@ -11,7 +11,7 @@ func initStackTrace() {
 	Def(
 		c,
 		"[]",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.StackTrace)(args[0].Pointer())
 			nVal := args[1]
 			n, ok := value.ToGoInt(nVal)
@@ -32,7 +32,7 @@ func initStackTrace() {
 	Def(
 		c,
 		"length",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.StackTrace)(args[0].Pointer())
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
@@ -40,7 +40,7 @@ func initStackTrace() {
 	Def(
 		c,
 		"to_string",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.StackTrace)(args[0].Pointer())
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -48,7 +48,7 @@ func initStackTrace() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.StackTrace)(args[0].Pointer())
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
@@ -56,7 +56,7 @@ func initStackTrace() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.StackTrace)(args[0].Pointer())
 			return value.Ref(value.NewStackTraceIterator(self)), value.Undefined
 		},
@@ -71,7 +71,7 @@ func initStackTraceIterator() {
 	Def(
 		c,
 		"next",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.StackTraceIterator)(args[0].Pointer())
 			return self.Next()
 		},
@@ -79,14 +79,14 @@ func initStackTraceIterator() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"reset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.StackTraceIterator)(args[0].Pointer())
 			self.Reset()
 			return args[0], value.Undefined

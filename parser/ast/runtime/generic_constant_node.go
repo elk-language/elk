@@ -12,7 +12,7 @@ func initGenericConstantNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argConst := args[1].MustReference().(ast.ComplexConstantNode)
 
 			argArgsTuple := args[2].MustReference().(*value.ArrayTuple)
@@ -41,7 +41,7 @@ func initGenericConstantNode() {
 	vm.Def(
 		c,
 		"constant",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstantNode)
 			result := value.Ref(self.Constant)
 			return result, value.Undefined
@@ -52,7 +52,7 @@ func initGenericConstantNode() {
 	vm.Def(
 		c,
 		"type_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstantNode)
 
 			collection := self.TypeArguments
@@ -69,7 +69,7 @@ func initGenericConstantNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstantNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -80,7 +80,7 @@ func initGenericConstantNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstantNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -91,7 +91,7 @@ func initGenericConstantNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstantNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

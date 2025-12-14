@@ -12,7 +12,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argName := args[1].MustReference().(ast.IdentifierNode)
 			argTypeNode := args[2].MustReference().(ast.TypeNode)
 
@@ -54,7 +54,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
 			result := value.Ref(self.Name)
 			return result, value.Undefined
@@ -64,7 +64,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"type_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
 			if self.TypeNode == nil {
 				return value.Nil, value.Undefined
@@ -77,7 +77,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"initialiser",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
 			if self.Initialiser == nil {
 				return value.Nil, value.Undefined
@@ -90,7 +90,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"set_instance_variable",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
 			result := value.ToElkBool(self.SetInstanceVariable)
 			return result, value.Undefined
@@ -101,7 +101,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"kind",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
 			result := value.UInt8(self.Kind).ToValue()
 			return result, value.Undefined
@@ -112,7 +112,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"is_optional",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
 			return value.ToElkBool(self.IsOptional()), value.Undefined
 
@@ -122,7 +122,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"is_normal",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
 			result := value.ToElkBool(self.Kind == ast.NormalParameterKind)
 			return result, value.Undefined
@@ -133,7 +133,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"is_positional_rest",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
 			result := value.ToElkBool(self.Kind == ast.PositionalRestParameterKind)
 			return result, value.Undefined
@@ -144,7 +144,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"is_named_rest",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
 			result := value.ToElkBool(self.Kind == ast.NamedRestParameterKind)
 			return result, value.Undefined
@@ -155,7 +155,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -165,7 +165,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -176,7 +176,7 @@ func initMethodParameterNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodParameterNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

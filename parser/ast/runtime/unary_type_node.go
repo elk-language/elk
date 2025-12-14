@@ -13,7 +13,7 @@ func initUnaryTypeNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argOp := args[1].MustReference().(*token.Token)
 			argTypeNode := args[2].MustReference().(ast.TypeNode)
 
@@ -37,7 +37,7 @@ func initUnaryTypeNode() {
 	vm.Def(
 		c,
 		"op",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnaryTypeNode)
 			result := value.Ref(self.Op)
 			return result, value.Undefined
@@ -48,7 +48,7 @@ func initUnaryTypeNode() {
 	vm.Def(
 		c,
 		"type_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnaryTypeNode)
 			result := value.Ref(self.TypeNode)
 			return result, value.Undefined
@@ -59,7 +59,7 @@ func initUnaryTypeNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnaryTypeNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -70,7 +70,7 @@ func initUnaryTypeNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnaryTypeNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -81,7 +81,7 @@ func initUnaryTypeNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnaryTypeNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

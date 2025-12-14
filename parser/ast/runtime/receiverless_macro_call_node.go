@@ -12,7 +12,7 @@ func initReceiverlessMacroCallNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argMethodName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argKind ast.MacroKind
@@ -60,7 +60,7 @@ func initReceiverlessMacroCallNode() {
 	vm.Def(
 		c,
 		"macro_name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMacroCallNode)
 			result := value.Ref(self.MacroName)
 			return result, value.Undefined
@@ -71,7 +71,7 @@ func initReceiverlessMacroCallNode() {
 	vm.Def(
 		c,
 		"positional_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMacroCallNode)
 
 			collection := self.PositionalArguments
@@ -88,7 +88,7 @@ func initReceiverlessMacroCallNode() {
 	vm.Def(
 		c,
 		"kind",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMacroCallNode)
 			result := value.UInt8(self.Kind)
 			return result.ToValue(), value.Undefined
@@ -98,7 +98,7 @@ func initReceiverlessMacroCallNode() {
 	vm.Def(
 		c,
 		"named_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMacroCallNode)
 
 			collection := self.NamedArguments
@@ -115,7 +115,7 @@ func initReceiverlessMacroCallNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMacroCallNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -125,7 +125,7 @@ func initReceiverlessMacroCallNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMacroCallNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -136,7 +136,7 @@ func initReceiverlessMacroCallNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMacroCallNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

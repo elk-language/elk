@@ -12,7 +12,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			constant := args[1].MustReference().(ast.ExpressionNode)
 
 			var body []ast.StatementNode
@@ -86,7 +86,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"is_abstract",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			result := value.ToElkBool(self.Abstract)
 			return result, value.Undefined
@@ -97,7 +97,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"is_sealed",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			result := value.ToElkBool(self.Sealed)
 			return result, value.Undefined
@@ -108,7 +108,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"is_primitive",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			result := value.ToElkBool(self.Primitive)
 			return result, value.Undefined
@@ -119,7 +119,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"is_no_init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			result := value.ToElkBool(self.NoInit)
 			return result, value.Undefined
@@ -129,7 +129,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"constant",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			if self.Constant == nil {
 				return value.Nil, value.Undefined
@@ -141,7 +141,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"type_parameters",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 
 			collection := self.TypeParameters
@@ -158,7 +158,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"superclass",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			if self.Superclass == nil {
 				return value.Nil, value.Undefined
@@ -170,7 +170,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 
 			collection := self.Body
@@ -187,7 +187,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"bytecode",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			result := value.Ref(self.Bytecode)
 			return result, value.Undefined
@@ -198,7 +198,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -208,7 +208,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -219,7 +219,7 @@ func initClassDeclarationNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

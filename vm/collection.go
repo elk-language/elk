@@ -13,7 +13,7 @@ func initCollection() {
 	Def(
 		c,
 		"remove_all",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			values := args[1]
 
@@ -42,7 +42,7 @@ func initCollection() {
 	Def(
 		c,
 		"append",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			values := args[1]
 
@@ -65,7 +65,7 @@ func initCollection() {
 	Def(
 		c,
 		"<<",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			val := args[1]
 
@@ -82,7 +82,7 @@ func initCollection() {
 	Def(
 		c,
 		"map",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -109,7 +109,7 @@ func initCollection() {
 	Def(
 		c,
 		"filter",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -138,7 +138,7 @@ func initCollection() {
 	Def(
 		c,
 		"reject",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -167,7 +167,7 @@ func initCollection() {
 	Def(
 		c,
 		"drop",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			count := args[1].AsInt()
 
@@ -203,7 +203,7 @@ func initCollection() {
 	Def(
 		c,
 		"drop_while",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -241,7 +241,7 @@ func initCollection() {
 	Def(
 		c,
 		"take",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			count := args[1].AsInt()
 
@@ -278,7 +278,7 @@ func initCollection() {
 	Def(
 		c,
 		"take_while",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 

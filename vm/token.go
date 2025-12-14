@@ -13,7 +13,7 @@ func initToken() {
 	Def(
 		c,
 		"type_name",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			typ := args[1].AsUInt16()
 			result := value.String(token.Type(typ).TypeName())
 			return value.Ref(result), value.Undefined
@@ -26,7 +26,7 @@ func initToken() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			typ := args[1].MustUInt16()
 			loc := (*value.Location)(args[2].Pointer())
 			val := args[3].SafeAsReference().(value.String)
@@ -43,7 +43,7 @@ func initToken() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*token.Token)(args[0].Pointer())
 			other := (*token.Token)(args[1].Pointer())
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -53,7 +53,7 @@ func initToken() {
 	Def(
 		c,
 		"typ",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*token.Token)(args[0].Pointer())
 			return value.UInt16(self.Type).ToValue(), value.Undefined
 		},
@@ -61,7 +61,7 @@ func initToken() {
 	Def(
 		c,
 		"type_name",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*token.Token)(args[0].Pointer())
 			result := value.String(self.Type.TypeName())
 			return value.Ref(result), value.Undefined
@@ -70,7 +70,7 @@ func initToken() {
 	Def(
 		c,
 		"value",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*token.Token)(args[0].Pointer())
 			return value.Ref(value.String(self.Value)), value.Undefined
 		},
@@ -78,7 +78,7 @@ func initToken() {
 	Def(
 		c,
 		"location",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*token.Token)(args[0].Pointer())
 			return value.Ref((*value.Location)(self.Location())), value.Undefined
 		},
@@ -86,7 +86,7 @@ func initToken() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*token.Token)(args[0].Pointer())
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},

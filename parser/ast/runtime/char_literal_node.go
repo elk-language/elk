@@ -12,7 +12,7 @@ func initCharLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argValue := (rune)(args[1].AsChar())
 
 			var argLoc *position.Location
@@ -34,7 +34,7 @@ func initCharLiteralNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CharLiteralNode)
 			result := value.Char(self.Value).ToValue()
 			return result, value.Undefined
@@ -46,7 +46,7 @@ func initCharLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CharLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -57,7 +57,7 @@ func initCharLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CharLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -68,7 +68,7 @@ func initCharLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CharLiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -78,7 +78,7 @@ func initCharLiteralNode() {
 	vm.Def(
 		c,
 		"to_ast_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsChar()
 			node := ast.NewCharLiteralNode(position.ZeroLocation, self.Rune())
 			return value.Ref(node), value.Undefined
@@ -92,7 +92,7 @@ func initCharLiteralNode() {
 	vm.Def(
 		c,
 		"to_ast_ident_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsChar()
 			node := ast.NewPublicIdentifierNode(position.ZeroLocation, string(self.Rune()))
 			return value.Ref(node), value.Undefined
@@ -101,7 +101,7 @@ func initCharLiteralNode() {
 	vm.Def(
 		c,
 		"to_ast_const_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsChar()
 			node := ast.NewPublicConstantNode(position.ZeroLocation, string(self.Rune()))
 			return value.Ref(node), value.Undefined
@@ -110,7 +110,7 @@ func initCharLiteralNode() {
 	vm.Def(
 		c,
 		"to_ast_ivar_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsChar()
 			node := ast.NewPublicInstanceVariableNode(position.ZeroLocation, string(self.Rune()))
 			return value.Ref(node), value.Undefined

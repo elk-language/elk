@@ -14,7 +14,7 @@ func initFloatLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
 			_, err := strconv.ParseFloat(argValue, 64)
 			if err != nil {
@@ -46,7 +46,7 @@ func initFloatLiteralNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.FloatLiteralNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
@@ -57,7 +57,7 @@ func initFloatLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.FloatLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -67,7 +67,7 @@ func initFloatLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.FloatLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -78,7 +78,7 @@ func initFloatLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.FloatLiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -87,7 +87,7 @@ func initFloatLiteralNode() {
 	vm.Def(
 		c,
 		"to_float",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.FloatLiteralNode)
 			result, err := strconv.ParseFloat(self.Value, 64)
 			if err != nil {
@@ -108,7 +108,7 @@ func initFloatLiteralNode() {
 	vm.Def(
 		c,
 		"to_ast_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			node := ast.NewFloatLiteralNode(position.ZeroLocation, string(self.ToString()))
 			return value.Ref(node), value.Undefined

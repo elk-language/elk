@@ -12,7 +12,7 @@ func initAttrDeclarationNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			entriesTuple := args[1].MustReference().(*value.ArrayTuple)
 			entries := make([]ast.ParameterNode, entriesTuple.Length())
 			for _, el := range *entriesTuple {
@@ -43,7 +43,7 @@ func initAttrDeclarationNode() {
 	vm.Def(
 		c,
 		"entries",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttrDeclarationNode)
 
 			collection := self.Entries
@@ -60,7 +60,7 @@ func initAttrDeclarationNode() {
 	vm.Def(
 		c,
 		"doc_comment",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttrDeclarationNode)
 			result := value.Ref((value.String)(self.DocComment()))
 			return result, value.Undefined
@@ -70,7 +70,7 @@ func initAttrDeclarationNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttrDeclarationNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -81,7 +81,7 @@ func initAttrDeclarationNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttrDeclarationNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -92,7 +92,7 @@ func initAttrDeclarationNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttrDeclarationNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

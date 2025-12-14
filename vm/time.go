@@ -11,14 +11,14 @@ func initTime() {
 	Def(
 		c,
 		"now",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.Ref(value.TimeNow()), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"parse",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			input := args[1].AsString().String()
 
 			var formatString string
@@ -42,7 +42,7 @@ func initTime() {
 	Def(
 		c,
 		"#init",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			var hour int
 			if !args[1].IsUndefined() {
 				hour = args[1].AsInt()
@@ -80,7 +80,7 @@ func initTime() {
 	Def(
 		c,
 		"format",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			arg := args[1]
 			switch a := arg.SafeAsReference().(type) {
@@ -105,7 +105,7 @@ func initTime() {
 	Def(
 		c,
 		"to_string",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.Ref(self.ToString()), value.Undefined
 		},
@@ -113,7 +113,7 @@ func initTime() {
 	Def(
 		c,
 		"to_time_span",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return self.ToTimeSpan().ToValue(), value.Undefined
 		},
@@ -121,7 +121,7 @@ func initTime() {
 	Def(
 		c,
 		"to_datetime",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.Ref(self.ToDateTime()), value.Undefined
 		},
@@ -129,14 +129,14 @@ func initTime() {
 	Def(
 		c,
 		"to_time",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"hour",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.SmallInt(self.Hour()).ToValue(), value.Undefined
 		},
@@ -144,7 +144,7 @@ func initTime() {
 	Def(
 		c,
 		"minute",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.SmallInt(self.Minute()).ToValue(), value.Undefined
 		},
@@ -152,7 +152,7 @@ func initTime() {
 	Def(
 		c,
 		"second",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.SmallInt(self.Second()).ToValue(), value.Undefined
 		},
@@ -160,7 +160,7 @@ func initTime() {
 	Def(
 		c,
 		"millisecond",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.SmallInt(self.Millisecond()).ToValue(), value.Undefined
 		},
@@ -168,7 +168,7 @@ func initTime() {
 	Def(
 		c,
 		"microsecond",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.SmallInt(self.Microsecond()).ToValue(), value.Undefined
 		},
@@ -176,7 +176,7 @@ func initTime() {
 	Def(
 		c,
 		"microseconds_in_second",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.SmallInt(self.MicrosecondsInSecond()).ToValue(), value.Undefined
 		},
@@ -184,7 +184,7 @@ func initTime() {
 	Def(
 		c,
 		"nanosecond",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.SmallInt(self.Nanosecond()).ToValue(), value.Undefined
 		},
@@ -192,7 +192,7 @@ func initTime() {
 	Def(
 		c,
 		"nanoseconds_in_second",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.SmallInt(self.NanosecondsInSecond()).ToValue(), value.Undefined
 		},
@@ -200,7 +200,7 @@ func initTime() {
 	Def(
 		c,
 		"picoseconds_in_second",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.ToElkInt(self.PicosecondsInSecond()), value.Undefined
 		},
@@ -208,7 +208,7 @@ func initTime() {
 	Def(
 		c,
 		"femtoseconds_in_second",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.ToElkInt(self.FemtosecondsInSecond()), value.Undefined
 		},
@@ -216,7 +216,7 @@ func initTime() {
 	Def(
 		c,
 		"attoseconds_in_second",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.ToElkInt(self.AttosecondsInSecond()), value.Undefined
 		},
@@ -224,7 +224,7 @@ func initTime() {
 	Def(
 		c,
 		"zeptoseconds_in_second",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.Ref(self.ZeptosecondsInSecond()), value.Undefined
 		},
@@ -232,7 +232,7 @@ func initTime() {
 	Def(
 		c,
 		"yoctoseconds_in_second",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.Ref(self.YoctosecondsInSecond()), value.Undefined
 		},
@@ -241,7 +241,7 @@ func initTime() {
 	Def(
 		c,
 		"is_am",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.ToElkBool(self.IsAM()), value.Undefined
 		},
@@ -249,7 +249,7 @@ func initTime() {
 	Def(
 		c,
 		"is_pm",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.ToElkBool(self.IsPM()), value.Undefined
 		},
@@ -257,7 +257,7 @@ func initTime() {
 	Def(
 		c,
 		"meridiem",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.Ref(value.String(self.Meridiem())), value.Undefined
 		},
@@ -266,7 +266,7 @@ func initTime() {
 	Def(
 		c,
 		"hour12",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.SmallInt(self.Hour12()).ToValue(), value.Undefined
 		},
@@ -275,7 +275,7 @@ func initTime() {
 	Def(
 		c,
 		"+",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return self.Add(args[1].AsTimeSpan()).ToValue(), value.Undefined
 		},
@@ -285,7 +285,7 @@ func initTime() {
 	Def(
 		c,
 		"-",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return self.SubtractTimeSpan(args[1].AsTimeSpan()).ToValue(), value.Undefined
 		},
@@ -294,7 +294,7 @@ func initTime() {
 	Def(
 		c,
 		"-@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return self.Diff(args[1].AsTime()).ToValue(), value.Undefined
 		},
@@ -304,7 +304,7 @@ func initTime() {
 	Def(
 		c,
 		"diff",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return self.Diff(args[1].AsTime()).ToValue(), value.Undefined
 		},
@@ -314,7 +314,7 @@ func initTime() {
 	Def(
 		c,
 		"<=>",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.SmallInt(self.Cmp(args[1].AsTime())).ToValue(), value.Undefined
 		},
@@ -324,7 +324,7 @@ func initTime() {
 	Def(
 		c,
 		">=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.ToElkBool(self.GreaterThanEqual(args[1].AsTime())), value.Undefined
 		},
@@ -334,7 +334,7 @@ func initTime() {
 	Def(
 		c,
 		">",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.ToElkBool(self.GreaterThan(args[1].AsTime())), value.Undefined
 		},
@@ -344,7 +344,7 @@ func initTime() {
 	Def(
 		c,
 		"<=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.ToElkBool(self.LessThanEqual(args[1].AsTime())), value.Undefined
 		},
@@ -354,7 +354,7 @@ func initTime() {
 	Def(
 		c,
 		"<",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			return value.ToElkBool(self.LessThan(args[1].AsTime())), value.Undefined
 		},
@@ -364,7 +364,7 @@ func initTime() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined

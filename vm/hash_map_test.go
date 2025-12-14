@@ -217,7 +217,7 @@ func TestNewHashMapWithElements(t *testing.T) {
 		},
 		"with VM with complex types that implements hash": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
 
@@ -239,7 +239,7 @@ func TestNewHashMapWithElements(t *testing.T) {
 		},
 		"with VM with complex types that implements hash improperly": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.SmallInt(5).ToValue(), value.Undefined
 			})
 
@@ -336,7 +336,7 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 		},
 		"with VM with complex types that implement hash and capacity equal to length": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
 
@@ -358,7 +358,7 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 		},
 		"with VM with complex types that implement hash and capacity greater than length": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
 
@@ -380,7 +380,7 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 		},
 		"with VM with complex types that implement hash improperly": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.SmallInt(5).ToValue(), value.Undefined
 			})
 
@@ -743,7 +743,7 @@ func TestHashMapContains(t *testing.T) {
 		},
 		"with vm get missing key that implements necessary methods": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
 
@@ -770,10 +770,10 @@ func TestHashMapContains(t *testing.T) {
 		},
 		"with vm get key that implements necessary methods": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("PizdaClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
-			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
 					return value.True, value.Undefined
@@ -805,10 +805,10 @@ func TestHashMapContains(t *testing.T) {
 		},
 		"with vm get key that implements necessary methods but has wrong value": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("PizdaClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
-			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
 					return value.True, value.Undefined
@@ -1154,7 +1154,7 @@ func TestHashMapContainsKey(t *testing.T) {
 		},
 		"with vm get missing key that implements necessary methods": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
 
@@ -1181,10 +1181,10 @@ func TestHashMapContainsKey(t *testing.T) {
 		},
 		"with vm get key that implements necessary methods": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("PizdaClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
-			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
 					return value.True, value.Undefined
@@ -1531,7 +1531,7 @@ func TestHashMapGet(t *testing.T) {
 		},
 		"with vm get missing key that implements necessary methods": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
 
@@ -1558,10 +1558,10 @@ func TestHashMapGet(t *testing.T) {
 		},
 		"with vm get key that implements necessary methods": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
-			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
 					return value.True, value.Undefined
@@ -1710,14 +1710,14 @@ func TestHashMapSetCapacity(t *testing.T) {
 			vm.Def(
 				&testClass.MethodContainer,
 				"hash",
-				func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 					return value.UInt64(10).ToValue(), value.Undefined
 				},
 			)
 			vm.Def(
 				&testClass.MethodContainer,
 				"==",
-				func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 					if _, ok := args[1].MustReference().(*value.Object); ok {
 						return value.True, value.Undefined
 					}
@@ -2145,10 +2145,10 @@ func TestHashMapSet(t *testing.T) {
 		},
 		"with vm set existing key that implements necessary methods": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
-			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
 					return value.True, value.Undefined
@@ -2200,10 +2200,10 @@ func TestHashMapSet(t *testing.T) {
 		},
 		"with vm set key that implements necessary methods": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("PizdaClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
-			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
 					return value.True, value.Undefined
@@ -2646,7 +2646,7 @@ func TestHashMapDelete(t *testing.T) {
 		},
 		"with vm delete missing key that implements necessary methods": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
 
@@ -2689,10 +2689,10 @@ func TestHashMapDelete(t *testing.T) {
 		},
 		"with vm delete key that implements necessary methods": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("PizdaClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
-			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
 					return value.True, value.Undefined

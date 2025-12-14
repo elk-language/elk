@@ -12,7 +12,7 @@ func initNumericForExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argInitialiser ast.ExpressionNode
 			if !args[1].IsUndefined() {
 				argInitialiser = args[1].MustReference().(ast.ExpressionNode)
@@ -59,7 +59,7 @@ func initNumericForExpressionNode() {
 	vm.Def(
 		c,
 		"initialiser",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
 			if self.Initialiser == nil {
 				return value.Nil, value.Undefined
@@ -72,7 +72,7 @@ func initNumericForExpressionNode() {
 	vm.Def(
 		c,
 		"condition",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
 			if self.Condition == nil {
 				return value.Nil, value.Undefined
@@ -86,7 +86,7 @@ func initNumericForExpressionNode() {
 	vm.Def(
 		c,
 		"increment",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
 			if self.Increment == nil {
 				return value.Nil, value.Undefined
@@ -100,7 +100,7 @@ func initNumericForExpressionNode() {
 	vm.Def(
 		c,
 		"then_body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
 
 			collection := self.ThenBody
@@ -117,7 +117,7 @@ func initNumericForExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -128,7 +128,7 @@ func initNumericForExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -139,7 +139,7 @@ func initNumericForExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

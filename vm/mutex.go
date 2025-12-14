@@ -11,7 +11,7 @@ func initMutex() {
 	Def(
 		c,
 		"lock",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Mutex)(args[0].Pointer())
 			self.Lock()
 			return value.Nil, value.Undefined
@@ -20,7 +20,7 @@ func initMutex() {
 	Def(
 		c,
 		"unlock",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Mutex)(args[0].Pointer())
 			if err := self.Unlock(); !err.IsUndefined() {
 				return value.Undefined, err
@@ -32,7 +32,7 @@ func initMutex() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Mutex)(args[0].Pointer())
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},

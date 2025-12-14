@@ -10,7 +10,7 @@ func initChar() {
 	Def(
 		c,
 		"++",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			return (self + 1).ToValue(), value.Undefined
 		},
@@ -18,7 +18,7 @@ func initChar() {
 	Def(
 		c,
 		"--",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			return (self - 1).ToValue(), value.Undefined
 		},
@@ -26,7 +26,7 @@ func initChar() {
 	Def(
 		c,
 		"+",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
 			return value.RefErr(self.Concat(other))
@@ -38,7 +38,7 @@ func initChar() {
 	Def(
 		c,
 		"*",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
 			return value.RefErr(self.Repeat(other))
@@ -50,7 +50,7 @@ func initChar() {
 	Def(
 		c,
 		"<=>",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
 			return self.CompareVal(other)
@@ -60,7 +60,7 @@ func initChar() {
 	Def(
 		c,
 		"<=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
 			return self.LessThanEqualVal(other)
@@ -70,7 +70,7 @@ func initChar() {
 	Def(
 		c,
 		"<",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
 			return self.LessThanVal(other)
@@ -80,7 +80,7 @@ func initChar() {
 	Def(
 		c,
 		">",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
 			return self.GreaterThanVal(other)
@@ -90,7 +90,7 @@ func initChar() {
 	Def(
 		c,
 		">=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
 			return self.GreaterThanEqualVal(other)
@@ -100,7 +100,7 @@ func initChar() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			other := args[1]
 			return self.EqualVal(other), value.Undefined
@@ -111,7 +111,7 @@ func initChar() {
 	Def(
 		c,
 		"uppercase",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			return self.Uppercase().ToValue(), value.Undefined
 		},
@@ -119,7 +119,7 @@ func initChar() {
 	Def(
 		c,
 		"lowercase",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			return self.Lowercase().ToValue(), value.Undefined
 		},
@@ -128,7 +128,7 @@ func initChar() {
 	Def(
 		c,
 		"length",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			return value.SmallInt(self.CharCount()).ToValue(), value.Undefined
 		},
@@ -138,7 +138,7 @@ func initChar() {
 	Def(
 		c,
 		"byte_count",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			return value.SmallInt(self.ByteCount()).ToValue(), value.Undefined
 		},
@@ -146,7 +146,7 @@ func initChar() {
 	Def(
 		c,
 		"grapheme_count",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			return value.SmallInt(self.GraphemeCount()).ToValue(), value.Undefined
 		},
@@ -154,7 +154,7 @@ func initChar() {
 	Def(
 		c,
 		"to_string",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			return value.Ref(value.String(string(self))), value.Undefined
 		},
@@ -162,7 +162,7 @@ func initChar() {
 	Def(
 		c,
 		"to_symbol",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			return value.ToSymbol(string(self)).ToValue(), value.Undefined
 		},
@@ -170,7 +170,7 @@ func initChar() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustChar()
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
@@ -178,7 +178,7 @@ func initChar() {
 	Def(
 		c,
 		"is_empty",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.False, value.Undefined
 		},
 	)

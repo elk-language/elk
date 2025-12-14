@@ -12,7 +12,7 @@ func initUnquoteNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argExprNode := args[1].MustReference().(ast.ExpressionNode)
 
 			var argKind ast.UnquoteKind
@@ -41,7 +41,7 @@ func initUnquoteNode() {
 	vm.Def(
 		c,
 		"expression",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnquoteNode)
 			result := value.Ref(self.Expression)
 			return result, value.Undefined
@@ -51,7 +51,7 @@ func initUnquoteNode() {
 	vm.Def(
 		c,
 		"kind",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnquoteNode)
 			result := value.UInt8(self.Kind)
 			return result.ToValue(), value.Undefined
@@ -61,7 +61,7 @@ func initUnquoteNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnquoteNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -71,7 +71,7 @@ func initUnquoteNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnquoteNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -82,7 +82,7 @@ func initUnquoteNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnquoteNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -91,7 +91,7 @@ func initUnquoteNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			return value.Ref(value.String("")), value.Undefined
 		},
 	)

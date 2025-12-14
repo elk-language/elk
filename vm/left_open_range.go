@@ -11,7 +11,7 @@ func initLeftOpenRange() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.LeftOpenRange)
 			iterator := value.NewLeftOpenRangeIterator(self)
 			return value.Ref(iterator), value.Undefined
@@ -20,7 +20,7 @@ func initLeftOpenRange() {
 	Def(
 		c,
 		"==",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.LeftOpenRange)
 			other, ok := args[1].SafeAsReference().(*value.LeftOpenRange)
 			if !ok {
@@ -40,7 +40,7 @@ func initLeftOpenRange() {
 	Def(
 		c,
 		"#contains",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.LeftOpenRange)
 			other := args[1]
 			if !value.IsA(other, self.Start.Class()) && !value.IsA(other, self.End.Class()) {
@@ -57,7 +57,7 @@ func initLeftOpenRange() {
 	Def(
 		c,
 		"contains",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.LeftOpenRange)
 			other := args[1]
 			contains, err := LeftOpenRangeContains(vm, self, other)
@@ -71,35 +71,35 @@ func initLeftOpenRange() {
 	Def(
 		c,
 		"is_left_closed",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.False, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_left_open",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.True, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_closed",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.True, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_open",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.False, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"start",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.LeftOpenRange)
 			return self.Start, value.Undefined
 		},
@@ -107,7 +107,7 @@ func initLeftOpenRange() {
 	Def(
 		c,
 		"end",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.LeftOpenRange)
 			return self.End, value.Undefined
 		},
@@ -121,7 +121,7 @@ func initLeftOpenRangeIterator() {
 	Def(
 		c,
 		"next",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.LeftOpenRangeIterator)(args[0].Pointer())
 			return LeftOpenRangeIteratorNext(vm, self)
 		},
@@ -129,14 +129,14 @@ func initLeftOpenRangeIterator() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"reset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.LeftOpenRangeIterator)(args[0].Pointer())
 			self.Reset()
 			return args[0], value.Undefined
@@ -146,7 +146,7 @@ func initLeftOpenRangeIterator() {
 }
 
 // Checks whether a value is contained in the left open range
-func LeftOpenRangeContains(vm *VM, r *value.LeftOpenRange, val value.Value) (bool, value.Value) {
+func LeftOpenRangeContains(vm *Thread, r *value.LeftOpenRange, val value.Value) (bool, value.Value) {
 	eqVal, err := GreaterThan(vm, val, r.Start)
 	if !err.IsUndefined() {
 		return false, err
@@ -165,7 +165,7 @@ func LeftOpenRangeContains(vm *VM, r *value.LeftOpenRange, val value.Value) (boo
 }
 
 // Checks whether two left open ranges are equal
-func LeftOpenRangeEqual(vm *VM, x, y *value.LeftOpenRange) (bool, value.Value) {
+func LeftOpenRangeEqual(vm *Thread, x, y *value.LeftOpenRange) (bool, value.Value) {
 	eqVal, err := Equal(vm, x.Start, y.Start)
 	if !err.IsUndefined() {
 		return false, err
@@ -184,7 +184,7 @@ func LeftOpenRangeEqual(vm *VM, x, y *value.LeftOpenRange) (bool, value.Value) {
 }
 
 // Get the next element of the range
-func LeftOpenRangeIteratorNext(vm *VM, i *value.LeftOpenRangeIterator) (value.Value, value.Value) {
+func LeftOpenRangeIteratorNext(vm *Thread, i *value.LeftOpenRangeIterator) (value.Value, value.Value) {
 	// i.CurrentElement++
 	next, err := Increment(vm, i.CurrentElement)
 	if !err.IsUndefined() {

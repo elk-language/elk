@@ -13,7 +13,7 @@ func initLocation() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Location)(args[0].Pointer())
 			path := (*value.Path)(args[1].Pointer())
 			span := (*value.Span)(args[2].Pointer())
@@ -27,7 +27,7 @@ func initLocation() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Location)(args[0].Pointer())
 			other := (*value.Location)(args[1].Pointer())
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -37,7 +37,7 @@ func initLocation() {
 	Def(
 		c,
 		"span",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Location)(args[0].Pointer())
 			return value.Ref(self.SpanValue()), value.Undefined
 		},
@@ -45,7 +45,7 @@ func initLocation() {
 	Def(
 		c,
 		"file_path",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Location)(args[0].Pointer())
 			return value.Ref(value.NewPath(self.FilePath)), value.Undefined
 		},
@@ -53,7 +53,7 @@ func initLocation() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Location)(args[0].Pointer())
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},

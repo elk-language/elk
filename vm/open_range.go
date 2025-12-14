@@ -11,7 +11,7 @@ func initOpenRange() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.OpenRange)
 			iterator := value.NewOpenRangeIterator(self)
 			return value.Ref(iterator), value.Undefined
@@ -20,7 +20,7 @@ func initOpenRange() {
 	Def(
 		c,
 		"==",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.OpenRange)
 			other, ok := args[1].SafeAsReference().(*value.OpenRange)
 			if !ok {
@@ -40,7 +40,7 @@ func initOpenRange() {
 	Def(
 		c,
 		"#contains",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.OpenRange)
 			other := args[1]
 			if !value.IsA(other, self.Start.Class()) && !value.IsA(other, self.End.Class()) {
@@ -57,7 +57,7 @@ func initOpenRange() {
 	Def(
 		c,
 		"contains",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.OpenRange)
 			other := args[1]
 			contains, err := OpenRangeContains(vm, self, other)
@@ -71,35 +71,35 @@ func initOpenRange() {
 	Def(
 		c,
 		"is_left_closed",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.False, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_left_open",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.True, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_closed",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.False, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_open",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.True, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"start",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.OpenRange)
 			return self.Start, value.Undefined
 		},
@@ -107,7 +107,7 @@ func initOpenRange() {
 	Def(
 		c,
 		"end",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.OpenRange)
 			return self.End, value.Undefined
 		},
@@ -121,7 +121,7 @@ func initOpenRangeIterator() {
 	Def(
 		c,
 		"next",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.OpenRangeIterator)(args[0].Pointer())
 			return OpenRangeIteratorNext(vm, self)
 		},
@@ -129,14 +129,14 @@ func initOpenRangeIterator() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"reset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.OpenRangeIterator)(args[0].Pointer())
 			self.Reset()
 			return args[0], value.Undefined
@@ -146,7 +146,7 @@ func initOpenRangeIterator() {
 }
 
 // Checks whether a value is contained in the open range
-func OpenRangeContains(vm *VM, r *value.OpenRange, val value.Value) (bool, value.Value) {
+func OpenRangeContains(vm *Thread, r *value.OpenRange, val value.Value) (bool, value.Value) {
 	eqVal, err := GreaterThan(vm, val, r.Start)
 	if !err.IsUndefined() {
 		return false, err
@@ -165,7 +165,7 @@ func OpenRangeContains(vm *VM, r *value.OpenRange, val value.Value) (bool, value
 }
 
 // Checks whether two open ranges are equal
-func OpenRangeEqual(vm *VM, x *value.OpenRange, y *value.OpenRange) (bool, value.Value) {
+func OpenRangeEqual(vm *Thread, x *value.OpenRange, y *value.OpenRange) (bool, value.Value) {
 	eqVal, err := Equal(vm, x.Start, y.Start)
 	if !err.IsUndefined() {
 		return false, err
@@ -184,7 +184,7 @@ func OpenRangeEqual(vm *VM, x *value.OpenRange, y *value.OpenRange) (bool, value
 }
 
 // Get the next element of the range
-func OpenRangeIteratorNext(vm *VM, i *value.OpenRangeIterator) (value.Value, value.Value) {
+func OpenRangeIteratorNext(vm *Thread, i *value.OpenRangeIterator) (value.Value, value.Value) {
 	// i.CurrentElement++
 	next, err := Increment(vm, i.CurrentElement)
 	if !err.IsUndefined() {

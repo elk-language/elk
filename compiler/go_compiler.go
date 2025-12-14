@@ -256,7 +256,7 @@ func (c *GoCompiler) FinishIvarIndicesCompiler(location *position.Location, exec
 	}
 
 	var funcBuffer bytes.Buffer
-	fmt.Fprintf(&funcBuffer, "func ivarIndices(thread *vm.VM) {\n")
+	fmt.Fprintf(&funcBuffer, "func ivarIndices(thread *vm.Thread) {\n")
 	c.compileLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}\n")
@@ -422,7 +422,7 @@ func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []as
 	c.compileMethodFuncLiteralBody(parameters, body)
 
 	var funcBuffer bytes.Buffer
-	fmt.Fprintf(&funcBuffer, "func(thread *vm.VM, args []value.Value) (value.Value, value.Value) { // loc: %s\n", loc.String())
+	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // loc: %s\n", loc.String())
 	c.compileLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}")
@@ -957,7 +957,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.FuncName, c.loc.FilePath)
 		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n")
 	} else {
-		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.VM) { // loc: %s\n", c.FuncName, c.loc.FilePath)
+		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // loc: %s\n", c.FuncName, c.loc.FilePath)
 	}
 	c.registerGoLocal("self", types.Any{}, goValueType)
 	c.compileLocalsTo(&funcBuffer)
@@ -1205,7 +1205,7 @@ func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Na
 	c.parent.emit("%s(thread)\n", c.FuncName)
 
 	var funcBuffer bytes.Buffer
-	fmt.Fprintf(&funcBuffer, "func %s(thread *vm.VM) { // namespace: %s, loc: %s\n", c.FuncName, typ.Name(), c.loc.String())
+	fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // namespace: %s, loc: %s\n", c.FuncName, typ.Name(), c.loc.String())
 	c.compileLocalsTo(&funcBuffer)
 
 	switch typ := typ.(type) {

@@ -12,7 +12,7 @@ func initInt16LiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
 			_, err := value.ParseBigIntWithErr(argValue, 0, value.Int16LiteralNodeFormatErrorClass)
 			if !err.IsUndefined() {
@@ -38,7 +38,7 @@ func initInt16LiteralNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.Int16LiteralNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
@@ -49,7 +49,7 @@ func initInt16LiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.Int16LiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -59,7 +59,7 @@ func initInt16LiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.Int16LiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -70,7 +70,7 @@ func initInt16LiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.Int16LiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -79,7 +79,7 @@ func initInt16LiteralNode() {
 	vm.Def(
 		c,
 		"to_int16",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.Int16LiteralNode)
 			result, err := value.StrictParseIntWithErr(self.Value, 0, 16, value.Int16LiteralNodeFormatErrorClass)
 			if !err.IsUndefined() {
@@ -94,7 +94,7 @@ func initInt16LiteralNode() {
 	vm.Def(
 		c,
 		"to_ast_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsInt16()
 			node := ast.NewInt16LiteralNode(position.ZeroLocation, string(self.ToString()))
 			return value.Ref(node), value.Undefined

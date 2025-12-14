@@ -12,7 +12,7 @@ func initClass() {
 	Def(
 		c,
 		"superclass",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Class)
 			superclass := self.Superclass()
 			if superclass == nil {
@@ -24,7 +24,7 @@ func initClass() {
 	Def(
 		c,
 		"name",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Class)
 			return value.Ref(value.String(self.Name)), value.Undefined
 		},

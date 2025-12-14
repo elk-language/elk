@@ -12,7 +12,7 @@ func initThrowExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argValue ast.ExpressionNode
 			if !args[1].IsUndefined() {
 				argValue = args[1].MustReference().(ast.ExpressionNode)
@@ -44,7 +44,7 @@ func initThrowExpressionNode() {
 	vm.Def(
 		c,
 		"is_unchecked",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ThrowExpressionNode)
 			result := value.ToElkBool(self.Unchecked)
 			return result, value.Undefined
@@ -54,7 +54,7 @@ func initThrowExpressionNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ThrowExpressionNode)
 			if self.Value == nil {
 				return value.Nil, value.Undefined
@@ -67,7 +67,7 @@ func initThrowExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ThrowExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -78,7 +78,7 @@ func initThrowExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ThrowExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -89,7 +89,7 @@ func initThrowExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ThrowExpressionNode)
 			result := value.Ref(value.String(self.String()))
 			return result, value.Undefined

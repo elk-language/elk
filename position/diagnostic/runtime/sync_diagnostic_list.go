@@ -18,7 +18,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"iter",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.SyncDiagnosticList)
 			iterator := value.NewSyncDiagnosticListIterator(self)
 			return value.Ref(iterator), value.Undefined
@@ -27,7 +27,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"capacity",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.SyncDiagnosticList)
 			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
 		},
@@ -35,7 +35,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"length",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.SyncDiagnosticList)
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
@@ -43,7 +43,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"left_capacity",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.SyncDiagnosticList)
 			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
 		},
@@ -52,7 +52,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"[]",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.SyncDiagnosticList)(args[0].Pointer())
 			other := args[1]
 			return self.Subscript(other)
@@ -63,7 +63,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"[]=",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.SyncDiagnosticList)
 			key := args[1]
 			val := (*value.Diagnostic)(args[2].Pointer())
@@ -78,7 +78,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"append",
-		func(vm *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.SyncDiagnosticList)
 			values := args[1].MustReference().(*value.ArrayTuple)
 
@@ -98,7 +98,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"<<",
-		func(vm *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.SyncDiagnosticList)
 			val := (*value.Diagnostic)(args[1].Pointer())
 			self.Append(val)
@@ -111,7 +111,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"==",
-		func(v *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(v *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.SyncDiagnosticList)(args[0].Pointer())
 			switch other := args[1].SafeAsReference().(type) {
 			case *value.SyncDiagnosticList:
@@ -131,7 +131,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"contains",
-		func(v *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(v *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.SyncDiagnosticList)(args[0].Pointer())
 			contains, err := SyncDiagnosticListContains(v, self, args[1])
 			if !err.IsUndefined() {
@@ -145,7 +145,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"+",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.SyncDiagnosticList)
 			other := args[1]
 			return value.RefErr(self.Concat(other))
@@ -155,7 +155,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"*",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.SyncDiagnosticList)
 			other := args[1]
 			return value.RefErr(self.Repeat(other))
@@ -166,7 +166,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"to_human_string",
-		func(v *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(v *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*diagnostic.DiagnosticList)(args[0].Pointer())
 
 			style := true
@@ -193,7 +193,7 @@ func initSyncDiagnosticList() {
 	vm.Def(
 		c,
 		"is_failure",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*diagnostic.DiagnosticList)(args[0].Pointer())
 			return value.ToElkBool(self.IsFailure()), value.Undefined
 		},
@@ -207,7 +207,7 @@ func initSyncDiagnosticListIterator() {
 	vm.Def(
 		c,
 		"next",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.SyncDiagnosticListIterator)(args[0].Pointer())
 			return self.Next()
 		},
@@ -215,14 +215,14 @@ func initSyncDiagnosticListIterator() {
 	vm.Def(
 		c,
 		"iter",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	vm.Def(
 		c,
 		"reset",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.SyncDiagnosticListIterator)(args[0].Pointer())
 			self.Reset()
 			return args[0], value.Undefined
@@ -230,7 +230,7 @@ func initSyncDiagnosticListIterator() {
 	)
 }
 
-func SyncDiagnosticListEqual(v *vm.VM, x, y *value.SyncDiagnosticList) (bool, value.Value) {
+func SyncDiagnosticListEqual(v *vm.Thread, x, y *value.SyncDiagnosticList) (bool, value.Value) {
 	x.Mutex.Lock()
 	y.Mutex.Lock()
 
@@ -258,7 +258,7 @@ func SyncDiagnosticListEqual(v *vm.VM, x, y *value.SyncDiagnosticList) (bool, va
 	return true, value.Undefined
 }
 
-func SyncDiagnosticListContains(v *vm.VM, list *value.SyncDiagnosticList, val value.Value) (bool, value.Value) {
+func SyncDiagnosticListContains(v *vm.Thread, list *value.SyncDiagnosticList, val value.Value) (bool, value.Value) {
 	list.Mutex.Lock()
 	defer list.Mutex.Unlock()
 

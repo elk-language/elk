@@ -12,7 +12,7 @@ func initComparable() {
 	Def(
 		c,
 		">",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
@@ -32,7 +32,7 @@ func initComparable() {
 	Def(
 		c,
 		">=",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
@@ -52,7 +52,7 @@ func initComparable() {
 	Def(
 		c,
 		"<",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
@@ -72,7 +72,7 @@ func initComparable() {
 	Def(
 		c,
 		"<=",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
@@ -92,7 +92,7 @@ func initComparable() {
 	Def(
 		c,
 		"==",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
@@ -112,7 +112,7 @@ func initComparable() {
 	Def(
 		c,
 		"===",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.Class() != other.Class() {

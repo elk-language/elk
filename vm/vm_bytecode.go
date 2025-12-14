@@ -20,7 +20,7 @@ import (
 )
 
 // A single instance of the Elk Virtual Machine.
-type VM struct {
+type Thread struct {
 	ID     int64
 	Stdin  io.Reader // standard output used by the VM
 	Stdout io.Writer // standard input used by the VM
@@ -43,7 +43,7 @@ type VM struct {
 }
 
 // Create a new VM instance.
-func New(opts ...Option) *VM {
+func New(opts ...Option) *Thread {
 	stack := make([]value.Value, INIT_VALUE_STACK_SIZE)
 	// mark the end of the value stack with a sentinel value
 	stack[len(stack)-1] = value.MakeSentinelValue()
@@ -54,7 +54,7 @@ func New(opts ...Option) *VM {
 
 	id := currentID.Add(1)
 
-	vm := &VM{
+	vm := &Thread{
 		ID:         id,
 		stack:      stack,
 		sp:         uintptr(unsafe.Pointer(&stack[0])),
@@ -75,7 +75,7 @@ func New(opts ...Option) *VM {
 }
 
 // Execute the given bytecode chunk.
-func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value) {
+func (vm *Thread) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
 	vm.ipSet(&fn.Instructions[0])
 	vm.push(value.Ref(value.GlobalObject))
@@ -90,7 +90,7 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value)
 }
 
 // Execute the given bytecode chunk.
-func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
+func (vm *Thread) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
 	vm.ipSet(&fn.Instructions[0])
 	vm.tailCallCounter = 0
@@ -111,7 +111,7 @@ func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	return vm.peek(), value.Undefined
 }
 
-func (vm *VM) runWithState() {
+func (vm *Thread) runWithState() {
 	vm.state = runningState
 	vm.run()
 	if vm.state != errorState {
@@ -120,7 +120,7 @@ func (vm *VM) runWithState() {
 }
 
 // Get the stored error.
-func (vm *VM) Err() value.Value {
+func (vm *Thread) Err() value.Value {
 	if vm.state == errorState {
 		return vm.peek()
 	}
@@ -129,54 +129,54 @@ func (vm *VM) Err() value.Value {
 }
 
 // Get the value on top of the value stack.
-func (vm *VM) StackTop() value.Value {
+func (vm *Thread) StackTop() value.Value {
 	return vm.peek()
 }
 
-func (vm *VM) ValueStack() []value.Value {
+func (vm *Thread) ValueStack() []value.Value {
 	spIndex := vm.spOffset()
 	return vm.stack[:spIndex]
 }
 
-func (vm *VM) callStack() []CallFrame {
+func (vm *Thread) callStack() []CallFrame {
 	cfIndex := vm.cfpOffset()
 	return vm.callFrames[:cfIndex]
 }
 
-func (vm *VM) stackFrame() []value.Value {
+func (vm *Thread) stackFrame() []value.Value {
 	spIndex := vm.spOffset()
 	fpIndex := vm.fpOffset()
 	return vm.stack[fpIndex:spIndex]
 }
 
-func (vm *VM) stackFrameCopy() []value.Value {
+func (vm *Thread) stackFrameCopy() []value.Value {
 	stack := vm.stackFrame()
 	stackCopy := make([]value.Value, len(stack))
 	copy(stackCopy, stack)
 	return stackCopy
 }
 
-func (vm *VM) InspectValueStack() {
+func (vm *Thread) InspectValueStack() {
 	fmt.Println("value stack:")
 	for i, value := range vm.ValueStack() {
 		fmt.Printf("%d => %s\n", i, value.Inspect())
 	}
 }
 
-func (vm *VM) InspectCallStack() {
+func (vm *Thread) InspectCallStack() {
 	fmt.Println("call stack:")
 	for i, frame := range vm.callStack() {
 		fmt.Printf("%d => %#v\n", i, frame)
 	}
 }
 
-func (vm *VM) throwIfErr(err value.Value) {
+func (vm *Thread) throwIfErr(err value.Value) {
 	if !err.IsUndefined() {
 		vm.throw(err)
 	}
 }
 
-func (vm *VM) callBytecodePromise(promise *Promise) {
+func (vm *Thread) callBytecodePromise(promise *Promise) {
 	vm.state = runningState
 	vm.createCurrentCallFrame(true)
 
@@ -210,7 +210,7 @@ func (vm *VM) callBytecodePromise(promise *Promise) {
 	}
 }
 
-func (vm *VM) CallGeneratorNext(generator *Generator) (value.Value, value.Value) {
+func (vm *Thread) CallGeneratorNext(generator *Generator) (value.Value, value.Value) {
 	vm.createCurrentCallFrame(true)
 	vm.bytecode = generator.Bytecode
 	vm.fp = vm.sp
@@ -248,7 +248,7 @@ func (vm *VM) CallGeneratorNext(generator *Generator) (value.Value, value.Value)
 }
 
 // Call a callable value from Go code, preserving the state of the VM.
-func (vm *VM) CallCallable(args ...value.Value) (value.Value, value.Value) {
+func (vm *Thread) CallCallable(args ...value.Value) (value.Value, value.Value) {
 	function := args[0]
 	switch f := function.SafeAsReference().(type) {
 	case *Closure:
@@ -258,7 +258,7 @@ func (vm *VM) CallCallable(args ...value.Value) (value.Value, value.Value) {
 	}
 }
 
-func (vm *VM) callGo(closure *Closure) {
+func (vm *Thread) callGo(closure *Closure) {
 	vm.bytecode = closure.Bytecode
 	vm.fp = vm.sp
 	vm.ipSet(&closure.Bytecode.Instructions[0])
@@ -283,7 +283,7 @@ func (vm *VM) callGo(closure *Closure) {
 }
 
 // Call an Elk closure from Go code, preserving the state of the VM.
-func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, value.Value) {
+func (vm *Thread) CallClosure(closure *Closure, args ...value.Value) (value.Value, value.Value) {
 	if closure.VMID != vm.ID && closure.HasOpenUpvalues() {
 		return value.Undefined, value.Ref(value.NewOpenClosureError(
 			closure.VMID,
@@ -321,7 +321,7 @@ func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, v
 }
 
 // Call an Elk method from Go code, preserving the state of the VM.
-func (vm *VM) CallMethodByName(name value.Symbol, args ...value.Value) (value.Value, value.Value) {
+func (vm *Thread) CallMethodByName(name value.Symbol, args ...value.Value) (value.Value, value.Value) {
 	self := args[0]
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
@@ -329,14 +329,14 @@ func (vm *VM) CallMethodByName(name value.Symbol, args ...value.Value) (value.Va
 }
 
 // Call an Elk method from Go code, preserving the state of the VM.
-func (vm *VM) CallMethodByNameWithCache(name value.Symbol, cc **value.CallCache, args ...value.Value) (value.Value, value.Value) {
+func (vm *Thread) CallMethodByNameWithCache(name value.Symbol, cc **value.CallCache, args ...value.Value) (value.Value, value.Value) {
 	self := args[0]
 	class := self.DirectClass()
 	method := value.LookupMethodInCache(class, name, cc)
 	return vm.CallMethod(method, args...)
 }
 
-func (vm *VM) CallMethod(method value.Method, args ...value.Value) (value.Value, value.Value) {
+func (vm *Thread) CallMethod(method value.Method, args ...value.Value) (value.Value, value.Value) {
 	self := args[0]
 	paramCount := method.ParameterCount()
 	argCount := len(args) - 1
@@ -373,7 +373,7 @@ func (vm *VM) CallMethod(method value.Method, args ...value.Value) (value.Value,
 
 // Call a method without preprocessing its arguments, directly
 // on the stack as it is.
-func (vm *VM) callMethodOnStack(method value.Method, args int) value.Value {
+func (vm *Thread) callMethodOnStack(method value.Method, args int) value.Value {
 	switch m := method.(type) {
 	case *BytecodeFunction:
 		vm.createCurrentCallFrame(false)
@@ -396,7 +396,7 @@ func (vm *VM) callMethodOnStack(method value.Method, args int) value.Value {
 	return value.Undefined
 }
 
-func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
+func (vm *Thread) callMethodOnStackByName(name value.Symbol, args int) value.Value {
 	self := *vm.spAdd(-args - 1)
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
@@ -404,7 +404,7 @@ func (vm *VM) callMethodOnStackByName(name value.Symbol, args int) value.Value {
 }
 
 // The main execution loop of the VM.
-func (vm *VM) run() {
+func (vm *Thread) run() {
 	defer func() {
 		// Return normally if the panic was an elk error
 		r := recover()
@@ -1274,11 +1274,11 @@ func (vm *VM) run() {
 
 // Creates a new VM instance.
 // Spins up a new goroutine and executes the closure on top of the stack in it.
-func (vm *VM) opGo() {
+func (vm *Thread) opGo() {
 	closure := (*Closure)(vm.peek().Pointer())
 	thread := New(WithStdin(vm.Stdin), WithStdout(vm.Stdout), WithStderr(vm.Stderr))
 
-	go func(closure *Closure, thread *VM) {
+	go func(closure *Closure, thread *Thread) {
 		thread.state = runningState
 		thread.callGo(closure)
 		if thread.state != errorState {
@@ -1292,7 +1292,7 @@ func (vm *VM) opGo() {
 	vm.replace(value.Ref(thread))
 }
 
-func (vm *VM) opClosedClosure() {
+func (vm *Thread) opClosedClosure() {
 	function := vm.peek().AsReference().(*BytecodeFunction)
 	closure := NewClosure(vm.ID, function, vm.selfValue())
 	vm.replace(value.Ref(closure))
@@ -1319,7 +1319,7 @@ func (vm *VM) opClosedClosure() {
 	}
 }
 
-func (vm *VM) opClosure() {
+func (vm *Thread) opClosure() {
 	function := vm.peek().AsReference().(*BytecodeFunction)
 	closure := NewClosure(vm.ID, function, vm.selfValue())
 	vm.replace(value.Ref(closure))
@@ -1346,7 +1346,7 @@ func (vm *VM) opClosure() {
 	}
 }
 
-func (vm *VM) captureUpvalue(slot *value.Value) *Upvalue {
+func (vm *Thread) captureUpvalue(slot *value.Value) *Upvalue {
 	var prevUpvalue *Upvalue
 	currentUpvalue := vm.openUpvalueHead
 	for {
@@ -1373,14 +1373,14 @@ func (vm *VM) captureUpvalue(slot *value.Value) *Upvalue {
 	return newUpvalue
 }
 
-func (vm *VM) ClearStackFrames() {
+func (vm *Thread) ClearStackFrames() {
 	vm.cfpSet(&vm.callFrames[0])
 }
 
 // Restore the state of the VM to the last call frame.
 //
 //go:inline
-func (vm *VM) restoreLastFrame() bool {
+func (vm *Thread) restoreLastFrame() bool {
 	vm.cfpDecrementBy(1)
 	cf := vm.cfpGet()
 
@@ -1396,20 +1396,20 @@ func (vm *VM) restoreLastFrame() bool {
 	return cf.stopVM
 }
 
-func (vm *VM) PopCallFrame() {
+func (vm *Thread) PopCallFrame() {
 	vm.restoreLastFrame()
 }
 
-func (vm *VM) PrintError() {
+func (vm *Thread) PrintError() {
 	vm.PrintErrorValue(vm.Err())
 }
 
-func (vm *VM) ResetError() {
+func (vm *Thread) ResetError() {
 	vm.state = idleState
 	vm.errStackTrace = nil
 }
 
-func (vm *VM) GetStackTrace() *value.StackTrace {
+func (vm *Thread) GetStackTrace() *value.StackTrace {
 	if vm.errStackTrace != nil {
 		return vm.errStackTrace
 	}
@@ -1417,7 +1417,7 @@ func (vm *VM) GetStackTrace() *value.StackTrace {
 	return vm.BuildStackTrace()
 }
 
-func (vm *VM) makeCallFrameObject() value.CallFrame {
+func (vm *Thread) makeCallFrameObject() value.CallFrame {
 	return value.CallFrame{
 		LineNumber:      vm.bytecode.GetLineNumber(vm.ipOffset() - 1),
 		FileName:        vm.bytecode.FileName(),
@@ -1426,7 +1426,7 @@ func (vm *VM) makeCallFrameObject() value.CallFrame {
 	}
 }
 
-func (vm *VM) BuildStackTrace() *value.StackTrace {
+func (vm *Thread) BuildStackTrace() *value.StackTrace {
 	callStack := vm.callStack()
 
 	stackTraceSlice := make([]value.CallFrame, 0, len(callStack)+1)
@@ -1441,7 +1441,7 @@ func (vm *VM) BuildStackTrace() *value.StackTrace {
 	return (*value.StackTrace)(&stackTraceSlice)
 }
 
-func (vm *VM) BuildStackTracePrepend(base *value.StackTrace) *value.StackTrace {
+func (vm *Thread) BuildStackTracePrepend(base *value.StackTrace) *value.StackTrace {
 	callStack := vm.callStack()
 
 	stackTraceSlice := make([]value.CallFrame, 0, len(*base)+len(callStack)+1)
@@ -1459,130 +1459,130 @@ func (vm *VM) BuildStackTracePrepend(base *value.StackTrace) *value.StackTrace {
 
 // Treat the next 8 bits of bytecode as an index
 // of a value and retrieve the value.
-func (vm *VM) readValue(i int) value.Value {
+func (vm *Thread) readValue(i int) value.Value {
 	return vm.bytecode.Values[i]
 }
 
 // Treat the next 8 bits of bytecode as an index
 // of a value and retrieve the value.
-func (vm *VM) readValue8() value.Value {
+func (vm *Thread) readValue8() value.Value {
 	return vm.bytecode.Values[vm.readByte()]
 }
 
 // Treat the next 16 bits of bytecode as an index
 // of a value and retrieve the value.
-func (vm *VM) readValue16() value.Value {
+func (vm *Thread) readValue16() value.Value {
 	return vm.bytecode.Values[vm.readUint16()]
 }
 
 // Treat the next 32 bits of bytecode as an index
 // of a value and retrieve the value.
-func (vm *VM) readValue32() value.Value {
+func (vm *Thread) readValue32() value.Value {
 	return vm.bytecode.Values[vm.readUint32()]
 }
 
 // Increment the stack pointer
-func (vm *VM) spIncrement() {
+func (vm *Thread) spIncrement() {
 	vm.spIncrementBy(1)
 }
 
-func (vm *VM) spSet(ptr *value.Value) {
+func (vm *Thread) spSet(ptr *value.Value) {
 	vm.sp = uintptr(unsafe.Pointer(ptr))
 }
 
-func (vm *VM) spGet() *value.Value {
+func (vm *Thread) spGet() *value.Value {
 	return (*value.Value)(unsafe.Pointer(vm.sp))
 }
 
-func (vm *VM) spOffsetTo(ptr *value.Value) int {
+func (vm *Thread) spOffsetTo(ptr *value.Value) int {
 	return int(vm.sp-uintptr(unsafe.Pointer(ptr))) / int(value.ValueSize)
 }
 
-func (vm *VM) spOffset() int {
+func (vm *Thread) spOffset() int {
 	return vm.spOffsetTo(&vm.stack[0])
 }
 
-func (vm *VM) spAdd(n int) *value.Value {
+func (vm *Thread) spAdd(n int) *value.Value {
 	return vm.stackAdd(vm.spGet(), n)
 }
 
-func (vm *VM) spAddRaw(n uintptr) uintptr {
+func (vm *Thread) spAddRaw(n uintptr) uintptr {
 	return vm.sp + n*uintptr(value.ValueSize)
 }
 
-func (vm *VM) spSubtractRaw(n uintptr) uintptr {
+func (vm *Thread) spSubtractRaw(n uintptr) uintptr {
 	return vm.sp - n*uintptr(value.ValueSize)
 }
 
-func (vm *VM) stackAdd(ptr *value.Value, n int) *value.Value {
+func (vm *Thread) stackAdd(ptr *value.Value, n int) *value.Value {
 	return (*value.Value)(unsafe.Add(unsafe.Pointer(ptr), n*int(value.ValueSize)))
 }
 
-func (vm *VM) stackAddRaw(ptr uintptr, n uintptr) uintptr {
+func (vm *Thread) stackAddRaw(ptr uintptr, n uintptr) uintptr {
 	return ptr + n*value.ValueSize
 }
 
-func (vm *VM) stackOffsetFromTo(from *value.Value, to *value.Value) int {
+func (vm *Thread) stackOffsetFromTo(from *value.Value, to *value.Value) int {
 	return int(uintptr(unsafe.Pointer(from))-uintptr(unsafe.Pointer(to))) / int(value.ValueSize)
 }
 
-func (vm *VM) stackOffsetFromToRaw(from, to uintptr) int {
+func (vm *Thread) stackOffsetFromToRaw(from, to uintptr) int {
 	return int(from-to) / int(value.ValueSize)
 }
 
-func (vm *VM) fpOffset() int {
+func (vm *Thread) fpOffset() int {
 	return int(uintptr(unsafe.Pointer(vm.fp))-uintptr(unsafe.Pointer(&vm.stack[0]))) / int(value.ValueSize)
 }
 
-func (vm *VM) fpAdd(n int) *value.Value {
+func (vm *Thread) fpAdd(n int) *value.Value {
 	return (*value.Value)(unsafe.Add(unsafe.Pointer(vm.fp), n*int(value.ValueSize)))
 }
 
-func (vm *VM) fpAddRaw(n uintptr) uintptr {
+func (vm *Thread) fpAddRaw(n uintptr) uintptr {
 	return vm.fp + n*value.ValueSize
 }
 
-func (vm *VM) fpSet(ptr *value.Value) {
+func (vm *Thread) fpSet(ptr *value.Value) {
 	vm.fp = uintptr(unsafe.Pointer(ptr))
 }
 
-func (vm *VM) fpGet() *value.Value {
+func (vm *Thread) fpGet() *value.Value {
 	return (*value.Value)(unsafe.Pointer(vm.fp))
 }
 
-func (vm *VM) ipOffset() int {
+func (vm *Thread) ipOffset() int {
 	return int(
 		vm.ip -
 			uintptr(unsafe.Pointer(&vm.bytecode.Instructions[0])),
 	)
 }
 
-func (vm *VM) ipSetOffset(offset int) {
+func (vm *Thread) ipSetOffset(offset int) {
 	vm.ipSet((*byte)(unsafe.Add(unsafe.Pointer(&vm.bytecode.Instructions[0]), offset)))
 }
 
 // Get the typesafe instruction pointer
-func (vm *VM) ipGet() *byte {
+func (vm *Thread) ipGet() *byte {
 	return (*byte)(unsafe.Pointer(vm.ip))
 }
 
 // Set the typesafe instruction pointer
-func (vm *VM) ipSet(ptr *byte) {
+func (vm *Thread) ipSet(ptr *byte) {
 	vm.ip = uintptr(unsafe.Pointer(ptr))
 }
 
 // Increment the instruction pointer
-func (vm *VM) ipIncrement() {
+func (vm *Thread) ipIncrement() {
 	vm.ipIncrementBy(1)
 }
 
 // Increment the call frame pointer
-func (vm *VM) cfpIncrement() {
+func (vm *Thread) cfpIncrement() {
 	vm.cfpIncrementBy(1)
 }
 
 // Add n to the call frame pointer
-func (vm *VM) cfpIncrementBy(n int) {
+func (vm *Thread) cfpIncrementBy(n int) {
 	ptr := vm.cfpAdd(n)
 	if ptr.sentinel {
 		panic("call stack overflow")
@@ -1590,52 +1590,52 @@ func (vm *VM) cfpIncrementBy(n int) {
 	vm.cfpSet(ptr)
 }
 
-func (vm *VM) lastCallFrame() *CallFrame {
+func (vm *Thread) lastCallFrame() *CallFrame {
 	return vm.cfpAdd(-1)
 }
 
-func (vm *VM) cfpAdd(n int) *CallFrame {
+func (vm *Thread) cfpAdd(n int) *CallFrame {
 	return vm.callFrameAdd(vm.cfpGet(), n)
 }
 
-func (vm *VM) cfpAddRaw(n uintptr) uintptr {
+func (vm *Thread) cfpAddRaw(n uintptr) uintptr {
 	return vm.cfp + n*CallFrameSize
 }
 
-func (vm *VM) cfpSubtractRaw(n uintptr) uintptr {
+func (vm *Thread) cfpSubtractRaw(n uintptr) uintptr {
 	return vm.cfp - n*CallFrameSize
 }
 
-func (vm *VM) cfpGet() *CallFrame {
+func (vm *Thread) cfpGet() *CallFrame {
 	return (*CallFrame)(unsafe.Pointer(vm.cfp))
 }
 
 // Set the typesafe call frame pointer
-func (vm *VM) cfpSet(ptr *CallFrame) {
+func (vm *Thread) cfpSet(ptr *CallFrame) {
 	vm.cfp = uintptr(unsafe.Pointer(ptr))
 }
 
-func (vm *VM) callFrameAdd(ptr *CallFrame, n int) *CallFrame {
+func (vm *Thread) callFrameAdd(ptr *CallFrame, n int) *CallFrame {
 	return (*CallFrame)(unsafe.Add(unsafe.Pointer(ptr), n*int(CallFrameSize)))
 }
 
-func (vm *VM) callFrameAddRaw(ptr uintptr, n uintptr) uintptr {
+func (vm *Thread) callFrameAddRaw(ptr uintptr, n uintptr) uintptr {
 	return ptr + n*CallFrameSize
 }
 
-func (vm *VM) cfpOffset() int {
+func (vm *Thread) cfpOffset() int {
 	return int(vm.cfp-uintptr(unsafe.Pointer(&vm.callFrames[0]))) / int(CallFrameSize)
 }
 
 // Read the next byte of code
-func (vm *VM) readByte() byte {
+func (vm *Thread) readByte() byte {
 	byt := *vm.ipGet()
 	vm.ipIncrement()
 	return byt
 }
 
 // Read the next 2 bytes of code
-func (vm *VM) readUint16() uint16 {
+func (vm *Thread) readUint16() uint16 {
 	// BENCHMARK: compare manual bit shifts
 	result := binary.BigEndian.Uint16(unsafe.Slice(vm.ipGet(), 2))
 	vm.ipIncrementBy(2)
@@ -1644,7 +1644,7 @@ func (vm *VM) readUint16() uint16 {
 }
 
 // Read the next 4 bytes of code
-func (vm *VM) readUint32() uint32 {
+func (vm *Thread) readUint32() uint32 {
 	// BENCHMARK: compare manual bit shifts
 	result := binary.BigEndian.Uint32(unsafe.Slice(vm.ipGet(), 4))
 	vm.ipIncrementBy(4)
@@ -1652,11 +1652,11 @@ func (vm *VM) readUint32() uint32 {
 	return result
 }
 
-func (vm *VM) self() {
+func (vm *Thread) self() {
 	vm.opGetLocal(0)
 }
 
-func (vm *VM) opDefNamespace() {
+func (vm *Thread) opDefNamespace() {
 	typ := vm.readByte()
 	name := vm.popGet().AsInlineSymbol()
 	parentNamespace := vm.popGet()
@@ -1698,7 +1698,7 @@ func (vm *VM) opDefNamespace() {
 	parentConstantContainer.AddConstant(name, newNamespace)
 }
 
-func (vm *VM) opGetSingleton() (err value.Value) {
+func (vm *Thread) opGetSingleton() (err value.Value) {
 	val := vm.popGet()
 	singleton := val.SingletonClass()
 	if singleton == nil {
@@ -1713,17 +1713,17 @@ func (vm *VM) opGetSingleton() (err value.Value) {
 	return value.Undefined
 }
 
-func (vm *VM) getClass() {
+func (vm *Thread) getClass() {
 	val := vm.popGet()
 	class := val.Class()
 	vm.push(value.Ref(class))
 }
 
-func (vm *VM) selfValue() value.Value {
+func (vm *Thread) selfValue() value.Value {
 	return vm.getLocalValue(0)
 }
 
-func (vm *VM) lookupMethod(class *value.Class, callInfo *value.CallSiteInfo, index int) value.Method {
+func (vm *Thread) lookupMethod(class *value.Class, callInfo *value.CallSiteInfo, index int) value.Method {
 	for i := range len(callInfo.Cache) {
 		cacheEntry := callInfo.Cache[i]
 		if cacheEntry.Class == class {
@@ -1749,7 +1749,7 @@ func (vm *VM) lookupMethod(class *value.Class, callInfo *value.CallSiteInfo, ind
 }
 
 // Call a method with an implicit receiver
-func (vm *VM) opCallSelfTCO(callInfoIndex int) (err value.Value) {
+func (vm *Thread) opCallSelfTCO(callInfoIndex int) (err value.Value) {
 	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
 
 	self := vm.selfValue()
@@ -1786,7 +1786,7 @@ func (vm *VM) opCallSelfTCO(callInfoIndex int) (err value.Value) {
 }
 
 // Call a method with an implicit receiver
-func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
+func (vm *Thread) opCallSelf(callInfoIndex int) (err value.Value) {
 	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
 
 	self := vm.selfValue()
@@ -1822,7 +1822,7 @@ func (vm *VM) opCallSelf(callInfoIndex int) (err value.Value) {
 	)
 }
 
-func (vm *VM) callGetterMethod(method *GetterMethod) value.Value {
+func (vm *Thread) callGetterMethod(method *GetterMethod) value.Value {
 	self := vm.popGet() // pop self
 	result, err := method.Call(self)
 	if !err.IsUndefined() {
@@ -1832,7 +1832,7 @@ func (vm *VM) callGetterMethod(method *GetterMethod) value.Value {
 	return value.Undefined
 }
 
-func (vm *VM) callSetterMethod(method *SetterMethod) value.Value {
+func (vm *Thread) callSetterMethod(method *SetterMethod) value.Value {
 	other := vm.popGet()
 	self := vm.popGet() // pop self
 	result, err := method.Call(self, other)
@@ -1844,7 +1844,7 @@ func (vm *VM) callSetterMethod(method *SetterMethod) value.Value {
 }
 
 // Set the value of an instance variable by name
-func (vm *VM) opSetIvarName(nameIndex int) (err value.Value) {
+func (vm *Thread) opSetIvarName(nameIndex int) (err value.Value) {
 	name := vm.bytecode.Values[nameIndex].AsInlineSymbol()
 	val := vm.popGet()
 	self := vm.selfValue()
@@ -1852,14 +1852,14 @@ func (vm *VM) opSetIvarName(nameIndex int) (err value.Value) {
 }
 
 // Set the value of an instance variable by index
-func (vm *VM) opSetIvar(index int) {
+func (vm *Thread) opSetIvar(index int) {
 	val := vm.popGet()
 	self := vm.selfValue()
 	value.SetInstanceVariable(self, index, val)
 }
 
 // Get the value of an instance variable by name
-func (vm *VM) opGetIvarName(nameIndex int) (err value.Value) {
+func (vm *Thread) opGetIvarName(nameIndex int) (err value.Value) {
 	name := vm.bytecode.Values[nameIndex].AsInlineSymbol()
 	self := vm.selfValue()
 	val, err := value.GetInstanceVariableByName(self, name)
@@ -1877,7 +1877,7 @@ func (vm *VM) opGetIvarName(nameIndex int) (err value.Value) {
 }
 
 // Get the value of an instance variable by name
-func (vm *VM) opGetIvar(index int) {
+func (vm *Thread) opGetIvar(index int) {
 	self := vm.selfValue()
 	val := self.InstanceVariables().Get(index)
 
@@ -1889,7 +1889,7 @@ func (vm *VM) opGetIvar(index int) {
 }
 
 // Create a new generator
-func (vm *VM) opGenerator() {
+func (vm *Thread) opGenerator() {
 	generator := newGenerator(
 		vm.bytecode,
 		vm.upvalues,
@@ -1900,7 +1900,7 @@ func (vm *VM) opGenerator() {
 }
 
 // Create a new promise
-func (vm *VM) opPromise() {
+func (vm *Thread) opPromise() {
 	arg := vm.popGet()
 	generator := newGenerator(
 		vm.bytecode,
@@ -1921,13 +1921,13 @@ func (vm *VM) opPromise() {
 }
 
 // Pop the value on top of the stack and push its opCopy.
-func (vm *VM) opCopy() {
+func (vm *Thread) opCopy() {
 	element := vm.peek()
 	vm.replace(element.Copy())
 }
 
 // Set the value under the given key in a hash-map or hash-record
-func (vm *VM) opMapSet() {
+func (vm *Thread) opMapSet() {
 	val := vm.popGet()
 	key := vm.popGet()
 	collection := vm.peek()
@@ -1943,7 +1943,7 @@ func (vm *VM) opMapSet() {
 }
 
 // Append an element to a list, arrayTuple or hashSet.
-func (vm *VM) opAppend() {
+func (vm *Thread) opAppend() {
 	element := vm.popGet()
 	collection := vm.peek()
 
@@ -1964,7 +1964,7 @@ func (vm *VM) opAppend() {
 }
 
 // Create a new instance of a class
-func (vm *VM) opInstantiate(args int) (err value.Value) {
+func (vm *Thread) opInstantiate(args int) (err value.Value) {
 	callInfo := value.NewCallSiteInfo(symbol.S_init, args)
 	classPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
 	classVal := *classPtr
@@ -1998,7 +1998,7 @@ func (vm *VM) opInstantiate(args int) (err value.Value) {
 }
 
 // Call the `opCall` method with an explicit receiver
-func (vm *VM) opCall(callInfoIndex int) (err value.Value) {
+func (vm *Thread) opCall(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
 
 	self, isClosure := vm.spAdd(-callInfo.ArgumentCount - 1).SafeAsReference().(*Closure)
@@ -2010,7 +2010,7 @@ func (vm *VM) opCall(callInfoIndex int) (err value.Value) {
 }
 
 // set up the vm to execute a closure
-func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err value.Value) {
+func (vm *Thread) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err value.Value) {
 	if closure.VMID != vm.ID && closure.HasOpenUpvalues() {
 		return value.Ref(value.NewOpenClosureError(
 			closure.VMID,
@@ -2033,7 +2033,7 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 }
 
 // Call a method with an explicit receiver with tail call optimisation
-func (vm *VM) opCallMethodTCO(callInfoIndex int) (err value.Value) {
+func (vm *Thread) opCallMethodTCO(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
 
 	selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
@@ -2057,7 +2057,7 @@ func (vm *VM) opCallMethodTCO(callInfoIndex int) (err value.Value) {
 }
 
 // Call a method with an explicit receiver
-func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
+func (vm *Thread) opCallMethod(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
 
 	selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
@@ -2081,7 +2081,7 @@ func (vm *VM) opCallMethod(callInfoIndex int) (err value.Value) {
 }
 
 // set up the vm to execute a native method
-func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
+func (vm *Thread) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
 	vm.populateMissingParametersOnStack(method.parameterCount, callInfo.ArgumentCount)
 
 	paramCount := method.ParameterCount()
@@ -2096,7 +2096,7 @@ func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInf
 }
 
 // set up the vm to execute a bytecode method with tail call optimisation
-func (vm *VM) callBytecodeFunctionTCO(method *BytecodeFunction, callInfo *value.CallSiteInfo) {
+func (vm *Thread) callBytecodeFunctionTCO(method *BytecodeFunction, callInfo *value.CallSiteInfo) {
 	vm.populateMissingParametersOnStack(method.parameterCount, callInfo.ArgumentCount)
 
 	localCount := method.parameterCount + 1
@@ -2112,7 +2112,7 @@ func (vm *VM) callBytecodeFunctionTCO(method *BytecodeFunction, callInfo *value.
 }
 
 // set up the vm to execute a bytecode method
-func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.CallSiteInfo) {
+func (vm *Thread) callBytecodeFunction(method *BytecodeFunction, callInfo *value.CallSiteInfo) {
 	vm.populateMissingParametersOnStack(method.parameterCount, callInfo.ArgumentCount)
 	vm.createCurrentCallFrame(false)
 	vm.localCount = method.parameterCount + 1
@@ -2125,7 +2125,7 @@ func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.Cal
 	}
 }
 
-func (vm *VM) growValueStack() {
+func (vm *Thread) growValueStack() {
 	newSize := len(vm.stack) * 2
 	if newSize >= MAX_VALUE_STACK_SIZE {
 		panic("maximum value stack size exceeded")
@@ -2166,7 +2166,7 @@ func (vm *VM) growValueStack() {
 	vm.stack = newStack
 }
 
-func (vm *VM) populateMissingParametersOnStack(paramCount, argumentCount int) {
+func (vm *Thread) populateMissingParametersOnStack(paramCount, argumentCount int) {
 	// populate missing optional arguments with undefined
 	missingParams := uintptr(paramCount - argumentCount)
 	if missingParams > 0 {
@@ -2175,7 +2175,7 @@ func (vm *VM) populateMissingParametersOnStack(paramCount, argumentCount int) {
 }
 
 // Define instance variables in a class
-func (vm *VM) opDefIvars() (err value.Value) {
+func (vm *Thread) opDefIvars() (err value.Value) {
 	ivarIndices := (*value.IvarIndices)(vm.popGet().Pointer())
 	classVal := vm.popGet()
 
@@ -2195,7 +2195,7 @@ func (vm *VM) opDefIvars() (err value.Value) {
 }
 
 // Include a mixin in a class/mixin.
-func (vm *VM) opInclude() (err value.Value) {
+func (vm *Thread) opInclude() (err value.Value) {
 	mixinVal := vm.popGet()
 	targetValue := vm.popGet()
 
@@ -2220,7 +2220,7 @@ func (vm *VM) opInclude() (err value.Value) {
 }
 
 // Define a new method
-func (vm *VM) opDefMethod() {
+func (vm *Thread) opDefMethod() {
 	name := vm.popGet().AsInlineSymbol()
 	body := vm.popGet().AsReference().(value.Method)
 	methodContainer := vm.peek()
@@ -2234,20 +2234,20 @@ func (vm *VM) opDefMethod() {
 }
 
 // Initialise a namespace
-func (vm *VM) opInitNamespace() {
+func (vm *Thread) opInitNamespace() {
 	body := vm.popGet().AsReference().(*BytecodeFunction)
 	namespace := vm.popGet()
 	vm.executeNamespaceBody(namespace, body)
 }
 
 // Execute a chunk of bytecode
-func (vm *VM) opExec() {
+func (vm *Thread) opExec() {
 	bytecodeFunc := vm.popGet().AsReference().(*BytecodeFunction)
 	vm.executeFunc(bytecodeFunc)
 }
 
 // Define a getter method
-func (vm *VM) opDefGetter() {
+func (vm *Thread) opDefGetter() {
 	index := vm.popGet().AsSmallInt()
 	name := vm.popGet().AsInlineSymbol()
 	methodContainer := vm.peek()
@@ -2261,7 +2261,7 @@ func (vm *VM) opDefGetter() {
 }
 
 // Define a setter method
-func (vm *VM) opDefSetter() {
+func (vm *Thread) opDefSetter() {
 	index := vm.popGet().AsSmallInt()
 	name := vm.popGet().AsInlineSymbol()
 	methodContainer := vm.peek()
@@ -2274,14 +2274,14 @@ func (vm *VM) opDefSetter() {
 	}
 }
 
-func (vm *VM) AddCallFrame(cf CallFrame) {
+func (vm *Thread) AddCallFrame(cf CallFrame) {
 	*vm.cfpGet() = cf
 	vm.cfpIncrement()
 	vm.tailCallCounter = 0
 }
 
 // preserve the current state of the vm in a call frame
-func (vm *VM) createCurrentCallFrame(stopVM bool) {
+func (vm *Thread) createCurrentCallFrame(stopVM bool) {
 	vm.AddCallFrame(
 		CallFrame{
 			upvalues:        vm.upvalues,
@@ -2296,7 +2296,7 @@ func (vm *VM) createCurrentCallFrame(stopVM bool) {
 }
 
 // set up the vm to execute a namespace body
-func (vm *VM) executeNamespaceBody(namespace value.Value, body *BytecodeFunction) {
+func (vm *Thread) executeNamespaceBody(namespace value.Value, body *BytecodeFunction) {
 	vm.createCurrentCallFrame(false)
 
 	vm.bytecode = body
@@ -2308,7 +2308,7 @@ func (vm *VM) executeNamespaceBody(namespace value.Value, body *BytecodeFunction
 }
 
 // set up the vm to execute a bytecode function
-func (vm *VM) executeFunc(fn *BytecodeFunction) {
+func (vm *Thread) executeFunc(fn *BytecodeFunction) {
 	vm.createCurrentCallFrame(false)
 
 	vm.bytecode = fn
@@ -2319,54 +2319,54 @@ func (vm *VM) executeFunc(fn *BytecodeFunction) {
 }
 
 // Set a local variable or value.
-func (vm *VM) opSetLocal(index int) {
+func (vm *Thread) opSetLocal(index int) {
 	vm.setLocalValue(index, vm.popGet())
 }
 
 // Set a local variable or value.
-func (vm *VM) setLocalValue(index int, val value.Value) {
+func (vm *Thread) setLocalValue(index int, val value.Value) {
 	*vm.fpAdd(index) = val
 }
 
 // Read a local variable or value.
-func (vm *VM) opGetLocal(index int) {
+func (vm *Thread) opGetLocal(index int) {
 	vm.push(vm.getLocalValue(index))
 }
 
 // Create a box that points to a local
-func (vm *VM) opBoxLocal(localIndex int) {
+func (vm *Thread) opBoxLocal(localIndex int) {
 	upvalue := vm.captureUpvalue(vm.fpAdd(localIndex))
 	box := (*LocalBox)(upvalue)
 	vm.push(value.Ref(box))
 }
 
 // Read a local variable or value.
-func (vm *VM) getLocalValue(index int) value.Value {
+func (vm *Thread) getLocalValue(index int) value.Value {
 	return *vm.fpAdd(index)
 }
 
 // Set an upvalue.
-func (vm *VM) opSetUpvalue(index int) {
+func (vm *Thread) opSetUpvalue(index int) {
 	vm.setUpvalueValue(index, vm.popGet())
 }
 
 // Set an upvalue.
-func (vm *VM) setUpvalueValue(index int, val value.Value) {
+func (vm *Thread) setUpvalueValue(index int, val value.Value) {
 	vm.upvalues[index].Set(val)
 }
 
 // Read an upvalue.
-func (vm *VM) opGetUpvalue(index int) {
+func (vm *Thread) opGetUpvalue(index int) {
 	vm.push(vm.getUpvalueValue(index))
 }
 
 // Read an upvalue.
-func (vm *VM) getUpvalueValue(index int) value.Value {
+func (vm *Thread) getUpvalueValue(index int) value.Value {
 	return vm.upvalues[index].Get()
 }
 
 // Closes all upvalues down to the given local slot (the given slot and all above).
-func (vm *VM) opCloseUpvalues(lastToClose uintptr) {
+func (vm *Thread) opCloseUpvalues(lastToClose uintptr) {
 	for {
 		if vm.openUpvalueHead == nil ||
 			uintptr(unsafe.Pointer(vm.openUpvalueHead.slot)) <
@@ -2381,7 +2381,7 @@ func (vm *VM) opCloseUpvalues(lastToClose uintptr) {
 }
 
 // Set the superclass/parent of a class
-func (vm *VM) opSetSuperclass() {
+func (vm *Thread) opSetSuperclass() {
 	newSuperclass := vm.popGet().AsReference().(*value.Class)
 	class := vm.popGet().AsReference().(*value.Class)
 
@@ -2393,7 +2393,7 @@ func (vm *VM) opSetSuperclass() {
 }
 
 // Look for a constant with the given name.
-func (vm *VM) opGetConst(nameIndex int) (err value.Value) {
+func (vm *Thread) opGetConst(nameIndex int) (err value.Value) {
 	symbol := vm.bytecode.Values[nameIndex].AsInlineSymbol()
 
 	val := value.RootModule.Constants.Get(symbol)
@@ -2406,7 +2406,7 @@ func (vm *VM) opGetConst(nameIndex int) (err value.Value) {
 }
 
 // Get the iterator of the value on top of the stack.
-func (vm *VM) opGetIterator() {
+func (vm *Thread) opGetIterator() {
 	val := vm.peek()
 	result := value.Iter(val)
 	vm.replace(result)
@@ -2415,7 +2415,7 @@ func (vm *VM) opGetIterator() {
 var stopIterationSymbol = value.ToSymbol("stop_iteration")
 
 // Get the next element of an iterator
-func (vm *VM) opNext(callInfoIndex int) value.Value {
+func (vm *Thread) opNext(callInfoIndex int) value.Value {
 	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
 	iterator := vm.peek()
 
@@ -2434,7 +2434,7 @@ func (vm *VM) opNext(callInfoIndex int) value.Value {
 }
 
 // Drives the for..in loop.
-func (vm *VM) opForIn() {
+func (vm *Thread) opForIn() {
 	result := vm.peek()
 	if result.IsUndefined() {
 		vm.pop()
@@ -2446,7 +2446,7 @@ func (vm *VM) opForIn() {
 }
 
 // Drives the for..in loop for builtin iterable types
-func (vm *VM) opForInBuiltin() {
+func (vm *Thread) opForInBuiltin() {
 	iterator := vm.peek()
 	result, err := NextBuiltin(vm, iterator)
 	if !err.IsUndefined() {
@@ -2460,7 +2460,7 @@ func (vm *VM) opForInBuiltin() {
 }
 
 // Create a new string.
-func (vm *VM) opNewString(dynamicElements int) value.Value {
+func (vm *Thread) opNewString(dynamicElements int) value.Value {
 	firstElement := vm.spAdd(-dynamicElements)
 
 	var buffer strings.Builder
@@ -2561,7 +2561,7 @@ func (vm *VM) opNewString(dynamicElements int) value.Value {
 }
 
 // Create a new symbol.
-func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
+func (vm *Thread) opNewSymbol(dynamicElements int) value.Value {
 	firstElement := vm.spAdd(-dynamicElements)
 
 	var buffer strings.Builder
@@ -2662,7 +2662,7 @@ func (vm *VM) opNewSymbol(dynamicElements int) value.Value {
 }
 
 // Create a new regex.
-func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
+func (vm *Thread) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 	flags := bitfield.BitField8FromInt(flagByte)
 	firstElement := vm.spAdd(-dynamicElements)
 
@@ -2767,7 +2767,7 @@ func (vm *VM) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 }
 
 // Create a new hashset.
-func (vm *VM) opNewHashSet(dynamicElements int) value.Value {
+func (vm *Thread) opNewHashSet(dynamicElements int) value.Value {
 	firstElement := vm.spAdd(-dynamicElements)
 	capacity := *vm.spAdd(-dynamicElements - 2)
 	baseSet := *vm.spAdd(-dynamicElements - 1)
@@ -2818,7 +2818,7 @@ func (vm *VM) opNewHashSet(dynamicElements int) value.Value {
 }
 
 // Create a new hashmap.
-func (vm *VM) opNewHashMap(dynamicElements int) value.Value {
+func (vm *Thread) opNewHashMap(dynamicElements int) value.Value {
 	firstElementOffset := -(dynamicElements * 2)
 	firstElement := vm.spAdd(firstElementOffset)
 	capacity := *vm.spAdd(firstElementOffset - 2)
@@ -2871,7 +2871,7 @@ func (vm *VM) opNewHashMap(dynamicElements int) value.Value {
 }
 
 // Create a new hash record.
-func (vm *VM) opNewHashRecord(dynamicElements int) value.Value {
+func (vm *Thread) opNewHashRecord(dynamicElements int) value.Value {
 	firstElementOffset := -(dynamicElements * 2)
 	firstElement := vm.spAdd(firstElementOffset)
 	baseMap := *vm.spAdd(firstElementOffset - 1)
@@ -2904,7 +2904,7 @@ func (vm *VM) opNewHashRecord(dynamicElements int) value.Value {
 }
 
 // Create a new range.
-func (vm *VM) opNewRange() {
+func (vm *Thread) opNewRange() {
 	flag := vm.readByte()
 	var newRange value.Value
 
@@ -2941,7 +2941,7 @@ func (vm *VM) opNewRange() {
 }
 
 // Create a new array list.
-func (vm *VM) opNewArrayList(dynamicElements int) value.Value {
+func (vm *Thread) opNewArrayList(dynamicElements int) value.Value {
 	firstElement := vm.spAdd(-dynamicElements)
 	capacity := *vm.spAdd(-dynamicElements - 2)
 	baseList := *vm.spAdd(-dynamicElements - 1)
@@ -2983,7 +2983,7 @@ func (vm *VM) opNewArrayList(dynamicElements int) value.Value {
 }
 
 // Create a new arrayTuple.
-func (vm *VM) opNewArrayTuple(dynamicElements int) {
+func (vm *Thread) opNewArrayTuple(dynamicElements int) {
 	firstElement := vm.spAdd(-dynamicElements)
 	baseArrayTuple := *vm.spAdd(-dynamicElements - 1)
 	var newArrayTuple value.ArrayTuple
@@ -3007,7 +3007,7 @@ func (vm *VM) opNewArrayTuple(dynamicElements int) {
 }
 
 // Define a new constant
-func (vm *VM) opDefConst() {
+func (vm *Thread) opDefConst() {
 	constVal := vm.popGet()
 	constName := vm.popGet().AsInlineSymbol()
 	namespace := vm.popGet()
@@ -3016,19 +3016,19 @@ func (vm *VM) opDefConst() {
 }
 
 // Register slots for local variables and values.
-func (vm *VM) opPrepLocals(count uintptr) {
+func (vm *Thread) opPrepLocals(count uintptr) {
 	vm.spIncrementBy(count)
 	vm.localCount += int(count)
 }
 
 // Push an element on top of the value stack.
-func (vm *VM) push(val value.Value) {
+func (vm *Thread) push(val value.Value) {
 	*vm.spGet() = val
 	vm.spIncrement()
 }
 
 // Push an element on top of the value stack.
-func (vm *VM) swap() {
+func (vm *Thread) swap() {
 	firstPtr := vm.spAdd(-2)
 	secondPtr := vm.spAdd(-1)
 	tmp := *firstPtr
@@ -3037,13 +3037,13 @@ func (vm *VM) swap() {
 }
 
 // Pop an element off the value stack.
-func (vm *VM) pop() {
+func (vm *Thread) pop() {
 	vm.spDecrementBy(1)
 	*vm.spGet() = value.Undefined
 }
 
 // Pop an element off the value stack.
-func (vm *VM) popGet() value.Value {
+func (vm *Thread) popGet() value.Value {
 	vm.spDecrementBy(1)
 	val := *vm.spGet()
 	*vm.spGet() = value.Undefined
@@ -3051,12 +3051,12 @@ func (vm *VM) popGet() value.Value {
 }
 
 // Pop all values on the stack leaving only slots for locals
-func (vm *VM) popAll() {
+func (vm *Thread) popAll() {
 	vm.popN(vm.spOffset() - vm.localCount - 1)
 }
 
 // Pop n elements off the value stack.
-func (vm *VM) popN(n int) {
+func (vm *Thread) popN(n int) {
 	spOffset := vm.spOffset()
 	for i := spOffset - 1; i >= spOffset; i-- {
 		vm.stack[i] = value.Undefined
@@ -3065,13 +3065,13 @@ func (vm *VM) popN(n int) {
 }
 
 // Pop one element off the value stack skipping the first one.
-func (vm *VM) popSkipOne() {
+func (vm *Thread) popSkipOne() {
 	vm.spDecrementBy(1)
 	*vm.spAdd(-1) = *vm.spGet()
 }
 
 // Pop n elements off the value stack skipping the first one.
-func (vm *VM) popNSkipOne(n int) {
+func (vm *Thread) popNSkipOne(n int) {
 	*vm.spAdd(-n - 1) = *vm.spAdd(-1)
 	for i := vm.spOffset() - 1; i >= vm.spOffset()-n; i-- {
 		*vm.spAdd(i) = value.Undefined
@@ -3080,25 +3080,25 @@ func (vm *VM) popNSkipOne(n int) {
 }
 
 // Replaces the value on top of the stack without popping it.
-func (vm *VM) replace(val value.Value) {
+func (vm *Thread) replace(val value.Value) {
 	*vm.spAdd(-1) = val
 }
 
 // Return the element on top of the stack
 // without popping it.
-func (vm *VM) peek() value.Value {
+func (vm *Thread) peek() value.Value {
 	return *vm.spAdd(-1)
 }
 
 // Return the nth element on top of the stack
 // without popping it.
-func (vm *VM) peekAt(n int) value.Value {
+func (vm *Thread) peekAt(n int) value.Value {
 	return *vm.spAdd(-1 - n)
 }
 
 type unaryOperationFunc func(val value.Value) value.Value
 
-func (vm *VM) unaryOperation(fn unaryOperationFunc, methodName value.Symbol) value.Value {
+func (vm *Thread) unaryOperation(fn unaryOperationFunc, methodName value.Symbol) value.Value {
 	operand := vm.peek()
 	result := fn(operand)
 	if !result.IsUndefined() {
@@ -3114,7 +3114,7 @@ func (vm *VM) unaryOperation(fn unaryOperationFunc, methodName value.Symbol) val
 }
 
 // Negate the Int on top of the stack
-func (vm *VM) opNegateInt() {
+func (vm *Thread) opNegateInt() {
 	operand := vm.peek()
 	var result value.Value
 	if operand.IsSmallInt() {
@@ -3128,14 +3128,14 @@ func (vm *VM) opNegateInt() {
 }
 
 // Negate the Float on top of the stack
-func (vm *VM) opNegateFloat() {
+func (vm *Thread) opNegateFloat() {
 	operand := vm.peek()
 	o := operand.AsFloat()
 	result := (-o).ToValue()
 	vm.replace(result)
 }
 
-func (vm *VM) opIncrementInt() {
+func (vm *Thread) opIncrementInt() {
 	operand := vm.peek()
 	var result value.Value
 	if operand.IsSmallInt() {
@@ -3148,7 +3148,7 @@ func (vm *VM) opIncrementInt() {
 	vm.replace(result)
 }
 
-func (vm *VM) opDecrementInt() {
+func (vm *Thread) opDecrementInt() {
 	operand := vm.peek()
 	var result value.Value
 	if operand.IsSmallInt() {
@@ -3162,31 +3162,31 @@ func (vm *VM) opDecrementInt() {
 }
 
 // Increment the element on top of the stack
-func (vm *VM) opIncrement() (err value.Value) {
+func (vm *Thread) opIncrement() (err value.Value) {
 	return vm.unaryOperation(value.IncrementVal, symbol.OpIncrement)
 }
 
 // Decrement the element on top of the stack
-func (vm *VM) opDecrement() (err value.Value) {
+func (vm *Thread) opDecrement() (err value.Value) {
 	return vm.unaryOperation(value.DecrementVal, symbol.OpDecrement)
 }
 
 // Negate the element on top of the stack
-func (vm *VM) opNegate() (err value.Value) {
+func (vm *Thread) opNegate() (err value.Value) {
 	return vm.unaryOperation(value.NegateVal, symbol.OpNegate)
 }
 
 // Perform unary plus on the element on top of the stack
-func (vm *VM) opUnaryPlus() (err value.Value) {
+func (vm *Thread) opUnaryPlus() (err value.Value) {
 	return vm.unaryOperation(value.UnaryPlusVal, symbol.OpUnaryPlus)
 }
 
 // Preform bitwise not on the element on top of the stack
-func (vm *VM) opBitwiseNot() (err value.Value) {
+func (vm *Thread) opBitwiseNot() (err value.Value) {
 	return vm.unaryOperation(value.BitwiseNotVal, symbol.OpBitwiseNot)
 }
 
-func (vm *VM) opAppendAt() value.Value {
+func (vm *Thread) opAppendAt() value.Value {
 	val := vm.popGet()
 	key := vm.popGet()
 	collection := vm.peek()
@@ -3239,7 +3239,7 @@ func (vm *VM) opAppendAt() value.Value {
 	return value.Undefined
 }
 
-func (vm *VM) opSubscriptSet() value.Value {
+func (vm *Thread) opSubscriptSet() value.Value {
 	val := vm.popGet()
 	key := vm.popGet()
 	collection := vm.peek()
@@ -3252,7 +3252,7 @@ func (vm *VM) opSubscriptSet() value.Value {
 	return value.Undefined
 }
 
-func (vm *VM) opIsA() (err value.Value) {
+func (vm *Thread) opIsA() (err value.Value) {
 	classVal := vm.popGet()
 	val := vm.peek()
 
@@ -3267,7 +3267,7 @@ func (vm *VM) opIsA() (err value.Value) {
 	return value.Undefined
 }
 
-func (vm *VM) opInstanceOf() (err value.Value) {
+func (vm *Thread) opInstanceOf() (err value.Value) {
 	classVal := vm.popGet()
 	val := vm.peek()
 
@@ -3283,7 +3283,7 @@ func (vm *VM) opInstanceOf() (err value.Value) {
 
 type binaryOperationWithoutErrFunc func(left value.Value, right value.Value) value.Value
 
-func (vm *VM) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
+func (vm *Thread) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
 	right := vm.peek()
 	left := vm.peekAt(1)
 
@@ -3302,7 +3302,7 @@ func (vm *VM) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, method
 	return value.Undefined
 }
 
-func (vm *VM) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
+func (vm *Thread) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
 	right := vm.peek()
 	left := vm.peekAt(1)
 
@@ -3324,7 +3324,7 @@ func (vm *VM) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrFunc,
 
 type binaryOperationFunc func(left value.Value, right value.Value) (result value.Value, err value.Value)
 
-func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) value.Value {
+func (vm *Thread) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) value.Value {
 	right := vm.peek()
 	left := vm.peekAt(1)
 
@@ -3346,17 +3346,17 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) v
 }
 
 // Perform a bitwise AND and push the result to the stack.
-func (vm *VM) opBitwiseAnd() (err value.Value) {
+func (vm *Thread) opBitwiseAnd() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseAndVal, symbol.OpAnd)
 }
 
 // Perform a bitwise AND NOT and push the result to the stack.
-func (vm *VM) opBitwiseAndNot() (err value.Value) {
+func (vm *Thread) opBitwiseAndNot() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseAndNotVal, symbol.OpAndNot)
 }
 
 // Get the value under the given key and push the result to the stack.
-func (vm *VM) opSubscript() (err value.Value) {
+func (vm *Thread) opSubscript() (err value.Value) {
 	right := vm.peek()
 	left := vm.peekAt(1)
 
@@ -3370,31 +3370,31 @@ func (vm *VM) opSubscript() (err value.Value) {
 }
 
 // Perform a bitwise OR and push the result to the stack.
-func (vm *VM) opBitwiseOr() (err value.Value) {
+func (vm *Thread) opBitwiseOr() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseOrVal, symbol.OpOr)
 }
 
 // Perform a bitwise XOR and push the result to the stack.
-func (vm *VM) opBitwiseXor() (err value.Value) {
+func (vm *Thread) opBitwiseXor() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseXorVal, symbol.OpXor)
 }
 
 // Perform a comparison and push the result to the stack.
-func (vm *VM) opCompare() (err value.Value) {
+func (vm *Thread) opCompare() (err value.Value) {
 	return vm.binaryOperation(value.CompareVal, symbol.OpSpaceship)
 }
 
 // Perform opModulo and push the result to the stack.
-func (vm *VM) opModulo() (err value.Value) {
+func (vm *Thread) opModulo() (err value.Value) {
 	return vm.binaryOperation(value.ModuloVal, symbol.OpModulo)
 }
 
 // Check whether two top elements on the stack are opEqual and push the result to the stack.
-func (vm *VM) opEqual() (err value.Value) {
+func (vm *Thread) opEqual() (err value.Value) {
 	return vm.callEqualityOperator(value.EqualVal, symbol.OpEqual)
 }
 
-func (vm *VM) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
+func (vm *Thread) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
 	right := vm.peek()
 	left := vm.peekAt(1)
 
@@ -3416,7 +3416,7 @@ func (vm *VM) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodName 
 	return vm.callMethodOnStack(method, 1)
 }
 
-func (vm *VM) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
+func (vm *Thread) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
 	right := vm.peek()
 	left := vm.peekAt(1)
 
@@ -3445,22 +3445,22 @@ func (vm *VM) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, meth
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
-func (vm *VM) opNotEqual() (err value.Value) {
+func (vm *Thread) opNotEqual() (err value.Value) {
 	return vm.callNegatedEqualityOperator(value.NotEqualVal, symbol.OpEqual)
 }
 
 // Check whether two top elements on the stack are equal and push the result to the stack.
-func (vm *VM) opLaxEqual() (err value.Value) {
+func (vm *Thread) opLaxEqual() (err value.Value) {
 	return vm.callEqualityOperator(value.LaxEqualVal, symbol.OpLaxEqual)
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
-func (vm *VM) opLaxNotEqual() (err value.Value) {
+func (vm *Thread) opLaxNotEqual() (err value.Value) {
 	return vm.callNegatedEqualityOperator(value.LaxNotEqualVal, symbol.OpLaxEqual)
 }
 
 // Check whether two top elements on the stack are strictly equal push the result to the stack.
-func (vm *VM) opStrictEqual() {
+func (vm *Thread) opStrictEqual() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3469,7 +3469,7 @@ func (vm *VM) opStrictEqual() {
 }
 
 // Check whether two top elements on the stack are strictly not equal push the result to the stack.
-func (vm *VM) opStrictNotEqual() {
+func (vm *Thread) opStrictNotEqual() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3478,27 +3478,27 @@ func (vm *VM) opStrictNotEqual() {
 }
 
 // Check whether the first operand is greater than the second and push the result to the stack.
-func (vm *VM) opGreaterThan() (err value.Value) {
+func (vm *Thread) opGreaterThan() (err value.Value) {
 	return vm.binaryOperation(value.GreaterThanVal, symbol.OpGreaterThan)
 }
 
 // Check whether the first operand is greater than or equal to the second and push the result to the stack.
-func (vm *VM) opGreaterThanEqual() (err value.Value) {
+func (vm *Thread) opGreaterThanEqual() (err value.Value) {
 	return vm.binaryOperation(value.GreaterThanEqualVal, symbol.OpGreaterThanEqual)
 }
 
 // Check whether the first operand is less than the second and push the result to the stack.
-func (vm *VM) opLessThan() (err value.Value) {
+func (vm *Thread) opLessThan() (err value.Value) {
 	return vm.binaryOperation(value.LessThanVal, symbol.OpLessThan)
 }
 
 // Check whether the first operand is less than or equal to the second and push the result to the stack.
-func (vm *VM) opLessThanEqual() (err value.Value) {
+func (vm *Thread) opLessThanEqual() (err value.Value) {
 	return vm.binaryOperation(value.LessThanEqualVal, symbol.OpLessThanEqual)
 }
 
 // Check whether the first operand is less than or equal to the second and push the result to the stack.
-func (vm *VM) opLessThanEqualInt() {
+func (vm *Thread) opLessThanEqualInt() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3513,7 +3513,7 @@ func (vm *VM) opLessThanEqualInt() {
 	vm.replace(result)
 }
 
-func (vm *VM) opLessThanEqualFloat() {
+func (vm *Thread) opLessThanEqualFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3522,7 +3522,7 @@ func (vm *VM) opLessThanEqualFloat() {
 	vm.replace(result)
 }
 
-func (vm *VM) opLessThanInt() {
+func (vm *Thread) opLessThanInt() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3537,7 +3537,7 @@ func (vm *VM) opLessThanInt() {
 	vm.replace(result)
 }
 
-func (vm *VM) opLessThanFloat() {
+func (vm *Thread) opLessThanFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3546,7 +3546,7 @@ func (vm *VM) opLessThanFloat() {
 	vm.replace(result)
 }
 
-func (vm *VM) opGreaterThanInt() {
+func (vm *Thread) opGreaterThanInt() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3561,7 +3561,7 @@ func (vm *VM) opGreaterThanInt() {
 	vm.replace(result)
 }
 
-func (vm *VM) opGreaterThanFloat() {
+func (vm *Thread) opGreaterThanFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3570,7 +3570,7 @@ func (vm *VM) opGreaterThanFloat() {
 	vm.replace(result)
 }
 
-func (vm *VM) opGreaterThanEqualInt() {
+func (vm *Thread) opGreaterThanEqualInt() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3585,7 +3585,7 @@ func (vm *VM) opGreaterThanEqualInt() {
 	vm.replace(result)
 }
 
-func (vm *VM) opGreaterThanEqualFloat() {
+func (vm *Thread) opGreaterThanEqualFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3595,31 +3595,31 @@ func (vm *VM) opGreaterThanEqualFloat() {
 }
 
 // Perform a left bitshift and push the result to the stack.
-func (vm *VM) opLeftBitshift() (err value.Value) {
+func (vm *Thread) opLeftBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LeftBitshiftVal, symbol.OpLeftBitshift)
 }
 
 // Perform a logical left bitshift and push the result to the stack.
-func (vm *VM) opLogicalLeftBitshift() (err value.Value) {
+func (vm *Thread) opLogicalLeftBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LogicalLeftBitshiftVal, symbol.OpLogicalLeftBitshift)
 }
 
 // Perform a right bitshift and push the result to the stack.
-func (vm *VM) opRightBitshift() (err value.Value) {
+func (vm *Thread) opRightBitshift() (err value.Value) {
 	return vm.binaryOperation(value.RightBitshiftVal, symbol.OpRightBitshift)
 }
 
 // Perform a logical right bitshift and push the result to the stack.
-func (vm *VM) opLogicalRightBitshift() (err value.Value) {
+func (vm *Thread) opLogicalRightBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LogicalRightBitshiftVal, symbol.OpLogicalRightBitshift)
 }
 
 // Add two operands together and push the result to the stack.
-func (vm *VM) opAdd() (err value.Value) {
+func (vm *Thread) opAdd() (err value.Value) {
 	return vm.binaryOperation(value.AddVal, symbol.OpAdd)
 }
 
-func (vm *VM) opBitwiseOrInt() {
+func (vm *Thread) opBitwiseOrInt() {
 	right := vm.popGet()
 	left := vm.peek()
 	var result value.Value
@@ -3634,7 +3634,7 @@ func (vm *VM) opBitwiseOrInt() {
 	vm.replace(result)
 }
 
-func (vm *VM) opBitwiseXorInt() {
+func (vm *Thread) opBitwiseXorInt() {
 	right := vm.popGet()
 	left := vm.peek()
 	var result value.Value
@@ -3649,7 +3649,7 @@ func (vm *VM) opBitwiseXorInt() {
 	vm.replace(result)
 }
 
-func (vm *VM) opBitwiseAndInt() {
+func (vm *Thread) opBitwiseAndInt() {
 	right := vm.popGet()
 	left := vm.peek()
 	var result value.Value
@@ -3664,7 +3664,7 @@ func (vm *VM) opBitwiseAndInt() {
 	vm.replace(result)
 }
 
-func (vm *VM) opLeftBitshiftInt() {
+func (vm *Thread) opLeftBitshiftInt() {
 	right := vm.popGet()
 	left := vm.peek()
 	var result value.Value
@@ -3679,7 +3679,7 @@ func (vm *VM) opLeftBitshiftInt() {
 	vm.replace(result)
 }
 
-func (vm *VM) opRightBitshiftInt() {
+func (vm *Thread) opRightBitshiftInt() {
 	right := vm.popGet()
 	left := vm.peek()
 	var result value.Value
@@ -3695,7 +3695,7 @@ func (vm *VM) opRightBitshiftInt() {
 }
 
 // Add an Int to another value and push the result to the stack.
-func (vm *VM) opAddInt() {
+func (vm *Thread) opAddInt() {
 	right := vm.popGet()
 	left := vm.peek()
 	var result value.Value
@@ -3711,7 +3711,7 @@ func (vm *VM) opAddInt() {
 }
 
 // Add a Float to another value and push the result to the stack.
-func (vm *VM) opAddFloat() {
+func (vm *Thread) opAddFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 	l := left.AsFloat()
@@ -3720,12 +3720,12 @@ func (vm *VM) opAddFloat() {
 }
 
 // Subtract two operands and push the result to the stack.
-func (vm *VM) opSubtract() (err value.Value) {
+func (vm *Thread) opSubtract() (err value.Value) {
 	return vm.binaryOperation(value.SubtractVal, symbol.OpSubtract)
 }
 
 // Subtract a value from an Int another value and push the result to the stack.
-func (vm *VM) opSubtractInt() {
+func (vm *Thread) opSubtractInt() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3741,7 +3741,7 @@ func (vm *VM) opSubtractInt() {
 }
 
 // Subtract a value from a Float another value and push the result to the stack.
-func (vm *VM) opSubtractFloat() {
+func (vm *Thread) opSubtractFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 	l := left.AsSmallInt()
@@ -3750,7 +3750,7 @@ func (vm *VM) opSubtractFloat() {
 }
 
 // Multiply an Int by another value and push the result to the stack.
-func (vm *VM) opMultiplyInt() {
+func (vm *Thread) opMultiplyInt() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3766,7 +3766,7 @@ func (vm *VM) opMultiplyInt() {
 }
 
 // Multiply a Float by another value and push the result to the stack.
-func (vm *VM) opMultiplyFloat() {
+func (vm *Thread) opMultiplyFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 	l := left.AsFloat()
@@ -3775,7 +3775,7 @@ func (vm *VM) opMultiplyFloat() {
 }
 
 // Divide an Int by another value and push the result to the stack.
-func (vm *VM) opDivideInt() {
+func (vm *Thread) opDivideInt() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3791,7 +3791,7 @@ func (vm *VM) opDivideInt() {
 }
 
 // Divide a Float by another value and push the result to the stack.
-func (vm *VM) opDivideFloat() {
+func (vm *Thread) opDivideFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 	l := left.AsFloat()
@@ -3800,7 +3800,7 @@ func (vm *VM) opDivideFloat() {
 }
 
 // Exponentiate an Int by another value and push the result to the stack.
-func (vm *VM) opExponentiateInt() {
+func (vm *Thread) opExponentiateInt() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3815,7 +3815,7 @@ func (vm *VM) opExponentiateInt() {
 	vm.replace(result)
 }
 
-func (vm *VM) opModuloInt() {
+func (vm *Thread) opModuloInt() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3830,7 +3830,7 @@ func (vm *VM) opModuloInt() {
 	vm.replace(result)
 }
 
-func (vm *VM) opModuloFloat() {
+func (vm *Thread) opModuloFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 	l := left.AsFloat()
@@ -3838,7 +3838,7 @@ func (vm *VM) opModuloFloat() {
 	vm.replace(result)
 }
 
-func (vm *VM) opEqualInt() {
+func (vm *Thread) opEqualInt() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3853,7 +3853,7 @@ func (vm *VM) opEqualInt() {
 	vm.replace(result)
 }
 
-func (vm *VM) opEqualFloat() {
+func (vm *Thread) opEqualFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 	l := left.AsFloat()
@@ -3861,7 +3861,7 @@ func (vm *VM) opEqualFloat() {
 	vm.replace(result)
 }
 
-func (vm *VM) opNotEqualInt() {
+func (vm *Thread) opNotEqualInt() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3876,7 +3876,7 @@ func (vm *VM) opNotEqualInt() {
 	vm.replace(value.ToElkBool(!result))
 }
 
-func (vm *VM) opNotEqualFloat() {
+func (vm *Thread) opNotEqualFloat() {
 	right := vm.popGet()
 	left := vm.peek()
 
@@ -3887,22 +3887,22 @@ func (vm *VM) opNotEqualFloat() {
 }
 
 // Multiply two operands together and push the result to the stack.
-func (vm *VM) opMultiply() (err value.Value) {
+func (vm *Thread) opMultiply() (err value.Value) {
 	return vm.binaryOperation(value.MultiplyVal, symbol.OpMultiply)
 }
 
 // Divide two operands and push the result to the stack.
-func (vm *VM) opDivide() (err value.Value) {
+func (vm *Thread) opDivide() (err value.Value) {
 	return vm.binaryOperation(value.DivideVal, symbol.OpDivide)
 }
 
 // Exponentiate two operands and push the result to the stack.
-func (vm *VM) opExponentiate() (err value.Value) {
+func (vm *Thread) opExponentiate() (err value.Value) {
 	return vm.binaryOperation(value.ExponentiateVal, symbol.OpExponentiate)
 }
 
 // Throw an error when the value on top of the stack is `nil`
-func (vm *VM) opMust() {
+func (vm *Thread) opMust() {
 	val := vm.peek()
 	if value.IsNil(val) {
 		vm.throw(value.Ref(value.NewUnexpectedNilError()))
@@ -3910,7 +3910,7 @@ func (vm *VM) opMust() {
 }
 
 // Throw an error when the second value on the stack is not an instance of the class/mixin on top of the stack
-func (vm *VM) opAs() {
+func (vm *Thread) opAs() {
 	class := vm.popGet().AsReference().(*value.Class)
 	val := vm.peek()
 	if !value.IsA(val, class) {
@@ -3927,11 +3927,11 @@ func (vm *VM) opAs() {
 
 // Throw an error and attempt to find code
 // that catches it.
-func (vm *VM) throw(err value.Value) {
+func (vm *Thread) throw(err value.Value) {
 	vm.rethrow(err, vm.BuildStackTrace())
 }
 
-func (vm *VM) rethrow(err value.Value, stackTrace *value.StackTrace) {
+func (vm *Thread) rethrow(err value.Value, stackTrace *value.StackTrace) {
 	for {
 		var foundCatch *CatchEntry
 
@@ -3961,11 +3961,11 @@ func (vm *VM) rethrow(err value.Value, stackTrace *value.StackTrace) {
 	}
 }
 
-func (vm *VM) throwNoCatch(err value.Value) {
+func (vm *Thread) throwNoCatch(err value.Value) {
 	vm.rethrowNoCatch(err, vm.BuildStackTrace())
 }
 
-func (vm *VM) rethrowNoCatch(err value.Value, stackTrace *value.StackTrace) {
+func (vm *Thread) rethrowNoCatch(err value.Value, stackTrace *value.StackTrace) {
 	vm.state = errorState
 	vm.errStackTrace = stackTrace
 	vm.push(err)
@@ -3975,7 +3975,7 @@ func (vm *VM) rethrowNoCatch(err value.Value, stackTrace *value.StackTrace) {
 // Used in a panic to stop the VM
 type stopVM struct{}
 
-func (vm *VM) jumpToFinallyForReturn() bool {
+func (vm *Thread) jumpToFinallyForReturn() bool {
 	catchEntry := vm.findFinallyCatchEntry()
 	if catchEntry == nil {
 		return false
@@ -3986,7 +3986,7 @@ func (vm *VM) jumpToFinallyForReturn() bool {
 	return true
 }
 
-func (vm *VM) jumpToFinallyForBreakOrContinue() bool {
+func (vm *Thread) jumpToFinallyForBreakOrContinue() bool {
 	catchEntry := vm.findFinallyCatchEntry()
 	if catchEntry == nil {
 		return false
@@ -3997,7 +3997,7 @@ func (vm *VM) jumpToFinallyForBreakOrContinue() bool {
 	return true
 }
 
-func (vm *VM) findFinallyCatchEntry() *CatchEntry {
+func (vm *Thread) findFinallyCatchEntry() *CatchEntry {
 	ipIndex := vm.ipOffset()
 	for _, catchEntry := range vm.bytecode.CatchEntries {
 		if catchEntry.Finally && ipIndex > catchEntry.From && ipIndex <= catchEntry.To {

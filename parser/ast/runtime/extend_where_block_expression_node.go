@@ -12,7 +12,7 @@ func initExtendWhereBlockExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
 			argBodyTuple := args[1].MustReference().(*value.ArrayTuple)
 			argBody := make([]ast.StatementNode, argBodyTuple.Length())
@@ -46,7 +46,7 @@ func initExtendWhereBlockExpressionNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ExtendWhereBlockExpressionNode)
 
 			collection := self.Body
@@ -63,7 +63,7 @@ func initExtendWhereBlockExpressionNode() {
 	vm.Def(
 		c,
 		"where_params",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ExtendWhereBlockExpressionNode)
 
 			collection := self.Where
@@ -80,7 +80,7 @@ func initExtendWhereBlockExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ExtendWhereBlockExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -90,7 +90,7 @@ func initExtendWhereBlockExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ExtendWhereBlockExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -101,7 +101,7 @@ func initExtendWhereBlockExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ExtendWhereBlockExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

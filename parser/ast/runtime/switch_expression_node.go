@@ -12,7 +12,7 @@ func initSwitchExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argValue := args[1].MustReference().(ast.ExpressionNode)
 
 			argCasesTuple := args[2].MustReference().(*value.ArrayTuple)
@@ -51,7 +51,7 @@ func initSwitchExpressionNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SwitchExpressionNode)
 			result := value.Ref(self.Value)
 			return result, value.Undefined
@@ -62,7 +62,7 @@ func initSwitchExpressionNode() {
 	vm.Def(
 		c,
 		"cases",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SwitchExpressionNode)
 
 			collection := self.Cases
@@ -79,7 +79,7 @@ func initSwitchExpressionNode() {
 	vm.Def(
 		c,
 		"else_body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SwitchExpressionNode)
 
 			collection := self.ElseBody
@@ -96,7 +96,7 @@ func initSwitchExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SwitchExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -107,7 +107,7 @@ func initSwitchExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SwitchExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -118,7 +118,7 @@ func initSwitchExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SwitchExpressionNode)
 			result := value.Ref(value.String(self.String()))
 			return result, value.Undefined

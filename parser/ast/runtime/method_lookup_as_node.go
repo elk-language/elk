@@ -12,7 +12,7 @@ func initMethodLookupAsNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argMethodLookup := args[1].MustReference().(*ast.MethodLookupNode)
 			argAsName := args[2].MustReference().(ast.IdentifierNode)
 
@@ -36,7 +36,7 @@ func initMethodLookupAsNode() {
 	vm.Def(
 		c,
 		"method_lookup",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodLookupAsNode)
 			result := value.Ref(self.MethodLookup)
 			return result, value.Undefined
@@ -47,7 +47,7 @@ func initMethodLookupAsNode() {
 	vm.Def(
 		c,
 		"as_name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodLookupAsNode)
 			result := value.Ref(self.AsName)
 			return result, value.Undefined
@@ -58,7 +58,7 @@ func initMethodLookupAsNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodLookupAsNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -69,7 +69,7 @@ func initMethodLookupAsNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodLookupAsNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -80,7 +80,7 @@ func initMethodLookupAsNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodLookupAsNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

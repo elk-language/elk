@@ -11,7 +11,7 @@ func initRWMutex() {
 	Def(
 		c,
 		"lock",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.RWMutex)(args[0].Pointer())
 			self.Lock()
 			return value.Nil, value.Undefined
@@ -20,7 +20,7 @@ func initRWMutex() {
 	Def(
 		c,
 		"read_lock",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.RWMutex)(args[0].Pointer())
 			self.ReadLock()
 			return value.Nil, value.Undefined
@@ -29,7 +29,7 @@ func initRWMutex() {
 	Def(
 		c,
 		"unlock",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.RWMutex)(args[0].Pointer())
 			if err := self.Unlock(); !err.IsUndefined() {
 				return value.Undefined, err
@@ -41,7 +41,7 @@ func initRWMutex() {
 	Def(
 		c,
 		"read_unlock",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.RWMutex)(args[0].Pointer())
 			if err := self.ReadUnlock(); !err.IsUndefined() {
 				return value.Undefined, err
@@ -53,7 +53,7 @@ func initRWMutex() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.RWMutex)(args[0].Pointer())
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},

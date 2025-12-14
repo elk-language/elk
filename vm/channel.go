@@ -12,7 +12,7 @@ func initChannel() {
 	Def(
 		c,
 		"closed",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			ch := value.NewChannel(0)
 			ch.Close()
 			return value.Ref(ch), value.Undefined
@@ -24,7 +24,7 @@ func initChannel() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			nVal := args[1]
 			var n int
 			if nVal.IsUndefined() {
@@ -44,7 +44,7 @@ func initChannel() {
 	Def(
 		c,
 		"capacity",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Channel)(args[0].Pointer())
 			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
 		},
@@ -52,7 +52,7 @@ func initChannel() {
 	Def(
 		c,
 		"length",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Channel)(args[0].Pointer())
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
@@ -60,7 +60,7 @@ func initChannel() {
 	Def(
 		c,
 		"left_capacity",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Channel)(args[0].Pointer())
 			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
 		},
@@ -68,7 +68,7 @@ func initChannel() {
 	Def(
 		c,
 		"==",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.ToElkBool(args[0] == args[1]), value.Undefined
 		},
 		DefWithParameters(1),
@@ -76,7 +76,7 @@ func initChannel() {
 	Def(
 		c,
 		"=~",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.ToElkBool(args[0] == args[1]), value.Undefined
 		},
 		DefWithParameters(1),
@@ -84,7 +84,7 @@ func initChannel() {
 	Def(
 		c,
 		"<<",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Channel)(args[0].Pointer())
 			err := self.Push(args[1])
 			if err.IsUndefined() {
@@ -99,7 +99,7 @@ func initChannel() {
 	Def(
 		c,
 		"pop",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Channel)(args[0].Pointer())
 			result, ok := self.Pop()
 			if !ok {
@@ -112,7 +112,7 @@ func initChannel() {
 	Def(
 		c,
 		"close",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Channel)(args[0].Pointer())
 			err := self.Close()
 			if err.IsUndefined() {
@@ -126,7 +126,7 @@ func initChannel() {
 	Def(
 		c,
 		"next",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Channel)(args[0].Pointer())
 			return self.Next()
 		},
@@ -134,7 +134,7 @@ func initChannel() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)

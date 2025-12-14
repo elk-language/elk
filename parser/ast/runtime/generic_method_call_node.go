@@ -13,7 +13,7 @@ func initGenericMethodCallNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argLoc *position.Location
 			if args[7].IsUndefined() {
 				argLoc = position.ZeroLocation
@@ -73,7 +73,7 @@ func initGenericMethodCallNode() {
 	vm.Def(
 		c,
 		"receiver",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 			result := value.Ref(self.Receiver)
 			return result, value.Undefined
@@ -84,7 +84,7 @@ func initGenericMethodCallNode() {
 	vm.Def(
 		c,
 		"op",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 			result := value.Ref(self.Op)
 			return result, value.Undefined
@@ -95,7 +95,7 @@ func initGenericMethodCallNode() {
 	vm.Def(
 		c,
 		"method_name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 			result := value.Ref(self.MethodName)
 			return result, value.Undefined
@@ -106,7 +106,7 @@ func initGenericMethodCallNode() {
 	vm.Def(
 		c,
 		"type_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 
 			collection := self.TypeArguments
@@ -123,7 +123,7 @@ func initGenericMethodCallNode() {
 	vm.Def(
 		c,
 		"positional_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 
 			collection := self.PositionalArguments
@@ -140,7 +140,7 @@ func initGenericMethodCallNode() {
 	vm.Def(
 		c,
 		"named_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 
 			collection := self.NamedArguments
@@ -157,7 +157,7 @@ func initGenericMethodCallNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -168,7 +168,7 @@ func initGenericMethodCallNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -179,7 +179,7 @@ func initGenericMethodCallNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

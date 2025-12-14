@@ -18,7 +18,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"iter",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DiagnosticList)
 			iterator := value.NewDiagnosticListIterator(self)
 			return value.Ref(iterator), value.Undefined
@@ -27,7 +27,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"capacity",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DiagnosticList)
 			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
 		},
@@ -35,7 +35,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"length",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DiagnosticList)
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
@@ -43,7 +43,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"left_capacity",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DiagnosticList)
 			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
 		},
@@ -52,7 +52,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"[]",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DiagnosticList)(args[0].Pointer())
 			other := args[1]
 			return self.Subscript(other)
@@ -63,7 +63,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"[]=",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DiagnosticList)
 			key := args[1]
 			val := (*value.Diagnostic)(args[2].Pointer())
@@ -78,7 +78,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"append",
-		func(vm *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DiagnosticList)
 			values := args[1].MustReference().(*value.ArrayTuple)
 			*self = slices.Grow(*self, values.Length())
@@ -92,7 +92,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"<<",
-		func(vm *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DiagnosticList)
 			val := (*value.Diagnostic)(args[1].Pointer())
 			self.Append(val)
@@ -105,7 +105,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"==",
-		func(v *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(v *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DiagnosticList)(args[0].Pointer())
 			switch other := args[1].SafeAsReference().(type) {
 			case *value.DiagnosticList:
@@ -125,7 +125,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"contains",
-		func(v *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(v *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DiagnosticList)(args[0].Pointer())
 			contains, err := DiagnosticListContains(v, self, args[1])
 			if !err.IsUndefined() {
@@ -139,7 +139,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"+",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DiagnosticList)
 			other := args[1]
 			return value.RefErr(self.Concat(other))
@@ -149,7 +149,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"*",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DiagnosticList)
 			other := args[1]
 			return value.RefErr(self.Repeat(other))
@@ -160,7 +160,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"to_human_string",
-		func(v *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(v *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*diagnostic.DiagnosticList)(args[0].Pointer())
 
 			style := true
@@ -187,7 +187,7 @@ func initDiagnosticList() {
 	vm.Def(
 		c,
 		"is_failure",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*diagnostic.DiagnosticList)(args[0].Pointer())
 			return value.ToElkBool(self.IsFailure()), value.Undefined
 		},
@@ -201,7 +201,7 @@ func initDiagnosticListIterator() {
 	vm.Def(
 		c,
 		"next",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DiagnosticListIterator)(args[0].Pointer())
 			return self.Next()
 		},
@@ -209,14 +209,14 @@ func initDiagnosticListIterator() {
 	vm.Def(
 		c,
 		"iter",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	vm.Def(
 		c,
 		"reset",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.DiagnosticListIterator)(args[0].Pointer())
 			self.Reset()
 			return args[0], value.Undefined
@@ -224,7 +224,7 @@ func initDiagnosticListIterator() {
 	)
 }
 
-func DiagnosticListEqual(v *vm.VM, x, y *value.DiagnosticList) (bool, value.Value) {
+func DiagnosticListEqual(v *vm.Thread, x, y *value.DiagnosticList) (bool, value.Value) {
 	xLen := x.Length()
 	if xLen != y.Length() {
 		return false, value.Undefined
@@ -246,7 +246,7 @@ func DiagnosticListEqual(v *vm.VM, x, y *value.DiagnosticList) (bool, value.Valu
 	return true, value.Undefined
 }
 
-func DiagnosticListContains(v *vm.VM, list *value.DiagnosticList, val value.Value) (bool, value.Value) {
+func DiagnosticListContains(v *vm.Thread, list *value.DiagnosticList, val value.Value) (bool, value.Value) {
 	for _, element := range *list {
 		equal, err := v.CallMethodByName(
 			symbol.OpEqual,

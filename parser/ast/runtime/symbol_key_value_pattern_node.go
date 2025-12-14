@@ -12,7 +12,7 @@ func initSymbolKeyValuePatternNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argKey := (string)(args[1].MustReference().(value.String))
 			argValue := args[2].MustReference().(ast.PatternNode)
 
@@ -36,7 +36,7 @@ func initSymbolKeyValuePatternNode() {
 	vm.Def(
 		c,
 		"key",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolKeyValuePatternNode)
 			result := value.Ref(value.String(self.Key))
 			return result, value.Undefined
@@ -47,7 +47,7 @@ func initSymbolKeyValuePatternNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolKeyValuePatternNode)
 			result := value.Ref(self.Value)
 			return result, value.Undefined
@@ -58,7 +58,7 @@ func initSymbolKeyValuePatternNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolKeyValuePatternNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -69,7 +69,7 @@ func initSymbolKeyValuePatternNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolKeyValuePatternNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -80,7 +80,7 @@ func initSymbolKeyValuePatternNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolKeyValuePatternNode)
 			result := value.Ref(value.String(self.String()))
 			return result, value.Undefined

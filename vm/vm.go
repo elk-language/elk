@@ -57,40 +57,40 @@ func init() {
 	DefaultThreadPool.initThreadPool(DEFAULT_THREAD_POOL_SIZE, DEFAULT_THREAD_POOL_QUEUE_SIZE)
 }
 
-type Option func(*VM) // constructor option function
+type Option func(*Thread) // constructor option function
 
 // Assign the given io.Reader as the Stdin of the VM.
 func WithStdin(stdin io.Reader) Option {
-	return func(vm *VM) {
+	return func(vm *Thread) {
 		vm.Stdin = stdin
 	}
 }
 
-func (vm *VM) PrintErrorValue(err value.Value) {
+func (vm *Thread) PrintErrorValue(err value.Value) {
 	PrintError(vm.Stderr, vm.ErrStackTrace(), err)
 }
 
-func (vm *VM) Panic(err value.Value) {
+func (vm *Thread) Panic(err value.Value) {
 	vm.PrintErrorValue(err)
 	os.Exit(1)
 }
 
 // Assign the given io.Writer as the Stdout of the VM.
 func WithStdout(stdout io.Writer) Option {
-	return func(vm *VM) {
+	return func(vm *Thread) {
 		vm.Stdout = stdout
 	}
 }
 
 // Assign the given io.Writer as the Stderr of the VM.
 func WithStderr(stderr io.Writer) Option {
-	return func(vm *VM) {
+	return func(vm *Thread) {
 		vm.Stderr = stderr
 	}
 }
 
 func WithThreadPool(tp *ThreadPool) Option {
-	return func(vm *VM) {
+	return func(vm *Thread) {
 		vm.threadPool = tp
 	}
 }
@@ -114,7 +114,7 @@ func PrintError(stderr io.Writer, stackTrace *value.StackTrace, err value.Value)
 }
 
 // Get the stored error stack trace.
-func (vm *VM) ErrStackTrace() *value.StackTrace {
+func (vm *Thread) ErrStackTrace() *value.StackTrace {
 	if vm.state == errorState {
 		return vm.errStackTrace
 	}
@@ -122,7 +122,7 @@ func (vm *VM) ErrStackTrace() *value.StackTrace {
 	return nil
 }
 
-func (vm *VM) populateMissingParameters(args []value.Value, paramCount, argumentCount int) []value.Value {
+func (vm *Thread) populateMissingParameters(args []value.Value, paramCount, argumentCount int) []value.Value {
 	// populate missing optional arguments with undefined
 	missingParams := uintptr(paramCount - argumentCount)
 	if missingParams > 0 {

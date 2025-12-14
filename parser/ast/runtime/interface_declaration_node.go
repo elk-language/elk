@@ -12,7 +12,7 @@ func initInterfaceDeclarationNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argConstant := args[1].MustReference().(ast.ExpressionNode)
 			var argTypeParameters []ast.TypeParameterNode
 			if !args[2].IsUndefined() {
@@ -59,7 +59,7 @@ func initInterfaceDeclarationNode() {
 	vm.Def(
 		c,
 		"doc_comment",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
 			result := value.Ref(value.String(self.DocComment()))
 			return result, value.Undefined
@@ -70,7 +70,7 @@ func initInterfaceDeclarationNode() {
 	vm.Def(
 		c,
 		"constant",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
 			if self.Constant == nil {
 				return value.Nil, value.Undefined
@@ -83,7 +83,7 @@ func initInterfaceDeclarationNode() {
 	vm.Def(
 		c,
 		"type_parameters",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
 
 			collection := self.TypeParameters
@@ -100,7 +100,7 @@ func initInterfaceDeclarationNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
 
 			collection := self.Body
@@ -117,7 +117,7 @@ func initInterfaceDeclarationNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -127,7 +127,7 @@ func initInterfaceDeclarationNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -138,7 +138,7 @@ func initInterfaceDeclarationNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

@@ -208,7 +208,7 @@ func initPromise() {
 	Def(
 		c,
 		"resolved",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			result := args[1]
 			return value.Ref(NewResolvedPromise(result)), value.Undefined
 		},
@@ -217,7 +217,7 @@ func initPromise() {
 	Def(
 		c,
 		"rejected",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			err := args[1]
 			return value.Ref(NewRejectedPromise(err)), value.Undefined
 		},
@@ -226,11 +226,11 @@ func initPromise() {
 	Def(
 		c,
 		"wait",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			collectionValue := args[1]
 
 			p := NewExternalPromise(vm.threadPool)
-			go func(vm *VM, p *Promise, collection value.Value) {
+			go func(vm *Thread, p *Promise, collection value.Value) {
 				for val, err := range Iterate(vm, collection) {
 					promise := (*Promise)(val.Pointer())
 					if !err.IsUndefined() {
@@ -257,7 +257,7 @@ func initPromise() {
 	Def(
 		c,
 		"is_resolved",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*Promise)(args[0].Pointer())
 			return value.ToElkBool(self.IsResolved()), value.Undefined
 		},

@@ -14,7 +14,7 @@ func initHashSet() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
 			iterator := value.NewHashSetIterator(self)
 			return value.Ref(iterator), value.Undefined
@@ -23,7 +23,7 @@ func initHashSet() {
 	Def(
 		c,
 		"capacity",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
 			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
 		},
@@ -31,7 +31,7 @@ func initHashSet() {
 	Def(
 		c,
 		"length",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
@@ -39,7 +39,7 @@ func initHashSet() {
 	Def(
 		c,
 		"left_capacity",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
 			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
 		},
@@ -47,7 +47,7 @@ func initHashSet() {
 	Def(
 		c,
 		"grow",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
 			nValue := args[1]
 			n, ok := value.IntToGoInt(nValue)
@@ -68,7 +68,7 @@ func initHashSet() {
 	Def(
 		c,
 		"+",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
 			otherVal := args[1]
 			other, ok := otherVal.SafeAsReference().(*value.HashSet)
@@ -89,7 +89,7 @@ func initHashSet() {
 	Def(
 		c,
 		"&",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
 			otherVal := args[1]
 			other, ok := otherVal.SafeAsReference().(*value.HashSet)
@@ -109,7 +109,7 @@ func initHashSet() {
 	Def(
 		c,
 		"==",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
 			other, ok := args[1].SafeAsReference().(*value.HashSet)
 			if !ok {
@@ -128,7 +128,7 @@ func initHashSet() {
 	Def(
 		c,
 		"contains",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
 			val := args[1]
 			contains, err := HashSetContains(vm, self, val)
@@ -142,7 +142,7 @@ func initHashSet() {
 	Def(
 		c,
 		"append",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
 			val := args[1].SafeAsReference().(*value.ArrayList)
 			for _, element := range *val {
@@ -158,7 +158,7 @@ func initHashSet() {
 	Def(
 		c,
 		"<<",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
 			val := args[1]
 			err := HashSetAppend(vm, self, val)
@@ -173,7 +173,7 @@ func initHashSet() {
 	Def(
 		c,
 		"map",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
 			callable := args[1]
 			newSet := value.NewHashSet(self.Length())
@@ -223,7 +223,7 @@ func initHashSetIterator() {
 	Def(
 		c,
 		"next",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.HashSetIterator)(args[0].Pointer())
 			return self.Next()
 		},
@@ -231,14 +231,14 @@ func initHashSetIterator() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"reset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.HashSetIterator)(args[0].Pointer())
 			self.Reset()
 			return args[0], value.Undefined
@@ -279,12 +279,12 @@ func NewHashSetComparer(opts *cmp.Options) cmp.Option {
 }
 
 // Create a new hash set with the given entries.
-func NewHashSetWithElements(vm *VM, elements ...value.Value) (*value.HashSet, value.Value) {
+func NewHashSetWithElements(vm *Thread, elements ...value.Value) (*value.HashSet, value.Value) {
 	return NewHashSetWithCapacityAndElements(vm, len(elements), elements...)
 }
 
 // Create a new hash set with the given entries.
-func MustNewHashSetWithElements(vm *VM, elements ...value.Value) *value.HashSet {
+func MustNewHashSetWithElements(vm *Thread, elements ...value.Value) *value.HashSet {
 	set, err := NewHashSetWithElements(vm, elements...)
 	if !err.IsUndefined() {
 		panic(err)
@@ -293,7 +293,7 @@ func MustNewHashSetWithElements(vm *VM, elements ...value.Value) *value.HashSet 
 	return set
 }
 
-func NewHashSetWithCapacityAndElements(vm *VM, capacity int, elements ...value.Value) (*value.HashSet, value.Value) {
+func NewHashSetWithCapacityAndElements(vm *Thread, capacity int, elements ...value.Value) (*value.HashSet, value.Value) {
 	s := value.NewHashSet(capacity)
 	for _, element := range elements {
 		err := HashSetAppend(vm, s, element)
@@ -305,7 +305,7 @@ func NewHashSetWithCapacityAndElements(vm *VM, capacity int, elements ...value.V
 	return s, value.Undefined
 }
 
-func NewHashSetWithCapacityAndElementsMaxLoad(vm *VM, capacity int, maxLoad float64, elements ...value.Value) (*value.HashSet, value.Value) {
+func NewHashSetWithCapacityAndElementsMaxLoad(vm *Thread, capacity int, maxLoad float64, elements ...value.Value) (*value.HashSet, value.Value) {
 	s := value.NewHashSet(capacity)
 	for _, element := range elements {
 		err := HashSetAppendWithMaxLoad(vm, s, element, maxLoad)
@@ -317,7 +317,7 @@ func NewHashSetWithCapacityAndElementsMaxLoad(vm *VM, capacity int, maxLoad floa
 	return s, value.Undefined
 }
 
-func MustNewHashSetWithCapacityAndElements(vm *VM, capacity int, elements ...value.Value) *value.HashSet {
+func MustNewHashSetWithCapacityAndElements(vm *Thread, capacity int, elements ...value.Value) *value.HashSet {
 	set, err := NewHashSetWithCapacityAndElements(vm, capacity, elements...)
 	if !err.IsUndefined() {
 		panic(err)
@@ -326,7 +326,7 @@ func MustNewHashSetWithCapacityAndElements(vm *VM, capacity int, elements ...val
 	return set
 }
 
-func MustNewHashSetWithCapacityAndElementsMaxLoad(vm *VM, capacity int, maxLoad float64, elements ...value.Value) *value.HashSet {
+func MustNewHashSetWithCapacityAndElementsMaxLoad(vm *Thread, capacity int, maxLoad float64, elements ...value.Value) *value.HashSet {
 	set, err := NewHashSetWithCapacityAndElementsMaxLoad(vm, capacity, maxLoad, elements...)
 	if !err.IsUndefined() {
 		panic(err)
@@ -336,7 +336,7 @@ func MustNewHashSetWithCapacityAndElementsMaxLoad(vm *VM, capacity int, maxLoad 
 }
 
 // Checks whether two hash sets are equal
-func HashSetEqual(vm *VM, x *value.HashSet, y *value.HashSet) (bool, value.Value) {
+func HashSetEqual(vm *Thread, x *value.HashSet, y *value.HashSet) (bool, value.Value) {
 	if x.Length() != y.Length() {
 		return false, value.Undefined
 	}
@@ -359,7 +359,7 @@ func HashSetEqual(vm *VM, x *value.HashSet, y *value.HashSet) (bool, value.Value
 }
 
 // Create a new set that is the union of the given two sets
-func HashSetUnion(vm *VM, x *value.HashSet, y *value.HashSet) (*value.HashSet, value.Value) {
+func HashSetUnion(vm *Thread, x *value.HashSet, y *value.HashSet) (*value.HashSet, value.Value) {
 	var longer *value.HashSet
 	var shorter *value.HashSet
 	if x.Length() > y.Length() {
@@ -387,7 +387,7 @@ func HashSetUnion(vm *VM, x *value.HashSet, y *value.HashSet) (*value.HashSet, v
 }
 
 // Create a new set that is the intersection of the given two sets
-func HashSetIntersection(vm *VM, x *value.HashSet, y *value.HashSet) (*value.HashSet, value.Value) {
+func HashSetIntersection(vm *Thread, x *value.HashSet, y *value.HashSet) (*value.HashSet, value.Value) {
 	var longer *value.HashSet
 	var shorter *value.HashSet
 	if x.Length() > y.Length() {
@@ -417,7 +417,7 @@ func HashSetIntersection(vm *VM, x *value.HashSet, y *value.HashSet) (*value.Has
 }
 
 // Delete the given value from the hash set
-func HashSetDelete(vm *VM, hashSet *value.HashSet, val value.Value) (bool, value.Value) {
+func HashSetDelete(vm *Thread, hashSet *value.HashSet, val value.Value) (bool, value.Value) {
 	if hashSet.Length() == 0 {
 		return false, value.Undefined
 	}
@@ -442,7 +442,7 @@ func HashSetDelete(vm *VM, hashSet *value.HashSet, val value.Value) (bool, value
 }
 
 // Check whether the given value is contained within the set.
-func HashSetContains(vm *VM, set *value.HashSet, val value.Value) (bool, value.Value) {
+func HashSetContains(vm *Thread, set *value.HashSet, val value.Value) (bool, value.Value) {
 	if set.Length() == 0 {
 		return false, value.Undefined
 	}
@@ -462,7 +462,7 @@ func HashSetContains(vm *VM, set *value.HashSet, val value.Value) (bool, value.V
 	return true, value.Undefined
 }
 
-func HashSetCopyTable(vm *VM, target *value.HashSet, source []value.Value) value.Value {
+func HashSetCopyTable(vm *Thread, target *value.HashSet, source []value.Value) value.Value {
 	for _, entry := range source {
 		if entry == DeletedHashSetValue || entry.IsUndefined() {
 			continue
@@ -478,7 +478,7 @@ func HashSetCopyTable(vm *VM, target *value.HashSet, source []value.Value) value
 }
 
 // Copy the pairs of one hashmap to the other.
-func HashSetCopy(vm *VM, target *value.HashSet, source *value.HashSet) value.Value {
+func HashSetCopy(vm *Thread, target *value.HashSet, source *value.HashSet) value.Value {
 	requiredCapacity := target.Length() + source.Length()
 	if target.Capacity() < requiredCapacity {
 		HashSetSetCapacity(vm, target, requiredCapacity)
@@ -505,12 +505,12 @@ func HashSetCopy(vm *VM, target *value.HashSet, source *value.HashSet) value.Val
 }
 
 // Add additional n empty slots for new elements.
-func HashSetGrow(vm *VM, set *value.HashSet, newSlots int) value.Value {
+func HashSetGrow(vm *Thread, set *value.HashSet, newSlots int) value.Value {
 	return HashSetSetCapacity(vm, set, set.Capacity()+newSlots)
 }
 
 // Resize the given set to the desired capacity.
-func HashSetSetCapacity(vm *VM, set *value.HashSet, capacity int) value.Value {
+func HashSetSetCapacity(vm *Thread, set *value.HashSet, capacity int) value.Value {
 	if set.Capacity() == capacity {
 		return value.Undefined
 	}
@@ -544,7 +544,7 @@ func HashSetSetCapacity(vm *VM, set *value.HashSet, capacity int) value.Value {
 	return value.Undefined
 }
 
-func HashSetAppendWithMaxLoad(vm *VM, set *value.HashSet, val value.Value, maxLoad float64) value.Value {
+func HashSetAppendWithMaxLoad(vm *Thread, set *value.HashSet, val value.Value, maxLoad float64) value.Value {
 	if set.Capacity() == 0 {
 		HashSetSetCapacity(vm, set, 5)
 	} else if float64(set.OccupiedSlots) >= float64(set.Capacity())*maxLoad {
@@ -570,7 +570,7 @@ func HashSetAppendWithMaxLoad(vm *VM, set *value.HashSet, val value.Value, maxLo
 }
 
 // Set a value under the given key.
-func HashSetAppend(vm *VM, set *value.HashSet, val value.Value) value.Value {
+func HashSetAppend(vm *Thread, set *value.HashSet, val value.Value) value.Value {
 	return HashSetAppendWithMaxLoad(vm, set, val, value.HashSetMaxLoad)
 }
 
@@ -603,7 +603,7 @@ func (e DeletedHashSetValueType) Error() string {
 // Get the index that the value should be inserted into.
 // Returns (0, err) when an error has been encountered.
 // Returns (-1, undefined) when there's no room for new values.
-func HashSetIndex(vm *VM, set *value.HashSet, val value.Value) (int, value.Value) {
+func HashSetIndex(vm *Thread, set *value.HashSet, val value.Value) (int, value.Value) {
 	hash, err := Hash(vm, val)
 	if !err.IsUndefined() {
 		return 0, err

@@ -10,7 +10,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"set_precision",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			arg := args[1]
 			p, ok := value.ToGoUInt(arg)
@@ -25,7 +25,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"precision",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return value.UInt64(self.Precision()).ToValue(), value.Undefined
 		},
@@ -34,7 +34,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"hash",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.Hash().ToValue(), value.Undefined
 		},
@@ -42,14 +42,14 @@ func initBigFloat() {
 	Def(
 		c,
 		"+@",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"-@",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return value.Ref(self.Negate()), value.Undefined
 		},
@@ -57,7 +57,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"+",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.AddVal(other)
@@ -67,7 +67,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"-",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.SubtractVal(other)
@@ -77,7 +77,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"*",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.MultiplyVal(other)
@@ -87,7 +87,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"/",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.DivideVal(other)
@@ -97,7 +97,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"**",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.ExponentiateVal(other)
@@ -107,7 +107,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"<=>",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.CompareVal(other)
@@ -117,7 +117,7 @@ func initBigFloat() {
 	Def(
 		c,
 		">",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.GreaterThanVal(other)
@@ -127,7 +127,7 @@ func initBigFloat() {
 	Def(
 		c,
 		">=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.GreaterThanEqualVal(other)
@@ -137,7 +137,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"<",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.LessThanVal(other)
@@ -147,7 +147,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"<=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.LessThanEqualVal(other)
@@ -157,7 +157,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.EqualVal(other), value.Undefined
@@ -167,7 +167,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"=~",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.LaxEqualVal(other), value.Undefined
@@ -177,7 +177,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"%",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			other := args[1]
 			return self.ModuloVal(other)
@@ -188,7 +188,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
@@ -198,7 +198,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_big_float",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			return self, value.Undefined
 		},
@@ -206,7 +206,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_float",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToFloat().ToValue(), value.Undefined
 		},
@@ -214,7 +214,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_int",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToInt(), value.Undefined
 		},
@@ -222,7 +222,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_float64",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToFloat64().ToValue(), value.Undefined
 		},
@@ -230,7 +230,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_float32",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToFloat32().ToValue(), value.Undefined
 		},
@@ -239,7 +239,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_int64",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToInt64().ToValue(), value.Undefined
 		},
@@ -247,7 +247,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_int32",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToInt32().ToValue(), value.Undefined
 		},
@@ -255,7 +255,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_int16",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToInt16().ToValue(), value.Undefined
 		},
@@ -263,7 +263,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_int8",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToInt8().ToValue(), value.Undefined
 		},
@@ -271,7 +271,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_uint",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToUInt().ToValue(), value.Undefined
 		},
@@ -279,7 +279,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_uint64",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToUInt64().ToValue(), value.Undefined
 		},
@@ -287,7 +287,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_uint32",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToUInt32().ToValue(), value.Undefined
 		},
@@ -295,7 +295,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_uint16",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToUInt16().ToValue(), value.Undefined
 		},
@@ -303,7 +303,7 @@ func initBigFloat() {
 	Def(
 		c,
 		"to_uint8",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BigFloat)(args[0].Pointer())
 			return self.ToUInt8().ToValue(), value.Undefined
 		},

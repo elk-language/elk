@@ -11,7 +11,7 @@ func initWeak() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			switch box := args[1].AsReference().(type) {
 			case *value.Box:
 				return value.MakeWeak(box).ToValue(), value.Undefined
@@ -34,7 +34,7 @@ func initWeak() {
 	Def(
 		c,
 		"to_immutable_box",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsWeak()
 			return self.ToImmutableBoxValue(), value.Undefined
 		},
@@ -42,7 +42,7 @@ func initWeak() {
 	Def(
 		c,
 		"to_box",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsWeak()
 			return self.ToBoxValue(), value.Undefined
 		},

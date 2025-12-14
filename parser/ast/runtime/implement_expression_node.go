@@ -12,7 +12,7 @@ func initImplementExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argConstantsTuple := args[1].MustReference().(*value.ArrayTuple)
 			argConstants := make([]ast.ComplexConstantNode, argConstantsTuple.Length())
 			for i, el := range *argConstantsTuple {
@@ -38,7 +38,7 @@ func initImplementExpressionNode() {
 	vm.Def(
 		c,
 		"constants",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ImplementExpressionNode)
 
 			collection := self.Constants
@@ -55,7 +55,7 @@ func initImplementExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ImplementExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -65,7 +65,7 @@ func initImplementExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ImplementExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -76,7 +76,7 @@ func initImplementExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ImplementExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

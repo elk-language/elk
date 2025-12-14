@@ -11,7 +11,7 @@ func initBeginlessOpenRange() {
 	Def(
 		c,
 		"==",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BeginlessOpenRange)
 			other, ok := args[1].SafeAsReference().(*value.BeginlessOpenRange)
 			if !ok {
@@ -31,7 +31,7 @@ func initBeginlessOpenRange() {
 	Def(
 		c,
 		"#contains",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BeginlessOpenRange)
 			other := args[1]
 			if !value.IsA(other, self.End.Class()) {
@@ -48,7 +48,7 @@ func initBeginlessOpenRange() {
 	Def(
 		c,
 		"contains",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BeginlessOpenRange)
 			other := args[1]
 			contains, err := BeginlessOpenRangeContains(vm, self, other)
@@ -62,42 +62,42 @@ func initBeginlessOpenRange() {
 	Def(
 		c,
 		"is_left_closed",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.False, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_left_open",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.True, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_closed",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.False, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_open",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.True, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"start",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.Nil, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"end",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BeginlessOpenRange)
 			return self.End, value.Undefined
 		},
@@ -105,7 +105,7 @@ func initBeginlessOpenRange() {
 }
 
 // Checks whether a value is contained in the open range
-func BeginlessOpenRangeContains(vm *VM, r *value.BeginlessOpenRange, val value.Value) (bool, value.Value) {
+func BeginlessOpenRangeContains(vm *Thread, r *value.BeginlessOpenRange, val value.Value) (bool, value.Value) {
 	eqVal, err := LessThan(vm, val, r.End)
 	if !err.IsUndefined() {
 		return false, err
@@ -115,7 +115,7 @@ func BeginlessOpenRangeContains(vm *VM, r *value.BeginlessOpenRange, val value.V
 }
 
 // Checks whether two open ranges are equal
-func BeginlessOpenRangeEqual(vm *VM, x, y *value.BeginlessOpenRange) (bool, value.Value) {
+func BeginlessOpenRangeEqual(vm *Thread, x, y *value.BeginlessOpenRange) (bool, value.Value) {
 	eqVal, err := Equal(vm, x.End, y.End)
 	if !err.IsUndefined() {
 		return false, err

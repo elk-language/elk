@@ -40,7 +40,7 @@ func typecheckerInit(checker types.Checker) {
 			),
 		},
 		expressionNodeMixin,
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			expr := args[1].AsReference().(ast.ExpressionNode)
 
 			assertionsConstant := ast.NewConstantLookupNode(

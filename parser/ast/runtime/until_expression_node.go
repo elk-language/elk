@@ -12,7 +12,7 @@ func initUntilExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argCondition := args[1].MustReference().(ast.ExpressionNode)
 
 			var argThenBody []ast.StatementNode
@@ -44,7 +44,7 @@ func initUntilExpressionNode() {
 	vm.Def(
 		c,
 		"condition",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UntilExpressionNode)
 			result := value.Ref(self.Condition)
 			return result, value.Undefined
@@ -55,7 +55,7 @@ func initUntilExpressionNode() {
 	vm.Def(
 		c,
 		"then_body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UntilExpressionNode)
 
 			collection := self.ThenBody
@@ -72,7 +72,7 @@ func initUntilExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UntilExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -83,7 +83,7 @@ func initUntilExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UntilExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -94,7 +94,7 @@ func initUntilExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UntilExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

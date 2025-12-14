@@ -12,7 +12,7 @@ func initAttributeParameterNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argTypeNode ast.TypeNode
@@ -46,7 +46,7 @@ func initAttributeParameterNode() {
 	vm.Def(
 		c,
 		"name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeParameterNode)
 			result := value.Ref(self.Name)
 			return result, value.Undefined
@@ -57,7 +57,7 @@ func initAttributeParameterNode() {
 	vm.Def(
 		c,
 		"type_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeParameterNode)
 			if self.TypeNode == nil {
 				return value.Nil, value.Undefined
@@ -71,7 +71,7 @@ func initAttributeParameterNode() {
 	vm.Def(
 		c,
 		"is_optional",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeParameterNode)
 			result := value.ToElkBool(self.IsOptional())
 			return result, value.Undefined
@@ -82,7 +82,7 @@ func initAttributeParameterNode() {
 	vm.Def(
 		c,
 		"is_normal",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			return value.True, value.Undefined
 		},
 	)
@@ -90,7 +90,7 @@ func initAttributeParameterNode() {
 	vm.Def(
 		c,
 		"is_positional_rest",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			return value.False, value.Undefined
 		},
 	)
@@ -98,7 +98,7 @@ func initAttributeParameterNode() {
 	vm.Def(
 		c,
 		"is_named_rest",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			return value.False, value.Undefined
 		},
 	)
@@ -106,7 +106,7 @@ func initAttributeParameterNode() {
 	vm.Def(
 		c,
 		"initialiser",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeParameterNode)
 			if self.Initialiser == nil {
 				return value.Nil, value.Undefined
@@ -120,7 +120,7 @@ func initAttributeParameterNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeParameterNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -130,7 +130,7 @@ func initAttributeParameterNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeParameterNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -141,7 +141,7 @@ func initAttributeParameterNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeParameterNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

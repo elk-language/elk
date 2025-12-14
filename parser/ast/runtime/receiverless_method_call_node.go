@@ -12,7 +12,7 @@ func initReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argMethodName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argPositionalArguments []ast.ExpressionNode
@@ -54,7 +54,7 @@ func initReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"method_name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMethodCallNode)
 			result := value.Ref(self.MethodName)
 			return result, value.Undefined
@@ -65,7 +65,7 @@ func initReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"positional_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMethodCallNode)
 
 			collection := self.PositionalArguments
@@ -82,7 +82,7 @@ func initReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"named_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMethodCallNode)
 
 			collection := self.NamedArguments
@@ -99,7 +99,7 @@ func initReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMethodCallNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -109,7 +109,7 @@ func initReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMethodCallNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -120,7 +120,7 @@ func initReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ReceiverlessMethodCallNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

@@ -74,7 +74,7 @@ func initCallFrame() {
 	Def(
 		c,
 		"to_string",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.CallFrame)(args[0].Pointer())
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -82,7 +82,7 @@ func initCallFrame() {
 	Def(
 		c,
 		"func_name",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.CallFrame)(args[0].Pointer())
 			return value.Ref(value.String(self.FuncName)), value.Undefined
 		},
@@ -90,7 +90,7 @@ func initCallFrame() {
 	Def(
 		c,
 		"file_name",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.CallFrame)(args[0].Pointer())
 			return value.Ref(value.String(self.FileName)), value.Undefined
 		},
@@ -98,7 +98,7 @@ func initCallFrame() {
 	Def(
 		c,
 		"line_number",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.CallFrame)(args[0].Pointer())
 			return value.SmallInt(self.LineNumber).ToValue(), value.Undefined
 		},
@@ -106,7 +106,7 @@ func initCallFrame() {
 	Def(
 		c,
 		"tail_calls",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.CallFrame)(args[0].Pointer())
 			return value.SmallInt(self.TailCallCounter).ToValue(), value.Undefined
 		},
@@ -114,7 +114,7 @@ func initCallFrame() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.CallFrame)(args[0].Pointer())
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},

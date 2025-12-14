@@ -13,7 +13,7 @@ func initBinaryPatternNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argOp := args[1].MustReference().(*token.Token)
 			argLeft := args[2].MustReference().(ast.PatternNode)
 			argRight := args[3].MustReference().(ast.PatternNode)
@@ -39,7 +39,7 @@ func initBinaryPatternNode() {
 	vm.Def(
 		c,
 		"op",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinaryPatternNode)
 			result := value.Ref(self.Op)
 			return result, value.Undefined
@@ -50,7 +50,7 @@ func initBinaryPatternNode() {
 	vm.Def(
 		c,
 		"left",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinaryPatternNode)
 			result := value.Ref(self.Left)
 			return result, value.Undefined
@@ -61,7 +61,7 @@ func initBinaryPatternNode() {
 	vm.Def(
 		c,
 		"right",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinaryPatternNode)
 			result := value.Ref(self.Right)
 			return result, value.Undefined
@@ -72,7 +72,7 @@ func initBinaryPatternNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinaryPatternNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -83,7 +83,7 @@ func initBinaryPatternNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinaryPatternNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -94,7 +94,7 @@ func initBinaryPatternNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinaryPatternNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

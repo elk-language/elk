@@ -8,7 +8,7 @@ import (
 )
 
 // Iterate over an iterable value
-func Iterate(vm *VM, collectionValue value.Value) iter.Seq2[value.Value, value.Value] {
+func Iterate(vm *Thread, collectionValue value.Value) iter.Seq2[value.Value, value.Value] {
 	switch c := collectionValue.AsReference().(type) {
 	case *value.ArrayListIterator:
 		return value.IterateNativeIterator(c)
@@ -107,7 +107,7 @@ func initIterator() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)

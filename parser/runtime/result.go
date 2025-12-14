@@ -13,7 +13,7 @@ func initResult() {
 	vm.Def(
 		c,
 		"ast",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*parser.Result)(args[0].Pointer())
 			return value.Ref(self.AST), value.Undefined
 		},
@@ -21,7 +21,7 @@ func initResult() {
 	vm.Def(
 		c,
 		"diagnostics",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*parser.Result)(args[0].Pointer())
 			return value.Ref((*value.DiagnosticList)(&self.Diagnostics)), value.Undefined
 		},

@@ -11,7 +11,7 @@ func initOnce() {
 	Def(
 		c,
 		"call",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Once)(args[0].Pointer())
 			err := OnceDo(vm, self, args[1])
 			if !err.IsUndefined() {
@@ -24,7 +24,7 @@ func initOnce() {
 
 }
 
-func OnceDo(vm *VM, once *value.Once, fn value.Value) (err value.Value) {
+func OnceDo(vm *Thread, once *value.Once, fn value.Value) (err value.Value) {
 	once.Native.Do(func() {
 		_, err = vm.CallCallable(fn)
 	})

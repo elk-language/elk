@@ -14,7 +14,7 @@ func initKernel() {
 	Def(
 		c,
 		"exit",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			var code int
 			if !args[1].IsUndefined() {
 				code = args[1].AsInt()
@@ -27,7 +27,7 @@ func initKernel() {
 	Def(
 		c,
 		"print",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			for val, err := range Iterate(vm, args[1]) {
 				if !err.IsUndefined() {
 					return value.Undefined, err
@@ -48,7 +48,7 @@ func initKernel() {
 	Def(
 		c,
 		"println",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			var iterated bool
 			for val, err := range Iterate(vm, args[1]) {
 				iterated = true
@@ -78,7 +78,7 @@ func initKernel() {
 	Def(
 		c,
 		"sleep",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			durationVal := args[1]
 			var duration value.TimeSpan
 			if durationVal.IsReference() {
@@ -97,7 +97,7 @@ func initKernel() {
 	Def(
 		c,
 		"timeout",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			durationVal := args[1]
 			var duration value.TimeSpan
 			if durationVal.IsReference() {

@@ -11,14 +11,14 @@ func initDate() {
 	Def(
 		c,
 		"now",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.DateNow().ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"parse",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			input := args[1].AsString().String()
 
 			var formatString string
@@ -42,7 +42,7 @@ func initDate() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			var argYear int
 			if !args[1].IsUndefined() {
 				if args[1].IsSmallInt() {
@@ -89,7 +89,7 @@ func initDate() {
 	Def(
 		c,
 		"+",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return self.AddDateSpan(args[1].AsDateSpan()).ToValue(), value.Undefined
 		},
@@ -98,7 +98,7 @@ func initDate() {
 	Def(
 		c,
 		"+@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			span := (*value.DateTimeSpan)(args[1].Pointer())
 			return value.Ref(self.AddDateTimeSpan(span)), value.Undefined
@@ -108,7 +108,7 @@ func initDate() {
 	Def(
 		c,
 		"+@2",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			span := args[1].AsTimeSpan()
 			return value.Ref(self.AddTimeSpan(span)), value.Undefined
@@ -119,7 +119,7 @@ func initDate() {
 	Def(
 		c,
 		"-",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return self.Subtract(args[1])
 		},
@@ -128,7 +128,7 @@ func initDate() {
 	Def(
 		c,
 		"-@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return self.DiffDate(args[1].AsDate()).ToValue(), value.Undefined
 		},
@@ -137,7 +137,7 @@ func initDate() {
 	Def(
 		c,
 		"-@2",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			other := (*value.DateTime)(args[1].Pointer())
 			return value.Ref(self.DiffDateTime(other)), value.Undefined
@@ -148,7 +148,7 @@ func initDate() {
 	Def(
 		c,
 		"diff",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return self.Diff(args[1])
 		},
@@ -157,7 +157,7 @@ func initDate() {
 	Def(
 		c,
 		"diff@1",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return self.DiffDate(args[1].AsDate()).ToValue(), value.Undefined
 		},
@@ -166,7 +166,7 @@ func initDate() {
 	Def(
 		c,
 		"diff@2",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			other := (*value.DateTime)(args[1].Pointer())
 			return value.Ref(self.DiffDateTime(other)), value.Undefined
@@ -177,7 +177,7 @@ func initDate() {
 	Def(
 		c,
 		"format",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			arg := args[1]
 			switch a := arg.SafeAsReference().(type) {
@@ -201,7 +201,7 @@ func initDate() {
 	Def(
 		c,
 		"century",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.Century()).ToValue(), value.Undefined
 		},
@@ -209,7 +209,7 @@ func initDate() {
 	Def(
 		c,
 		"millenium",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.Millenium()).ToValue(), value.Undefined
 		},
@@ -217,7 +217,7 @@ func initDate() {
 	Def(
 		c,
 		"year",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.Year()).ToValue(), value.Undefined
 		},
@@ -225,7 +225,7 @@ func initDate() {
 	Def(
 		c,
 		"year_last_two",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.YearLastTwo()).ToValue(), value.Undefined
 		},
@@ -233,7 +233,7 @@ func initDate() {
 	Def(
 		c,
 		"iso_year",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.ISOYear()).ToValue(), value.Undefined
 		},
@@ -241,7 +241,7 @@ func initDate() {
 	Def(
 		c,
 		"iso_year_last_two",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.ISOYearLastTwo()).ToValue(), value.Undefined
 		},
@@ -249,7 +249,7 @@ func initDate() {
 	Def(
 		c,
 		"month",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDate()
 			return value.SmallInt(self.Month()).ToValue(), value.Undefined
 		},
@@ -257,7 +257,7 @@ func initDate() {
 	Def(
 		c,
 		"to_string",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDate()
 			return value.Ref(self.ToString()), value.Undefined
 		},
@@ -265,7 +265,7 @@ func initDate() {
 	Def(
 		c,
 		"to_date_span",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDate()
 			return self.ToDateSpan().ToValue(), value.Undefined
 		},
@@ -273,7 +273,7 @@ func initDate() {
 	Def(
 		c,
 		"to_datetime",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustDate()
 			return value.Ref(self.ToDateTime()), value.Undefined
 		},
@@ -281,14 +281,14 @@ func initDate() {
 	Def(
 		c,
 		"to_date",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"week_from_monday",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.WeekFromMonday()).ToValue(), value.Undefined
 		},
@@ -297,7 +297,7 @@ func initDate() {
 	Def(
 		c,
 		"week_from_sunday",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.WeekFromSunday()).ToValue(), value.Undefined
 		},
@@ -305,7 +305,7 @@ func initDate() {
 	Def(
 		c,
 		"iso_week",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.ISOWeek()).ToValue(), value.Undefined
 		},
@@ -313,7 +313,7 @@ func initDate() {
 	Def(
 		c,
 		"day",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.Day()).ToValue(), value.Undefined
 		},
@@ -323,7 +323,7 @@ func initDate() {
 	Def(
 		c,
 		"year_day",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.YearDay()).ToValue(), value.Undefined
 		},
@@ -331,7 +331,7 @@ func initDate() {
 	Def(
 		c,
 		"iso_year_day",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.ISOYearDay()).ToValue(), value.Undefined
 		},
@@ -339,7 +339,7 @@ func initDate() {
 	Def(
 		c,
 		"weekday_name",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.Ref(value.String(self.WeekdayName())), value.Undefined
 		},
@@ -347,7 +347,7 @@ func initDate() {
 	Def(
 		c,
 		"abbreviated_weekday_name",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.Ref(value.String(self.AbbreviatedWeekdayName())), value.Undefined
 		},
@@ -355,7 +355,7 @@ func initDate() {
 	Def(
 		c,
 		"weekday_from_monday",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.WeekdayFromMonday()).ToValue(), value.Undefined
 		},
@@ -365,7 +365,7 @@ func initDate() {
 	Def(
 		c,
 		"weekday_from_sunday",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.SmallInt(self.WeekdayFromSunday()).ToValue(), value.Undefined
 		},
@@ -374,7 +374,7 @@ func initDate() {
 	Def(
 		c,
 		"is_monday",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.ToElkBool(self.IsMonday()), value.Undefined
 		},
@@ -382,7 +382,7 @@ func initDate() {
 	Def(
 		c,
 		"is_tuesday",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.ToElkBool(self.IsTuesday()), value.Undefined
 		},
@@ -390,7 +390,7 @@ func initDate() {
 	Def(
 		c,
 		"is_wednesday",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.ToElkBool(self.IsWednesday()), value.Undefined
 		},
@@ -398,7 +398,7 @@ func initDate() {
 	Def(
 		c,
 		"is_thursday",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.ToElkBool(self.IsThursday()), value.Undefined
 		},
@@ -406,7 +406,7 @@ func initDate() {
 	Def(
 		c,
 		"is_friday",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.ToElkBool(self.IsFriday()), value.Undefined
 		},
@@ -414,7 +414,7 @@ func initDate() {
 	Def(
 		c,
 		"is_saturday",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.ToElkBool(self.IsSaturday()), value.Undefined
 		},
@@ -422,7 +422,7 @@ func initDate() {
 	Def(
 		c,
 		"is_sunday",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return value.ToElkBool(self.IsSunday()), value.Undefined
 		},
@@ -431,7 +431,7 @@ func initDate() {
 	Def(
 		c,
 		"<=>",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			return self.CompareVal(args[1])
 		},
@@ -441,7 +441,7 @@ func initDate() {
 	Def(
 		c,
 		">=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			ok, err := self.GreaterThanEqual(args[1])
 			return value.ToElkBool(ok), err
@@ -452,7 +452,7 @@ func initDate() {
 	Def(
 		c,
 		">",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			ok, err := self.GreaterThan(args[1])
 			return value.ToElkBool(ok), err
@@ -463,7 +463,7 @@ func initDate() {
 	Def(
 		c,
 		"<=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			ok, err := self.LessThanEqual(args[1])
 			return value.ToElkBool(ok), err
@@ -474,7 +474,7 @@ func initDate() {
 	Def(
 		c,
 		"<",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			ok, err := self.LessThan(args[1])
 			return value.ToElkBool(ok), err
@@ -484,7 +484,7 @@ func initDate() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined

@@ -8,38 +8,38 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func (*VM) Class() *value.Class {
+func (*Thread) Class() *value.Class {
 	return value.ThreadClass
 }
 
-func (*VM) DirectClass() *value.Class {
+func (*Thread) DirectClass() *value.Class {
 	return value.ThreadClass
 }
 
-func (*VM) SingletonClass() *value.Class {
+func (*Thread) SingletonClass() *value.Class {
 	return nil
 }
 
-func (vm *VM) Inspect() string {
+func (vm *Thread) Inspect() string {
 	return fmt.Sprintf(`Std::Thread{state: %s}`, stateSymbols[vm.state].Inspect())
 }
 
-func (vm *VM) Error() string {
+func (vm *Thread) Error() string {
 	return vm.Inspect()
 }
 
-func (vm *VM) InstanceVariables() *value.InstanceVariables {
+func (vm *Thread) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (vm *VM) Copy() value.Reference {
+func (vm *Thread) Copy() value.Reference {
 	newStack := slices.Clone(vm.stack)
 	valueStackBase := unsafe.Pointer(&newStack[0])
 
 	newCallFrames := slices.Clone(vm.callFrames)
 	callStackBase := unsafe.Pointer(&newCallFrames[0])
 
-	newVM := &VM{
+	newVM := &Thread{
 		bytecode:        vm.bytecode,
 		upvalues:        vm.upvalues,
 		ip:              vm.ip,
@@ -60,7 +60,7 @@ func (vm *VM) Copy() value.Reference {
 	return newVM
 }
 
-func (vm *VM) StateSymbol() value.Symbol {
+func (vm *Thread) StateSymbol() value.Symbol {
 	return stateSymbols[vm.state]
 }
 
@@ -72,7 +72,7 @@ func initThread() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.ToElkBool(args[0] == args[1]), value.Undefined
 		},
 		DefWithParameters(1),
@@ -80,24 +80,24 @@ func initThread() {
 	Def(
 		c,
 		"state",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*VM)(args[0].Pointer())
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := (*Thread)(args[0].Pointer())
 			return self.StateSymbol().ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*VM)(args[0].Pointer())
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := (*Thread)(args[0].Pointer())
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"copy",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := (*VM)(args[0].Pointer())
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := (*Thread)(args[0].Pointer())
 			return value.Ref(self.Copy()), value.Undefined
 		},
 	)
