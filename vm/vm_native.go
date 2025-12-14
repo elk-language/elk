@@ -75,10 +75,6 @@ func (vm *Thread) ValueStack() []value.Value {
 	panic("cannot get value stack in native mode")
 }
 
-func (vm *Thread) PrintErrorValue(err value.Value) {
-	PrintError(vm.Stderr, vm.ErrStackTrace(), err)
-}
-
 func (vm *Thread) PrintError() {
 	panic("cannot print stored error")
 }
@@ -135,18 +131,6 @@ func (vm *Thread) CallMethodByNameWithCache(name value.Symbol, cc **value.CallCa
 	class := self.DirectClass()
 	method := value.LookupMethodInCache(class, name, cc)
 	return vm.CallMethod(method, args...)
-}
-
-func (vm *Thread) populateMissingParameters(args []value.Value, paramCount, argumentCount int) []value.Value {
-	// populate missing optional arguments with undefined
-	missingParams := uintptr(paramCount - argumentCount)
-	if missingParams > 0 {
-		newArgs := make([]value.Value, paramCount)
-		clone(newArgs, args)
-		return newArgs
-	}
-
-	return args
 }
 
 func (vm *Thread) CallMethod(method value.Method, args ...value.Value) (value.Value, value.Value) {

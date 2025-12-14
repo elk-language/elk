@@ -2409,8 +2409,6 @@ func (vm *Thread) opGetIterator() {
 	vm.replace(result)
 }
 
-var stopIterationSymbol = value.ToSymbol("stop_iteration")
-
 // Get the next element of an iterator
 func (vm *Thread) opNext(callInfoIndex int) value.Value {
 	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
