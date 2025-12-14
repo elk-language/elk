@@ -16,6 +16,17 @@ type CallFrame struct {
 	TailCallCounter int
 }
 
+// Make a call frame that signals the end of the call frame stack
+func MakeSentinelCallFrame() CallFrame {
+	return CallFrame{
+		TailCallCounter: -1,
+	}
+}
+
+func (c *CallFrame) IsSentinel() bool {
+	return c.TailCallCounter == -1
+}
+
 func (c *CallFrame) Copy() Reference {
 	return c
 }

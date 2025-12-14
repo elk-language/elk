@@ -30,13 +30,12 @@ type Thread struct {
 func New(opts ...Option) *Thread {
 	callFrames := make([]value.CallFrame, CALL_STACK_SIZE)
 	// mark the end of the call stack with a sentinel value
-	callFrames[len(callFrames)-1] = makeSentinelCallFrame()
+	callFrames[len(callFrames)-1] = value.MakeSentinelCallFrame()
 
 	id := currentID.Add(1)
 
 	vm := &Thread{
 		ID:         id,
-		stack:      stack,
 		callFrames: callFrames,
 		Stdin:      os.Stdin,
 		Stdout:     os.Stdout,
@@ -79,7 +78,7 @@ func (vm *Thread) PrintError() {
 	panic("cannot print stored error")
 }
 
-func (vm *Thread) callStack() []CallFrame {
+func (vm *Thread) callStack() []value.CallFrame {
 	cfIndex := vm.cfpOffset()
 	return vm.callFrames[:cfIndex]
 }
@@ -97,7 +96,8 @@ func (vm *Thread) InspectCallStack() {
 
 func (vm *Thread) CallGeneratorNext(generator *Generator) (value.Value, value.Value) {
 	// TODO: implement native generators
-	vm.createCurrentCallFrame(true)
+	// vm.createCurrentCallFrame(true)
+	panic("native generators are not yet implemented")
 }
 
 // Call a callable value from Go code, preserving the state of the VM.
@@ -115,6 +115,7 @@ func (vm *Thread) CallCallable(args ...value.Value) (value.Value, value.Value) {
 // Call an Elk closure from Go code, preserving the state of the VM.
 func (vm *Thread) CallClosure(closure *Closure, args ...value.Value) (value.Value, value.Value) {
 	// TODO: implement native closures
+	panic("native closures are not yet implemented")
 }
 
 // Call an Elk method from Go code, preserving the state of the VM.
@@ -181,7 +182,8 @@ func (vm *Thread) PopCallFrame() {
 
 func (vm *Thread) BuildStackTrace() *value.StackTrace {
 	callStack := vm.callStack()
-	return (*value.StackTrace)(slices.Clone(callStack))
+	newCallStack := slices.Clone(callStack)
+	return (*value.StackTrace)(&newCallStack)
 }
 
 func (vm *Thread) BuildStackTracePrepend(base *value.StackTrace) *value.StackTrace {
@@ -202,17 +204,17 @@ func (vm *Thread) cfpIncrement() {
 // Add n to the call frame pointer
 func (vm *Thread) cfpIncrementBy(n int) {
 	ptr := vm.cfpAdd(n)
-	if ptr.sentinel {
+	if ptr.IsSentinel() {
 		panic("call stack overflow")
 	}
 	vm.cfpSet(ptr)
 }
 
-func (vm *Thread) lastCallFrame() *CallFrame {
+func (vm *Thread) lastCallFrame() *value.CallFrame {
 	return vm.cfpAdd(-1)
 }
 
-func (vm *Thread) cfpAdd(n int) *CallFrame {
+func (vm *Thread) cfpAdd(n int) *value.CallFrame {
 	return vm.callFrameAdd(vm.cfpGet(), n)
 }
 
@@ -224,17 +226,17 @@ func (vm *Thread) cfpSubtractRaw(n uintptr) uintptr {
 	return vm.cfp - n*CallFrameSize
 }
 
-func (vm *Thread) cfpGet() *CallFrame {
-	return (*CallFrame)(unsafe.Pointer(vm.cfp))
+func (vm *Thread) cfpGet() *value.CallFrame {
+	return (*value.CallFrame)(unsafe.Pointer(vm.cfp))
 }
 
 // Set the typesafe call frame pointer
-func (vm *Thread) cfpSet(ptr *CallFrame) {
+func (vm *Thread) cfpSet(ptr *value.CallFrame) {
 	vm.cfp = uintptr(unsafe.Pointer(ptr))
 }
 
-func (vm *Thread) callFrameAdd(ptr *CallFrame, n int) *CallFrame {
-	return (*CallFrame)(unsafe.Add(unsafe.Pointer(ptr), n*int(CallFrameSize)))
+func (vm *Thread) callFrameAdd(ptr *value.CallFrame, n int) *value.CallFrame {
+	return (*value.CallFrame)(unsafe.Add(unsafe.Pointer(ptr), n*int(CallFrameSize)))
 }
 
 func (vm *Thread) callFrameAddRaw(ptr uintptr, n uintptr) uintptr {
@@ -243,4 +245,9 @@ func (vm *Thread) callFrameAddRaw(ptr uintptr, n uintptr) uintptr {
 
 func (vm *Thread) cfpOffset() int {
 	return int(vm.cfp-uintptr(unsafe.Pointer(&vm.callFrames[0]))) / int(CallFrameSize)
+}
+
+// Subtract n from the call frame pointer
+func (vm *Thread) cfpDecrementBy(n uintptr) {
+	vm.cfp = vm.cfpSubtractRaw(n)
 }

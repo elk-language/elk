@@ -185,10 +185,24 @@ func compileFile(fileName string) {
 	if err != nil {
 		panic(err)
 	}
-
 	goModFile.Write(goModBuff.Bytes())
 
-	sh("go", "-C", outPath, "get", fmt.Sprintf("github.com/elk-language/elk@%s", info.Version))
+	if info.Version == "dev" {
+		var goWorkBuff bytes.Buffer
+		fmt.Fprintf(&goWorkBuff, "go %s\n\n", goVersion)
+		fmt.Fprintf(&goWorkBuff, "use .\n")
+		fmt.Fprintf(&goWorkBuff, "use ..\n")
+
+		goWorkPath := path.Join(outPath, "go.work")
+		goWorkFile, err := os.Create(goWorkPath)
+		if err != nil {
+			panic(err)
+		}
+		goWorkFile.Write(goWorkBuff.Bytes())
+	} else {
+		sh("go", "-C", outPath, "get", fmt.Sprintf("github.com/elk-language/elk@%s", info.Version))
+	}
+
 	sh("go", "-C", outPath, "mod", "tidy")
 	sh("go", "-C", outPath, "build", "-tags", "native", "-ldflags", fmt.Sprintf("-X 'github.com/elk-language/elk/info.Version=%s'", info.Version))
 }

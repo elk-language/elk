@@ -55,27 +55,6 @@ func executeNativePromise(thread *Thread, queue chan *Promise, task *Promise, bo
 	task.Resolve(result)
 }
 
-func executeBytecodePromise(thread *Thread, queue chan *Promise, task *Promise) {
-	thread.callBytecodePromise(task)
-
-	switch thread.state {
-	case awaitState:
-		awaitedPromise := (*Promise)(thread.peek().Pointer())
-		awaitedPromise.RegisterContinuationUnsafe(task)
-
-		// promise has been locked in the VM
-		awaitedPromise.m.Unlock()
-	case errorState:
-		err := thread.popGet()
-		stackTrace := thread.GetStackTrace()
-		task.Reject(err, stackTrace)
-	default:
-		result := thread.popGet()
-		task.Resolve(result)
-	}
-
-}
-
 func (*ThreadPool) Class() *value.Class {
 	return value.ThreadPoolClass
 }
