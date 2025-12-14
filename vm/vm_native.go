@@ -16,7 +16,7 @@ import (
 )
 
 // A single instance of the Elk Virtual Machine.
-type VM struct {
+type Thread struct {
 	ID     int64
 	Stdin  io.Reader // standard output used by the VM
 	Stdout io.Writer // standard input used by the VM
@@ -37,7 +37,7 @@ func New(opts ...Option) *Thread {
 
 	id := currentID.Add(1)
 
-	vm := &VM{
+	vm := &Thread{
 		ID:         id,
 		stack:      stack,
 		callFrames: callFrames,

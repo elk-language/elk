@@ -3,4 +3,8 @@
   source code.
 ]##
 module ::Std::Elk
+  ##[
+    Current version of Elk.
+  ]##
+  const VERSION: String
 end

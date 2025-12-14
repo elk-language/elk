@@ -16,6 +16,7 @@ import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/ext"
 	"github.com/elk-language/elk/ext/std/test"
+	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/repl"
 	"github.com/elk-language/elk/types/checker"
@@ -187,13 +188,27 @@ func compileFile(fileName string) {
 
 	goModFile.Write(goModBuff.Bytes())
 
-	cmd := exec.Command("go", "-C", outPath, "mod", "tidy")
+	sh("go", "-C", outPath, "get", fmt.Sprintf("github.com/elk-language/elk@%s", info.Version))
+	sh("go", "-C", outPath, "mod", "tidy")
+	sh("go", "-C", outPath, "build", "-tags", "native", "-ldflags", fmt.Sprintf("-X 'github.com/elk-language/elk/info.Version=%s'", info.Version))
+}
+
+func sh(name string, args ...string) {
+	cmd := exec.Command(name, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	if err != nil {
-		panic(err)
+	err := cmd.Run()
+	if err == nil {
+		return
 	}
+
+	var buff strings.Builder
+	buff.WriteString(name)
+	for _, arg := range args {
+		buff.WriteByte(' ')
+		buff.WriteString(arg)
+	}
+	panic(fmt.Sprintf("error executing command: `%s`", buff.String()))
 }
 
 // Attempt to compile the main file in the current working directory

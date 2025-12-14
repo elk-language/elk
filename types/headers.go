@@ -2032,6 +2032,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define methods
 
 				// Define constants
+				namespace.DefineConstant(value.ToSymbol("VERSION"), NameToType("Std::String", env))
 
 				// Define instance variables
 
