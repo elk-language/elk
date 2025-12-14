@@ -2,3 +2,4 @@ ignore.*
 .vscode
 docs/**/*
 tmp
+out

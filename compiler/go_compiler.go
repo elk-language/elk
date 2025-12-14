@@ -204,6 +204,12 @@ func (c *GoCompiler) FinishGlobalEnvCompiler() {
 		return
 	}
 
+	var funcBuffer bytes.Buffer
+	fmt.Fprintf(&funcBuffer, "func initGlobalEnv() () {\n")
+	c.compileLocalsTo(&funcBuffer)
+	c.emitPrependBytes(funcBuffer.Bytes())
+	c.emit("}")
+
 	c.parent.emit("initGlobalEnv()\n")
 }
 
@@ -401,10 +407,6 @@ func (c *GoCompiler) compileGlobalEnv() {
 	env := c.checker.Env()
 	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"))
 
-	if c.buff.Len() == 0 {
-		return
-	}
-
 	valType := c.checker.Std(symbol.Value)
 	c.registerGoLocal("parentNamespace", valType, goValueType)
 	c.registerGoLocal("namespace", valType, goValueType)
@@ -413,12 +415,6 @@ func (c *GoCompiler) compileGlobalEnv() {
 	c.registerGoLocal("class", classType, "*value.Class")
 	c.registerGoLocal("superclass", classType, "*value.Class")
 	c.registerGoLocal("mixin", classType, "*value.Mixin")
-
-	var funcBuffer bytes.Buffer
-	fmt.Fprintf(&funcBuffer, "func initGlobalEnv() () {\n")
-	c.compileLocalsTo(&funcBuffer)
-	c.emitPrependBytes(funcBuffer.Bytes())
-	c.emit("}")
 }
 
 // Entry point for compiling the body of a method.
@@ -426,7 +422,7 @@ func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []as
 	c.compileMethodFuncLiteralBody(parameters, body)
 
 	var funcBuffer bytes.Buffer
-	fmt.Fprintf(&funcBuffer, "func(thread *VM, args []value.Value) (value.Value, value.Value) { // loc: %s\n", loc.String())
+	fmt.Fprintf(&funcBuffer, "func(thread *vm.VM, args []value.Value) (value.Value, value.Value) { // loc: %s\n", loc.String())
 	c.compileLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}")
@@ -563,7 +559,7 @@ func (c *GoCompiler) emitSetInstanceVariableByName(name value.Symbol, val string
 func (c *GoCompiler) compileMethodsWithinModule(module *types.Module, location *position.Location) {
 	if types.NamespaceHasAnyDefinableMethods(module) {
 		nameSymbol := c.emitSymbol(module.Name())
-		c.emit("class = (*value.Module)(value.GetConstant(%s).Pointer()).SingletonClass()\n", nameSymbol)
+		c.emit("class = (*value.Module)(value.GetConstant(%s).Pointer()).SingletonClass() // %s\n", nameSymbol, module.Name())
 
 		for methodName, method := range types.SortedOwnMethods(module) {
 			c.compileMethodDefinition(methodName, method, location)
@@ -593,14 +589,14 @@ func (c *GoCompiler) compileMethodsWithinNamespace(namespace types.Namespace, lo
 
 	if namespaceHasCompiledMethods || singletonHasCompiledMethods {
 		namespaceSymbol := c.emitSymbol(namespace.Name())
-		c.emit("class = (*value.Class)(value.GetConstant(%s).Pointer())\n", namespaceSymbol)
+		c.emit("class = (*value.Class)(value.GetConstant(%s).Pointer()) // %s\n", namespaceSymbol, namespace.Name())
 
 		for methodName, method := range types.SortedOwnMethods(namespace) {
 			c.compileMethodDefinition(methodName, method, location)
 		}
 
 		if singletonHasCompiledMethods {
-			c.emit("class = class.SingletonClass()\n")
+			c.emit("class = class.SingletonClass() // &%s\n", namespace.Name())
 
 			for methodName, method := range types.SortedOwnMethods(singleton) {
 				c.compileMethodDefinition(methodName, method, location)
@@ -647,7 +643,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 			case *value.Class:
 				c.emit("aliasClass = (*value.Class)(value.GetConstant(%s).Pointer())\n", namespaceSymbol)
 			case *value.Module:
-				c.emit("aliasClass = (*value.Module)(value.GetConstant(%s).Pointer()).SingletonClass()\n", namespaceSymbol)
+				c.emit("aliasClass = value.GetConstant(%s).SingletonClass()\n", namespaceSymbol)
 			default:
 				panic(fmt.Sprintf("invalid namespace %T", namespace))
 			}
@@ -724,7 +720,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		return
 	}
 
-	c.emit("vm.Def(&class.MethodContainer, %s,\n", name.String())
+	c.emit("vm.Def(&class.MethodContainer, %q,\n", name.String())
 
 	methodCompiler := (*GoCompiler)(method.Body.(*GoSourceMethod))
 	c.emitBytes(methodCompiler.buff.Bytes())
@@ -876,9 +872,9 @@ func (c *GoCompiler) CompileClassInheritance(class *types.Class, location *posit
 
 	classNameSymbol := c.emitSymbol(class.Name())
 	superclassNameSymbol := c.emitSymbol(superclass.Name())
-	c.emit("class = (*value.Class)(value.GetConstant(%s).Pointer())", classNameSymbol)
-	c.emit("superclass = (*value.Class)(value.GetConstant(%s).Pointer())", superclassNameSymbol)
-	c.emit("class.SetSuperclass(superclass)")
+	c.emit("class = (*value.Class)(value.GetConstant(%s).Pointer())\n", classNameSymbol)
+	c.emit("superclass = (*value.Class)(value.GetConstant(%s).Pointer())\n", superclassNameSymbol)
+	c.emit("class.SetSuperclass(superclass)\n")
 }
 
 func (c *GoCompiler) CompileIvarIndices(target types.NamespaceWithIvarIndices, location *position.Location) {
@@ -912,10 +908,8 @@ func (c *GoCompiler) CompileInclude(target types.Namespace, mixin *types.Mixin, 
 	c.emit("class.IncludeMixin(mixin)\n")
 }
 
-func mangleFileName(name string) string {
+func mangleIdentifier(name string) string {
 	var b strings.Builder
-
-	b.WriteString("__file_")
 
 	for i, r := range name {
 		if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' {
@@ -932,6 +926,10 @@ func mangleFileName(name string) string {
 	}
 
 	return b.String()
+}
+
+func mangleFileName(name string) string {
+	return fmt.Sprintf("__file_%s", mangleIdentifier(name))
 }
 
 func (c *GoCompiler) InitExpressionCompiler(location *position.Location) Compiler {
@@ -955,14 +953,15 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	}
 
 	var funcBuffer bytes.Buffer
-	fmt.Fprintf(&funcBuffer, "// file: %s\n", c.loc.FilePath)
 	if c.FuncName == "main" {
-		fmt.Fprintf(&funcBuffer, "func %s() {\n", c.FuncName)
+		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.FuncName, c.loc.FilePath)
 		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n")
 	} else {
-		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.VM) {\n", c.FuncName)
+		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.VM) { // loc: %s\n", c.FuncName, c.loc.FilePath)
 	}
+	c.registerGoLocal("self", types.Any{}, goValueType)
 	c.compileLocalsTo(&funcBuffer)
+	fmt.Fprintf(&funcBuffer, "self = value.Ref(value.GlobalObject)\n")
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}\n")
 }
@@ -1020,6 +1019,14 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
 		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
 		return nilGoValue
+	case *ast.ClassDeclarationNode:
+		return c.compileClassDeclarationNode(node)
+	case *ast.ModuleDeclarationNode:
+		return c.compileModuleDeclarationNode(node)
+	case *ast.MixinDeclarationNode:
+		return c.compileMixinDeclarationNode(node)
+	case *ast.InterfaceDeclarationNode:
+		return c.compileInterfaceDeclarationNode(node)
 	case *ast.IntLiteralNode:
 		i, err := value.ParseBigInt(node.Value, 0)
 		if !err.IsUndefined() {
@@ -1152,6 +1159,69 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 	default:
 		panic(fmt.Sprintf("invalid expression node: %T", node))
 	}
+}
+
+func (c *GoCompiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode) *goValue {
+	typ := c.typeOf(node).(*types.Interface)
+	return c.compileNamespaceDeclarationNode(fmt.Sprintf("interface_%s", mangleIdentifier(typ.Name())), node.Body, typ, node.Location())
+}
+
+func (c *GoCompiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarationNode) *goValue {
+	typ := c.typeOf(node).(*types.Interface)
+	return c.compileNamespaceDeclarationNode(fmt.Sprintf("interface_%s", mangleIdentifier(typ.Name())), node.Body, typ, node.Location())
+}
+
+func (c *GoCompiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) *goValue {
+	typ := c.typeOf(node).(*types.Mixin)
+	return c.compileNamespaceDeclarationNode(fmt.Sprintf("mixin_%s", mangleIdentifier(typ.Name())), node.Body, typ, node.Location())
+}
+
+func (c *GoCompiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) *goValue {
+	typ := c.typeOf(node).(*types.Class)
+	return c.compileNamespaceDeclarationNode(fmt.Sprintf("class_%s", mangleIdentifier(typ.Name())), node.Body, typ, node.Location())
+}
+
+func (c *GoCompiler) compileNamespaceDeclarationNode(name string, body []ast.StatementNode, typ types.Namespace, loc *position.Location) *goValue {
+	if len(body) <= 0 {
+		return nilGoValue
+	}
+
+	classCompiler := NewGoCompiler(name, topLevelGoCompilerMode, loc, c.checker, c.bigIntCache, c.symbolCache, c.output)
+	classCompiler.SetParent(c)
+	classCompiler.Errors = c.Errors
+
+	classCompiler.compileNamespaceBody(body, typ)
+
+	return nilGoValue
+}
+
+func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Namespace) {
+	c.registerGoLocal("self", types.Any{}, goValueType)
+	c.compileStatements(body)
+	if c.buff.Len() == 0 {
+		return
+	}
+
+	c.parent.emit("%s(thread)\n", c.FuncName)
+
+	var funcBuffer bytes.Buffer
+	fmt.Fprintf(&funcBuffer, "func %s(thread *vm.VM) { // namespace: %s, loc: %s\n", c.FuncName, typ.Name(), c.loc.String())
+	c.compileLocalsTo(&funcBuffer)
+
+	switch typ := typ.(type) {
+	case *types.SingletonClass:
+		nameSymbol := c.emitSymbol(typ.AttachedObject.Name())
+		fmt.Fprintf(&funcBuffer, "self = value.Ref(value.GetConstant(%s).SingletonClass())\n", nameSymbol)
+	case *types.Module:
+		nameSymbol := c.emitSymbol(typ.Name())
+		fmt.Fprintf(&funcBuffer, "self = value.Ref(value.GetConstant(%s).SingletonClass())\n", nameSymbol)
+	default:
+		nameSymbol := c.emitSymbol(typ.Name())
+		fmt.Fprintf(&funcBuffer, "self = value.GetConstant(%s)\n", nameSymbol)
+	}
+
+	c.emitPrependBytes(funcBuffer.Bytes())
+	c.emit("}\n")
 }
 
 func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressionNode) *goValue {

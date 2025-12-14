@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"go/format"
 	"os"
+	"os/exec"
 	"path"
+	"runtime"
+	"strings"
 
 	"path/filepath"
 
@@ -133,29 +136,64 @@ func compileFile(fileName string) {
 		}
 	}
 
-	goCompiler.Flush()
-	result, err := format.Source(buffer.Bytes())
-	if err != nil {
-		panic(err)
-	}
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
 
-	tmpPath := path.Join(cwd, "tmp")
-	err = os.MkdirAll(tmpPath, 0755)
+	outPath := path.Join(cwd, "out")
+	err = os.RemoveAll(outPath)
 	if err != nil {
 		panic(err)
 	}
-	targetPath := path.Join(tmpPath, "main.go")
+
+	err = os.MkdirAll(outPath, 0755)
+	if err != nil {
+		panic(err)
+	}
+	targetPath := path.Join(outPath, "main.go")
+
+	var failed bool
+	goCompiler.Flush()
+	result, err := format.Source(buffer.Bytes())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot format target go file: %s\n", err)
+		fmt.Fprintf(os.Stderr, "inspect: %s\n", targetPath)
+		result = buffer.Bytes()
+		failed = true
+	}
+
 	targetFile, err := os.Create(targetPath)
 	if err != nil {
 		panic(err)
 	}
 
 	targetFile.Write(result)
+	if failed {
+		os.Exit(1)
+	}
+
+	var goModBuff bytes.Buffer
+	fmt.Fprintf(&goModBuff, "module main\n\n")
+
+	goVersion := strings.TrimPrefix(runtime.Version(), "go")
+	fmt.Fprintf(&goModBuff, "go %s\n\n", goVersion)
+
+	goModPath := path.Join(outPath, "go.mod")
+	goModFile, err := os.Create(goModPath)
+	if err != nil {
+		panic(err)
+	}
+
+	goModFile.Write(goModBuff.Bytes())
+
+	cmd := exec.Command("go", "-C", outPath, "mod", "tidy")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		panic(err)
+	}
 }
 
 // Attempt to compile the main file in the current working directory
