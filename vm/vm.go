@@ -1,5 +1,3 @@
-//go:build !native
-
 // Package vm contains the Elk Virtual Machine.
 // It interprets Elk Bytecode produced by
 // the Elk compiler.
