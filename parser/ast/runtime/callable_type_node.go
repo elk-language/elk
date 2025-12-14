@@ -12,7 +12,7 @@ func initCallableTypeNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argParams []ast.ParameterNode
 			if !args[1].IsUndefined() {
 				argParamsTuple := args[1].MustReference().(*value.ArrayTuple)
@@ -59,7 +59,7 @@ func initCallableTypeNode() {
 	vm.Def(
 		c,
 		"parameters",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
 
 			collection := self.Parameters
@@ -76,7 +76,7 @@ func initCallableTypeNode() {
 	vm.Def(
 		c,
 		"return_type",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
 			if self.ReturnType == nil {
 				return value.Nil, value.Undefined
@@ -89,7 +89,7 @@ func initCallableTypeNode() {
 	vm.Def(
 		c,
 		"throw_type",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
 			if !args[0].IsUndefined() {
 				return value.Nil, value.Undefined
@@ -102,7 +102,7 @@ func initCallableTypeNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -111,7 +111,7 @@ func initCallableTypeNode() {
 	vm.Def(
 		c,
 		"is_closure",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
 			result := value.ToElkBool(self.IsClosure)
 			return result, value.Undefined
@@ -120,7 +120,7 @@ func initCallableTypeNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -131,7 +131,7 @@ func initCallableTypeNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

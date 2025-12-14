@@ -14,7 +14,7 @@ func initPrivateIdentifierNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
 
 			if !ast.PrivateIdentifierRegexp.MatchString(argValue) {
@@ -46,7 +46,7 @@ func initPrivateIdentifierNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PrivateIdentifierNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
@@ -57,7 +57,7 @@ func initPrivateIdentifierNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PrivateIdentifierNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -67,7 +67,7 @@ func initPrivateIdentifierNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PrivateIdentifierNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -78,7 +78,7 @@ func initPrivateIdentifierNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PrivateIdentifierNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -87,7 +87,7 @@ func initPrivateIdentifierNode() {
 	vm.Def(
 		c,
 		"to_symbol",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PrivateIdentifierNode)
 			return value.ToSymbol(self.Value).ToValue(), value.Undefined
 		},

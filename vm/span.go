@@ -13,7 +13,7 @@ func initSpan() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Span)(args[0].Pointer())
 			startPos := (*value.Position)(args[1].Pointer())
 			endPos := (*value.Position)(args[2].Pointer())
@@ -27,7 +27,7 @@ func initSpan() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Span)(args[0].Pointer())
 			other := (*value.Span)(args[1].Pointer())
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -37,7 +37,7 @@ func initSpan() {
 	Def(
 		c,
 		"start_pos",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Span)(args[0].Pointer())
 			return value.Ref(self.StartPosition()), value.Undefined
 		},
@@ -45,7 +45,7 @@ func initSpan() {
 	Def(
 		c,
 		"end_pos",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Span)(args[0].Pointer())
 			return value.Ref(self.EndPosition()), value.Undefined
 		},
@@ -53,7 +53,7 @@ func initSpan() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Span)(args[0].Pointer())
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},

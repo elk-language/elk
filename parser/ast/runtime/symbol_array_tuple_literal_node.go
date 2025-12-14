@@ -12,7 +12,7 @@ func initSymbolArrayTupleLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
 			var argElements []ast.SymbolCollectionContentNode
 			if !args[1].IsUndefined() {
@@ -42,7 +42,7 @@ func initSymbolArrayTupleLiteralNode() {
 	vm.Def(
 		c,
 		"elements",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolArrayTupleLiteralNode)
 
 			collection := self.Elements
@@ -59,7 +59,7 @@ func initSymbolArrayTupleLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolArrayTupleLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -70,7 +70,7 @@ func initSymbolArrayTupleLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolArrayTupleLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -81,7 +81,7 @@ func initSymbolArrayTupleLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolArrayTupleLiteralNode)
 			result := value.Ref(value.String(self.String()))
 			return result, value.Undefined

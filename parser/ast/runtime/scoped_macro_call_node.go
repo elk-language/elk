@@ -12,7 +12,7 @@ func initScopedMacroCallNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
 			argMacroName := args[2].MustReference().(ast.IdentifierNode)
 
@@ -62,7 +62,7 @@ func initScopedMacroCallNode() {
 	vm.Def(
 		c,
 		"kind",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ScopedMacroCallNode)
 			result := value.UInt8(self.Kind)
 			return result.ToValue(), value.Undefined
@@ -72,7 +72,7 @@ func initScopedMacroCallNode() {
 	vm.Def(
 		c,
 		"receiver",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ScopedMacroCallNode)
 			result := value.Ref(self.Receiver)
 			return result, value.Undefined
@@ -83,7 +83,7 @@ func initScopedMacroCallNode() {
 	vm.Def(
 		c,
 		"macro_name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ScopedMacroCallNode)
 			result := value.Ref(self.MacroName)
 			return result, value.Undefined
@@ -94,7 +94,7 @@ func initScopedMacroCallNode() {
 	vm.Def(
 		c,
 		"positional_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ScopedMacroCallNode)
 
 			collection := self.PositionalArguments
@@ -111,7 +111,7 @@ func initScopedMacroCallNode() {
 	vm.Def(
 		c,
 		"named_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ScopedMacroCallNode)
 
 			collection := self.NamedArguments
@@ -128,7 +128,7 @@ func initScopedMacroCallNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ScopedMacroCallNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -139,7 +139,7 @@ func initScopedMacroCallNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ScopedMacroCallNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -150,7 +150,7 @@ func initScopedMacroCallNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ScopedMacroCallNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

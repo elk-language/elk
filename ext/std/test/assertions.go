@@ -24,7 +24,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_truthy",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argGot := args[1]
 
 			if value.Truthy(argGot) {
@@ -55,7 +55,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_falsy",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argGot := args[1]
 
 			if value.Falsy(argGot) {
@@ -87,7 +87,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_true",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argGot := args[1]
 
 			if argGot.IsTrue() {
@@ -118,7 +118,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_false",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argGot := args[1]
 
 			if argGot.IsFalse() {
@@ -149,7 +149,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_nil",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argGot := args[1]
 
 			if argGot.IsNil() {
@@ -180,7 +180,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_not_nil",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argGot := args[1]
 
 			if !argGot.IsNil() {
@@ -208,7 +208,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_stdout",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			expected := args[1].AsString()
 			callable := args[2]
 
@@ -243,7 +243,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_stderr",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			expected := args[1].AsString()
 			callable := args[2]
 
@@ -278,7 +278,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_matches_regex",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argRegex := (*value.Regex)(args[1].Pointer())
 			argString := args[2].AsString()
 
@@ -311,7 +311,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_is_a",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argClass := (*value.Class)(args[1].Pointer())
 			argGot := args[2]
 
@@ -347,7 +347,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_instance_of",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argClass := (*value.Class)(args[1].Pointer())
 			argGot := args[2]
 
@@ -383,7 +383,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_equal",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argExpected := args[1]
 			argGot := args[2]
 
@@ -427,7 +427,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_not_equal",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argExpected := args[1]
 			argGot := args[2]
 
@@ -472,7 +472,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_greater",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argA := args[1]
 			argB := args[2]
 
@@ -516,7 +516,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_greater_equal",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argA := args[1]
 			argB := args[2]
 
@@ -560,7 +560,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_less",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argA := args[1]
 			argB := args[2]
 
@@ -604,7 +604,7 @@ func initAssertions(testModule *value.Module) {
 	vm.Def(
 		c,
 		"assert_less_equal",
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argA := args[1]
 			argB := args[2]
 

@@ -12,7 +12,7 @@ func initRegexLiteralContentSectionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
 
 			var argLoc *position.Location
@@ -34,7 +34,7 @@ func initRegexLiteralContentSectionNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.RegexLiteralContentSectionNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
@@ -45,7 +45,7 @@ func initRegexLiteralContentSectionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.RegexLiteralContentSectionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -56,7 +56,7 @@ func initRegexLiteralContentSectionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.RegexLiteralContentSectionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -67,7 +67,7 @@ func initRegexLiteralContentSectionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.RegexLiteralContentSectionNode)
 			return value.Ref(value.String(self.Value)), value.Undefined
 		},

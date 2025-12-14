@@ -30,7 +30,7 @@ Example:
 		"ok!",
 		nil,
 		patternNode,
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			val := ast.NewObjectPatternNode(
 				position.ZeroLocation,
 				ast.NewConstantLookupNode(
@@ -90,7 +90,7 @@ Example:
 		"err!",
 		nil,
 		patternNode,
-		func(v *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			val := ast.NewObjectPatternNode(
 				position.ZeroLocation,
 				ast.NewConstantLookupNode(

@@ -13,7 +13,7 @@ func initImmutableBox() {
 	Def(
 		c,
 		"at",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			address := args[1].AsUInt()
 			b := (*value.ImmutableBox)(unsafe.Pointer(uintptr(address)))
 
@@ -27,7 +27,7 @@ func initImmutableBox() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ImmutableBox)(args[0].Pointer())
 			v := args[1]
 			*self = value.ImmutableBox(v)
@@ -39,7 +39,7 @@ func initImmutableBox() {
 	Def(
 		c,
 		"get",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ImmutableBox)(args[0].Pointer())
 			return self.Get(), value.Undefined
 		},
@@ -47,7 +47,7 @@ func initImmutableBox() {
 	Def(
 		c,
 		"address",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ImmutableBox)(args[0].Pointer())
 			return value.UInt(uintptr(unsafe.Pointer(self))).ToValue(), value.Undefined
 		},
@@ -55,7 +55,7 @@ func initImmutableBox() {
 	Def(
 		c,
 		"to_immutable_box",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
@@ -63,7 +63,7 @@ func initImmutableBox() {
 	Def(
 		c,
 		"next",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ImmutableBox)(args[0].Pointer())
 
 			var step int
@@ -82,7 +82,7 @@ func initImmutableBox() {
 	Def(
 		c,
 		"prev",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ImmutableBox)(args[0].Pointer())
 
 			var step int

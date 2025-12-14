@@ -12,7 +12,7 @@ func initVoidTypeNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argLoc *position.Location
 			if args[1].IsUndefined() {
 				argLoc = position.ZeroLocation
@@ -31,7 +31,7 @@ func initVoidTypeNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VoidTypeNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -41,7 +41,7 @@ func initVoidTypeNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VoidTypeNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -52,7 +52,7 @@ func initVoidTypeNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VoidTypeNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

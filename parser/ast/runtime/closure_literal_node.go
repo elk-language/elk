@@ -12,7 +12,7 @@ func initClosureLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argParameters []ast.ParameterNode
 			if !args[1].IsUndefined() {
 				argParametersTuple := args[1].MustReference().(*value.ArrayTuple)
@@ -69,7 +69,7 @@ func initClosureLiteralNode() {
 	vm.Def(
 		c,
 		"parameters",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 			collection := self.Parameters
 			arrayTuple := value.NewArrayTupleWithLength(len(collection))
@@ -85,7 +85,7 @@ func initClosureLiteralNode() {
 	vm.Def(
 		c,
 		"lambda",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 			return value.ToElkBool(self.Lambda), value.Undefined
 		},
@@ -94,7 +94,7 @@ func initClosureLiteralNode() {
 	vm.Def(
 		c,
 		"return_type",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 			if self.ReturnType == nil {
 				return value.Nil, value.Undefined
@@ -108,7 +108,7 @@ func initClosureLiteralNode() {
 	vm.Def(
 		c,
 		"throw_type",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 			if self.ReturnType == nil {
 				return value.Nil, value.Undefined
@@ -121,7 +121,7 @@ func initClosureLiteralNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 
 			collection := self.Body
@@ -138,7 +138,7 @@ func initClosureLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -148,7 +148,7 @@ func initClosureLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -159,7 +159,7 @@ func initClosureLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

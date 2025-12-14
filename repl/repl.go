@@ -37,7 +37,7 @@ func (l *Lexer) Next() (prompt.Token, bool) {
 
 type evaluator struct {
 	typechecker  *checker.Checker
-	vm           *vm.VM
+	vm           *vm.Thread
 	inspectStack bool
 	sourceMap    map[string]string
 	inputIndex   int

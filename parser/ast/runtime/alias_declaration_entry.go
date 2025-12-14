@@ -12,7 +12,7 @@ func initAliasDeclarationEntry() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			arg0 := args[1].MustReference().(ast.IdentifierNode)
 			arg1 := args[2].MustReference().(ast.IdentifierNode)
 
@@ -36,7 +36,7 @@ func initAliasDeclarationEntry() {
 	vm.Def(
 		c,
 		"new_name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AliasDeclarationEntry)
 			result := value.Ref(self.NewName)
 			return result, value.Undefined
@@ -47,7 +47,7 @@ func initAliasDeclarationEntry() {
 	vm.Def(
 		c,
 		"old_name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AliasDeclarationEntry)
 			result := value.Ref(self.OldName)
 			return result, value.Undefined
@@ -58,7 +58,7 @@ func initAliasDeclarationEntry() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AliasDeclarationEntry)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -69,7 +69,7 @@ func initAliasDeclarationEntry() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AliasDeclarationEntry)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -80,7 +80,7 @@ func initAliasDeclarationEntry() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AliasDeclarationEntry)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

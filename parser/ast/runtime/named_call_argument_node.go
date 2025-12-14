@@ -12,7 +12,7 @@ func initNamedCallArgumentNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argName := args[1].MustReference().(ast.IdentifierNode)
 			argValue := args[2].MustReference().(ast.ExpressionNode)
 
@@ -36,7 +36,7 @@ func initNamedCallArgumentNode() {
 	vm.Def(
 		c,
 		"name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NamedCallArgumentNode)
 			result := value.Ref(self.Name)
 			return result, value.Undefined
@@ -47,7 +47,7 @@ func initNamedCallArgumentNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NamedCallArgumentNode)
 			result := value.Ref(self.Value)
 			return result, value.Undefined
@@ -58,7 +58,7 @@ func initNamedCallArgumentNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NamedCallArgumentNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -68,7 +68,7 @@ func initNamedCallArgumentNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NamedCallArgumentNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -79,7 +79,7 @@ func initNamedCallArgumentNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NamedCallArgumentNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

@@ -75,7 +75,7 @@ func initGenerator() {
 	Def(
 		c,
 		"next",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*Generator)(args[0].Pointer())
 			return vm.CallGeneratorNext(self)
 		},
@@ -83,14 +83,14 @@ func initGenerator() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"reset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*Generator)(args[0].Pointer())
 			catch := self.Bytecode.CatchEntries[0]
 			self.ip = self.Bytecode.ipAddRaw(uintptr(catch.JumpAddress))

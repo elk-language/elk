@@ -12,7 +12,7 @@ func initRecordPatternNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
 			var argElements []ast.PatternNode
 			if !args[1].IsUndefined() {
@@ -42,7 +42,7 @@ func initRecordPatternNode() {
 	vm.Def(
 		c,
 		"elements",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.RecordPatternNode)
 
 			collection := self.Elements
@@ -59,7 +59,7 @@ func initRecordPatternNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.RecordPatternNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -70,7 +70,7 @@ func initRecordPatternNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.RecordPatternNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -81,7 +81,7 @@ func initRecordPatternNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.RecordPatternNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

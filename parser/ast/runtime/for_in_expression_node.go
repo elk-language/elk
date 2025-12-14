@@ -12,7 +12,7 @@ func initForInExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argPattern := args[1].MustReference().(ast.PatternNode)
 			argInExpression := args[2].MustReference().(ast.ExpressionNode)
 
@@ -43,7 +43,7 @@ func initForInExpressionNode() {
 	vm.Def(
 		c,
 		"pattern_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ForInExpressionNode)
 			result := value.Ref(self.Pattern)
 			return result, value.Undefined
@@ -54,7 +54,7 @@ func initForInExpressionNode() {
 	vm.Def(
 		c,
 		"in_expression",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ForInExpressionNode)
 			result := value.Ref(self.InExpression)
 			return result, value.Undefined
@@ -65,7 +65,7 @@ func initForInExpressionNode() {
 	vm.Def(
 		c,
 		"then_body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ForInExpressionNode)
 
 			collection := self.ThenBody
@@ -82,7 +82,7 @@ func initForInExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ForInExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -92,7 +92,7 @@ func initForInExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ForInExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -103,7 +103,7 @@ func initForInExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ForInExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

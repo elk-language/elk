@@ -13,7 +13,7 @@ func initDebug() {
 	Def(
 		c,
 		"start_cpu_profile",
-		func(v *VM, args []value.Value) (value.Value, value.Value) {
+		func(v *Thread, args []value.Value) (value.Value, value.Value) {
 			filePath := args[1].MustReference().(value.String)
 			f, err := os.Create(string(filePath))
 			if err != nil {
@@ -27,7 +27,7 @@ func initDebug() {
 	Def(
 		c,
 		"stop_cpu_profile",
-		func(v *VM, args []value.Value) (value.Value, value.Value) {
+		func(v *Thread, args []value.Value) (value.Value, value.Value) {
 			pprof.StopCPUProfile()
 			f, err := os.Create("heap.prof")
 			if err != nil {
@@ -40,7 +40,7 @@ func initDebug() {
 	Def(
 		c,
 		"inspect_value_stack",
-		func(v *VM, args []value.Value) (value.Value, value.Value) {
+		func(v *Thread, args []value.Value) (value.Value, value.Value) {
 			v.InspectValueStack()
 			return value.Nil, value.Undefined
 		},
@@ -48,7 +48,7 @@ func initDebug() {
 	Def(
 		c,
 		"inspect_call_stack",
-		func(v *VM, args []value.Value) (value.Value, value.Value) {
+		func(v *Thread, args []value.Value) (value.Value, value.Value) {
 			v.InspectCallStack()
 			return value.Nil, value.Undefined
 		},
@@ -56,7 +56,7 @@ func initDebug() {
 	Def(
 		c,
 		"inspect_inheritance",
-		func(v *VM, args []value.Value) (value.Value, value.Value) {
+		func(v *Thread, args []value.Value) (value.Value, value.Value) {
 			klass := args[1].AsReference().(*value.Class)
 			return value.Ref(value.String(klass.InspectInheritance())), value.Undefined
 		},
@@ -65,7 +65,7 @@ func initDebug() {
 	Def(
 		c,
 		"stack_trace",
-		func(v *VM, args []value.Value) (value.Value, value.Value) {
+		func(v *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.Ref(v.BuildStackTrace()), value.Undefined
 		},
 	)

@@ -12,7 +12,7 @@ func initDoExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argBody []ast.StatementNode
 			if !args[1].IsUndefined() {
 				argBodyTuple := args[1].MustReference().(*value.ArrayTuple)
@@ -61,7 +61,7 @@ func initDoExpressionNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
 
 			collection := self.Body
@@ -78,7 +78,7 @@ func initDoExpressionNode() {
 	vm.Def(
 		c,
 		"catches",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
 
 			collection := self.Catches
@@ -95,7 +95,7 @@ func initDoExpressionNode() {
 	vm.Def(
 		c,
 		"finally_body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
 
 			collection := self.Finally
@@ -112,7 +112,7 @@ func initDoExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -123,7 +123,7 @@ func initDoExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -134,7 +134,7 @@ func initDoExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

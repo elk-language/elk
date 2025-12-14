@@ -11,7 +11,7 @@ func initRegex() {
 	Def(
 		c,
 		"matches",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Regex)
 			return self.Matches(args[1])
 		},
@@ -20,7 +20,7 @@ func initRegex() {
 	Def(
 		c,
 		"+",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Regex)
 			other := args[1]
 			return self.ConcatVal(other)
@@ -30,7 +30,7 @@ func initRegex() {
 	Def(
 		c,
 		"*",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Regex)
 			other := args[1]
 			return self.RepeatVal(other)
@@ -40,7 +40,7 @@ func initRegex() {
 	Def(
 		c,
 		"to_string",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Regex)
 			withFlags := args[1]
 			if !withFlags.IsUndefined() && value.Truthy(withFlags) {

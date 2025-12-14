@@ -674,6 +674,31 @@ func StrictParseUint(s string, base int, bitSize int) (uint64, Value) {
 	return StrictParseUintWithErr(s, base, bitSize, FormatErrorClass)
 }
 
+func MustStrictParseUint(s string, base int, bitSize int) uint64 {
+	v, err := StrictParseUint(s, base, bitSize)
+	if err.IsNotUndefined() {
+		panic(err)
+	}
+
+	return v
+}
+
+func MustParseUInt64(s string) UInt64 {
+	return UInt64(MustStrictParseUint(s, 0, 64))
+}
+
+func MustParseUInt32(s string) UInt32 {
+	return UInt32(MustStrictParseUint(s, 0, 32))
+}
+
+func MustParseUInt16(s string) UInt16 {
+	return UInt16(MustStrictParseUint(s, 0, 16))
+}
+
+func MustParseUInt8(s string) UInt8 {
+	return UInt8(MustStrictParseUint(s, 0, 8))
+}
+
 // Parses a signed strict integer from a string using Elk syntax.
 func StrictParseIntWithErr(s string, base int, bitSize int, formatErr *Class) (int64, Value) {
 	if s == "" {
@@ -718,6 +743,31 @@ func StrictParseIntWithErr(s string, base int, bitSize int, formatErr *Class) (i
 // Parses a signed strict integer from a string using Elk syntax.
 func StrictParseInt(s string, base int, bitSize int) (int64, Value) {
 	return StrictParseIntWithErr(s, base, bitSize, FormatErrorClass)
+}
+
+func MustStrictParseInt(s string, base int, bitSize int) int64 {
+	v, err := StrictParseInt(s, base, bitSize)
+	if err.IsNotUndefined() {
+		panic(err)
+	}
+
+	return v
+}
+
+func MustParseInt64(s string) Int64 {
+	return Int64(MustStrictParseInt(s, 0, 64))
+}
+
+func MustParseInt32(s string) Int32 {
+	return Int32(MustStrictParseInt(s, 0, 32))
+}
+
+func MustParseInt16(s string) Int16 {
+	return Int16(MustStrictParseInt(s, 0, 16))
+}
+
+func MustParseInt8(s string) Int8 {
+	return Int8(MustStrictParseInt(s, 0, 8))
 }
 
 // Converts letters to lowercase.

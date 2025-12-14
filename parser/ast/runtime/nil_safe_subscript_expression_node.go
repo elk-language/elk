@@ -12,7 +12,7 @@ func initNilSafeSubscriptExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
 			argKey := args[2].MustReference().(ast.ExpressionNode)
 
@@ -36,7 +36,7 @@ func initNilSafeSubscriptExpressionNode() {
 	vm.Def(
 		c,
 		"receiver",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NilSafeSubscriptExpressionNode)
 			result := value.Ref(self.Receiver)
 			return result, value.Undefined
@@ -47,7 +47,7 @@ func initNilSafeSubscriptExpressionNode() {
 	vm.Def(
 		c,
 		"key",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NilSafeSubscriptExpressionNode)
 			result := value.Ref(self.Key)
 			return result, value.Undefined
@@ -58,7 +58,7 @@ func initNilSafeSubscriptExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NilSafeSubscriptExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -69,7 +69,7 @@ func initNilSafeSubscriptExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NilSafeSubscriptExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -80,7 +80,7 @@ func initNilSafeSubscriptExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NilSafeSubscriptExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

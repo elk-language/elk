@@ -10,7 +10,7 @@ func initFloat() {
 	Def(
 		c,
 		"hash",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.Hash().ToValue(), value.Undefined
 		},
@@ -18,14 +18,14 @@ func initFloat() {
 	Def(
 		c,
 		"+@",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"-@",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return (-self).ToValue(), value.Undefined
 		},
@@ -33,7 +33,7 @@ func initFloat() {
 	Def(
 		c,
 		"+",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.AddVal(other)
@@ -43,7 +43,7 @@ func initFloat() {
 	Def(
 		c,
 		"-",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.SubtractVal(other)
@@ -53,7 +53,7 @@ func initFloat() {
 	Def(
 		c,
 		"*",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.MultiplyVal(other)
@@ -63,7 +63,7 @@ func initFloat() {
 	Def(
 		c,
 		"/",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.DivideVal(other)
@@ -73,7 +73,7 @@ func initFloat() {
 	Def(
 		c,
 		"**",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.ExponentiateVal(other)
@@ -83,7 +83,7 @@ func initFloat() {
 	Def(
 		c,
 		"<=>",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.CompareVal(other)
@@ -93,7 +93,7 @@ func initFloat() {
 	Def(
 		c,
 		">",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.GreaterThanVal(other)
@@ -103,7 +103,7 @@ func initFloat() {
 	Def(
 		c,
 		">=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.GreaterThanEqualVal(other)
@@ -113,7 +113,7 @@ func initFloat() {
 	Def(
 		c,
 		"<",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.LessThanVal(other)
@@ -123,7 +123,7 @@ func initFloat() {
 	Def(
 		c,
 		"<=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.LessThanEqualVal(other)
@@ -133,7 +133,7 @@ func initFloat() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.EqualVal(other), value.Undefined
@@ -143,7 +143,7 @@ func initFloat() {
 	Def(
 		c,
 		"=~",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.LaxEqualVal(other), value.Undefined
@@ -153,7 +153,7 @@ func initFloat() {
 	Def(
 		c,
 		"%",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.ModuloVal(other)
@@ -164,7 +164,7 @@ func initFloat() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
@@ -174,7 +174,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_float",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			return self, value.Undefined
 		},
@@ -182,7 +182,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_int",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.ToInt(), value.Undefined
 		},
@@ -190,7 +190,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_float64",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.ToFloat64().ToValue(), value.Undefined
 		},
@@ -198,7 +198,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_float32",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.ToFloat32().ToValue(), value.Undefined
 		},
@@ -207,7 +207,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_int64",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.ToInt64().ToValue(), value.Undefined
 		},
@@ -215,7 +215,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_int32",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.ToInt32().ToValue(), value.Undefined
 		},
@@ -223,7 +223,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_int16",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.ToInt16().ToValue(), value.Undefined
 		},
@@ -231,7 +231,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_int8",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.ToInt8().ToValue(), value.Undefined
 		},
@@ -239,7 +239,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_uint",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.ToUInt().ToValue(), value.Undefined
 		},
@@ -247,7 +247,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_uint64",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.ToUInt64().ToValue(), value.Undefined
 		},
@@ -255,7 +255,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_uint32",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.ToUInt32().ToValue(), value.Undefined
 		},
@@ -263,7 +263,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_uint16",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.ToUInt16().ToValue(), value.Undefined
 		},
@@ -271,7 +271,7 @@ func initFloat() {
 	Def(
 		c,
 		"to_uint8",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.ToUInt8().ToValue(), value.Undefined
 		},
@@ -280,7 +280,7 @@ func initFloat() {
 	Def(
 		c,
 		"nanoseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.Nanoseconds().ToValue(), value.Undefined
 		},
@@ -290,7 +290,7 @@ func initFloat() {
 	Def(
 		c,
 		"microseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.Microseconds().ToValue(), value.Undefined
 		},
@@ -300,7 +300,7 @@ func initFloat() {
 	Def(
 		c,
 		"milliseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.Milliseconds().ToValue(), value.Undefined
 		},
@@ -310,7 +310,7 @@ func initFloat() {
 	Def(
 		c,
 		"seconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.Seconds().ToValue(), value.Undefined
 		},
@@ -320,7 +320,7 @@ func initFloat() {
 	Def(
 		c,
 		"minutes",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.Minutes().ToValue(), value.Undefined
 		},
@@ -330,7 +330,7 @@ func initFloat() {
 	Def(
 		c,
 		"hours",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return self.Hours().ToValue(), value.Undefined
 		},
@@ -340,7 +340,7 @@ func initFloat() {
 	Def(
 		c,
 		"days",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return value.Ref(self.Days()), value.Undefined
 		},
@@ -350,7 +350,7 @@ func initFloat() {
 	Def(
 		c,
 		"weeks",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return value.Ref(self.Weeks()), value.Undefined
 		},
@@ -360,7 +360,7 @@ func initFloat() {
 	Def(
 		c,
 		"months",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return value.Ref(self.Months()), value.Undefined
 		},
@@ -370,7 +370,7 @@ func initFloat() {
 	Def(
 		c,
 		"years",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return value.Ref(self.Years()), value.Undefined
 		},
@@ -380,7 +380,7 @@ func initFloat() {
 	Def(
 		c,
 		"centuries",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return value.Ref(self.Centuries()), value.Undefined
 		},
@@ -390,7 +390,7 @@ func initFloat() {
 	Def(
 		c,
 		"millenia",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
 			return value.Ref(self.Millenia()), value.Undefined
 		},

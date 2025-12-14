@@ -8,7 +8,7 @@ import (
 )
 
 // An implementation of a native Elk method.
-type NativeFunction func(vm *VM, args []value.Value) (returnVal, err value.Value)
+type NativeFunction func(vm *Thread, args []value.Value) (returnVal, err value.Value)
 
 // A native Elk method
 type NativeMethod struct {

@@ -12,7 +12,7 @@ func initIfExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argCondition := args[1].MustReference().(ast.ExpressionNode)
 
 			argThenBodyTuple := args[2].MustReference().(*value.ArrayTuple)
@@ -51,7 +51,7 @@ func initIfExpressionNode() {
 	vm.Def(
 		c,
 		"condition",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IfExpressionNode)
 			result := value.Ref(self.Condition)
 			return result, value.Undefined
@@ -62,7 +62,7 @@ func initIfExpressionNode() {
 	vm.Def(
 		c,
 		"then_body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IfExpressionNode)
 
 			collection := self.ThenBody
@@ -79,7 +79,7 @@ func initIfExpressionNode() {
 	vm.Def(
 		c,
 		"else_body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IfExpressionNode)
 
 			collection := self.ElseBody
@@ -96,7 +96,7 @@ func initIfExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IfExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -106,7 +106,7 @@ func initIfExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IfExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -117,7 +117,7 @@ func initIfExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IfExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

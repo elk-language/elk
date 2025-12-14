@@ -13,7 +13,7 @@ func initInstanceVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argName := args[1].MustReference().(ast.InstanceVariableNode)
 			argTypeNode := args[2].MustReference().(ast.TypeNode)
 
@@ -43,7 +43,7 @@ func initInstanceVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InstanceVariableDeclarationNode)
 			result := value.Ref(self.Name)
 			return result, value.Undefined
@@ -54,7 +54,7 @@ func initInstanceVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"type_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InstanceVariableDeclarationNode)
 			if self.TypeNode == nil {
 				return value.Nil, value.Undefined
@@ -68,7 +68,7 @@ func initInstanceVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InstanceVariableDeclarationNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -78,7 +78,7 @@ func initInstanceVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InstanceVariableDeclarationNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -89,7 +89,7 @@ func initInstanceVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InstanceVariableDeclarationNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

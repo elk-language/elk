@@ -11,7 +11,7 @@ func initClosedRange() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ClosedRange)
 			iterator := value.NewClosedRangeIterator(self)
 			return value.Ref(iterator), value.Undefined
@@ -20,7 +20,7 @@ func initClosedRange() {
 	Def(
 		c,
 		"==",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ClosedRange)
 			other, ok := args[1].MustReference().(*value.ClosedRange)
 			if !ok {
@@ -40,7 +40,7 @@ func initClosedRange() {
 	Def(
 		c,
 		"#contains",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ClosedRange)
 			other := args[1]
 			if !value.IsA(other, self.Start.Class()) && !value.IsA(other, self.End.Class()) {
@@ -57,7 +57,7 @@ func initClosedRange() {
 	Def(
 		c,
 		"contains",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ClosedRange)
 			other := args[1]
 			contains, err := ClosedRangeContains(vm, self, other)
@@ -71,35 +71,35 @@ func initClosedRange() {
 	Def(
 		c,
 		"is_left_closed",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.True, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_left_open",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.False, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_closed",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.True, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_open",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.False, value.Undefined
 		},
 	)
 	Def(
 		c,
 		"start",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ClosedRange)
 			return self.Start, value.Undefined
 		},
@@ -107,7 +107,7 @@ func initClosedRange() {
 	Def(
 		c,
 		"end",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ClosedRange)
 			return self.End, value.Undefined
 		},
@@ -121,7 +121,7 @@ func initClosedRangeIterator() {
 	Def(
 		c,
 		"next",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ClosedRangeIterator)(args[0].Pointer())
 			return ClosedRangeIteratorNext(vm, self)
 		},
@@ -129,14 +129,14 @@ func initClosedRangeIterator() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"reset",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ClosedRangeIterator)(args[0].Pointer())
 			self.Reset()
 			return args[0], value.Undefined
@@ -146,7 +146,7 @@ func initClosedRangeIterator() {
 }
 
 // Checks whether a value is contained in the closed range
-func ClosedRangeContains(vm *VM, r *value.ClosedRange, val value.Value) (bool, value.Value) {
+func ClosedRangeContains(vm *Thread, r *value.ClosedRange, val value.Value) (bool, value.Value) {
 	eqVal, err := GreaterThanEqual(vm, val, r.Start)
 	if !err.IsUndefined() {
 		return false, err
@@ -165,7 +165,7 @@ func ClosedRangeContains(vm *VM, r *value.ClosedRange, val value.Value) (bool, v
 }
 
 // Checks whether two closed ranges are equal
-func ClosedRangeEqual(vm *VM, x *value.ClosedRange, y *value.ClosedRange) (bool, value.Value) {
+func ClosedRangeEqual(vm *Thread, x *value.ClosedRange, y *value.ClosedRange) (bool, value.Value) {
 	eqVal, err := Equal(vm, x.Start, y.Start)
 	if !err.IsUndefined() {
 		return false, err
@@ -184,7 +184,7 @@ func ClosedRangeEqual(vm *VM, x *value.ClosedRange, y *value.ClosedRange) (bool,
 }
 
 // Get the next element of the range
-func ClosedRangeIteratorNext(vm *VM, i *value.ClosedRangeIterator) (value.Value, value.Value) {
+func ClosedRangeIteratorNext(vm *Thread, i *value.ClosedRangeIterator) (value.Value, value.Value) {
 	greater, err := GreaterThan(vm, i.CurrentElement, i.Range.End)
 	if !err.IsUndefined() {
 		return value.Undefined, err

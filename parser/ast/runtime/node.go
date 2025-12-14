@@ -17,14 +17,14 @@ func initNode() {
 	vm.Def(
 		c,
 		"to_ast_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	vm.Def(
 		c,
 		"traverse",
-		func(v *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(v *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(ast.Node)
 			fn := args[1]
 
@@ -58,7 +58,7 @@ func initNode() {
 	vm.Def(
 		c,
 		"iter",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(ast.Node)
 			iterator := ast.NewNodeIterator(self)
 			return value.Ref(iterator), value.Undefined
@@ -70,7 +70,7 @@ func initNode() {
 	vm.Def(
 		c,
 		"expr",
-		func(vm *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			node := args[1].AsReference()
 			var expr ast.ExpressionNode
 
@@ -96,7 +96,7 @@ func initNode() {
 	vm.Def(
 		c,
 		"unhygienic",
-		func(vm *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			node := args[1].AsReference().(ast.Node)
 			result := ast.NewUnhygienicNode(
 				node.Location(),
@@ -112,7 +112,7 @@ func initNode() {
 	vm.Def(
 		c,
 		"#splice",
-		func(vm *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			baseNode := args[1].AsReference().(ast.Node)
 
 			var replacementNodes value.ArrayTuple

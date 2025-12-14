@@ -13,7 +13,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argTypeParameters []ast.TypeParameterNode
@@ -89,7 +89,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"doc_comment",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.Ref(value.String(self.DocComment()))
 			return result, value.Undefined
@@ -100,7 +100,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.Ref(self.Name)
 			return result, value.Undefined
@@ -111,7 +111,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"type_parameters",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 
 			collection := self.TypeParameters
@@ -128,7 +128,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"parameters",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 
 			collection := self.Parameters
@@ -145,7 +145,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"return_type",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			if self.ReturnType == nil {
 				return value.Nil, value.Undefined
@@ -158,7 +158,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"throw_type",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			if self.ThrowType == nil {
 				return value.Nil, value.Undefined
@@ -171,7 +171,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 
 			collection := self.Body
@@ -188,7 +188,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"flags",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.UInt8(self.Flags.Byte()).ToValue()
 			return result, value.Undefined
@@ -199,7 +199,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"is_abstract",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.ToElkBool(self.IsAbstract())
 			return result, value.Undefined
@@ -210,7 +210,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"is_sealed",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.ToElkBool(self.IsSealed())
 			return result, value.Undefined
@@ -221,7 +221,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"is_generator",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.ToElkBool(self.IsGenerator())
 			return result, value.Undefined
@@ -232,7 +232,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"is_async",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.ToElkBool(self.IsAsync())
 			return result, value.Undefined
@@ -243,7 +243,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"is_overload",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.ToElkBool(self.IsOverload())
 			return result, value.Undefined
@@ -254,7 +254,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -265,7 +265,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -276,7 +276,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -287,7 +287,7 @@ func initMethodDefinitionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

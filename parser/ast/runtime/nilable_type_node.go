@@ -12,7 +12,7 @@ func initNilableTypeNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argTypeNode := args[1].MustReference().(ast.TypeNode)
 
 			var argLoc *position.Location
@@ -34,7 +34,7 @@ func initNilableTypeNode() {
 	vm.Def(
 		c,
 		"type_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NilableTypeNode)
 			result := value.Ref(self.TypeNode)
 			return result, value.Undefined
@@ -45,7 +45,7 @@ func initNilableTypeNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NilableTypeNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -56,7 +56,7 @@ func initNilableTypeNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NilableTypeNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -67,7 +67,7 @@ func initNilableTypeNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NilableTypeNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

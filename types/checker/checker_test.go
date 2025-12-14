@@ -105,7 +105,7 @@ var cmpOpts = []cmp.Option{
 func checkerTest(tc testCase, t *testing.T) {
 	t.Helper()
 	pp.ColoringEnabled = false
-	_, err := checker.CheckSource("<main>", tc.input, nil, false, vm.DefaultThreadPool)
+	_, err := checker.CheckSource("<main>", tc.input, nil, bitfield.BitField16{}, vm.DefaultThreadPool)
 
 	if diff := cmp.Diff(tc.err, err, cmpOpts...); diff != "" {
 		t.Log(pp.Sprint(err))

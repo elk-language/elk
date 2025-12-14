@@ -7,7 +7,7 @@ import (
 )
 
 type ThreadPool struct {
-	Threads   []*VM
+	Threads   []*Thread
 	TaskQueue chan *Promise
 }
 
@@ -20,7 +20,7 @@ func NewThreadPool(threadCount, queueSize int, opts ...Option) *ThreadPool {
 func (tp *ThreadPool) initThreadPool(threadCount, queueSize int, opts ...Option) {
 	tp.TaskQueue = make(chan *Promise, queueSize)
 
-	threads := make([]*VM, threadCount)
+	threads := make([]*Thread, threadCount)
 	for i := range threads {
 		opts = append(opts, WithThreadPool(tp))
 		thread := New(opts...)
@@ -30,7 +30,7 @@ func (tp *ThreadPool) initThreadPool(threadCount, queueSize int, opts ...Option)
 	tp.Threads = threads
 }
 
-func threadWorker(thread *VM, queue chan *Promise) {
+func threadWorker(thread *Thread, queue chan *Promise) {
 	for task := range queue {
 		switch body := task.Body.(type) {
 		case *Generator:
@@ -45,7 +45,7 @@ func threadWorker(thread *VM, queue chan *Promise) {
 	}
 }
 
-func executeNativePromise(thread *VM, queue chan *Promise, task *Promise, body *NativePromiseBody) {
+func executeNativePromise(thread *Thread, queue chan *Promise, task *Promise, body *NativePromiseBody) {
 	result, err := body.Function(thread, body.Args)
 	if !err.IsUndefined() {
 		task.Reject(err, nil)
@@ -55,7 +55,7 @@ func executeNativePromise(thread *VM, queue chan *Promise, task *Promise, body *
 	task.Resolve(result)
 }
 
-func executeBytecodePromise(thread *VM, queue chan *Promise, task *Promise) {
+func executeBytecodePromise(thread *Thread, queue chan *Promise, task *Promise) {
 	thread.callBytecodePromise(task)
 
 	switch thread.state {
@@ -128,7 +128,7 @@ func initThreadPool() {
 	Def(
 		c,
 		"thread_count",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*ThreadPool)(args[0].Pointer())
 			return value.SmallInt(self.ThreadCount()).ToValue(), value.Undefined
 		},
@@ -136,7 +136,7 @@ func initThreadPool() {
 	Def(
 		c,
 		"task_queue_size",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*ThreadPool)(args[0].Pointer())
 			return value.SmallInt(self.TaskQueueSize()).ToValue(), value.Undefined
 		},
@@ -144,7 +144,7 @@ func initThreadPool() {
 	Def(
 		c,
 		"close",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*ThreadPool)(args[0].Pointer())
 			self.Close()
 			return value.Nil, value.Undefined

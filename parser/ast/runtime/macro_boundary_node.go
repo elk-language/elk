@@ -12,7 +12,7 @@ func initMacroBoundaryNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argBody []ast.StatementNode
 			if !args[1].IsUndefined() {
 				argBodyTuple := args[1].MustReference().(*value.ArrayTuple)
@@ -47,7 +47,7 @@ func initMacroBoundaryNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroBoundaryNode)
 
 			collection := self.Body
@@ -64,7 +64,7 @@ func initMacroBoundaryNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroBoundaryNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -74,7 +74,7 @@ func initMacroBoundaryNode() {
 	vm.Def(
 		c,
 		"name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroBoundaryNode)
 			result := value.Ref(value.String(self.Name))
 			return result, value.Undefined
@@ -84,7 +84,7 @@ func initMacroBoundaryNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroBoundaryNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -95,7 +95,7 @@ func initMacroBoundaryNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroBoundaryNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

@@ -12,7 +12,7 @@ func initGenericConstructorCallNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argClass := args[1].MustReference().(ast.ComplexConstantNode)
 
 			argTypArgsTuple := args[2].MustReference().(*value.ArrayTuple)
@@ -60,7 +60,7 @@ func initGenericConstructorCallNode() {
 	vm.Def(
 		c,
 		"class_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstructorCallNode)
 			result := value.Ref(self.ClassNode)
 			return result, value.Undefined
@@ -71,7 +71,7 @@ func initGenericConstructorCallNode() {
 	vm.Def(
 		c,
 		"type_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstructorCallNode)
 
 			collection := self.TypeArguments
@@ -88,7 +88,7 @@ func initGenericConstructorCallNode() {
 	vm.Def(
 		c,
 		"positional_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstructorCallNode)
 
 			collection := self.PositionalArguments
@@ -105,7 +105,7 @@ func initGenericConstructorCallNode() {
 	vm.Def(
 		c,
 		"named_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstructorCallNode)
 
 			collection := self.NamedArguments
@@ -122,7 +122,7 @@ func initGenericConstructorCallNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstructorCallNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -132,7 +132,7 @@ func initGenericConstructorCallNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstructorCallNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -143,7 +143,7 @@ func initGenericConstructorCallNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstructorCallNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

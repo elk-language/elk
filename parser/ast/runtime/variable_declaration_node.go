@@ -12,7 +12,7 @@ func initVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argTypeNode ast.TypeNode
@@ -52,7 +52,7 @@ func initVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"doc_comment",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VariableDeclarationNode)
 			result := value.Ref(value.String(self.DocComment()))
 			return result, value.Undefined
@@ -63,7 +63,7 @@ func initVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VariableDeclarationNode)
 			result := value.Ref(self.Name)
 			return result, value.Undefined
@@ -74,7 +74,7 @@ func initVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"type_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VariableDeclarationNode)
 			if self.TypeNode == nil {
 				return value.Nil, value.Undefined
@@ -88,7 +88,7 @@ func initVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"initialiser",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VariableDeclarationNode)
 			if self.Initialiser == nil {
 				return value.Nil, value.Undefined
@@ -102,7 +102,7 @@ func initVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VariableDeclarationNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -113,7 +113,7 @@ func initVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VariableDeclarationNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -124,7 +124,7 @@ func initVariableDeclarationNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VariableDeclarationNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

@@ -12,7 +12,7 @@ func initGoExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argBodyTuple := args[1].MustReference().(*value.ArrayTuple)
 			argBody := make([]ast.StatementNode, argBodyTuple.Length())
 			for i, el := range *argBodyTuple {
@@ -38,7 +38,7 @@ func initGoExpressionNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GoExpressionNode)
 
 			collection := self.Body
@@ -55,7 +55,7 @@ func initGoExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GoExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -65,7 +65,7 @@ func initGoExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GoExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -76,7 +76,7 @@ func initGoExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GoExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

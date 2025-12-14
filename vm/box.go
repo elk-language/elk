@@ -13,7 +13,7 @@ func initBox() {
 	Def(
 		c,
 		"at",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			address := args[1].AsUInt()
 			b := (*value.Box)(unsafe.Pointer(uintptr(address)))
 
@@ -27,7 +27,7 @@ func initBox() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Box)(args[0].Pointer())
 			v := args[1]
 			self.Set(v)
@@ -39,7 +39,7 @@ func initBox() {
 	Def(
 		c,
 		"get",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Box)(args[0].Pointer())
 			return self.Get(), value.Undefined
 		},
@@ -47,7 +47,7 @@ func initBox() {
 	Def(
 		c,
 		"set",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Box)(args[0].Pointer())
 			v := args[1]
 			self.Set(v)
@@ -59,7 +59,7 @@ func initBox() {
 	Def(
 		c,
 		"address",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Box)(args[0].Pointer())
 			return value.UInt(uintptr(unsafe.Pointer(self))).ToValue(), value.Undefined
 		},
@@ -67,7 +67,7 @@ func initBox() {
 	Def(
 		c,
 		"to_immutable_box",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Box)(args[0].Pointer())
 			return value.Ref(self.ToImmutableBox()), value.Undefined
 		},
@@ -75,7 +75,7 @@ func initBox() {
 	Def(
 		c,
 		"to_box",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
@@ -83,7 +83,7 @@ func initBox() {
 	Def(
 		c,
 		"next",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Box)(args[0].Pointer())
 
 			var step int
@@ -102,7 +102,7 @@ func initBox() {
 	Def(
 		c,
 		"next_immutable_box",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Box)(args[0].Pointer())
 
 			var step int
@@ -121,7 +121,7 @@ func initBox() {
 	Def(
 		c,
 		"prev",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Box)(args[0].Pointer())
 
 			var step int
@@ -140,7 +140,7 @@ func initBox() {
 	Def(
 		c,
 		"prev_immutable_box",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Box)(args[0].Pointer())
 
 			var step int

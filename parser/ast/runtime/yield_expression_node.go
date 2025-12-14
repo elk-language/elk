@@ -12,7 +12,7 @@ func initYieldExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argValue ast.ExpressionNode
 			if !args[1].IsUndefined() {
 				argValue = args[1].MustReference().(ast.ExpressionNode)
@@ -43,7 +43,7 @@ func initYieldExpressionNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.YieldExpressionNode)
 			if self.Value == nil {
 				return value.Nil, value.Undefined
@@ -56,7 +56,7 @@ func initYieldExpressionNode() {
 	vm.Def(
 		c,
 		"forward",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.YieldExpressionNode)
 			result := value.ToElkBool(self.Forward)
 			return result, value.Undefined
@@ -67,7 +67,7 @@ func initYieldExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.YieldExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -77,7 +77,7 @@ func initYieldExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.YieldExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -88,7 +88,7 @@ func initYieldExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.YieldExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

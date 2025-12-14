@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"iter"
 	"slices"
 	"strings"
 
@@ -22,6 +23,20 @@ type HashSet struct {
 func NewHashSet(capacity int) *HashSet {
 	return &HashSet{
 		Table: make([]Value, capacity),
+	}
+}
+
+func (h *HashSet) All() iter.Seq[Value] {
+	return func(yield func(Value) bool) {
+		for _, element := range h.Table {
+			if element.IsUndefined() {
+				continue
+			}
+
+			if !yield(element) {
+				return
+			}
+		}
 	}
 }
 

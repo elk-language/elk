@@ -15,7 +15,7 @@ func initInt() {
 	Def(
 		c,
 		"hash",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Hash().ToValue(), value.Undefined
@@ -32,7 +32,7 @@ func initInt() {
 	Def(
 		c,
 		"++",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Increment(), value.Undefined
@@ -49,7 +49,7 @@ func initInt() {
 	Def(
 		c,
 		"--",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Decrement(), value.Undefined
@@ -66,7 +66,7 @@ func initInt() {
 	Def(
 		c,
 		"+",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -85,7 +85,7 @@ func initInt() {
 	Def(
 		c,
 		"-",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -104,7 +104,7 @@ func initInt() {
 	Def(
 		c,
 		"*",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -123,7 +123,7 @@ func initInt() {
 	Def(
 		c,
 		"/",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -142,7 +142,7 @@ func initInt() {
 	Def(
 		c,
 		"is_even",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return value.ToElkBool(self.AsSmallInt().IsEven()), value.Undefined
@@ -159,7 +159,7 @@ func initInt() {
 	Def(
 		c,
 		"is_odd",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return value.ToElkBool(self.AsSmallInt().IsOdd()), value.Undefined
@@ -176,7 +176,7 @@ func initInt() {
 	Def(
 		c,
 		"**",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -195,7 +195,7 @@ func initInt() {
 	Def(
 		c,
 		"<=>",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -214,7 +214,7 @@ func initInt() {
 	Def(
 		c,
 		">",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -233,7 +233,7 @@ func initInt() {
 	Def(
 		c,
 		">=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -252,7 +252,7 @@ func initInt() {
 	Def(
 		c,
 		"<",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -271,7 +271,7 @@ func initInt() {
 	Def(
 		c,
 		"<=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -290,7 +290,7 @@ func initInt() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -309,7 +309,7 @@ func initInt() {
 	Def(
 		c,
 		"=~",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -328,7 +328,7 @@ func initInt() {
 	Def(
 		c,
 		"<<",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -347,7 +347,7 @@ func initInt() {
 	Def(
 		c,
 		">>",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -366,7 +366,7 @@ func initInt() {
 	Def(
 		c,
 		"&",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -385,7 +385,7 @@ func initInt() {
 	Def(
 		c,
 		"~",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().BitwiseNot().ToValue(), value.Undefined
@@ -402,7 +402,7 @@ func initInt() {
 	Def(
 		c,
 		"&~",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -421,7 +421,7 @@ func initInt() {
 	Def(
 		c,
 		"|",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -440,7 +440,7 @@ func initInt() {
 	Def(
 		c,
 		"^",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -459,7 +459,7 @@ func initInt() {
 	Def(
 		c,
 		"%",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			if self.IsSmallInt() {
@@ -478,14 +478,14 @@ func initInt() {
 	Def(
 		c,
 		"+@",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"-@",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().NegateVal(), value.Undefined
@@ -502,7 +502,7 @@ func initInt() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return value.Ref(value.String(self.AsSmallInt().Inspect())), value.Undefined
@@ -520,14 +520,14 @@ func initInt() {
 	Def(
 		c,
 		"to_int",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"to_float",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().ToFloat().ToValue(), value.Undefined
@@ -543,7 +543,7 @@ func initInt() {
 	Def(
 		c,
 		"to_float64",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().ToFloat64().ToValue(), value.Undefined
@@ -559,7 +559,7 @@ func initInt() {
 	Def(
 		c,
 		"to_float32",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().ToFloat32().ToValue(), value.Undefined
@@ -575,7 +575,7 @@ func initInt() {
 	Def(
 		c,
 		"to_int64",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().ToInt64().ToValue(), value.Undefined
@@ -591,7 +591,7 @@ func initInt() {
 	Def(
 		c,
 		"to_int32",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().ToInt32().ToValue(), value.Undefined
@@ -607,7 +607,7 @@ func initInt() {
 	Def(
 		c,
 		"to_int16",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().ToInt16().ToValue(), value.Undefined
@@ -623,7 +623,7 @@ func initInt() {
 	Def(
 		c,
 		"to_int8",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().ToInt8().ToValue(), value.Undefined
@@ -639,7 +639,7 @@ func initInt() {
 	Def(
 		c,
 		"to_uint64",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().ToUInt64().ToValue(), value.Undefined
@@ -655,7 +655,7 @@ func initInt() {
 	Def(
 		c,
 		"to_uint32",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().ToUInt32().ToValue(), value.Undefined
@@ -671,7 +671,7 @@ func initInt() {
 	Def(
 		c,
 		"to_uint16",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().ToUInt16().ToValue(), value.Undefined
@@ -687,7 +687,7 @@ func initInt() {
 	Def(
 		c,
 		"to_uint8",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().ToUInt8().ToValue(), value.Undefined
@@ -703,7 +703,7 @@ func initInt() {
 	Def(
 		c,
 		"times",
-		func(v *VM, args []value.Value) (value.Value, value.Value) {
+		func(v *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -750,7 +750,7 @@ func initInt() {
 	Def(
 		c,
 		"nanoseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Nanoseconds().ToValue(), value.Undefined
@@ -767,7 +767,7 @@ func initInt() {
 	Def(
 		c,
 		"microseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Microseconds().ToValue(), value.Undefined
@@ -784,7 +784,7 @@ func initInt() {
 	Def(
 		c,
 		"milliseconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Milliseconds().ToValue(), value.Undefined
@@ -801,7 +801,7 @@ func initInt() {
 	Def(
 		c,
 		"seconds",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Seconds().ToValue(), value.Undefined
@@ -818,7 +818,7 @@ func initInt() {
 	Def(
 		c,
 		"minutes",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Minutes().ToValue(), value.Undefined
@@ -835,7 +835,7 @@ func initInt() {
 	Def(
 		c,
 		"hours",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Hours().ToValue(), value.Undefined
@@ -852,7 +852,7 @@ func initInt() {
 	Def(
 		c,
 		"days",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Days().ToValue(), value.Undefined
@@ -869,7 +869,7 @@ func initInt() {
 	Def(
 		c,
 		"weeks",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Weeks().ToValue(), value.Undefined
@@ -885,7 +885,7 @@ func initInt() {
 	Def(
 		c,
 		"months",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Months().ToValue(), value.Undefined
@@ -901,7 +901,7 @@ func initInt() {
 	Def(
 		c,
 		"years",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Years().ToValue(), value.Undefined
@@ -917,7 +917,7 @@ func initInt() {
 	Def(
 		c,
 		"centuries",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Centuries().ToValue(), value.Undefined
@@ -933,7 +933,7 @@ func initInt() {
 	Def(
 		c,
 		"millenia",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return self.AsSmallInt().Millenia().ToValue(), value.Undefined
@@ -950,7 +950,7 @@ func initInt() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
 				return value.Ref(value.NewSmallIntIterator(self.AsSmallInt())), value.Undefined
@@ -971,7 +971,7 @@ func initIntIterator() {
 	Def(
 		c,
 		"next",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			switch self := self.SafeAsReference().(type) {
 			case *value.SmallIntIterator:
@@ -986,14 +986,14 @@ func initIntIterator() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"reset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			switch self := self.SafeAsReference().(type) {
 			case *value.SmallIntIterator:

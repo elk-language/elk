@@ -35,7 +35,7 @@ type signatureCheckEntry struct {
 	constantScopes []constantScope
 	methodScopes   []methodScope
 	selfType       types.Type
-	flags          bitfield.BitField8
+	flags          bitfield.BitField16
 	mode           mode
 	node           ast.Node
 }
@@ -590,7 +590,7 @@ func (c *Checker) newMethodChecker(
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		threadPool:           threadPool,
 	}
-	checker.compiler = compiler.CreateBytecodeCompiler(c.compiler, checker, loc, c.Errors)
+	checker.compiler = compiler.CreateCompiler(c.compiler, checker, loc, c.Errors)
 
 	return checker
 }
@@ -2257,7 +2257,7 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *
 	c.methodCache.Slice = nil
 
 	if c.shouldCompile() && method.IsCompilable() {
-		method.Body = c.compiler.CompileMethodBody(node, method.Name)
+		method.Body = c.compiler.CompileMethodBody(node, method.Name).Method()
 	}
 }
 

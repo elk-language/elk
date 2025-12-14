@@ -11,7 +11,7 @@ func initError() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(*value.Object)
 			message := args[1]
 			self.SetMessage(message)
@@ -23,7 +23,7 @@ func initError() {
 	Def(
 		c,
 		"message",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0].AsReference().(*value.Object)
 			return self.Message(), value.Undefined
 		},

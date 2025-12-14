@@ -13,7 +13,7 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
 			argContentTuple := args[1].MustReference().(*value.ArrayTuple)
 			argContent := make([]ast.RegexLiteralContentNode, argContentTuple.Length())
@@ -45,7 +45,7 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"content",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
 
 			collection := self.Content
@@ -62,7 +62,7 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"flags",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
 			result := value.UInt8(self.Flags.Byte()).ToValue()
 			return result, value.Undefined
@@ -72,7 +72,7 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"is_case_insensitive",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
 			result := value.ToElkBool(self.IsCaseInsensitive())
 			return result, value.Undefined
@@ -82,7 +82,7 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"is_multiline",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
 			result := value.ToElkBool(self.IsMultiline())
 			return result, value.Undefined
@@ -92,7 +92,7 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"is_dot_all",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
 			result := value.ToElkBool(self.IsDotAll())
 			return result, value.Undefined
@@ -102,7 +102,7 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"is_ungreedy",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
 			result := value.ToElkBool(self.IsUngreedy())
 			return result, value.Undefined
@@ -112,7 +112,7 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"is_ascii",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
 			result := value.ToElkBool(self.IsASCII())
 			return result, value.Undefined
@@ -122,7 +122,7 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"is_extended",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
 			result := value.ToElkBool(self.IsExtended())
 			return result, value.Undefined
@@ -132,7 +132,7 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -141,7 +141,7 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -152,7 +152,7 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

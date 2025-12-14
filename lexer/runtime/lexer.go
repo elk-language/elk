@@ -13,7 +13,7 @@ func initLexer() {
 	vm.Def(
 		c,
 		"colorize",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			source := string(args[1].AsReference().(value.String))
 			result := lexer.Colorize(source)
 			return value.Ref(value.String(result)), value.Undefined
@@ -23,7 +23,7 @@ func initLexer() {
 	vm.Def(
 		c,
 		"lex",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			source := string(args[1].AsReference().(value.String))
 			result := lexer.LexValue(source)
 			return value.Ref(result), value.Undefined
@@ -36,7 +36,7 @@ func initLexer() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			source := string(args[1].AsReference().(value.String))
 
 			var sourceName string
@@ -55,7 +55,7 @@ func initLexer() {
 	vm.Def(
 		c,
 		"next",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*lexer.Lexer)(args[0].Pointer())
 			return value.Ref(self.Next()), value.Undefined
 		},

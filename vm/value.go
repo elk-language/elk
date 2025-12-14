@@ -16,7 +16,7 @@ func initValue() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
@@ -24,7 +24,7 @@ func initValue() {
 	Def(
 		c,
 		"class",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			return value.Ref(self.Class()), value.Undefined
 		},
@@ -32,7 +32,7 @@ func initValue() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			return value.ToElkBool(self == other), value.Undefined
@@ -43,7 +43,7 @@ func initValue() {
 	Def(
 		c,
 		"copy",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			return self.Copy(), value.Undefined
 		},
@@ -51,7 +51,7 @@ func initValue() {
 	Def(
 		c,
 		"hash",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			result, err := value.Hash(self)
 			if err == value.Ref(value.NotBuiltinError) {
@@ -66,7 +66,7 @@ func initValue() {
 	Def(
 		c,
 		"#box_of_ivar_index",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			ivars := self.InstanceVariables()
 			if ivars == nil {
@@ -90,7 +90,7 @@ func initValue() {
 	Def(
 		c,
 		"#box_of_ivar_name",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			ivars := self.InstanceVariables()
 			if ivars == nil {
@@ -139,7 +139,7 @@ func ObjectHash(val value.Value) value.UInt64 {
 }
 
 // Calculate the hash for the given value
-func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
+func Hash(vm *Thread, key value.Value) (value.UInt64, value.Value) {
 	result, err := value.Hash(key)
 
 	if err == value.Ref(value.NotBuiltinError) {
@@ -175,12 +175,12 @@ func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
 }
 
 // Return the string representation of a value for debugging
-func Inspect(vm *VM, val value.Value) (value.Value, value.Value) {
+func Inspect(vm *Thread, val value.Value) (value.Value, value.Value) {
 	return vm.CallMethodByName(symbol.L_inspect, val)
 }
 
 // Return the string representation of a value for debugging
-func InspectWithColor(vm *VM, val value.Value) (string, value.Value) {
+func InspectWithColor(vm *Thread, val value.Value) (string, value.Value) {
 	result, err := vm.CallMethodByName(symbol.L_inspect, val)
 	if !err.IsUndefined() {
 		return "", err
@@ -190,7 +190,7 @@ func InspectWithColor(vm *VM, val value.Value) (string, value.Value) {
 }
 
 // Check whether two values are equal
-func Equal(vm *VM, left, right value.Value) (value.Value, value.Value) {
+func Equal(vm *Thread, left, right value.Value) (value.Value, value.Value) {
 	result := value.EqualVal(left, right)
 
 	if !result.IsUndefined() {
@@ -208,7 +208,7 @@ func Equal(vm *VM, left, right value.Value) (value.Value, value.Value) {
 }
 
 // Check whether two values are equal (lax)
-func LaxEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
+func LaxEqual(vm *Thread, left, right value.Value) (value.Value, value.Value) {
 	result := value.LaxEqualVal(left, right)
 
 	if !result.IsUndefined() {
@@ -226,7 +226,7 @@ func LaxEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 }
 
 // Check whether the left value is greater than the right
-func GreaterThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
+func GreaterThan(vm *Thread, left, right value.Value) (value.Value, value.Value) {
 	result, err := value.GreaterThanVal(left, right)
 
 	if !err.IsUndefined() {
@@ -247,7 +247,7 @@ func GreaterThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
 }
 
 // Check whether the left value is greater than or equal to the right
-func GreaterThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
+func GreaterThanEqual(vm *Thread, left, right value.Value) (value.Value, value.Value) {
 	result, err := value.GreaterThanEqualVal(left, right)
 
 	if !err.IsUndefined() {
@@ -268,7 +268,7 @@ func GreaterThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value
 }
 
 // Check whether the left value is less than the right
-func LessThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
+func LessThan(vm *Thread, left, right value.Value) (value.Value, value.Value) {
 	result, err := value.LessThanVal(left, right)
 
 	if !err.IsUndefined() {
@@ -289,7 +289,7 @@ func LessThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
 }
 
 // Check whether the left value is less than or equal to the right
-func LessThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
+func LessThanEqual(vm *Thread, left, right value.Value) (value.Value, value.Value) {
 	result, err := value.LessThanEqualVal(left, right)
 
 	if !err.IsUndefined() {
@@ -310,7 +310,7 @@ func LessThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 }
 
 // Increment the given value
-func Increment(vm *VM, val value.Value) (value.Value, value.Value) {
+func Increment(vm *Thread, val value.Value) (value.Value, value.Value) {
 	result := value.IncrementVal(val)
 
 	if !result.IsUndefined() {
@@ -328,7 +328,7 @@ func Increment(vm *VM, val value.Value) (value.Value, value.Value) {
 }
 
 // Decrement the given value
-func Decrement(vm *VM, val value.Value) (value.Value, value.Value) {
+func Decrement(vm *Thread, val value.Value) (value.Value, value.Value) {
 	result := value.DecrementVal(val)
 
 	if !result.IsUndefined() {
@@ -346,7 +346,7 @@ func Decrement(vm *VM, val value.Value) (value.Value, value.Value) {
 }
 
 // Call `next`
-func NextBuiltin(vm *VM, val value.Value) (result, err value.Value) {
+func NextBuiltin(vm *Thread, val value.Value) (result, err value.Value) {
 	if !val.IsReference() {
 		return value.Undefined, value.Undefined
 	}
@@ -383,7 +383,7 @@ func NextBuiltin(vm *VM, val value.Value) (result, err value.Value) {
 	}
 }
 
-func SubscriptBuiltin(vm *VM, collection, key value.Value) (result, err value.Value) {
+func SubscriptBuiltin(vm *Thread, collection, key value.Value) (result, err value.Value) {
 	if !collection.IsReference() {
 		return value.Undefined, value.Undefined
 	}
@@ -402,7 +402,7 @@ func SubscriptBuiltin(vm *VM, collection, key value.Value) (result, err value.Va
 	}
 }
 
-func SubscriptSetBuiltin(vm *VM, collection, key, val value.Value) (err value.Value) {
+func SubscriptSetBuiltin(vm *Thread, collection, key, val value.Value) (err value.Value) {
 	if !collection.IsReference() {
 		return value.Undefined
 	}

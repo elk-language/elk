@@ -12,7 +12,7 @@ func initIncludeExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argConstantsTuple := args[1].MustReference().(*value.ArrayTuple)
 			argConstants := make([]ast.ComplexConstantNode, argConstantsTuple.Length())
 			for i, el := range *argConstantsTuple {
@@ -38,7 +38,7 @@ func initIncludeExpressionNode() {
 	vm.Def(
 		c,
 		"constants",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IncludeExpressionNode)
 
 			collection := self.Constants
@@ -55,7 +55,7 @@ func initIncludeExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IncludeExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -66,7 +66,7 @@ func initIncludeExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IncludeExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -77,7 +77,7 @@ func initIncludeExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IncludeExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

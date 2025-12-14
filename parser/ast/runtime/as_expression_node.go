@@ -12,7 +12,7 @@ func initAsExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argVal := args[1].MustReference().(ast.ExpressionNode)
 			argType := args[2].MustReference().(ast.ComplexConstantNode)
 
@@ -36,7 +36,7 @@ func initAsExpressionNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AsExpressionNode)
 			result := value.Ref(self.Value)
 			return result, value.Undefined
@@ -47,7 +47,7 @@ func initAsExpressionNode() {
 	vm.Def(
 		c,
 		"runtime_type",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AsExpressionNode)
 			result := value.Ref(self.RuntimeType)
 			return result, value.Undefined
@@ -58,7 +58,7 @@ func initAsExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AsExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -69,7 +69,7 @@ func initAsExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AsExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -80,7 +80,7 @@ func initAsExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AsExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

@@ -12,7 +12,7 @@ func initUsingEntryWithSubentriesNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argNamespace := args[1].MustReference().(ast.UsingEntryNode)
 
 			argSubentriesTuple := args[2].MustReference().(*value.ArrayTuple)
@@ -41,7 +41,7 @@ func initUsingEntryWithSubentriesNode() {
 	vm.Def(
 		c,
 		"namespace",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UsingEntryWithSubentriesNode)
 			result := value.Ref(self.Namespace)
 			return result, value.Undefined
@@ -52,7 +52,7 @@ func initUsingEntryWithSubentriesNode() {
 	vm.Def(
 		c,
 		"subentries",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UsingEntryWithSubentriesNode)
 
 			collection := self.Subentries
@@ -69,7 +69,7 @@ func initUsingEntryWithSubentriesNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UsingEntryWithSubentriesNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -80,7 +80,7 @@ func initUsingEntryWithSubentriesNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UsingEntryWithSubentriesNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -91,7 +91,7 @@ func initUsingEntryWithSubentriesNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UsingEntryWithSubentriesNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

@@ -12,7 +12,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"contains",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			val := args[1]
 
@@ -39,7 +39,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"is_empty",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 
 			var anyElements bool
@@ -58,7 +58,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"first",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 
 			for elem, err := range Iterate(vm, self) {
@@ -88,7 +88,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"try_first",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 
 			for elem, err := range Iterate(vm, self) {
@@ -106,7 +106,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"last",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 
 			var last value.Value
@@ -141,7 +141,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"try_last",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 
 			var last value.Value
@@ -164,7 +164,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"map",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -191,7 +191,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"filter",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -220,7 +220,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"count",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -249,7 +249,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"reject",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -278,7 +278,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"any",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -305,7 +305,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"every",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -332,7 +332,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"find",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -371,7 +371,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"try_find",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -398,7 +398,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"index_of",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			val := args[1]
 
@@ -429,7 +429,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"find_index",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -460,7 +460,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"drop",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			count := args[1].AsInt()
 
@@ -496,7 +496,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"drop_while",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -534,7 +534,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"take",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			count := args[1].AsInt()
 
@@ -571,7 +571,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"take_while",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -602,7 +602,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"reduce",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -634,7 +634,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"fold",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			initial := args[1]
 			fn := args[2]
@@ -662,7 +662,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"to_list",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 
 			var result value.ArrayList
@@ -682,7 +682,7 @@ func initIterableFiniteBase() {
 	Def(
 		c,
 		"to_tuple",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 
 			var result value.ArrayTuple
@@ -709,7 +709,7 @@ func initIterableBase() {
 	Def(
 		c,
 		"length",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 
 			var counter value.SmallInt

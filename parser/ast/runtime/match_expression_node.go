@@ -12,7 +12,7 @@ func initMatchExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argExpr := args[1].MustReference().(ast.ExpressionNode)
 			argPattern := args[2].MustReference().(ast.PatternNode)
 
@@ -36,7 +36,7 @@ func initMatchExpressionNode() {
 	vm.Def(
 		c,
 		"expression",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MatchExpressionNode)
 			result := value.Ref(self.Expression)
 			return result, value.Undefined
@@ -47,7 +47,7 @@ func initMatchExpressionNode() {
 	vm.Def(
 		c,
 		"pattern_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MatchExpressionNode)
 			result := value.Ref(self.Pattern)
 			return result, value.Undefined
@@ -58,7 +58,7 @@ func initMatchExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MatchExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -69,7 +69,7 @@ func initMatchExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MatchExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -80,7 +80,7 @@ func initMatchExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MatchExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

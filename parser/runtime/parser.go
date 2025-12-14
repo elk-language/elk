@@ -13,7 +13,7 @@ func initParser() {
 	vm.Def(
 		c,
 		"parse",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			source := string(args[1].AsReference().(value.String))
 
 			var sourceName string

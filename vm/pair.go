@@ -11,7 +11,7 @@ func initPair() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Pair)
 			self.Key = args[1]
 			self.Value = args[2]
@@ -22,7 +22,7 @@ func initPair() {
 	Def(
 		c,
 		"key",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Pair)
 			return self.Key, value.Undefined
 		},
@@ -30,7 +30,7 @@ func initPair() {
 	Def(
 		c,
 		"value",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Pair)
 			return self.Value, value.Undefined
 		},
@@ -38,14 +38,14 @@ func initPair() {
 	Def(
 		c,
 		"length",
-		func(_ *VM, _ []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, _ []value.Value) (value.Value, value.Value) {
 			return value.SmallInt(2).ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"[]",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Pair)
 			other := args[1]
 			return self.Subscript(other)
@@ -55,7 +55,7 @@ func initPair() {
 	Def(
 		c,
 		"[]=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Pair)
 			key := args[1]
 			val := args[2]
@@ -70,7 +70,7 @@ func initPair() {
 	Def(
 		c,
 		"==",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Pair)
 			other, ok := args[1].SafeAsReference().(*value.Pair)
 			if !ok {
@@ -87,7 +87,7 @@ func initPair() {
 }
 
 // Checks whether two pairs are equal
-func PairEqual(vm *VM, x *value.Pair, y *value.Pair) (bool, value.Value) {
+func PairEqual(vm *Thread, x *value.Pair, y *value.Pair) (bool, value.Value) {
 	eqVal, err := Equal(vm, x.Key, y.Key)
 	if !err.IsUndefined() {
 		return false, err

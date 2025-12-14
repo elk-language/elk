@@ -1,6 +1,7 @@
 package value
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -21,6 +22,18 @@ func (n IvarIndices) GetIndex(name Symbol) int {
 func (n IvarIndices) GetIndexOk(name Symbol) (int, bool) {
 	val, ok := n[name]
 	return val, ok
+}
+
+func (n IvarIndices) ToGoSource() string {
+	var buff strings.Builder
+
+	buff.WriteString("IvarIndices{")
+	for key, val := range n {
+		fmt.Fprintf(&buff, "value.ToSymbol(%q): %d,", key.String(), val)
+	}
+	buff.WriteString("}")
+
+	return buff.String()
 }
 
 func (n IvarIndices) GetName(index int) Symbol {

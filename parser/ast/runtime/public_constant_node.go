@@ -12,7 +12,7 @@ func initPublicConstantNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
 
 			var argLoc *position.Location
@@ -34,7 +34,7 @@ func initPublicConstantNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PublicConstantNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
@@ -45,7 +45,7 @@ func initPublicConstantNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PublicConstantNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -56,7 +56,7 @@ func initPublicConstantNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PublicConstantNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -67,7 +67,7 @@ func initPublicConstantNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PublicConstantNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -76,7 +76,7 @@ func initPublicConstantNode() {
 	vm.Def(
 		c,
 		"to_symbol",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PublicConstantNode)
 			return value.ToSymbol(self.String()).ToValue(), value.Undefined
 		},

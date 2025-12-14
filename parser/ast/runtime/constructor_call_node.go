@@ -12,7 +12,7 @@ func initConstructorCallNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argClassNode := args[1].MustReference().(ast.ComplexConstantNode)
 
 			var argPosArgs []ast.ExpressionNode
@@ -54,7 +54,7 @@ func initConstructorCallNode() {
 	vm.Def(
 		c,
 		"class_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstructorCallNode)
 			result := value.Ref(self.ClassNode)
 			return result, value.Undefined
@@ -65,7 +65,7 @@ func initConstructorCallNode() {
 	vm.Def(
 		c,
 		"positional_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstructorCallNode)
 
 			collection := self.PositionalArguments
@@ -82,7 +82,7 @@ func initConstructorCallNode() {
 	vm.Def(
 		c,
 		"named_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstructorCallNode)
 
 			collection := self.NamedArguments
@@ -99,7 +99,7 @@ func initConstructorCallNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstructorCallNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -109,7 +109,7 @@ func initConstructorCallNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstructorCallNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -120,7 +120,7 @@ func initConstructorCallNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstructorCallNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

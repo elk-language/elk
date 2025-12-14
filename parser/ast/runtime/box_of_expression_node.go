@@ -12,7 +12,7 @@ func initBoxOfExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argExpressionNode := args[1].MustReference().(ast.ExpressionNode)
 
 			var argLoc *position.Location
@@ -34,7 +34,7 @@ func initBoxOfExpressionNode() {
 	vm.Def(
 		c,
 		"expression",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BoxOfExpressionNode)
 			result := value.Ref(self.Expression)
 			return result, value.Undefined
@@ -44,7 +44,7 @@ func initBoxOfExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BoxOfExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -55,7 +55,7 @@ func initBoxOfExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BoxOfExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -66,7 +66,7 @@ func initBoxOfExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BoxOfExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

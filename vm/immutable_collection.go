@@ -12,7 +12,7 @@ func initImmutableCollection() {
 	Def(
 		c,
 		"map",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -39,7 +39,7 @@ func initImmutableCollection() {
 	Def(
 		c,
 		"filter",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -68,7 +68,7 @@ func initImmutableCollection() {
 	Def(
 		c,
 		"reject",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -97,7 +97,7 @@ func initImmutableCollection() {
 	Def(
 		c,
 		"drop",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			count := args[1].AsInt()
 
@@ -133,7 +133,7 @@ func initImmutableCollection() {
 	Def(
 		c,
 		"drop_while",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 
@@ -171,7 +171,7 @@ func initImmutableCollection() {
 	Def(
 		c,
 		"take",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			count := args[1].AsInt()
 
@@ -208,7 +208,7 @@ func initImmutableCollection() {
 	Def(
 		c,
 		"take_while",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			fn := args[1]
 

@@ -12,7 +12,7 @@ func initRuntime() {
 	Def(
 		c,
 		"gc",
-		func(v *VM, args []value.Value) (value.Value, value.Value) {
+		func(v *Thread, args []value.Value) (value.Value, value.Value) {
 			runtime.GC()
 			return value.Nil, value.Undefined
 		},

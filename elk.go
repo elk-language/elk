@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/elk-language/elk/bitfield"
 	_ "github.com/elk-language/elk/ext/std"
 	"github.com/elk-language/elk/lexer"
 	lexerRuntime "github.com/elk-language/elk/lexer/runtime"
@@ -27,7 +28,7 @@ func InitGlobalEnvironment() {
 // Interpret the given file.
 // Panics when the file does not compile.
 func Interpret(fileName string) (result value.Value, stackTrace *value.StackTrace, err value.Value) {
-	bytecode, diagnostics := checker.CheckFile(fileName, nil, false, nil)
+	bytecode, diagnostics := checker.CheckFile(fileName, nil, bitfield.BitField16{}, nil)
 	if diagnostics != nil {
 		fmt.Println()
 

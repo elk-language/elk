@@ -11,7 +11,6 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
-	"github.com/elk-language/elk/vm"
 )
 
 type ParameterKind uint8
@@ -474,12 +473,10 @@ func (m *Method) IsDefinable() bool {
 	}
 
 	if m.Base != nil {
-		_, hasBytecode := m.Base.Body.(*vm.BytecodeFunction)
-		return hasBytecode || m.Base.IsAttribute() || m.Base.IsNative()
+		return m.Base.Body != nil || m.Base.IsAttribute() || m.Base.IsNative()
 	}
 
-	_, hasBytecode := m.Body.(*vm.BytecodeFunction)
-	return hasBytecode || m.IsAttribute()
+	return m.Body != nil || m.IsAttribute()
 }
 
 func (m *Method) IsSetter() bool {

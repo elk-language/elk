@@ -12,7 +12,7 @@ func initBinArrayTupleLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
 			argElementsTuple := args[1].MustReference().(*value.ArrayTuple)
 			argElements := make([]ast.IntCollectionContentNode, argElementsTuple.Length())
@@ -39,7 +39,7 @@ func initBinArrayTupleLiteralNode() {
 	vm.Def(
 		c,
 		"elements",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinArrayTupleLiteralNode)
 
 			collection := self.Elements
@@ -56,7 +56,7 @@ func initBinArrayTupleLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinArrayTupleLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -66,7 +66,7 @@ func initBinArrayTupleLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinArrayTupleLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -77,7 +77,7 @@ func initBinArrayTupleLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinArrayTupleLiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

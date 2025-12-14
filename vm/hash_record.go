@@ -12,7 +12,7 @@ func initHashRecord() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashRecord)
 			iterator := value.NewHashRecordIterator(self)
 			return value.Ref(iterator), value.Undefined
@@ -21,7 +21,7 @@ func initHashRecord() {
 	Def(
 		c,
 		"length",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashRecord)
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
@@ -29,7 +29,7 @@ func initHashRecord() {
 	Def(
 		c,
 		"[]",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashRecord)
 			key := args[1]
 			result, err := HashRecordGet(vm, self, key)
@@ -46,7 +46,7 @@ func initHashRecord() {
 	Def(
 		c,
 		"+",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashRecord)
 			other := args[1]
 
@@ -72,7 +72,7 @@ func initHashRecord() {
 	Def(
 		c,
 		"contains",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashRecord)
 			otherVal := args[1]
 			switch other := otherVal.SafeAsReference().(type) {
@@ -92,7 +92,7 @@ func initHashRecord() {
 	Def(
 		c,
 		"contains_key",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashRecord)
 			contains, err := HashRecordContainsKey(vm, self, args[1])
 			if !err.IsUndefined() {
@@ -106,7 +106,7 @@ func initHashRecord() {
 	Def(
 		c,
 		"contains_value",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashRecord)
 			contains, err := HashRecordContainsValue(vm, self, args[1])
 			if !err.IsUndefined() {
@@ -120,7 +120,7 @@ func initHashRecord() {
 	Def(
 		c,
 		"==",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashRecord)
 			other, ok := args[1].SafeAsReference().(*value.HashRecord)
 			if !ok {
@@ -137,7 +137,7 @@ func initHashRecord() {
 	Def(
 		c,
 		"=~",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashRecord)
 			switch other := args[1].SafeAsReference().(type) {
 			case *value.HashRecord:
@@ -162,7 +162,7 @@ func initHashRecord() {
 	Def(
 		c,
 		"map",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashRecord)
 			callable := args[1]
 			newRecord := value.NewHashRecord(self.Length())
@@ -215,7 +215,7 @@ func initHashRecord() {
 	Def(
 		c,
 		"map_values",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashRecord)
 			callable := args[1]
 			newRecord := value.NewHashRecord(self.Length())
@@ -265,7 +265,7 @@ func initHashRecordIterator() {
 	Def(
 		c,
 		"next",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.HashRecordIterator)(args[0].Pointer())
 			return self.Next()
 		},
@@ -273,14 +273,14 @@ func initHashRecordIterator() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"reset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.HashRecordIterator)(args[0].Pointer())
 			self.Reset()
 			return args[0], value.Undefined
@@ -290,12 +290,12 @@ func initHashRecordIterator() {
 }
 
 // Create a new hash record with the given entries.
-func NewHashRecordWithElements(vm *VM, elements ...value.Pair) (*value.HashRecord, value.Value) {
+func NewHashRecordWithElements(vm *Thread, elements ...value.Pair) (*value.HashRecord, value.Value) {
 	return NewHashRecordWithCapacityAndElements(vm, len(elements), elements...)
 }
 
 // Create a new hash record with the given entries.
-func MustNewHashRecordWithElements(vm *VM, elements ...value.Pair) *value.HashRecord {
+func MustNewHashRecordWithElements(vm *Thread, elements ...value.Pair) *value.HashRecord {
 	hrec, err := NewHashRecordWithElements(vm, elements...)
 	if !err.IsUndefined() {
 		panic(err)
@@ -304,7 +304,7 @@ func MustNewHashRecordWithElements(vm *VM, elements ...value.Pair) *value.HashRe
 	return hrec
 }
 
-func NewHashRecordWithCapacityAndElements(vm *VM, capacity int, elements ...value.Pair) (*value.HashRecord, value.Value) {
+func NewHashRecordWithCapacityAndElements(vm *Thread, capacity int, elements ...value.Pair) (*value.HashRecord, value.Value) {
 	h := value.NewHashRecord(capacity)
 	for _, element := range elements {
 		err := HashRecordSet(vm, h, element.Key, element.Value)
@@ -316,7 +316,7 @@ func NewHashRecordWithCapacityAndElements(vm *VM, capacity int, elements ...valu
 	return h, value.Undefined
 }
 
-func MustNewHashRecordWithCapacityAndElements(vm *VM, capacity int, elements ...value.Pair) *value.HashRecord {
+func MustNewHashRecordWithCapacityAndElements(vm *Thread, capacity int, elements ...value.Pair) *value.HashRecord {
 	hrec, err := NewHashRecordWithCapacityAndElements(vm, capacity, elements...)
 	if !err.IsUndefined() {
 		panic(err)
@@ -326,70 +326,70 @@ func MustNewHashRecordWithCapacityAndElements(vm *VM, capacity int, elements ...
 }
 
 // Delete the given key from the hashMap
-func HashRecordDelete(vm *VM, hashRecord *value.HashRecord, key value.Value) (bool, value.Value) {
+func HashRecordDelete(vm *Thread, hashRecord *value.HashRecord, key value.Value) (bool, value.Value) {
 	return HashMapDelete(vm, (*value.HashMap)(hashRecord), key)
 }
 
 // Get the element under the given key.
-func HashRecordGet(vm *VM, hashRecord *value.HashRecord, key value.Value) (value.Value, value.Value) {
+func HashRecordGet(vm *Thread, hashRecord *value.HashRecord, key value.Value) (value.Value, value.Value) {
 	return HashMapGet(vm, (*value.HashMap)(hashRecord), key)
 }
 
-func HashRecordCopyTable(vm *VM, target *value.HashRecord, source []value.Pair) value.Value {
+func HashRecordCopyTable(vm *Thread, target *value.HashRecord, source []value.Pair) value.Value {
 	return HashMapCopyTable(vm, (*value.HashMap)(target), source)
 }
 
 // Copy the pairs of one hash record to the other.
-func HashRecordCopy(vm *VM, target *value.HashRecord, source *value.HashRecord) value.Value {
+func HashRecordCopy(vm *Thread, target *value.HashRecord, source *value.HashRecord) value.Value {
 	return HashMapCopy(vm, (*value.HashMap)(target), (*value.HashMap)(source))
 }
 
 // Create a new map containing the pairs of both maps.
-func HashRecordConcat(vm *VM, x *value.HashRecord, y *value.HashRecord) (*value.HashMap, value.Value) {
+func HashRecordConcat(vm *Thread, x *value.HashRecord, y *value.HashRecord) (*value.HashMap, value.Value) {
 	return HashMapConcat(vm, (*value.HashMap)(x), (*value.HashMap)(y))
 }
 
 // Check if the given pair is present in the record
-func HashRecordContains(vm *VM, hrec *value.HashRecord, pair *value.Pair) (bool, value.Value) {
+func HashRecordContains(vm *Thread, hrec *value.HashRecord, pair *value.Pair) (bool, value.Value) {
 	return HashMapContains(vm, (*value.HashMap)(hrec), pair)
 }
 
 // Check if the given key is present in the record
-func HashRecordContainsKey(vm *VM, hrec *value.HashRecord, key value.Value) (bool, value.Value) {
+func HashRecordContainsKey(vm *Thread, hrec *value.HashRecord, key value.Value) (bool, value.Value) {
 	return HashMapContainsKey(vm, (*value.HashMap)(hrec), key)
 }
 
 // Check if the given value is present in the record
-func HashRecordContainsValue(vm *VM, hrec *value.HashRecord, val value.Value) (bool, value.Value) {
+func HashRecordContainsValue(vm *Thread, hrec *value.HashRecord, val value.Value) (bool, value.Value) {
 	return HashMapContainsValue(vm, (*value.HashMap)(hrec), val)
 }
 
 // Checks whether two hash records are equal (lax)
-func HashRecordLaxEqual(vm *VM, x *value.HashRecord, y *value.HashRecord) (bool, value.Value) {
+func HashRecordLaxEqual(vm *Thread, x *value.HashRecord, y *value.HashRecord) (bool, value.Value) {
 	return HashMapLaxEqual(vm, (*value.HashMap)(x), (*value.HashMap)(y))
 }
 
 // Checks whether two hash records are equal
-func HashRecordEqual(vm *VM, x *value.HashRecord, y *value.HashRecord) (bool, value.Value) {
+func HashRecordEqual(vm *Thread, x *value.HashRecord, y *value.HashRecord) (bool, value.Value) {
 	return HashMapEqual(vm, (*value.HashMap)(x), (*value.HashMap)(y))
 }
 
 // Add additional n empty slots for new elements.
-func HashRecordGrow(vm *VM, hashRecord *value.HashRecord, newSlots int) value.Value {
+func HashRecordGrow(vm *Thread, hashRecord *value.HashRecord, newSlots int) value.Value {
 	return HashMapGrow(vm, (*value.HashMap)(hashRecord), newSlots)
 }
 
 // Resize the given hash record to the desired capacity.
-func HashRecordSetCapacity(vm *VM, hashRecord *value.HashRecord, capacity int) value.Value {
+func HashRecordSetCapacity(vm *Thread, hashRecord *value.HashRecord, capacity int) value.Value {
 	return HashMapSetCapacity(vm, (*value.HashMap)(hashRecord), capacity)
 }
 
-func HashRecordSetWithMaxLoad(vm *VM, hashRecord *value.HashRecord, key, val value.Value, maxLoad float64) value.Value {
+func HashRecordSetWithMaxLoad(vm *Thread, hashRecord *value.HashRecord, key, val value.Value, maxLoad float64) value.Value {
 	return HashMapSetWithMaxLoad(vm, (*value.HashMap)(hashRecord), key, val, maxLoad)
 }
 
 // Set a value under the given key.
-func HashRecordSet(vm *VM, hashRecord *value.HashRecord, key, val value.Value) value.Value {
+func HashRecordSet(vm *Thread, hashRecord *value.HashRecord, key, val value.Value) value.Value {
 	return HashMapSet(vm, (*value.HashMap)(hashRecord), key, val)
 }
 

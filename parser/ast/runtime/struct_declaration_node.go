@@ -12,7 +12,7 @@ func initStructDeclarationNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argConstant := args[1].MustReference().(ast.ExpressionNode)
 
 			var argTypeParameters []ast.TypeParameterNode
@@ -60,7 +60,7 @@ func initStructDeclarationNode() {
 	vm.Def(
 		c,
 		"doc_comment",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.StructDeclarationNode)
 			result := value.Ref(value.String(self.DocComment()))
 			return result, value.Undefined
@@ -71,7 +71,7 @@ func initStructDeclarationNode() {
 	vm.Def(
 		c,
 		"constant",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.StructDeclarationNode)
 			if self.Constant == nil {
 				return value.Nil, value.Undefined
@@ -84,7 +84,7 @@ func initStructDeclarationNode() {
 	vm.Def(
 		c,
 		"type_parameters",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.StructDeclarationNode)
 
 			collection := self.TypeParameters
@@ -101,7 +101,7 @@ func initStructDeclarationNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.StructDeclarationNode)
 
 			collection := self.Body
@@ -118,7 +118,7 @@ func initStructDeclarationNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.StructDeclarationNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -128,7 +128,7 @@ func initStructDeclarationNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.StructDeclarationNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -139,7 +139,7 @@ func initStructDeclarationNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.StructDeclarationNode)
 			result := value.Ref(value.String(self.String()))
 			return result, value.Undefined

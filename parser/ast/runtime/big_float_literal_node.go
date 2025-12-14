@@ -12,7 +12,7 @@ func initBigFloatLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argVal := (string)(args[1].MustReference().(value.String))
 
 			var argLoc *position.Location
@@ -34,7 +34,7 @@ func initBigFloatLiteralNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BigFloatLiteralNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
@@ -45,7 +45,7 @@ func initBigFloatLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BigFloatLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -56,7 +56,7 @@ func initBigFloatLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BigFloatLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -67,7 +67,7 @@ func initBigFloatLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BigFloatLiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -77,7 +77,7 @@ func initBigFloatLiteralNode() {
 	vm.Def(
 		c,
 		"to_ast_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BigFloat)
 			node := ast.NewBigFloatLiteralNode(position.ZeroLocation, self.AsGoBigFloat().String())
 			return value.Ref(node), value.Undefined

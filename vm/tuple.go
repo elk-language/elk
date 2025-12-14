@@ -13,7 +13,7 @@ func initTuple() {
 	Def(
 		c,
 		"[]",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			index := args[1]
 
@@ -25,7 +25,7 @@ func initTuple() {
 	Def(
 		c,
 		"[]@1",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			rangeVal := args[1]
 
@@ -37,7 +37,7 @@ func initTuple() {
 	Def(
 		c,
 		"slice",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			rangeVal := args[1].AsReference()
 
@@ -102,7 +102,7 @@ func initTuple() {
 	Def(
 		c,
 		"try_at",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			index := args[1]
 
@@ -122,7 +122,7 @@ func initTuple() {
 	Def(
 		c,
 		"+",
-		func(vm *VM, args []value.Value) (returnVal value.Value, err value.Value) {
+		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 			other := args[1]
 

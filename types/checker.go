@@ -19,6 +19,7 @@ type Checker interface {
 	NewNormalisedUnion(elements ...Type) Type
 	NewNormalisedIntersection(elements ...Type) Type
 	NormaliseType(typ Type) Type
+	StdValue() *Class
 	StdInt() *Class
 	StdFloat() *Class
 	StdBigFloat() *Class

@@ -12,7 +12,7 @@ func initSignatureParameterNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argTypeNode ast.TypeNode
@@ -52,7 +52,7 @@ func initSignatureParameterNode() {
 	vm.Def(
 		c,
 		"name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)
 			result := value.Ref(self.Name)
 			return result, value.Undefined
@@ -63,7 +63,7 @@ func initSignatureParameterNode() {
 	vm.Def(
 		c,
 		"type_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)
 			if self.TypeNode == nil {
 				return value.Nil, value.Undefined
@@ -76,7 +76,7 @@ func initSignatureParameterNode() {
 	vm.Def(
 		c,
 		"is_optional",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)
 			result := value.ToElkBool(self.Optional)
 			return result, value.Undefined
@@ -87,7 +87,7 @@ func initSignatureParameterNode() {
 	vm.Def(
 		c,
 		"is_normal",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)
 			result := value.ToElkBool(self.Kind == ast.NormalParameterKind)
 			return result, value.Undefined
@@ -98,7 +98,7 @@ func initSignatureParameterNode() {
 	vm.Def(
 		c,
 		"is_positional_rest",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)
 			result := value.ToElkBool(self.Kind == ast.PositionalRestParameterKind)
 			return result, value.Undefined
@@ -109,7 +109,7 @@ func initSignatureParameterNode() {
 	vm.Def(
 		c,
 		"is_named_rest",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)
 			result := value.ToElkBool(self.Kind == ast.NamedRestParameterKind)
 			return result, value.Undefined
@@ -120,7 +120,7 @@ func initSignatureParameterNode() {
 	vm.Def(
 		c,
 		"kind",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)
 			result := value.UInt8(self.Kind)
 			return result.ToValue(), value.Undefined
@@ -131,7 +131,7 @@ func initSignatureParameterNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -141,7 +141,7 @@ func initSignatureParameterNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -152,7 +152,7 @@ func initSignatureParameterNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SignatureParameterNode)
 			result := value.Ref(value.String(self.String()))
 			return result, value.Undefined

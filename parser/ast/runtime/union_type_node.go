@@ -12,7 +12,7 @@ func initUnionTypeNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argElementsTuple := args[1].MustReference().(*value.ArrayTuple)
 			argElements := make([]ast.TypeNode, argElementsTuple.Length())
 			for i, el := range *argElementsTuple {
@@ -38,7 +38,7 @@ func initUnionTypeNode() {
 	vm.Def(
 		c,
 		"elements",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnionTypeNode)
 
 			collection := self.Elements
@@ -55,7 +55,7 @@ func initUnionTypeNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnionTypeNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -66,7 +66,7 @@ func initUnionTypeNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnionTypeNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -77,7 +77,7 @@ func initUnionTypeNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnionTypeNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

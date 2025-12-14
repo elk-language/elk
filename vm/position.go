@@ -12,7 +12,7 @@ func initPosition() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Position)(args[0].Pointer())
 
 			byteOffset, ok := value.IntToGoInt(args[1])
@@ -38,7 +38,7 @@ func initPosition() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Position)(args[0].Pointer())
 			other := (*value.Position)(args[1].Pointer())
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -48,7 +48,7 @@ func initPosition() {
 	Def(
 		c,
 		"byte_offset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Position)(args[0].Pointer())
 			return value.SmallInt(self.ByteOffset).ToValue(), value.Undefined
 		},
@@ -56,7 +56,7 @@ func initPosition() {
 	Def(
 		c,
 		"line",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Position)(args[0].Pointer())
 			return value.SmallInt(self.Line).ToValue(), value.Undefined
 		},
@@ -64,7 +64,7 @@ func initPosition() {
 	Def(
 		c,
 		"column",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Position)(args[0].Pointer())
 			return value.SmallInt(self.Column).ToValue(), value.Undefined
 		},
@@ -72,7 +72,7 @@ func initPosition() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Position)(args[0].Pointer())
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},

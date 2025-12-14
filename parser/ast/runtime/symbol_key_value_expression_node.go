@@ -12,7 +12,7 @@ func initSymbolKeyValueExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argKey := args[1].MustReference().(ast.IdentifierNode)
 			argValue := args[2].MustReference().(ast.ExpressionNode)
 
@@ -36,7 +36,7 @@ func initSymbolKeyValueExpressionNode() {
 	vm.Def(
 		c,
 		"key",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolKeyValueExpressionNode)
 			result := value.Ref(self.Key)
 			return result, value.Undefined
@@ -47,7 +47,7 @@ func initSymbolKeyValueExpressionNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolKeyValueExpressionNode)
 			result := value.Ref(self.Value)
 			return result, value.Undefined
@@ -58,7 +58,7 @@ func initSymbolKeyValueExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolKeyValueExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -69,7 +69,7 @@ func initSymbolKeyValueExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolKeyValueExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -80,7 +80,7 @@ func initSymbolKeyValueExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolKeyValueExpressionNode)
 			result := value.Ref(value.String(self.String()))
 			return result, value.Undefined

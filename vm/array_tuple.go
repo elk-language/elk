@@ -11,7 +11,7 @@ func initArrayTuple() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			iterator := value.NewArrayTupleIterator(self)
 			return value.Ref(iterator), value.Undefined
@@ -20,7 +20,7 @@ func initArrayTuple() {
 	Def(
 		c,
 		"length",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
@@ -28,7 +28,7 @@ func initArrayTuple() {
 	Def(
 		c,
 		"[]",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			other := args[1]
 			return self.Subscript(other)
@@ -39,7 +39,7 @@ func initArrayTuple() {
 	Def(
 		c,
 		"[]=",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			key := args[1]
 			val := args[2]
@@ -54,7 +54,7 @@ func initArrayTuple() {
 	Def(
 		c,
 		"+",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			other := args[1]
 			return self.ConcatVal(other)
@@ -64,7 +64,7 @@ func initArrayTuple() {
 	Def(
 		c,
 		"*",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			other := args[1]
 			return value.RefErr(self.Repeat(other))
@@ -74,7 +74,7 @@ func initArrayTuple() {
 	Def(
 		c,
 		"contains",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			contains, err := ArrayTupleContains(vm, self, args[1])
 			if !err.IsUndefined() {
@@ -87,7 +87,7 @@ func initArrayTuple() {
 	Def(
 		c,
 		"immutable_box_of",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayTuple)(args[0].Pointer())
 			other := args[1]
 			b, err := self.ImmutableBoxOfVal(other)
@@ -98,7 +98,7 @@ func initArrayTuple() {
 	Def(
 		c,
 		"=~",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			switch other := args[1].SafeAsReference().(type) {
 			case *value.ArrayList:
@@ -122,7 +122,7 @@ func initArrayTuple() {
 	Def(
 		c,
 		"==",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			switch other := args[1].SafeAsReference().(type) {
 			case *value.ArrayTuple:
@@ -141,7 +141,7 @@ func initArrayTuple() {
 	Def(
 		c,
 		"map",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.ArrayTuple)
 			callable := args[1]
 			newTuple := value.NewArrayTupleWithLength(self.Length())
@@ -182,7 +182,7 @@ func initArrayTupleIterator() {
 	Def(
 		c,
 		"next",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayTupleIterator)(args[0].Pointer())
 			return self.Next()
 		},
@@ -190,14 +190,14 @@ func initArrayTupleIterator() {
 	Def(
 		c,
 		"iter",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)
 	Def(
 		c,
 		"reset",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.ArrayTupleIterator)(args[0].Pointer())
 			self.Reset()
 			return args[0], value.Undefined
@@ -206,10 +206,10 @@ func initArrayTupleIterator() {
 
 }
 
-func ArrayTupleContains(vm *VM, tuple *value.ArrayTuple, val value.Value) (bool, value.Value) {
+func ArrayTupleContains(vm *Thread, tuple *value.ArrayTuple, val value.Value) (bool, value.Value) {
 	return ArrayListContains(vm, (*value.ArrayList)(tuple), val)
 }
 
-func ArrayTupleEqual(vm *VM, x, y *value.ArrayTuple) (bool, value.Value) {
+func ArrayTupleEqual(vm *Thread, x, y *value.ArrayTuple) (bool, value.Value) {
 	return ArrayListEqual(vm, (*value.ArrayList)(x), (*value.ArrayList)(y))
 }

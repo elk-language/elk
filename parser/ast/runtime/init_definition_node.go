@@ -12,7 +12,7 @@ func initInitDefinitionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
 			var argParameters []ast.ParameterNode
 			if !args[1].IsUndefined() {
@@ -58,7 +58,7 @@ func initInitDefinitionNode() {
 	vm.Def(
 		c,
 		"parameters",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InitDefinitionNode)
 
 			collection := self.Parameters
@@ -75,7 +75,7 @@ func initInitDefinitionNode() {
 	vm.Def(
 		c,
 		"throw_type",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InitDefinitionNode)
 			if self.ThrowType == nil {
 				return value.Nil, value.Undefined
@@ -89,7 +89,7 @@ func initInitDefinitionNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InitDefinitionNode)
 
 			collection := self.Body
@@ -106,7 +106,7 @@ func initInitDefinitionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InitDefinitionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -117,7 +117,7 @@ func initInitDefinitionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InitDefinitionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -127,7 +127,7 @@ func initInitDefinitionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InitDefinitionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -138,7 +138,7 @@ func initInitDefinitionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InitDefinitionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

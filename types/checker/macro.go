@@ -3,6 +3,7 @@ package checker
 import (
 	"fmt"
 
+	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
@@ -315,6 +316,8 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 		promise = vm.NewNativePromise(c.threadPool, body.Function, runtimeArgs...)
 	case *vm.BytecodeFunction:
 		promise = vm.NewBytecodePromise(c.threadPool, body, runtimeArgs...)
+	default:
+		panic(fmt.Sprintf("invalid compiled macro body: %T", body))
 	}
 
 	result, stackTrace, err := promise.AwaitSync()
@@ -725,7 +728,7 @@ func (c *Checker) checkMacros() {
 		func(macroCheck macroCheckEntry) {
 			macro := macroCheck.macro
 			node := macroCheck.node
-			macroChecker := c.newMethodChecker(
+			macroChecker := c.newMacroChecker(
 				node.Location().FilePath,
 				macroCheck.constantScopes,
 				macroCheck.methodScopes,
@@ -743,6 +746,41 @@ func (c *Checker) checkMacros() {
 	c.macroChecks = nil
 }
 
+func (c *Checker) newMacroChecker(
+	filename string,
+	constScopes []constantScope,
+	methodScopes []methodScope,
+	selfType,
+	returnType,
+	throwType types.Type,
+	mode mode,
+	threadPool *vm.ThreadPool,
+	loc *position.Location,
+) *Checker {
+	checker := &Checker{
+		env:            c.env,
+		Filename:       filename,
+		mode:           mode,
+		phase:          methodCheckPhase,
+		selfType:       selfType,
+		returnType:     returnType,
+		throwType:      throwType,
+		constantScopes: constScopes,
+		methodScopes:   methodScopes,
+		Errors:         c.Errors,
+		flags:          c.flags,
+		localEnvs: []*localEnvironment{
+			newLocalEnvironment(nil, false),
+		},
+		typeDefinitionChecks: newTypeDefinitionChecks(),
+		methodCache:          concurrent.NewSlice[*types.Method](),
+		threadPool:           threadPool,
+	}
+	checker.macroCompiler = compiler.CreateBytecodeCompiler(nil, checker, loc, c.Errors)
+
+	return checker
+}
+
 func (c *Checker) checkMacroDefinition(node *ast.MacroDefinitionNode, macro *types.Method) {
 	c.method = macro
 	c.checkMethod(
@@ -757,8 +795,8 @@ func (c *Checker) checkMacroDefinition(node *ast.MacroDefinitionNode, macro *typ
 
 	c.method = nil
 
-	if c.shouldCompile() && macro.IsCompilable() {
-		macro.Body = c.compiler.CompileMacroBody(node, macro.Name)
+	if c.shouldCompileMacro() && macro.IsCompilable() {
+		macro.Body = c.macroCompiler.CompileMacroBody(node, macro.Name)
 	}
 }
 

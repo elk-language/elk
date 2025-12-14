@@ -12,7 +12,7 @@ func initGenericReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argName := args[1].MustReference().(ast.IdentifierNode)
 
 			argTypeArgsTuple := args[2].MustReference().(*value.ArrayTuple)
@@ -61,7 +61,7 @@ func initGenericReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"method_name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
 			result := value.Ref(self.MethodName)
 			return result, value.Undefined
@@ -72,7 +72,7 @@ func initGenericReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"type_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
 
 			collection := self.TypeArguments
@@ -89,7 +89,7 @@ func initGenericReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"positional_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
 
 			collection := self.PositionalArguments
@@ -106,7 +106,7 @@ func initGenericReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"named_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
 
 			collection := self.NamedArguments
@@ -123,7 +123,7 @@ func initGenericReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -134,7 +134,7 @@ func initGenericReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -145,7 +145,7 @@ func initGenericReceiverlessMethodCallNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

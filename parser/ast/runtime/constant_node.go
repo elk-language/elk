@@ -10,7 +10,7 @@ func initConstantNode() {
 	vm.Def(
 		c,
 		"to_ast_const_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			return args[0], value.Undefined
 		},
 	)

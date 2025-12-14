@@ -12,7 +12,7 @@ func initConstantDeclarationNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			constant := args[1].MustReference().(ast.ExpressionNode)
 
 			var typeNode ast.TypeNode
@@ -52,7 +52,7 @@ func initConstantDeclarationNode() {
 	vm.Def(
 		c,
 		"doc_comment",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantDeclarationNode)
 			result := value.Ref(value.String(self.DocComment()))
 			return result, value.Undefined
@@ -63,7 +63,7 @@ func initConstantDeclarationNode() {
 	vm.Def(
 		c,
 		"constant",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantDeclarationNode)
 			result := value.Ref(self.Constant)
 			return result, value.Undefined
@@ -74,7 +74,7 @@ func initConstantDeclarationNode() {
 	vm.Def(
 		c,
 		"type_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantDeclarationNode)
 			if self.TypeNode == nil {
 				return value.Nil, value.Undefined
@@ -88,7 +88,7 @@ func initConstantDeclarationNode() {
 	vm.Def(
 		c,
 		"initialiser",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantDeclarationNode)
 			if self.Initialiser == nil {
 				return value.Nil, value.Undefined
@@ -102,7 +102,7 @@ func initConstantDeclarationNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantDeclarationNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -112,7 +112,7 @@ func initConstantDeclarationNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantDeclarationNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -123,7 +123,7 @@ func initConstantDeclarationNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantDeclarationNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

@@ -17,7 +17,7 @@ func initMethod() {
 	Def(
 		c,
 		"type",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 
 			switch self.SafeAsReference().(type) {

@@ -12,7 +12,7 @@ func initAttributeAccessNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
 			argAttrName := args[2].MustReference().(ast.IdentifierNode)
 
@@ -36,7 +36,7 @@ func initAttributeAccessNode() {
 	vm.Def(
 		c,
 		"receiver",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeAccessNode)
 			result := value.Ref(self.Receiver)
 			return result, value.Undefined
@@ -47,7 +47,7 @@ func initAttributeAccessNode() {
 	vm.Def(
 		c,
 		"attribute_name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeAccessNode)
 			result := value.Ref(self.AttributeName)
 			return result, value.Undefined
@@ -58,7 +58,7 @@ func initAttributeAccessNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeAccessNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -69,7 +69,7 @@ func initAttributeAccessNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeAccessNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -80,7 +80,7 @@ func initAttributeAccessNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttributeAccessNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

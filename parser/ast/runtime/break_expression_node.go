@@ -12,7 +12,7 @@ func initBreakExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argLabel ast.IdentifierNode
 			if !args[1].IsUndefined() {
 				argLabel = args[1].MustReference().(ast.IdentifierNode)
@@ -43,7 +43,7 @@ func initBreakExpressionNode() {
 	vm.Def(
 		c,
 		"label",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BreakExpressionNode)
 			if self.Label == nil {
 				return value.Nil, value.Undefined
@@ -57,7 +57,7 @@ func initBreakExpressionNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BreakExpressionNode)
 			if self.Value == nil {
 				return value.Nil, value.Undefined
@@ -70,7 +70,7 @@ func initBreakExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BreakExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -80,7 +80,7 @@ func initBreakExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BreakExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -91,7 +91,7 @@ func initBreakExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BreakExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

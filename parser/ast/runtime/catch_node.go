@@ -12,7 +12,7 @@ func initCatchNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argPattern := args[1].MustReference().(ast.PatternNode)
 
 			argBodyTuple := args[2].MustReference().(*value.ArrayTuple)
@@ -47,7 +47,7 @@ func initCatchNode() {
 	vm.Def(
 		c,
 		"pattern_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CatchNode)
 			result := value.Ref(self.Pattern)
 			return result, value.Undefined
@@ -58,7 +58,7 @@ func initCatchNode() {
 	vm.Def(
 		c,
 		"stack_trace_var",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CatchNode)
 			if self.StackTraceVar == nil {
 				return value.Nil, value.Undefined
@@ -72,7 +72,7 @@ func initCatchNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CatchNode)
 
 			collection := self.Body
@@ -89,7 +89,7 @@ func initCatchNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CatchNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -100,7 +100,7 @@ func initCatchNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CatchNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -111,7 +111,7 @@ func initCatchNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CatchNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

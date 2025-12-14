@@ -12,7 +12,7 @@ func initBinHashSetLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
 			argElementsTuple := args[1].MustReference().(*value.ArrayTuple)
 			argElements := make([]ast.IntCollectionContentNode, argElementsTuple.Length())
@@ -45,7 +45,7 @@ func initBinHashSetLiteralNode() {
 	vm.Def(
 		c,
 		"elements",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinHashSetLiteralNode)
 
 			collection := self.Elements
@@ -62,7 +62,7 @@ func initBinHashSetLiteralNode() {
 	vm.Def(
 		c,
 		"capacity",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinHashSetLiteralNode)
 			if self.Capacity == nil {
 				return value.Nil, value.Undefined
@@ -76,7 +76,7 @@ func initBinHashSetLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinHashSetLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -86,7 +86,7 @@ func initBinHashSetLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinHashSetLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -97,7 +97,7 @@ func initBinHashSetLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinHashSetLiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

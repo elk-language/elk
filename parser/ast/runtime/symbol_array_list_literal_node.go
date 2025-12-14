@@ -12,7 +12,7 @@ func initSymbolArrayListLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
 			var argElements []ast.SymbolCollectionContentNode
 			if !args[1].IsUndefined() {
@@ -48,7 +48,7 @@ func initSymbolArrayListLiteralNode() {
 	vm.Def(
 		c,
 		"elements",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolArrayListLiteralNode)
 
 			collection := self.Elements
@@ -65,7 +65,7 @@ func initSymbolArrayListLiteralNode() {
 	vm.Def(
 		c,
 		"capacity",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolArrayListLiteralNode)
 			if self.Capacity == nil {
 				return value.Nil, value.Undefined
@@ -78,7 +78,7 @@ func initSymbolArrayListLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolArrayListLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -89,7 +89,7 @@ func initSymbolArrayListLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolArrayListLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -100,7 +100,7 @@ func initSymbolArrayListLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolArrayListLiteralNode)
 			result := value.Ref(value.String(self.String()))
 			return result, value.Undefined

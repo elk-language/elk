@@ -12,7 +12,7 @@ func initModuleDeclarationNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argConstant := args[1].MustReference().(ast.ExpressionNode)
 
 			var argBody []ast.StatementNode
@@ -50,7 +50,7 @@ func initModuleDeclarationNode() {
 	vm.Def(
 		c,
 		"constant",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ModuleDeclarationNode)
 			if self.Constant == nil {
 				return value.Nil, value.Undefined
@@ -64,7 +64,7 @@ func initModuleDeclarationNode() {
 	vm.Def(
 		c,
 		"body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ModuleDeclarationNode)
 
 			collection := self.Body
@@ -81,7 +81,7 @@ func initModuleDeclarationNode() {
 	vm.Def(
 		c,
 		"doc_comment",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ModuleDeclarationNode)
 			result := value.Ref((value.String)(self.DocComment()))
 			return result, value.Undefined
@@ -91,7 +91,7 @@ func initModuleDeclarationNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ModuleDeclarationNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -102,7 +102,7 @@ func initModuleDeclarationNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ModuleDeclarationNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -113,7 +113,7 @@ func initModuleDeclarationNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ModuleDeclarationNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

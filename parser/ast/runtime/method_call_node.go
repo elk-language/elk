@@ -13,7 +13,7 @@ func initMethodCallNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
 			argOp := args[2].MustReference().(*token.Token)
 			argMethodName := args[3].MustReference().(ast.IdentifierNode)
@@ -59,7 +59,7 @@ func initMethodCallNode() {
 	vm.Def(
 		c,
 		"receiver",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodCallNode)
 			result := value.Ref(self.Receiver)
 			return result, value.Undefined
@@ -70,7 +70,7 @@ func initMethodCallNode() {
 	vm.Def(
 		c,
 		"op",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodCallNode)
 			result := value.Ref(self.Op)
 			return result, value.Undefined
@@ -81,7 +81,7 @@ func initMethodCallNode() {
 	vm.Def(
 		c,
 		"method_name",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodCallNode)
 			result := value.Ref(self.MethodName)
 			return result, value.Undefined
@@ -92,7 +92,7 @@ func initMethodCallNode() {
 	vm.Def(
 		c,
 		"positional_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodCallNode)
 
 			collection := self.PositionalArguments
@@ -109,7 +109,7 @@ func initMethodCallNode() {
 	vm.Def(
 		c,
 		"named_arguments",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodCallNode)
 
 			collection := self.NamedArguments
@@ -126,7 +126,7 @@ func initMethodCallNode() {
 	vm.Def(
 		c,
 		"tail_call",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodCallNode)
 			result := value.ToElkBool(self.TailCall)
 			return result, value.Undefined
@@ -137,7 +137,7 @@ func initMethodCallNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodCallNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -148,7 +148,7 @@ func initMethodCallNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodCallNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -159,7 +159,7 @@ func initMethodCallNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodCallNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

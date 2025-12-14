@@ -12,7 +12,7 @@ func initPath() {
 	Def(
 		c,
 		"#init",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			str := (string)(args[1].MustReference().(value.String))
 
@@ -24,7 +24,7 @@ func initPath() {
 	Def(
 		c,
 		"==",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			other := (*value.Path)(args[1].Pointer())
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -34,7 +34,7 @@ func initPath() {
 	Def(
 		c,
 		"is_absolute",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			return value.ToElkBool(self.IsAbsolute()), value.Undefined
 		},
@@ -42,7 +42,7 @@ func initPath() {
 	Def(
 		c,
 		"is_local",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			return value.ToElkBool(self.IsLocal()), value.Undefined
 		},
@@ -50,7 +50,7 @@ func initPath() {
 	Def(
 		c,
 		"to_string",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -58,7 +58,7 @@ func initPath() {
 	Def(
 		c,
 		"to_slash_string",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			return value.Ref(value.String(self.SlashString())), value.Undefined
 		},
@@ -66,7 +66,7 @@ func initPath() {
 	Def(
 		c,
 		"to_backslash_string",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			return value.Ref(value.String(self.BackslashString())), value.Undefined
 		},
@@ -74,7 +74,7 @@ func initPath() {
 	Def(
 		c,
 		"volume_name",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			return value.Ref(value.String(self.VolumeName())), value.Undefined
 		},
@@ -82,7 +82,7 @@ func initPath() {
 	Def(
 		c,
 		"base",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			return value.Ref(value.String(self.Base())), value.Undefined
 		},
@@ -90,7 +90,7 @@ func initPath() {
 	Def(
 		c,
 		"extension",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			return value.Ref(value.String(self.Extension())), value.Undefined
 		},
@@ -98,7 +98,7 @@ func initPath() {
 	Def(
 		c,
 		"split",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			splitSlice := self.Split()
 
@@ -112,7 +112,7 @@ func initPath() {
 	Def(
 		c,
 		"normalize",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			return value.Ref(self.Normalize()), value.Undefined
 		},
@@ -120,7 +120,7 @@ func initPath() {
 	Def(
 		c,
 		"dir",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			return value.Ref(self.Dir()), value.Undefined
 		},
@@ -128,7 +128,7 @@ func initPath() {
 	Def(
 		c,
 		"to_absolute",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			result, err := self.ToAbsolute()
 			if err != nil {
@@ -141,7 +141,7 @@ func initPath() {
 	Def(
 		c,
 		"to_relative",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			target := (*value.Path)(args[1].Pointer())
 
@@ -157,7 +157,7 @@ func initPath() {
 	Def(
 		c,
 		"matches_glob",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			pattern := (string)(args[1].MustReference().(value.String))
 
@@ -172,7 +172,7 @@ func initPath() {
 	Def(
 		c,
 		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
@@ -184,7 +184,7 @@ func initPath() {
 	Def(
 		c,
 		"from_slash",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			str := (string)(args[1].MustReference().(value.String))
 
 			result := value.NewPathFromSlash(str)
@@ -195,7 +195,7 @@ func initPath() {
 	Def(
 		c,
 		"build",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			var elements []string
 			for val, err := range Iterate(vm, args[1]) {
 				if !err.IsUndefined() {

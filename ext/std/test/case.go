@@ -85,7 +85,7 @@ func (c *Case) Parents() iter.Seq[*Suite] {
 }
 
 func callCaseClosure(
-	v *vm.VM,
+	v *vm.Thread,
 	caseReport *CaseReport,
 	startTime time.Time,
 	closure *vm.Closure,
@@ -120,7 +120,7 @@ func callCaseClosure(
 	return true
 }
 
-func (c *Case) Run(v *vm.VM, events chan<- *ReportEvent, ctx context.Context) *CaseReport {
+func (c *Case) Run(v *vm.Thread, events chan<- *ReportEvent, ctx context.Context) *CaseReport {
 	if isDone(ctx) {
 		return nil
 	}
@@ -165,7 +165,7 @@ func (c *Case) Run(v *vm.VM, events chan<- *ReportEvent, ctx context.Context) *C
 	return caseReport
 }
 
-func (c *Case) runBeforeEach(startTime time.Time, report *CaseReport, v *vm.VM, events chan<- *ReportEvent, ctx context.Context) (*CaseReport, bool) {
+func (c *Case) runBeforeEach(startTime time.Time, report *CaseReport, v *vm.Thread, events chan<- *ReportEvent, ctx context.Context) (*CaseReport, bool) {
 	for parent := range c.Parents() {
 		for _, hook := range parent.BeforeEach {
 			if isDone(ctx) {
@@ -180,7 +180,7 @@ func (c *Case) runBeforeEach(startTime time.Time, report *CaseReport, v *vm.VM, 
 	return report, true
 }
 
-func (c *Case) runAfterEach(startTime time.Time, report *CaseReport, v *vm.VM) {
+func (c *Case) runAfterEach(startTime time.Time, report *CaseReport, v *vm.Thread) {
 	for parent := range c.Parents() {
 		for _, hook := range parent.AfterEach {
 			callCaseClosure(v, report, startTime, hook, ErrAfterEach)

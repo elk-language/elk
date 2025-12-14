@@ -12,7 +12,7 @@ func initLoopExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argThenBodyTuple := args[1].MustReference().(*value.ArrayTuple)
 			argThenBody := make([]ast.StatementNode, argThenBodyTuple.Length())
 			for i, el := range *argThenBodyTuple {
@@ -38,7 +38,7 @@ func initLoopExpressionNode() {
 	vm.Def(
 		c,
 		"then_body",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.LoopExpressionNode)
 
 			collection := self.ThenBody
@@ -55,7 +55,7 @@ func initLoopExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.LoopExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -66,7 +66,7 @@ func initLoopExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.LoopExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -77,7 +77,7 @@ func initLoopExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.LoopExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

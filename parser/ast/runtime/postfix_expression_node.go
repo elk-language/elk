@@ -13,7 +13,7 @@ func initPostfixExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argOp := args[1].MustReference().(*token.Token)
 			argExpression := args[2].MustReference().(ast.ExpressionNode)
 
@@ -37,7 +37,7 @@ func initPostfixExpressionNode() {
 	vm.Def(
 		c,
 		"op",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PostfixExpressionNode)
 			result := value.Ref(self.Op)
 			return result, value.Undefined
@@ -48,7 +48,7 @@ func initPostfixExpressionNode() {
 	vm.Def(
 		c,
 		"expression",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PostfixExpressionNode)
 			result := value.Ref(self.Expression)
 			return result, value.Undefined
@@ -59,7 +59,7 @@ func initPostfixExpressionNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PostfixExpressionNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -70,7 +70,7 @@ func initPostfixExpressionNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PostfixExpressionNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -81,7 +81,7 @@ func initPostfixExpressionNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.PostfixExpressionNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

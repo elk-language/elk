@@ -12,7 +12,7 @@ func initConstantLookupNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argLeft := args[1].MustReference().(ast.ExpressionNode)
 			argRight := args[2].MustReference().(ast.ComplexConstantNode)
 
@@ -36,7 +36,7 @@ func initConstantLookupNode() {
 	vm.Def(
 		c,
 		"left",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantLookupNode)
 			if self.Left == nil {
 				return value.Nil, value.Undefined
@@ -49,7 +49,7 @@ func initConstantLookupNode() {
 	vm.Def(
 		c,
 		"right",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantLookupNode)
 			result := value.Ref(self.Right)
 			return result, value.Undefined
@@ -60,7 +60,7 @@ func initConstantLookupNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantLookupNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -70,7 +70,7 @@ func initConstantLookupNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantLookupNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -81,7 +81,7 @@ func initConstantLookupNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstantLookupNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

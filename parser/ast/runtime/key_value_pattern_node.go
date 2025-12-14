@@ -12,7 +12,7 @@ func initKeyValuePatternNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argKey := args[1].MustReference().(ast.LiteralPatternNode)
 			argValue := args[2].MustReference().(ast.PatternNode)
 
@@ -36,7 +36,7 @@ func initKeyValuePatternNode() {
 	vm.Def(
 		c,
 		"key",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.KeyValuePatternNode)
 			result := value.Ref(self.Key)
 			return result, value.Undefined
@@ -47,7 +47,7 @@ func initKeyValuePatternNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.KeyValuePatternNode)
 			result := value.Ref(self.Value)
 			return result, value.Undefined
@@ -58,7 +58,7 @@ func initKeyValuePatternNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.KeyValuePatternNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -68,7 +68,7 @@ func initKeyValuePatternNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.KeyValuePatternNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -79,7 +79,7 @@ func initKeyValuePatternNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.KeyValuePatternNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

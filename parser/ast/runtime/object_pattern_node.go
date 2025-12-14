@@ -12,7 +12,7 @@ func initObjectPatternNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argObjectType := args[1].MustReference().(ast.ComplexConstantNode)
 
 			var argAttributes []ast.PatternNode
@@ -44,7 +44,7 @@ func initObjectPatternNode() {
 	vm.Def(
 		c,
 		"object_type",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ObjectPatternNode)
 			result := value.Ref(self.ObjectType)
 			return result, value.Undefined
@@ -54,7 +54,7 @@ func initObjectPatternNode() {
 	vm.Def(
 		c,
 		"attributes",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ObjectPatternNode)
 
 			collection := self.Attributes
@@ -71,7 +71,7 @@ func initObjectPatternNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ObjectPatternNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -82,7 +82,7 @@ func initObjectPatternNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ObjectPatternNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -93,7 +93,7 @@ func initObjectPatternNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ObjectPatternNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},

@@ -115,7 +115,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"at",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			address := args[1].AsUInt()
 			b := (*LocalBox)(unsafe.Pointer(uintptr(address)))
 
@@ -129,7 +129,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"get",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 			return self.Get(), value.Undefined
 		},
@@ -137,7 +137,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"set",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 			v := args[1]
 			self.Set(v)
@@ -149,7 +149,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"address",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 			return value.UInt(uintptr(unsafe.Pointer(self))).ToValue(), value.Undefined
 		},
@@ -157,7 +157,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"close",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 			self.Close()
 			return value.Nil, value.Undefined
@@ -166,7 +166,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"is_closed",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 			return value.ToElkBool(self.IsClosed()), value.Undefined
 		},
@@ -174,7 +174,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"is_open",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 			return value.ToElkBool(self.IsOpen()), value.Undefined
 		},
@@ -182,7 +182,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"local_address",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 			return value.UInt(self.LocalAddress()).ToValue(), value.Undefined
 		},
@@ -190,7 +190,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"to_immutable_box",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 			return value.Ref(self.ToImmutableBox()), value.Undefined
 		},
@@ -198,7 +198,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"to_box",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 			return value.Ref(self.ToBox()), value.Undefined
 		},
@@ -207,7 +207,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"next",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 
 			var step int
@@ -226,7 +226,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"next_immutable_box",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 
 			var step int
@@ -244,7 +244,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"prev",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 
 			var step int
@@ -263,7 +263,7 @@ func initLocalBox() {
 	Def(
 		c,
 		"prev_immutable_box",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*LocalBox)(args[0].Pointer())
 
 			var step int

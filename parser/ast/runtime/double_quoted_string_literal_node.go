@@ -12,7 +12,7 @@ func initDoubleQuotedStringLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
 
 			var argLoc *position.Location
@@ -34,7 +34,7 @@ func initDoubleQuotedStringLiteralNode() {
 	vm.Def(
 		c,
 		"value",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoubleQuotedStringLiteralNode)
 			result := value.Ref(value.String(self.Value))
 			return result, value.Undefined
@@ -45,7 +45,7 @@ func initDoubleQuotedStringLiteralNode() {
 	vm.Def(
 		c,
 		"location",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoubleQuotedStringLiteralNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
@@ -56,7 +56,7 @@ func initDoubleQuotedStringLiteralNode() {
 	vm.Def(
 		c,
 		"==",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoubleQuotedStringLiteralNode)
 			other := args[1]
 			return value.ToElkBool(self.Equal(other)), value.Undefined
@@ -67,7 +67,7 @@ func initDoubleQuotedStringLiteralNode() {
 	vm.Def(
 		c,
 		"to_string",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoubleQuotedStringLiteralNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
@@ -77,7 +77,7 @@ func initDoubleQuotedStringLiteralNode() {
 	vm.Def(
 		c,
 		"to_ast_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.String)
 			node := ast.NewDoubleQuotedStringLiteralNode(position.ZeroLocation, string(self))
 			return value.Ref(node), value.Undefined
@@ -91,7 +91,7 @@ func initDoubleQuotedStringLiteralNode() {
 	vm.Def(
 		c,
 		"to_ast_ident_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.String)
 			node := ast.NewPublicIdentifierNode(position.ZeroLocation, self.String())
 			return value.Ref(node), value.Undefined
@@ -100,7 +100,7 @@ func initDoubleQuotedStringLiteralNode() {
 	vm.Def(
 		c,
 		"to_ast_const_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.String)
 			node := ast.NewPublicConstantNode(position.ZeroLocation, self.String())
 			return value.Ref(node), value.Undefined
@@ -109,7 +109,7 @@ func initDoubleQuotedStringLiteralNode() {
 	vm.Def(
 		c,
 		"to_ast_ivar_node",
-		func(_ *vm.VM, args []value.Value) (value.Value, value.Value) {
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.String)
 			node := ast.NewPublicInstanceVariableNode(position.ZeroLocation, self.String())
 			return value.Ref(node), value.Undefined
