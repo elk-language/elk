@@ -766,7 +766,7 @@ func (i SmallInt) LessThanEqual(other Value) (bool, Value) {
 		case *BigInt:
 			return i.LessThanEqualBigInt(o), Undefined
 		case *BigFloat:
-			return i.LessThanBigFloat(o), Undefined
+			return i.LessThanEqualBigFloat(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
@@ -1334,7 +1334,7 @@ func (i SmallInt) BitwiseXorVal(other Value) (Value, Value) {
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		o := other.AsSmallInt()
-		return i.BitwiseOrSmallInt(o).ToValue(), Undefined
+		return i.BitwiseXorSmallInt(o).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
