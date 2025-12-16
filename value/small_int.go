@@ -841,13 +841,23 @@ func (i SmallInt) LaxEqualVal(other Value) Value {
 	case FLOAT_FLAG:
 		return ToElkBool(Float(i) == other.AsFloat())
 	case INT64_FLAG:
-		return ToElkBool(i == SmallInt(other.AsInlineInt64()))
+		o := other.AsInlineInt64()
+		if o > MaxSmallInt {
+			return False
+		}
+		return ToElkBool(i == SmallInt(o))
 	case INT32_FLAG:
 		return ToElkBool(i == SmallInt(other.AsInt32()))
 	case INT16_FLAG:
 		return ToElkBool(i == SmallInt(other.AsInt16()))
 	case INT8_FLAG:
 		return ToElkBool(i == SmallInt(other.AsInt8()))
+	case UINT_FLAG:
+		o := other.AsUInt()
+		if o > MaxSmallInt {
+			return False
+		}
+		return ToElkBool(i == SmallInt(o))
 	case UINT64_FLAG:
 		o := other.AsInlineUInt64()
 		if o > MaxSmallInt {
@@ -981,6 +991,9 @@ func (i SmallInt) LeftBitshiftVal(other Value) (Value, Value) {
 		return i.LeftBitshiftInt16(other.AsInt16()), Undefined
 	case INT8_FLAG:
 		return i.LeftBitshiftInt8(other.AsInt8()), Undefined
+	case UINT_FLAG:
+		o := other.AsUInt()
+		return i.LeftBitshiftUInt(o), Undefined
 	case UINT64_FLAG:
 		o := other.AsInlineUInt64()
 		return i.LeftBitshiftUInt64(o), Undefined
@@ -1051,6 +1064,10 @@ func (i SmallInt) LeftBitshiftInt8(other Int8) Value {
 	return leftBitshiftSmallInt(i, other)
 }
 
+func (i SmallInt) LeftBitshiftUInt(other UInt) Value {
+	return leftBitshiftSmallInt(i, other)
+}
+
 func (i SmallInt) LeftBitshiftUInt64(other UInt64) Value {
 	return leftBitshiftSmallInt(i, other)
 }
@@ -1073,12 +1090,9 @@ func (i SmallInt) RightBitshiftVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case Int64:
-			if o < 0 {
-				return leftBitshiftSmallInt(i, -o), Undefined
-			}
-			return (i >> o).ToValue(), Undefined
+			return i.RightBitshiftInt64(o), Undefined
 		case UInt64:
-			return (i >> o).ToValue(), Undefined
+			return i.RightBitshiftUInt64(o).ToValue(), Undefined
 		case *BigInt:
 			return i.RightBitshiftBigInt(o), Undefined
 		default:
@@ -1102,6 +1116,9 @@ func (i SmallInt) RightBitshiftVal(other Value) (Value, Value) {
 	case INT8_FLAG:
 		o := other.AsInt8()
 		return i.RightBitshiftInt8(o), Undefined
+	case UINT_FLAG:
+		o := other.AsUInt()
+		return i.RightBitshiftUInt(o).ToValue(), Undefined
 	case UINT64_FLAG:
 		o := other.AsInlineUInt64()
 		return i.RightBitshiftUInt64(o).ToValue(), Undefined
@@ -1170,6 +1187,10 @@ func (i SmallInt) RightBitshiftInt8(other Int8) Value {
 		return leftBitshiftSmallInt(i, -other)
 	}
 	return (i >> other).ToValue()
+}
+
+func (i SmallInt) RightBitshiftUInt(other UInt) SmallInt {
+	return i >> other
 }
 
 func (i SmallInt) RightBitshiftUInt64(other UInt64) SmallInt {

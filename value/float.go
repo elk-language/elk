@@ -193,11 +193,9 @@ func (f Float) AddVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
-			fBigFloat := NewBigFloat(float64(f))
-			return Ref(fBigFloat.AddBigFloat(fBigFloat, o)), Undefined
+			return Ref(f.AddBigFloat(o)), Undefined
 		case *BigInt:
-			oFloat, _ := o.ToGoBigInt().Float64()
-			return (f + Float(oFloat)).ToValue(), Undefined
+			return f.AddBigInt(o).ToValue(), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
@@ -205,12 +203,37 @@ func (f Float) AddVal(other Value) (result, err Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		return (f + other.AsFloat()).ToValue(), Undefined
+		return f.AddFloat(other.AsFloat()).ToValue(), Undefined
 	case SMALL_INT_FLAG:
-		return (f + Float(other.AsSmallInt())).ToValue(), Undefined
+		return f.AddSmallInt(other.AsSmallInt()).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
+}
+
+func (f Float) AddBigFloat(other *BigFloat) *BigFloat {
+	fBigFloat := NewBigFloat(float64(f))
+	return fBigFloat.AddBigFloat(fBigFloat, other)
+}
+
+func (f Float) AddFloat(other Float) Float {
+	return f + other
+}
+
+func (f Float) AddSmallInt(other SmallInt) Float {
+	return f + Float(other)
+}
+
+func (f Float) AddInt(other Value) Float {
+	if other.IsSmallInt() {
+		return f.AddSmallInt(other.AsSmallInt())
+	}
+	return f.AddBigInt((*BigInt)(other.Pointer()))
+}
+
+func (f Float) AddBigInt(other *BigInt) Float {
+	oFloat, _ := other.ToGoBigInt().Float64()
+	return f + Float(oFloat)
 }
 
 // SubtractVal another value and return an error
@@ -219,11 +242,9 @@ func (f Float) SubtractVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
-			fBigFloat := NewBigFloat(float64(f))
-			return Ref(fBigFloat.SubBigFloat(fBigFloat, o)), Undefined
+			return Ref(f.SubtractBigFloat(o)), Undefined
 		case *BigInt:
-			oFloat, _ := o.ToGoBigInt().Float64()
-			return (f - Float(oFloat)).ToValue(), Undefined
+			return f.SubtractBigInt(o).ToValue(), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
@@ -231,12 +252,37 @@ func (f Float) SubtractVal(other Value) (result, err Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		return (f - other.AsFloat()).ToValue(), Undefined
+		return (f.SubtractFloat(other.AsFloat())).ToValue(), Undefined
 	case SMALL_INT_FLAG:
-		return (f - Float(other.AsSmallInt())).ToValue(), Undefined
+		return (f.SubtractSmallInt(other.AsSmallInt())).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
+}
+
+func (f Float) SubtractBigFloat(other *BigFloat) *BigFloat {
+	fBigFloat := NewBigFloat(float64(f))
+	return fBigFloat.SubBigFloat(fBigFloat, other)
+}
+
+func (f Float) SubtractFloat(other Float) Float {
+	return f - other
+}
+
+func (f Float) SubtractSmallInt(other SmallInt) Float {
+	return f - Float(other)
+}
+
+func (f Float) SubtractInt(other Value) Float {
+	if other.IsSmallInt() {
+		return f.SubtractSmallInt(other.AsSmallInt())
+	}
+	return f.SubtractBigInt((*BigInt)(other.Pointer()))
+}
+
+func (f Float) SubtractBigInt(other *BigInt) Float {
+	oFloat, _ := other.ToGoBigInt().Float64()
+	return f - Float(oFloat)
 }
 
 // Add another value and return an error
@@ -245,11 +291,9 @@ func (f Float) MultiplyVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
-			fBigFloat := NewBigFloat(float64(f))
-			return Ref(fBigFloat.MulBigFloat(fBigFloat, o)), Undefined
+			return Ref(f.MultiplyBigFloat(o)), Undefined
 		case *BigInt:
-			oFloat, _ := o.ToGoBigInt().Float64()
-			return (f * Float(oFloat)).ToValue(), Undefined
+			return f.MultiplyBigInt(o).ToValue(), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
@@ -257,12 +301,37 @@ func (f Float) MultiplyVal(other Value) (result, err Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		return (f * other.AsFloat()).ToValue(), Undefined
+		return (f.MultiplyFloat(other.AsFloat())).ToValue(), Undefined
 	case SMALL_INT_FLAG:
-		return (f * Float(other.AsSmallInt())).ToValue(), Undefined
+		return (f.MultiplySmallInt(other.AsSmallInt())).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
+}
+
+func (f Float) MultiplyBigFloat(other *BigFloat) *BigFloat {
+	fBigFloat := NewBigFloat(float64(f))
+	return fBigFloat.MulBigFloat(fBigFloat, other)
+}
+
+func (f Float) MultiplyFloat(other Float) Float {
+	return f * other
+}
+
+func (f Float) MultiplySmallInt(other SmallInt) Float {
+	return f * Float(other)
+}
+
+func (f Float) MultiplyInt(other Value) Float {
+	if other.IsSmallInt() {
+		return f.MultiplySmallInt(other.AsSmallInt())
+	}
+	return f.MultiplyBigInt((*BigInt)(other.Pointer()))
+}
+
+func (f Float) MultiplyBigInt(other *BigInt) Float {
+	oFloat, _ := other.ToGoBigInt().Float64()
+	return f * Float(oFloat)
 }
 
 // DivideVal by another value and return an error
@@ -271,11 +340,9 @@ func (f Float) DivideVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
-			fBigFloat := NewBigFloat(float64(f))
-			return Ref(fBigFloat.DivBigFloat(fBigFloat, o)), Undefined
+			return Ref(f.DivideBigFloat(o)), Undefined
 		case *BigInt:
-			oFloat, _ := o.ToGoBigInt().Float64()
-			return (f / Float(oFloat)).ToValue(), Undefined
+			return (f.DivideBigInt(o)).ToValue(), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
@@ -283,12 +350,37 @@ func (f Float) DivideVal(other Value) (result, err Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		return (f / other.AsFloat()).ToValue(), Undefined
+		return (f.DivideFloat(other.AsFloat())).ToValue(), Undefined
 	case SMALL_INT_FLAG:
-		return (f / Float(other.AsSmallInt())).ToValue(), Undefined
+		return (f.DivideSmallInt(other.AsSmallInt())).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
+}
+
+func (f Float) DivideBigFloat(other *BigFloat) *BigFloat {
+	fBigFloat := NewBigFloat(float64(f))
+	return fBigFloat.DivBigFloat(fBigFloat, other)
+}
+
+func (f Float) DivideFloat(other Float) Float {
+	return f / other
+}
+
+func (f Float) DivideSmallInt(other SmallInt) Float {
+	return f / Float(other)
+}
+
+func (f Float) DivideInt(other Value) Float {
+	if other.IsSmallInt() {
+		return f.DivideSmallInt(other.AsSmallInt())
+	}
+	return f.DivideBigInt((*BigInt)(other.Pointer()))
+}
+
+func (f Float) DivideBigInt(other *BigInt) Float {
+	oFloat, _ := other.ToGoBigInt().Float64()
+	return f * Float(oFloat)
 }
 
 // ExponentiateVal by another value and return an error
@@ -297,13 +389,9 @@ func (f Float) ExponentiateVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
-			prec := max(o.Precision(), 53)
-			fBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(f)
-			fBigFloat.ExpBigFloat(fBigFloat, o)
-			return Ref(fBigFloat), Undefined
+			return Ref(f.ExponentiateBigFloat(o)), Undefined
 		case *BigInt:
-			oFloat, _ := o.ToGoBigInt().Float64()
-			return Float(math.Pow(float64(f), oFloat)).ToValue(), Undefined
+			return f.ExponentiateBigInt(o).ToValue(), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
@@ -311,12 +399,39 @@ func (f Float) ExponentiateVal(other Value) (result, err Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		return Float(math.Pow(float64(f), float64(other.AsFloat()))).ToValue(), Undefined
+		return f.ExponentiateFloat(other.AsFloat()).ToValue(), Undefined
 	case SMALL_INT_FLAG:
-		return Float(math.Pow(float64(f), float64(other.AsSmallInt()))).ToValue(), Undefined
+		return f.ExponentiateSmallInt(other.AsSmallInt()).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
+}
+
+func (f Float) ExponentiateBigFloat(other *BigFloat) *BigFloat {
+	prec := max(other.Precision(), 53)
+	fBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(f)
+	fBigFloat.ExpBigFloat(fBigFloat, other)
+	return fBigFloat
+}
+
+func (f Float) ExponentiateFloat(other Float) Float {
+	return Float(math.Pow(float64(f), float64(other)))
+}
+
+func (f Float) ExponentiateSmallInt(other SmallInt) Float {
+	return Float(math.Pow(float64(f), float64(other)))
+}
+
+func (f Float) ExponentiateInt(other Value) Float {
+	if other.IsSmallInt() {
+		return f.ExponentiateSmallInt(other.AsSmallInt())
+	}
+	return f.ExponentiateBigInt((*BigInt)(other.Pointer()))
+}
+
+func (f Float) ExponentiateBigInt(other *BigInt) Float {
+	oFloat, _ := other.ToGoBigInt().Float64()
+	return Float(math.Pow(float64(f), oFloat))
 }
 
 func (a Float) Mod(b Float) Float {
@@ -329,12 +444,9 @@ func (f Float) ModuloVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
-			prec := max(o.Precision(), 53)
-			fBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(f)
-			return Ref(fBigFloat.Mod(fBigFloat, o)), Undefined
+			return Ref(f.ModuloBigFloat(o)), Undefined
 		case *BigInt:
-			oFloat, _ := o.ToGoBigInt().Float64()
-			return (f.Mod(Float(oFloat))).ToValue(), Undefined
+			return f.ModuloBigInt(o).ToValue(), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
@@ -342,12 +454,38 @@ func (f Float) ModuloVal(other Value) (result, err Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		return (f.Mod(other.AsFloat())).ToValue(), Undefined
+		return (f.ModuloFloat(other.AsFloat())).ToValue(), Undefined
 	case SMALL_INT_FLAG:
-		return (f.Mod(Float(other.AsSmallInt()))).ToValue(), Undefined
+		return (f.ModuloSmallInt(other.AsSmallInt())).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
+}
+
+func (f Float) ModuloBigFloat(other *BigFloat) *BigFloat {
+	prec := max(other.Precision(), 53)
+	fBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(f)
+	return fBigFloat.Mod(fBigFloat, other)
+}
+
+func (f Float) ModuloFloat(other Float) Float {
+	return f.Mod(other)
+}
+
+func (f Float) ModuloSmallInt(other SmallInt) Float {
+	return f.Mod(Float(other))
+}
+
+func (f Float) ModuloInt(other Value) Float {
+	if other.IsSmallInt() {
+		return f.ModuloSmallInt(other.AsSmallInt())
+	}
+	return f.ModuloBigInt((*BigInt)(other.Pointer()))
+}
+
+func (f Float) ModuloBigInt(other *BigInt) Float {
+	oFloat, _ := other.ToGoBigInt().Float64()
+	return f.Mod(Float(oFloat))
 }
 
 // Returns 1 if i is greater than other
@@ -358,16 +496,9 @@ func (f Float) CompareVal(other Value) (result, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
-			if f.IsNaN() || o.IsNaN() {
-				return Nil, Undefined
-			}
-			iBigFloat := (&BigFloat{}).SetFloat(f)
-			return SmallInt(iBigFloat.Cmp(o)).ToValue(), Undefined
+			return f.CompareBigFloat(o), Undefined
 		case *BigInt:
-			if f.IsNaN() {
-				return Nil, Undefined
-			}
-			return SmallInt(f.Cmp(o.ToFloat())).ToValue(), Undefined
+			return f.CompareBigInt(o), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
@@ -375,18 +506,48 @@ func (f Float) CompareVal(other Value) (result, err Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		if f.IsNaN() || other.AsFloat().IsNaN() {
-			return Nil, Undefined
-		}
-		return SmallInt(f.Cmp(other.AsFloat())).ToValue(), Undefined
+		return f.CompareFloat(other.AsFloat()), Undefined
 	case SMALL_INT_FLAG:
-		if f.IsNaN() {
-			return Nil, Undefined
-		}
-		return SmallInt(f.Cmp(Float(other.AsSmallInt()))).ToValue(), Undefined
+		return f.CompareSmallInt(other.AsSmallInt()), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
+}
+
+func (f Float) CompareBigFloat(other *BigFloat) Value {
+	if f.IsNaN() || other.IsNaN() {
+		return Nil
+	}
+	iBigFloat := (&BigFloat{}).SetFloat(f)
+	return SmallInt(iBigFloat.Cmp(other)).ToValue()
+}
+
+func (f Float) CompareFloat(other Float) Value {
+	if f.IsNaN() || other.IsNaN() {
+		return Nil
+	}
+	return SmallInt(f.Cmp(other)).ToValue()
+}
+
+func (f Float) CompareSmallInt(other SmallInt) Value {
+	if f.IsNaN() {
+		return Nil
+	}
+	return SmallInt(f.Cmp(Float(other))).ToValue()
+}
+
+func (f Float) CompareInt(other Value) Value {
+	if other.IsSmallInt() {
+		return f.CompareSmallInt(other.AsSmallInt())
+	}
+	return f.CompareBigInt((*BigInt)(other.Pointer()))
+}
+
+func (f Float) CompareBigInt(other *BigInt) Value {
+	if f.IsNaN() {
+		return Nil
+	}
+	return SmallInt(f.Cmp(other.ToFloat())).ToValue()
 }
 
 // Check whether f is greater than other and return an error
@@ -402,14 +563,9 @@ func (f Float) GreaterThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
-			if f.IsNaN() || o.IsNaN() {
-				return false, Undefined
-			}
-			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return fBigFloat.Cmp(o) == 1, Undefined
+			return f.GreaterThanBigFloat(o), Undefined
 		case *BigInt:
-			oFloat := o.ToFloat()
-			return f > oFloat, Undefined
+			return f.GreaterThanBigInt(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
@@ -417,16 +573,40 @@ func (f Float) GreaterThan(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		o := other.AsFloat()
-		if f.IsNaN() || o.IsNaN() {
-			return false, Undefined
-		}
-		return f > o, Undefined
+		return f.GreaterThanFloat(other.AsFloat()), Undefined
 	case SMALL_INT_FLAG:
-		return f > Float(other.AsSmallInt()), Undefined
+		return f.GreaterThanSmallInt(other.AsSmallInt()), Undefined
 	default:
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
+}
+
+func (f Float) GreaterThanBigFloat(other *BigFloat) bool {
+	if f.IsNaN() || other.IsNaN() {
+		return false
+	}
+	fBigFloat := (&BigFloat{}).SetFloat(f)
+	return fBigFloat.Cmp(other) == 1
+}
+
+func (f Float) GreaterThanFloat(other Float) bool {
+	return f > other
+}
+
+func (f Float) GreaterThanSmallInt(other SmallInt) bool {
+	return f > Float(other)
+}
+
+func (f Float) GreaterThanInt(other Value) bool {
+	if other.IsSmallInt() {
+		return f.GreaterThanSmallInt(other.AsSmallInt())
+	}
+	return f.GreaterThanBigInt((*BigInt)(other.Pointer()))
+}
+
+func (f Float) GreaterThanBigInt(other *BigInt) bool {
+	oFloat := other.ToFloat()
+	return f > oFloat
 }
 
 // Check whether f is greater than or equal to other and return an error
@@ -442,14 +622,9 @@ func (f Float) GreaterThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
-			if f.IsNaN() || o.IsNaN() {
-				return false, Undefined
-			}
-			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return fBigFloat.Cmp(o) >= 0, Undefined
+			return f.GreaterThanEqualBigFloat(o), Undefined
 		case *BigInt:
-			oFloat := o.ToFloat()
-			return f >= oFloat, Undefined
+			return f.GreaterThanEqualBigInt(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
@@ -457,16 +632,40 @@ func (f Float) GreaterThanEqual(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		o := other.AsFloat()
-		if f.IsNaN() || o.IsNaN() {
-			return false, Undefined
-		}
-		return f >= o, Undefined
+		return f.GreaterThanEqualFloat(other.AsFloat()), Undefined
 	case SMALL_INT_FLAG:
-		return f >= Float(other.AsSmallInt()), Undefined
+		return f.GreaterThanEqualSmallInt(other.AsSmallInt()), Undefined
 	default:
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
+}
+
+func (f Float) GreaterThanEqualBigFloat(other *BigFloat) bool {
+	if f.IsNaN() || other.IsNaN() {
+		return false
+	}
+	fBigFloat := (&BigFloat{}).SetFloat(f)
+	return fBigFloat.Cmp(other) >= 0
+}
+
+func (f Float) GreaterThanEqualFloat(other Float) bool {
+	return f >= other
+}
+
+func (f Float) GreaterThanEqualSmallInt(other SmallInt) bool {
+	return f >= Float(other)
+}
+
+func (f Float) GreaterThanEqualInt(other Value) bool {
+	if other.IsSmallInt() {
+		return f.GreaterThanEqualSmallInt(other.AsSmallInt())
+	}
+	return f.GreaterThanEqualBigInt((*BigInt)(other.Pointer()))
+}
+
+func (f Float) GreaterThanEqualBigInt(other *BigInt) bool {
+	oFloat := other.ToFloat()
+	return f >= oFloat
 }
 
 // Check whether f is less than other and return an error
@@ -482,14 +681,9 @@ func (f Float) LessThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
-			if f.IsNaN() || o.IsNaN() {
-				return false, Undefined
-			}
-			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return fBigFloat.Cmp(o) == -1, Undefined
+			return f.LessThanBigFloat(o), Undefined
 		case *BigInt:
-			oFloat := o.ToFloat()
-			return f < oFloat, Undefined
+			return f.LessThanBigInt(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
@@ -497,16 +691,40 @@ func (f Float) LessThan(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		o := other.AsFloat()
-		if f.IsNaN() || o.IsNaN() {
-			return false, Undefined
-		}
-		return f < o, Undefined
+		return f.LessThanFloat(other.AsFloat()), Undefined
 	case SMALL_INT_FLAG:
-		return f < Float(other.AsSmallInt()), Undefined
+		return f.LessThanSmallInt(other.AsSmallInt()), Undefined
 	default:
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
+}
+
+func (f Float) LessThanBigFloat(other *BigFloat) bool {
+	if f.IsNaN() || other.IsNaN() {
+		return false
+	}
+	fBigFloat := (&BigFloat{}).SetFloat(f)
+	return fBigFloat.Cmp(other) == -1
+}
+
+func (f Float) LessThanFloat(other Float) bool {
+	return f < other
+}
+
+func (f Float) LessThanSmallInt(other SmallInt) bool {
+	return f < Float(other)
+}
+
+func (f Float) LessThanInt(other Value) bool {
+	if other.IsSmallInt() {
+		return f.LessThanSmallInt(other.AsSmallInt())
+	}
+	return f.LessThanBigInt((*BigInt)(other.Pointer()))
+}
+
+func (f Float) LessThanBigInt(other *BigInt) bool {
+	oFloat := other.ToFloat()
+	return f < oFloat
 }
 
 // Check whether f is less than or equal to other and return an error
@@ -522,14 +740,9 @@ func (f Float) LessThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigFloat:
-			if f.IsNaN() || o.IsNaN() {
-				return false, Undefined
-			}
-			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return fBigFloat.Cmp(o) <= 0, Undefined
+			return f.LessThanEqualBigFloat(o), Undefined
 		case *BigInt:
-			oFloat := o.ToFloat()
-			return f <= oFloat, Undefined
+			return f.LessThanEqualBigInt(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(f.Class(), other.Class()))
 		}
@@ -537,16 +750,40 @@ func (f Float) LessThanEqual(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case FLOAT_FLAG:
-		o := other.AsFloat()
-		if f.IsNaN() || o.IsNaN() {
-			return false, Undefined
-		}
-		return f <= o, Undefined
+		return f.LessThanEqualFloat(other.AsFloat()), Undefined
 	case SMALL_INT_FLAG:
-		return f <= Float(other.AsSmallInt()), Undefined
+		return f.LessThanEqualSmallInt(other.AsSmallInt()), Undefined
 	default:
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
+}
+
+func (f Float) LessThanEqualBigFloat(other *BigFloat) bool {
+	if f.IsNaN() || other.IsNaN() {
+		return false
+	}
+	fBigFloat := (&BigFloat{}).SetFloat(f)
+	return fBigFloat.Cmp(other) <= 0
+}
+
+func (f Float) LessThanEqualFloat(other Float) bool {
+	return f <= other
+}
+
+func (f Float) LessThanEqualSmallInt(other SmallInt) bool {
+	return f <= Float(other)
+}
+
+func (f Float) LessThanEqualInt(other Value) bool {
+	if other.IsSmallInt() {
+		return f.LessThanEqualSmallInt(other.AsSmallInt())
+	}
+	return f.LessThanEqualBigInt((*BigInt)(other.Pointer()))
+}
+
+func (f Float) LessThanEqualBigInt(other *BigInt) bool {
+	oFloat := other.ToFloat()
+	return f <= oFloat
 }
 
 // Check whether f is equal to other
@@ -616,6 +853,10 @@ func (f Float) Equal(other Value) bool {
 	}
 
 	return false
+}
+
+func (f Float) EqualFloat(other Float) bool {
+	return f == other
 }
 
 // Check whether f is strictly equal to other and return an error
