@@ -144,9 +144,7 @@ func TestGetConstant(t *testing.T) {
 								value.ToSymbol("<module: Foo::Baz>"),
 								[]byte{
 									byte(bytecode.GET_CONST8), 0,
-									byte(bytecode.UNDEFINED),
 									byte(bytecode.GET_CONST8), 1,
-									byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 									byte(bytecode.CALL_METHOD8), 2,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -154,13 +152,13 @@ func TestGetConstant(t *testing.T) {
 								},
 								L(P(40, 4, 6), P(76, 6, 8)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(5, 9),
+									bytecode.NewLineInfo(5, 6),
 									bytecode.NewLineInfo(6, 3),
 								},
 								[]value.Value{
 									value.ToSymbol("Std::Kernel").ToValue(),
 									value.ToSymbol("Foo::BAR").ToValue(),
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
+									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 								},
 							)),
 						},

@@ -2015,25 +2015,23 @@ func TestDefMethod(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("foo="),
 								[]byte{
-									byte(bytecode.UNDEFINED),
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.INT_2),
 									byte(bytecode.ADD_INT),
-									byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 									byte(bytecode.CALL_SELF_TCO8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.RETURN_FIRST_ARG),
 								},
 								L(P(5, 2, 5), P(48, 4, 7)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 8),
+									bytecode.NewLineInfo(3, 5),
 									bytecode.NewLineInfo(4, 2),
 								},
 								1,
 								0,
 								[]value.Value{
 									value.Ref(value.NewCallSiteInfo(
-										value.ToSymbol("println"),
+										value.ToSymbol("println@1"),
 										1,
 									)),
 								},
@@ -2088,11 +2086,9 @@ func TestDefMethod(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("foo="),
 								[]byte{
-									byte(bytecode.UNDEFINED),
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.INT_2),
 									byte(bytecode.ADD_INT),
-									byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 									byte(bytecode.CALL_SELF8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.LOAD_VALUE_1),
@@ -2101,14 +2097,14 @@ func TestDefMethod(t *testing.T) {
 								},
 								L(P(5, 2, 5), P(68, 5, 7)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 9),
+									bytecode.NewLineInfo(3, 6),
 									bytecode.NewLineInfo(4, 3),
 								},
 								1,
 								0,
 								[]value.Value{
 									value.Ref(value.NewCallSiteInfo(
-										value.ToSymbol("println"),
+										value.ToSymbol("println@1"),
 										1,
 									)),
 									value.Ref(value.String("siema")),
