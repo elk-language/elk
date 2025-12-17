@@ -128,3 +128,27 @@ func (m *OrderedMap[K, V]) All() iter.Seq2[K, V] {
 		}
 	}
 }
+
+// All returns an iterator that iterates over all
+// keys in insertion order
+func (m *OrderedMap[K, V]) Keys() iter.Seq[K] {
+	return func(yield func(K) bool) {
+		for _, key := range m.order {
+			if !yield(key) {
+				return
+			}
+		}
+	}
+}
+
+// All returns an iterator that iterates over all
+// values in insertion order
+func (m *OrderedMap[K, V]) Values() iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for _, key := range m.order {
+			if !yield(m.data[key]) {
+				return
+			}
+		}
+	}
+}

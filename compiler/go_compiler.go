@@ -64,13 +64,13 @@ const (
 
 // represents a nativeElkLocal variable or value
 type nativeElkLocal struct {
-	index int
-	name  string
-	typ   types.Type
+	name    string
+	elkType types.Type
+	goLocal *goLocal
 }
 
 func (n *nativeElkLocal) goIdent() string {
-	return fmt.Sprintf("l%d", n.index)
+	return n.goLocal.name
 }
 
 type nativeElkLocalTable map[string]*nativeElkLocal
@@ -112,32 +112,53 @@ const goValueType = "value.Value"
 
 type goLocal struct {
 	name    string
-	elkType types.Type
 	goType  string
 	comment string
+	free    bool
 }
 
-func newGoLocal(name string, elkType types.Type, goType string, comment string) *goLocal {
+func (l *goLocal) markFree() {
+	l.free = true
+}
+
+func (l *goLocal) markReserved() {
+	l.free = false
+}
+
+func newGoLocal(name string, goType string, comment string) *goLocal {
 	return &goLocal{
 		name:    name,
-		elkType: elkType,
 		goType:  goType,
 		comment: comment,
 	}
 }
 
 type goValue struct {
-	tmpLocal string
-	inline   string
-	typ      types.Type
+	tmpLocal     *goLocal
+	inline       string
+	inlineGoType string
+	elkType      types.Type
+}
+
+func (v *goValue) markFree() {
+	if v.isTmp() {
+		v.tmpLocal.markFree()
+	}
+}
+
+func (v *goValue) goType() string {
+	if v.isInline() {
+		return v.inlineGoType
+	}
+	return v.tmpLocal.goType
 }
 
 func (v *goValue) isInline() bool {
-	return v.inline != ""
+	return v.tmpLocal == nil
 }
 
 func (v *goValue) isTmp() bool {
-	return v.tmpLocal != ""
+	return v.tmpLocal != nil
 }
 
 func (v *goValue) value() string {
@@ -145,25 +166,26 @@ func (v *goValue) value() string {
 		return v.inline
 	}
 
-	return v.tmpLocal
+	return v.tmpLocal.name
 }
 
-func newInlineGoValue(v string, typ types.Type) *goValue {
+func newInlineGoValue(v string, typ types.Type, goType string) *goValue {
 	return &goValue{
-		inline: v,
-		typ:    typ,
+		inline:       v,
+		elkType:      typ,
+		inlineGoType: goType,
 	}
 }
 
-func newTmpGoValue(v string, typ types.Type) *goValue {
+func newTmpGoValue(goLocal *goLocal, typ types.Type) *goValue {
 	return &goValue{
-		tmpLocal: v,
-		typ:      typ,
+		tmpLocal: goLocal,
+		elkType:  typ,
 	}
 }
 
-var errGoValue = newTmpGoValue("ERR", types.Untyped{})
-var nilGoValue = newTmpGoValue("value.Nil", types.Nil{})
+var errGoValue = newInlineGoValue("ERR", types.Untyped{}, goValueType)
+var nilGoValue = newInlineGoValue("value.Nil", types.Nil{}, goValueType)
 
 func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) *GoCompiler {
 	bigIntCache := concurrent.NewMap[string, *nativeBigInt]()
@@ -222,7 +244,7 @@ func (c *GoCompiler) InitMethodCompiler(location *position.Location) (Compiler, 
 }
 
 func (c *GoCompiler) CompileMethods(location *position.Location, execOffset int) {
-	c.registerGoLocal("class", c.checker.Std(symbol.Class), "*value.Class")
+	c.registerGoLocal("class", "*value.Class")
 	c.compileMethodsWithinModule(c.checker.Env().Root, location)
 
 	if c.buff.Len() == 0 {
@@ -265,7 +287,7 @@ func (c *GoCompiler) FinishIvarIndicesCompiler(location *position.Location, exec
 }
 
 func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNode, namespace types.Namespace, constName value.Symbol) {
-	c.registerGoLocal("namespace", c.checker.Std(symbol.Value), goValueType)
+	c.registerGoLocal("namespace", goValueType)
 
 	switch n := namespace.(type) {
 	case *types.SingletonClass:
@@ -391,30 +413,29 @@ func (c *GoCompiler) SetParent(parent Compiler) {
 	p.children.Append(c)
 }
 
-func (c *GoCompiler) registerGoLocal(name string, elkType types.Type, goType string) {
-	c.registerGoLocalWithComment(name, elkType, goType, "")
+func (c *GoCompiler) registerGoLocal(name string, goType string) *goLocal {
+	return c.registerGoLocalWithComment(name, goType, "")
 }
 
-func (c *GoCompiler) registerGoLocalWithComment(name string, elkType types.Type, goType string, comment string) {
-	_, exists := c.goLocals.GetOk(name)
-	if exists {
-		return
+func (c *GoCompiler) registerGoLocalWithComment(name string, goType string, comment string) *goLocal {
+	if local, exists := c.goLocals.GetOk(name); exists {
+		return local
 	}
-	c.goLocals.Set(name, newGoLocal(name, elkType, goType, comment))
+	local := newGoLocal(name, goType, comment)
+	c.goLocals.Set(name, local)
+	return local
 }
 
 func (c *GoCompiler) compileGlobalEnv() {
 	env := c.checker.Env()
 	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"))
 
-	valType := c.checker.Std(symbol.Value)
-	c.registerGoLocal("parentNamespace", valType, goValueType)
-	c.registerGoLocal("namespace", valType, goValueType)
+	c.registerGoLocal("parentNamespace", goValueType)
+	c.registerGoLocal("namespace", goValueType)
 
-	classType := c.checker.Std(symbol.Class)
-	c.registerGoLocal("class", classType, "*value.Class")
-	c.registerGoLocal("superclass", classType, "*value.Class")
-	c.registerGoLocal("mixin", classType, "*value.Mixin")
+	c.registerGoLocal("class", "*value.Class")
+	c.registerGoLocal("superclass", "*value.Class")
+	c.registerGoLocal("mixin", "*value.Mixin")
 }
 
 // Entry point for compiling the body of a method.
@@ -429,7 +450,7 @@ func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []as
 }
 
 func (c *GoCompiler) compileMethodFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode) {
-	c.registerGoLocal("self", c.checker.SelfType(), goValueType)
+	c.registerGoLocal("self", goValueType)
 	c.emit("self = args[0]\n")
 
 	for i, param := range parameters {
@@ -550,7 +571,7 @@ func (c *GoCompiler) emitSetInstanceVariableByIndex(index int, val string) {
 
 // Emit an instruction that sets the value of an instance variable by name
 func (c *GoCompiler) emitSetInstanceVariableByName(name value.Symbol, val string) {
-	c.registerGoLocal("err", c.checker.Std(symbol.Value), goValueType)
+	c.registerGoLocal("err", goValueType)
 	symbol := c.emitSymbol(name.String())
 	c.emit("err = value.SetInstanceVariableByName(self, %s, %s)\n", symbol, val)
 	c.emit("if err.IsNotUndefined() { panic(err) }\n")
@@ -636,7 +657,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 
 		if method.IsNative() {
 			namespace := value.RootModule.Constants.GetString(method.DefinedUnder.Name()).AsReference()
-			c.registerGoLocal("aliasClass", c.checker.Std(symbol.Class), "*value.Class")
+			c.registerGoLocal("aliasClass", "*value.Class")
 
 			namespaceSymbol := c.emitSymbol(method.DefinedUnder.Name())
 			switch namespace.(type) {
@@ -853,13 +874,14 @@ func (c *GoCompiler) emitGetConstValue(name value.Symbol) *goValue {
 }
 
 func (c *GoCompiler) emitGetConst(name value.Symbol, typ types.Type) *goValue {
-	tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
 	constNameSymbol := c.emitSymbol(name.String())
-	c.emit("%s = value.GetConstant(%s)\n", tmp, constNameSymbol)
 
-	return newTmpGoValue(
-		tmp,
-		typ,
+	return c.valueToNarrowerType(
+		newInlineGoValue(
+			fmt.Sprintf("value.GetConstant(%s)\n", constNameSymbol),
+			typ,
+			"value.Value",
+		),
 	)
 }
 
@@ -963,7 +985,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	} else {
 		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // loc: %s\n", c.FuncName, c.loc.FilePath)
 	}
-	c.registerGoLocal("self", types.Any{}, goValueType)
+	c.registerGoLocal("self", goValueType)
 	c.compileLocalsTo(&funcBuffer)
 	fmt.Fprintf(&funcBuffer, "self = value.Ref(value.GlobalObject)\n")
 	c.emitPrependBytes(funcBuffer.Bytes())
@@ -1044,7 +1066,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 	case *ast.GenericConstantNode:
 		return c.compileExpression(node.Constant)
 	case *ast.SelfLiteralNode:
-		return newTmpGoValue("self", c.checker.SelfType())
+		return newInlineGoValue("self", c.checker.SelfType(), "value.Value")
 	case *ast.ReturnExpressionNode:
 		return c.compileReturnExpressionNode(node)
 	case *ast.IntLiteralNode:
@@ -1055,14 +1077,16 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		}
 		if i.IsSmallInt() {
 			return newInlineGoValue(
-				fmt.Sprintf("value.SmallInt(%d).ToValue()", i.ToSmallInt()),
+				fmt.Sprintf("value.SmallInt(%d)", i.ToSmallInt()),
 				c.typeOf(node),
+				"value.SmallInt",
 			)
 		}
 		bigIntVar := c.emitBigInt(node.Value)
-		return newTmpGoValue(
+		return newInlineGoValue(
 			bigIntVar,
 			c.typeOf(node),
+			"*value.BigInt",
 		)
 	case *ast.Int8LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 8)
@@ -1073,6 +1097,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		return newInlineGoValue(
 			fmt.Sprintf("value.Int8(%d)", i),
 			c.typeOf(node),
+			"value.Int8",
 		)
 	case *ast.Int16LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 16)
@@ -1083,6 +1108,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		return newInlineGoValue(
 			fmt.Sprintf("value.Int16(%d)", i),
 			c.typeOf(node),
+			"value.Int16",
 		)
 	case *ast.Int32LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 32)
@@ -1093,6 +1119,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		return newInlineGoValue(
 			fmt.Sprintf("value.Int32(%d)", i),
 			c.typeOf(node),
+			"value.Int32",
 		)
 	case *ast.Int64LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 64)
@@ -1103,6 +1130,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		return newInlineGoValue(
 			fmt.Sprintf("value.Int64(%d)", i),
 			c.typeOf(node),
+			"value.Int64",
 		)
 	case *ast.UInt8LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 8)
@@ -1113,6 +1141,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		return newInlineGoValue(
 			fmt.Sprintf("value.UInt8(%d)", i),
 			c.typeOf(node),
+			"value.UInt8",
 		)
 	case *ast.UInt16LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 16)
@@ -1123,6 +1152,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		return newInlineGoValue(
 			fmt.Sprintf("value.UInt16(%d)", i),
 			c.typeOf(node),
+			"value.UInt16",
 		)
 	case *ast.UInt32LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 32)
@@ -1133,6 +1163,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		return newInlineGoValue(
 			fmt.Sprintf("value.UInt32(%d)", i),
 			c.typeOf(node),
+			"value.UInt32",
 		)
 	case *ast.UInt64LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 64)
@@ -1143,6 +1174,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		return newInlineGoValue(
 			fmt.Sprintf("value.UInt64(%d)", i),
 			c.typeOf(node),
+			"value.UInt64",
 		)
 	case *ast.BinaryExpressionNode:
 		return c.compileBinaryExpressionNode(node)
@@ -1245,7 +1277,7 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 	switch op.Type {
 	case token.QUESTION_DOT:
 		receiverVal := c.compileExpression(receiver)
-		resultVar := c.defineTmpGoLocal(typ, goValueType)
+		resultVar := c.defineTmpGoLocal(goValueType)
 
 		receiverValString := c.convertToValue(receiverVal)
 		c.emit("if value.IsNil(%s) {\n", receiverValString)
@@ -1258,7 +1290,7 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 		return newTmpGoValue(resultVar, typ)
 	case token.QUESTION_DOT_DOT:
 		receiverVal := c.compileExpression(receiver)
-		resultVar := c.defineTmpGoLocal(typ, goValueType)
+		resultVar := c.defineTmpGoLocal(goValueType)
 
 		receiverValString := c.convertToValue(receiverVal)
 		c.emit("if value.IsNil(%s) {\n", receiverValString)
@@ -1271,7 +1303,7 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 		return newTmpGoValue(resultVar, typ)
 	case token.DOT_DOT:
 		receiverVal := c.compileExpression(receiver)
-		resultVar := c.defineTmpGoLocal(typ, goValueType)
+		resultVar := c.defineTmpGoLocal(goValueType)
 
 		receiverValString := c.convertToValue(receiverVal)
 		c.compileInnerMethodCall(receiverValString, c.typeOf(receiver), name, op, args, typ, location)
@@ -1299,7 +1331,7 @@ func (c *GoCompiler) compileInnerMethodCall(receiverVal string, receiverType typ
 	// 	return c.compileDecrement(receiverType, location)
 	// }
 
-	callArgsVar := c.defineTmpGoLocal(types.Any{}, "[]value.Value")
+	callArgsVar := c.defineTmpGoLocal("[]value.Value")
 	c.emit("%s = make([]value.Value, %d)\n", callArgsVar, len(args)+1)
 
 	c.emit("%s[0] = %s\n", callArgsVar, receiverVal)
@@ -1310,7 +1342,7 @@ func (c *GoCompiler) compileInnerMethodCall(receiverVal string, receiverType typ
 
 	nameSym := c.emitSymbol(name)
 	callCache := c.emitCallCache()
-	tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+	tmp := c.defineTmpGoLocal(goValueType)
 	c.registerErr()
 	c.emitAddCallFrame(location)
 	c.emit("%s, err = thread.CallMethodByNameWithCache(%s, &%s, %s...)\n", tmp, nameSym, callCache, callArgsVar)
@@ -1359,7 +1391,7 @@ func (c *GoCompiler) compileNamespaceDeclarationNode(name string, body []ast.Sta
 }
 
 func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Namespace) {
-	c.registerGoLocal("self", types.Any{}, goValueType)
+	c.registerGoLocal("self", goValueType)
 	c.compileStatements(body)
 	if c.buff.Len() == 0 {
 		return
@@ -1412,50 +1444,35 @@ func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpress
 func (c *GoCompiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, typ types.Type, loc *position.Location) *goValue {
 	switch operator.Type {
 	case token.OR_OR_EQUAL:
-		result := c.defineTmpGoLocal(typ, goValueType)
-
 		varIdent := c.compileLocalVariableAccess(name)
 		c.emit("if value.Falsy(%s) {\n", c.convertToValue(varIdent))
 
 		rightVal := c.compileExpression(right)
-		c.emit("%s = %s\n", result, c.convertToValue(rightVal))
+		c.emit("%s = %s\n", varIdent.value(), c.convertToValue(rightVal))
 
 		c.emit("}\n")
 
-		return newTmpGoValue(
-			varIdent.value(),
-			typ,
-		)
+		return varIdent
 	case token.AND_AND_EQUAL:
-		result := c.defineTmpGoLocal(typ, goValueType)
-
 		varIdent := c.compileLocalVariableAccess(name)
 		c.emit("if value.Truthy(%s) {\n", c.convertToValue(varIdent))
 
 		rightVal := c.compileExpression(right)
-		c.emit("%s = %s\n", result, c.convertToValue(rightVal))
+		c.emit("%s = %s\n", varIdent.value(), c.convertToValue(rightVal))
 
 		c.emit("}\n")
 
-		return newTmpGoValue(
-			varIdent.value(),
-			typ,
-		)
+		return varIdent
 	case token.QUESTION_QUESTION_EQUAL:
-		result := c.defineTmpGoLocal(typ, goValueType)
-
 		varIdent := c.compileLocalVariableAccess(name)
 		c.emit("if value.IsNil(%s) {\n", c.convertToValue(varIdent))
 
 		rightVal := c.compileExpression(right)
-		c.emit("%s = %s\n", result, c.convertToValue(rightVal))
+		c.emit("%s = %s\n", varIdent.value(), c.convertToValue(rightVal))
 
 		c.emit("}\n")
 
-		return newTmpGoValue(
-			varIdent.value(),
-			typ,
-		)
+		return varIdent
 	case token.EQUAL_OP:
 		return c.setLocal(name, right)
 	case token.COLON_EQUAL:
@@ -1488,8 +1505,8 @@ func (c *GoCompiler) emitSetLocal(name string, val string) *goValue {
 	ident := variable.goIdent()
 	c.emit("%s = %s\n", ident, val)
 	return newTmpGoValue(
-		ident,
-		variable.typ,
+		variable.goLocal,
+		variable.elkType,
 	)
 }
 
@@ -1587,7 +1604,7 @@ func (c *GoCompiler) compileIf(condType conditionType, condition, then, els func
 	c.enterScope("", defaultNativeElkScopeType)
 	condVal := condition()
 
-	ifResultVar := c.defineTmpGoLocal(typ, goValueType)
+	ifResultVar := c.defineTmpGoLocal(goValueType)
 
 	var condFunc string
 	switch condType {
@@ -1626,15 +1643,15 @@ func (c *GoCompiler) compileIf(condType conditionType, condition, then, els func
 func (c *GoCompiler) compileLocalVariableAccess(name string) *goValue {
 	if local, ok := c.resolveLocal(name); ok {
 		return newTmpGoValue(
-			local.goIdent(),
-			local.typ,
+			local.goLocal,
+			local.elkType,
 		)
 	}
 
 	if upvalue, ok := c.resolveUpvalue(name); ok {
 		return newTmpGoValue(
-			upvalue.goIdent(),
-			upvalue.typ,
+			upvalue.goLocal,
+			upvalue.elkType,
 		)
 	}
 
@@ -1704,7 +1721,7 @@ func (c *GoCompiler) emitBigInt(val string) string {
 	}
 	c.bigIntCache.SetUnsafe(val, bigInt)
 	ident := bigInt.goIdent()
-	c.emitPackage("var %s = value.MustParseInt(%q, 0)\n", ident, val)
+	c.emitPackage("var %s = value.ParseBigIntPanic(%q, 0)\n", ident, val)
 	return ident
 }
 
@@ -1732,10 +1749,16 @@ func (c *GoCompiler) getTmpIdent() string {
 	return fmt.Sprintf("t%d", c.tmpLocalCounter)
 }
 
-func (c *GoCompiler) defineTmpGoLocal(elkType types.Type, goType string) string {
+func (c *GoCompiler) defineTmpGoLocal(goType string) *goLocal {
+	for local := range c.goLocals.Values() {
+		if local.free && local.goType == goType {
+			local.markReserved()
+			return local
+		}
+	}
+
 	tmp := c.getTmpIdent()
-	c.registerGoLocal(tmp, elkType, goType)
-	return tmp
+	return c.registerGoLocal(tmp, goType)
 }
 
 func (c *GoCompiler) emitErrorPropagation() {
@@ -1768,7 +1791,7 @@ func (c *GoCompiler) emitPopCallFrame() {
 }
 
 func (c *GoCompiler) registerErr() {
-	c.registerGoLocal("err", types.Any{}, goValueType)
+	c.registerGoLocal("err", goValueType)
 }
 
 func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode) *goValue {
@@ -1778,12 +1801,12 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 
 	left := c.compileExpression(node.Left)
 	right := c.compileExpression(node.Right)
-	typ := left.typ
+	typ := left.elkType
 
 	switch node.Op.Type {
 	case token.PLUS:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.AddInt(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1794,7 +1817,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = %s.AddVal(%s)\n", tmp, c.goValueAs(left, "AsFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1805,7 +1828,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.StdBigFloat()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = %s.AddVal(%s)\n", tmp, c.goValueCast(left, "*value.BigFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1816,7 +1839,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinAddable)) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.AddVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1828,7 +1851,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		}
 
 		callCache := c.emitCallCache()
-		tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
 		c.emitAddCallFrame(node.Location())
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpAdd, &%s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
@@ -1840,7 +1863,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		)
 	case token.MINUS:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.SubtractInt(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1851,7 +1874,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = %s.SubtractVal(%s)\n", tmp, c.goValueAs(left, "AsFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1862,7 +1885,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.StdBigFloat()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = %s.SubtractVal(%s)\n", tmp, c.goValueCast(left, "*value.BigFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1873,7 +1896,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinAddable)) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.SubtractVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1885,7 +1908,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		}
 
 		callCache := c.emitCallCache()
-		tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
 		c.emitAddCallFrame(node.Location())
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpSubtract, &%s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
@@ -1897,7 +1920,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		)
 	case token.STAR:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.MultiplyInt(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1908,7 +1931,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = %s.MultiplyVal(%s)\n", tmp, c.goValueAs(left, "AsFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1919,7 +1942,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.StdBigFloat()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = %s.MultiplyVal(%s)\n", tmp, c.goValueCast(left, "*value.BigFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1930,7 +1953,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinAddable)) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.MultiplyVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1942,7 +1965,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		}
 
 		callCache := c.emitCallCache()
-		tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
 		c.emitAddCallFrame(node.Location())
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpMultiply, &%s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
@@ -1956,7 +1979,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		c.emitAddCallFrame(node.Location())
 
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.DivideInt(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitPopCallFrame()
@@ -1968,7 +1991,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = %s.DivideVal(%s)\n", tmp, c.goValueAs(left, "AsFloat"), c.convertToValue(right))
 			c.emitPopCallFrame()
@@ -1980,7 +2003,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.StdBigFloat()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = %s.DivideVal(%s)\n", tmp, c.goValueCast(left, "*value.BigFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -1991,7 +2014,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinAddable)) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.DivideVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitPopCallFrame()
@@ -2004,7 +2027,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		}
 
 		callCache := c.emitCallCache()
-		tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpMultiply, &%s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
 		c.emitPopCallFrame()
@@ -2015,7 +2038,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		)
 	case token.STAR_STAR:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.ExponentiateInt(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -2026,7 +2049,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = %s.ExponentiateVal(%s)\n", tmp, c.goValueAs(left, "AsFloat"), c.convertToValue(right))
 			c.emitPopCallFrame()
@@ -2038,7 +2061,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinNumeric)) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.ExponentiateVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitPopCallFrame()
@@ -2051,7 +2074,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		}
 
 		callCache := c.emitCallCache()
-		tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
 		c.emitAddCallFrame(node.Location())
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpMultiply, &%s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
@@ -2063,7 +2086,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		)
 	case token.LBITSHIFT:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.LeftBitshiftVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitPopCallFrame()
@@ -2076,7 +2099,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		}
 
 		callCache := c.emitCallCache()
-		tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
 		c.emitAddCallFrame(node.Location())
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpLeftBitshift, &%s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
@@ -2088,7 +2111,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		)
 	case token.LTRIPLE_BITSHIFT:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.LogicalLeftBitshiftVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitPopCallFrame()
@@ -2101,7 +2124,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		}
 
 		callCache := c.emitCallCache()
-		tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
 		c.emitAddCallFrame(node.Location())
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpLogicalLeftBitshift, &%s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
@@ -2113,7 +2136,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		)
 	case token.RBITSHIFT:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.RightBitshiftVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitPopCallFrame()
@@ -2126,7 +2149,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		}
 
 		callCache := c.emitCallCache()
-		tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
 		c.emitAddCallFrame(node.Location())
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpRightBitshift, &%s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
@@ -2138,7 +2161,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		)
 	case token.RTRIPLE_BITSHIFT:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.LogicalRightBitshiftVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitPopCallFrame()
@@ -2151,7 +2174,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		}
 
 		callCache := c.emitCallCache()
-		tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
 		c.emitAddCallFrame(node.Location())
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpLogicalRightBitshift, &%s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
@@ -2163,7 +2186,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		)
 	case token.AND:
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.BitwiseAndVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitPopCallFrame()
@@ -2176,7 +2199,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		}
 
 		callCache := c.emitCallCache()
-		tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
 		c.emitAddCallFrame(node.Location())
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpAnd, &%s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
@@ -2316,7 +2339,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 	// 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLessThan, 1), location, false)
 	case token.LESS_EQUAL:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.LessThanEqualValInt(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -2327,7 +2350,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = %s.LessThanEqualVal(%s)\n", tmp, c.goValueAs(left, "AsFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -2338,7 +2361,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.StdBigFloat()) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = %s.LessThanEqualVal(%s)\n", tmp, c.goValueCast(left, "*value.BigFloat"), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -2349,7 +2372,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 			)
 		}
 		if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinAddable)) {
-			tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
 			c.emit("%s, err = value.LessThanEqualVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
 			c.emitErrorPropagation()
@@ -2361,7 +2384,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode)
 		}
 
 		callCache := c.emitCallCache()
-		tmp := c.defineTmpGoLocal(types.Any{}, goValueType)
+		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
 		c.emitAddCallFrame(node.Location())
 		c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpLessThanEqual, &%s, %s, %s)", tmp, callCache, c.convertToValue(left), c.convertToValue(right))
@@ -2415,11 +2438,13 @@ func (c *GoCompiler) valueToGoSource(val value.Value) *goValue {
 			return newInlineGoValue(
 				fmt.Sprintf("value.Int64(%d)", v),
 				c.checker.Std(symbol.Int64),
+				"value.Int64",
 			)
 		case value.UInt64:
 			return newInlineGoValue(
 				fmt.Sprintf("value.UInt64(%d)", v),
 				c.checker.Std(symbol.UInt64),
+				"value.UInt64",
 			)
 		default:
 			return nil
@@ -2429,70 +2454,83 @@ func (c *GoCompiler) valueToGoSource(val value.Value) *goValue {
 	switch val.ValueFlag() {
 	case value.TRUE_FLAG:
 		return newInlineGoValue(
-			"value.True",
-			c.checker.StdValue(),
+			"true",
+			types.Bool{},
+			"bool",
 		)
 	case value.FALSE_FLAG:
 		return newInlineGoValue(
-			"value.False",
-			c.checker.StdValue(),
+			"false",
+			types.Bool{},
+			"bool",
 		)
 	case value.NIL_FLAG:
 		return nilGoValue
 	case value.SMALL_INT_FLAG:
 		return newInlineGoValue(
-			fmt.Sprintf("value.SmallInt(%d).ToValue()", val.AsSmallInt()),
+			fmt.Sprintf("value.SmallInt(%d)", val.AsSmallInt()),
 			c.checker.StdInt(),
+			"value.SmallInt",
 		)
 	case value.INT64_FLAG:
 		return newInlineGoValue(
 			fmt.Sprintf("value.Int64(%d)", val.AsInt64()),
 			c.checker.Std(symbol.Int64),
+			"value.Int64",
 		)
 	case value.UINT64_FLAG:
 		return newInlineGoValue(
 			fmt.Sprintf("value.UInt64(%d)", val.AsUInt64()),
 			c.checker.Std(symbol.UInt64),
+			"value.UInt64",
 		)
 	case value.INT32_FLAG:
 		return newInlineGoValue(
 			fmt.Sprintf("value.Int32(%d)", val.AsInt32()),
 			c.checker.Std(symbol.Int32),
+			"value.Int32",
 		)
 	case value.UINT32_FLAG:
 		return newInlineGoValue(
 			fmt.Sprintf("value.UInt32(%d)", val.AsUInt32()),
 			c.checker.Std(symbol.UInt32),
+			"value.UInt32",
 		)
 	case value.INT16_FLAG:
 		return newInlineGoValue(
 			fmt.Sprintf("value.Int16(%d)", val.AsInt16()),
 			c.checker.Std(symbol.Int16),
+			"value.Int16",
 		)
 	case value.UINT16_FLAG:
 		return newInlineGoValue(
 			fmt.Sprintf("value.UInt16(%d)", val.AsUInt16()),
 			c.checker.Std(symbol.UInt16),
+			"value.UInt16",
 		)
 	case value.INT8_FLAG:
 		return newInlineGoValue(
 			fmt.Sprintf("value.Int8(%d)", val.AsInt8()),
 			c.checker.Std(symbol.Int8),
+			"value.Int8",
 		)
 	case value.UINT8_FLAG:
 		return newInlineGoValue(
 			fmt.Sprintf("value.UInt8(%d)", val.AsUInt8()),
 			c.checker.Std(symbol.UInt8),
+			"value.UInt8",
 		)
 	case value.CHAR_FLAG:
 		return newInlineGoValue(
 			fmt.Sprintf("value.Char(%q)", val.AsChar()),
 			c.checker.Std(symbol.Char),
+			"value.Char",
 		)
 	case value.FLOAT_FLAG:
 		return newInlineGoValue(
 			fmt.Sprintf("value.Float(%f)", val.AsFloat()),
 			c.checker.Std(symbol.Float),
+			"value.Float",
 		)
 	}
 
@@ -2514,14 +2552,18 @@ func (c *GoCompiler) arrayListToGoSource(v *value.ArrayList) *goValue {
 	}
 
 	buff.WriteString(")")
-	return newInlineGoValue(buff.String(), c.checker.Std(symbol.ArrayList))
+	return newInlineGoValue(
+		buff.String(),
+		c.checker.Std(symbol.ArrayList),
+		"*value.ArrayList",
+	)
 }
 
 func (c *GoCompiler) goValueAs(v *goValue, as string) string {
 	if v.isTmp() {
 		return fmt.Sprintf("%s.%s()", v.tmpLocal, as)
 	}
-	if c.checker.IsTheSameType(v.typ, c.checker.Std(symbol.Value)) {
+	if c.checker.IsTheSameType(v.elkType, c.checker.Std(symbol.Value)) {
 		return fmt.Sprintf("%s.%s()", v.inline, as)
 	}
 
@@ -2532,7 +2574,7 @@ func (c *GoCompiler) goValueCast(v *goValue, cast string) string {
 	if v.isTmp() {
 		return fmt.Sprintf("(%s)(%s.Pointer())", cast, v.tmpLocal)
 	}
-	if c.checker.IsTheSameType(v.typ, c.checker.Std(symbol.Value)) {
+	if c.checker.IsTheSameType(v.elkType, c.checker.Std(symbol.Value)) {
 		return fmt.Sprintf("(%s)(%s.Pointer())", cast, v.inline)
 	}
 
@@ -2540,24 +2582,172 @@ func (c *GoCompiler) goValueCast(v *goValue, cast string) string {
 }
 
 func (c *GoCompiler) convertToValue(v *goValue) string {
-	if v.isTmp() {
-		return v.tmpLocal
+	switch v.goType() {
+	case goValueType:
+		return v.value()
+	case "value.SmallInt":
+		return fmt.Sprintf("%s.ToValue()", v.value())
+	case "*value.BigInt":
+		return fmt.Sprintf("value.Ref(%s)", v.value())
 	}
 
-	if types.IsAny(v.typ) {
-		return v.inline
+	if c.checker.IsSubtype(v.elkType, c.checker.StdInt()) {
+		return v.value()
 	}
-	if c.checker.IsTheSameType(v.typ, c.checker.Std(symbol.Value)) {
-		return v.inline
-	}
-	if c.checker.IsSubtype(v.typ, c.checker.StdInt()) {
-		return v.inline
-	}
-	if c.checker.IsSubtype(v.typ, c.checker.Std(symbol.Object)) {
-		return fmt.Sprintf("value.Ref(%s)", v.inline)
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Object)) {
+		return fmt.Sprintf("value.Ref(%s)", v.value())
 	}
 
-	return fmt.Sprintf("%s.ToValue()", v.inline)
+	return fmt.Sprintf("%s.ToValue()", v.value())
+}
+
+func (c *GoCompiler) valueToNarrowerType(v *goValue) *goValue {
+	if v.goType() != goValueType {
+		return v
+	}
+
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.String)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsString()", v.value()),
+			v.elkType,
+			"value.String",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Char)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsChar()", v.value()),
+			v.elkType,
+			"value.Char",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Float)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsFloat()", v.value()),
+			v.elkType,
+			"value.Float",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Float64)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsFloat64()", v.value()),
+			v.elkType,
+			"value.Float64",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Float32)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsFloat32()", v.value()),
+			v.elkType,
+			"value.Float32",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.BigFloat)) {
+		return newInlineGoValue(
+			fmt.Sprintf("(*value.BigFloat)(%s.Pointer())", v.value()),
+			v.elkType,
+			"*value.BigFloat",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int64)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsInt64()", v.value()),
+			v.elkType,
+			"value.Int64",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int32)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsInt32()", v.value()),
+			v.elkType,
+			"value.Int32",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int16)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsInt16()", v.value()),
+			v.elkType,
+			"value.Int16",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int8)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsInt8()", v.value()),
+			v.elkType,
+			"value.Int8",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsUInt()", v.value()),
+			v.elkType,
+			"value.UInt",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt64)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsUInt64()", v.value()),
+			v.elkType,
+			"value.UInt64",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt32)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsUInt32()", v.value()),
+			v.elkType,
+			"value.UInt32",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt16)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsUInt16()", v.value()),
+			v.elkType,
+			"value.UInt16",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt8)) {
+		return newInlineGoValue(
+			fmt.Sprintf("%s.AsUInt8()", v.value()),
+			v.elkType,
+			"value.UInt8",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.ArrayList)) {
+		return newInlineGoValue(
+			fmt.Sprintf("(*value.ArrayList)(%s.Pointer())", v.value()),
+			v.elkType,
+			"*value.ArrayList",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.ArrayTuple)) {
+		return newInlineGoValue(
+			fmt.Sprintf("(*value.ArrayTuple)(%s.Pointer())", v.value()),
+			v.elkType,
+			"*value.ArrayTuple",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.HashMap)) {
+		return newInlineGoValue(
+			fmt.Sprintf("(*value.HashMap)(%s.Pointer())", v.value()),
+			v.elkType,
+			"*value.HashMap",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.HashRecord)) {
+		return newInlineGoValue(
+			fmt.Sprintf("(*value.HashRecord)(%s.Pointer())", v.value()),
+			v.elkType,
+			"*value.HashRecord",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.HashSet)) {
+		return newInlineGoValue(
+			fmt.Sprintf("(*value.HashSet)(%s.Pointer())", v.value()),
+			v.elkType,
+			"*value.HashSet",
+		)
+	}
+
+	return v
 }
 
 func (c *GoCompiler) arrayTupleToGoSource(v *value.ArrayTuple) *goValue {
@@ -2575,7 +2765,11 @@ func (c *GoCompiler) arrayTupleToGoSource(v *value.ArrayTuple) *goValue {
 	}
 
 	buff.WriteString(")")
-	return newInlineGoValue(buff.String(), c.checker.Std(symbol.ArrayTuple))
+	return newInlineGoValue(
+		buff.String(),
+		c.checker.Std(symbol.ArrayTuple),
+		"*value.ArrayTuple",
+	)
 }
 
 func (c *GoCompiler) hashSetToGoSource(v *value.HashSet) *goValue {
@@ -2593,7 +2787,11 @@ func (c *GoCompiler) hashSetToGoSource(v *value.HashSet) *goValue {
 	}
 
 	buff.WriteString(")")
-	return newInlineGoValue(buff.String(), c.checker.Std(symbol.HashSet))
+	return newInlineGoValue(
+		buff.String(),
+		c.checker.Std(symbol.HashSet),
+		"*value.HashSet",
+	)
 }
 
 func (c *GoCompiler) hashMapToGoSource(v *value.HashMap) *goValue {
@@ -2611,7 +2809,11 @@ func (c *GoCompiler) hashMapToGoSource(v *value.HashMap) *goValue {
 	}
 
 	buff.WriteString(")")
-	return newInlineGoValue(buff.String(), c.checker.Std(symbol.HashMap))
+	return newInlineGoValue(
+		buff.String(),
+		c.checker.Std(symbol.HashMap),
+		"*value.HashMap",
+	)
 }
 
 func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecord) *goValue {
@@ -2629,7 +2831,11 @@ func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecord) *goValue {
 	}
 
 	buff.WriteString(")")
-	return newInlineGoValue(buff.String(), c.checker.Std(symbol.HashRecord))
+	return newInlineGoValue(
+		buff.String(),
+		c.checker.Std(symbol.HashRecord),
+		"*value.HashRecord",
+	)
 }
 
 func (c *GoCompiler) valuePairToGoSource(p value.Pair) *goValue {
@@ -2645,6 +2851,7 @@ func (c *GoCompiler) valuePairToGoSource(p value.Pair) *goValue {
 	return newInlineGoValue(
 		fmt.Sprintf("Pair{Key: %s, Value: %s}", k.inline, v.inline),
 		c.checker.Std(symbol.Pair),
+		"value.Pair",
 	)
 }
 
@@ -2682,14 +2889,17 @@ func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, t
 	}
 
 	c.lastElkLocalIndex++
+	goLocal := c.registerGoLocalWithComment(
+		fmt.Sprintf("l%d", c.lastElkLocalIndex),
+		goValueType,
+		fmt.Sprintf("var %s: %s", name, types.Inspect(typ)),
+	)
 	newVar := &nativeElkLocal{
-		index: c.lastElkLocalIndex,
-		name:  name,
-		typ:   typ,
+		name:    name,
+		elkType: typ,
+		goLocal: goLocal,
 	}
 	scope.localTable[name] = newVar
-
-	c.registerGoLocalWithComment(newVar.goIdent(), typ, goValueType, fmt.Sprintf("name: %s, type: %s", name, types.Inspect(typ)))
 
 	return newVar
 }
