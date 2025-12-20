@@ -912,7 +912,7 @@ func (c *GoCompiler) emitGetConst(name value.Symbol, typ types.Type) *goValue {
 
 	return c.valueToNarrowerType(
 		newInlineGoValue(
-			fmt.Sprintf("value.GetConstant(%s)\n", constNameSymbol),
+			fmt.Sprintf("value.GetConstant(%s)", constNameSymbol),
 			typ,
 			"value.Value",
 		),
@@ -1393,7 +1393,7 @@ func (c *GoCompiler) compileInnerMethodCall(receiver *goValue, receiverType type
 	tmp := c.defineTmpGoLocal(goValueType)
 	c.registerErr()
 	c.emitAddCallFrame(location)
-	c.emit("%s, err = thread.CallMethodByNameWithCache(%s, &%s, %s...)\n", tmp.name, nameSym, callCache, callArgsVar.name)
+	c.emit("%s, err = thread.CallMethodByNameWithCache(%s, &%s, %s...) // receiver: %s, name: %s\n", tmp.name, nameSym, callCache, callArgsVar.name, types.Inspect(receiverType), name)
 	c.emitPopCallFrame()
 	c.emitErrorPropagation()
 
