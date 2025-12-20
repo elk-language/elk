@@ -4765,6 +4765,10 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		)
 	}
 
+	if method == nil {
+		return node
+	}
+
 	receiver := c.getReceiverlessMethodReceiver(methodName, method, methodNamespace, fromLocal, node.MethodName.Location())
 
 	newNode := ast.NewMethodCallNode(

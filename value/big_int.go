@@ -174,7 +174,7 @@ func (i *BigInt) CompareVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return i.CompareBigInt(o), Undefined
+			return i.CompareBigInt(o).ToValue(), Undefined
 		case *BigFloat:
 			return i.CompareBigFloat(o), Undefined
 		default:
@@ -184,7 +184,7 @@ func (i *BigInt) CompareVal(other Value) (Value, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return i.CompareSmallInt(other.AsSmallInt()), Undefined
+		return i.CompareSmallInt(other.AsSmallInt()).ToValue(), Undefined
 	case FLOAT_FLAG:
 		return i.CompareFloat(other.AsFloat()), Undefined
 	default:
@@ -192,7 +192,7 @@ func (i *BigInt) CompareVal(other Value) (Value, Value) {
 	}
 }
 
-func (i *BigInt) CompareInt(other Value) Value {
+func (i *BigInt) CompareInt(other Value) SmallInt {
 	if other.IsSmallInt() {
 		return i.CompareSmallInt(other.AsSmallInt())
 	}
@@ -207,13 +207,13 @@ func (i *BigInt) CompareBigFloat(other *BigFloat) Value {
 	return SmallInt(iBigFloat.Cmp(other)).ToValue()
 }
 
-func (i *BigInt) CompareBigInt(other *BigInt) Value {
-	return SmallInt(i.Cmp(other)).ToValue()
+func (i *BigInt) CompareBigInt(other *BigInt) SmallInt {
+	return SmallInt(i.Cmp(other))
 }
 
-func (i *BigInt) CompareSmallInt(other SmallInt) Value {
+func (i *BigInt) CompareSmallInt(other SmallInt) SmallInt {
 	oBigInt := NewBigInt(int64(other))
-	return SmallInt(i.Cmp(oBigInt)).ToValue()
+	return SmallInt(i.Cmp(oBigInt))
 }
 
 func (i *BigInt) CompareFloat(other Float) Value {

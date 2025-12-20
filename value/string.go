@@ -227,7 +227,7 @@ func (s String) Concat(other Value) (result String, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return s + o, err
+			return s.ConcatString(o), err
 		default:
 			return result, Ref(Errorf(TypeErrorClass, "cannot concat %s to string %s", other.Inspect(), s.Inspect()))
 		}
@@ -236,13 +236,22 @@ func (s String) Concat(other Value) (result String, err Value) {
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
 		ch := other.AsChar()
-		var buff strings.Builder
-		buff.WriteString(string(s))
-		buff.WriteRune(rune(ch))
-		return String(buff.String()), err
+		return s.ConcatChar(ch), err
 	default:
 		return result, Ref(Errorf(TypeErrorClass, "cannot concat %s to string %s", other.Inspect(), s.Inspect()))
 	}
+}
+
+func (s String) ConcatString(other String) String {
+	return s + other
+}
+
+func (s String) ConcatChar(other Char) String {
+	ch := other
+	var buff strings.Builder
+	buff.WriteString(string(s))
+	buff.WriteRune(rune(ch))
+	return String(buff.String())
 }
 
 // Repeat the content of this string n times and return a new string containing the result.
@@ -263,17 +272,21 @@ func (s String) Repeat(other Value) (result String, err Value) {
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		o := other.AsSmallInt()
-		if o < 0 {
-			return result, Ref(Errorf(
-				OutOfRangeErrorClass,
-				"repeat count cannot be negative: %s",
-				o.Inspect(),
-			))
-		}
-		return String(strings.Repeat(string(s), int(o))), err
+		return s.RepeatSmallInt(o)
 	default:
 		return result, Ref(Errorf(TypeErrorClass, "cannot repeat a string using %s", other.Inspect()))
 	}
+}
+
+func (s String) RepeatSmallInt(other SmallInt) (String, Value) {
+	if other < 0 {
+		return "", Ref(Errorf(
+			OutOfRangeErrorClass,
+			"repeat count cannot be negative: %s",
+			other.Inspect(),
+		))
+	}
+	return String(strings.Repeat(string(s), int(other))), Undefined
 }
 
 // Return a copy of the string without the given suffix.

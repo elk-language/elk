@@ -127,23 +127,31 @@ func (x Char) Cmp(y Char) int {
 // If the operation is illegal an error will be returned.
 func (c Char) Concat(other Value) (String, Value) {
 	if other.IsChar() {
-		var buff strings.Builder
-		buff.WriteRune(rune(c))
-		buff.WriteRune(rune(other.AsChar()))
-		return String(buff.String()), Undefined
+		return c.ConcatChar(other.AsChar()), Undefined
 	}
 
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			var buff strings.Builder
-			buff.WriteRune(rune(c))
-			buff.WriteString(string(o))
-			return String(buff.String()), Undefined
+			return c.ConcatString(o), Undefined
 		}
 	}
 
 	return "", Ref(Errorf(TypeErrorClass, "cannot concat %s with char %s", other.Inspect(), c.Inspect()))
+}
+
+func (c Char) ConcatChar(other Char) String {
+	var buff strings.Builder
+	buff.WriteRune(rune(c))
+	buff.WriteRune(rune(other))
+	return String(buff.String())
+}
+
+func (c Char) ConcatString(other String) String {
+	var buff strings.Builder
+	buff.WriteRune(rune(c))
+	buff.WriteString(string(other))
+	return String(buff.String())
 }
 
 // Repeat this character n times and return a new string containing the result.
@@ -165,21 +173,25 @@ func (c Char) Repeat(other Value) (String, Value) {
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		o := other.AsSmallInt()
-		if o < 0 {
-			return "", Ref(Errorf(
-				OutOfRangeErrorClass,
-				"repeat count cannot be negative: %s",
-				o.Inspect(),
-			))
-		}
-		var builder strings.Builder
-		for i := 0; i < int(o); i++ {
-			builder.WriteRune(rune(c))
-		}
-		return String(builder.String()), Undefined
+		return c.RepeatSmallInt(o)
 	default:
 		return "", Ref(Errorf(TypeErrorClass, "cannot repeat a char using %s", other.Inspect()))
 	}
+}
+
+func (c Char) RepeatSmallInt(other SmallInt) (String, Value) {
+	if other < 0 {
+		return "", Ref(Errorf(
+			OutOfRangeErrorClass,
+			"repeat count cannot be negative: %s",
+			other.Inspect(),
+		))
+	}
+	var builder strings.Builder
+	for range other {
+		builder.WriteRune(rune(c))
+	}
+	return String(builder.String()), Undefined
 }
 
 // Returns 1 if i is greater than other
@@ -216,7 +228,7 @@ func (c Char) GreaterThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return String(c).Cmp(o) == 1, Undefined
+			return c.GreaterThanString(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
@@ -224,10 +236,18 @@ func (c Char) GreaterThan(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return c > other.AsChar(), Undefined
+		return c.GreaterThanChar(other.AsChar()), Undefined
 	default:
 		return false, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
+}
+
+func (c Char) GreaterThanString(other String) bool {
+	return String(c).Cmp(other) == 1
+}
+
+func (c Char) GreaterThanChar(other Char) bool {
+	return c > other
 }
 
 // Check whether c is greater than or equal to other and return an error
@@ -243,7 +263,7 @@ func (c Char) GreaterThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return String(c).Cmp(o) >= 0, Undefined
+			return c.GreaterThanEqualString(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
@@ -251,10 +271,18 @@ func (c Char) GreaterThanEqual(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return c >= other.AsChar(), Undefined
+		return c.GreaterThanEqualChar(other.AsChar()), Undefined
 	default:
 		return false, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
+}
+
+func (c Char) GreaterThanEqualString(other String) bool {
+	return String(c).Cmp(other) >= 0
+}
+
+func (c Char) GreaterThanEqualChar(other Char) bool {
+	return c >= other
 }
 
 // Check whether c is less than other and return an error
@@ -270,7 +298,7 @@ func (c Char) LessThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return String(c).Cmp(o) == -1, Undefined
+			return c.LessThanString(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
@@ -278,10 +306,18 @@ func (c Char) LessThan(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return c < other.AsChar(), Undefined
+		return c.LessThanChar(other.AsChar()), Undefined
 	default:
 		return false, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
+}
+
+func (c Char) LessThanString(other String) bool {
+	return String(c).Cmp(other) == -1
+}
+
+func (c Char) LessThanChar(other Char) bool {
+	return c < other
 }
 
 // Check whether c is less than or equal to other and return an error
@@ -297,7 +333,7 @@ func (c Char) LessThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return String(c).Cmp(o) <= 0, Undefined
+			return c.LessThanEqualString(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
@@ -305,10 +341,18 @@ func (c Char) LessThanEqual(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return c <= other.AsChar(), Undefined
+		return c.LessThanEqualChar(other.AsChar()), Undefined
 	default:
 		return false, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
+}
+
+func (c Char) LessThanEqualString(other String) bool {
+	return String(c).Cmp(other) <= 0
+}
+
+func (c Char) LessThanEqualChar(other Char) bool {
+	return c <= other
 }
 
 // Check whether c is equal to other

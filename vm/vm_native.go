@@ -123,6 +123,9 @@ func (vm *Thread) CallMethodByName(name value.Symbol, args ...value.Value) (valu
 	self := args[0]
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
+	if method == nil {
+		panic(fmt.Sprintf("no such method, class: %s, name: %s", class.Name, name))
+	}
 	return vm.CallMethod(method, args...)
 }
 

@@ -172,15 +172,19 @@ func (i Int32) ExponentiateVal(other Value) (Int32, Value) {
 	}
 
 	o := other.AsInt32()
-	if o <= 0 {
-		return 1, Undefined
+	return i.ExponentiateInt32(o), Undefined
+}
+
+func (i Int32) ExponentiateInt32(other Int32) Int32 {
+	if other <= 0 {
+		return 1
 	}
 	result := i
 	var j Int32
-	for j = 2; j <= o; j++ {
+	for j = 2; j <= other; j++ {
 		result *= i
 	}
-	return result, Undefined
+	return result
 }
 
 func (i Int32) Subtract(other Value) (Int32, Value) {
@@ -207,10 +211,14 @@ func (i Int32) ModuloVal(other Value) (Int32, Value) {
 	}
 
 	o := other.AsInt32()
-	if o == 0 {
+	return i.ModuloInt32(o)
+}
+
+func (i Int32) ModuloInt32(other Int32) (Int32, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i % o, Undefined
+	return i % other, Undefined
 }
 
 func (i Int32) Divide(other Value) (Int32, Value) {
@@ -218,10 +226,14 @@ func (i Int32) Divide(other Value) (Int32, Value) {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsInt32()
-	if o == 0 {
+	return i.DivideInt32(o)
+}
+
+func (i Int32) DivideInt32(other Int32) (Int32, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i / o, Undefined
+	return i / other, Undefined
 }
 
 func (i Int32) CompareVal(other Value) (Value, Value) {
@@ -229,14 +241,17 @@ func (i Int32) CompareVal(other Value) (Value, Value) {
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsInt32()
+	return i.CompareInt32(o).ToValue(), Undefined
+}
 
-	if i > o {
-		return SmallInt(1).ToValue(), Undefined
+func (i Int32) CompareInt32(other Int32) SmallInt {
+	if i > other {
+		return SmallInt(1)
 	}
-	if i < o {
-		return SmallInt(-1).ToValue(), Undefined
+	if i < other {
+		return SmallInt(-1)
 	}
-	return SmallInt(0).ToValue(), Undefined
+	return SmallInt(0)
 }
 
 func (i Int32) GreaterThanVal(other Value) (Value, Value) {

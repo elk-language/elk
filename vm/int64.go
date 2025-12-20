@@ -7,7 +7,7 @@ import (
 // Std::Int64
 func initInt64() {
 	// Instance methods
-	c := &value.Int32Class.MethodContainer
+	c := &value.Int64Class.MethodContainer
 	Def(
 		c,
 		"hash",
