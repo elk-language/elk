@@ -8,8 +8,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestGetConstant(t *testing.T) {
-	tests := testTable{
+func TestBytecodeGetConstant(t *testing.T) {
+	tests := bytecodeTestTable{
 		"absolute path ::Std": {
 			input: "::Std",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -170,13 +170,13 @@ func TestGetConstant(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestDefConstant(t *testing.T) {
-	tests := testTable{
+func TestBytecodeDefConstant(t *testing.T) {
+	tests := bytecodeTestTable{
 		"relative path Foo": {
 			input: "const Foo = 3",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -203,7 +203,7 @@ func TestDefConstant(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }

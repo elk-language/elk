@@ -226,7 +226,12 @@ func (c *GoCompiler) InitMainCompiler() {
 	c.emitPackage("package main\n\n")
 	c.emitPackage("import \"github.com/elk-language/elk/value\"\n")
 	c.emitPackage("import \"github.com/elk-language/elk/vm\"\n\n")
-	// c.emitPackage("import \"github.com/elk-language/elk/value/symbol\"\n\n")
+	c.emitPackage("import \"github.com/elk-language/elk/value/symbol\"\n\n")
+
+	// noops to stop Go from complaining about unused imports
+	c.emitPackage("var _ = symbol.Value\n")
+	c.emitPackage("var _ = vm.New\n")
+	c.emitPackage("var _ = value.Truthy\n\n")
 }
 
 func (c *GoCompiler) InitGlobalEnv() Compiler {
@@ -1213,6 +1218,17 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 			c.typeOf(node),
 			"value.UInt64",
 		)
+	case *ast.UIntLiteralNode:
+		i, err := value.StrictParseUint(node.Value, 0, value.SmallIntBits)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return nil
+		}
+		return newInlineGoValue(
+			fmt.Sprintf("value.UInt(%d)", i),
+			c.typeOf(node),
+			"value.UInt",
+		)
 	case *ast.BinaryExpressionNode:
 		return c.compileBinaryExpressionNode(node)
 	case *ast.AssignmentExpressionNode:
@@ -1343,7 +1359,7 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 		c.emit("%s = value.Nil\n", resultVar.name)
 		c.emit("} else {\n")
 		c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, op, args, typ, location)
-		c.emit("%s = %s\n", resultVar.name, receiverVal)
+		c.emit("%s = %s\n", resultVar.name, receiverVal.value())
 		c.emit("}\n")
 
 		return newTmpGoValue(resultVar, typ)
@@ -1352,7 +1368,7 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 		resultVar := c.defineTmpGoLocal(goValueType)
 
 		c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, op, args, typ, location)
-		c.emit("%s = %s\n", resultVar.name, receiverVal)
+		c.emit("%s = %s\n", resultVar.name, receiverVal.value())
 
 		return newTmpGoValue(resultVar, typ)
 	case token.DOT:
@@ -5208,6 +5224,12 @@ func (c *GoCompiler) valueToGoSource(val value.Value) *goValue {
 			c.checker.Std(symbol.Int64),
 			"value.Int64",
 		)
+	case value.UINT_FLAG:
+		return newInlineGoValue(
+			fmt.Sprintf("value.UInt(%d)", val.AsUInt()),
+			c.checker.Std(symbol.UInt),
+			"value.UInt",
+		)
 	case value.UINT64_FLAG:
 		return newInlineGoValue(
 			fmt.Sprintf("value.UInt64(%d)", val.AsUInt64()),
@@ -5557,7 +5579,7 @@ func (c *GoCompiler) hashMapToGoSource(v *value.HashMap) *goValue {
 			return nil
 		}
 
-		fmt.Fprintf(&buff, "%s, ", p)
+		fmt.Fprintf(&buff, "%s, ", p.value())
 	}
 
 	buff.WriteString(")")
@@ -5579,7 +5601,7 @@ func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecord) *goValue {
 			return nil
 		}
 
-		fmt.Fprintf(&buff, "%s, ", p)
+		fmt.Fprintf(&buff, "%s, ", p.value())
 	}
 
 	buff.WriteString(")")

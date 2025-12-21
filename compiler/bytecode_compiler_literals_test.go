@@ -13,8 +13,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestClosureLiteral(t *testing.T) {
-	tests := testTable{
+func TestBytecodeClosureLiteral(t *testing.T) {
+	tests := bytecodeTestTable{
 		"recursive closure": {
 			input: `
 				var calc_fib: |n: Int|: Int = |n| ->
@@ -140,13 +140,13 @@ func TestClosureLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestStringLiteral(t *testing.T) {
-	tests := testTable{
+func TestBytecodeStringLiteral(t *testing.T) {
+	tests := bytecodeTestTable{
 		"static string": {
 			input: `"foo bar"`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -246,13 +246,13 @@ func TestStringLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestRangeLiteral(t *testing.T) {
-	tests := testTable{
+func TestBytecodeRangeLiteral(t *testing.T) {
+	tests := bytecodeTestTable{
 		"static closed range": {
 			input: `2...5`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -589,13 +589,13 @@ func TestRangeLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLiterals(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLiterals(t *testing.T) {
+	tests := bytecodeTestTable{
 		"put UInt8": {
 			input: "1u8",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -978,13 +978,13 @@ func TestLiterals(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestArrayTuples(t *testing.T) {
-	tests := testTable{
+func TestBytecodeArrayTuples(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty arrayTuple": {
 			input: "%[]",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1614,13 +1614,13 @@ func TestArrayTuples(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestArrayLists(t *testing.T) {
-	tests := testTable{
+func TestBytecodeArrayLists(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty list": {
 			input: "[]",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -2506,13 +2506,13 @@ func TestArrayLists(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestHashSet(t *testing.T) {
-	tests := testTable{
+func TestBytecodeHashSet(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty list": {
 			input: "^[]",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -3047,13 +3047,13 @@ func TestHashSet(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestHashMap(t *testing.T) {
-	tests := testTable{
+func TestBytecodeHashMap(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty": {
 			input: "{}",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -3505,13 +3505,13 @@ func TestHashMap(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestHashRecord(t *testing.T) {
-	tests := testTable{
+func TestBytecodeHashRecord(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty": {
 			input: "%{}",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -3866,13 +3866,13 @@ func TestHashRecord(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestRegex(t *testing.T) {
-	tests := testTable{
+func TestBytecodeRegex(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty": {
 			input: "%//",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -3976,7 +3976,7 @@ func TestRegex(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }

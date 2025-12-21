@@ -9,8 +9,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestGoExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeGoExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"with a single expression": {
 			input: "go println('foo')",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -117,13 +117,13 @@ func TestGoExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestForInExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeForInExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"int literal": {
 			input: `
 				for i in 20
@@ -1077,13 +1077,13 @@ func TestForInExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestReturnExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeReturnExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"return a value": {
 			input: "return 5",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1106,13 +1106,13 @@ func TestReturnExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestAwaitExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeAwaitExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"await in a synchronous context": {
 			input: "await timeout(2.seconds)",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1288,13 +1288,13 @@ func TestAwaitExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestModifierForIn(t *testing.T) {
-	tests := testTable{
+func TestBytecodeModifierForIn(t *testing.T) {
+	tests := bytecodeTestTable{
 		"iterate": {
 			input: `println(i) for i in [1, 2, 3]`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1426,13 +1426,13 @@ func TestModifierForIn(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestIfExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeIfExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static condition with empty then and else": {
 			input: `if false; end`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1671,13 +1671,13 @@ func TestIfExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestUnlessExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeUnlessExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static condition with empty then and else": {
 			input: "unless true; end",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1914,13 +1914,13 @@ func TestUnlessExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestBreak(t *testing.T) {
-	tests := testTable{
+func TestBytecodeBreak(t *testing.T) {
+	tests := bytecodeTestTable{
 		"in top level": {
 			input: "break",
 			err: diagnostic.DiagnosticList{
@@ -1973,13 +1973,13 @@ func TestBreak(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestContinue(t *testing.T) {
-	tests := testTable{
+func TestBytecodeContinue(t *testing.T) {
+	tests := bytecodeTestTable{
 		"in top level": {
 			input: "continue",
 			err: diagnostic.DiagnosticList{
@@ -2032,13 +2032,13 @@ func TestContinue(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLoopExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLoopExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty body": {
 			input: `
 				loop
@@ -2576,13 +2576,13 @@ func TestLoopExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLogicalOrOperator(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLogicalOrOperator(t *testing.T) {
+	tests := bytecodeTestTable{
 		"simple": {
 			input: `
 				a := "foo"
@@ -2660,13 +2660,13 @@ func TestLogicalOrOperator(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLogicalAndOperator(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLogicalAndOperator(t *testing.T) {
+	tests := bytecodeTestTable{
 		"simple": {
 			input: `
 				a := "foo"
@@ -2743,13 +2743,13 @@ func TestLogicalAndOperator(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestNilCoalescingOperator(t *testing.T) {
-	tests := testTable{
+func TestBytecodeNilCoalescingOperator(t *testing.T) {
+	tests := bytecodeTestTable{
 		"simple": {
 			input: `
 				a := "foo"
@@ -2823,13 +2823,13 @@ func TestNilCoalescingOperator(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestNumericFor(t *testing.T) {
-	tests := testTable{
+func TestBytecodeNumericFor(t *testing.T) {
+	tests := bytecodeTestTable{
 		"for without initialiser, condition, increment and body": {
 			input: `
 				fornum ;;
@@ -3313,13 +3313,13 @@ func TestNumericFor(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestModifierWhile(t *testing.T) {
-	tests := testTable{
+func TestBytecodeModifierWhile(t *testing.T) {
+	tests := bytecodeTestTable{
 		"single line": {
 			input: `
 			  i := 0
@@ -3859,13 +3859,13 @@ func TestModifierWhile(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestWhile(t *testing.T) {
-	tests := testTable{
+func TestBytecodeWhile(t *testing.T) {
+	tests := bytecodeTestTable{
 		"with a body": {
 			input: `
 			  i := 0
@@ -4395,13 +4395,13 @@ func TestWhile(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestModifierUntil(t *testing.T) {
-	tests := testTable{
+func TestBytecodeModifierUntil(t *testing.T) {
+	tests := bytecodeTestTable{
 		"single line": {
 			input: `
 			  i := 0
@@ -4940,13 +4940,13 @@ func TestModifierUntil(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestUntil(t *testing.T) {
-	tests := testTable{
+func TestBytecodeUntil(t *testing.T) {
+	tests := bytecodeTestTable{
 		"with a body": {
 			input: `
 			  i := 0
@@ -5474,13 +5474,13 @@ func TestUntil(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestMust(t *testing.T) {
-	tests := testTable{
+func TestBytecodeMust(t *testing.T) {
+	tests := bytecodeTestTable{
 		"with a value": {
 			input: `
 				var a: Int? = nil
@@ -5508,13 +5508,13 @@ func TestMust(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestAs(t *testing.T) {
-	tests := testTable{
+func TestBytecodeAs(t *testing.T) {
+	tests := bytecodeTestTable{
 		"cast": {
 			input: `
 				var a: Int | Float = 1
@@ -5546,13 +5546,13 @@ func TestAs(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestThrow(t *testing.T) {
-	tests := testTable{
+func TestBytecodeThrow(t *testing.T) {
+	tests := bytecodeTestTable{
 		"with a value": {
 			input: `throw unchecked :foo`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -5581,13 +5581,13 @@ func TestThrow(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestCatch(t *testing.T) {
-	tests := testTable{
+func TestBytecodeCatch(t *testing.T) {
+	tests := bytecodeTestTable{
 		"simple catch": {
 			input: `
 				do
@@ -5925,7 +5925,7 @@ func TestCatch(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }

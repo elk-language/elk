@@ -9,8 +9,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestSwitch(t *testing.T) {
-	tests := testTable{
+func TestBytecodeSwitch(t *testing.T) {
+	tests := bytecodeTestTable{
 		"with a few literal cases": {
 			input: `
 			  var a: any = 0
@@ -4140,7 +4140,7 @@ func TestSwitch(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }

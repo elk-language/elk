@@ -380,7 +380,7 @@ func (f Float) DivideInt(other Value) Float {
 
 func (f Float) DivideBigInt(other *BigInt) Float {
 	oFloat, _ := other.ToGoBigInt().Float64()
-	return f * Float(oFloat)
+	return f / Float(oFloat)
 }
 
 // ExponentiateVal by another value and return an error

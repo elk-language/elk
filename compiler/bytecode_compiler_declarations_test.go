@@ -9,8 +9,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestSingletonBlock(t *testing.T) {
-	tests := testTable{
+func TestBytecodeSingletonBlock(t *testing.T) {
+	tests := bytecodeTestTable{
 		"define in top-level": {
 			input: `
 				singleton
@@ -322,13 +322,13 @@ func TestSingletonBlock(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestGetter(t *testing.T) {
-	tests := testTable{
+func TestBytecodeGetter(t *testing.T) {
+	tests := bytecodeTestTable{
 		"define single getter": {
 			input: `
 				class Foo
@@ -533,13 +533,13 @@ func TestGetter(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestSetter(t *testing.T) {
-	tests := testTable{
+func TestBytecodeSetter(t *testing.T) {
+	tests := bytecodeTestTable{
 		"define single setter": {
 			input: `
 				class Foo
@@ -739,13 +739,13 @@ func TestSetter(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestAttr(t *testing.T) {
-	tests := testTable{
+func TestBytecodeAttr(t *testing.T) {
+	tests := bytecodeTestTable{
 		"define single attr": {
 			input: `
 				class Foo
@@ -954,13 +954,13 @@ func TestAttr(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestAlias(t *testing.T) {
-	tests := testTable{
+func TestBytecodeAlias(t *testing.T) {
+	tests := bytecodeTestTable{
 		"define single alias": {
 			input: `
 				class Foo
@@ -1179,13 +1179,13 @@ func TestAlias(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestDefClass(t *testing.T) {
-	tests := testTable{
+func TestBytecodeDefClass(t *testing.T) {
+	tests := bytecodeTestTable{
 		"class with a relative name without a body": {
 			input: "class Foo; end",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1612,13 +1612,13 @@ func TestDefClass(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestDefModule(t *testing.T) {
-	tests := testTable{
+func TestBytecodeDefModule(t *testing.T) {
+	tests := bytecodeTestTable{
 		"module with a relative name without a body": {
 			input: "module Foo; end",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1907,13 +1907,13 @@ func TestDefModule(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestDefMethod(t *testing.T) {
-	tests := testTable{
+func TestBytecodeDefMethod(t *testing.T) {
+	tests := bytecodeTestTable{
 		"define method in top level": {
 			input: `
 				def foo then :bar
@@ -2945,13 +2945,13 @@ func TestDefMethod(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestDefInit(t *testing.T) {
-	tests := testTable{
+func TestBytecodeDefInit(t *testing.T) {
+	tests := bytecodeTestTable{
 		"define init in top level": {
 			input: `
 				init then :bar
@@ -3115,13 +3115,13 @@ func TestDefInit(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestDefMixin(t *testing.T) {
-	tests := testTable{
+func TestBytecodeDefMixin(t *testing.T) {
+	tests := bytecodeTestTable{
 		"mixin with a relative name without a body": {
 			input: "mixin Foo; end",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -3410,13 +3410,13 @@ func TestDefMixin(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestInclude(t *testing.T) {
-	tests := testTable{
+func TestBytecodeInclude(t *testing.T) {
+	tests := bytecodeTestTable{
 		"include a global constant in a class": {
 			input: `
 				mixin Bar; end
@@ -3644,7 +3644,7 @@ func TestInclude(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }

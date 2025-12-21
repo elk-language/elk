@@ -10,8 +10,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestSubscript(t *testing.T) {
-	tests := testTable{
+func TestBytecodeSubscript(t *testing.T) {
+	tests := bytecodeTestTable{
 		"static": {
 			input: "[5, 3][0]",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -3625,13 +3625,13 @@ func TestSubscript(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestInstantiate(t *testing.T) {
-	tests := testTable{
+func TestBytecodeInstantiate(t *testing.T) {
+	tests := bytecodeTestTable{
 		"without arguments": {
 			input: `
 				class Foo; end
@@ -3944,13 +3944,13 @@ func TestInstantiate(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestCallMethod(t *testing.T) {
-	tests := testTable{
+func TestBytecodeCallMethod(t *testing.T) {
+	tests := bytecodeTestTable{
 		"call method overloads": {
 			input: `
 				module Foo
@@ -6161,13 +6161,13 @@ func TestCallMethod(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestCallFunction(t *testing.T) {
-	tests := testTable{
+func TestBytecodeCallFunction(t *testing.T) {
+	tests := bytecodeTestTable{
 		"call a function from using all with a class": {
 			input: `
 				using Bar::*
@@ -6925,13 +6925,13 @@ func TestCallFunction(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestCallSetter(t *testing.T) {
-	tests := testTable{
+func TestBytecodeCallSetter(t *testing.T) {
+	tests := bytecodeTestTable{
 		"call a setter": {
 			input: `
 				module Bar
@@ -9118,7 +9118,7 @@ func TestCallSetter(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }

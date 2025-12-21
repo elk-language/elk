@@ -185,6 +185,9 @@ func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value, shiftFunc l
 			return left << -r, Undefined
 		}
 		return shiftFunc(left, uint64(r)), Undefined
+	case UINT_FLAG:
+		r := right.AsUInt()
+		return shiftFunc(left, uint64(r)), Undefined
 	case UINT64_FLAG:
 		r := right.AsInlineUInt64()
 		return shiftFunc(left, uint64(r)), Undefined
@@ -258,6 +261,9 @@ func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, Value) {
 		if r < 0 {
 			return left << -r, Undefined
 		}
+		return left >> r, Undefined
+	case UINT_FLAG:
+		r := right.AsUInt()
 		return left >> r, Undefined
 	case UINT64_FLAG:
 		r := right.AsInlineUInt64()
@@ -333,6 +339,9 @@ func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, Value) {
 			return left >> -r, Undefined
 		}
 		return left << r, Undefined
+	case UINT_FLAG:
+		r := right.AsUInt()
+		return left << r, Undefined
 	case UINT64_FLAG:
 		r := right.AsInlineUInt64()
 		return left << r, Undefined
@@ -391,6 +400,9 @@ func StrictFloatLaxEqual[T StrictFloat](left T, right Value) Value {
 		return ToElkBool(T(left) == T(r))
 	case INT8_FLAG:
 		r := right.AsInt8()
+		return ToElkBool(T(left) == T(r))
+	case UINT_FLAG:
+		r := right.AsUInt()
 		return ToElkBool(T(left) == T(r))
 	case UINT64_FLAG:
 		r := right.AsInlineUInt64()
@@ -461,6 +473,12 @@ func StrictSignedIntLaxEqual[T StrictSignedInt](left T, right Value) Value {
 	case INT8_FLAG:
 		r := right.AsInt8()
 		return ToElkBool(left == T(r))
+	case UINT_FLAG:
+		r := right.AsUInt()
+		if r > math.MaxInt64 {
+			return False
+		}
+		return ToElkBool(int64(left) == int64(r))
 	case UINT64_FLAG:
 		r := right.AsInlineUInt64()
 		if r > math.MaxInt64 {
@@ -548,6 +566,9 @@ func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) Value {
 			return False
 		}
 		return ToElkBool(int64(left) == int64(r))
+	case UINT_FLAG:
+		r := right.AsUInt()
+		return ToElkBool(uint64(left) == uint64(r))
 	case UINT64_FLAG:
 		r := right.AsInlineUInt64()
 		return ToElkBool(uint64(left) == uint64(r))

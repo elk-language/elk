@@ -10,8 +10,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestQuote(t *testing.T) {
-	tests := testTable{
+func TestBytecodeQuote(t *testing.T) {
+	tests := bytecodeTestTable{
 		"without unquote": {
 			input: `
 				quote
@@ -781,13 +781,13 @@ func TestQuote(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestMacroExpansion(t *testing.T) {
-	tests := testTable{
+func TestBytecodeMacroExpansion(t *testing.T) {
+	tests := bytecodeTestTable{
 		"compile-time fibonacci": {
 			input: `
 				using Std::Elk::AST::*
@@ -1211,7 +1211,7 @@ func TestMacroExpansion(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }

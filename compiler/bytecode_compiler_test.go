@@ -26,16 +26,16 @@ var mainSymbol value.Symbol = value.ToSymbol("<main>")
 var functionSymbol value.Symbol = value.ToSymbol("<closure>")
 
 // Represents a single compiler test case.
-type testCase struct {
+type bytecodeTestCase struct {
 	input string
 	want  *vm.BytecodeFunction
 	err   diagnostic.DiagnosticList
 }
 
 // Type of the compiler test table.
-type testTable map[string]testCase
+type bytecodeTestTable map[string]bytecodeTestCase
 
-func compilerTest(tc testCase, t *testing.T) {
+func bytecodeCompilerTest(tc bytecodeTestCase, t *testing.T) {
 	t.Helper()
 
 	pp.Default.SetColoringEnabled(false)

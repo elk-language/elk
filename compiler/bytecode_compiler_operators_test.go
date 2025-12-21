@@ -10,8 +10,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestBinaryExpressions(t *testing.T) {
-	tests := testTable{
+func TestBytecodeBinaryExpressions(t *testing.T) {
+	tests := bytecodeTestTable{
 		"is a": {
 			input: "3 <: ::Std::Int",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -942,13 +942,13 @@ func TestBinaryExpressions(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestUnaryExpressions(t *testing.T) {
-	tests := testTable{
+func TestBytecodeUnaryExpressions(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static negate": {
 			input: "-5",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1226,13 +1226,13 @@ func TestUnaryExpressions(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestComplexAssignmentLocals(t *testing.T) {
-	tests := testTable{
+func TestBytecodeComplexAssignmentLocals(t *testing.T) {
+	tests := bytecodeTestTable{
 		"increment": {
 			input: "a := 1; a++",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1634,13 +1634,13 @@ func TestComplexAssignmentLocals(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestComplexAssignmentInstanceVariables(t *testing.T) {
-	tests := testTable{
+func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
+	tests := bytecodeTestTable{
 		"increment": {
 			input: `
 				class Foo
@@ -4044,13 +4044,13 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestBitwiseAnd(t *testing.T) {
-	tests := testTable{
+func TestBytecodeBitwiseAnd(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static AND": {
 			input: "23 & 10",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -4107,13 +4107,13 @@ func TestBitwiseAnd(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestBitwiseAndNot(t *testing.T) {
-	tests := testTable{
+func TestBytecodeBitwiseAndNot(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static AND NOT": {
 			input: "23 &~ 10",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -4170,13 +4170,13 @@ func TestBitwiseAndNot(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestBitwiseOr(t *testing.T) {
-	tests := testTable{
+func TestBytecodeBitwiseOr(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static OR": {
 			input: "23 | 10",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -4233,13 +4233,13 @@ func TestBitwiseOr(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestBitwiseXor(t *testing.T) {
-	tests := testTable{
+func TestBytecodeBitwiseXor(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static XOR": {
 			input: "23 ^ 10",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -4296,13 +4296,13 @@ func TestBitwiseXor(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestModulo(t *testing.T) {
-	tests := testTable{
+func TestBytecodeModulo(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static modulo": {
 			input: "23 % 10",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -4359,7 +4359,7 @@ func TestModulo(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }

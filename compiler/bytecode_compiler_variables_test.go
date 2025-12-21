@@ -9,8 +9,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestInstanceVariables(t *testing.T) {
-	tests := testTable{
+func TestBytecodeInstanceVariables(t *testing.T) {
+	tests := bytecodeTestTable{
 		"initialise when declared": {
 			input: `
 				class Foo
@@ -3496,13 +3496,13 @@ func TestInstanceVariables(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLocalVariables(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLocalVariables(t *testing.T) {
+	tests := bytecodeTestTable{
 		"declare": {
 			input: "var a: Int",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -3806,13 +3806,13 @@ func TestLocalVariables(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestUpvalues(t *testing.T) {
-	tests := testTable{
+func TestBytecodeUpvalues(t *testing.T) {
+	tests := bytecodeTestTable{
 		"create a pointer": {
 			input: `
 				a := 5
@@ -4205,13 +4205,13 @@ func TestUpvalues(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLocalValues(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLocalValues(t *testing.T) {
+	tests := bytecodeTestTable{
 		"declare": {
 			input: "val a: Int",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -4454,7 +4454,7 @@ func TestLocalValues(t *testing.T) {
 							byte(bytecode.INT_1),
 							byte(bytecode.SET_LOCAL_4),
 						},
-						declareNVariables(253)...,
+						bytecodeDeclareNVariables(253)...,
 					),
 					byte(bytecode.INT_1),
 					byte(bytecode.SET_LOCAL8), 254,
@@ -4478,12 +4478,12 @@ func TestLocalValues(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func declareNVariables(n int) []byte {
+func bytecodeDeclareNVariables(n int) []byte {
 	b := make([]byte, 0, n*4)
 	for i := 5; i <= n; i++ {
 		b = append(
