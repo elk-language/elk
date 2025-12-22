@@ -1,6 +1,9 @@
 package compiler_test
 
 import (
+	"fmt"
+	"math"
+	"math/big"
 	"testing"
 )
 
@@ -837,145 +840,208 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// "put BigInt": {
-		// 	input: (&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String(),
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(
-		// 			P(0, 1, 1),
-		// 			P(
-		// 				len((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String())-1,
-		// 				1,
-		// 				len((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String()),
-		// 			),
-		// 		),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(value.ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)))),
-		// 		},
-		// 	),
-		// },
-		// "put Float64": {
-		// 	input: "45.5f64",
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(6, 1, 7)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Float64(45.5).ToValue(),
-		// 		},
-		// 	),
-		// },
-		// "put Float32": {
-		// 	input: "45.5f32",
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(6, 1, 7)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Float32(45.5).ToValue(),
-		// 		},
-		// 	),
-		// },
-		// "put Float": {
-		// 	input: "45.5",
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(3, 1, 4)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Float(45.5).ToValue(),
-		// 		},
-		// 	),
-		// },
-		// "put Raw String": {
-		// 	input: `'foo\n'`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(6, 1, 7)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(value.String(`foo\n`)),
-		// 		},
-		// 	),
-		// },
-		// "put String": {
-		// 	input: `"foo\n"`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(6, 1, 7)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(value.String("foo\n")),
-		// 		},
-		// 	),
-		// },
-		// "put raw Char": {
-		// 	input: "`I`",
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_CHAR_8), 'I',
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(2, 1, 3)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 3),
-		// 		},
-		// 		[]value.Value{},
-		// 	),
-		// },
-		// "put Char": {
-		// 	input: "`\\n`",
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_CHAR_8), '\n',
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(3, 1, 4)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 3),
-		// 		},
-		// 		[]value.Value{},
-		// 	),
-		// },
+		"put BigInt": {
+			input: fmt.Sprintf("a := %s", (&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String()),
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var bi0 = value.ParseBigIntPanic("9223372036854775812", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Ref(bi0)
+}
+`,
+		},
+		"put Float64": {
+			input: "a := 45.5f64",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Float64 // var a: Std::Float64
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float64(45.500000)
+}
+`,
+		},
+		"put Float32": {
+			input: "a := 45.5f32",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Float32 // var a: Std::Float32
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float32(45.500000)
+}
+`,
+		},
+		"put Float": {
+			input: "a := 45.5",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float(45.500000)
+}
+`,
+		},
+		"put Raw String": {
+			input: `a := 'foo\n'`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.String // var a: Std::String
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.String("foo\\n")
+}
+`,
+		},
+		"put String": {
+			input: `a := "foo\n"`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.String // var a: Std::String
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.String("foo\n")
+}
+`,
+		},
+		"put raw Char": {
+			input: "a := `I`",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Char // var a: Std::Char
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Char('I')
+}
+`,
+		},
+		"put Char": {
+			input: "a := `\\n`",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Char // var a: Std::Char
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Char('\n')
+}
+`,
+		},
 		// "put nil": {
 		// 	input: `nil`,
 		// 	want: vm.NewBytecodeFunctionNoParams(

@@ -1290,7 +1290,7 @@ func (c *BytecodeCompiler) compileNode(node ast.Node, valueIsIgnored bool) expre
 		}
 		c.emitValue(value.UInt64(i).ToValue(), node.Location())
 	case *ast.FloatLiteralNode:
-		f, err := strconv.ParseFloat(node.Value, 64)
+		f, err := strconv.ParseFloat(node.Value, value.SmallIntBits)
 		if err != nil {
 			c.Errors.AddFailure(err.Error(), node.Location())
 			return expressionCompiled

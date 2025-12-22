@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -38,8 +39,17 @@ type nativeBigInt struct {
 	val string
 }
 
-func (s *nativeBigInt) goIdent() string {
-	return fmt.Sprintf("bi%d", s.id)
+func (n *nativeBigInt) goIdent() string {
+	return fmt.Sprintf("bi%d", n.id)
+}
+
+type nativeBigFloat struct {
+	id  int
+	val string
+}
+
+func (n *nativeBigFloat) goIdent() string {
+	return fmt.Sprintf("bf%d", n.id)
 }
 
 type nativeSymbol struct {
@@ -204,9 +214,7 @@ var errGoValue = newInlineGoValue("ERR", types.Untyped{}, goValueType)
 var nilGoValue = newInlineGoValue("value.Nil", types.Nil{}, goValueType)
 
 func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) *GoCompiler {
-	bigIntCache := concurrent.NewMap[string, *nativeBigInt]()
-	symbolCache := concurrent.NewMap[string, *nativeSymbol]()
-	compiler := NewGoCompiler("main", topLevelGoCompilerMode, loc, checker, bigIntCache, symbolCache, output)
+	compiler := NewGoCompiler("main", topLevelGoCompilerMode, loc, checker, newGlobalData(), output)
 	compiler.Errors = errors
 	if parent != nil {
 		compiler.SetParent(parent)
@@ -215,9 +223,7 @@ func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.L
 }
 
 func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) Compiler {
-	bigIntCache := concurrent.NewMap[string, *nativeBigInt]()
-	symbolCache := concurrent.NewMap[string, *nativeSymbol]()
-	compiler := NewGoCompiler("main", topLevelGoCompilerMode, loc, checker, bigIntCache, symbolCache, output)
+	compiler := NewGoCompiler("main", topLevelGoCompilerMode, loc, checker, newGlobalData(), output)
 	compiler.Errors = errors
 	return compiler
 }
@@ -235,7 +241,7 @@ func (c *GoCompiler) InitMainCompiler() {
 }
 
 func (c *GoCompiler) InitGlobalEnv() Compiler {
-	envCompiler := NewGoCompiler("initGlobalEnv", topLevelGoCompilerMode, c.loc, c.checker, c.bigIntCache, c.symbolCache, c.output)
+	envCompiler := NewGoCompiler("initGlobalEnv", topLevelGoCompilerMode, c.loc, c.checker, c.globalData, c.output)
 	envCompiler.SetParent(c)
 	envCompiler.Errors = c.Errors
 	envCompiler.compileGlobalEnv()
@@ -258,7 +264,7 @@ func (c *GoCompiler) FinishGlobalEnvCompiler() {
 }
 
 func (c *GoCompiler) InitMethodCompiler(location *position.Location) (Compiler, int) {
-	methodCompiler := NewGoCompiler("methodDefinitions", topLevelGoCompilerMode, c.loc, c.checker, c.bigIntCache, c.symbolCache, c.output)
+	methodCompiler := NewGoCompiler("methodDefinitions", topLevelGoCompilerMode, c.loc, c.checker, c.globalData, c.output)
 	methodCompiler.Errors = c.Errors
 	methodCompiler.SetParent(c)
 
@@ -283,7 +289,7 @@ func (c *GoCompiler) CompileMethods(location *position.Location, execOffset int)
 }
 
 func (c *GoCompiler) InitIvarIndicesCompiler(location *position.Location) (Compiler, int) {
-	ivarCompiler := NewGoCompiler("ivarIndices", topLevelGoCompilerMode, c.loc, c.checker, c.bigIntCache, c.symbolCache, c.output)
+	ivarCompiler := NewGoCompiler("ivarIndices", topLevelGoCompilerMode, c.loc, c.checker, c.globalData, c.output)
 	ivarCompiler.Errors = c.Errors
 	ivarCompiler.SetParent(c)
 
@@ -336,13 +342,27 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 		mode = methodGoCompilerMode
 	}
 
-	methodCompiler := NewGoCompiler(name.String(), mode, node.Location(), c.checker, c.bigIntCache, c.symbolCache, c.output)
+	methodCompiler := NewGoCompiler(name.String(), mode, node.Location(), c.checker, c.globalData, c.output)
 	methodCompiler.isGenerator = node.IsGenerator()
 	methodCompiler.isAsync = node.IsAsync()
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethodBody(node.Parameters, node.Body, node.Location())
 
 	return methodCompiler
+}
+
+type globalData struct {
+	bigFloatCache *concurrent.Map[string, *nativeBigFloat]
+	bigIntCache   *concurrent.Map[string, *nativeBigInt]
+	symbolCache   *concurrent.Map[string, *nativeSymbol]
+}
+
+func newGlobalData() *globalData {
+	return &globalData{
+		bigFloatCache: concurrent.NewMap[string, *nativeBigFloat](),
+		bigIntCache:   concurrent.NewMap[string, *nativeBigInt](),
+		symbolCache:   concurrent.NewMap[string, *nativeSymbol](),
+	}
 }
 
 // Compiles Elk source code to Go source code.
@@ -362,14 +382,13 @@ type GoCompiler struct {
 	tmpLocalCounter   int
 	lastElkLocalIndex int
 	callCacheCounter  int
-	bigIntCache       *concurrent.Map[string, *nativeBigInt]
-	symbolCache       *concurrent.Map[string, *nativeSymbol]
+	globalData        *globalData
 	isGenerator       bool
 	isAsync           bool
 	unhygienic        bool
 }
 
-func NewGoCompiler(name string, mode goMode, loc *position.Location, checker types.Checker, bigIntCache *concurrent.Map[string, *nativeBigInt], symbolCache *concurrent.Map[string, *nativeSymbol], output io.Writer) *GoCompiler {
+func NewGoCompiler(name string, mode goMode, loc *position.Location, checker types.Checker, globalData *globalData, output io.Writer) *GoCompiler {
 	return &GoCompiler{
 		FuncName:          name,
 		mode:              mode,
@@ -377,8 +396,7 @@ func NewGoCompiler(name string, mode goMode, loc *position.Location, checker typ
 		scopes:            nativeElkScopes{newNativeElkScope("", defaultNativeElkScopeType)}, // start with an empty set for the 0th scope
 		goLocals:          ds.MakeOrderedMap[string, *goLocal](),
 		lastElkLocalIndex: -1,
-		bigIntCache:       bigIntCache,
-		symbolCache:       symbolCache,
+		globalData:        globalData,
 		checker:           checker,
 		output:            output,
 		loc:               loc,
@@ -999,7 +1017,7 @@ func mangleFileName(name string) string {
 
 func (c *GoCompiler) InitExpressionCompiler(location *position.Location) Compiler {
 	name := mangleFileName(location.FilePath)
-	exprCompiler := NewGoCompiler(name, topLevelGoCompilerMode, location, c.checker, c.bigIntCache, c.symbolCache, c.output)
+	exprCompiler := NewGoCompiler(name, topLevelGoCompilerMode, location, c.checker, c.globalData, c.output)
 	exprCompiler.SetParent(c)
 	exprCompiler.Errors = c.Errors
 
@@ -1112,123 +1130,41 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 	case *ast.ReturnExpressionNode:
 		return c.compileReturnExpressionNode(node)
 	case *ast.IntLiteralNode:
-		i, err := value.ParseBigInt(node.Value, 0)
-		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
-			return nil
-		}
-		if i.IsSmallInt() {
-			return newInlineGoValue(
-				fmt.Sprintf("value.SmallInt(%d)", i.ToSmallInt()),
-				c.typeOf(node),
-				"value.SmallInt",
-			)
-		}
-		bigIntVar := c.emitBigInt(node.Value)
-		return newInlineGoValue(
-			bigIntVar,
-			c.typeOf(node),
-			"*value.BigInt",
-		)
+		return c.compileIntLiteralNode(node)
 	case *ast.Int8LiteralNode:
-		i, err := value.StrictParseInt(node.Value, 0, 8)
-		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
-			return nil
-		}
-		return newInlineGoValue(
-			fmt.Sprintf("value.Int8(%d)", i),
-			c.typeOf(node),
-			"value.Int8",
-		)
+		return c.compileInt8LiteralNode(node)
 	case *ast.Int16LiteralNode:
-		i, err := value.StrictParseInt(node.Value, 0, 16)
-		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
-			return nil
-		}
-		return newInlineGoValue(
-			fmt.Sprintf("value.Int16(%d)", i),
-			c.typeOf(node),
-			"value.Int16",
-		)
+		return c.compileInt16LiteralNode(node)
 	case *ast.Int32LiteralNode:
-		i, err := value.StrictParseInt(node.Value, 0, 32)
-		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
-			return nil
-		}
-		return newInlineGoValue(
-			fmt.Sprintf("value.Int32(%d)", i),
-			c.typeOf(node),
-			"value.Int32",
-		)
+		return c.compileInt32LiteralNode(node)
 	case *ast.Int64LiteralNode:
-		i, err := value.StrictParseInt(node.Value, 0, 64)
-		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
-			return nil
-		}
-		return newInlineGoValue(
-			fmt.Sprintf("value.Int64(%d)", i),
-			c.typeOf(node),
-			"value.Int64",
-		)
+		return c.compileInt64LiteralNode(node)
 	case *ast.UInt8LiteralNode:
-		i, err := value.StrictParseUint(node.Value, 0, 8)
-		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
-			return nil
-		}
-		return newInlineGoValue(
-			fmt.Sprintf("value.UInt8(%d)", i),
-			c.typeOf(node),
-			"value.UInt8",
-		)
+		return c.compileUInt8LiteralNode(node)
 	case *ast.UInt16LiteralNode:
-		i, err := value.StrictParseUint(node.Value, 0, 16)
-		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
-			return nil
-		}
-		return newInlineGoValue(
-			fmt.Sprintf("value.UInt16(%d)", i),
-			c.typeOf(node),
-			"value.UInt16",
-		)
+		return c.compileUInt16LiteralNode(node)
 	case *ast.UInt32LiteralNode:
-		i, err := value.StrictParseUint(node.Value, 0, 32)
-		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
-			return nil
-		}
-		return newInlineGoValue(
-			fmt.Sprintf("value.UInt32(%d)", i),
-			c.typeOf(node),
-			"value.UInt32",
-		)
+		return c.compileUInt32LiteralNode(node)
 	case *ast.UInt64LiteralNode:
-		i, err := value.StrictParseUint(node.Value, 0, 64)
-		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
-			return nil
-		}
-		return newInlineGoValue(
-			fmt.Sprintf("value.UInt64(%d)", i),
-			c.typeOf(node),
-			"value.UInt64",
-		)
+		return c.compileUInt64LiteralNode(node)
 	case *ast.UIntLiteralNode:
-		i, err := value.StrictParseUint(node.Value, 0, value.SmallIntBits)
-		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
-			return nil
-		}
-		return newInlineGoValue(
-			fmt.Sprintf("value.UInt(%d)", i),
-			c.typeOf(node),
-			"value.UInt",
-		)
+		return c.compileUIntLiteralNode(node)
+	case *ast.BigFloatLiteralNode:
+		return c.compileBigFloatLiteralNode(node)
+	case *ast.FloatLiteralNode:
+		return c.compileFloatLiteralNode(node)
+	case *ast.Float64LiteralNode:
+		return c.compileFloat64LiteralNode(node)
+	case *ast.Float32LiteralNode:
+		return c.compileFloat32LiteralNode(node)
+	case *ast.RawStringLiteralNode:
+		return c.compileRawStringLiteralNode(node)
+	case *ast.DoubleQuotedStringLiteralNode:
+		return c.compileDoubleQuotedStringLiteralNode(node)
+	case *ast.RawCharLiteralNode:
+		return c.compileRawCharLiteralNode(node)
+	case *ast.CharLiteralNode:
+		return c.compileCharLiteralNode(node)
 	case *ast.BinaryExpressionNode:
 		return c.compileBinaryExpressionNode(node)
 	case *ast.AssignmentExpressionNode:
@@ -1264,6 +1200,224 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 	default:
 		panic(fmt.Sprintf("invalid expression node: %T", node))
 	}
+}
+
+func (c *GoCompiler) compileCharLiteralNode(node *ast.CharLiteralNode) *goValue {
+	return newInlineGoValue(
+		fmt.Sprintf("value.Char(%q)", node.Value),
+		c.typeOf(node),
+		"value.Char",
+	)
+}
+
+func (c *GoCompiler) compileRawCharLiteralNode(node *ast.RawCharLiteralNode) *goValue {
+	return newInlineGoValue(
+		fmt.Sprintf("value.Char(%q)", node.Value),
+		c.typeOf(node),
+		"value.Char",
+	)
+}
+
+func (c *GoCompiler) compileDoubleQuotedStringLiteralNode(node *ast.DoubleQuotedStringLiteralNode) *goValue {
+	return newInlineGoValue(
+		fmt.Sprintf("value.String(%q)", node.Value),
+		c.typeOf(node),
+		"value.String",
+	)
+}
+
+func (c *GoCompiler) compileRawStringLiteralNode(node *ast.RawStringLiteralNode) *goValue {
+	return newInlineGoValue(
+		fmt.Sprintf("value.String(%q)", node.Value),
+		c.typeOf(node),
+		"value.String",
+	)
+}
+
+func (c *GoCompiler) compileIntLiteralNode(node *ast.IntLiteralNode) *goValue {
+	i, err := value.ParseBigInt(node.Value, 0)
+	if !err.IsUndefined() {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	if i.IsSmallInt() {
+		return newInlineGoValue(
+			fmt.Sprintf("value.SmallInt(%d)", i.ToSmallInt()),
+			c.typeOf(node),
+			"value.SmallInt",
+		)
+	}
+	bigIntVar := c.emitBigInt(node.Value)
+	return newInlineGoValue(
+		bigIntVar,
+		c.typeOf(node),
+		"*value.BigInt",
+	)
+}
+
+func (c *GoCompiler) compileInt8LiteralNode(node *ast.Int8LiteralNode) *goValue {
+	i, err := value.StrictParseInt(node.Value, 0, 8)
+	if !err.IsUndefined() {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	return newInlineGoValue(
+		fmt.Sprintf("value.Int8(%d)", i),
+		c.typeOf(node),
+		"value.Int8",
+	)
+}
+
+func (c *GoCompiler) compileInt16LiteralNode(node *ast.Int16LiteralNode) *goValue {
+	i, err := value.StrictParseInt(node.Value, 0, 16)
+	if !err.IsUndefined() {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	return newInlineGoValue(
+		fmt.Sprintf("value.Int16(%d)", i),
+		c.typeOf(node),
+		"value.Int16",
+	)
+}
+
+func (c *GoCompiler) compileInt32LiteralNode(node *ast.Int32LiteralNode) *goValue {
+	i, err := value.StrictParseInt(node.Value, 0, 32)
+	if !err.IsUndefined() {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	return newInlineGoValue(
+		fmt.Sprintf("value.Int32(%d)", i),
+		c.typeOf(node),
+		"value.Int32",
+	)
+}
+
+func (c *GoCompiler) compileInt64LiteralNode(node *ast.Int64LiteralNode) *goValue {
+	i, err := value.StrictParseInt(node.Value, 0, 64)
+	if !err.IsUndefined() {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	return newInlineGoValue(
+		fmt.Sprintf("value.Int64(%d)", i),
+		c.typeOf(node),
+		"value.Int64",
+	)
+}
+
+func (c *GoCompiler) compileUInt8LiteralNode(node *ast.UInt8LiteralNode) *goValue {
+	i, err := value.StrictParseUint(node.Value, 0, 8)
+	if !err.IsUndefined() {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	return newInlineGoValue(
+		fmt.Sprintf("value.UInt8(%d)", i),
+		c.typeOf(node),
+		"value.UInt8",
+	)
+}
+
+func (c *GoCompiler) compileUInt16LiteralNode(node *ast.UInt16LiteralNode) *goValue {
+	i, err := value.StrictParseUint(node.Value, 0, 16)
+	if !err.IsUndefined() {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	return newInlineGoValue(
+		fmt.Sprintf("value.UInt16(%d)", i),
+		c.typeOf(node),
+		"value.UInt16",
+	)
+}
+
+func (c *GoCompiler) compileUInt32LiteralNode(node *ast.UInt32LiteralNode) *goValue {
+	i, err := value.StrictParseUint(node.Value, 0, 32)
+	if !err.IsUndefined() {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	return newInlineGoValue(
+		fmt.Sprintf("value.UInt32(%d)", i),
+		c.typeOf(node),
+		"value.UInt32",
+	)
+}
+
+func (c *GoCompiler) compileUInt64LiteralNode(node *ast.UInt64LiteralNode) *goValue {
+	i, err := value.StrictParseUint(node.Value, 0, 64)
+	if !err.IsUndefined() {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	return newInlineGoValue(
+		fmt.Sprintf("value.UInt64(%d)", i),
+		c.typeOf(node),
+		"value.UInt64",
+	)
+}
+
+func (c *GoCompiler) compileUIntLiteralNode(node *ast.UIntLiteralNode) *goValue {
+	i, err := value.StrictParseUint(node.Value, 0, value.SmallIntBits)
+	if !err.IsUndefined() {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	return newInlineGoValue(
+		fmt.Sprintf("value.UInt(%d)", i),
+		c.typeOf(node),
+		"value.UInt",
+	)
+}
+
+func (c *GoCompiler) compileBigFloatLiteralNode(node *ast.BigFloatLiteralNode) *goValue {
+	v := c.emitBigFloat(node.Value)
+	return newInlineGoValue(
+		v,
+		c.typeOf(node),
+		"*value.BigFloat",
+	)
+}
+
+func (c *GoCompiler) compileFloatLiteralNode(node *ast.FloatLiteralNode) *goValue {
+	f, err := strconv.ParseFloat(node.Value, value.SmallIntBits)
+	if err != nil {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	return newInlineGoValue(
+		fmt.Sprintf("value.Float(%f)", f),
+		c.typeOf(node),
+		"value.Float",
+	)
+}
+
+func (c *GoCompiler) compileFloat64LiteralNode(node *ast.Float64LiteralNode) *goValue {
+	f, err := strconv.ParseFloat(node.Value, 64)
+	if err != nil {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	return newInlineGoValue(
+		fmt.Sprintf("value.Float64(%f)", f),
+		c.typeOf(node),
+		"value.Float64",
+	)
+}
+
+func (c *GoCompiler) compileFloat32LiteralNode(node *ast.Float32LiteralNode) *goValue {
+	f, err := strconv.ParseFloat(node.Value, 32)
+	if err != nil {
+		c.Errors.AddFailure(err.Error(), node.Location())
+		return errGoValue
+	}
+	return newInlineGoValue(
+		fmt.Sprintf("value.Float32(%f)", f),
+		c.typeOf(node),
+		"value.Float32",
+	)
 }
 
 func (c *GoCompiler) compileVariableDeclarationNode(node *ast.VariableDeclarationNode) *goValue {
@@ -1456,7 +1610,7 @@ func (c *GoCompiler) compileNamespaceDeclarationNode(name string, body []ast.Sta
 		return nilGoValue
 	}
 
-	classCompiler := NewGoCompiler(name, topLevelGoCompilerMode, loc, c.checker, c.bigIntCache, c.symbolCache, c.output)
+	classCompiler := NewGoCompiler(name, topLevelGoCompilerMode, loc, c.checker, c.globalData, c.output)
 	classCompiler.SetParent(c)
 	classCompiler.Errors = c.Errors
 
@@ -1823,39 +1977,58 @@ func (c *GoCompiler) resolveUpvalue(name string) (*nativeElkLocal, bool) {
 	return nil, false
 }
 
-func (c *GoCompiler) emitBigInt(val string) string {
-	c.bigIntCache.Lock()
-	defer c.bigIntCache.Unlock()
+func (c *GoCompiler) emitBigFloat(val string) string {
+	c.globalData.bigFloatCache.Lock()
+	defer c.globalData.bigFloatCache.Unlock()
 
-	bigInt, ok := c.bigIntCache.GetUnsafe(val)
+	bigFloat, ok := c.globalData.bigFloatCache.GetUnsafe(val)
+	if ok {
+		return bigFloat.goIdent()
+	}
+
+	bigFloat = &nativeBigFloat{
+		id:  c.globalData.bigFloatCache.Len(),
+		val: val,
+	}
+	c.globalData.bigFloatCache.SetUnsafe(val, bigFloat)
+	ident := bigFloat.goIdent()
+	c.emitPackage("var %s = value.ParseBigFloatPanic(%q)\n", ident, val)
+	return ident
+}
+
+func (c *GoCompiler) emitBigInt(val string) string {
+	c.globalData.bigIntCache.Lock()
+	defer c.globalData.bigIntCache.Unlock()
+
+	bigInt, ok := c.globalData.bigIntCache.GetUnsafe(val)
 	if ok {
 		return bigInt.goIdent()
 	}
 
 	bigInt = &nativeBigInt{
-		id:  c.bigIntCache.Len(),
+		id:  c.globalData.bigIntCache.Len(),
 		val: val,
 	}
-	c.bigIntCache.SetUnsafe(val, bigInt)
+	c.globalData.bigIntCache.SetUnsafe(val, bigInt)
 	ident := bigInt.goIdent()
 	c.emitPackage("var %s = value.ParseBigIntPanic(%q, 0)\n", ident, val)
 	return ident
 }
 
 func (c *GoCompiler) emitSymbol(val string) string {
-	c.symbolCache.Lock()
-	defer c.symbolCache.Unlock()
+	c.globalData.symbolCache.Lock()
+	defer c.globalData.symbolCache.Unlock()
 
-	symbol, ok := c.symbolCache.GetUnsafe(val)
+	symbol, ok := c.globalData.symbolCache.GetUnsafe(val)
 	if ok {
 		return symbol.goIdent()
 	}
 
 	symbol = &nativeSymbol{
-		id:  c.symbolCache.Len(),
+		id:  c.globalData.symbolCache.Len(),
 		val: val,
 	}
-	c.symbolCache.SetUnsafe(val, symbol)
+	c.globalData.symbolCache.SetUnsafe(val, symbol)
 	ident := symbol.goIdent()
 	c.emitPackage("var %s = value.ToSymbol(%q)\n", ident, val)
 	return ident

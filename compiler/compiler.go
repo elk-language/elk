@@ -46,7 +46,7 @@ func CreateCompiler(parent Compiler, checker types.Checker, loc *position.Locati
 		compiler.SetParent(parent)
 		return compiler
 	case *GoCompiler:
-		compiler := NewGoCompiler(loc.FilePath, topLevelGoCompilerMode, loc, checker, parent.bigIntCache, parent.symbolCache, parent.output)
+		compiler := NewGoCompiler(loc.FilePath, topLevelGoCompilerMode, loc, checker, parent.globalData, parent.output)
 		compiler.Errors = errors
 		compiler.SetParent(parent)
 		return compiler
