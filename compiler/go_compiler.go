@@ -1161,10 +1161,22 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		return c.compileRawStringLiteralNode(node)
 	case *ast.DoubleQuotedStringLiteralNode:
 		return c.compileDoubleQuotedStringLiteralNode(node)
+	case *ast.InterpolatedStringLiteralNode:
+		return c.compileInterpolatedStringLiteralNode(node)
+	case *ast.InterpolatedSymbolLiteralNode:
+		return c.compileInterpolatedSymbolLiteralNode(node)
 	case *ast.RawCharLiteralNode:
 		return c.compileRawCharLiteralNode(node)
 	case *ast.CharLiteralNode:
 		return c.compileCharLiteralNode(node)
+	case *ast.SimpleSymbolLiteralNode:
+		return c.compileSimpleSymbolLiteralNode(node)
+	case *ast.NilLiteralNode:
+		return nilGoValue
+	case *ast.TrueLiteralNode:
+		return newInlineGoValue("true", types.Bool{}, "bool")
+	case *ast.FalseLiteralNode:
+		return newInlineGoValue("false", types.Bool{}, "bool")
 	case *ast.BinaryExpressionNode:
 		return c.compileBinaryExpressionNode(node)
 	case *ast.AssignmentExpressionNode:
@@ -1202,6 +1214,15 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 	}
 }
 
+func (c *GoCompiler) compileSimpleSymbolLiteralNode(node *ast.SimpleSymbolLiteralNode) *goValue {
+	varName := c.emitSymbol(node.Content)
+	return newInlineGoValue(
+		varName,
+		c.typeOf(node),
+		"value.Symbol",
+	)
+}
+
 func (c *GoCompiler) compileCharLiteralNode(node *ast.CharLiteralNode) *goValue {
 	return newInlineGoValue(
 		fmt.Sprintf("value.Char(%q)", node.Value),
@@ -1215,6 +1236,101 @@ func (c *GoCompiler) compileRawCharLiteralNode(node *ast.RawCharLiteralNode) *go
 		fmt.Sprintf("value.Char(%q)", node.Value),
 		c.typeOf(node),
 		"value.Char",
+	)
+}
+
+func (c *GoCompiler) compileStringInterpolationNode(node *ast.StringInterpolationNode) *goValue {
+	expr := c.compileExpression(node.Expression)
+	expr = c.valueToNarrowerType(expr)
+
+	switch expr.goType() {
+	case "value.String":
+		return expr
+	case "value.Char", "value.Float64", "value.Float32",
+		"value.Float", "value.SmallInt",
+		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
+		"value.Symbol", "*value.BigInt", "*value.Regex":
+		return expr.newInlineGoValue(
+			fmt.Sprintf("(%s).ToString()", expr.value()),
+			"value.String",
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgsAndName(
+		expr.elkType,
+		c.checker.StdString(),
+		"symbol.L_to_string",
+		"to_string",
+		c.convertToValue(expr),
+		node.Location(),
+	)
+}
+
+func (c *GoCompiler) compileStringInspectInterpolationNode(node *ast.StringInspectInterpolationNode) *goValue {
+	expr := c.compileExpression(node.Expression)
+	expr = c.valueToNarrowerType(expr)
+
+	switch expr.goType() {
+	case "value.String", "value.Char", "value.Float64", "value.Float32",
+		"value.Float", "value.SmallInt",
+		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
+		"value.Symbol", "*value.BigInt", "*value.Regex":
+		return expr.newInlineGoValue(
+			fmt.Sprintf("(%s).Inspect()", expr.value()),
+			"value.String",
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgsAndName(
+		expr.elkType,
+		c.checker.StdString(),
+		"symbol.L_inspect",
+		"inspect",
+		c.convertToValue(expr),
+		node.Location(),
+	)
+}
+
+func (c *GoCompiler) compileStringLiteralContentNode(node ast.StringLiteralContentNode) *goValue {
+	switch node := node.(type) {
+	case *ast.StringLiteralContentSectionNode:
+		return newInlineGoValue(
+			fmt.Sprintf("value.String(%q)", node.Value),
+			c.checker.StdString(),
+			"value.String",
+		)
+	case *ast.StringInspectInterpolationNode:
+		return c.compileStringInspectInterpolationNode(node)
+	case *ast.StringInterpolationNode:
+		return c.compileStringInterpolationNode(node)
+	default:
+		panic(fmt.Sprintf("invalid string content node: %T", node))
+	}
+}
+
+func (c *GoCompiler) compileInterpolatedStringLiteralNode(node *ast.InterpolatedStringLiteralNode) *goValue {
+	var buff strings.Builder
+	for i, element := range node.Content {
+		if i != 0 {
+			buff.WriteString(" + ")
+		}
+		section := c.compileStringLiteralContentNode(element)
+		buff.WriteString(section.value())
+	}
+	return newInlineGoValue(
+		buff.String(),
+		c.checker.StdString(),
+		"value.String",
+	)
+}
+
+func (c *GoCompiler) compileInterpolatedSymbolLiteralNode(node *ast.InterpolatedSymbolLiteralNode) *goValue {
+	result := c.compileInterpolatedStringLiteralNode(node.Content)
+	return result.newInlineGoValue(
+		fmt.Sprintf("(%s).ToSymbol()", result.value()),
+		"value.Symbol",
 	)
 }
 
@@ -1546,6 +1662,10 @@ func (c *GoCompiler) compileInnerMethodCall(receiver *goValue, receiverType type
 	// 	return c.compileDecrement(receiverType, location)
 	// }
 
+	return c.compileMethodCallWithArgs(receiver, receiverType, typ, name, args, location)
+}
+
+func (c *GoCompiler) compileMethodCallWithArgs(receiver *goValue, receiverType, returnType types.Type, name string, args []ast.ExpressionNode, loc *position.Location) *goValue {
 	callArgsVar := c.defineTmpGoLocal("[]value.Value")
 	c.emit("%s = make([]value.Value, %d)\n", callArgsVar.name, len(args)+1)
 
@@ -1558,18 +1678,48 @@ func (c *GoCompiler) compileInnerMethodCall(receiver *goValue, receiverType type
 		argVal.markFree()
 	}
 
+	return c.compileMethodCallWithArgsVar(receiverType, returnType, name, callArgsVar, loc)
+}
+
+func (c *GoCompiler) compileMethodCallWithArgsVar(receiverType, returnType types.Type, name string, callArgsVar *goLocal, loc *position.Location) *goValue {
+	result := c.compileMethodCallWithLiteralArgs(
+		receiverType,
+		returnType,
+		name,
+		fmt.Sprintf("%s...", callArgsVar.name),
+		loc,
+	)
+
+	c.emit("%s = nil\n", callArgsVar.name)
+	callArgsVar.markFree()
+
+	return result
+}
+
+func (c *GoCompiler) compileMethodCallWithLiteralArgs(receiverType, returnType types.Type, name string, args string, loc *position.Location) *goValue {
 	nameSym := c.emitSymbol(name)
+	return c.compileMethodCallWithLiteralArgsAndName(
+		receiverType,
+		returnType,
+		nameSym,
+		name,
+		args,
+		loc,
+	)
+}
+
+func (c *GoCompiler) compileMethodCallWithLiteralArgsAndName(receiverType, returnType types.Type, nameSym, name string, args string, loc *position.Location) *goValue {
 	callCache := c.emitCallCache()
 	tmp := c.defineTmpGoLocal(goValueType)
 	c.registerErr()
-	c.emitAddCallFrame(location)
-	c.emit("%s, err = thread.CallMethodByNameWithCache(%s, &%s, %s...) // receiver: %s, name: %s\n", tmp.name, nameSym, callCache, callArgsVar.name, types.Inspect(receiverType), name)
+	c.emitAddCallFrame(loc)
+	c.emit("%s, err = thread.CallMethodByNameWithCache(%s, &%s, %s) // receiver: %s, name: %s\n", tmp.name, nameSym, callCache, args, types.Inspect(receiverType), name)
 	c.emitPopCallFrame()
 	c.emitErrorPropagation()
 
 	result := newTmpGoValue(
 		tmp,
-		typ,
+		returnType,
 	)
 	result = c.valueToNarrowerType(result)
 	if result.goType() != goValueType {
@@ -1578,9 +1728,6 @@ func (c *GoCompiler) compileInnerMethodCall(receiver *goValue, receiverType type
 		tmp.markFree()
 		result = newTmpGoValue(narrowTmp, result.elkType)
 	}
-
-	c.emit("%s = nil\n", callArgsVar.name)
-	callArgsVar.markFree()
 
 	return result
 }
@@ -2365,27 +2512,14 @@ func (c *GoCompiler) compileLessEqual(node *ast.BinaryExpressionNode) *goValue {
 		)
 	}
 
-	callCache := c.emitCallCache()
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emitAddCallFrame(node.Location())
-	c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpLessThanEqual, &%s, %s, %s)\n", tmp.name, callCache, c.convertToValue(left), c.convertToValue(right))
-	c.emitPopCallFrame()
-	c.emitErrorPropagation()
-
-	result := newTmpGoValue(
-		tmp,
+	return c.compileMethodCallWithLiteralArgsAndName(
+		left.elkType,
 		typ,
+		"symbol.OpLessThanEqual",
+		"<=",
+		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		node.Location(),
 	)
-	result = c.valueToNarrowerType(result)
-	if result.goType() != goValueType {
-		narrowTmp := c.defineTmpGoLocal(result.goType())
-		c.emit("%s = %s\n", narrowTmp.name, result.value())
-		tmp.markFree()
-		result = newTmpGoValue(narrowTmp, result.elkType)
-	}
-
-	return result
 }
 
 func (c *GoCompiler) compileLessEqualCoercibleNumeric(left, right *goValue) *goValue {
@@ -2495,27 +2629,14 @@ func (c *GoCompiler) compileDivide(node *ast.BinaryExpressionNode) *goValue {
 		)
 	}
 
-	callCache := c.emitCallCache()
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emitAddCallFrame(node.Location())
-	c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpDivide, &%s, %s, %s)\n", tmp.name, callCache, c.convertToValue(left), c.convertToValue(right))
-	c.emitPopCallFrame()
-	c.emitErrorPropagation()
-
-	result := newTmpGoValue(
-		tmp,
+	return c.compileMethodCallWithLiteralArgsAndName(
+		left.elkType,
 		typ,
+		"symbol.OpDivide",
+		"/",
+		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		node.Location(),
 	)
-	result = c.valueToNarrowerType(result)
-	if result.goType() != goValueType {
-		narrowTmp := c.defineTmpGoLocal(result.goType())
-		c.emit("%s = %s\n", narrowTmp.name, result.value())
-		tmp.markFree()
-		result = newTmpGoValue(narrowTmp, result.elkType)
-	}
-
-	return result
 }
 
 func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type) *goValue {
@@ -2864,27 +2985,14 @@ func (c *GoCompiler) compileExponentiate(node *ast.BinaryExpressionNode) *goValu
 		return c.compileExponentiateFloat32(left, right)
 	}
 
-	callCache := c.emitCallCache()
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emitAddCallFrame(node.Location())
-	c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpExponentiate, &%s, %s, %s)\n", tmp.name, callCache, c.convertToValue(left), c.convertToValue(right))
-	c.emitPopCallFrame()
-	c.emitErrorPropagation()
-
-	result := newTmpGoValue(
-		tmp,
+	return c.compileMethodCallWithLiteralArgsAndName(
+		left.elkType,
 		typ,
+		"symbol.OpExponentiate",
+		"**",
+		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		node.Location(),
 	)
-	result = c.valueToNarrowerType(result)
-	if result.goType() != goValueType {
-		narrowTmp := c.defineTmpGoLocal(result.goType())
-		c.emit("%s = %s\n", narrowTmp.name, result.value())
-		tmp.markFree()
-		result = newTmpGoValue(narrowTmp, result.elkType)
-	}
-
-	return result
 }
 
 func (c *GoCompiler) compileExponentiateBigInt(left, right *goValue, typ types.Type) *goValue {
@@ -3261,27 +3369,14 @@ func (c *GoCompiler) compileLeftBitshift(node *ast.BinaryExpressionNode) *goValu
 		)
 	}
 
-	callCache := c.emitCallCache()
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emitAddCallFrame(node.Location())
-	c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpLeftBitshift, &%s, %s, %s)\n", tmp.name, callCache, c.convertToValue(left), c.convertToValue(right))
-	c.emitPopCallFrame()
-	c.emitErrorPropagation()
-
-	result := newTmpGoValue(
-		tmp,
+	return c.compileMethodCallWithLiteralArgsAndName(
+		left.elkType,
 		typ,
+		"symbol.OpLeftBitshift",
+		"<<",
+		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		node.Location(),
 	)
-	result = c.valueToNarrowerType(result)
-	if result.goType() != goValueType {
-		narrowTmp := c.defineTmpGoLocal(result.goType())
-		c.emit("%s = %s\n", narrowTmp.name, result.value())
-		tmp.markFree()
-		result = newTmpGoValue(narrowTmp, result.elkType)
-	}
-
-	return result
 }
 
 func (c *GoCompiler) compileLogicalLeftBitshift(node *ast.BinaryExpressionNode) *goValue {
@@ -3320,27 +3415,14 @@ func (c *GoCompiler) compileLogicalLeftBitshift(node *ast.BinaryExpressionNode) 
 		)
 	}
 
-	callCache := c.emitCallCache()
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emitAddCallFrame(node.Location())
-	c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpLogicalLeftBitshift, &%s, %s, %s)\n", tmp.name, callCache, c.convertToValue(left), c.convertToValue(right))
-	c.emitPopCallFrame()
-	c.emitErrorPropagation()
-
-	result := newTmpGoValue(
-		tmp,
+	return c.compileMethodCallWithLiteralArgsAndName(
+		left.elkType,
 		typ,
+		"symbol.OpLogicalLeftBitshift",
+		"<<<",
+		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		node.Location(),
 	)
-	result = c.valueToNarrowerType(result)
-	if result.goType() != goValueType {
-		narrowTmp := c.defineTmpGoLocal(result.goType())
-		c.emit("%s = %s\n", narrowTmp.name, result.value())
-		tmp.markFree()
-		result = newTmpGoValue(narrowTmp, result.elkType)
-	}
-
-	return result
 }
 
 func (c *GoCompiler) compileRightBitshift(node *ast.BinaryExpressionNode) *goValue {
@@ -3383,27 +3465,14 @@ func (c *GoCompiler) compileRightBitshift(node *ast.BinaryExpressionNode) *goVal
 		)
 	}
 
-	callCache := c.emitCallCache()
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emitAddCallFrame(node.Location())
-	c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpRightBitshift, &%s, %s, %s)\n", tmp.name, callCache, c.convertToValue(left), c.convertToValue(right))
-	c.emitPopCallFrame()
-	c.emitErrorPropagation()
-
-	result := newTmpGoValue(
-		tmp,
+	return c.compileMethodCallWithLiteralArgsAndName(
+		left.elkType,
 		typ,
+		"symbol.OpRightBitshift",
+		">>",
+		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		node.Location(),
 	)
-	result = c.valueToNarrowerType(result)
-	if result.goType() != goValueType {
-		narrowTmp := c.defineTmpGoLocal(result.goType())
-		c.emit("%s = %s\n", narrowTmp.name, result.value())
-		tmp.markFree()
-		result = newTmpGoValue(narrowTmp, result.elkType)
-	}
-
-	return result
 }
 
 func (c *GoCompiler) compileLogicalRightBitshift(node *ast.BinaryExpressionNode) *goValue {
@@ -3442,27 +3511,14 @@ func (c *GoCompiler) compileLogicalRightBitshift(node *ast.BinaryExpressionNode)
 		)
 	}
 
-	callCache := c.emitCallCache()
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emitAddCallFrame(node.Location())
-	c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpLogicalRightBitshift, &%s, %s, %s)\n", tmp.name, callCache, c.convertToValue(left), c.convertToValue(right))
-	c.emitPopCallFrame()
-	c.emitErrorPropagation()
-
-	result := newTmpGoValue(
-		tmp,
+	return c.compileMethodCallWithLiteralArgsAndName(
+		left.elkType,
 		typ,
+		"symbol.OpLogicalRightBitshift",
+		">>>",
+		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		node.Location(),
 	)
-	result = c.valueToNarrowerType(result)
-	if result.goType() != goValueType {
-		narrowTmp := c.defineTmpGoLocal(result.goType())
-		c.emit("%s = %s\n", narrowTmp.name, result.value())
-		tmp.markFree()
-		result = newTmpGoValue(narrowTmp, result.elkType)
-	}
-
-	return result
 }
 
 func (c *GoCompiler) compileLeftBitshiftSmallInt(left, right *goValue, typ types.Type) *goValue {
@@ -4056,27 +4112,14 @@ func (c *GoCompiler) compileMultiply(node *ast.BinaryExpressionNode) *goValue {
 		)
 	}
 
-	callCache := c.emitCallCache()
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emitAddCallFrame(node.Location())
-	c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpMultiply, &%s, %s, %s)\n", tmp.name, callCache, c.convertToValue(left), c.convertToValue(right))
-	c.emitPopCallFrame()
-	c.emitErrorPropagation()
-
-	result := newTmpGoValue(
-		tmp,
+	return c.compileMethodCallWithLiteralArgsAndName(
+		left.elkType,
 		typ,
+		"symbol.OpMultiply",
+		"*",
+		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		node.Location(),
 	)
-	result = c.valueToNarrowerType(result)
-	if result.goType() != goValueType {
-		narrowTmp := c.defineTmpGoLocal(result.goType())
-		c.emit("%s = %s\n", narrowTmp.name, result.value())
-		tmp.markFree()
-		result = newTmpGoValue(narrowTmp, result.elkType)
-	}
-
-	return result
 }
 
 func (c *GoCompiler) compileMultiplyBigInt(left, right *goValue, typ types.Type) *goValue {
@@ -4511,27 +4554,14 @@ func (c *GoCompiler) compileSubtract(node *ast.BinaryExpressionNode) *goValue {
 		)
 	}
 
-	callCache := c.emitCallCache()
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emitAddCallFrame(node.Location())
-	c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpSubtract, &%s, %s, %s)\n", tmp.name, callCache, c.convertToValue(left), c.convertToValue(right))
-	c.emitPopCallFrame()
-	c.emitErrorPropagation()
-
-	result := newTmpGoValue(
-		tmp,
+	return c.compileMethodCallWithLiteralArgsAndName(
+		left.elkType,
 		typ,
+		"symbol.OpSubtract",
+		"-",
+		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		node.Location(),
 	)
-	result = c.valueToNarrowerType(result)
-	if result.goType() != goValueType {
-		narrowTmp := c.defineTmpGoLocal(result.goType())
-		c.emit("%s = %s\n", narrowTmp.name, result.value())
-		tmp.markFree()
-		result = newTmpGoValue(narrowTmp, result.elkType)
-	}
-
-	return result
 }
 
 func (c *GoCompiler) compileSubtractBigInt(left, right *goValue, typ types.Type) *goValue {
@@ -4920,27 +4950,14 @@ func (c *GoCompiler) compileAdd(node *ast.BinaryExpressionNode) *goValue {
 		)
 	}
 
-	callCache := c.emitCallCache()
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emitAddCallFrame(node.Location())
-	c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpAdd, &%s, %s, %s)\n", tmp.name, callCache, c.convertToValue(left), c.convertToValue(right))
-	c.emitPopCallFrame()
-	c.emitErrorPropagation()
-
-	result := newTmpGoValue(
-		tmp,
+	return c.compileMethodCallWithLiteralArgsAndName(
+		left.elkType,
 		typ,
+		"symbol.OpAdd",
+		"+",
+		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		node.Location(),
 	)
-	result = c.valueToNarrowerType(result)
-	if result.goType() != goValueType {
-		narrowTmp := c.defineTmpGoLocal(result.goType())
-		c.emit("%s = %s\n", narrowTmp.name, result.value())
-		tmp.markFree()
-		result = newTmpGoValue(narrowTmp, result.elkType)
-	}
-
-	return result
 }
 
 func (c *GoCompiler) compileAddBigInt(left, right *goValue, typ types.Type) *goValue {
@@ -5489,9 +5506,11 @@ func (c *GoCompiler) convertToValue(v *goValue) string {
 	case goValueType:
 		return v.value()
 	case "value.SmallInt":
-		return fmt.Sprintf("%s.ToValue()", v.value())
+		return fmt.Sprintf("(%s).ToValue()", v.value())
 	case "*value.BigInt":
 		return fmt.Sprintf("value.Ref(%s)", v.value())
+	case "bool":
+		return fmt.Sprintf("value.ToElkBool(%s)", v.value())
 	}
 
 	if c.checker.IsSubtype(v.elkType, c.checker.StdInt()) {
@@ -5501,7 +5520,7 @@ func (c *GoCompiler) convertToValue(v *goValue) string {
 		return fmt.Sprintf("value.Ref(%s)", v.value())
 	}
 
-	return fmt.Sprintf("%s.ToValue()", v.value())
+	return fmt.Sprintf("(%s).ToValue()", v.value())
 }
 
 func (c *GoCompiler) valueToNarrowerType(v *goValue) *goValue {
@@ -5509,123 +5528,135 @@ func (c *GoCompiler) valueToNarrowerType(v *goValue) *goValue {
 		return v
 	}
 
+	if c.checker.IsSubtype(v.elkType, types.Bool{}) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("value.Truthy(%s)", v.value()),
+			"bool",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Symbol)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(%s).AsSymbol()", v.value()),
+			"value.Symbol",
+		)
+	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.String)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsString()", v.value()),
+			fmt.Sprintf("(%s).AsString()", v.value()),
 			"value.String",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Char)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsChar()", v.value()),
+			fmt.Sprintf("(%s).AsChar()", v.value()),
 			"value.Char",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Float)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsFloat()", v.value()),
+			fmt.Sprintf("(%s).AsFloat()", v.value()),
 			"value.Float",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Float64)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsFloat64()", v.value()),
+			fmt.Sprintf("(%s).AsFloat64()", v.value()),
 			"value.Float64",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Float32)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsFloat32()", v.value()),
+			fmt.Sprintf("(%s).AsFloat32()", v.value()),
 			"value.Float32",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.BigFloat)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("(*value.BigFloat)(%s.Pointer())", v.value()),
+			fmt.Sprintf("(*value.BigFloat)((%s).Pointer())", v.value()),
 			"*value.BigFloat",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int64)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsInt64()", v.value()),
+			fmt.Sprintf("(%s).AsInt64()", v.value()),
 			"value.Int64",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int32)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsInt32()", v.value()),
+			fmt.Sprintf("(%s).AsInt32()", v.value()),
 			"value.Int32",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int16)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsInt16()", v.value()),
+			fmt.Sprintf("(%s).AsInt16()", v.value()),
 			"value.Int16",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int8)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsInt8()", v.value()),
+			fmt.Sprintf("(%s).AsInt8()", v.value()),
 			"value.Int8",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsUInt()", v.value()),
+			fmt.Sprintf("(%s).AsUInt()", v.value()),
 			"value.UInt",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt64)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsUInt64()", v.value()),
+			fmt.Sprintf("(%s).AsUInt64()", v.value()),
 			"value.UInt64",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt32)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsUInt32()", v.value()),
+			fmt.Sprintf("(%s).AsUInt32()", v.value()),
 			"value.UInt32",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt16)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsUInt16()", v.value()),
+			fmt.Sprintf("(%s).AsUInt16()", v.value()),
 			"value.UInt16",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt8)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("%s.AsUInt8()", v.value()),
+			fmt.Sprintf("(%s).AsUInt8()", v.value()),
 			"value.UInt8",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.ArrayList)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("(*value.ArrayList)(%s.Pointer())", v.value()),
+			fmt.Sprintf("(*value.ArrayList)((%s).Pointer())", v.value()),
 			"*value.ArrayList",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.ArrayTuple)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("(*value.ArrayTuple)(%s.Pointer())", v.value()),
+			fmt.Sprintf("(*value.ArrayTuple)((%s).Pointer())", v.value()),
 			"*value.ArrayTuple",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.HashMap)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("(*value.HashMap)(%s.Pointer())", v.value()),
+			fmt.Sprintf("(*value.HashMap)((%s).Pointer())", v.value()),
 			"*value.HashMap",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.HashRecord)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("(*value.HashRecord)(%s.Pointer())", v.value()),
+			fmt.Sprintf("(*value.HashRecord)((%s).Pointer())", v.value()),
 			"*value.HashRecord",
 		)
 	}
 	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.HashSet)) {
 		return v.newInlineGoValue(
-			fmt.Sprintf("(*value.HashSet)(%s.Pointer())", v.value()),
+			fmt.Sprintf("(*value.HashSet)((%s).Pointer())", v.value()),
 			"*value.HashSet",
 		)
 	}
@@ -5633,6 +5664,12 @@ func (c *GoCompiler) valueToNarrowerType(v *goValue) *goValue {
 	return v
 }
 func (c *GoCompiler) elkTypeToGoType(elkType types.Type) string {
+	if c.checker.IsSubtype(elkType, types.Bool{}) {
+		return "bool"
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Symbol)) {
+		return "value.Symbol"
+	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.String)) {
 		return "value.String"
 	}

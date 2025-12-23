@@ -139,111 +139,487 @@ import (
 // 	}
 // }
 
-// func TestStringLiteral(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"static string": {
-// 			input: `"foo bar"`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(8, 1, 9)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.String("foo bar")),
-// 				},
-// 			),
-// 		},
-// 		"interpolated string": {
-// 			input: `
-// 				bar := 15.2
-// 				foo := 1
-// 				"foo: ${foo + 2}, bar: $bar"
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.NEW_STRING8), 4,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(62, 4, 33)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 2),
-// 					bytecode.NewLineInfo(4, 9),
-// 				},
-// 				[]value.Value{
-// 					value.Float(15.2).ToValue(),
-// 					value.Ref(value.String("foo: ")),
-// 					value.Ref(value.String(", bar: ")),
-// 				},
-// 			),
-// 		},
-// 		"inspect interpolated string": {
-// 			input: `
-// 				bar := 15.2
-// 				foo := 1
-// 				"foo: #{foo + 2}, bar: #bar"
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.LOAD_VALUE_3),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.CALL_METHOD8), 4,
-// 					byte(bytecode.NEW_STRING8), 4,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(62, 4, 33)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 2),
-// 					bytecode.NewLineInfo(4, 13),
-// 				},
-// 				[]value.Value{
-// 					value.Float(15.2).ToValue(),
-// 					value.Ref(value.String("foo: ")),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("inspect"), 0)),
-// 					value.Ref(value.String(", bar: ")),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("inspect"), 0)),
-// 				},
-// 			),
-// 		},
-// 	}
+func TestGoStringLiteral(t *testing.T) {
+	tests := goTestTable{
+		"static string": {
+			input: `a := "foo bar"`,
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.String // var a: Std::String
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.String("foo bar")
+}
+`,
+		},
+		"interpolated string with builtin types": {
+			input: `
+				bar := 15.2
+				baz := "bazzy"
+				foo := 1
+				a := "foo: ${foo + 2}, bar: $bar, baz: $baz"
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var cc_main_1 = &value.CallCache{}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Float // var bar: Std::Float
+	_ = l0
+	var l1 value.String // var baz: Std::String
+	_ = l1
+	var l2 value.Value // var foo: Std::Int
+	_ = l2
+	var l3 value.String // var a: Std::String
+	_ = l3
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Value
+	_ = t2
+	var t3 value.String
+	_ = t3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float(15.200000)
+	l1 = value.String("bazzy")
+	l2 = (value.SmallInt(1)).ToValue()
+	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
+	t2, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_1, t1) // receiver: Std::Int, name: to_string
+	thread.PopCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t3 = (t2).AsString()
+	l3 = value.String("foo: ") + t3 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + l1
+}
+`,
+		},
+		"interpolated string with complex types": {
+			input: `
+				bar := 15.2
+				baz := Time.now
+				foo := 1
+				a := "foo: ${foo + 2}, bar: $bar, baz: $baz"
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("Std::Time")
+var sym1 = value.ToSymbol("now")
+var cc_main_1 = &value.CallCache{}
+var cc_main_2 = &value.CallCache{}
+var cc_main_3 = &value.CallCache{}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Float // var bar: Std::Float
+	_ = l0
+	var l1 value.Value // var baz: Std::Time
+	_ = l1
+	var t1 []value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var l2 value.Value // var foo: Std::Int
+	_ = l2
+	var l3 value.String // var a: Std::String
+	_ = l3
+	var t3 value.Value
+	_ = t3
+	var t4 value.String
+	_ = t4
+	var t5 value.String
+	_ = t5
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float(15.200000)
+	t1 = make([]value.Value, 1)
+	t1[0] = value.GetConstant(sym0)
+	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 3})
+	t2, err = thread.CallMethodByNameWithCache(sym1, &cc_main_1, t1...) // receiver: &Std::Time, name: now
+	thread.PopCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t1 = nil
+	l1 = t2
+	l2 = (value.SmallInt(1)).ToValue()
+	t2, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
+	t3, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_2, t2) // receiver: Std::Int, name: to_string
+	thread.PopCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t4 = (t3).AsString()
+	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
+	t3, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_3, l1) // receiver: Std::Time, name: to_string
+	thread.PopCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t5 = (t3).AsString()
+	l3 = value.String("foo: ") + t4 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + t5
+}
+`,
+		},
+		"inspect interpolated string": {
+			input: `
+				bar := 15.2
+				foo := 1
+				baz := "bazzy"
+				a := "foo: #{foo + 2}, bar: #bar, baz: #baz"
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var cc_main_1 = &value.CallCache{}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Float // var bar: Std::Float
+	_ = l0
+	var l1 value.Value // var foo: Std::Int
+	_ = l1
+	var l2 value.String // var baz: Std::String
+	_ = l2
+	var l3 value.String // var a: Std::String
+	_ = l3
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Value
+	_ = t2
+	var t3 value.String
+	_ = t3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float(15.200000)
+	l1 = (value.SmallInt(1)).ToValue()
+	l2 = value.String("bazzy")
+	t1, err = value.AddVal(l1, (value.SmallInt(2)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
+	t2, err = thread.CallMethodByNameWithCache(symbol.L_inspect, &cc_main_1, t1) // receiver: Std::Int, name: inspect
+	thread.PopCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t3 = (t2).AsString()
+	l3 = value.String("foo: ") + t3 + value.String(", bar: ") + (l0).Inspect() + value.String(", baz: ") + (l2).Inspect()
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoSymbolLiteral(t *testing.T) {
+	tests := goTestTable{
+		"static symbol": {
+			input: `a := :foo`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Symbol // var a: Std::Symbol
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = sym0
+}
+`,
+		},
+		"interpolated symbol with builtin types": {
+			input: `
+				bar := 15.2
+				baz := "bazzy"
+				foo := 1
+				a := :"foo: ${foo + 2}, bar: $bar, baz: $baz"
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var cc_main_1 = &value.CallCache{}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Float // var bar: Std::Float
+	_ = l0
+	var l1 value.String // var baz: Std::String
+	_ = l1
+	var l2 value.Value // var foo: Std::Int
+	_ = l2
+	var l3 value.Symbol // var a: Std::Symbol
+	_ = l3
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Value
+	_ = t2
+	var t3 value.String
+	_ = t3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float(15.200000)
+	l1 = value.String("bazzy")
+	l2 = (value.SmallInt(1)).ToValue()
+	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
+	t2, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_1, t1) // receiver: Std::Int, name: to_string
+	thread.PopCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t3 = (t2).AsString()
+	l3 = (value.String("foo: ") + t3 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + l1).ToSymbol()
+}
+`,
+		},
+		"interpolated symbol with complex types": {
+			input: `
+				bar := 15.2
+				baz := Time.now
+				foo := 1
+				a := :"foo: ${foo + 2}, bar: $bar, baz: $baz"
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("Std::Time")
+var sym1 = value.ToSymbol("now")
+var cc_main_1 = &value.CallCache{}
+var cc_main_2 = &value.CallCache{}
+var cc_main_3 = &value.CallCache{}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Float // var bar: Std::Float
+	_ = l0
+	var l1 value.Value // var baz: Std::Time
+	_ = l1
+	var t1 []value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var l2 value.Value // var foo: Std::Int
+	_ = l2
+	var l3 value.Symbol // var a: Std::Symbol
+	_ = l3
+	var t3 value.Value
+	_ = t3
+	var t4 value.String
+	_ = t4
+	var t5 value.String
+	_ = t5
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float(15.200000)
+	t1 = make([]value.Value, 1)
+	t1[0] = value.GetConstant(sym0)
+	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 3})
+	t2, err = thread.CallMethodByNameWithCache(sym1, &cc_main_1, t1...) // receiver: &Std::Time, name: now
+	thread.PopCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t1 = nil
+	l1 = t2
+	l2 = (value.SmallInt(1)).ToValue()
+	t2, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
+	t3, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_2, t2) // receiver: Std::Int, name: to_string
+	thread.PopCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t4 = (t3).AsString()
+	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
+	t3, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_3, l1) // receiver: Std::Time, name: to_string
+	thread.PopCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t5 = (t3).AsString()
+	l3 = (value.String("foo: ") + t4 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + t5).ToSymbol()
+}
+`,
+		},
+		"inspect interpolated symbol": {
+			input: `
+				bar := 15.2
+				foo := 1
+				baz := "bazzy"
+				a := :"foo: #{foo + 2}, bar: #bar, baz: #baz"
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var cc_main_1 = &value.CallCache{}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Float // var bar: Std::Float
+	_ = l0
+	var l1 value.Value // var foo: Std::Int
+	_ = l1
+	var l2 value.String // var baz: Std::String
+	_ = l2
+	var l3 value.Symbol // var a: Std::Symbol
+	_ = l3
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Value
+	_ = t2
+	var t3 value.String
+	_ = t3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float(15.200000)
+	l1 = (value.SmallInt(1)).ToValue()
+	l2 = value.String("bazzy")
+	t1, err = value.AddVal(l1, (value.SmallInt(2)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
+	t2, err = thread.CallMethodByNameWithCache(symbol.L_inspect, &cc_main_1, t1) // receiver: Std::Int, name: inspect
+	thread.PopCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t3 = (t2).AsString()
+	l3 = (value.String("foo: ") + t3 + value.String(", bar: ") + (l0).Inspect() + value.String(", baz: ") + (l2).Inspect()).ToSymbol()
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestRangeLiteral(t *testing.T) {
 // 	tests := bytecodeTestTable{
@@ -836,7 +1212,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.SmallInt(450200).ToValue()
+	l0 = (value.SmallInt(450200)).ToValue()
 }
 `,
 		},
@@ -1042,83 +1418,133 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// "put nil": {
-		// 	input: `nil`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(2, 1, 3)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{},
-		// 	),
-		// },
-		// "put true": {
-		// 	input: `true`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(3, 1, 4)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{},
-		// 	),
-		// },
-		// "put false": {
-		// 	input: `false`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(4, 1, 5)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{},
-		// 	),
-		// },
-		// "put simple Symbol": {
-		// 	input: `:foo`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(3, 1, 4)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.ToSymbol("foo").ToValue(),
-		// 		},
-		// 	),
-		// },
-		// "put self": {
-		// 	input: `self`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.SELF),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(3, 1, 4)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{},
-		// 	),
-		// },
+		"put nil": {
+			input: `a :=nil`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: nil
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+}
+`,
+		},
+		"put true": {
+			input: `a := true`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 bool // var a: bool
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = true
+}
+`,
+		},
+		"put false": {
+			input: `a := false`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 bool // var a: bool
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = false
+}
+`,
+		},
+		"put simple Symbol": {
+			input: `a := :foo`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Symbol // var a: Std::Symbol
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = sym0
+}
+`,
+		},
+		"put self": {
+			input: `a := self`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::Object
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = self
+}
+`,
+		},
 	}
 
 	for name, tc := range tests {
