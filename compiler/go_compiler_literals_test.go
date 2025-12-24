@@ -621,348 +621,480 @@ func main() { // loc: <main>
 	}
 }
 
-// func TestRangeLiteral(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"static closed range": {
-// 			input: `2...5`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(4, 1, 5)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.NewClosedRange(value.SmallInt(2).ToValue(), value.SmallInt(5).ToValue())),
-// 				},
-// 			),
-// 		},
-// 		"static open range": {
-// 			input: `2<.<5`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(4, 1, 5)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.NewOpenRange(value.SmallInt(2).ToValue(), value.SmallInt(5).ToValue())),
-// 				},
-// 			),
-// 		},
-// 		"static left open range": {
-// 			input: `2<..5`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(4, 1, 5)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.NewLeftOpenRange(value.SmallInt(2).ToValue(), value.SmallInt(5).ToValue())),
-// 				},
-// 			),
-// 		},
-// 		"static right open range": {
-// 			input: `2..<5`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(4, 1, 5)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.NewRightOpenRange(value.SmallInt(2).ToValue(), value.SmallInt(5).ToValue())),
-// 				},
-// 			),
-// 		},
-// 		"static beginless closed range": {
-// 			input: `...5`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(3, 1, 4)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.NewBeginlessClosedRange(value.SmallInt(5).ToValue())),
-// 				},
-// 			),
-// 		},
-// 		"static beginless open range": {
-// 			input: `..<5`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(3, 1, 4)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.NewBeginlessOpenRange(value.SmallInt(5).ToValue())),
-// 				},
-// 			),
-// 		},
-// 		"static endless closed range": {
-// 			input: `2...`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(3, 1, 4)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.NewEndlessClosedRange(value.SmallInt(2).ToValue())),
-// 				},
-// 			),
-// 		},
-// 		"static endless open range": {
-// 			input: `2<..`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(3, 1, 4)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.NewEndlessOpenRange(value.SmallInt(2).ToValue())),
-// 				},
-// 			),
-// 		},
-// 		"closed range": {
-// 			input: `
-// 			  a := 2
-// 				a...5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.NEW_RANGE), bytecode.CLOSED_RANGE_FLAG,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(22, 3, 10)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"open range": {
-// 			input: `
-// 			  a := 2
-// 				a<.<5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.NEW_RANGE), bytecode.OPEN_RANGE_FLAG,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(22, 3, 10)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"left open range": {
-// 			input: `
-// 			  a := 2
-// 				a<..5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.NEW_RANGE), bytecode.LEFT_OPEN_RANGE_FLAG,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(22, 3, 10)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"right open range": {
-// 			input: `
-// 			  a := 2
-// 				a..<5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.NEW_RANGE), bytecode.RIGHT_OPEN_RANGE_FLAG,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(22, 3, 10)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"beginless closed range": {
-// 			input: `
-// 			  a := 2
-// 				...a
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.NEW_RANGE), bytecode.BEGINLESS_CLOSED_RANGE_FLAG,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(21, 3, 9)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"beginless open range": {
-// 			input: `
-// 			  a := 2
-// 				..<a
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.NEW_RANGE), bytecode.BEGINLESS_OPEN_RANGE_FLAG,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(21, 3, 9)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"endless closed range": {
-// 			input: `
-// 			  a := 2
-// 				a...
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.NEW_RANGE), bytecode.ENDLESS_CLOSED_RANGE_FLAG,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(21, 3, 9)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"endless open range": {
-// 			input: `
-// 			  a := 2
-// 				a<..
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.NEW_RANGE), bytecode.ENDLESS_OPEN_RANGE_FLAG,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(21, 3, 9)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 	}
+func TestGoRangeLiteral(t *testing.T) {
+	tests := goTestTable{
+		"static closed range": {
+			input: `a := 2...5`,
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var range0 = value.NewClosedRange((value.SmallInt(2)).ToValue(), (value.SmallInt(5)).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 *value.ClosedRange // var a: Std::ClosedRange[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = range0
+}
+`,
+		},
+		"static open range": {
+			input: `a := 2<.<5`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var range0 = value.NewOpenRange((value.SmallInt(2)).ToValue(), (value.SmallInt(5)).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 *value.OpenRange // var a: Std::OpenRange[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = range0
+}
+`,
+		},
+		"static left open range": {
+			input: `a := 2<..5`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var range0 = value.NewLeftOpenRange((value.SmallInt(2)).ToValue(), (value.SmallInt(5)).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 *value.LeftOpenRange // var a: Std::LeftOpenRange[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = range0
+}
+`,
+		},
+		"static right open range": {
+			input: `a := 2..<5`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var range0 = value.NewRightOpenRange((value.SmallInt(2)).ToValue(), (value.SmallInt(5)).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 *value.RightOpenRange // var a: Std::RightOpenRange[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = range0
+}
+`,
+		},
+		"static beginless closed range": {
+			input: `a := ...5`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var range0 = value.NewBeginlessClosedRange((value.SmallInt(5)).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 *value.BeginlessClosedRange // var a: Std::BeginlessClosedRange[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = range0
+}
+`,
+		},
+		"static beginless open range": {
+			input: `a := ..<5`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var range0 = value.NewBeginlessOpenRange((value.SmallInt(5)).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 *value.BeginlessOpenRange // var a: Std::BeginlessOpenRange[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = range0
+}
+`,
+		},
+		"static endless closed range": {
+			input: `a := 2...`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var range0 = value.NewEndlessClosedRange((value.SmallInt(2)).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 *value.EndlessClosedRange // var a: Std::EndlessClosedRange[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = range0
+}
+`,
+		},
+		"static endless open range": {
+			input: `a := 2<..`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var range0 = value.NewEndlessOpenRange((value.SmallInt(2)).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 *value.EndlessOpenRange // var a: Std::EndlessOpenRange[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = range0
+}
+`,
+		},
+		"closed range": {
+			input: `
+			  a := 2
+				b := a...5
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 *value.ClosedRange // var b: Std::ClosedRange[Std::Int]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(2)).ToValue()
+	l1 = value.NewClosedRange(l0, (value.SmallInt(5)).ToValue())
+}
+`,
+		},
+		"open range": {
+			input: `
+			  a := 2
+				b := a<.<5
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 *value.OpenRange // var b: Std::OpenRange[Std::Int]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(2)).ToValue()
+	l1 = value.NewOpenRange(l0, (value.SmallInt(5)).ToValue())
+}
+`,
+		},
+		"left open range": {
+			input: `
+			  a := 2
+				b := a<..5
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 *value.LeftOpenRange // var b: Std::LeftOpenRange[Std::Int]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(2)).ToValue()
+	l1 = value.NewLeftOpenRange(l0, (value.SmallInt(5)).ToValue())
+}
+`,
+		},
+		"right open range": {
+			input: `
+			  a := 2
+				b := a..<5
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 *value.RightOpenRange // var b: Std::RightOpenRange[Std::Int]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(2)).ToValue()
+	l1 = value.NewRightOpenRange(l0, (value.SmallInt(5)).ToValue())
+}
+`,
+		},
+		"beginless closed range": {
+			input: `
+			  a := 2
+				b := ...a
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 *value.BeginlessClosedRange // var b: Std::BeginlessClosedRange[Std::Int]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(2)).ToValue()
+	l1 = value.NewBeginlessClosedRange(l0)
+}
+`,
+		},
+		"beginless open range": {
+			input: `
+			  a := 2
+				b := ..<a
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 *value.BeginlessOpenRange // var b: Std::BeginlessOpenRange[Std::Int]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(2)).ToValue()
+	l1 = value.NewBeginlessOpenRange(l0)
+}
+`,
+		},
+		"endless closed range": {
+			input: `
+			  a := 2
+				b := a...
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 *value.EndlessClosedRange // var b: Std::EndlessClosedRange[Std::Int]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(2)).ToValue()
+	l1 = value.NewEndlessClosedRange(l0)
+}
+`,
+		},
+		"endless open range": {
+			input: `
+			  a := 2
+				b := a<..
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 *value.EndlessOpenRange // var b: Std::EndlessOpenRange[Std::Int]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(2)).ToValue()
+	l1 = value.NewEndlessOpenRange(l0)
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 func TestGoSimpleLiterals(t *testing.T) {
 	tests := goTestTable{

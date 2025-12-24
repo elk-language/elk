@@ -61,6 +61,17 @@ func (s *nativeSymbol) goIdent() string {
 	return fmt.Sprintf("sym%d", s.id)
 }
 
+type nativeRange struct {
+	id      int
+	val     value.Value
+	goType  string
+	elkType types.Type
+}
+
+func (s *nativeRange) goIdent() string {
+	return fmt.Sprintf("range%d", s.id)
+}
+
 // Compiler mode
 type goMode uint8
 
@@ -355,6 +366,7 @@ type globalData struct {
 	bigFloatCache *concurrent.Map[string, *nativeBigFloat]
 	bigIntCache   *concurrent.Map[string, *nativeBigInt]
 	symbolCache   *concurrent.Map[string, *nativeSymbol]
+	rangeCache    *concurrent.Map[string, *nativeRange]
 }
 
 func newGlobalData() *globalData {
@@ -362,6 +374,7 @@ func newGlobalData() *globalData {
 		bigFloatCache: concurrent.NewMap[string, *nativeBigFloat](),
 		bigIntCache:   concurrent.NewMap[string, *nativeBigInt](),
 		symbolCache:   concurrent.NewMap[string, *nativeSymbol](),
+		rangeCache:    concurrent.NewMap[string, *nativeRange](),
 	}
 }
 
@@ -1185,6 +1198,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		return c.compileLocalVariableAccess(node.Value)
 	case *ast.PrivateIdentifierNode:
 		return c.compileLocalVariableAccess(node.Value)
+	case *ast.RangeLiteralNode:
+		return c.compileRangeLiteralNode(node)
 	case *ast.IfExpressionNode:
 		return c.compileIfExpression(
 			ifConditionType,
@@ -1237,6 +1252,84 @@ func (c *GoCompiler) compileRawCharLiteralNode(node *ast.RawCharLiteralNode) *go
 		c.typeOf(node),
 		"value.Char",
 	)
+}
+
+func (c *GoCompiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	if node.Start == nil {
+		end := c.compileExpression(node.End)
+
+		switch node.Op.Type {
+		case token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP:
+			return newInlineGoValue(
+				fmt.Sprintf("value.NewBeginlessClosedRange(%s)", c.convertToValue(end)),
+				c.typeOf(node),
+				"*value.BeginlessClosedRange",
+			)
+		case token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
+			return newInlineGoValue(
+				fmt.Sprintf("value.NewBeginlessOpenRange(%s)", c.convertToValue(end)),
+				c.typeOf(node),
+				"*value.BeginlessOpenRange",
+			)
+		default:
+			panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
+		}
+	}
+	if node.End == nil {
+		start := c.compileExpression(node.Start)
+
+		switch node.Op.Type {
+		case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP:
+			return newInlineGoValue(
+				fmt.Sprintf("value.NewEndlessClosedRange(%s)", c.convertToValue(start)),
+				c.typeOf(node),
+				"*value.EndlessClosedRange",
+			)
+		case token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
+			return newInlineGoValue(
+				fmt.Sprintf("value.NewEndlessOpenRange(%s)", c.convertToValue(start)),
+				c.typeOf(node),
+				"*value.EndlessOpenRange",
+			)
+		default:
+			panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
+		}
+	}
+
+	start := c.compileExpression(node.Start)
+	end := c.compileExpression(node.End)
+	switch node.Op.Type {
+	case token.CLOSED_RANGE_OP:
+		return newInlineGoValue(
+			fmt.Sprintf("value.NewClosedRange(%s, %s)", c.convertToValue(start), c.convertToValue(end)),
+			c.typeOf(node),
+			"*value.ClosedRange",
+		)
+	case token.OPEN_RANGE_OP:
+		return newInlineGoValue(
+			fmt.Sprintf("value.NewOpenRange(%s, %s)", c.convertToValue(start), c.convertToValue(end)),
+			c.typeOf(node),
+			"*value.OpenRange",
+		)
+	case token.LEFT_OPEN_RANGE_OP:
+		return newInlineGoValue(
+			fmt.Sprintf("value.NewLeftOpenRange(%s, %s)", c.convertToValue(start), c.convertToValue(end)),
+			c.typeOf(node),
+			"*value.LeftOpenRange",
+		)
+	case token.RIGHT_OPEN_RANGE_OP:
+		return newInlineGoValue(
+			fmt.Sprintf("value.NewRightOpenRange(%s, %s)", c.convertToValue(start), c.convertToValue(end)),
+			c.typeOf(node),
+			"*value.RightOpenRange",
+		)
+	default:
+		panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
+	}
 }
 
 func (c *GoCompiler) compileStringInterpolationNode(node *ast.StringInterpolationNode) *goValue {
@@ -2179,6 +2272,75 @@ func (c *GoCompiler) emitSymbol(val string) string {
 	ident := symbol.goIdent()
 	c.emitPackage("var %s = value.ToSymbol(%q)\n", ident, val)
 	return ident
+}
+
+func (c *GoCompiler) emitRange(val value.Value) *goValue {
+	c.globalData.rangeCache.Lock()
+	defer c.globalData.rangeCache.Unlock()
+
+	inspect := val.Inspect()
+	rng, ok := c.globalData.rangeCache.GetUnsafe(inspect)
+	if ok {
+		return newInlineGoValue(
+			rng.goIdent(),
+			rng.elkType,
+			rng.goType,
+		)
+	}
+
+	rng = &nativeRange{
+		id:  c.globalData.rangeCache.Len(),
+		val: val,
+	}
+	c.globalData.rangeCache.SetUnsafe(inspect, rng)
+	ident := rng.goIdent()
+
+	var goType string
+	var elkType types.Type
+	switch val := val.AsReference().(type) {
+	case *value.BeginlessClosedRange:
+		c.emitPackage("var %s = value.NewBeginlessClosedRange(%s)\n", ident, c.convertToValue(c.valueToGoSource(val.End)))
+		goType = "*value.BeginlessClosedRange"
+		elkType = c.checker.Std(symbol.BeginlessClosedRange)
+	case *value.BeginlessOpenRange:
+		c.emitPackage("var %s = value.NewBeginlessOpenRange(%s)\n", ident, c.convertToValue(c.valueToGoSource(val.End)))
+		goType = "*value.BeginlessOpenRange"
+		elkType = c.checker.Std(symbol.BeginlessOpenRange)
+	case *value.EndlessClosedRange:
+		c.emitPackage("var %s = value.NewEndlessClosedRange(%s)\n", ident, c.convertToValue(c.valueToGoSource(val.Start)))
+		goType = "*value.EndlessClosedRange"
+		elkType = c.checker.Std(symbol.EndlessClosedRange)
+	case *value.EndlessOpenRange:
+		c.emitPackage("var %s = value.NewEndlessOpenRange(%s)\n", ident, c.convertToValue(c.valueToGoSource(val.Start)))
+		goType = "*value.EndlessOpenRange"
+		elkType = c.checker.Std(symbol.EndlessOpenRange)
+	case *value.ClosedRange:
+		c.emitPackage("var %s = value.NewClosedRange(%s, %s)\n", ident, c.convertToValue(c.valueToGoSource(val.Start)), c.convertToValue(c.valueToGoSource(val.End)))
+		goType = "*value.ClosedRange"
+		elkType = c.checker.Std(symbol.ClosedRange)
+	case *value.OpenRange:
+		c.emitPackage("var %s = value.NewOpenRange(%s, %s)\n", ident, c.convertToValue(c.valueToGoSource(val.Start)), c.convertToValue(c.valueToGoSource(val.End)))
+		goType = "*value.OpenRange"
+		elkType = c.checker.Std(symbol.OpenRange)
+	case *value.LeftOpenRange:
+		c.emitPackage("var %s = value.NewLeftOpenRange(%s, %s)\n", ident, c.convertToValue(c.valueToGoSource(val.Start)), c.convertToValue(c.valueToGoSource(val.End)))
+		goType = "*value.LeftOpenRange"
+		elkType = c.checker.Std(symbol.LeftOpenRange)
+	case *value.RightOpenRange:
+		c.emitPackage("var %s = value.NewRightOpenRange(%s, %s)\n", ident, c.convertToValue(c.valueToGoSource(val.Start)), c.convertToValue(c.valueToGoSource(val.End)))
+		goType = "*value.RightOpenRange"
+		elkType = c.checker.Std(symbol.RightOpenRange)
+	default:
+		panic(fmt.Sprintf("invalid range value: %#v", val))
+	}
+	rng.goType = goType
+	rng.elkType = elkType
+
+	return newInlineGoValue(
+		ident,
+		elkType,
+		goType,
+	)
 }
 
 func (c *GoCompiler) getTmpIdent() string {
@@ -5382,6 +5544,17 @@ func (c *GoCompiler) valueToGoSource(val value.Value) *goValue {
 				c.checker.Std(symbol.UInt64),
 				"value.UInt64",
 			)
+		case *value.BigInt:
+			return newInlineGoValue(
+				c.emitBigInt(string(v.ToString())),
+				c.checker.Std(symbol.Int),
+				"*value.BigInt",
+			)
+		case *value.BeginlessClosedRange, *value.BeginlessOpenRange,
+			*value.EndlessClosedRange, *value.EndlessOpenRange,
+			*value.ClosedRange, *value.OpenRange,
+			*value.LeftOpenRange, *value.RightOpenRange:
+			return c.emitRange(value.Ref(v))
 		default:
 			return nil
 		}
@@ -5473,6 +5646,18 @@ func (c *GoCompiler) valueToGoSource(val value.Value) *goValue {
 			fmt.Sprintf("value.Float(%f)", val.AsFloat()),
 			c.checker.Std(symbol.Float),
 			"value.Float",
+		)
+	case value.FLOAT64_FLAG:
+		return newInlineGoValue(
+			fmt.Sprintf("value.Float64(%f)", val.AsFloat64()),
+			c.checker.Std(symbol.Float64),
+			"value.Float64",
+		)
+	case value.FLOAT32_FLAG:
+		return newInlineGoValue(
+			fmt.Sprintf("value.Float32(%f)", val.AsFloat32()),
+			c.checker.Std(symbol.Float32),
+			"value.Float32",
 		)
 	}
 
@@ -5660,6 +5845,54 @@ func (c *GoCompiler) valueToNarrowerType(v *goValue) *goValue {
 			"*value.HashSet",
 		)
 	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.BeginlessClosedRange)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(*value.BeginlessClosedRange)((%s).Pointer())", v.value()),
+			"*value.BeginlessClosedRange",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.BeginlessOpenRange)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(*value.BeginlessOpenRange)((%s).Pointer())", v.value()),
+			"*value.BeginlessOpenRange",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.EndlessClosedRange)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(*value.EndlessClosedRange)((%s).Pointer())", v.value()),
+			"*value.EndlessClosedRange",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.EndlessOpenRange)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(*value.EndlessOpenRange)((%s).Pointer())", v.value()),
+			"*value.EndlessOpenRange",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.ClosedRange)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(*value.ClosedRange)((%s).Pointer())", v.value()),
+			"*value.ClosedRange",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.OpenRange)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(*value.OpenRange)((%s).Pointer())", v.value()),
+			"*value.OpenRange",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.LeftOpenRange)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(*value.LeftOpenRange)((%s).Pointer())", v.value()),
+			"*value.LeftOpenRange",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.RightOpenRange)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(*value.RightOpenRange)((%s).Pointer())", v.value()),
+			"*value.RightOpenRange",
+		)
+	}
 
 	return v
 }
@@ -5729,6 +5962,30 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type) string {
 	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashSet)) {
 		return "*value.HashSet"
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.BeginlessClosedRange)) {
+		return "*value.BeginlessClosedRange"
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.BeginlessOpenRange)) {
+		return "*value.BeginlessOpenRange"
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.EndlessClosedRange)) {
+		return "*value.EndlessClosedRange"
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.EndlessOpenRange)) {
+		return "*value.EndlessOpenRange"
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ClosedRange)) {
+		return "*value.ClosedRange"
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.OpenRange)) {
+		return "*value.OpenRange"
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.LeftOpenRange)) {
+		return "*value.LeftOpenRange"
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.RightOpenRange)) {
+		return "*value.RightOpenRange"
 	}
 
 	return "value.Value"
