@@ -1,7 +1,10 @@
 package vm
 
 import (
+	"iter"
+
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // ::Std::EndlessClosedRange
@@ -176,4 +179,22 @@ func EndlessClosedRangeIteratorNext(vm *Thread, i *value.EndlessClosedRangeItera
 	i.CurrentElement = next
 
 	return current, value.Undefined
+}
+
+// Iterate over all elements of the iterator
+func EndlessClosedRangeIteratorAll(vm *Thread, i *value.EndlessClosedRangeIterator) iter.Seq2[value.Value, value.Value] {
+	return func(yield func(value.Value, value.Value) bool) {
+		for {
+			element, err := EndlessClosedRangeIteratorNext(vm, i)
+			if err.IsInlineSymbol() {
+				if element.AsInlineSymbol() == symbol.L_stop_iteration {
+					break
+				}
+			}
+
+			if !yield(element, err) {
+				return
+			}
+		}
+	}
 }

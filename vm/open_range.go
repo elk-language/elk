@@ -1,7 +1,10 @@
 package vm
 
 import (
+	"iter"
+
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // ::Std::OpenRange
@@ -204,4 +207,22 @@ func OpenRangeIteratorNext(vm *Thread, i *value.OpenRangeIterator) (value.Value,
 	current := i.CurrentElement
 
 	return current, value.Undefined
+}
+
+// Iterate over all elements of the iterator
+func OpenRangeIteratorAll(vm *Thread, i *value.OpenRangeIterator) iter.Seq2[value.Value, value.Value] {
+	return func(yield func(value.Value, value.Value) bool) {
+		for {
+			element, err := OpenRangeIteratorNext(vm, i)
+			if err.IsInlineSymbol() {
+				if element.AsInlineSymbol() == symbol.L_stop_iteration {
+					break
+				}
+			}
+
+			if !yield(element, err) {
+				return
+			}
+		}
+	}
 }

@@ -61,15 +61,15 @@ func (s *nativeSymbol) goIdent() string {
 	return fmt.Sprintf("sym%d", s.id)
 }
 
-type nativeRange struct {
-	id      int
+type nativeValue struct {
+	ident   string
 	val     value.Value
 	goType  string
 	elkType types.Type
 }
 
-func (s *nativeRange) goIdent() string {
-	return fmt.Sprintf("range%d", s.id)
+func (s *nativeValue) goIdent() string {
+	return s.ident
 }
 
 // Compiler mode
@@ -366,7 +366,7 @@ type globalData struct {
 	bigFloatCache *concurrent.Map[string, *nativeBigFloat]
 	bigIntCache   *concurrent.Map[string, *nativeBigInt]
 	symbolCache   *concurrent.Map[string, *nativeSymbol]
-	rangeCache    *concurrent.Map[string, *nativeRange]
+	valueCache    *concurrent.Map[string, *nativeValue]
 }
 
 func newGlobalData() *globalData {
@@ -374,7 +374,7 @@ func newGlobalData() *globalData {
 		bigFloatCache: concurrent.NewMap[string, *nativeBigFloat](),
 		bigIntCache:   concurrent.NewMap[string, *nativeBigInt](),
 		symbolCache:   concurrent.NewMap[string, *nativeSymbol](),
-		rangeCache:    concurrent.NewMap[string, *nativeRange](),
+		valueCache:    concurrent.NewMap[string, *nativeValue](),
 	}
 }
 
@@ -1192,6 +1192,10 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode) *goValue {
 		return newInlineGoValue("false", types.Bool{}, "bool")
 	case *ast.BinaryExpressionNode:
 		return c.compileBinaryExpressionNode(node)
+	case *ast.ArrayTupleLiteralNode:
+		return c.compileArrayTupleLiteralNode(node)
+	case *ast.ArrayListLiteralNode:
+		return c.compileArrayListLiteralNode(node)
 	case *ast.AssignmentExpressionNode:
 		return c.compileAssignmentExpressionNode(node)
 	case *ast.PublicIdentifierNode:
@@ -1330,6 +1334,52 @@ func (c *GoCompiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) *goValu
 	default:
 		panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
 	}
+}
+
+func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	var buff bytes.Buffer
+	buff.WriteString("value.NewArrayTupleWithElements(0,")
+	for _, elementNode := range node.Elements {
+		element := c.compileExpression(elementNode)
+		buff.WriteString(c.convertToValue(element))
+		buff.WriteRune(',')
+	}
+
+	buff.WriteString(")")
+
+	return newInlineGoValue(
+		buff.String(),
+		c.typeOf(node),
+		"*value.ArrayTuple",
+	)
+}
+
+func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	var buff bytes.Buffer
+	capacity := c.compileExpression(node.Capacity)
+
+	fmt.Fprintf(&buff, "value.NewArrayListWithElements(%s,", c.convertToNativeInt(capacity))
+	for _, elementNode := range node.Elements {
+		element := c.compileExpression(elementNode)
+		buff.WriteString(c.convertToValue(element))
+		buff.WriteRune(',')
+	}
+
+	buff.WriteString(")")
+
+	return newInlineGoValue(
+		buff.String(),
+		c.typeOf(node),
+		"*value.ArrayList",
+	)
 }
 
 func (c *GoCompiler) compileStringInterpolationNode(node *ast.StringInterpolationNode) *goValue {
@@ -2274,12 +2324,17 @@ func (c *GoCompiler) emitSymbol(val string) string {
 	return ident
 }
 
-func (c *GoCompiler) emitRange(val value.Value) *goValue {
-	c.globalData.rangeCache.Lock()
-	defer c.globalData.rangeCache.Unlock()
+func (c *GoCompiler) emitCachedRange(val value.Value, typ types.Type) *goValue {
+	rangeSource := c.rangeToGoSource(val, typ, false)
+	if rangeSource == nil {
+		return nil
+	}
+
+	c.globalData.valueCache.Lock()
+	defer c.globalData.valueCache.Unlock()
 
 	inspect := val.Inspect()
-	rng, ok := c.globalData.rangeCache.GetUnsafe(inspect)
+	rng, ok := c.globalData.valueCache.GetUnsafe(inspect)
 	if ok {
 		return newInlineGoValue(
 			rng.goIdent(),
@@ -2288,58 +2343,66 @@ func (c *GoCompiler) emitRange(val value.Value) *goValue {
 		)
 	}
 
-	rng = &nativeRange{
-		id:  c.globalData.rangeCache.Len(),
-		val: val,
+	rng = &nativeValue{
+		ident: fmt.Sprintf("range%d", c.globalData.valueCache.Len()),
+		val:   val,
 	}
-	c.globalData.rangeCache.SetUnsafe(inspect, rng)
+	c.globalData.valueCache.SetUnsafe(inspect, rng)
 	ident := rng.goIdent()
 
-	var goType string
-	var elkType types.Type
-	switch val := val.AsReference().(type) {
-	case *value.BeginlessClosedRange:
-		c.emitPackage("var %s = value.NewBeginlessClosedRange(%s)\n", ident, c.convertToValue(c.valueToGoSource(val.End)))
-		goType = "*value.BeginlessClosedRange"
-		elkType = c.checker.Std(symbol.BeginlessClosedRange)
-	case *value.BeginlessOpenRange:
-		c.emitPackage("var %s = value.NewBeginlessOpenRange(%s)\n", ident, c.convertToValue(c.valueToGoSource(val.End)))
-		goType = "*value.BeginlessOpenRange"
-		elkType = c.checker.Std(symbol.BeginlessOpenRange)
-	case *value.EndlessClosedRange:
-		c.emitPackage("var %s = value.NewEndlessClosedRange(%s)\n", ident, c.convertToValue(c.valueToGoSource(val.Start)))
-		goType = "*value.EndlessClosedRange"
-		elkType = c.checker.Std(symbol.EndlessClosedRange)
-	case *value.EndlessOpenRange:
-		c.emitPackage("var %s = value.NewEndlessOpenRange(%s)\n", ident, c.convertToValue(c.valueToGoSource(val.Start)))
-		goType = "*value.EndlessOpenRange"
-		elkType = c.checker.Std(symbol.EndlessOpenRange)
-	case *value.ClosedRange:
-		c.emitPackage("var %s = value.NewClosedRange(%s, %s)\n", ident, c.convertToValue(c.valueToGoSource(val.Start)), c.convertToValue(c.valueToGoSource(val.End)))
-		goType = "*value.ClosedRange"
-		elkType = c.checker.Std(symbol.ClosedRange)
-	case *value.OpenRange:
-		c.emitPackage("var %s = value.NewOpenRange(%s, %s)\n", ident, c.convertToValue(c.valueToGoSource(val.Start)), c.convertToValue(c.valueToGoSource(val.End)))
-		goType = "*value.OpenRange"
-		elkType = c.checker.Std(symbol.OpenRange)
-	case *value.LeftOpenRange:
-		c.emitPackage("var %s = value.NewLeftOpenRange(%s, %s)\n", ident, c.convertToValue(c.valueToGoSource(val.Start)), c.convertToValue(c.valueToGoSource(val.End)))
-		goType = "*value.LeftOpenRange"
-		elkType = c.checker.Std(symbol.LeftOpenRange)
-	case *value.RightOpenRange:
-		c.emitPackage("var %s = value.NewRightOpenRange(%s, %s)\n", ident, c.convertToValue(c.valueToGoSource(val.Start)), c.convertToValue(c.valueToGoSource(val.End)))
-		goType = "*value.RightOpenRange"
-		elkType = c.checker.Std(symbol.RightOpenRange)
-	default:
-		panic(fmt.Sprintf("invalid range value: %#v", val))
+	c.emitPackage("var %s = %s\n", ident, rangeSource.value())
+
+	rng.goType = rangeSource.goType()
+	if typ == nil {
+		typ = rng.elkType
 	}
-	rng.goType = goType
-	rng.elkType = elkType
+	rng.elkType = typ
 
 	return newInlineGoValue(
 		ident,
-		elkType,
-		goType,
+		typ,
+		rng.goType,
+	)
+}
+
+func (c *GoCompiler) emitCachedArrayTuple(tuple *value.ArrayTuple, typ types.Type) *goValue {
+	tupleSource := c.arrayTupleToGoSource(tuple, false)
+	if tupleSource == nil {
+		return nil
+	}
+
+	c.globalData.valueCache.Lock()
+	defer c.globalData.valueCache.Unlock()
+
+	inspect := tuple.Inspect()
+	nativeVal, ok := c.globalData.valueCache.GetUnsafe(inspect)
+	if ok {
+		return newInlineGoValue(
+			nativeVal.goIdent(),
+			nativeVal.elkType,
+			nativeVal.goType,
+		)
+	}
+
+	if typ == nil {
+		typ = c.checker.Std(symbol.ArrayTuple)
+	}
+	nativeVal = &nativeValue{
+		ident:   fmt.Sprintf("arrtuple%d", c.globalData.valueCache.Len()),
+		val:     value.Ref(tuple),
+		goType:  "*value.ArrayTuple",
+		elkType: typ,
+	}
+	c.globalData.valueCache.SetUnsafe(inspect, nativeVal)
+
+	ident := nativeVal.goIdent()
+
+	c.emitPackage("var %s = %s\n", ident, tupleSource.value())
+
+	return newInlineGoValue(
+		ident,
+		typ,
+		nativeVal.goType,
 	)
 }
 
@@ -5516,22 +5579,44 @@ func (c *GoCompiler) resolve(node ast.ExpressionNode) *goValue {
 		return nil
 	}
 
-	return c.valueToGoSource(result)
+	return c.valueToGoSource(result, c.typeOf(node), true)
 }
 
-func (c *GoCompiler) valueToGoSource(val value.Value) *goValue {
+func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutable bool) *goValue {
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
 		case *value.ArrayList:
+			if !allowMutable {
+				return nil
+			}
 			return c.arrayListToGoSource(v)
 		case *value.ArrayTuple:
-			return c.arrayTupleToGoSource(v)
+			cached := c.emitCachedArrayTuple(v, typ)
+			if cached != nil {
+				return cached
+			}
+			if !allowMutable {
+				return nil
+			}
+			return c.arrayTupleToGoSource(v, true)
 		case *value.HashSet:
+			if !allowMutable {
+				return nil
+			}
 			return c.hashSetToGoSource(v)
 		case *value.HashMap:
+			if !allowMutable {
+				return nil
+			}
 			return c.hashMapToGoSource(v)
 		case *value.HashRecord:
-			return c.hashRecordToGoSource(v)
+			return c.hashRecordToGoSource(v, allowMutable)
+		case value.String:
+			return newInlineGoValue(
+				fmt.Sprintf("value.String(%q)", v.String()),
+				c.checker.Std(symbol.String),
+				"value.String",
+			)
 		case value.Int64:
 			return newInlineGoValue(
 				fmt.Sprintf("value.Int64(%d)", v),
@@ -5554,7 +5639,7 @@ func (c *GoCompiler) valueToGoSource(val value.Value) *goValue {
 			*value.EndlessClosedRange, *value.EndlessOpenRange,
 			*value.ClosedRange, *value.OpenRange,
 			*value.LeftOpenRange, *value.RightOpenRange:
-			return c.emitRange(value.Ref(v))
+			return c.emitCachedRange(value.Ref(v), typ)
 		default:
 			return nil
 		}
@@ -5641,6 +5726,12 @@ func (c *GoCompiler) valueToGoSource(val value.Value) *goValue {
 			c.checker.Std(symbol.Char),
 			"value.Char",
 		)
+	case value.SYMBOL_FLAG:
+		return newInlineGoValue(
+			c.emitSymbol(val.AsInlineSymbol().String()),
+			c.checker.Std(symbol.Symbol),
+			"value.Symbol",
+		)
 	case value.FLOAT_FLAG:
 		return newInlineGoValue(
 			fmt.Sprintf("value.Float(%f)", val.AsFloat()),
@@ -5670,7 +5761,7 @@ func (c *GoCompiler) arrayListToGoSource(v *value.ArrayList) *goValue {
 	fmt.Fprintf(&buff, "value.NewArrayListWithElements(%d, ", v.LeftCapacity())
 
 	for _, element := range *v {
-		el := c.valueToGoSource(element)
+		el := c.valueToGoSource(element, nil, true)
 		if el == nil {
 			return nil
 		}
@@ -5706,6 +5797,21 @@ func (c *GoCompiler) convertToValue(v *goValue) string {
 	}
 
 	return fmt.Sprintf("(%s).ToValue()", v.value())
+}
+
+func (c *GoCompiler) convertToNativeInt(v *goValue) string {
+	switch v.goType() {
+	case goValueType:
+		return v.value()
+	case "value.SmallInt", "value.Float",
+		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt", "value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
+		return fmt.Sprintf("int(%s)", v.value())
+	case "*value.BigInt":
+		return fmt.Sprintf("int((%s).ToSmallInt())", v.value())
+	}
+
+	return fmt.Sprintf("(%s).AsAnyInt()", c.convertToValue(v))
 }
 
 func (c *GoCompiler) valueToNarrowerType(v *goValue) *goValue {
@@ -5991,13 +6097,89 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type) string {
 	return "value.Value"
 }
 
-func (c *GoCompiler) arrayTupleToGoSource(v *value.ArrayTuple) *goValue {
+func (c *GoCompiler) rangeToGoSource(v value.Value, typ types.Type, mutable bool) *goValue {
+	var inline string
+	var goType string
+	var elkType types.Type
+	switch val := v.AsReference().(type) {
+	case *value.BeginlessClosedRange:
+		inline = fmt.Sprintf(
+			"value.NewBeginlessClosedRange(%s)",
+			c.convertToValue(c.valueToGoSource(val.End, typ, mutable)),
+		)
+		goType = "*value.BeginlessClosedRange"
+		elkType = c.checker.Std(symbol.BeginlessClosedRange)
+	case *value.BeginlessOpenRange:
+		inline = fmt.Sprintf(
+			"value.NewBeginlessOpenRange(%s)",
+			c.convertToValue(c.valueToGoSource(val.End, typ, mutable)),
+		)
+		goType = "*value.BeginlessOpenRange"
+		elkType = c.checker.Std(symbol.BeginlessOpenRange)
+	case *value.EndlessClosedRange:
+		inline = fmt.Sprintf(
+			"value.NewEndlessClosedRange(%s)",
+			c.convertToValue(c.valueToGoSource(val.Start, typ, mutable)),
+		)
+		goType = "*value.EndlessClosedRange"
+		elkType = c.checker.Std(symbol.EndlessClosedRange)
+	case *value.EndlessOpenRange:
+		inline = fmt.Sprintf(
+			"value.NewEndlessOpenRange(%s)",
+			c.convertToValue(c.valueToGoSource(val.Start, typ, mutable)),
+		)
+		goType = "*value.EndlessOpenRange"
+		elkType = c.checker.Std(symbol.EndlessOpenRange)
+	case *value.ClosedRange:
+		inline = fmt.Sprintf(
+			"value.NewClosedRange(%s, %s)",
+			c.convertToValue(c.valueToGoSource(val.Start, typ, mutable)),
+			c.convertToValue(c.valueToGoSource(val.End, typ, mutable)),
+		)
+		goType = "*value.ClosedRange"
+		elkType = c.checker.Std(symbol.ClosedRange)
+	case *value.OpenRange:
+		inline = fmt.Sprintf(
+			"value.NewOpenRange(%s, %s)",
+			c.convertToValue(c.valueToGoSource(val.Start, typ, mutable)),
+			c.convertToValue(c.valueToGoSource(val.End, typ, mutable)),
+		)
+		goType = "*value.OpenRange"
+		elkType = c.checker.Std(symbol.OpenRange)
+	case *value.LeftOpenRange:
+		inline = fmt.Sprintf(
+			"value.NewLeftOpenRange(%s, %s)",
+			c.convertToValue(c.valueToGoSource(val.Start, typ, mutable)),
+			c.convertToValue(c.valueToGoSource(val.End, typ, mutable)),
+		)
+		goType = "*value.LeftOpenRange"
+		elkType = c.checker.Std(symbol.LeftOpenRange)
+	case *value.RightOpenRange:
+		inline = fmt.Sprintf(
+			"value.NewRightOpenRange(%s, %s)",
+			c.convertToValue(c.valueToGoSource(val.Start, typ, mutable)),
+			c.convertToValue(c.valueToGoSource(val.End, typ, mutable)),
+		)
+		goType = "*value.RightOpenRange"
+		elkType = c.checker.Std(symbol.RightOpenRange)
+	default:
+		panic(fmt.Sprintf("invalid range value: %#v", val))
+	}
+
+	return newInlineGoValue(
+		inline,
+		elkType,
+		goType,
+	)
+}
+
+func (c *GoCompiler) arrayTupleToGoSource(v *value.ArrayTuple, mutable bool) *goValue {
 	var buff strings.Builder
 
 	buff.WriteString("value.NewArrayTupleWithElements(0, ")
 
 	for _, element := range *v {
-		el := c.valueToGoSource(element)
+		el := c.valueToGoSource(element, nil, mutable)
 		if el == nil {
 			return nil
 		}
@@ -6019,7 +6201,7 @@ func (c *GoCompiler) hashSetToGoSource(v *value.HashSet) *goValue {
 	fmt.Fprintf(&buff, "vm.MustNewHashSetWithCapacityAndElements(nil, %d, ", v.LeftCapacity())
 
 	for element := range v.All() {
-		el := c.valueToGoSource(element)
+		el := c.valueToGoSource(element, nil, true)
 		if el == nil {
 			return nil
 		}
@@ -6041,7 +6223,7 @@ func (c *GoCompiler) hashMapToGoSource(v *value.HashMap) *goValue {
 	fmt.Fprintf(&buff, "vm.MustNewHashMapWithCapacityAndElements(nil, %d, ", v.LeftCapacity())
 
 	for pair := range v.All() {
-		p := c.valuePairToGoSource(pair)
+		p := c.valuePairToGoSource(pair, true)
 		if p == nil {
 			return nil
 		}
@@ -6057,13 +6239,13 @@ func (c *GoCompiler) hashMapToGoSource(v *value.HashMap) *goValue {
 	)
 }
 
-func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecord) *goValue {
+func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecord, allowMutable bool) *goValue {
 	var buff strings.Builder
 
 	buff.WriteString("vm.MustNewHashRecordWithElements(nil, ")
 
 	for pair := range v.All() {
-		p := c.valuePairToGoSource(pair)
+		p := c.valuePairToGoSource(pair, allowMutable)
 		if p == nil {
 			return nil
 		}
@@ -6079,12 +6261,12 @@ func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecord) *goValue {
 	)
 }
 
-func (c *GoCompiler) valuePairToGoSource(p value.Pair) *goValue {
-	k := c.valueToGoSource(p.Key)
+func (c *GoCompiler) valuePairToGoSource(p value.Pair, allowMutable bool) *goValue {
+	k := c.valueToGoSource(p.Key, nil, allowMutable)
 	if k == nil {
 		return nil
 	}
-	v := c.valueToGoSource(p.Key)
+	v := c.valueToGoSource(p.Key, nil, allowMutable)
 	if v == nil {
 		return nil
 	}

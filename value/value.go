@@ -547,6 +547,8 @@ func (v Value) AsAnyInt() int {
 		return int(v.AsSmallInt())
 	case INT64_FLAG:
 		return int(v.AsInt64())
+	case UINT_FLAG:
+		return int(v.AsUInt())
 	case UINT64_FLAG:
 		return int(v.AsUInt64())
 	case INT32_FLAG:
