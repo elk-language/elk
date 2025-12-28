@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode"
@@ -1342,14 +1343,67 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 	}
 
 	var buff bytes.Buffer
-	buff.WriteString("value.NewArrayTupleWithElements(0,")
-	for _, elementNode := range node.Elements {
-		element := c.compileExpression(elementNode)
-		buff.WriteString(c.convertToValue(element))
-		buff.WriteRune(',')
+
+	elementValues := make([]*goValue, 0, len(node.Elements))
+	var tmp *goLocal
+
+	finalizeStaticElements := func() {
+		if tmp != nil {
+			return
+		}
+
+		tmp = c.defineTmpGoLocal("*value.ArrayList")
+		for _, elementValue := range elementValues {
+			buff.WriteString(c.convertToValue(elementValue))
+			buff.WriteRune(',')
+		}
+		buff.WriteString(")")
+		c.emit("%s = %s\n", tmp.name, buff.String())
+		buff.Reset()
+		elementValues = nil
 	}
 
-	buff.WriteString(")")
+	buff.WriteString("value.NewArrayListWithElements(0,")
+	for _, elementNode := range node.Elements {
+		switch elementNode := elementNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			index, ok := c.parseArrayIndex(elementNode.Key)
+			if !ok {
+				return errGoValue
+			}
+			if index == -1 {
+				finalizeStaticElements()
+				continue
+			}
+
+			value := c.compileExpression(elementNode.Value)
+			if index >= len(elementValues) {
+				newElementsCount := (index + 1) - len(elementValues)
+				c.expandValueSlice(&elementValues, newElementsCount)
+			}
+
+			elementValues[index] = value
+		case *ast.ModifierNode:
+			finalizeStaticElements()
+		case *ast.ModifierForInNode:
+			finalizeStaticElements()
+		case *ast.ModifierIfElseNode:
+			finalizeStaticElements()
+		default:
+			element := c.compileExpression(elementNode)
+			elementValues = append(elementValues, element)
+		case *ast.SymbolKeyValueExpressionNode:
+			panic(fmt.Sprintf("invalid arraytuple literal element node: %T", elementNode))
+		}
+	}
+
+	if tmp == nil {
+		for _, elementValue := range elementValues {
+			buff.WriteString(c.convertToValue(elementValue))
+			buff.WriteRune(',')
+		}
+		buff.WriteString(")")
+	}
 
 	return newInlineGoValue(
 		buff.String(),
@@ -1358,22 +1412,177 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 	)
 }
 
+func (c *GoCompiler) parseArrayIndex(node ast.ExpressionNode) (int, bool) {
+	var index int
+
+	switch n := node.(type) {
+	case *ast.IntLiteralNode:
+		i, err := value.ParseBigInt(n.Value, 0)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return 0, false
+		}
+		index = int(i.ToSmallInt())
+	case *ast.Int8LiteralNode:
+		i, err := value.StrictParseInt(n.Value, 0, 8)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return 0, false
+		}
+		index = int(i)
+	case *ast.Int16LiteralNode:
+		i, err := value.StrictParseInt(n.Value, 0, 16)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return 0, false
+		}
+		index = int(i)
+	case *ast.Int32LiteralNode:
+		i, err := value.StrictParseInt(n.Value, 0, 32)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return 0, false
+		}
+		index = int(i)
+	case *ast.Int64LiteralNode:
+		i, err := value.StrictParseInt(n.Value, 0, 64)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return 0, false
+		}
+		index = int(i)
+	case *ast.UInt8LiteralNode:
+		i, err := value.StrictParseUint(n.Value, 0, 8)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return 0, false
+		}
+		index = int(i)
+	case *ast.UInt16LiteralNode:
+		i, err := value.StrictParseUint(n.Value, 0, 16)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return 0, false
+		}
+		index = int(i)
+	case *ast.UInt32LiteralNode:
+		i, err := value.StrictParseUint(n.Value, 0, 32)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return 0, false
+		}
+		index = int(i)
+	case *ast.UInt64LiteralNode:
+		i, err := value.StrictParseUint(n.Value, 0, 64)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return 0, false
+		}
+		index = int(i)
+	case *ast.UIntLiteralNode:
+		i, err := value.StrictParseUint(n.Value, 0, value.SmallIntBits)
+		if !err.IsUndefined() {
+			c.Errors.AddFailure(err.Error(), node.Location())
+			return 0, false
+		}
+		index = int(i)
+	default:
+		return -1, true
+	}
+
+	if index < 0 {
+		c.Errors.AddFailure(
+			fmt.Sprintf("negative array indices are invalid: %d", index),
+			node.Location(),
+		)
+	}
+
+	return index, true
+}
+
+func (c *GoCompiler) expandValueSlice(slice *[]*goValue, newElements int) {
+	if newElements < 1 {
+		return
+	}
+
+	newCollection := slices.Grow(*slice, newElements)
+	for range newElements {
+		newCollection = append(newCollection, nilGoValue)
+	}
+	*slice = newCollection
+}
+
 func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode) *goValue {
 	if resolved := c.resolve(node); resolved != nil {
 		return resolved
 	}
 
 	var buff bytes.Buffer
-	capacity := c.compileExpression(node.Capacity)
+	var capacity *goValue
+	if node.Capacity != nil {
+		capacity = c.compileExpression(node.Capacity)
+	}
+
+	elementValues := make([]*goValue, 0, len(node.Elements))
+	var tmp *goLocal
+
+	finalizeStaticElements := func() {
+		if tmp != nil {
+			return
+		}
+
+		tmp = c.defineTmpGoLocal("*value.ArrayList")
+		for _, elementValue := range elementValues {
+			buff.WriteString(c.convertToValue(elementValue))
+			buff.WriteRune(',')
+		}
+		buff.WriteString(")")
+		c.emit("%s = %s\n", tmp.name, buff.String())
+		buff.Reset()
+		elementValues = nil
+	}
 
 	fmt.Fprintf(&buff, "value.NewArrayListWithElements(%s,", c.convertToNativeInt(capacity))
 	for _, elementNode := range node.Elements {
-		element := c.compileExpression(elementNode)
-		buff.WriteString(c.convertToValue(element))
-		buff.WriteRune(',')
+		switch elementNode := elementNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			index, ok := c.parseArrayIndex(elementNode.Key)
+			if !ok {
+				return errGoValue
+			}
+			if index == -1 {
+				finalizeStaticElements()
+				continue
+			}
+
+			value := c.compileExpression(elementNode.Value)
+			if index >= len(elementValues) {
+				newElementsCount := (index + 1) - len(elementValues)
+				c.expandValueSlice(&elementValues, newElementsCount)
+			}
+
+			elementValues[index] = value
+		case *ast.ModifierNode:
+			finalizeStaticElements()
+		case *ast.ModifierForInNode:
+			finalizeStaticElements()
+		case *ast.ModifierIfElseNode:
+			finalizeStaticElements()
+		default:
+			element := c.compileExpression(elementNode)
+			elementValues = append(elementValues, element)
+		case *ast.SymbolKeyValueExpressionNode:
+			panic(fmt.Sprintf("invalid arraylist literal element node: %T", elementNode))
+		}
 	}
 
-	buff.WriteString(")")
+	if tmp == nil {
+		for _, elementValue := range elementValues {
+			buff.WriteString(c.convertToValue(elementValue))
+			buff.WriteRune(',')
+		}
+		buff.WriteString(")")
+	}
 
 	return newInlineGoValue(
 		buff.String(),
@@ -5800,6 +6009,10 @@ func (c *GoCompiler) convertToValue(v *goValue) string {
 }
 
 func (c *GoCompiler) convertToNativeInt(v *goValue) string {
+	if v == nil {
+		return "0"
+	}
+
 	switch v.goType() {
 	case goValueType:
 		return v.value()

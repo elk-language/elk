@@ -277,7 +277,7 @@ func (t *ArrayTuple) Expand(newElements int) {
 	}
 
 	newCollection := slices.Grow(*t, newElements)
-	for i := 0; i < newElements; i++ {
+	for range newElements {
 		newCollection = append(newCollection, Nil)
 	}
 	*t = newCollection

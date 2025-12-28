@@ -1824,38 +1824,58 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// "with static keyed and dynamic elements": {
-		// 	input: "%[1, 'foo', 5 => 5,  3 => 5.6, String.name]",
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.GET_CONST8), 1,
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.NEW_ARRAY_TUPLE8), 1,
-		// 			byte(bytecode.RETURN),
+		"static keyed elements": {
+			input: "a := %[1, 'foo', 5i64 => 5,  3 => 5.6]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var arrtuple0 = value.NewArrayTupleWithElements(0, (value.SmallInt(1)).ToValue(), value.Ref(value.String("foo")), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 *value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::String | nil | Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = arrtuple0
+}
+`,
+		},
+		// 		"with static keyed and dynamic elements": {
+		// 			input: "%[1, 'foo', 5 => 5,  3 => 5.6, String.name]",
+		// 			want: `package main
+
+		// import "github.com/elk-language/elk/value"
+		// import "github.com/elk-language/elk/vm"
+
+		// import "github.com/elk-language/elk/value/symbol"
+
+		// var _ = symbol.Value
+		// var _ = vm.New
+		// var _ = value.Truthy
+
+		// func main() { // loc: <main>
+		// 	thread := vm.New()
+		// 	var l0 *value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::String | Std::ArrayList[Std::Float]]]
+		// 	_ = l0
+		// 	var self value.Value
+		// 	_ = self
+
+		// 	self = value.Ref(value.GlobalObject)
+		// 	l0 = value.NewArrayTupleWithElements(0, (value.SmallInt(1)).ToValue(), value.Ref(value.NewArrayTupleWithElements(0, value.Ref(value.String("bar")), value.Ref(value.NewArrayListWithElements(0, (value.Float(7.200000)).ToValue())))))
+		// }
+		// `,
 		// 		},
-		// 		L(P(0, 1, 1), P(42, 1, 43)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 8),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayTuple{
-		// 				value.SmallInt(1).ToValue(),
-		// 				value.Ref(value.String("foo")),
-		// 				value.Nil,
-		// 				value.Float(5.6).ToValue(),
-		// 				value.Nil,
-		// 				value.SmallInt(5).ToValue(),
-		// 			}),
-		// 			value.ToSymbol("Std::String").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("name"),
-		// 				0,
-		// 			)),
-		// 		},
-		// 	),
-		// },
 		// "with static and dynamic elements": {
 		// 	input: "%[1, 'foo', 5, Object(), 5, %[:foo]]",
 		// 	want: vm.NewBytecodeFunctionNoParams(
