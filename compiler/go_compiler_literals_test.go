@@ -1851,86 +1851,67 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// 		"with static keyed and dynamic elements": {
-		// 			input: "%[1, 'foo', 5 => 5,  3 => 5.6, String.name]",
-		// 			want: `package main
+		"with static keyed and dynamic elements": {
+			input: `
+						k := 10
+						a := %[1, 'foo', 5 => 5,  String.name, 3 => 5.6, k => 12, 8.2]
+					`,
+			want: `package main
 
-		// import "github.com/elk-language/elk/value"
-		// import "github.com/elk-language/elk/vm"
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
 
-		// import "github.com/elk-language/elk/value/symbol"
+import "github.com/elk-language/elk/value/symbol"
 
-		// var _ = symbol.Value
-		// var _ = vm.New
-		// var _ = value.Truthy
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
 
-		// func main() { // loc: <main>
-		// 	thread := vm.New()
-		// 	var l0 *value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::String | Std::ArrayList[Std::Float]]]
-		// 	_ = l0
-		// 	var self value.Value
-		// 	_ = self
+var sym0 = value.ToSymbol("Std::String")
+var sym1 = value.ToSymbol("name")
+var cc_main_1 = &value.CallCache{}
 
-		// 	self = value.Ref(value.GlobalObject)
-		// 	l0 = value.NewArrayTupleWithElements(0, (value.SmallInt(1)).ToValue(), value.Ref(value.NewArrayTupleWithElements(0, value.Ref(value.String("bar")), value.Ref(value.NewArrayListWithElements(0, (value.Float(7.200000)).ToValue())))))
-		// }
-		// `,
-		// 		},
-		// "with static and dynamic elements": {
-		// 	input: "%[1, 'foo', 5, Object(), 5, %[:foo]]",
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.GET_CONST8), 1,
-		// 			byte(bytecode.INSTANTIATE8), 0,
-		// 			byte(bytecode.INT_5),
-		// 			byte(bytecode.LOAD_VALUE_2),
-		// 			byte(bytecode.NEW_ARRAY_TUPLE8), 3,
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(35, 1, 36)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 10),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayTuple{
-		// 				value.SmallInt(1).ToValue(),
-		// 				value.Ref(value.String("foo")),
-		// 				value.SmallInt(5).ToValue(),
-		// 			}),
-		// 			value.ToSymbol("Std::Object").ToValue(),
-		// 			value.Ref(&value.ArrayTuple{
-		// 				value.ToSymbol("foo").ToValue(),
-		// 			}),
-		// 		},
-		// 	),
-		// },
-		// "with dynamic elements": {
-		// 	input: "%[Object(), 5, %[:foo]]",
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.INSTANTIATE8), 0,
-		// 			byte(bytecode.INT_5),
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.NEW_ARRAY_TUPLE8), 3,
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(22, 1, 23)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 10),
-		// 		},
-		// 		[]value.Value{
-		// 			value.ToSymbol("Std::Object").ToValue(),
-		// 			value.Ref(&value.ArrayTuple{
-		// 				value.ToSymbol("foo").ToValue(),
-		// 			}),
-		// 		},
-		// 	),
-		// },
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var k: Std::Int
+	_ = l0
+	var l1 *value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::String | Std::Float | nil]
+	_ = l1
+	var t1 []value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.String
+	_ = t3
+	var t4 *value.ArrayTuple
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(10)).ToValue()
+	t1 = make([]value.Value, 1)
+	t1[0] = value.GetConstant(sym0)
+	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 3})
+	t2, err = thread.CallMethodByNameWithCache(sym1, &cc_main_1, t1...) // receiver: &Std::String, name: name
+	thread.PopCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t3 = (t2).AsString()
+	t1 = nil
+	t4 = value.NewArrayListWithElements(0, (value.SmallInt(1)).ToValue(), value.Ref(value.String("foo")), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), value.Ref(t3))
+	err = t4.AppendAt(l0, (value.SmallInt(12)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t4.Append((value.Float(8.200000)).ToValue())
+	l1 = t4
+}
+`,
+		},
 		// "with static elements and if modifiers": {
 		// 	input: `
 		// 		var a: Object? = Object()

@@ -283,6 +283,34 @@ func (t *ArrayTuple) Expand(newElements int) {
 	*t = newCollection
 }
 
+func (t *ArrayTuple) AppendAt(key Value, val Value) Value {
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return Ref(NewIndexOutOfRangeError(key.Inspect(), t.Length()))
+		}
+		return Ref(NewCoerceError(IntClass, key.Class()))
+	}
+
+	return t.AppendAtInt(i, val)
+}
+
+func (t *ArrayTuple) AppendAtInt(index int, val Value) Value {
+	l := len(*t)
+
+	if index < 0 {
+		return Ref(NewNegativeIndicesInCollectionLiteralsError(fmt.Sprint(index)))
+	}
+
+	if index >= l {
+		newElementsCount := (index + 1) - l
+		t.Expand(newElementsCount)
+	}
+
+	(*t)[index] = val
+	return Undefined
+}
+
 func (t *ArrayTuple) Length() int {
 	return len(*t)
 }

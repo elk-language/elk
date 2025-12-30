@@ -1352,10 +1352,11 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 			return
 		}
 
-		tmp = c.defineTmpGoLocal("*value.ArrayList")
+		tmp = c.defineTmpGoLocal("*value.ArrayTuple")
 		for _, elementValue := range elementValues {
 			buff.WriteString(c.convertToValue(elementValue))
 			buff.WriteRune(',')
+			elementValue.markFree()
 		}
 		buff.WriteString(")")
 		c.emit("%s = %s\n", tmp.name, buff.String())
@@ -1364,15 +1365,28 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 	}
 
 	buff.WriteString("value.NewArrayListWithElements(0,")
-	for _, elementNode := range node.Elements {
+	for i := 0; i < len(node.Elements); i++ {
+		elementNode := node.Elements[i]
+
 		switch elementNode := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
+			if tmp != nil {
+				key := c.compileExpression(elementNode.Key)
+				value := c.compileExpression(elementNode.Value)
+				key.markFree()
+				value.markFree()
+
+				c.emit("err = %s.AppendAt(%s, %s)\n", tmp.name, c.convertToValue(key), c.convertToValue(value))
+				c.emitErrorPropagation()
+				continue
+			}
 			index, ok := c.parseArrayIndex(elementNode.Key)
 			if !ok {
 				return errGoValue
 			}
 			if index == -1 {
 				finalizeStaticElements()
+				i--
 				continue
 			}
 
@@ -1391,7 +1405,13 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 			finalizeStaticElements()
 		default:
 			element := c.compileExpression(elementNode)
-			elementValues = append(elementValues, element)
+
+			if tmp != nil {
+				c.emit("%s.Append(%s)\n", tmp.name, c.convertToValue(element))
+				element.markFree()
+			} else {
+				elementValues = append(elementValues, element)
+			}
 		case *ast.SymbolKeyValueExpressionNode:
 			panic(fmt.Sprintf("invalid arraytuple literal element node: %T", elementNode))
 		}
@@ -1401,14 +1421,20 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 		for _, elementValue := range elementValues {
 			buff.WriteString(c.convertToValue(elementValue))
 			buff.WriteRune(',')
+			elementValue.markFree()
 		}
 		buff.WriteString(")")
+
+		return newInlineGoValue(
+			buff.String(),
+			c.typeOf(node),
+			"*value.ArrayTuple",
+		)
 	}
 
-	return newInlineGoValue(
-		buff.String(),
+	return newTmpGoValue(
+		tmp,
 		c.typeOf(node),
-		"*value.ArrayTuple",
 	)
 }
 

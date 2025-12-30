@@ -3186,47 +3186,17 @@ func (vm *Thread) opAppendAt() value.Value {
 	key := vm.popGet()
 	collection := vm.peek()
 
-	i, ok := value.ToGoInt(key)
-
 	switch c := collection.SafeAsReference().(type) {
 	case *value.ArrayTuple:
-		l := len(*c)
-		if !ok {
-			if i == -1 {
-				return value.Ref(value.NewIndexOutOfRangeError(key.Inspect(), l))
-			}
-			return value.Ref(value.NewCoerceError(value.IntClass, key.Class()))
+		err := c.AppendAt(key, val)
+		if err.IsNotUndefined() {
+			return err
 		}
-
-		if i < 0 {
-			return value.Ref(value.NewNegativeIndicesInCollectionLiteralsError(fmt.Sprint(i)))
-		}
-
-		if i >= l {
-			newElementsCount := (i + 1) - l
-			c.Expand(newElementsCount)
-		}
-
-		(*c)[i] = val
 	case *value.ArrayList:
-		l := len(*c)
-		if !ok {
-			if i == -1 {
-				return value.Ref(value.NewIndexOutOfRangeError(key.Inspect(), l))
-			}
-			return value.Ref(value.NewCoerceError(value.IntClass, key.Class()))
+		err := c.AppendAt(key, val)
+		if err.IsNotUndefined() {
+			return err
 		}
-
-		if i < 0 {
-			return value.Ref(value.NewNegativeIndicesInCollectionLiteralsError(fmt.Sprint(i)))
-		}
-
-		if i >= l {
-			newElementsCount := (i + 1) - l
-			c.Expand(newElementsCount)
-		}
-
-		(*c)[i] = val
 	default:
 		panic(fmt.Sprintf("cannot APPEND_AT to: %s", collection.Inspect()))
 	}

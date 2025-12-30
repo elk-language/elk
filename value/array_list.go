@@ -370,6 +370,34 @@ func (l *ArrayList) Expand(newElements int) {
 	*l = newCollection
 }
 
+func (l *ArrayList) AppendAt(key Value, val Value) Value {
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return Ref(NewIndexOutOfRangeError(key.Inspect(), l.Length()))
+		}
+		return Ref(NewCoerceError(IntClass, key.Class()))
+	}
+
+	return l.AppendAtInt(i, val)
+}
+
+func (l *ArrayList) AppendAtInt(index int, val Value) Value {
+	length := l.Length()
+
+	if index < 0 {
+		return Ref(NewNegativeIndicesInCollectionLiteralsError(fmt.Sprint(index)))
+	}
+
+	if index >= length {
+		newElementsCount := (index + 1) - length
+		l.Expand(newElementsCount)
+	}
+
+	(*l)[index] = val
+	return Undefined
+}
+
 type ArrayListIterator struct {
 	ArrayList *ArrayList
 	Index     int
