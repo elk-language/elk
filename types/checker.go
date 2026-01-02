@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
 
@@ -33,4 +34,5 @@ type Checker interface {
 	GetIteratorElementType(Type) (Type, Type)
 	GetIteratorType(Type) Type
 	SelfType() Type
+	GetMethod(typ Type, name value.Symbol, errSpan *position.Location) *Method
 }

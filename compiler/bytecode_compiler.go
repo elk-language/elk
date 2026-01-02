@@ -4886,6 +4886,8 @@ func (c *BytecodeCompiler) compileStatementsWithResult(collection []ast.Statemen
 	}
 }
 
+func (c *BytecodeCompiler) RegisterMethod(node *ast.MethodDefinitionNode) {}
+
 // Compiles a list of statements leaving the value produced by the last statement on the stack
 func (c *BytecodeCompiler) compileStatementsOk(collection []ast.StatementNode) bool {
 	lastCompilableIndex := -1

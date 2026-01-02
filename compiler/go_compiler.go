@@ -62,6 +62,14 @@ func (s *nativeSymbol) goIdent() string {
 	return fmt.Sprintf("sym%d", s.id)
 }
 
+type nativeMethod struct {
+	ident string
+}
+
+func (m *nativeMethod) goIdent() string {
+	return m.ident
+}
+
 type nativeValue struct {
 	ident   string
 	val     value.Value
@@ -354,10 +362,15 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 		mode = methodGoCompilerMode
 	}
 
-	methodCompiler := NewGoCompiler(name.String(), mode, node.Location(), c.checker, c.globalData, c.output)
+	method := c.typeOf(node).(*types.Method)
+
+	goName := c.registerElkMethodName(method.NamespacedName())
+
+	methodCompiler := NewGoCompiler(goName, mode, node.Location(), c.checker, c.globalData, c.output)
 	methodCompiler.isGenerator = node.IsGenerator()
 	methodCompiler.isAsync = node.IsAsync()
 	methodCompiler.Errors = c.Errors
+	methodCompiler.method = method
 	methodCompiler.compileMethodBody(node.Parameters, node.Body, node.Location())
 
 	return methodCompiler
@@ -368,6 +381,7 @@ type globalData struct {
 	bigIntCache   *concurrent.Map[string, *nativeBigInt]
 	symbolCache   *concurrent.Map[string, *nativeSymbol]
 	valueCache    *concurrent.Map[string, *nativeValue]
+	methodCache   *concurrent.Map[string, *nativeMethod]
 }
 
 func newGlobalData() *globalData {
@@ -376,6 +390,7 @@ func newGlobalData() *globalData {
 		bigIntCache:   concurrent.NewMap[string, *nativeBigInt](),
 		symbolCache:   concurrent.NewMap[string, *nativeSymbol](),
 		valueCache:    concurrent.NewMap[string, *nativeValue](),
+		methodCache:   concurrent.NewMap[string, *nativeMethod](),
 	}
 }
 
@@ -383,6 +398,7 @@ func newGlobalData() *globalData {
 type GoCompiler struct {
 	Errors            *diagnostic.SyncDiagnosticList
 	FuncName          string
+	method            *types.Method
 	scopes            nativeElkScopes
 	output            io.Writer
 	parent            *GoCompiler
@@ -498,10 +514,10 @@ func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []as
 	c.compileMethodFuncLiteralBody(parameters, body)
 
 	var funcBuffer bytes.Buffer
-	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // loc: %s\n", loc.String())
+	fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // method: %s, loc: %s\n", c.FuncName, types.Inspect(c.method), loc.String())
 	c.compileLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
-	c.emit("}")
+	c.emit("}\n")
 }
 
 func (c *GoCompiler) compileMethodFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode) {
@@ -566,7 +582,7 @@ func (c *GoCompiler) compileMethodFuncLiteralBody(parameters []ast.ParameterNode
 	// 	c.emit(location.EndPos.Line, bytecode.RETURN)
 	// }
 
-	val := c.compileStatements(body, false)
+	val := c.compileStatements(body)
 
 	c.emitReturn(c.convertToValue(val))
 	val.markFree()
@@ -812,17 +828,18 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		return
 	}
 
-	c.emit("vm.Def(&class.MethodContainer, %q,\n", name.String())
-
 	methodCompiler := (*GoCompiler)(method.Body.(*GoSourceMethod))
-	c.emitBytes(methodCompiler.buff.Bytes())
+
+	c.emit("vm.Def(&class.MethodContainer, %q, %s", name.String(), methodCompiler.FuncName)
+
 	c.emitPackageBytes(methodCompiler.packageBuff.Bytes())
+	c.emitPackageBytes(methodCompiler.buff.Bytes())
 	methodCompiler.buff.Reset()
 	methodCompiler.packageBuff.Reset()
-	c.emit(",\n")
+	c.emit(",")
 
 	if len(method.Params) > 0 {
-		c.emit("vm.DefWithParameters(%d),\n", len(method.Params))
+		c.emit("vm.DefWithParameters(%d), ", len(method.Params))
 	}
 
 	c.emit(")\n")
@@ -1080,13 +1097,13 @@ func (c *GoCompiler) compileLocals() {
 
 // Entry point to the compilation process
 func (c *GoCompiler) compileProgram(node *ast.ProgramNode) *goValue {
-	return c.compileStatements(node.Body, false)
+	return c.compileStatements(node.Body)
 }
 
-func (c *GoCompiler) compileStatements(nodes []ast.StatementNode, valueIsIgnored bool) *goValue {
+func (c *GoCompiler) compileStatements(nodes []ast.StatementNode) *goValue {
 	var lastValue *goValue
 	for i, stmt := range nodes {
-		lastValue = c.compileStatement(stmt, i != len(nodes))
+		lastValue = c.compileStatement(stmt, i != len(nodes)-1)
 		if types.IsNever(lastValue.elkType) {
 			break
 		}
@@ -2200,21 +2217,104 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgs(receiverType, returnType t
 	)
 }
 
-func (c *GoCompiler) compileMethodCallWithLiteralArgsAndName(receiverType, returnType types.Type, nameSym, name string, args string, loc *position.Location, valueIsIgnored bool) *goValue {
-	callCache := c.emitCallCache()
+func (c *GoCompiler) registerElkMethodName(methodName string) string {
+	c.globalData.methodCache.Lock()
 
-	var tmp *goLocal
-	var tmpName string
-	if valueIsIgnored {
-		tmpName = "_"
+	var goName string
+	if entry, ok := c.globalData.methodCache.GetUnsafe(methodName); ok {
+		goName = entry.ident
 	} else {
-		tmp = c.defineTmpGoLocal(goValueType)
-		tmpName = tmp.name
+		goName = fmt.Sprintf("%s_%d", mangleIdentifier(methodName), c.globalData.methodCache.Len())
+		c.globalData.methodCache.SetUnsafe(
+			methodName,
+			&nativeMethod{
+				ident: goName,
+			},
+		)
+	}
+
+	c.globalData.methodCache.Unlock()
+
+	return goName
+}
+
+func (c *GoCompiler) RegisterMethod(node *ast.MethodDefinitionNode) {
+	method := c.typeOf(node).(*types.Method)
+	c.registerElkMethodName(method.NamespacedName())
+}
+
+func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args string, tmp *goLocal, tmpName string, name string, loc *position.Location, valueIsIgnored bool) *goValue {
+	switch receiverType := receiverType.(type) {
+	case types.Self:
+		fmt.Printf("self")
+		return c.compileOptimizedNativeMethodCall(
+			c.checker.SelfType(),
+			returnType,
+			args,
+			tmp,
+			tmpName,
+			name,
+			loc,
+			valueIsIgnored,
+		)
+	case *types.SingletonClass:
+		if receiverType.Children.Len() != 0 {
+			break
+		}
+
+		// class has no children so method lookup can be static
+		return c._compileOptimizedNativeMethodCall(
+			receiverType,
+			returnType,
+			args,
+			tmp,
+			tmpName,
+			name,
+			loc,
+			valueIsIgnored,
+		)
+	case *types.Class:
+		if receiverType.Children.Len() != 0 {
+			break
+		}
+
+		// class has no children so method lookup can be static
+		return c._compileOptimizedNativeMethodCall(
+			receiverType,
+			returnType,
+			args,
+			tmp,
+			tmpName,
+			name,
+			loc,
+			valueIsIgnored,
+		)
+	case *types.Module:
+		return c._compileOptimizedNativeMethodCall(
+			receiverType,
+			returnType,
+			args,
+			tmp,
+			tmpName,
+			name,
+			loc,
+			valueIsIgnored,
+		)
+	}
+
+	return nil
+}
+
+func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args string, tmp *goLocal, tmpName string, name string, loc *position.Location, valueIsIgnored bool) *goValue {
+	method := c.checker.GetMethod(receiverType, value.ToSymbol(name), nil)
+	goMethodName, ok := c.globalData.methodCache.Get(method.NamespacedName())
+	if !ok {
+		return nil
 	}
 
 	c.registerErr()
-	c.emitAddCallFrame(loc)
-	c.emit("%s, err = thread.CallMethodByNameWithCache(%s, &%s, %s) // receiver: %s, name: %s\n", tmpName, nameSym, callCache, args, types.Inspect(receiverType), name)
+	c.emitAddCallFrame(name, loc)
+	c.emit("%s, err = %s(thread, %s) // receiver: %s, name: %s\n", tmpName, goMethodName.goIdent(), strings.TrimSuffix(args, "..."), types.Inspect(receiverType), name)
 	c.emitPopCallFrame()
 	c.emitErrorPropagation()
 
@@ -2226,15 +2326,62 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgsAndName(receiverType, retur
 		tmp,
 		returnType,
 	)
-	result = c.valueToNarrowerType(result)
-	if result.goType() != goValueType {
-		narrowTmp := c.defineTmpGoLocal(result.goType())
-		c.emit("%s = %s\n", narrowTmp.name, result.value())
-		tmp.markFree()
-		result = newTmpGoValue(narrowTmp, result.elkType)
+	return c.narrowDownValue(result)
+}
+
+func (c *GoCompiler) compileMethodCallWithLiteralArgsAndName(receiverType, returnType types.Type, nameSym, name string, args string, loc *position.Location, valueIsIgnored bool) *goValue {
+	var tmp *goLocal
+	var tmpName string
+	if valueIsIgnored {
+		tmpName = "_"
+	} else {
+		tmp = c.defineTmpGoLocal(goValueType)
+		tmpName = tmp.name
 	}
 
-	return result
+	result := c.compileOptimizedNativeMethodCall(
+		receiverType,
+		returnType,
+		args,
+		tmp,
+		tmpName,
+		name,
+		loc,
+		valueIsIgnored,
+	)
+	if result != nil {
+		return result
+	}
+
+	callCache := c.emitCallCache()
+
+	c.registerErr()
+	c.emitAddCallFrame(name, loc)
+	c.emit("%s, err = thread.CallMethodByNameWithCache(%s, &%s, %s) // receiver: %s, name: %s\n", tmpName, nameSym, callCache, args, types.Inspect(receiverType), name)
+	c.emitPopCallFrame()
+	c.emitErrorPropagation()
+
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	result = newTmpGoValue(
+		tmp,
+		returnType,
+	)
+	return c.narrowDownValue(result)
+}
+
+func (c *GoCompiler) narrowDownValue(val *goValue) *goValue {
+	result := c.valueToNarrowerType(val)
+	if result.goType() == goValueType {
+		return result
+	}
+
+	narrowTmp := c.defineTmpGoLocal(result.goType())
+	c.emit("%s = %s\n", narrowTmp.name, result.value())
+	val.markFree()
+	return newTmpGoValue(narrowTmp, result.elkType)
 }
 
 func (c *GoCompiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode) *goValue {
@@ -2273,7 +2420,7 @@ func (c *GoCompiler) compileNamespaceDeclarationNode(name string, body []ast.Sta
 
 func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Namespace) {
 	c.registerGoLocal("self", goValueType)
-	c.compileStatements(body, true)
+	c.compileStatements(body)
 	if c.buff.Len() == 0 {
 		return
 	}
@@ -2424,7 +2571,7 @@ func (c *GoCompiler) compileIfExpression(condType conditionType, condition ast.E
 	var elsFunc func() *goValue
 	if els != nil {
 		elsFunc = func() *goValue {
-			return c.compileStatements(els, valueIsIgnored)
+			return c.compileStatements(els)
 		}
 	}
 
@@ -2432,7 +2579,7 @@ func (c *GoCompiler) compileIfExpression(condType conditionType, condition ast.E
 		condType,
 		condition,
 		func() *goValue {
-			return c.compileStatements(then, valueIsIgnored)
+			return c.compileStatements(then)
 		},
 		elsFunc,
 		typ,
@@ -2812,10 +2959,10 @@ func (c *GoCompiler) emitCallCache() string {
 	return callCacheName
 }
 
-func (c *GoCompiler) emitAddCallFrame(loc *position.Location) {
+func (c *GoCompiler) emitAddCallFrame(name string, loc *position.Location) {
 	c.emit(
 		"thread.AddCallFrame(value.CallFrame{FuncName: %q, FileName: %q, LineNumber: %d})\n",
-		c.FuncName,
+		name,
 		loc.FilePath,
 		loc.StartPos.Line,
 	)

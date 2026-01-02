@@ -34,6 +34,7 @@ type Compiler interface {
 	InitIvarIndicesCompiler(location *position.Location) (Compiler, int)
 	FinishIvarIndicesCompiler(location *position.Location, execOffset int) Compiler
 	CompileConstantDeclaration(node *ast.ConstantDeclarationNode, namespace types.Namespace, constName value.Symbol)
+	RegisterMethod(node *ast.MethodDefinitionNode)
 	CompileMethodBody(node *ast.MethodDefinitionNode, name value.Symbol) Compiler
 	Flush() // Outputs the compiled code to an output file
 }

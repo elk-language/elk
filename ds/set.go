@@ -10,6 +10,10 @@ func MakeSet[V comparable](values ...V) Set[V] {
 	return set
 }
 
+func (s Set[V]) Len() int {
+	return len(s)
+}
+
 func (s Set[V]) Add(val V) {
 	s[val] = struct{}{}
 }

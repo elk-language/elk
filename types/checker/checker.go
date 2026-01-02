@@ -2905,7 +2905,7 @@ func (c *Checker) GetIteratorType(typ types.Type) types.Type {
 }
 
 func (c *Checker) getIteratorType(typ types.Type, location *position.Location) types.Type {
-	iterMethod := c.getMethod(typ, symbol.L_iter, location)
+	iterMethod := c.GetMethod(typ, symbol.L_iter, location)
 	if iterMethod == nil {
 		return types.Untyped{}
 	}
@@ -2914,12 +2914,12 @@ func (c *Checker) getIteratorType(typ types.Type, location *position.Location) t
 }
 
 func (c *Checker) getIteratorElementType(typ types.Type, location *position.Location) (types.Type, types.Type) {
-	iterMethod := c.getMethod(typ, symbol.L_iter, location)
+	iterMethod := c.GetMethod(typ, symbol.L_iter, location)
 	if iterMethod == nil {
 		return types.Untyped{}, types.Untyped{}
 	}
 
-	nextMethod := c.getMethod(iterMethod.ReturnType, symbol.L_next, location)
+	nextMethod := c.GetMethod(iterMethod.ReturnType, symbol.L_next, location)
 	if nextMethod == nil {
 		return types.Untyped{}, types.Untyped{}
 	}
@@ -4360,7 +4360,7 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 }
 
 func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, locations []*position.Location) {
-	init := c.getMethod(class, symbol.S_init, nil)
+	init := c.GetMethod(class, symbol.S_init, nil)
 
 	if init == nil {
 		for name, ivar := range types.SortedInstanceVariables(class) {
@@ -4944,9 +4944,9 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 			class,
 			typeArgs,
 		)
-		method = c.getMethod(generic, symbol.S_init, nil)
+		method = c.GetMethod(generic, symbol.S_init, nil)
 	} else {
-		method = c.getMethod(class, symbol.S_init, nil)
+		method = c.GetMethod(class, symbol.S_init, nil)
 	}
 
 	if method == nil {
@@ -5031,7 +5031,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	}
 
 	generic := types.NewGeneric(class, typeArgs)
-	method := c.getMethod(generic, symbol.S_init, nil)
+	method := c.GetMethod(generic, symbol.S_init, nil)
 	if method == nil {
 		method = types.NewMethod(
 			"",
@@ -5106,7 +5106,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	}
 
 	if !class.IsGeneric() {
-		method := c.getMethod(class, symbol.S_init, nil)
+		method := c.GetMethod(class, symbol.S_init, nil)
 		if method == nil {
 			method = types.NewMethod(
 				"",
