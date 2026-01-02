@@ -1902,7 +1902,7 @@ func main() { // loc: <main>
 	}
 	t3 = (t2).AsString()
 	t1 = nil
-	t4 = value.NewArrayListWithElements(0, (value.SmallInt(1)).ToValue(), value.Ref(value.String("foo")), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), value.Ref(t3))
+	t4 = value.NewArrayTupleWithElements(0, (value.SmallInt(1)).ToValue(), value.Ref(value.String("foo")), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), value.Ref(t3))
 	err = t4.AppendAt(l0, (value.SmallInt(12)).ToValue())
 	if err.IsNotUndefined() {
 		thread.Panic(err)
@@ -1912,85 +1912,122 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// "with static elements and if modifiers": {
-		// 	input: `
-		// 		var a: Object? = Object()
-		// 		%[1, 5 if a, %[:foo]]
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.INSTANTIATE8), 0,
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.INT_5),
-		// 			byte(bytecode.APPEND),
-		// 			byte(bytecode.JUMP), 0, 0,
-		// 			byte(bytecode.LOAD_VALUE_2),
-		// 			byte(bytecode.APPEND),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(56, 3, 26)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 5),
-		// 			bytecode.NewLineInfo(3, 14),
-		// 		},
-		// 		[]value.Value{
-		// 			value.ToSymbol("Std::Object").ToValue(),
-		// 			value.Ref(&value.ArrayTuple{
-		// 				value.SmallInt(1).ToValue(),
-		// 			}),
-		// 			value.Ref(&value.ArrayTuple{
-		// 				value.ToSymbol("foo").ToValue(),
-		// 			}),
-		// 		},
-		// 	),
-		// },
+		"with static elements and if modifiers": {
+			input: `
+				var a: String? = "bar"
+				%[1, 5 if a, %[:foo]]
+			`,
+			want: `package main
 
-		// "with static elements and unless modifiers": {
-		// 	input: `
-		// 		var a: Object? = nil
-		// 		%[1, 5 unless a, %[:foo]]
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.JUMP_IF), 0, 5,
-		// 			byte(bytecode.INT_5),
-		// 			byte(bytecode.APPEND),
-		// 			byte(bytecode.JUMP), 0, 0,
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.APPEND),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(55, 3, 30)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 2),
-		// 			bytecode.NewLineInfo(3, 14),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayTuple{
-		// 				value.SmallInt(1).ToValue(),
-		// 			}),
-		// 			value.Ref(&value.ArrayTuple{
-		// 				value.ToSymbol("foo").ToValue(),
-		// 			}),
-		// 		},
-		// 	),
-		// },
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+var arrtuple0 = value.NewArrayTupleWithElements(0, (sym0).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::String?
+	_ = l0
+	var t1 *value.ArrayTuple
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Ref(value.String("bar"))
+	t1 = value.NewArrayTupleWithElements(0, (value.SmallInt(1)).ToValue())
+	if value.Truthy(l0) {
+		t1.Append((value.SmallInt(5)).ToValue())
+	}
+	t1.Append(value.Ref(arrtuple0))
+}
+`,
+		},
+		"with static elements and if else modifiers": {
+			input: `
+				var a: String? = "bar"
+				%[1, 5 if a else 2, %[:foo]]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+var arrtuple0 = value.NewArrayTupleWithElements(0, (sym0).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::String?
+	_ = l0
+	var t1 *value.ArrayTuple
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Ref(value.String("bar"))
+	t1 = value.NewArrayTupleWithElements(0, (value.SmallInt(1)).ToValue())
+	if value.Truthy(l0) {
+		t1.Append((value.SmallInt(5)).ToValue())
+	} else {
+		t1.Append((value.SmallInt(2)).ToValue())
+	}
+	t1.Append(value.Ref(arrtuple0))
+}
+`,
+		},
+		"with static elements and unless modifiers": {
+			input: `
+				var a: String? = nil
+				%[1, 5 unless a, %[:foo]]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+var arrtuple0 = value.NewArrayTupleWithElements(0, (sym0).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	var l0 value.Value // var a: Std::String?
+	_ = l0
+	var t1 *value.ArrayTuple
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+	t1 = value.NewArrayTupleWithElements(0, (value.SmallInt(1)).ToValue())
+	if value.Falsy(l0) {
+		t1.Append((value.SmallInt(5)).ToValue())
+	}
+	t1.Append(value.Ref(arrtuple0))
+}
+`,
+		},
 		// "with static elements and for in loops": {
 		// 	input: `
 		// 		%[1, i * 2 for i in [1, 2, 3], %[:foo]]
