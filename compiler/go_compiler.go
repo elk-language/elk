@@ -64,6 +64,7 @@ func (s *nativeSymbol) goIdent() string {
 
 type nativeMethod struct {
 	ident string
+	init  string
 }
 
 func (m *nativeMethod) goIdent() string {
@@ -1056,6 +1057,12 @@ func (c *GoCompiler) InitExpressionCompiler(location *position.Location) Compile
 }
 
 func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
+	var initCode string
+	if c.FuncName == "main" {
+		initCode = c.buff.String()
+		c.buff.Reset()
+	}
+
 	c.compileProgram(node)
 
 	if c.buff.Len() == 0 {
@@ -1068,6 +1075,18 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 
 	var funcBuffer bytes.Buffer
 	if c.FuncName == "main" {
+		var methodVarsBuff bytes.Buffer
+		for _, nativeMethod := range c.globalData.methodCache.Map {
+			if nativeMethod.init == "" {
+				continue
+			}
+
+			fmt.Fprintf(&methodVarsBuff, "%s = %s\n", nativeMethod.goIdent(), nativeMethod.init)
+		}
+		fmt.Fprintln(&methodVarsBuff)
+
+		c.emitPrependBytes(methodVarsBuff.Bytes())
+		c.emitPrepend(initCode)
 		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.FuncName, c.loc.FilePath)
 		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n")
 	} else {
@@ -1077,6 +1096,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	c.compileLocalsTo(&funcBuffer)
 	fmt.Fprintf(&funcBuffer, "self = value.Ref(value.GlobalObject)\n")
 	c.emitPrependBytes(funcBuffer.Bytes())
+
 	c.emit("}\n")
 }
 
@@ -2224,7 +2244,7 @@ func (c *GoCompiler) registerElkMethodName(methodName string) string {
 	if entry, ok := c.globalData.methodCache.GetUnsafe(methodName); ok {
 		goName = entry.ident
 	} else {
-		goName = fmt.Sprintf("%s_%d", mangleIdentifier(methodName), c.globalData.methodCache.Len())
+		goName = c.goMethodName(methodName)
 		c.globalData.methodCache.SetUnsafe(
 			methodName,
 			&nativeMethod{
@@ -2238,6 +2258,10 @@ func (c *GoCompiler) registerElkMethodName(methodName string) string {
 	return goName
 }
 
+func (c *GoCompiler) goMethodName(elkName string) string {
+	return fmt.Sprintf("%s_%d", mangleIdentifier(elkName), c.globalData.methodCache.Len())
+}
+
 func (c *GoCompiler) RegisterMethod(node *ast.MethodDefinitionNode) {
 	method := c.typeOf(node).(*types.Method)
 	c.registerElkMethodName(method.NamespacedName())
@@ -2246,7 +2270,6 @@ func (c *GoCompiler) RegisterMethod(node *ast.MethodDefinitionNode) {
 func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args string, tmp *goLocal, tmpName string, name string, loc *position.Location, valueIsIgnored bool) *goValue {
 	switch receiverType := receiverType.(type) {
 	case types.Self:
-		fmt.Printf("self")
 		return c.compileOptimizedNativeMethodCall(
 			c.checker.SelfType(),
 			returnType,
@@ -2305,16 +2328,64 @@ func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType t
 	return nil
 }
 
+func (c *GoCompiler) generateGetNamespace(typ types.Namespace) string {
+	switch typ := typ.(type) {
+	case *types.SingletonClass:
+		nameSymbol := c.emitSymbol(typ.AttachedObject.Name())
+		return fmt.Sprintf("value.GetConstant(%s).SingletonClass()", nameSymbol)
+	case *types.Module:
+		nameSymbol := c.emitSymbol(typ.Name())
+		return fmt.Sprintf("value.GetConstant(%s).SingletonClass()", nameSymbol)
+	case *types.Class:
+		nameSymbol := c.emitSymbol(typ.Name())
+		return fmt.Sprintf("(*value.Class)(value.GetConstant(%s).Pointer())", nameSymbol)
+	default:
+		panic(fmt.Sprintf("invalid namespace: %T", typ))
+	}
+}
+
 func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args string, tmp *goLocal, tmpName string, name string, loc *position.Location, valueIsIgnored bool) *goValue {
 	method := c.checker.GetMethod(receiverType, value.ToSymbol(name), nil)
-	goMethodName, ok := c.globalData.methodCache.Get(method.NamespacedName())
+
+	c.globalData.methodCache.Lock()
+
+	namespacedMethodName := method.NamespacedName()
+	goMethodName, ok := c.globalData.methodCache.GetUnsafe(namespacedMethodName)
 	if !ok {
-		return nil
+		goIdent := c.goMethodName(namespacedMethodName)
+		nameSym := c.emitSymbol(name)
+		goMethodName = &nativeMethod{
+			ident: goIdent,
+			init: fmt.Sprintf(
+				"vm.MethodToFunc(%s.LookupMethod(%s))",
+				c.generateGetNamespace(method.DefinedUnder),
+				nameSym,
+			),
+		}
+		c.globalData.methodCache.SetUnsafe(
+			namespacedMethodName,
+			goMethodName,
+		)
+
+		c.emitPackage(
+			"var %s vm.NativeFunction // %s\n",
+			goIdent,
+			namespacedMethodName,
+		)
 	}
+
+	c.globalData.methodCache.Unlock()
 
 	c.registerErr()
 	c.emitAddCallFrame(name, loc)
-	c.emit("%s, err = %s(thread, %s) // receiver: %s, name: %s\n", tmpName, goMethodName.goIdent(), strings.TrimSuffix(args, "..."), types.Inspect(receiverType), name)
+	c.emit(
+		"%s, err = %s(thread, %s) // receiver: %s, name: %s\n",
+		tmpName,
+		goMethodName.goIdent(),
+		strings.TrimSuffix(args, "..."),
+		types.Inspect(receiverType),
+		name,
+	)
 	c.emitPopCallFrame()
 	c.emitErrorPropagation()
 

@@ -19,6 +19,10 @@ type NativeMethod struct {
 	optionalParameterCount int
 }
 
+func MethodToFunc(method value.Method) NativeFunction {
+	return method.(*NativeMethod).Function
+}
+
 func NewNativeMethodComparer() cmp.Option {
 	return cmp.Comparer(func(x, y *NativeMethod) bool {
 		return x.name == y.name &&
