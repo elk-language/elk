@@ -355,6 +355,8 @@ func (m *Method) RegisterOverload(overload *Method) {
 	m.Overloads = append(m.Overloads, overload)
 	overload.OverloadId = len(m.Overloads)
 	overload.Name = value.ToSymbol(fmt.Sprintf("%s@%d", overload.Name.String(), len(m.Overloads)))
+
+	m.DefinedUnder.SetMethod(overload.Name, overload)
 }
 
 func (m *Method) Location() *position.Location {

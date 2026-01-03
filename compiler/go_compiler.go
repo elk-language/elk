@@ -1023,28 +1023,76 @@ func (c *GoCompiler) CompileInclude(target types.Namespace, mixin *types.Mixin, 
 	c.emit("class.IncludeMixin(mixin)\n")
 }
 
-func mangleIdentifier(name string) string {
+func isValidGoIdentRune(r rune, first bool) bool {
+	return r == '_' || unicode.IsLetter(r) || !first && unicode.IsDigit(r)
+}
+
+type goMangleMapping struct {
+	from string
+	to   string
+}
+
+var goMangleMap = []goMangleMapping{
+	{"===", "_eqq_"},
+	{"<=>", "_cmp_"},
+	{"<<<", "_llsh_"},
+	{">>>", "_rrsh_"},
+	{".:", "_im_"},
+	{"::", "_ns_"},
+	{">=", "_gte_"},
+	{"<=", "_lte_"},
+	{"<<", "_lsh_"},
+	{">>", "_rsh_"},
+	{"==", "_eq_"},
+	{"=~", "_leq_"},
+	{"&~", "_andnot_"},
+	{"++", "_inc_"},
+	{"--", "_dec_"},
+	{"**", "_exp_"},
+	{"+@", "_plus_"},
+	{"-@", "_neg_"},
+	{".", "_dot_"},
+	{"@", "_at_"},
+	{">", "_gt_"},
+	{"<", "_lt_"},
+	{"~", "_tld_"},
+	{"&", "_and_"},
+	{"|", "_or_"},
+	{"^", "_xor_"},
+	{"+", "_add_"},
+	{"-", "_sub_"},
+	{"*", "_mul_"},
+	{"/", "_div_"},
+	{"%", "_mod_"},
+}
+
+func mangleGoIdentifier(name string) string {
+	for _, mapping := range goMangleMap {
+		name = strings.ReplaceAll(name, mapping.from, mapping.to)
+	}
+
 	var b strings.Builder
 
 	for i, r := range name {
-		if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' {
-			// Identifiers cannot start with a digit
-			if i == 0 && unicode.IsDigit(r) {
-				b.WriteByte('_')
-			}
+		if isValidGoIdentRune(r, i == 0) {
 			b.WriteRune(r)
 			continue
 		}
 
-		// Everything else becomes underscore
-		b.WriteByte('_')
+		if r>>8 == 0 {
+			fmt.Fprintf(&b, `_x%02x_`, r)
+		} else if r>>16 == 0 {
+			fmt.Fprintf(&b, `_u%04x_`, r)
+		} else {
+			fmt.Fprintf(&b, `_U%08X_`, r)
+		}
 	}
 
 	return b.String()
 }
 
 func mangleFileName(name string) string {
-	return fmt.Sprintf("__file_%s", mangleIdentifier(name))
+	return fmt.Sprintf("__file_%s", mangleGoIdentifier(name))
 }
 
 func (c *GoCompiler) InitExpressionCompiler(location *position.Location) Compiler {
@@ -1083,10 +1131,12 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 
 			fmt.Fprintf(&methodVarsBuff, "%s = %s\n", nativeMethod.goIdent(), nativeMethod.init)
 		}
-		fmt.Fprintln(&methodVarsBuff)
+		if methodVarsBuff.Len() > 0 {
+			fmt.Fprintln(&methodVarsBuff)
+			c.emitPrependBytes(methodVarsBuff.Bytes())
+		}
 
-		c.emitPrependBytes(methodVarsBuff.Bytes())
-		c.emitPrepend(initCode)
+		c.emitPrependBytes([]byte(initCode))
 		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.FuncName, c.loc.FilePath)
 		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n")
 	} else {
@@ -2169,6 +2219,9 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 
 		return newTmpGoValue(resultVar, typ)
 	case token.DOT:
+		if name == "fib" {
+			fmt.Printf("pupa: %s\n", types.I(c.typeOf(receiver)))
+		}
 		receiverVal := c.compileExpression(receiver, false)
 
 		return c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, op, args, typ, location, valueIsIgnored)
@@ -2244,7 +2297,7 @@ func (c *GoCompiler) registerElkMethodName(methodName string) string {
 	if entry, ok := c.globalData.methodCache.GetUnsafe(methodName); ok {
 		goName = entry.ident
 	} else {
-		goName = c.goMethodName(methodName)
+		goName = mangleGoIdentifier(methodName)
 		c.globalData.methodCache.SetUnsafe(
 			methodName,
 			&nativeMethod{
@@ -2256,10 +2309,6 @@ func (c *GoCompiler) registerElkMethodName(methodName string) string {
 	c.globalData.methodCache.Unlock()
 
 	return goName
-}
-
-func (c *GoCompiler) goMethodName(elkName string) string {
-	return fmt.Sprintf("%s_%d", mangleIdentifier(elkName), c.globalData.methodCache.Len())
 }
 
 func (c *GoCompiler) RegisterMethod(node *ast.MethodDefinitionNode) {
@@ -2346,13 +2395,12 @@ func (c *GoCompiler) generateGetNamespace(typ types.Namespace) string {
 
 func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args string, tmp *goLocal, tmpName string, name string, loc *position.Location, valueIsIgnored bool) *goValue {
 	method := c.checker.GetMethod(receiverType, value.ToSymbol(name), nil)
-
 	c.globalData.methodCache.Lock()
 
 	namespacedMethodName := method.NamespacedName()
 	goMethodName, ok := c.globalData.methodCache.GetUnsafe(namespacedMethodName)
 	if !ok {
-		goIdent := c.goMethodName(namespacedMethodName)
+		goIdent := mangleGoIdentifier(namespacedMethodName)
 		nameSym := c.emitSymbol(name)
 		goMethodName = &nativeMethod{
 			ident: goIdent,
@@ -2457,22 +2505,22 @@ func (c *GoCompiler) narrowDownValue(val *goValue) *goValue {
 
 func (c *GoCompiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode) *goValue {
 	typ := c.typeOf(node).(*types.Module)
-	return c.compileNamespaceDeclarationNode(fmt.Sprintf("module_%s", mangleIdentifier(typ.Name())), node.Body, typ, node.Location())
+	return c.compileNamespaceDeclarationNode(fmt.Sprintf("module_%s", mangleGoIdentifier(typ.Name())), node.Body, typ, node.Location())
 }
 
 func (c *GoCompiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarationNode) *goValue {
 	typ := c.typeOf(node).(*types.Interface)
-	return c.compileNamespaceDeclarationNode(fmt.Sprintf("interface_%s", mangleIdentifier(typ.Name())), node.Body, typ, node.Location())
+	return c.compileNamespaceDeclarationNode(fmt.Sprintf("interface_%s", mangleGoIdentifier(typ.Name())), node.Body, typ, node.Location())
 }
 
 func (c *GoCompiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) *goValue {
 	typ := c.typeOf(node).(*types.Mixin)
-	return c.compileNamespaceDeclarationNode(fmt.Sprintf("mixin_%s", mangleIdentifier(typ.Name())), node.Body, typ, node.Location())
+	return c.compileNamespaceDeclarationNode(fmt.Sprintf("mixin_%s", mangleGoIdentifier(typ.Name())), node.Body, typ, node.Location())
 }
 
 func (c *GoCompiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) *goValue {
 	typ := c.typeOf(node).(*types.Class)
-	return c.compileNamespaceDeclarationNode(fmt.Sprintf("class_%s", mangleIdentifier(typ.Name())), node.Body, typ, node.Location())
+	return c.compileNamespaceDeclarationNode(fmt.Sprintf("class_%s", mangleGoIdentifier(typ.Name())), node.Body, typ, node.Location())
 }
 
 func (c *GoCompiler) compileNamespaceDeclarationNode(name string, body []ast.StatementNode, typ types.Namespace, loc *position.Location) *goValue {

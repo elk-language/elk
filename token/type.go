@@ -305,7 +305,7 @@ const (
 	LABEL_OVERRIDABLE_OP_BEG
 	PLUS_PLUS        // Increment operator `++`
 	MINUS_MINUS      // Decrement operator `--`
-	PLUS_AT          // Negate `+@`
+	PLUS_AT          // Plus `+@`
 	MINUS_AT         // Negate `-@`
 	MINUS            // Minus `-`
 	PLUS             // Plus `+`

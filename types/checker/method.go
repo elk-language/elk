@@ -623,7 +623,9 @@ type methodBodyCheckEntry struct {
 }
 
 func (c *Checker) registerMethodBodyCheck(method *types.Method, node *ast.MethodDefinitionNode) {
-	c.compiler.RegisterMethod(node)
+	if c.compiler != nil {
+		c.compiler.RegisterMethod(node)
+	}
 
 	c.methodBodyChecks = append(c.methodBodyChecks, methodBodyCheckEntry{
 		method:         method,

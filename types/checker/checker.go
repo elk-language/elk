@@ -4645,22 +4645,28 @@ func (c *Checker) instanceVariableToName(node ast.InstanceVariableNode) string {
 func (c *Checker) getReceiverlessMethodReceiver(methodName string, method *types.Method, methodNamespace types.Namespace, fromLocal bool, loc *position.Location) ast.ExpressionNode {
 	var receiver ast.ExpressionNode
 	if fromLocal {
-		receiver = ast.NewPublicIdentifierNode(loc, methodName)
+		ident := ast.NewPublicIdentifierNode(loc, methodName)
+		ident.SetType(c.checkIdentifier(ident.Value, nil))
+		receiver = ident
 	} else {
 		switch under := methodNamespace.(type) {
 		case *types.Module:
 			// from using
 			receiver = ast.NewPublicConstantNode(loc, under.Name())
+			receiver.SetType(under)
 		case *types.SingletonClass:
 			// from using
 			receiver = ast.NewPublicConstantNode(loc, under.AttachedObject.Name())
+			receiver.SetType(under)
 		case *types.UsingBufferNamespace:
 			return c.getReceiverlessMethodReceiver(methodName, method, method.DefinedUnder, false, loc)
 		case *types.NamespacePlaceholder:
 			receiver = ast.NewPublicConstantNode(loc, under.Name())
+			receiver.SetType(under)
 		case nil:
 			// from self
 			receiver = ast.NewSelfLiteralNode(loc)
+			receiver.SetType(types.Self{})
 			c.checkNonNilableInstanceVariablesForSelf(loc)
 		default:
 			panic(fmt.Sprintf("unexpected method namespace returned from getReceiverlessMethod: %T", under))
@@ -7054,30 +7060,27 @@ func (c *Checker) addUninitialisedLocalError(name string, loc *position.Location
 	)
 }
 
-func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
-	local, _ := c.resolveLocal(node.Value, node.Location())
+func (c *Checker) checkIdentifier(value string, loc *position.Location) types.Type {
+	local, _ := c.resolveLocal(value, loc)
 	if local == nil {
-		node.SetType(types.Untyped{})
-		return node
+		return types.Untyped{}
 	}
 
 	if !local.initialised {
-		c.addUninitialisedLocalError(node.Value, node.Location())
+		c.addUninitialisedLocalError(value, loc)
 	}
-	node.SetType(local.typ)
+	return local.typ
+}
+
+func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
+	typ := c.checkIdentifier(node.Value, node.Location())
+	node.SetType(typ)
 	return node
 }
 
 func (c *Checker) checkPrivateIdentifierNode(node *ast.PrivateIdentifierNode) *ast.PrivateIdentifierNode {
-	local, _ := c.resolveLocal(node.Value, node.Location())
-	if local == nil {
-		node.SetType(types.Untyped{})
-		return node
-	}
-	if !local.initialised {
-		c.addUninitialisedLocalError(node.Value, node.Location())
-	}
-	node.SetType(local.typ)
+	typ := c.checkIdentifier(node.Value, node.Location())
+	node.SetType(typ)
 	return node
 }
 
