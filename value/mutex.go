@@ -69,7 +69,9 @@ func initMutex() {
 		ClassWithConstructor(MutexConstructor),
 	)
 	SyncModule.AddConstantString("Mutex", Ref(MutexClass))
+	RegisterNativeClass("Std::Sync::Mutex", "value.MutexClass")
 
 	MutexUnlockedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	MutexClass.AddConstantString("UnlockedError", Ref(MutexUnlockedErrorClass))
+	RegisterNativeClass("Std::Sync::Mutex::UnlockedError", "value.MutexUnlockedErrorClass")
 }

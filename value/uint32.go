@@ -315,4 +315,7 @@ func (i UInt32) StrictEqualVal(other Value) Value {
 func initUInt32() {
 	UInt32Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("UInt32", Ref(UInt32Class))
+	RegisterNativeClass("Std::UInt32", "value.UInt32Class")
+
+	UInt32Class.AddConstantString("Convertible", Ref(NewInterface()))
 }

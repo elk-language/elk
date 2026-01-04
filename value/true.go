@@ -52,4 +52,5 @@ func initTrue() {
 		ClassWithSuperclass(BoolClass),
 	)
 	StdModule.AddConstantString("True", Ref(TrueClass))
+	RegisterNativeClass("Std::True", "value.TrueClass")
 }

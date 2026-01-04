@@ -117,7 +117,9 @@ func initOpenRange() {
 	OpenRangeClass = NewClass()
 	OpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("OpenRange", Ref(OpenRangeClass))
+	RegisterNativeClass("Std::OpenRange", "value.OpenRangeClass")
 
 	OpenRangeIteratorClass = NewClass()
 	OpenRangeClass.AddConstantString("Iterator", Ref(OpenRangeIteratorClass))
+	RegisterNativeClass("Std::OpenRange::Iterator", "value.OpenRangeIteratorClass")
 }

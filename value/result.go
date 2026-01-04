@@ -90,4 +90,5 @@ func (*Result) InstanceVariables() *InstanceVariables {
 func initResult() {
 	ResultClass = NewClass()
 	StdModule.AddConstantString("Result", Ref(ResultClass))
+	RegisterNativeClass("Std::Result", "value.ResultClass")
 }

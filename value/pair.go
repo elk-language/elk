@@ -183,7 +183,9 @@ func initPair() {
 	)
 	PairClass.IncludeMixin(TupleMixin)
 	StdModule.AddConstantString("Pair", Ref(PairClass))
+	RegisterNativeClass("Std::Pair", "value.PairClass")
 
 	PairIteratorClass = NewClass()
 	PairClass.AddConstantString("Iterator", Ref(PairIteratorClass))
+	RegisterNativeClass("Std::Pair::Iterator", "value.PairIteratorClass")
 }

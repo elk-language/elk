@@ -953,9 +953,16 @@ func (f Float) Millenia() *DateTimeSpan {
 func initFloat() {
 	FloatClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Float", Ref(FloatClass))
+	RegisterNativeClass("Std::Float", "value.FloatClass")
+
 	FloatClass.AddConstantString("NAN", FloatNaN().ToValue())
+	RegisterNativeConstant("Std::Float::NAN", "value.FloatNaN()", "value.Float")
+
 	FloatClass.AddConstantString("INF", FloatInf().ToValue())
+	RegisterNativeConstant("Std::Float::INF", "value.FloatInf()", "value.Float")
+
 	FloatClass.AddConstantString("NEG_INF", FloatNegInf().ToValue())
+	RegisterNativeConstant("Std::Float::NEG_INF", "value.FloatNegInf()", "value.Float")
 
 	FloatClass.AddConstantString("Convertible", Ref(NewInterface()))
 }

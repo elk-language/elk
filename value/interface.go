@@ -108,4 +108,5 @@ var InterfaceClass *Class // ::Std::Interface
 func initInterface() {
 	InterfaceClass = NewClassWithOptions()
 	StdModule.AddConstantString("Interface", Ref(InterfaceClass))
+	RegisterNativeClass("Std::Interface", "value.InterfaceClass")
 }

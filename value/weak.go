@@ -88,4 +88,5 @@ func (w Weak) Error() string {
 func initWeak() {
 	WeakClass = NewClass()
 	StdModule.AddConstantString("Weak", Ref(WeakClass))
+	RegisterNativeClass("Std::Weak", "value.WeakClass")
 }

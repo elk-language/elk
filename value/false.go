@@ -52,4 +52,5 @@ func initFalse() {
 		ClassWithSuperclass(BoolClass),
 	)
 	StdModule.AddConstantString("False", Ref(FalseClass))
+	RegisterNativeClass("Std::False", "value.FalseClass")
 }

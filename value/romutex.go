@@ -62,4 +62,5 @@ func initROMutex() {
 		ClassWithConstructor(ROMutexConstructor),
 	)
 	SyncModule.AddConstantString("ROMutex", Ref(ROMutexClass))
+	RegisterNativeClass("Std::Sync::ROMutex", "value.ROMutexClass")
 }

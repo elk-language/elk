@@ -117,7 +117,9 @@ func initLeftOpenRange() {
 	LeftOpenRangeClass = NewClass()
 	LeftOpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("LeftOpenRange", Ref(LeftOpenRangeClass))
+	RegisterNativeClass("Std::LeftOpenRange", "value.LeftOpenRangeClass")
 
 	LeftOpenRangeIteratorClass = NewClass()
 	LeftOpenRangeClass.AddConstantString("Iterator", Ref(LeftOpenRangeIteratorClass))
+	RegisterNativeClass("Std::LeftOpenRange::Iterator", "value.LeftOpenRangeIteratorClass")
 }

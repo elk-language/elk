@@ -1279,8 +1279,16 @@ func (f *BigFloat) StrictEqualVal(other Value) Value {
 
 func initBigFloat() {
 	BigFloatClass = NewClass()
+
 	StdModule.AddConstantString("BigFloat", Ref(BigFloatClass))
+	RegisterNativeClass("Std::BigFloat", "value.BigFloatClass")
+
 	BigFloatClass.AddConstantString("NAN", Ref(BigFloatNaNVal))
+	RegisterNativeConstant("Std::BigFloat::NAN", "value.BigFloatNaNVal", "*value.BigFloat")
+
 	BigFloatClass.AddConstantString("INF", Ref(BigFloatInfVal))
+	RegisterNativeConstant("Std::BigFloat::INF", "value.BigFloatInfVal", "*value.BigFloat")
+
 	BigFloatClass.AddConstantString("NEG_INF", Ref(BigFloatNegInfVal))
+	RegisterNativeConstant("Std::BigFloat::NEG_INF", "value.BigFloatNegInfVal", "*value.BigFloat")
 }

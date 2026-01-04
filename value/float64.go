@@ -348,10 +348,18 @@ func (f Float64) StrictEqualVal(other Value) Value {
 
 func initFloat64() {
 	Float64Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
+
 	StdModule.AddConstantString("Float64", Ref(Float64Class))
+	RegisterNativeClass("Std::Float64", "value.Float64Class")
+
 	Float64Class.AddConstantString("NAN", Float64NaN().ToValue())
+	RegisterNativeConstant("Std::Float64::NAN", "value.Float64NaN()", "value.Float64")
+
 	Float64Class.AddConstantString("INF", Float64Inf().ToValue())
+	RegisterNativeConstant("Std::Float64::INF", "value.Float64Inf()", "value.Float64")
+
 	Float64Class.AddConstantString("NEG_INF", Float64NegInf().ToValue())
+	RegisterNativeConstant("Std::Float64::NEG_INF", "value.Float64NegInf()", "value.Float64")
 
 	Float64ConvertibleInterface = NewInterface()
 	Float64Class.AddConstantString("Convertible", Ref(Float64ConvertibleInterface))

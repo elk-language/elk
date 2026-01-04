@@ -114,4 +114,5 @@ func (NilType) Hash() UInt64 {
 func initNil() {
 	NilClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Nil", Ref(NilClass))
+	RegisterNativeClass("Std::Nil", "value.NilClass")
 }

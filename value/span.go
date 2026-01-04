@@ -62,4 +62,5 @@ func (s *Span) Equal(other *Span) bool {
 func initSpan() {
 	SpanClass = NewClassWithOptions(ClassWithConstructor(SpanConstructor))
 	StringClass.AddConstantString("Span", Ref(SpanClass))
+	RegisterNativeClass("Std::String::Span", "value.SpanClass")
 }

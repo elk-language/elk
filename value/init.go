@@ -40,12 +40,22 @@ func initBootstrap() {
 	StdModule = NewModule()
 
 	RootModule.AddConstantString("Root", Ref(RootModule))
+	RegisterNativeModule("Root", "value.RootModule")
+
 	RootModule.AddConstantString("Std", Ref(StdModule))
+	RegisterNativeModule("Std", "value.StdModule")
 
 	StdModule.AddConstantString("Class", Ref(ClassClass))
+	RegisterNativeClass("Std::Class", "value.ClassClass")
+
 	StdModule.AddConstantString("Object", Ref(ObjectClass))
+	RegisterNativeClass("Std::Object", "value.ObjectClass")
+
 	StdModule.AddConstantString("Value", Ref(ValueClass))
+	RegisterNativeClass("Std::Value", "value.ValueClass")
+
 	StdModule.AddConstantString("Module", Ref(ModuleClass))
+	RegisterNativeClass("Std::Module", "value.ModuleClass")
 }
 
 // Initialize all built-ins

@@ -288,7 +288,9 @@ func initDiagnosticList() {
 	DiagnosticListClass = NewClassWithOptions(ClassWithConstructor(DiagnosticListConstructor))
 	DiagnosticListClass.IncludeMixin(ListMixin)
 	StdModule.AddConstantString("DiagnosticList", Ref(DiagnosticListClass))
+	RegisterNativeClass("Std::DiagnosticList", "value.DiagnosticListClass")
 
 	DiagnosticListIteratorClass = NewClass()
 	DiagnosticListClass.AddConstantString("Iterator", Ref(DiagnosticListIteratorClass))
+	RegisterNativeClass("Std::DiagnosticList::Iterator", "value.DiagnosticListIteratorClass")
 }

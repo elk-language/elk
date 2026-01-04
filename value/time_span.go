@@ -648,4 +648,5 @@ func initTimeSpan() {
 	TimeSpanClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	TimeSpanClass.IncludeMixin(DurationMixin)
 	TimeClass.AddConstantString("Span", Ref(TimeSpanClass))
+	RegisterNativeClass("Std::Time::Span", "value.TimeSpanClass")
 }

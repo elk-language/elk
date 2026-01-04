@@ -117,7 +117,9 @@ func initClosedRange() {
 	ClosedRangeClass = NewClass()
 	ClosedRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("ClosedRange", Ref(ClosedRangeClass))
+	RegisterNativeClass("Std::ClosedRange", "value.ClosedRangeClass")
 
 	ClosedRangeIteratorClass = NewClass()
 	ClosedRangeClass.AddConstantString("Iterator", Ref(ClosedRangeIteratorClass))
+	RegisterNativeClass("Std::ClosedRange::Iterator", "value.ClosedRangeIteratorClass")
 }

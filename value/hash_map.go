@@ -247,7 +247,9 @@ func initHashMap() {
 	HashMapClass = NewClassWithOptions(ClassWithConstructor(HashMapConstructor))
 	HashMapClass.IncludeMixin(MapMixin)
 	StdModule.AddConstantString("HashMap", Ref(HashMapClass))
+	RegisterNativeClass("Std::HashMap", "value.HashMapClass")
 
 	HashMapIteratorClass = NewClass()
 	HashMapClass.AddConstantString("Iterator", Ref(HashMapIteratorClass))
+	RegisterNativeClass("Std::HashMap::Iterator", "value.HashMapIteratorClass")
 }

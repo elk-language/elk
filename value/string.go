@@ -824,15 +824,19 @@ func (s *StringGraphemeIterator) Reset() {
 func initString() {
 	StringClass = NewClass()
 	StdModule.AddConstantString("String", Ref(StringClass))
+	RegisterNativeClass("Std::String", "value.StringClass")
 
 	StringClass.AddConstantString("Convertible", Ref(NewInterface()))
 
 	StringCharIteratorClass = NewClass()
 	StringClass.AddConstantString("CharIterator", Ref(StringCharIteratorClass))
+	RegisterNativeClass("Std::String::CharIterator", "value.StringCharIteratorClass")
 
 	StringByteIteratorClass = NewClass()
 	StringClass.AddConstantString("ByteIterator", Ref(StringByteIteratorClass))
+	RegisterNativeClass("Std::String::ByteIterator", "value.StringByteIteratorClass")
 
 	StringGraphemeIteratorClass = NewClass()
 	StringClass.AddConstantString("GraphemeIterator", Ref(StringGraphemeIteratorClass))
+	RegisterNativeClass("Std::String::GraphemeIterator", "value.StringGraphemeIteratorClass")
 }

@@ -14,4 +14,5 @@ var FunctionClass *Class // ::Std::Function
 func initFunction() {
 	FunctionClass = NewClass()
 	StdModule.AddConstantString("Function", Ref(FunctionClass))
+	RegisterNativeClass("Std::Function", "value.FunctionClass")
 }

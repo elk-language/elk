@@ -114,7 +114,9 @@ func initEndlessOpenRange() {
 	EndlessOpenRangeClass = NewClass()
 	EndlessOpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("EndlessOpenRange", Ref(EndlessOpenRangeClass))
+	RegisterNativeClass("Std::EndlessOpenRange", "value.EndlessOpenRangeClass")
 
 	EndlessOpenRangeIteratorClass = NewClass()
 	EndlessOpenRangeClass.AddConstantString("Iterator", Ref(EndlessOpenRangeIteratorClass))
+	RegisterNativeClass("Std::EndlessOpenRange::Iterator", "value.EndlessOpenRangeIteratorClass")
 }

@@ -68,4 +68,5 @@ func (w *WaitGroup) Wait() {
 func initWaitGroup() {
 	WaitGroupClass = NewClassWithOptions(ClassWithConstructor(WaitGroupConstructor))
 	SyncModule.AddConstantString("WaitGroup", Ref(WaitGroupClass))
+	RegisterNativeClass("Std::Sync::WaitGroup", "value.WaitGroupClass")
 }

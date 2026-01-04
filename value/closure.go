@@ -7,4 +7,5 @@ func initClosure() {
 		ClassWithSuperclass(FunctionClass),
 	)
 	StdModule.AddConstantString("Closure", Ref(ClosureClass))
+	RegisterNativeClass("Std::Closure", "value.ClosureClass")
 }

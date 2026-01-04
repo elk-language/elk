@@ -382,7 +382,9 @@ func initArrayTuple() {
 	ArrayTupleClass = NewClassWithOptions(ClassWithConstructor(ArrayTupleConstructor))
 	ArrayTupleClass.IncludeMixin(TupleMixin)
 	StdModule.AddConstantString("ArrayTuple", Ref(ArrayTupleClass))
+	RegisterNativeClass("Std::ArrayTuple", "value.ArrayTupleClass")
 
 	ArrayTupleIteratorClass = NewClass()
 	ArrayTupleClass.AddConstantString("Iterator", Ref(ArrayTupleIteratorClass))
+	RegisterNativeClass("Std::ArrayTuple::Iterator", "value.ArrayTupleIteratorClass")
 }

@@ -443,6 +443,7 @@ func (i Int64) StrictEqualVal(other Value) Value {
 func initInt64() {
 	Int64Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Int64", Ref(Int64Class))
+	RegisterNativeClass("Std::Int64", "value.Int64Class")
 
 	Int64Class.AddConstantString("Convertible", Ref(NewInterface()))
 }

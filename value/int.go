@@ -19,9 +19,11 @@ type UnsignedInt interface {
 func initInt() {
 	IntClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Int", Ref(IntClass))
+	RegisterNativeClass("Std::Int", "value.IntClass")
 
 	IntIteratorClass = NewClass()
 	IntClass.AddConstantString("Iterator", Ref(IntIteratorClass))
+	RegisterNativeClass("Std::Int::Iterator", "value.IntIteratorClass")
 
 	IntClass.AddConstantString("Convertible", Ref(NewInterface()))
 }

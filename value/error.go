@@ -546,71 +546,94 @@ func initError() {
 		}),
 	)
 	StdModule.AddConstantString("Error", Ref(ErrorClass))
+	RegisterNativeClass("Std::Error", "value.ErrorClass")
 
 	UnexpectedNilErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("UnexpectedNilError", Ref(UnexpectedNilErrorClass))
+	RegisterNativeClass("Std::UnexpectedNilError", "value.UnexpectedNilErrorClass")
 
 	OpenClosureErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("OpenClosureError", Ref(OpenClosureErrorClass))
+	RegisterNativeClass("Std::OpenClosureError", "value.OpenClosureErrorClass")
 
 	TypeErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("TypeError", Ref(TypeErrorClass))
+	RegisterNativeClass("Std::TypeError", "value.TypeErrorClass")
 
 	PathErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	PathClass.AddConstantString("Error", Ref(PathErrorClass))
+	RegisterNativeClass("Std::FS::Path::Error", "value.PathErrorClass")
 
 	GlobErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("GlobError", Ref(GlobErrorClass))
+	RegisterNativeClass("Std::GlobError", "value.GlobErrorClass")
 
 	ModifierMismatchErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("ModifierMismatchError", Ref(ModifierMismatchErrorClass))
+	RegisterNativeClass("Std::ModifierMismatchError", "value.ModifierMismatchErrorClass")
 
 	NoConstantErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("NoConstantError", Ref(NoConstantErrorClass))
+	RegisterNativeClass("Std::NoConstantError", "value.NoConstantErrorClass")
 
 	RedefinedConstantErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("RedefinedConstantError", Ref(RedefinedConstantErrorClass))
+	RegisterNativeClass("Std::RedefinedConstantError", "value.RedefinedConstantErrorClass")
 
 	FormatErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("FormatError", Ref(FormatErrorClass))
+	RegisterNativeClass("Std::FormatError", "value.FormatErrorClass")
 
 	RegexCompileErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("RegexCompileError", Ref(RegexCompileErrorClass))
+	RegisterNativeClass("Std::RegexCompileError", "value.RegexCompileErrorClass")
 
 	NoMethodErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("NoMethodError", Ref(NoMethodErrorClass))
+	RegisterNativeClass("Std::NoMethodError", "value.NoMethodErrorClass")
 
 	ZeroDivisionErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("ZeroDivisionError", Ref(ZeroDivisionErrorClass))
+	RegisterNativeClass("Std::ZeroDivisionError", "value.ZeroDivisionErrorClass")
 
 	OutOfRangeErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("OutOfRangeError", Ref(OutOfRangeErrorClass))
+	RegisterNativeClass("Std::OutOfRangeError", "value.OutOfRangeErrorClass")
 
 	ArgumentErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("ArgumentError", Ref(ArgumentErrorClass))
+	RegisterNativeClass("Std::ArgumentError", "value.ArgumentErrorClass")
 
 	SealedClassErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("SealedClassError", Ref(SealedClassErrorClass))
+	RegisterNativeClass("Std::SealedClassError", "value.SealedClassErrorClass")
 
 	InvalidTimezoneErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("InvalidTimezoneError", Ref(InvalidTimezoneErrorClass))
+	RegisterNativeClass("Std::InvalidTimezoneError", "value.InvalidTimezoneErrorClass")
 
 	PrimitiveValueErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("PrimitiveValueError", Ref(PrimitiveValueErrorClass))
+	RegisterNativeClass("Std::PrimitiveValueError", "value.PrimitiveValueErrorClass")
 
 	PatternNotMatchedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("PatternNotMatchedError", Ref(PatternNotMatchedErrorClass))
+	RegisterNativeClass("Std::PatternNotMatchedError", "value.PatternNotMatchedErrorClass")
 
 	IndexErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("IndexError", Ref(IndexErrorClass))
+	RegisterNativeClass("Std::IndexError", "value.IndexErrorClass")
 
 	FileSystemErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("FileSystemError", Ref(FileSystemErrorClass))
+	RegisterNativeClass("Std::FileSystemError", "value.FileSystemErrorClass")
 
 	NotBuiltinErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("NotBuiltinError", Ref(NotBuiltinErrorClass))
+	RegisterNativeClass("Std::NotBuiltinError", "value.NotBuiltinErrorClass")
 	NotBuiltinError = NewError(NotBuiltinErrorClass, "")
 
 	ColorizerErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("ColorizerError", Ref(ColorizerErrorClass))
+	RegisterNativeClass("Std::ColorizerError", "value.ColorizerErrorClass")
 }

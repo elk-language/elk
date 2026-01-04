@@ -173,4 +173,5 @@ func (s Symbol) Hash() UInt64 {
 func initSymbol() {
 	SymbolClass = NewClass()
 	StdModule.AddConstantString("Symbol", Ref(SymbolClass))
+	RegisterNativeClass("Std::Symbol", "value.SymbolClass")
 }

@@ -96,7 +96,9 @@ func (ch *Channel) Close() (err Value) {
 func initChannel() {
 	ChannelClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	StdModule.AddConstantString("Channel", Ref(ChannelClass))
+	RegisterNativeClass("Std::Channel", "value.ChannelClass")
 
 	ChannelClosedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	ChannelClass.AddConstantString("ClosedError", Ref(ChannelClosedErrorClass))
+	RegisterNativeClass("Std::Channel::ClosedError", "value.ChannelClosedErrorClass")
 }

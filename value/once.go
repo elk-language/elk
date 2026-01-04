@@ -53,4 +53,5 @@ func initOnce() {
 		ClassWithConstructor(OnceConstructor),
 	)
 	SyncModule.AddConstantString("Once", Ref(OnceClass))
+	RegisterNativeClass("Std::Sync::Once", "value.OnceClass")
 }

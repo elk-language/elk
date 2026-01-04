@@ -1015,5 +1015,8 @@ tokenLoop:
 func initTime() {
 	TimeClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Time", Ref(TimeClass))
+	RegisterNativeClass("Std::Time", "value.TimeClass")
+
 	TimeClass.AddConstantString("DEFAULT_FORMAT", Ref(String(DefaultTimeFormat)))
+	RegisterNativeConstant("Std::Time::DEFAULT_FORMAT", "value.String(value.DefaultTimeFormat)", "value.String")
 }

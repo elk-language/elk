@@ -411,4 +411,5 @@ func (c Char) StrictEqualVal(other Value) Value {
 func initChar() {
 	CharClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Char", Ref(CharClass))
+	RegisterNativeClass("Std::Char", "value.CharClass")
 }

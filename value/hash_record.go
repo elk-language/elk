@@ -219,7 +219,9 @@ func initHashRecord() {
 	HashRecordClass = NewClassWithOptions(ClassWithConstructor(HashRecordConstructor))
 	HashRecordClass.IncludeMixin(RecordMixin)
 	StdModule.AddConstantString("HashRecord", Ref(HashRecordClass))
+	RegisterNativeClass("Std::HashRecord", "value.HashRecordClass")
 
 	HashRecordIteratorClass = NewClass()
 	HashRecordClass.AddConstantString("Iterator", Ref(HashRecordIteratorClass))
+	RegisterNativeClass("Std::HashRecord::Iterator", "value.HashRecordIteratorClass")
 }

@@ -114,7 +114,9 @@ func initEndlessClosedRange() {
 	EndlessClosedRangeClass = NewClass()
 	EndlessClosedRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("EndlessClosedRange", Ref(EndlessClosedRangeClass))
+	RegisterNativeClass("Std::EndlessClosedRange", "value.EndlessClosedRangeClass")
 
 	EndlessClosedRangeIteratorClass = NewClass()
 	EndlessClosedRangeClass.AddConstantString("Iterator", Ref(EndlessClosedRangeIteratorClass))
+	RegisterNativeClass("Std::EndlessClosedRange::Iterator", "value.EndlessClosedRangeIteratorClass")
 }

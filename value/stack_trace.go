@@ -144,7 +144,9 @@ func (s *StackTraceIterator) Reset() {
 func initStackTrace() {
 	StackTraceClass = NewClassWithOptions()
 	StdModule.AddConstantString("StackTrace", Ref(StackTraceClass))
+	RegisterNativeClass("Std::StackTrace", "value.StackTraceClass")
 
 	StackTraceIteratorClass = NewClassWithOptions()
 	StackTraceClass.AddConstantString("Iterator", Ref(StackTraceIteratorClass))
+	RegisterNativeClass("Std::StackTrace::Iterator", "value.StackTraceIteratorClass")
 }

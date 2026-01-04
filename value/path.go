@@ -14,6 +14,7 @@ var PathClass *Class // ::Std::FS::Path
 func initPath() {
 	PathClass = NewClass()
 	FSModule.AddConstantString("Path", Ref(PathClass))
+	RegisterNativeClass("Std::FS::Path", "value.PathClass")
 }
 
 type Path struct {

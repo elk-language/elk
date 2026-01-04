@@ -5,4 +5,5 @@ var RangeMixin *Mixin // ::Std::Range
 func initRange() {
 	RangeMixin = NewMixin()
 	StdModule.AddConstantString("Range", Ref(RangeMixin))
+	RegisterNativeMixin("Std::Range", "value.RangeMixin")
 }

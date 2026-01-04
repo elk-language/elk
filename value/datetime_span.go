@@ -1044,4 +1044,5 @@ func initDateTimeSpan() {
 	DateTimeSpanClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	DateTimeSpanClass.IncludeMixin(DurationMixin)
 	DateTimeClass.AddConstantString("Span", Ref(DateTimeSpanClass))
+	RegisterNativeClass("Std::DateTime::Span", "value.DateTimeSpanClass")
 }

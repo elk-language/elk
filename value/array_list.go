@@ -467,7 +467,9 @@ func initArrayList() {
 	ArrayListClass = NewClassWithOptions(ClassWithConstructor(ArrayListConstructor))
 	ArrayListClass.IncludeMixin(ListMixin)
 	StdModule.AddConstantString("ArrayList", Ref(ArrayListClass))
+	RegisterNativeClass("Std::ArrayList", "value.ArrayListClass")
 
 	ArrayListIteratorClass = NewClass()
 	ArrayListClass.AddConstantString("Iterator", Ref(ArrayListIteratorClass))
+	RegisterNativeClass("Std::ArrayList::Iterator", "value.ArrayListIteratorClass")
 }

@@ -1403,17 +1403,24 @@ func parseDateMatchText(formatString, input string, currentInput *string, text s
 func initDate() {
 	DateClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Date", Ref(DateClass))
+	RegisterNativeClass("Std::Date", "value.DateClass")
+
 	DateClass.AddConstantString("DEFAULT_FORMAT", Ref(String(DefaultDateFormat)))
+	RegisterNativeConstant("Std::Date::DEFAULT_FORMAT", "value.String(value.DefaultDateFormat)", "value.String")
 
 	DateErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	DateClass.AddConstantString("Error", Ref(DateErrorClass))
+	RegisterNativeClass("Std::Date::Error", "value.DateErrorClass")
 
 	DateInvalidYearErrorClass = NewClassWithOptions(ClassWithSuperclass(DateErrorClass))
 	DateClass.AddConstantString("InvalidYearError", Ref(DateInvalidYearErrorClass))
+	RegisterNativeClass("Std::Date::InvalidYearError", "value.DateInvalidYearErrorClass")
 
 	DateInvalidMonthErrorClass = NewClassWithOptions(ClassWithSuperclass(DateErrorClass))
 	DateClass.AddConstantString("InvalidMonthError", Ref(DateInvalidMonthErrorClass))
+	RegisterNativeClass("Std::Date::InvalidMonthError", "value.DateInvalidMonthErrorClass")
 
 	DateInvalidDayErrorClass = NewClassWithOptions(ClassWithSuperclass(DateErrorClass))
 	DateClass.AddConstantString("InvalidDayError", Ref(DateInvalidDayErrorClass))
+	RegisterNativeClass("Std::Date::InvalidDayError", "value.DateInvalidDayErrorClass")
 }

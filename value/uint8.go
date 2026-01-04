@@ -312,4 +312,7 @@ func (i UInt8) StrictEqualVal(other Value) Value {
 func initUInt8() {
 	UInt8Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("UInt8", Ref(UInt8Class))
+	RegisterNativeClass("Std::UInt8", "value.UInt8Class")
+
+	UInt8Class.AddConstantString("Convertible", Ref(NewInterface()))
 }

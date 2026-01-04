@@ -13,6 +13,7 @@ var BoxClass *Class // ::Std::Box
 func initBox() {
 	BoxClass = NewClassWithOptions(ClassWithConstructor(BoxConstructor), ClassWithSuperclass(ImmutableBoxClass))
 	StdModule.AddConstantString("Box", Ref(BoxClass))
+	RegisterNativeClass("Std::Box", "value.BoxClass")
 }
 
 func BoxConstructor(class *Class) Value {

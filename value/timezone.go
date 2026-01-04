@@ -454,6 +454,11 @@ func LoadTimezone(name string) (zone *Timezone, err Value) {
 func initTimezone() {
 	TimezoneClass = NewClass()
 	StdModule.AddConstantString("Timezone", Ref(TimezoneClass))
+	RegisterNativeClass("Std::Timezone", "value.TimezoneClass")
+
 	TimezoneClass.AddConstantString("UTC", Ref(UTCTimezone))
+	RegisterNativeConstant("Std::Timezone::UTC", "value.UTCTimezone", "*value.Timezone")
+
 	TimezoneClass.AddConstantString("LOCAL", Ref(LocalTimezone))
+	RegisterNativeConstant("Std::Timezone::LOCAL", "value.LocalTimezone", "*value.Timezone")
 }

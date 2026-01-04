@@ -215,4 +215,5 @@ func NewRegexComparer(opts *cmp.Options) cmp.Option {
 func initRegex() {
 	RegexClass = NewClass()
 	StdModule.AddConstantString("Regex", Ref(RegexClass))
+	RegisterNativeClass("Std::Regex", "value.RegexClass")
 }

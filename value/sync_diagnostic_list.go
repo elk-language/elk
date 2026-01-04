@@ -355,7 +355,9 @@ func initSyncDiagnosticList() {
 	SyncDiagnosticListClass = NewClassWithOptions(ClassWithConstructor(SyncDiagnosticListConstructor))
 	SyncDiagnosticListClass.IncludeMixin(ListMixin)
 	SyncModule.AddConstantString("DiagnosticList", Ref(SyncDiagnosticListClass))
+	RegisterNativeClass("Std::Sync::DiagnosticList", "value.SyncDiagnosticListClass")
 
 	SyncDiagnosticListIteratorClass = NewClass()
 	SyncDiagnosticListClass.AddConstantString("Iterator", Ref(SyncDiagnosticListIteratorClass))
+	RegisterNativeClass("Std::Sync::DiagnosticList::Iterator", "value.SyncDiagnosticListIteratorClass")
 }

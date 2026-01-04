@@ -84,7 +84,9 @@ func initRWMutex() {
 		ClassWithConstructor(RWMutexConstructor),
 	)
 	SyncModule.AddConstantString("RWMutex", Ref(RWMutexClass))
+	RegisterNativeClass("Std::Sync::RWMutex", "value.RWMutexClass")
 
 	RWMutexUnlockedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	RWMutexClass.AddConstantString("UnlockedError", Ref(RWMutexUnlockedErrorClass))
+	RegisterNativeClass("Std::Sync::RWMutex::UnlockedError", "value.RWMutexUnlockedErrorClass")
 }

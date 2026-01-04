@@ -71,6 +71,17 @@ func (m *nativeMethod) goIdent() string {
 	return m.ident
 }
 
+type nativeConstant struct {
+	ident   string
+	elkType types.Type
+	goType  string
+	init    string
+}
+
+func (m *nativeConstant) goIdent() string {
+	return m.ident
+}
+
 type nativeValue struct {
 	ident   string
 	val     value.Value
@@ -281,7 +292,7 @@ func (c *GoCompiler) FinishGlobalEnvCompiler() {
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}")
 
-	c.parent.emit("initGlobalEnv()\n")
+	c.parent.emit("\ninitGlobalEnv()\n")
 }
 
 func (c *GoCompiler) InitMethodCompiler(location *position.Location) (Compiler, int) {
@@ -300,7 +311,7 @@ func (c *GoCompiler) CompileMethods(location *position.Location, execOffset int)
 		return
 	}
 
-	c.parent.emit("methodDefinitions()\n")
+	c.parent.emit("\nmethodDefinitions()\n")
 
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "func methodDefinitions() {\n")
@@ -323,7 +334,7 @@ func (c *GoCompiler) FinishIvarIndicesCompiler(location *position.Location, exec
 	}
 
 	if c.parent != nil {
-		c.parent.emit("ivarIndices(thread)\n")
+		c.parent.emit("\nivarIndices(thread)\n")
 	}
 
 	var funcBuffer bytes.Buffer
@@ -338,19 +349,46 @@ func (c *GoCompiler) FinishIvarIndicesCompiler(location *position.Location, exec
 func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNode, namespace types.Namespace, constName value.Symbol) {
 	c.registerGoLocal("namespace", goValueType)
 
+	c.emit("\n")
 	switch n := namespace.(type) {
 	case *types.SingletonClass:
-		namespaceSymbol := c.emitSymbol(n.AttachedObject.Name())
-		c.emit("namespace = value.Ref(value.GetConstant(%s).SingletonClass())\n", namespaceSymbol)
+		attachedObjectConst := c.emitGetConst(value.ToSymbol(n.AttachedObject.Name()), types.Any{})
+		c.emit("namespace = value.Ref((%s).SingletonClass())\n", attachedObjectConst.value())
 	default:
-		namespaceSymbol := c.emitSymbol(n.Name())
-		c.emit("namespace = value.GetConstant(%s)\n", namespaceSymbol)
+		namespaceConst := c.emitGetConst(value.ToSymbol(n.Name()), types.Any{})
+		c.emit("namespace = %s\n", c.convertToValue(namespaceConst))
 	}
 
-	init := c.compileExpression(node.Initialiser, false)
+	init := c.valueToNarrowerType(
+		c.compileExpression(node.Initialiser, false),
+	)
+
+	fullConstName := c.getFullConstName(namespace.Name(), constName.String())
+	elkType := c.typeOf(node)
+	goType := init.goType()
+	goIdent := mangleGoIdentifier(fullConstName)
+	c.globalData.constantCache.SetUnsafe(
+		fullConstName,
+		&nativeConstant{
+			ident:   goIdent,
+			elkType: elkType,
+			goType:  goType,
+		},
+	)
+
 	constNameSymbol := c.emitSymbol(constName.String())
+	c.emitPackage("var %s %s\n", goIdent, goType)
 	c.emit("value.AddConstant(namespace, %s, %s)\n", constNameSymbol, c.convertToValue(init))
+	c.emit("%s = %s\n", goIdent, init.value())
 	init.markFree()
+}
+
+func (c *GoCompiler) getFullConstName(namespaceName, constName string) string {
+	if namespaceName == "Root" {
+		return constName
+	}
+
+	return fmt.Sprintf("%s::%s", namespaceName, constName)
 }
 
 func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.Symbol) Compiler {
@@ -383,6 +421,7 @@ type globalData struct {
 	symbolCache   *concurrent.Map[string, *nativeSymbol]
 	valueCache    *concurrent.Map[string, *nativeValue]
 	methodCache   *concurrent.Map[string, *nativeMethod]
+	constantCache *concurrent.Map[string, *nativeConstant]
 }
 
 func newGlobalData() *globalData {
@@ -392,6 +431,7 @@ func newGlobalData() *globalData {
 		symbolCache:   concurrent.NewMap[string, *nativeSymbol](),
 		valueCache:    concurrent.NewMap[string, *nativeValue](),
 		methodCache:   concurrent.NewMap[string, *nativeMethod](),
+		constantCache: concurrent.NewMap[string, *nativeConstant](),
 	}
 }
 
@@ -665,10 +705,36 @@ func (c *GoCompiler) emitSetInstanceVariableByName(name value.Symbol, val string
 	c.emit("if err.IsNotUndefined() { panic(err) }\n")
 }
 
+func (c *GoCompiler) compileMethodsWithinInterface(iface *types.Interface, location *position.Location) {
+	singleton := iface.Singleton()
+	if types.NamespaceHasAnyDefinableMethods(singleton) {
+		ifaceVal := c.emitGetConst(value.ToSymbol(iface.Name()), c.checker.Std(symbol.Interface))
+		c.emit("class = (%s).SingletonClass() // %s\n", ifaceVal.value(), iface.Name())
+
+		for methodName, method := range types.SortedOwnMethods(singleton) {
+			c.compileMethodDefinition(methodName, method, location)
+
+			for i, overload := range method.Overloads {
+				overloadName := value.ToSymbol(
+					fmt.Sprintf("%s@%d", methodName.String(), i+1),
+				)
+				c.compileMethodDefinition(overloadName, overload, location)
+			}
+		}
+	}
+
+	for _, subtype := range types.SortedSubtypes(iface) {
+		if subtype.Type == iface {
+			continue
+		}
+		c.compileMethodsWithinType(subtype.Type, location)
+	}
+}
+
 func (c *GoCompiler) compileMethodsWithinModule(module *types.Module, location *position.Location) {
 	if types.NamespaceHasAnyDefinableMethods(module) {
-		nameSymbol := c.emitSymbol(module.Name())
-		c.emit("class = (*value.Module)(value.GetConstant(%s).Pointer()).SingletonClass() // %s\n", nameSymbol, module.Name())
+		moduleVal := c.emitGetConst(value.ToSymbol(module.Name()), c.checker.Std(symbol.Module))
+		c.emit("class = (%s).SingletonClass() // %s\n", moduleVal.value(), module.Name())
 
 		for methodName, method := range types.SortedOwnMethods(module) {
 			c.compileMethodDefinition(methodName, method, location)
@@ -690,15 +756,15 @@ func (c *GoCompiler) compileMethodsWithinModule(module *types.Module, location *
 	}
 }
 
-func (c *GoCompiler) compileMethodsWithinNamespace(namespace types.Namespace, location *position.Location) {
+func (c *GoCompiler) compileMethodsWithinClassOrMixin(namespace types.Namespace, location *position.Location) {
 	namespaceHasCompiledMethods := types.NamespaceHasAnyDefinableMethods(namespace)
 
 	singleton := namespace.Singleton()
 	singletonHasCompiledMethods := types.NamespaceHasAnyDefinableMethods(singleton)
 
 	if namespaceHasCompiledMethods || singletonHasCompiledMethods {
-		namespaceSymbol := c.emitSymbol(namespace.Name())
-		c.emit("class = (*value.Class)(value.GetConstant(%s).Pointer()) // %s\n", namespaceSymbol, namespace.Name())
+		namespaceVal := c.emitGetConst(value.ToSymbol(namespace.Name()), c.checker.Std(symbol.Class))
+		c.emit("class = %s // %s\n", c.valueToNarrowerType(namespaceVal).value(), namespace.Name())
 
 		for methodName, method := range types.SortedOwnMethods(namespace) {
 			c.compileMethodDefinition(methodName, method, location)
@@ -726,11 +792,11 @@ func (c *GoCompiler) compileMethodsWithinType(typ types.Type, location *position
 	case *types.Module:
 		c.compileMethodsWithinModule(t, location)
 	case *types.Class:
-		c.compileMethodsWithinNamespace(t, location)
+		c.compileMethodsWithinClassOrMixin(t, location)
 	case *types.Mixin:
-		c.compileMethodsWithinNamespace(t, location)
+		c.compileMethodsWithinClassOrMixin(t, location)
 	case *types.Interface:
-		c.compileMethodsWithinNamespace(t, location)
+		c.compileMethodsWithinInterface(t, location)
 	}
 }
 
@@ -747,12 +813,13 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 			namespace := value.RootModule.Constants.GetString(method.DefinedUnder.Name()).AsReference()
 			c.registerGoLocal("aliasClass", "*value.Class")
 
-			namespaceSymbol := c.emitSymbol(method.DefinedUnder.Name())
 			switch namespace.(type) {
 			case *value.Class:
-				c.emit("aliasClass = (*value.Class)(value.GetConstant(%s).Pointer())\n", namespaceSymbol)
+				classVal := c.emitGetConst(value.ToSymbol(method.DefinedUnder.Name()), c.checker.Std(symbol.Class))
+				c.emit("aliasClass = %s\n", c.valueToNarrowerType(classVal).value())
 			case *value.Module:
-				c.emit("aliasClass = value.GetConstant(%s).SingletonClass()\n", namespaceSymbol)
+				moduleVal := c.emitGetConst(value.ToSymbol(method.DefinedUnder.Name()), c.checker.Std(symbol.Module))
+				c.emit("aliasClass = (%s).SingletonClass()\n", moduleVal.value())
 			default:
 				panic(fmt.Sprintf("invalid namespace %T", namespace))
 			}
@@ -853,11 +920,11 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 	if !namespace.IsDefined() && !namespace.IsNative() {
 		switch p := parentNamespace.(type) {
 		case *types.SingletonClass:
-			parentSymbol := c.emitSymbol(p.AttachedObject.Name())
-			c.emit("parentNamespace = value.GetConstant(%s).SingletonClass()\n", parentSymbol)
+			namespaceVal := c.emitGetConst(value.ToSymbol(p.AttachedObject.Name()), types.Any{})
+			c.emit("parentNamespace = (%s).SingletonClass()\n", namespaceVal.value())
 		default:
-			parentSymbol := c.emitSymbol(p.Name())
-			c.emit("parentNamespace = value.GetConstant(%s)\n", parentSymbol)
+			namespaceVal := c.emitGetConst(value.ToSymbol(p.Name()), types.Any{})
+			c.emit("parentNamespace = %s\n", c.convertToValue(namespaceVal))
 		}
 
 		switch namespace.(type) {
@@ -958,17 +1025,54 @@ func (c *GoCompiler) compileInterfaceDefinition(parentNamespace types.Namespace,
 	c.compileNamespaceDefinition(parentNamespace, iface, constName)
 }
 
-func (c *GoCompiler) emitGetConstValue(name value.Symbol) *goValue {
-	return c.emitGetConst(name, c.checker.Std(symbol.Value))
+func (c *GoCompiler) emitGetConst(fullName value.Symbol, elkType types.Type) *goValue {
+	if nativeConst, ok := value.NativeConstantMap[fullName.String()]; ok {
+		return newInlineGoValue(
+			nativeConst.GoExpr,
+			elkType,
+			nativeConst.GoType,
+		)
+	}
+
+	c.globalData.constantCache.Lock()
+	defer c.globalData.constantCache.Unlock()
+
+	fullNameString := fullName.String()
+	if constant, ok := c.globalData.constantCache.GetUnsafe(fullNameString); ok {
+		return newInlineGoValue(
+			constant.goIdent(),
+			elkType,
+			constant.goType,
+		)
+	}
+
+	val := c.emitDynamicGetConst(fullName, elkType)
+	goIdent := mangleGoIdentifier(fullNameString)
+	c.emitPackage("var %s %s // %s\n", goIdent, val.goType(), fullNameString)
+	c.globalData.constantCache.SetUnsafe(
+		fullNameString,
+		&nativeConstant{
+			ident:   goIdent,
+			elkType: elkType,
+			goType:  val.goType(),
+			init:    val.value(),
+		},
+	)
+
+	return newInlineGoValue(
+		goIdent,
+		elkType,
+		val.goType(),
+	)
 }
 
-func (c *GoCompiler) emitGetConst(name value.Symbol, typ types.Type) *goValue {
-	constNameSymbol := c.emitSymbol(name.String())
+func (c *GoCompiler) emitDynamicGetConst(fullName value.Symbol, elkType types.Type) *goValue {
+	constNameSymbol := c.emitSymbol(fullName.String())
 
 	return c.valueToNarrowerType(
 		newInlineGoValue(
 			fmt.Sprintf("value.GetConstant(%s)", constNameSymbol),
-			typ,
+			elkType,
 			"value.Value",
 		),
 	)
@@ -985,24 +1089,26 @@ func (c *GoCompiler) CompileClassInheritance(class *types.Class, location *posit
 
 	class.SetCompiled(true)
 
-	classNameSymbol := c.emitSymbol(class.Name())
-	superclassNameSymbol := c.emitSymbol(superclass.Name())
-	c.emit("class = (*value.Class)(value.GetConstant(%s).Pointer())\n", classNameSymbol)
-	c.emit("superclass = (*value.Class)(value.GetConstant(%s).Pointer())\n", superclassNameSymbol)
+	classVal := c.emitGetConst(value.ToSymbol(class.Name()), c.checker.Std(symbol.Class))
+	c.emit("class = %s\n", c.valueToNarrowerType(classVal).value())
+
+	superclassVal := c.emitGetConst(value.ToSymbol(superclass.Name()), c.checker.Std(symbol.Class))
+	c.emit("superclass = %s\n", c.valueToNarrowerType(superclassVal).value())
+
 	c.emit("class.SetSuperclass(superclass)\n")
 }
 
 func (c *GoCompiler) CompileIvarIndices(target types.NamespaceWithIvarIndices, location *position.Location) {
 	switch target := target.(type) {
 	case *types.SingletonClass:
-		targetSymbol := c.emitSymbol(target.AttachedObject.Name())
-		c.emit("class = value.GetConstant(%s).SingletonClass()\n", targetSymbol)
+		namespaceVal := c.emitGetConst(value.ToSymbol(target.AttachedObject.Name()), types.Any{})
+		c.emit("class = (%s).SingletonClass()\n", namespaceVal.value())
 	case *types.Module:
-		targetSymbol := c.emitSymbol(target.Name())
-		c.emit("class = value.GetConstant(%s).SingletonClass()\n", targetSymbol)
+		namespaceVal := c.emitGetConst(value.ToSymbol(target.Name()), types.Any{})
+		c.emit("class = (%s).SingletonClass()\n", namespaceVal.value())
 	default:
-		targetSymbol := c.emitSymbol(target.Name())
-		c.emit("class = (*value.Class)(value.GetConstant(%s).Pointer())\n", targetSymbol)
+		namespaceVal := c.emitGetConst(value.ToSymbol(target.Name()), c.checker.Std(symbol.Class))
+		c.emit("class = %s\n", c.valueToNarrowerType(namespaceVal).value())
 	}
 
 	c.emit("class.IvarIndices = %s\n", target.IvarIndices().ToGoSource())
@@ -1011,15 +1117,16 @@ func (c *GoCompiler) CompileIvarIndices(target types.NamespaceWithIvarIndices, l
 func (c *GoCompiler) CompileInclude(target types.Namespace, mixin *types.Mixin, location *position.Location) {
 	switch t := target.(type) {
 	case *types.SingletonClass:
-		targetSymbol := c.emitSymbol(t.AttachedObject.Name())
-		c.emit("class = value.GetConstant(%s).SingletonClass()\n", targetSymbol)
+		namespaceVal := c.emitGetConst(value.ToSymbol(t.AttachedObject.Name()), types.Any{})
+		c.emit("class = (%s).SingletonClass()\n", namespaceVal.value())
 	default:
-		targetSymbol := c.emitSymbol(target.Name())
-		c.emit("class = (*value.Class)(value.GetConstant(%s).Pointer())\n", targetSymbol)
+		namespaceVal := c.emitGetConst(value.ToSymbol(target.Name()), c.checker.Std(symbol.Class))
+		c.emit("class = %s\n", c.valueToNarrowerType(namespaceVal))
 	}
 
-	mixinNameSymbol := c.emitSymbol(mixin.Name())
-	c.emit("mixin = (*value.Mixin)(value.GetConstant(%s).Pointer())\n", mixinNameSymbol)
+	mixinVal := c.emitGetConst(value.ToSymbol(mixin.Name()), c.checker.Std(symbol.Mixin))
+	c.emit("mixin = %s\n", c.valueToNarrowerType(mixinVal))
+
 	c.emit("class.IncludeMixin(mixin)\n")
 }
 
@@ -1051,6 +1158,7 @@ var goMangleMap = []goMangleMapping{
 	{"**", "_exp_"},
 	{"+@", "_plus_"},
 	{"-@", "_neg_"},
+	{":", "_cln_"},
 	{".", "_dot_"},
 	{"@", "_at_"},
 	{">", "_gt_"},
@@ -2219,9 +2327,6 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 
 		return newTmpGoValue(resultVar, typ)
 	case token.DOT:
-		if name == "fib" {
-			fmt.Printf("pupa: %s\n", types.I(c.typeOf(receiver)))
-		}
 		receiverVal := c.compileExpression(receiver, false)
 
 		return c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, op, args, typ, location, valueIsIgnored)
@@ -2380,14 +2485,14 @@ func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType t
 func (c *GoCompiler) generateGetNamespace(typ types.Namespace) string {
 	switch typ := typ.(type) {
 	case *types.SingletonClass:
-		nameSymbol := c.emitSymbol(typ.AttachedObject.Name())
-		return fmt.Sprintf("value.GetConstant(%s).SingletonClass()", nameSymbol)
+		namespaceVal := c.emitGetConst(value.ToSymbol(typ.AttachedObject.Name()), types.Any{})
+		return fmt.Sprintf("(%s).SingletonClass()", namespaceVal.value())
 	case *types.Module:
-		nameSymbol := c.emitSymbol(typ.Name())
-		return fmt.Sprintf("value.GetConstant(%s).SingletonClass()", nameSymbol)
+		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), c.checker.Std(symbol.Module))
+		return fmt.Sprintf("(%s).SingletonClass()", namespaceVal.value())
 	case *types.Class:
-		nameSymbol := c.emitSymbol(typ.Name())
-		return fmt.Sprintf("(*value.Class)(value.GetConstant(%s).Pointer())", nameSymbol)
+		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), c.checker.Std(symbol.Class))
+		return c.valueToNarrowerType(namespaceVal).value()
 	default:
 		panic(fmt.Sprintf("invalid namespace: %T", typ))
 	}
@@ -2405,7 +2510,7 @@ func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType 
 		goMethodName = &nativeMethod{
 			ident: goIdent,
 			init: fmt.Sprintf(
-				"vm.MethodToFunc(%s.LookupMethod(%s))",
+				"vm.MethodToFunc((%s).LookupMethod(%s))",
 				c.generateGetNamespace(method.DefinedUnder),
 				nameSym,
 			),
@@ -2552,14 +2657,14 @@ func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Na
 
 	switch typ := typ.(type) {
 	case *types.SingletonClass:
-		nameSymbol := c.emitSymbol(typ.AttachedObject.Name())
-		fmt.Fprintf(&funcBuffer, "self = value.Ref(value.GetConstant(%s).SingletonClass())\n", nameSymbol)
+		namespaceVal := c.emitGetConst(value.ToSymbol(typ.AttachedObject.Name()), types.Any{})
+		fmt.Fprintf(&funcBuffer, "self = value.Ref((%s).SingletonClass())\n", namespaceVal.value())
 	case *types.Module:
-		nameSymbol := c.emitSymbol(typ.Name())
-		fmt.Fprintf(&funcBuffer, "self = value.Ref(value.GetConstant(%s).SingletonClass())\n", nameSymbol)
+		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), types.Any{})
+		fmt.Fprintf(&funcBuffer, "self = value.Ref((%s).SingletonClass())\n", namespaceVal.value())
 	default:
-		nameSymbol := c.emitSymbol(typ.Name())
-		fmt.Fprintf(&funcBuffer, "self = value.GetConstant(%s)\n", nameSymbol)
+		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), types.Any{})
+		fmt.Fprintf(&funcBuffer, "self = %s\n", c.convertToValue(namespaceVal))
 	}
 
 	c.emitPrependBytes(funcBuffer.Bytes())
@@ -6155,7 +6260,7 @@ func (c *GoCompiler) compileAddSmallInt(left, right *goValue, typ types.Type, va
 		return newInlineGoValue(
 			fmt.Sprintf("(%s).AddSmallInt(%s)", left.value(), right.value()),
 			left.elkType,
-			"value.SmallInt",
+			"value.Value",
 		)
 	case "value.Float":
 		return newInlineGoValue(
@@ -6762,7 +6867,8 @@ func (c *GoCompiler) convertToValue(v *goValue) string {
 		return v.value()
 	case "value.SmallInt":
 		return fmt.Sprintf("(%s).ToValue()", v.value())
-	case "*value.BigInt":
+	case "*value.BigInt", "*value.Class", "*value.Module",
+		"*value.Mixin", "*value.Interface", "*value.Timezone":
 		return fmt.Sprintf("value.Ref(%s)", v.value())
 	case "bool":
 		return fmt.Sprintf("value.ToElkBool(%s)", v.value())
@@ -6982,9 +7088,34 @@ func (c *GoCompiler) valueToNarrowerType(v *goValue) *goValue {
 			"*value.RightOpenRange",
 		)
 	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Class)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(*value.Class)((%s).Pointer())", v.value()),
+			"*value.Class",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Module)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(*value.Module)((%s).Pointer())", v.value()),
+			"*value.Module",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Mixin)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(*value.Mixin)((%s).Pointer())", v.value()),
+			"*value.Mixin",
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Interface)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(*value.Interface)((%s).Pointer())", v.value()),
+			"*value.Interface",
+		)
+	}
 
 	return v
 }
+
 func (c *GoCompiler) elkTypeToGoType(elkType types.Type) string {
 	if c.checker.IsSubtype(elkType, types.Bool{}) {
 		return "bool"

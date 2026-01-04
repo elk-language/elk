@@ -54,4 +54,5 @@ func initBeginlessClosedRange() {
 	BeginlessClosedRangeClass = NewClass()
 	BeginlessClosedRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("BeginlessClosedRange", Ref(BeginlessClosedRangeClass))
+	RegisterNativeClass("Std::BeginlessClosedRange", "value.BeginlessClosedRangeClass")
 }

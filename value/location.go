@@ -59,4 +59,5 @@ func (l *Location) Equal(other *Location) bool {
 func initLocation() {
 	LocationClass = NewClassWithOptions(ClassWithConstructor(LocationConstructor))
 	FSModule.AddConstantString("Location", Ref(LocationClass))
+	RegisterNativeClass("Std::FS::Location", "value.LocationClass")
 }

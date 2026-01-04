@@ -15,6 +15,7 @@ func initUndefined() {
 		ClassWithName("Undefined"),
 		ClassWithSuperclass(ValueClass),
 	)
+	RegisterNativeClass("Std::Undefined", "value.UndefinedClass")
 }
 
 func (u UndefinedType) ToValue() Value {

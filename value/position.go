@@ -64,4 +64,5 @@ func (p *Position) Equal(other *Position) bool {
 func initPosition() {
 	PositionClass = NewClassWithOptions(ClassWithConstructor(PositionConstructor))
 	StringClass.AddConstantString("Position", Ref(PositionClass))
+	RegisterNativeClass("Std::String::Position", "value.PositionClass")
 }

@@ -79,4 +79,5 @@ func (*CallFrame) InstanceVariables() *InstanceVariables {
 func initCallFrame() {
 	CallFrameClass = NewClassWithOptions()
 	StdModule.AddConstantString("CallFrame", Ref(CallFrameClass))
+	RegisterNativeClass("Std::CallFrame", "value.CallFrameClass")
 }

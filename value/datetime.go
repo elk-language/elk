@@ -1739,5 +1739,8 @@ func (t *DateTime) StrictEqual(other Value) bool {
 func initDateTime() {
 	DateTimeClass = NewClass()
 	StdModule.AddConstantString("DateTime", Ref(DateTimeClass))
+	RegisterNativeClass("Std::DateTime", "value.DateTimeClass")
+
 	DateTimeClass.AddConstantString("DEFAULT_FORMAT", Ref(String(DefaultDateTimeFormat)))
+	RegisterNativeConstant("Std::DateTime::DEFAULT_FORMAT", "value.String(value.DefaultDateTimeFormat)", "value.String")
 }

@@ -13,6 +13,7 @@ var ImmutableBoxClass *Class // ::Std::ImmutableBox
 func initImmutableBox() {
 	ImmutableBoxClass = NewClassWithOptions(ClassWithConstructor(ImmutableBoxConstructor))
 	StdModule.AddConstantString("ImmutableBox", Ref(ImmutableBoxClass))
+	RegisterNativeClass("Std::ImmutableBox", "value.ImmutableBoxClass")
 }
 
 // Box wraps another value, it's a read only pointer to another `Value`.

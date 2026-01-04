@@ -329,6 +329,7 @@ func (i Int32) StrictEqualVal(other Value) Value {
 func initInt32() {
 	Int32Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Int32", Ref(Int32Class))
+	RegisterNativeClass("Std::Int32", "value.Int32Class")
 
 	Int32Class.AddConstantString("Convertible", Ref(NewInterface()))
 }

@@ -7,7 +7,7 @@ import (
 // Std::Iterable::FiniteBase
 func initIterableFiniteBase() {
 	// Instance methods
-	c := &value.IterableFiniteBase.MethodContainer
+	c := &value.IterableFiniteBaseMixin.MethodContainer
 
 	Def(
 		c,
@@ -76,7 +76,7 @@ func initIterableFiniteBase() {
 
 			err = value.Ref(
 				value.Errorf(
-					value.IterableNotFoundError,
+					value.IterableNotFoundErrorClass,
 					"cannot get first element of `%s`",
 					selfInspect.AsString().String(),
 				),
@@ -129,7 +129,7 @@ func initIterableFiniteBase() {
 
 			err = value.Ref(
 				value.Errorf(
-					value.IterableNotFoundError,
+					value.IterableNotFoundErrorClass,
 					"cannot get last element of `%s`",
 					selfInspect.AsString().String(),
 				),
@@ -358,7 +358,7 @@ func initIterableFiniteBase() {
 
 			err = value.Ref(
 				value.Errorf(
-					value.IterableNotFoundError,
+					value.IterableNotFoundErrorClass,
 					"could not find element of `%s`",
 					selfInspect.AsString().String(),
 				),
@@ -704,7 +704,7 @@ func initIterableFiniteBase() {
 // Std::Iterable::Base
 func initIterableBase() {
 	// Instance methods
-	c := &value.IterableBase.MethodContainer
+	c := &value.IterableBaseMixin.MethodContainer
 
 	Def(
 		c,
