@@ -4040,3 +4040,16 @@ func AddConstant(namespace Value, name Symbol, val Value) {
 func GetConstant(name Symbol) Value {
 	return RootModule.Constants.Get(name)
 }
+
+// Resize the given args slice.
+// If it has lower than needed capacity a new slice will be allocated.
+// If it has enough capacity the length will be adjusted.
+//
+// Used in native Elk programs.
+func ResizeNativeArgs(args []Value, n int) []Value {
+	if cap(args) < n {
+		return make([]Value, n)
+	}
+
+	return args[:n]
+}

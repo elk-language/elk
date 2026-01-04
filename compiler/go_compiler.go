@@ -2352,7 +2352,7 @@ func (c *GoCompiler) compileInnerMethodCall(receiver *goValue, receiverType type
 
 func (c *GoCompiler) compileMethodCallWithArgs(receiver *goValue, receiverType, returnType types.Type, name string, args []ast.ExpressionNode, loc *position.Location, valueIsIgnored bool) *goValue {
 	callArgsVar := c.defineTmpGoLocal("[]value.Value")
-	c.emit("%s = make([]value.Value, %d)\n", callArgsVar.name, len(args)+1)
+	c.emit("%[1]s = value.ResizeNativeArgs(%[1]s, %d)\n", callArgsVar.name, len(args)+1)
 
 	c.emit("%s[0] = %s\n", callArgsVar.name, c.convertToValue(receiver))
 	receiver.markFree()
