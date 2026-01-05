@@ -570,7 +570,8 @@ func (c *GoCompiler) compileMethodFuncLiteralBody(parameters []ast.ParameterNode
 		pSpan := p.Location()
 
 		pName := identifierToName(p.Name)
-		typ := c.typeOf(p.TypeNode)
+		paramType := c.typeOf(p).(*types.Parameter)
+		typ := paramType.Type
 		local := c.defineLocal(pName, typ, pSpan)
 		if local == nil {
 			return
@@ -601,7 +602,14 @@ func (c *GoCompiler) compileMethodFuncLiteralBody(parameters []ast.ParameterNode
 		}
 
 		if p.SetInstanceVariable {
-			c.emitSetInstanceVariable(value.ToSymbol(pName), localName)
+			val := c.convertToValue(
+				newInlineGoValue(
+					localName,
+					local.elkType,
+					local.goLocal.goType,
+				),
+			)
+			c.emitSetInstanceVariable(value.ToSymbol(pName), val)
 		}
 	}
 
@@ -927,16 +935,42 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 			c.emit("parentNamespace = %s\n", c.convertToValue(namespaceVal))
 		}
 
+		goIdent := mangleGoIdentifier(constName.String())
+		var elkType types.Type
+		var goType string
+
 		switch namespace.(type) {
 		case *types.Module:
-			c.emit("namespace = value.Ref(value.NewModule())\n")
+			elkType = c.checker.Std(symbol.Module)
+			goType = "*value.Module"
+			c.emit("%s = value.NewModule()\n", goIdent)
+			c.emit("namespace = value.Ref(%s)\n", goIdent)
 		case *types.Class:
-			c.emit("namespace = value.Ref(value.NewClassWithOptions(value.ClassWithSuperclass(nil)))\n")
+			elkType = c.checker.Std(symbol.Class)
+			goType = "*value.Class"
+			c.emit("%s = value.NewClassWithOptions(value.ClassWithSuperclass(nil))\n", goIdent)
+			c.emit("namespace = value.Ref(%s)\n", goIdent)
 		case *types.Mixin:
-			c.emit("namespace = value.Ref(value.NewMixin())\n")
+			elkType = c.checker.Std(symbol.Mixin)
+			goType = "*value.Mixin"
+			c.emit("%s = value.NewMixin()\n", goIdent)
+			c.emit("%s = value.NewMixin()\n", goIdent)
 		case *types.Interface:
-			c.emit("namespace = value.Ref(value.NewInterface())\n")
+			elkType = c.checker.Std(symbol.Interface)
+			goType = "*value.Interface"
+			c.emit("%s = value.NewInterface()\n", goIdent)
+			c.emit("namespace = value.Ref(%s)\n", goIdent)
 		}
+
+		c.globalData.constantCache.SetUnsafe(
+			constName.String(),
+			&nativeConstant{
+				ident:   goIdent,
+				elkType: elkType,
+				goType:  goType,
+			},
+		)
+		c.emitPackage("var %s %s // %s\n", goIdent, goType, constName.String())
 		constNameSymbol := c.emitSymbol(constName.String())
 		c.emit("value.AddConstant(parentNamespace, %s, namespace)\n\n", constNameSymbol)
 		namespace.SetDefined(true)
@@ -1099,6 +1133,8 @@ func (c *GoCompiler) CompileClassInheritance(class *types.Class, location *posit
 }
 
 func (c *GoCompiler) CompileIvarIndices(target types.NamespaceWithIvarIndices, location *position.Location) {
+	c.registerGoLocal("class", "*value.Class")
+
 	switch target := target.(type) {
 	case *types.SingletonClass:
 		namespaceVal := c.emitGetConst(value.ToSymbol(target.AttachedObject.Name()), types.Any{})

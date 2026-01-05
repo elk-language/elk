@@ -23,6 +23,18 @@ func BoxConstructor(class *Class) Value {
 // Box wraps another value, it's a pointer to another `Value`.
 type Box Value
 
+type NativeBox[T any] struct {
+	ptr *T
+}
+
+func (b NativeBox[T]) Get() T {
+	return *b.ptr
+}
+
+func (b NativeBox[T]) Set(v T) {
+	*b.ptr = v
+}
+
 func NewBox(v Value) *Box {
 	b := Box(v)
 	return &b
