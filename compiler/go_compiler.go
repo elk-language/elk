@@ -67,6 +67,12 @@ type nativeMethod struct {
 	init  string
 }
 
+// Returns true if the method takes a slice of args,
+// false if it takes individual arguments with narrower types
+func (n *nativeMethod) hasArgsSlice() bool {
+	return n.init != ""
+}
+
 func (m *nativeMethod) goIdent() string {
 	return m.ident
 }
@@ -153,11 +159,12 @@ func (s nativeElkScopes) last() *nativeElkScope {
 const goValueType = "value.Value"
 
 type goLocal struct {
-	name     string
-	goType   string
-	comment  string
-	free     bool
-	elkLocal bool
+	name       string
+	goType     string
+	comment    string
+	predefined bool
+	free       bool
+	elkLocal   bool
 }
 
 func (l *goLocal) markFree() {
@@ -410,7 +417,7 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 	methodCompiler.isAsync = node.IsAsync()
 	methodCompiler.Errors = c.Errors
 	methodCompiler.method = method
-	methodCompiler.compileMethodBody(node.Parameters, node.Body, node.Location())
+	methodCompiler.compileMethodBody(node.Parameters, node.Body, method.ReturnType, node.Location())
 
 	return methodCompiler
 }
@@ -551,14 +558,133 @@ func (c *GoCompiler) compileGlobalEnv() {
 }
 
 // Entry point for compiling the body of a method.
-func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []ast.StatementNode, loc *position.Location) {
-	c.compileMethodFuncLiteralBody(parameters, body)
+func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []ast.StatementNode, returnType types.Type, loc *position.Location) {
+	c.compileMethodFuncLiteralWithNativeArgsBody(parameters, body, returnType, loc)
+	c.emitPackageBytes(c.buff.Bytes())
+	c.buff.Reset()
 
+	c.emit("func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {\n")
+
+	c.emit("result, err := %s(thread, args[0]", c.FuncName)
+
+	for i, param := range parameters {
+		p := param.(*ast.MethodParameterNode)
+		paramType := c.typeOf(p).(*types.Parameter)
+		typ := paramType.Type
+
+		argVal := newInlineGoValue(
+			fmt.Sprintf("args[%d]", i+1),
+			typ,
+			goValueType,
+		)
+		if p.Initialiser != nil {
+			c.emit(", %s", argVal.value())
+		} else {
+			c.emit(", %s", c.valueToNarrowerType(argVal).value())
+		}
+	}
+
+	c.emit(")\n")
+
+	returnVal := newInlineGoValue(
+		"result",
+		returnType,
+		c.elkTypeToGoType(returnType),
+	)
+	c.emit("return %s, err", c.convertToValue(returnVal))
+
+	c.emit("}")
+}
+
+func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast.ParameterNode, body []ast.StatementNode, returnType types.Type, loc *position.Location) {
 	var funcBuffer bytes.Buffer
-	fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // method: %s, loc: %s\n", c.FuncName, types.Inspect(c.method), loc.String())
+	fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread, self value.Value", c.FuncName)
+
+	self := c.registerGoLocal("self", goValueType)
+	self.predefined = true
+
+	goReturnType := c.elkTypeToGoType(returnType)
+	errVal := c.registerGoLocal("err", goValueType)
+	errVal.predefined = true
+
+	result := c.registerGoLocal("result", goReturnType)
+	result.predefined = true
+
+	for _, param := range parameters {
+		p := param.(*ast.MethodParameterNode)
+		pSpan := p.Location()
+
+		pName := identifierToName(p.Name)
+		paramType := c.typeOf(p).(*types.Parameter)
+		typ := paramType.Type
+		local := c.defineLocal(pName, typ, pSpan)
+		if local == nil {
+			return
+		}
+
+		localName := local.goIdent()
+		if p.Initialiser != nil {
+			fmt.Fprintf(&funcBuffer, ", arg_%s value.Value", localName)
+
+			c.emit("if (%s).IsUndefined() {\n", localName)
+			val := c.compileExpression(p.Initialiser, false)
+			c.emit("%s = %s\n", localName, c.valueToNarrowerType(val).fetchValue())
+			c.emit("} else {\n")
+
+			argVal := newInlineGoValue(
+				localName,
+				typ,
+				goValueType,
+			)
+			c.emit("%s = %s\n", localName, c.valueToNarrowerType(argVal))
+			c.emit("}\n")
+		} else {
+			local.goLocal.predefined = true
+			fmt.Fprintf(&funcBuffer, ", %s %s", localName, local.goLocal.goType)
+		}
+
+		if p.SetInstanceVariable {
+			val := c.convertToValue(
+				newInlineGoValue(
+					localName,
+					local.elkType,
+					local.goLocal.goType,
+				),
+			)
+			c.emitSetInstanceVariable(value.ToSymbol(pName), val)
+		}
+	}
+
+	// TODO: implement async and generators
+
+	// paramCount := len(parameters)
+	// if c.isGenerator {
+	// 	c.emit(location.StartPos.Line, bytecode.GENERATOR)
+	// 	c.emit(location.EndPos.Line, bytecode.RETURN)
+	// 	c.registerCatch(-1, -1, c.nextInstructionOffset(), false)
+	// } else if c.isAsync {
+	// 	poolVar := c.defineLocal("_pool", location)
+	// 	paramCount++
+	// 	c.predefinedLocals++
+	// 	c.bytecode.IncrementOptionalParameterCount()
+
+	// 	c.emitGetLocal(location.StartPos.Line, poolVar.index)
+	// 	c.emit(location.StartPos.Line, bytecode.PROMISE)
+	// 	c.emit(location.EndPos.Line, bytecode.RETURN)
+	// }
+
+	returnVal := c.compileStatements(body)
+
+	c.emitReturn(c.valueToNarrowerType(returnVal).value())
+	returnVal.markFree()
+
+	fmt.Fprintf(&funcBuffer, ") (result %s, err value.Value) { // method: %s, loc: %s\n", goReturnType, types.Inspect(c.method), loc.String())
 	c.compileLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
-	c.emit("}\n")
+	c.emit("\n}\n")
+
+	// TODO: implement generators
+	// c.emitFinalReturn(location, nil)
 }
 
 func (c *GoCompiler) compileMethodFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode) {
@@ -579,16 +705,16 @@ func (c *GoCompiler) compileMethodFuncLiteralBody(parameters []ast.ParameterNode
 
 		localName := local.goIdent()
 		if p.Initialiser != nil {
-			c.emit("if %s.IsUndefined() {\n", localName)
-			val := c.compileExpression(p.Initialiser, false)
-			c.emit("%s = %s\n", localName, c.valueToNarrowerType(val).fetchValue())
-			c.emit("} else {\n")
-
 			argVal := newInlineGoValue(
 				fmt.Sprintf("args[%d]", i+1),
 				typ,
 				"value.Value",
 			)
+			c.emit("if (%s).IsUndefined() {\n", argVal.value())
+			val := c.compileExpression(p.Initialiser, false)
+			c.emit("%s = %s\n", localName, c.valueToNarrowerType(val).fetchValue())
+			c.emit("} else {\n")
+
 			c.emit("%s = %s\n", localName, c.valueToNarrowerType(argVal).fetchValue())
 
 			c.emit("}\n")
@@ -906,11 +1032,11 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 
 	methodCompiler := (*GoCompiler)(method.Body.(*GoSourceMethod))
 
-	c.emit("vm.Def(&class.MethodContainer, %q, %s", name.String(), methodCompiler.FuncName)
+	c.emit("vm.Def(&class.MethodContainer, %q, ", name.String())
+	c.emitBytes(methodCompiler.buff.Bytes())
+	methodCompiler.buff.Reset()
 
 	c.emitPackageBytes(methodCompiler.packageBuff.Bytes())
-	c.emitPackageBytes(methodCompiler.buff.Bytes())
-	methodCompiler.buff.Reset()
 	methodCompiler.packageBuff.Reset()
 	c.emit(",")
 
@@ -1296,6 +1422,10 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 
 func (c *GoCompiler) compileLocalsTo(buff io.Writer) {
 	for _, local := range c.goLocals.All() {
+		if local.predefined {
+			continue
+		}
+
 		fmt.Fprintf(buff, "var %s %s", local.name, local.goType)
 		if local.comment != "" {
 			fmt.Fprintf(buff, " // %s", local.comment)
@@ -1974,12 +2104,12 @@ func (c *GoCompiler) compileStringInterpolationNode(node *ast.StringInterpolatio
 		)
 	}
 
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		expr.elkType,
 		c.checker.StdString(),
 		"symbol.L_to_string",
 		"to_string",
-		c.convertToValue(expr),
+		[]*goValue{expr},
 		node.Location(),
 		false,
 	)
@@ -2001,12 +2131,12 @@ func (c *GoCompiler) compileStringInspectInterpolationNode(node *ast.StringInspe
 		)
 	}
 
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		expr.elkType,
 		c.checker.StdString(),
 		"symbol.L_inspect",
 		"inspect",
-		c.convertToValue(expr),
+		[]*goValue{expr},
 		node.Location(),
 		false,
 	)
@@ -2280,7 +2410,17 @@ func (c *GoCompiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode)
 
 	if node.Value != nil {
 		expr := c.compileExpression(node.Value, false)
-		val = c.convertToValue(expr)
+		if c.method == nil {
+			val = c.convertToValue(expr)
+		} else {
+			goReturnType := c.elkTypeToGoType(c.method.ReturnType)
+			if goReturnType == goValueType {
+				val = c.convertToValue(expr)
+			} else {
+				val = c.valueToNarrowerType(expr).value()
+			}
+		}
+
 		expr.markFree()
 	} else {
 		val = "value.Nil"
@@ -2383,44 +2523,23 @@ func (c *GoCompiler) compileInnerMethodCall(receiver *goValue, receiverType type
 	// 	return c.compileDecrement(receiverType, location)
 	// }
 
-	return c.compileMethodCallWithArgs(receiver, receiverType, typ, name, args, location, valueIsIgnored)
+	return c.compileMethodCallWithArgNodes(receiver, receiverType, typ, name, args, location, valueIsIgnored)
 }
 
-func (c *GoCompiler) compileMethodCallWithArgs(receiver *goValue, receiverType, returnType types.Type, name string, args []ast.ExpressionNode, loc *position.Location, valueIsIgnored bool) *goValue {
-	callArgsVar := c.defineTmpGoLocal("[]value.Value")
-	c.emit("%[1]s = value.ResizeNativeArgs(%[1]s, %d)\n", callArgsVar.name, len(args)+1)
+func (c *GoCompiler) compileMethodCallWithArgNodes(receiver *goValue, receiverType, returnType types.Type, name string, args []ast.ExpressionNode, loc *position.Location, valueIsIgnored bool) *goValue {
+	argsSlice := make([]*goValue, len(args)+1)
 
-	c.emit("%s[0] = %s\n", callArgsVar.name, c.convertToValue(receiver))
-	receiver.markFree()
-
+	argsSlice[0] = receiver
 	for i, posArg := range args {
-		argVal := c.compileExpression(posArg, false)
-		c.emit("%s[%d] = %s\n", callArgsVar.name, i+1, c.convertToValue(argVal))
-		argVal.markFree()
+		argsSlice[i+1] = c.compileExpression(posArg, false)
 	}
 
-	return c.compileMethodCallWithArgsVar(receiverType, returnType, name, callArgsVar, loc, valueIsIgnored)
+	return c.compileMethodCallWithLiteralArgValues(receiverType, returnType, name, argsSlice, loc, valueIsIgnored)
 }
 
-func (c *GoCompiler) compileMethodCallWithArgsVar(receiverType, returnType types.Type, name string, callArgsVar *goLocal, loc *position.Location, valueIsIgnored bool) *goValue {
-	result := c.compileMethodCallWithLiteralArgs(
-		receiverType,
-		returnType,
-		name,
-		fmt.Sprintf("%s...", callArgsVar.name),
-		loc,
-		valueIsIgnored,
-	)
-
-	c.emit("%s = nil\n", callArgsVar.name)
-	callArgsVar.markFree()
-
-	return result
-}
-
-func (c *GoCompiler) compileMethodCallWithLiteralArgs(receiverType, returnType types.Type, name string, args string, loc *position.Location, valueIsIgnored bool) *goValue {
+func (c *GoCompiler) compileMethodCallWithLiteralArgValues(receiverType, returnType types.Type, name string, args []*goValue, loc *position.Location, valueIsIgnored bool) *goValue {
 	nameSym := c.emitSymbol(name)
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		receiverType,
 		returnType,
 		nameSym,
@@ -2457,15 +2576,13 @@ func (c *GoCompiler) RegisterMethod(node *ast.MethodDefinitionNode) {
 	c.registerElkMethodName(method.NamespacedName())
 }
 
-func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args string, tmp *goLocal, tmpName string, name string, loc *position.Location, valueIsIgnored bool) *goValue {
+func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args []*goValue, name string, loc *position.Location, valueIsIgnored bool) *goValue {
 	switch receiverType := receiverType.(type) {
 	case types.Self:
 		return c.compileOptimizedNativeMethodCall(
 			c.checker.SelfType(),
 			returnType,
 			args,
-			tmp,
-			tmpName,
 			name,
 			loc,
 			valueIsIgnored,
@@ -2480,8 +2597,6 @@ func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType t
 			receiverType,
 			returnType,
 			args,
-			tmp,
-			tmpName,
 			name,
 			loc,
 			valueIsIgnored,
@@ -2496,8 +2611,6 @@ func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType t
 			receiverType,
 			returnType,
 			args,
-			tmp,
-			tmpName,
 			name,
 			loc,
 			valueIsIgnored,
@@ -2507,8 +2620,6 @@ func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType t
 			receiverType,
 			returnType,
 			args,
-			tmp,
-			tmpName,
 			name,
 			loc,
 			valueIsIgnored,
@@ -2534,7 +2645,7 @@ func (c *GoCompiler) generateGetNamespace(typ types.Namespace) string {
 	}
 }
 
-func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args string, tmp *goLocal, tmpName string, name string, loc *position.Location, valueIsIgnored bool) *goValue {
+func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args []*goValue, name string, loc *position.Location, valueIsIgnored bool) *goValue {
 	method := c.checker.GetMethod(receiverType, value.ToSymbol(name), nil)
 	c.globalData.methodCache.Lock()
 
@@ -2565,18 +2676,70 @@ func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType 
 
 	c.globalData.methodCache.Unlock()
 
-	c.registerErr()
-	c.emitAddCallFrame(name, loc)
-	c.emit(
-		"%s, err = %s(thread, %s) // receiver: %s, name: %s\n",
-		tmpName,
-		goMethodName.goIdent(),
-		strings.TrimSuffix(args, "..."),
-		types.Inspect(receiverType),
-		name,
-	)
-	c.emitPopCallFrame()
-	c.emitErrorPropagation()
+	var tmp *goLocal
+	var tmpName string
+	if valueIsIgnored {
+		tmpName = "_"
+	} else {
+		if goMethodName.hasArgsSlice() {
+			tmp = c.defineTmpGoLocal(goValueType)
+		} else {
+			tmp = c.defineTmpGoLocal(c.elkTypeToGoType(method.ReturnType))
+		}
+		tmpName = tmp.name
+	}
+
+	if goMethodName.hasArgsSlice() {
+		callArgsVar := c.defineTmpGoLocal("[]value.Value")
+		c.emit("%[1]s = value.ResizeNativeArgs(%[1]s, %d)\n", callArgsVar.name, len(args)+1)
+
+		for i, posArg := range args {
+			c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertToValue(posArg))
+			posArg.markFree()
+		}
+
+		c.registerErr()
+		c.emitAddCallFrame(name, loc)
+		c.emit(
+			"%s, err = %s(thread, %s) // receiver: %s, name: %s\n",
+			tmpName,
+			goMethodName.goIdent(),
+			callArgsVar.name,
+			types.Inspect(receiverType),
+			name,
+		)
+
+		c.emitPopCallFrame()
+		c.emitErrorPropagation()
+
+	} else {
+		c.registerErr()
+		c.emitAddCallFrame(name, loc)
+		c.emit(
+			"%s, err = %s(thread, %s",
+			tmpName,
+			goMethodName.goIdent(),
+			c.convertToValue(args[0]),
+		)
+
+		for i, arg := range args[1:] {
+			param := method.Params[i]
+			if goMethodName.hasArgsSlice() || param.IsOptional() || c.elkTypeToGoType(param.Type) == goValueType {
+				c.emit(", %s", c.convertToValue(arg))
+				continue
+			}
+
+			c.emit(", %s", c.valueToNarrowerType(arg).value())
+		}
+
+		c.emit(
+			") // receiver: %s, name: %s\n",
+			types.Inspect(receiverType),
+			name,
+		)
+		c.emitPopCallFrame()
+		c.emitErrorPropagation()
+	}
 
 	if valueIsIgnored {
 		return nilGoValue
@@ -2589,22 +2752,11 @@ func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType 
 	return c.narrowDownValue(result)
 }
 
-func (c *GoCompiler) compileMethodCallWithLiteralArgsAndName(receiverType, returnType types.Type, nameSym, name string, args string, loc *position.Location, valueIsIgnored bool) *goValue {
-	var tmp *goLocal
-	var tmpName string
-	if valueIsIgnored {
-		tmpName = "_"
-	} else {
-		tmp = c.defineTmpGoLocal(goValueType)
-		tmpName = tmp.name
-	}
-
+func (c *GoCompiler) compileMethodCallWithLiteralArgValuesAndName(receiverType, returnType types.Type, nameSym, name string, args []*goValue, loc *position.Location, valueIsIgnored bool) *goValue {
 	result := c.compileOptimizedNativeMethodCall(
 		receiverType,
 		returnType,
 		args,
-		tmp,
-		tmpName,
 		name,
 		loc,
 		valueIsIgnored,
@@ -2615,11 +2767,39 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgsAndName(receiverType, retur
 
 	callCache := c.emitCallCache()
 
+	var tmp *goLocal
+	var tmpName string
+	if valueIsIgnored {
+		tmpName = "_"
+	} else {
+		tmp = c.defineTmpGoLocal(goValueType)
+		tmpName = tmp.name
+	}
+
+	callArgsVar := c.defineTmpGoLocal("[]value.Value")
+	c.emit("%[1]s = value.ResizeNativeArgs(%[1]s, %d)\n", callArgsVar.name, len(args)+1)
+
+	for i, posArg := range args {
+		c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertToValue(posArg))
+		posArg.markFree()
+	}
+
 	c.registerErr()
 	c.emitAddCallFrame(name, loc)
-	c.emit("%s, err = thread.CallMethodByNameWithCache(%s, &%s, %s) // receiver: %s, name: %s\n", tmpName, nameSym, callCache, args, types.Inspect(receiverType), name)
+	c.emit(
+		"%s, err = thread.CallMethodByNameWithCache(%s, &%s, %s...) // receiver: %s, name: %s\n",
+		tmpName,
+		nameSym,
+		callCache,
+		callArgsVar.name,
+		types.Inspect(receiverType),
+		name,
+	)
 	c.emitPopCallFrame()
 	c.emitErrorPropagation()
+
+	c.emit("%s = nil\n", callArgsVar.name)
+	callArgsVar.markFree()
 
 	if valueIsIgnored {
 		return nilGoValue
@@ -2633,6 +2813,10 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgsAndName(receiverType, retur
 }
 
 func (c *GoCompiler) narrowDownValue(val *goValue) *goValue {
+	if val.goType() != goValueType {
+		return val
+	}
+
 	result := c.valueToNarrowerType(val)
 	if result.goType() == goValueType {
 		return result
@@ -3206,6 +3390,8 @@ func (c *GoCompiler) emitErrorPropagation() {
 	switch c.mode {
 	case topLevelGoCompilerMode:
 		c.emit("if err.IsNotUndefined() { thread.Panic(err) }\n")
+	case methodGoCompilerMode, setterMethodGoCompilerMode, initMethodGoCompilerMode:
+		c.emit("if err.IsNotUndefined() { return result, err }\n")
 	default:
 		c.emit("if err.IsNotUndefined() { return value.Undefined, err }\n")
 	}
@@ -3526,12 +3712,15 @@ func (c *GoCompiler) compileLessEqual(node *ast.BinaryExpressionNode, valueIsIgn
 		)
 	}
 
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
 		"symbol.OpLessThanEqual",
 		"<=",
-		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		[]*goValue{
+			left,
+			right,
+		},
 		node.Location(),
 		valueIsIgnored,
 	)
@@ -3651,12 +3840,15 @@ func (c *GoCompiler) compileDivide(node *ast.BinaryExpressionNode, valueIsIgnore
 		)
 	}
 
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
 		"symbol.OpDivide",
 		"/",
-		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		[]*goValue{
+			left,
+			right,
+		},
 		node.Location(),
 		valueIsIgnored,
 	)
@@ -4050,12 +4242,15 @@ func (c *GoCompiler) compileExponentiate(node *ast.BinaryExpressionNode, valueIs
 		return c.compileExponentiateFloat32(left, right)
 	}
 
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
 		"symbol.OpExponentiate",
 		"**",
-		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		[]*goValue{
+			left,
+			right,
+		},
 		node.Location(),
 		valueIsIgnored,
 	)
@@ -4455,12 +4650,15 @@ func (c *GoCompiler) compileLeftBitshift(node *ast.BinaryExpressionNode, valueIs
 		)
 	}
 
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
 		"symbol.OpLeftBitshift",
 		"<<",
-		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		[]*goValue{
+			left,
+			right,
+		},
 		node.Location(),
 		valueIsIgnored,
 	)
@@ -4502,12 +4700,15 @@ func (c *GoCompiler) compileLogicalLeftBitshift(node *ast.BinaryExpressionNode, 
 		)
 	}
 
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
 		"symbol.OpLogicalLeftBitshift",
 		"<<<",
-		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		[]*goValue{
+			left,
+			right,
+		},
 		node.Location(),
 		valueIsIgnored,
 	)
@@ -4557,12 +4758,15 @@ func (c *GoCompiler) compileRightBitshift(node *ast.BinaryExpressionNode, valueI
 		)
 	}
 
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
 		"symbol.OpRightBitshift",
 		">>",
-		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		[]*goValue{
+			left,
+			right,
+		},
 		node.Location(),
 		valueIsIgnored,
 	)
@@ -4608,12 +4812,15 @@ func (c *GoCompiler) compileLogicalRightBitshift(node *ast.BinaryExpressionNode,
 		)
 	}
 
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
 		"symbol.OpLogicalRightBitshift",
 		">>>",
-		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		[]*goValue{
+			left,
+			right,
+		},
 		node.Location(),
 		valueIsIgnored,
 	)
@@ -5262,12 +5469,15 @@ func (c *GoCompiler) compileMultiply(node *ast.BinaryExpressionNode, valueIsIgno
 		)
 	}
 
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
 		"symbol.OpMultiply",
 		"*",
-		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		[]*goValue{
+			left,
+			right,
+		},
 		node.Location(),
 		valueIsIgnored,
 	)
@@ -5773,12 +5983,15 @@ func (c *GoCompiler) compileSubtract(node *ast.BinaryExpressionNode, valueIsIgno
 		)
 	}
 
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
 		"symbol.OpSubtract",
 		"-",
-		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		[]*goValue{
+			left,
+			right,
+		},
 		node.Location(),
 		valueIsIgnored,
 	)
@@ -6230,12 +6443,15 @@ func (c *GoCompiler) compileAdd(node *ast.BinaryExpressionNode, valueIsIgnored b
 		)
 	}
 
-	return c.compileMethodCallWithLiteralArgsAndName(
+	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
 		"symbol.OpAdd",
 		"+",
-		fmt.Sprintf("%s, %s", c.convertToValue(left), c.convertToValue(right)),
+		[]*goValue{
+			left,
+			right,
+		},
 		node.Location(),
 		valueIsIgnored,
 	)
