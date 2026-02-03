@@ -16,7 +16,7 @@ func initForInExpressionNode() {
 			argPattern := args[1].MustReference().(ast.PatternNode)
 			argInExpression := args[2].MustReference().(ast.ExpressionNode)
 
-			argThenTuple := args[3].MustReference().(*value.ArrayTuple)
+			argThenTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 			argThen := make([]ast.StatementNode, argThenTuple.Length())
 			for i, el := range *argThenTuple {
 				argThen[i] = el.MustReference().(ast.StatementNode)
@@ -69,7 +69,7 @@ func initForInExpressionNode() {
 			self := args[0].MustReference().(*ast.ForInExpressionNode)
 
 			collection := self.ThenBody
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

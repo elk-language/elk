@@ -17,7 +17,7 @@ func initClassDeclarationNode() {
 
 			var body []ast.StatementNode
 			if !args[2].IsUndefined() {
-				bodyTuple := args[2].MustReference().(*value.ArrayTuple)
+				bodyTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				body = make([]ast.StatementNode, bodyTuple.Length())
 				for _, el := range *bodyTuple {
 					body = append(body, el.MustReference().(ast.StatementNode))
@@ -26,7 +26,7 @@ func initClassDeclarationNode() {
 
 			var typeParams []ast.TypeParameterNode
 			if !args[3].IsUndefined() {
-				typeParamTuple := args[3].MustReference().(*value.ArrayTuple)
+				typeParamTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				typeParams = make([]ast.TypeParameterNode, typeParamTuple.Length())
 				for _, el := range *typeParamTuple {
 					typeParams = append(typeParams, el.MustReference().(ast.TypeParameterNode))
@@ -145,7 +145,7 @@ func initClassDeclarationNode() {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 
 			collection := self.TypeParameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -174,7 +174,7 @@ func initClassDeclarationNode() {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

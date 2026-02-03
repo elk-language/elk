@@ -63,6 +63,10 @@ func (r *Result) Copy() Reference {
 	}
 }
 
+func (r *Result) ToValue() Value {
+	return Ref(r)
+}
+
 func (*Result) Class() *Class {
 	return ResultClass
 }

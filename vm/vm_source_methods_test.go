@@ -830,7 +830,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo", c: "bar", d: "baz")
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				2,
 				value.Ref(value.String("foo")),
 				value.Ref(vm.MustNewHashRecordWithElements(
@@ -848,7 +848,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo")
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				2,
 				value.Ref(value.String("foo")),
 				value.Ref(value.NewHashRecord(0)),
@@ -862,7 +862,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo", c: "bar", d: "baz")
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				3,
 				value.Ref(value.String("foo")),
 				value.SmallInt(5).ToValue(),
@@ -881,7 +881,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo", 9, c: "bar", d: "baz")
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				3,
 				value.Ref(value.String("foo")),
 				value.SmallInt(9).ToValue(),
@@ -900,7 +900,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo", c: "bar", d: "baz", b: 9)
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				3,
 				value.Ref(value.String("foo")),
 				value.SmallInt(9).ToValue(),
@@ -939,9 +939,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				2,
-				value.Ref(&value.ArrayTuple{}),
+				value.Ref(&value.ArrayTupleOfValue{}),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
@@ -958,9 +958,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				2,
-				value.Ref(value.NewArrayTupleWithElements(
+				value.Ref(value.NewArrayTupleOfValueWithElements(
 					3,
 					value.SmallInt(10).ToValue(),
 					value.SmallInt(20).ToValue(),
@@ -1003,10 +1003,10 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				3,
 				value.SmallInt(1).ToValue(),
-				value.Ref(&value.ArrayTuple{}),
+				value.Ref(&value.ArrayTupleOfValue{}),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
 					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
@@ -1023,10 +1023,10 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				3,
 				value.SmallInt(10).ToValue(),
-				value.Ref(value.NewArrayTupleWithElements(
+				value.Ref(value.NewArrayTupleOfValueWithElements(
 					2,
 					value.SmallInt(20).ToValue(),
 					value.SmallInt(30).ToValue(),
@@ -1602,7 +1602,7 @@ func TestVMSource_Setters(t *testing.T) {
 				list[0] = :foo
 				list
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.ToSymbol("foo").ToValue(),
 				value.SmallInt(8).ToValue(),
 				value.SmallInt(20).ToValue(),
@@ -1621,7 +1621,7 @@ func TestVMSource_Setters(t *testing.T) {
 				list[0] = 8
 				list
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(8).ToValue(),
 				value.SmallInt(2).ToValue(),
 				value.Float(7.8).ToValue(),

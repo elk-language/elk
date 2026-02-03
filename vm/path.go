@@ -102,7 +102,7 @@ func initPath() {
 			self := (*value.Path)(args[0].Pointer())
 			splitSlice := self.Split()
 
-			result := value.NewArrayListWithLength(len(splitSlice))
+			result := value.NewArrayListOfValueWithLength(len(splitSlice))
 			for i, element := range splitSlice {
 				result.SetAt(i, value.Ref(value.String(element)))
 			}

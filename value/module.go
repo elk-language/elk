@@ -90,6 +90,10 @@ func (m *Module) Copy() Reference {
 	return newModule
 }
 
+func (m *Module) ToValue() Value {
+	return Ref(m)
+}
+
 func (m *Module) Class() *Class {
 	if !m.class.IsSingleton() {
 		return m.class

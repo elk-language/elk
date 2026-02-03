@@ -159,6 +159,10 @@ func (n *VariableDeclarationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *VariableDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (v *VariableDeclarationNode) Error() string {
 	return v.Inspect()
 }

@@ -22,7 +22,7 @@ func initMixinDeclarationNode() {
 
 			var argTypeParameters []ast.TypeParameterNode
 			if !args[3].IsUndefined() {
-				argTypeParametersTuple := args[3].MustReference().(*value.ArrayTuple)
+				argTypeParametersTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 				for i, el := range *argTypeParametersTuple {
 					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
@@ -31,7 +31,7 @@ func initMixinDeclarationNode() {
 
 			var argBody []ast.StatementNode
 			if !args[4].IsUndefined() {
-				argBodyTuple := args[4].MustReference().(*value.ArrayTuple)
+				argBodyTuple := args[4].MustReference().(*value.ArrayTupleOfValue)
 				argBody = make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -106,7 +106,7 @@ func initMixinDeclarationNode() {
 			self := args[0].MustReference().(*ast.MixinDeclarationNode)
 
 			collection := self.TypeParameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -123,7 +123,7 @@ func initMixinDeclarationNode() {
 			self := args[0].MustReference().(*ast.MixinDeclarationNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

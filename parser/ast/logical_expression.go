@@ -160,6 +160,10 @@ func (n *LogicalExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *LogicalExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *LogicalExpressionNode) Error() string {
 	return n.Inspect()
 }

@@ -80,7 +80,7 @@ func initSyncDiagnosticList() {
 		"append",
 		func(vm *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.SyncDiagnosticList)
-			values := args[1].MustReference().(*value.ArrayTuple)
+			values := args[1].MustReference().(*value.ArrayTupleOfValue)
 
 			self.Mutex.Lock()
 

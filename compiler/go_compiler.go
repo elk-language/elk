@@ -34,6 +34,7 @@ func (*GoSourceMethod) InstanceVariables() *value.InstanceVariables { return nil
 func (*GoSourceMethod) OptionalParameterCount() int                 { return 0 }
 func (*GoSourceMethod) ParameterCount() int                         { return 0 }
 func (*GoSourceMethod) SingletonClass() *value.Class                { return nil }
+func (m *GoSourceMethod) ToValue() value.Value                      { return value.Ref(m) }
 
 type nativeBigInt struct {
 	id  int
@@ -636,7 +637,7 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 				typ,
 				goValueType,
 			)
-			c.emit("%s = %s\n", localName, c.valueToNarrowerType(argVal))
+			c.emit("%s = %s\n", localName, c.valueToNarrowerType(argVal).value())
 			c.emit("}\n")
 		} else {
 			local.goLocal.predefined = true
@@ -1283,11 +1284,11 @@ func (c *GoCompiler) CompileInclude(target types.Namespace, mixin *types.Mixin, 
 		c.emit("class = (%s).SingletonClass()\n", namespaceVal.value())
 	default:
 		namespaceVal := c.emitGetConst(value.ToSymbol(target.Name()), c.checker.Std(symbol.Class))
-		c.emit("class = %s\n", c.valueToNarrowerType(namespaceVal))
+		c.emit("class = %s\n", c.valueToNarrowerType(namespaceVal).value())
 	}
 
 	mixinVal := c.emitGetConst(value.ToSymbol(mixin.Name()), c.checker.Std(symbol.Mixin))
-	c.emit("mixin = %s\n", c.valueToNarrowerType(mixinVal))
+	c.emit("mixin = %s\n", c.valueToNarrowerType(mixinVal).value())
 
 	c.emit("class.IncludeMixin(mixin)\n")
 }
@@ -3328,7 +3329,7 @@ func (c *GoCompiler) emitCachedRange(val value.Value, typ types.Type) *goValue {
 	)
 }
 
-func (c *GoCompiler) emitCachedArrayTuple(tuple *value.ArrayTuple, typ types.Type) *goValue {
+func (c *GoCompiler) emitCachedArrayTuple(tuple *value.ArrayTupleOfValue, typ types.Type) *goValue {
 	tupleSource := c.arrayTupleToGoSource(tuple, false)
 	if tupleSource == nil {
 		return nil
@@ -6921,12 +6922,12 @@ func (c *GoCompiler) resolve(node ast.ExpressionNode) *goValue {
 func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutable bool) *goValue {
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
-		case *value.ArrayList:
+		case *value.ArrayListOfValue:
 			if !allowMutable {
 				return nil
 			}
 			return c.arrayListToGoSource(v)
-		case *value.ArrayTuple:
+		case *value.ArrayTupleOfValue:
 			cached := c.emitCachedArrayTuple(v, typ)
 			if cached != nil {
 				return cached
@@ -7091,7 +7092,7 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 	return nil
 }
 
-func (c *GoCompiler) arrayListToGoSource(v *value.ArrayList) *goValue {
+func (c *GoCompiler) arrayListToGoSource(v *value.ArrayListOfValue) *goValue {
 	var buff strings.Builder
 
 	fmt.Fprintf(&buff, "value.NewArrayListWithElements(%d, ", v.LeftCapacity())
@@ -7539,7 +7540,7 @@ func (c *GoCompiler) rangeToGoSource(v value.Value, typ types.Type, mutable bool
 	)
 }
 
-func (c *GoCompiler) arrayTupleToGoSource(v *value.ArrayTuple, mutable bool) *goValue {
+func (c *GoCompiler) arrayTupleToGoSource(v *value.ArrayTupleOfValue, mutable bool) *goValue {
 	var buff strings.Builder
 
 	buff.WriteString("value.NewArrayTupleWithElements(0, ")

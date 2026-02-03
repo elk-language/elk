@@ -168,7 +168,7 @@ func initIterableFiniteBase() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -195,7 +195,7 @@ func initIterableFiniteBase() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -253,7 +253,7 @@ func initIterableFiniteBase() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -473,7 +473,7 @@ func initIterableFiniteBase() {
 					),
 				)
 			}
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -500,7 +500,7 @@ func initIterableFiniteBase() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 			var collect bool
 
 			for elem, err := range Iterate(vm, self) {
@@ -547,7 +547,7 @@ func initIterableFiniteBase() {
 					),
 				)
 			}
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -575,7 +575,7 @@ func initIterableFiniteBase() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -665,7 +665,7 @@ func initIterableFiniteBase() {
 		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
 					return value.Undefined, err
@@ -685,7 +685,7 @@ func initIterableFiniteBase() {
 		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 
-			var result value.ArrayTuple
+			var result value.ArrayTupleOfValue
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
 					return value.Undefined, err

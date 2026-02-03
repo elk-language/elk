@@ -12,6 +12,7 @@ func InitGlobalEnvironment() {
 	initError()
 	initIterator()
 	initArrayList()
+	initArrayListOfUInt8()
 	initArrayListIterator()
 	initArrayTuple()
 	initArrayTupleIterator()

@@ -134,6 +134,10 @@ func (n *YieldExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *YieldExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *YieldExpressionNode) Error() string {
 	return n.Inspect()
 }

@@ -2549,11 +2549,11 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(5).ToValue(),
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(8).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -2607,12 +2607,12 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.Ref(value.String("foo")),
 						value.Ref(value.String("bar")),
 					}),
 					value.Ref(value.ListMixin),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.Ref(value.String("foo")),
 						value.Ref(value.String("bar")),
 					}),
@@ -2663,12 +2663,12 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.ToSymbol("foo").ToValue(),
 						value.ToSymbol("bar").ToValue(),
 					}),
 					value.Ref(value.ListMixin),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.ToSymbol("foo").ToValue(),
 						value.ToSymbol("bar").ToValue(),
 					}),
@@ -2718,12 +2718,12 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(255).ToValue(),
 						value.SmallInt(38).ToValue(),
 					}),
 					value.Ref(value.ListMixin),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(255).ToValue(),
 						value.SmallInt(38).ToValue(),
 					}),
@@ -2773,12 +2773,12 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(3).ToValue(),
 						value.SmallInt(2).ToValue(),
 					}),
 					value.Ref(value.ListMixin),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(3).ToValue(),
 						value.SmallInt(2).ToValue(),
 					}),
@@ -2951,11 +2951,11 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(5).ToValue(),
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(-2).ToValue(),
 						value.SmallInt(8).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -3068,11 +3068,11 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(5).ToValue(),
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(-2).ToValue(),
 						value.SmallInt(8).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -3212,10 +3212,10 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(5).ToValue(),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(8).ToValue(),
 							value.SmallInt(3).ToValue(),
 						}),
@@ -3268,12 +3268,12 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.Ref(value.String("foo")),
 						value.Ref(value.String("bar")),
 					}),
 					value.Ref(value.TupleMixin),
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.Ref(value.String("foo")),
 						value.Ref(value.String("bar")),
 					}),
@@ -3323,12 +3323,12 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.ToSymbol("foo").ToValue(),
 						value.ToSymbol("bar").ToValue(),
 					}),
 					value.Ref(value.TupleMixin),
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.ToSymbol("foo").ToValue(),
 						value.ToSymbol("bar").ToValue(),
 					}),
@@ -3377,12 +3377,12 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(255).ToValue(),
 						value.SmallInt(38).ToValue(),
 					}),
 					value.Ref(value.TupleMixin),
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(255).ToValue(),
 						value.SmallInt(38).ToValue(),
 					}),
@@ -3431,12 +3431,12 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(3).ToValue(),
 						value.SmallInt(2).ToValue(),
 					}),
 					value.Ref(value.TupleMixin),
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(3).ToValue(),
 						value.SmallInt(2).ToValue(),
 					}),
@@ -3588,10 +3588,10 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(5).ToValue(),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(-2).ToValue(),
 							value.SmallInt(8).ToValue(),
 							value.SmallInt(3).ToValue(),
@@ -3701,10 +3701,10 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(5).ToValue(),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(-2).ToValue(),
 							value.SmallInt(8).ToValue(),
 							value.SmallInt(3).ToValue(),
@@ -3873,7 +3873,7 @@ func TestBytecodeSwitch(t *testing.T) {
 					value.Ref(value.String("baz")),
 					value.Ref(vm.MustNewHashMapWithCapacityAndElements(nil, 1)),
 					value.ToSymbol("dupa").ToValue(),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(8).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -4036,7 +4036,7 @@ func TestBytecodeSwitch(t *testing.T) {
 					value.Ref(value.String("baz")),
 					value.Ref(&value.HashRecord{}),
 					value.ToSymbol("dupa").ToValue(),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(8).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -4125,7 +4125,7 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(3).ToValue(),
 						value.SmallInt(2).ToValue(),
 					}),

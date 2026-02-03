@@ -31,6 +31,10 @@ func (s *Span) Copy() Reference {
 	return s
 }
 
+func (s *Span) ToValue() Value {
+	return Ref(s)
+}
+
 func (*Span) InstanceVariables() *InstanceVariables {
 	return nil
 }

@@ -13,7 +13,7 @@ func initSetterDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argEntriesTuple := args[1].MustReference().(*value.ArrayTuple)
+			argEntriesTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 			argEntries := make([]ast.ParameterNode, argEntriesTuple.Length())
 			for i, el := range *argEntriesTuple {
 				argEntries[i] = el.MustReference().(ast.ParameterNode)
@@ -59,7 +59,7 @@ func initSetterDeclarationNode() {
 			self := args[0].MustReference().(*ast.SetterDeclarationNode)
 
 			collection := self.Entries
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

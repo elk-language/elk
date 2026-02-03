@@ -34,6 +34,10 @@ func (s String) Copy() Reference {
 	return s
 }
 
+func (s String) ToValue() Value {
+	return Ref(s)
+}
+
 func (s String) Error() string {
 	return s.Inspect()
 }
@@ -664,6 +668,10 @@ func (s *StringCharIterator) Copy() Reference {
 	}
 }
 
+func (s *StringCharIterator) ToValue() Value {
+	return Ref(s)
+}
+
 func (s *StringCharIterator) Inspect() string {
 	return fmt.Sprintf("Std::String::CharIterator{string: %s, byte_offset: %d}", s.String.Inspect(), s.ByteOffset)
 }
@@ -731,6 +739,10 @@ func (s *StringByteIterator) Copy() Reference {
 	}
 }
 
+func (s *StringByteIterator) ToValue() Value {
+	return Ref(s)
+}
+
 func (s *StringByteIterator) Inspect() string {
 	return fmt.Sprintf("Std::String::ByteIterator{string: %s, byte_offset: %d}", s.String.Inspect(), s.ByteOffset)
 }
@@ -796,6 +808,10 @@ func (s *StringGraphemeIterator) Copy() Reference {
 		Rest:   s.Rest,
 		State:  s.State,
 	}
+}
+
+func (s *StringGraphemeIterator) ToValue() Value {
+	return Ref(s)
 }
 
 func (s *StringGraphemeIterator) Inspect() string {

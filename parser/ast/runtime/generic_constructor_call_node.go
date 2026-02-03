@@ -15,14 +15,14 @@ func initGenericConstructorCallNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argClass := args[1].MustReference().(ast.ComplexConstantNode)
 
-			argTypArgsTuple := args[2].MustReference().(*value.ArrayTuple)
+			argTypArgsTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 			argTypeArgs := make([]ast.TypeNode, argTypArgsTuple.Length())
 			for i, el := range *argTypArgsTuple {
 				argTypeArgs[i] = el.MustReference().(ast.TypeNode)
 			}
 			var argPosArgs []ast.ExpressionNode
 			if !args[3].IsUndefined() {
-				argPosArgsTuple := args[3].MustReference().(*value.ArrayTuple)
+				argPosArgsTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				argPosArgs = make([]ast.ExpressionNode, argPosArgsTuple.Length())
 				for i, el := range *argPosArgsTuple {
 					argPosArgs[i] = el.MustReference().(ast.ExpressionNode)
@@ -31,7 +31,7 @@ func initGenericConstructorCallNode() {
 
 			var argNamedArgs []ast.NamedArgumentNode
 			if !args[4].IsUndefined() {
-				argNamedArgsTuple := args[4].MustReference().(*value.ArrayTuple)
+				argNamedArgsTuple := args[4].MustReference().(*value.ArrayTupleOfValue)
 				argNamedArgs = make([]ast.NamedArgumentNode, argNamedArgsTuple.Length())
 				for i, el := range *argNamedArgsTuple {
 					argNamedArgs[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -75,7 +75,7 @@ func initGenericConstructorCallNode() {
 			self := args[0].MustReference().(*ast.GenericConstructorCallNode)
 
 			collection := self.TypeArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -92,7 +92,7 @@ func initGenericConstructorCallNode() {
 			self := args[0].MustReference().(*ast.GenericConstructorCallNode)
 
 			collection := self.PositionalArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -109,7 +109,7 @@ func initGenericConstructorCallNode() {
 			self := args[0].MustReference().(*ast.GenericConstructorCallNode)
 
 			collection := self.NamedArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

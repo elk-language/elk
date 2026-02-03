@@ -163,6 +163,10 @@ func (n *ContinueExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ContinueExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ContinueExpressionNode) Error() string {
 	return n.Inspect()
 }

@@ -13,7 +13,7 @@ func initGoExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argBodyTuple := args[1].MustReference().(*value.ArrayTuple)
+			argBodyTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 			argBody := make([]ast.StatementNode, argBodyTuple.Length())
 			for i, el := range *argBodyTuple {
 				argBody[i] = el.MustReference().(ast.StatementNode)
@@ -42,7 +42,7 @@ func initGoExpressionNode() {
 			self := args[0].MustReference().(*ast.GoExpressionNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

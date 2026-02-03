@@ -84,7 +84,7 @@ func initTuple() {
 				return value.Undefined, err
 			}
 
-			var result value.ArrayTuple
+			var result value.ArrayTupleOfValue
 			for i := start; i <= end; i++ {
 				element, err := vm.CallMethodByName(symbol.L_at, self, value.SmallInt(i).ToValue())
 				if err.IsNotUndefined() {
@@ -126,7 +126,7 @@ func initTuple() {
 			self := args[0]
 			other := args[1]
 
-			var result value.ArrayTuple
+			var result value.ArrayTupleOfValue
 			for elem, err := range Iterate(vm, self) {
 				if err.IsNotUndefined() {
 					return value.Undefined, err

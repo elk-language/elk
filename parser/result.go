@@ -57,3 +57,7 @@ func (r *Result) Copy() value.Reference {
 		Diagnostics: r.Diagnostics,
 	}
 }
+
+func (r *Result) ToValue() value.Value {
+	return value.Ref(r)
+}

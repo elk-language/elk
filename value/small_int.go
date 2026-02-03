@@ -1528,6 +1528,10 @@ func (l *SmallIntIterator) Copy() Reference {
 	}
 }
 
+func (l *SmallIntIterator) ToValue() Value {
+	return Ref(l)
+}
+
 func (l *SmallIntIterator) Inspect() string {
 	return fmt.Sprintf("Std::Int::Iterator{&: %p, int: %s, index: %d}", l, l.Int.Inspect(), l.Counter)
 }

@@ -344,7 +344,7 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 		return value.Undefined
 	}
 
-	newList := make(value.ArrayList, 0, len(node.Elements))
+	newList := make(value.ArrayListOfValue, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		switch e := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
@@ -386,7 +386,7 @@ func resolveSpecialArrayListLiteral[T ast.ExpressionNode](elements []T, static b
 		return value.Undefined
 	}
 
-	newList := make(value.ArrayList, 0, len(elements))
+	newList := make(value.ArrayListOfValue, 0, len(elements))
 	for _, elementNode := range elements {
 		element := resolve(elementNode)
 		if element.IsUndefined() {
@@ -403,7 +403,7 @@ func resolveSpecialArrayTupleLiteral[T ast.ExpressionNode](elements []T, static 
 		return value.Undefined
 	}
 
-	newList := make(value.ArrayTuple, 0, len(elements))
+	newList := make(value.ArrayTupleOfValue, 0, len(elements))
 	for _, elementNode := range elements {
 		element := resolve(elementNode)
 		if element.IsUndefined() {
@@ -420,7 +420,7 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
 		return value.Undefined
 	}
 
-	newArrayTuple := make(value.ArrayTuple, 0, len(node.Elements))
+	newArrayTuple := make(value.ArrayTupleOfValue, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		switch e := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:

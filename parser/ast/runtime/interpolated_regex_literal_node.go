@@ -15,7 +15,7 @@ func initInterpolatedRegexLiteralNode() {
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
-			argContentTuple := args[1].MustReference().(*value.ArrayTuple)
+			argContentTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 			argContent := make([]ast.RegexLiteralContentNode, argContentTuple.Length())
 			for i, el := range *argContentTuple {
 				argContent[i] = el.MustReference().(ast.RegexLiteralContentNode)
@@ -49,7 +49,7 @@ func initInterpolatedRegexLiteralNode() {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
 
 			collection := self.Content
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

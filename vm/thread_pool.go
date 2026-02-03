@@ -71,6 +71,10 @@ func (t *ThreadPool) Copy() value.Reference {
 	return t
 }
 
+func (t *ThreadPool) ToValue() value.Value {
+	return value.Ref(t)
+}
+
 func (t *ThreadPool) Inspect() string {
 	return fmt.Sprintf("Std::ThreadPool{thread_count: %d, task_queue_size: %d}", t.ThreadCount(), t.TaskQueueSize())
 }

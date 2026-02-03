@@ -147,7 +147,7 @@ b7: 42
 				var [b, a] = [a, b]
 				[a, b]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(-7).ToValue(),
 				value.SmallInt(5).ToValue(),
 			}),

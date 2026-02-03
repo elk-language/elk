@@ -63,14 +63,68 @@ const (
 	SENTINEL_FLAG = 0xFF
 )
 
-// Convert a Reference to a Value
-func Ref(ref Reference) Value {
-	i := *(*iface)(unsafe.Pointer(&ref))
+// Performs a downcast of the given Value
+// to the given concrete type.
+func Downcast[T ValueInterface](v Value) T {
+	return v.ToInterface().(T)
+}
 
-	return Value{
-		data: i.tab,
-		ptr:  i.ptr,
-		flag: REFERENCE_FLAG,
+func (v Value) ToInterface() ValueInterface {
+	if v.IsReference() {
+		return v.AsReference()
+	}
+
+	switch v.ValueFlag() {
+	case TRUE_FLAG:
+		return v.AsTrue()
+	case FALSE_FLAG:
+		return v.AsFalse()
+	case NIL_FLAG:
+		return v.AsNil()
+	case UNDEFINED_FLAG:
+		return v.AsUndefined()
+	case SMALL_INT_FLAG:
+		return v.AsSmallInt()
+	case FLOAT_FLAG:
+		return v.AsFloat()
+	case SYMBOL_FLAG:
+		return v.AsInlineSymbol()
+	case FLOAT64_FLAG:
+		return v.AsInlineFloat64()
+	case FLOAT32_FLAG:
+		return v.AsFloat32()
+	case INT8_FLAG:
+		return v.AsInt8()
+	case INT16_FLAG:
+		return v.AsInt16()
+	case INT32_FLAG:
+		return v.AsInt32()
+	case INT64_FLAG:
+		return v.AsInlineInt64()
+	case UINT8_FLAG:
+		return v.AsUInt8()
+	case UINT16_FLAG:
+		return v.AsUInt16()
+	case UINT32_FLAG:
+		return v.AsUInt32()
+	case UINT64_FLAG:
+		return v.AsInlineUInt64()
+	case UINT_FLAG:
+		return v.AsUInt()
+	case CHAR_FLAG:
+		return v.AsChar()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan()
+	case DATE_FLAG:
+		return v.AsDate()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan()
+	case TIME_FLAG:
+		return v.AsTime()
+	case WEAK_FLAG:
+		return v.AsWeak()
+	default:
+		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
 }
 
@@ -1089,25 +1143,14 @@ func GetInstanceVariableByName(object Value, name Symbol) (val, err Value) {
 	return val, Undefined
 }
 
-// Elk Reference Value
-type Reference interface {
-	Class() *Class                         // Return the class of the value
-	DirectClass() *Class                   // Return the direct class of this value that will be searched for methods first
-	SingletonClass() *Class                // Return the singleton class of this value that holds methods unique to this object
-	InstanceVariables() *InstanceVariables // Returns a pointer to the slice of instance vars of this value, nil if value doesn't support instance vars
-	Copy() Reference                       // Creates a shallow copy of the reference. If the value is immutable, no copying should be done, the same value should be returned.
-	Inspect() string                       // Returns the string representation of the value
-	Error() string                         // Implements the error interface
-}
-
 func IsMutableCollection(val Value) bool {
 	if val.IsInlineValue() {
 		return false
 	}
 	switch v := val.AsReference().(type) {
-	case *ArrayList, *HashMap:
+	case *ArrayListOfValue, *HashMap:
 		return true
-	case *ArrayTuple:
+	case *ArrayTupleOfValue:
 		if slices.ContainsFunc(*v, IsMutableCollection) {
 			return true
 		}
@@ -1423,9 +1466,9 @@ func SubscriptVal(collection, key Value) (result, err Value) {
 	}
 
 	switch l := collection.AsReference().(type) {
-	case *ArrayTuple:
+	case *ArrayTupleOfValue:
 		return l.Subscript(key)
-	case *ArrayList:
+	case *ArrayListOfValue:
 		return l.Subscript(key)
 	default:
 		return Undefined, Undefined
@@ -1442,9 +1485,9 @@ func SubscriptSet(collection, key, val Value) (err Value) {
 	}
 
 	switch l := collection.AsReference().(type) {
-	case *ArrayList:
+	case *ArrayListOfValue:
 		return l.SubscriptSet(key, val)
-	case *ArrayTuple:
+	case *ArrayTupleOfValue:
 		return l.SubscriptSet(key, val)
 	default:
 		return Undefined
@@ -1566,9 +1609,9 @@ func AddVal(left, right Value) (result, err Value) {
 			return RefErr(l.Concat(right))
 		case *Regex:
 			return l.ConcatVal(right)
-		case *ArrayList:
+		case *ArrayListOfValue:
 			return RefErr(l.Concat(right))
-		case *ArrayTuple:
+		case *ArrayTupleOfValue:
 			return l.ConcatVal(right)
 		default:
 			return Undefined, Undefined
@@ -1723,9 +1766,9 @@ func MultiplyVal(left, right Value) (result, err Value) {
 			return RefErr(l.Repeat(right))
 		case *Regex:
 			return l.RepeatVal(right)
-		case *ArrayList:
+		case *ArrayListOfValue:
 			return RefErr(l.Repeat(right))
-		case *ArrayTuple:
+		case *ArrayTupleOfValue:
 			return RefErr(l.Repeat(right))
 		default:
 			return Undefined, Undefined
@@ -3502,7 +3545,7 @@ func LeftBitshiftVal(left, right Value) (result, err Value) {
 		case UInt64:
 			r, err := StrictIntLeftBitshift(l, right)
 			return r.ToValue(), err
-		case *ArrayList:
+		case *ArrayListOfValue:
 			l.Append(right)
 			return Ref(l), Undefined
 		default:
@@ -3882,7 +3925,7 @@ func Next(val Value) (result, err Value) {
 	}
 
 	switch v := val.AsReference().(type) {
-	case *ArrayListIterator:
+	case *ArrayListOfValueIterator:
 		return v.Next()
 	case *ArrayTupleIterator:
 		return v.Next()
@@ -3936,15 +3979,15 @@ func Iter(val Value) Value {
 	}
 
 	switch v := val.AsReference().(type) {
-	case *ArrayListIterator, *ArrayTupleIterator, *HashMapIterator,
+	case *ArrayListOfValueIterator, *ArrayTupleIterator, *HashMapIterator,
 		*HashRecordIterator, *HashSetIterator, *StringCharIterator,
 		*StringByteIterator, *StringGraphemeIterator, *Channel:
 		return val
 	case String:
 		return Ref(NewStringCharIterator(v))
-	case *ArrayList:
-		return Ref(NewArrayListIterator(v))
-	case *ArrayTuple:
+	case *ArrayListOfValue:
+		return Ref(NewArrayListOfValueIterator(v))
+	case *ArrayTupleOfValue:
 		return Ref(NewArrayTupleIterator(v))
 	case *HashMap:
 		return Ref(NewHashMapIterator(v))

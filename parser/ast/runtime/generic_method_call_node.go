@@ -24,7 +24,7 @@ func initGenericMethodCallNode() {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
 			argName := args[2].MustReference().(ast.IdentifierNode)
 
-			argTypeArgsTuple := args[3].MustReference().(*value.ArrayTuple)
+			argTypeArgsTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 			argTypeArgs := make([]ast.TypeNode, argTypeArgsTuple.Length())
 			for i, el := range *argTypeArgsTuple {
 				argTypeArgs[i] = el.MustReference().(ast.TypeNode)
@@ -39,7 +39,7 @@ func initGenericMethodCallNode() {
 
 			var argPosArgs []ast.ExpressionNode
 			if !args[5].IsUndefined() {
-				argPosArgsTuple := args[5].MustReference().(*value.ArrayTuple)
+				argPosArgsTuple := args[5].MustReference().(*value.ArrayTupleOfValue)
 				argPosArgs = make([]ast.ExpressionNode, argPosArgsTuple.Length())
 				for i, el := range *argPosArgsTuple {
 					argPosArgs[i] = el.MustReference().(ast.ExpressionNode)
@@ -48,7 +48,7 @@ func initGenericMethodCallNode() {
 
 			var argNamedArgs []ast.NamedArgumentNode
 			if !args[6].IsUndefined() {
-				argNamedArgsTuple := args[6].MustReference().(*value.ArrayTuple)
+				argNamedArgsTuple := args[6].MustReference().(*value.ArrayTupleOfValue)
 				argNamedArgs = make([]ast.NamedArgumentNode, argNamedArgsTuple.Length())
 				for i, el := range *argNamedArgsTuple {
 					argNamedArgs[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -110,7 +110,7 @@ func initGenericMethodCallNode() {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 
 			collection := self.TypeArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -127,7 +127,7 @@ func initGenericMethodCallNode() {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 
 			collection := self.PositionalArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -144,7 +144,7 @@ func initGenericMethodCallNode() {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 
 			collection := self.NamedArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

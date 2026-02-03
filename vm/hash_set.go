@@ -144,7 +144,7 @@ func initHashSet() {
 		"append",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.HashSet)
-			val := args[1].SafeAsReference().(*value.ArrayList)
+			val := args[1].SafeAsReference().(*value.ArrayListOfValue)
 			for _, element := range *val {
 				err := HashSetAppend(vm, self, element)
 				if !err.IsUndefined() {
@@ -595,6 +595,9 @@ func (DeletedHashSetValueType) InstanceVariables() *value.InstanceVariables {
 }
 func (e DeletedHashSetValueType) Copy() value.Reference {
 	return e
+}
+func (e DeletedHashSetValueType) ToValue() value.Value {
+	return value.Ref(e)
 }
 func (e DeletedHashSetValueType) Error() string {
 	return e.Inspect()

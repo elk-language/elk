@@ -134,6 +134,10 @@ func (n *UnquoteNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *UnquoteNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UnquoteNode) Error() string {
 	return n.Inspect()
 }

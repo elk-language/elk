@@ -69,6 +69,10 @@ func (h *HashMap) Copy() Reference {
 	return h.Clone()
 }
 
+func (h *HashMap) ToValue() Value {
+	return Ref(h)
+}
+
 func (h *HashMap) Error() string {
 	return h.Inspect()
 }
@@ -211,6 +215,10 @@ func (h *HashMapIterator) Copy() Reference {
 		HashMap: h.HashMap,
 		Index:   h.Index,
 	}
+}
+
+func (i *HashMapIterator) ToValue() Value {
+	return Ref(i)
 }
 
 func (h *HashMapIterator) Error() string {

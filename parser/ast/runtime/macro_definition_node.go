@@ -17,7 +17,7 @@ func initMacroDefinitionNode() {
 
 			var argParameters []ast.ParameterNode
 			if !args[2].IsUndefined() {
-				argParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+				argParametersTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argParameters = make([]ast.ParameterNode, argParametersTuple.Length())
 				for i, el := range *argParametersTuple {
 					argParameters[i] = el.MustReference().(ast.ParameterNode)
@@ -31,7 +31,7 @@ func initMacroDefinitionNode() {
 
 			var argBody []ast.StatementNode
 			if !args[4].IsUndefined() {
-				argBodyTuple := args[4].MustReference().(*value.ArrayTuple)
+				argBodyTuple := args[4].MustReference().(*value.ArrayTupleOfValue)
 				argBody = make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -98,7 +98,7 @@ func initMacroDefinitionNode() {
 			self := args[0].MustReference().(*ast.MacroDefinitionNode)
 
 			collection := self.Parameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -128,7 +128,7 @@ func initMacroDefinitionNode() {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

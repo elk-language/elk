@@ -34,6 +34,10 @@ func (vm *Thread) Copy() value.Reference {
 	return vm
 }
 
+func (vm *Thread) ToValue() value.Value {
+	return value.Ref(vm)
+}
+
 func (vm *Thread) StateSymbol() value.Symbol {
 	return stateSymbols[vm.state]
 }

@@ -78,6 +78,10 @@ func (b *BytecodeFunction) Copy() value.Reference {
 	return b
 }
 
+func (b *BytecodeFunction) ToValue() value.Value {
+	return value.Ref(b)
+}
+
 func (b *BytecodeFunction) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :bytecode, location: %s}", b.name.Inspect(), b.Location.String())
 }

@@ -10,7 +10,7 @@ import (
 // Iterate over an iterable value
 func Iterate(vm *Thread, collectionValue value.Value) iter.Seq2[value.Value, value.Value] {
 	switch c := collectionValue.AsReference().(type) {
-	case *value.ArrayListIterator:
+	case *value.ArrayListOfValueIterator:
 		return value.IterateNativeIterator(c)
 	case *value.ArrayTupleIterator:
 		return value.IterateNativeIterator(c)
@@ -20,7 +20,7 @@ func Iterate(vm *Thread, collectionValue value.Value) iter.Seq2[value.Value, val
 		return value.IterateNativeIterator(c)
 	case *value.HashSetIterator:
 		return value.IterateNativeIterator(c)
-	case *value.ArrayList:
+	case *value.ArrayListOfValue:
 		return func(yield func(value.Value, value.Value) bool) {
 			for _, element := range *c {
 				if !yield(element, value.Undefined) {
@@ -28,7 +28,7 @@ func Iterate(vm *Thread, collectionValue value.Value) iter.Seq2[value.Value, val
 				}
 			}
 		}
-	case *value.ArrayTuple:
+	case *value.ArrayTupleOfValue:
 		return func(yield func(value.Value, value.Value) bool) {
 			for _, element := range *c {
 				if !yield(element, value.Undefined) {

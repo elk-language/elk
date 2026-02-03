@@ -55,6 +55,10 @@ func (d *DateTimeSpan) Copy() Reference {
 	return d.Dup()
 }
 
+func (d *DateTimeSpan) ToValue() Value {
+	return Ref(d)
+}
+
 func (*DateTimeSpan) Class() *Class {
 	return DateTimeSpanClass
 }

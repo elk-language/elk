@@ -102,6 +102,10 @@ func (n *SingletonTypeNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *SingletonTypeNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *SingletonTypeNode) Error() string {
 	return n.Inspect()
 }

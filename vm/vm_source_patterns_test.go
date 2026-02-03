@@ -482,7 +482,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(9).ToValue(),
 			}),
@@ -682,7 +682,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(9).ToValue(),
 			}),
@@ -832,7 +832,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.Ref(value.String("FOO BAR")),
 				value.SmallInt(7).ToValue(),
 			}),

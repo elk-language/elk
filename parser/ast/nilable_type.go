@@ -102,6 +102,10 @@ func (n *NilableTypeNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *NilableTypeNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *NilableTypeNode) Error() string {
 	return n.Inspect()
 }

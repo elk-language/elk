@@ -199,6 +199,10 @@ func (n *HashMapLiteralNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *HashMapLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *HashMapLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -349,6 +353,10 @@ func (n *HashRecordLiteralNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *HashRecordLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *HashRecordLiteralNode) Error() string {

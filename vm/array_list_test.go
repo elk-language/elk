@@ -11,23 +11,23 @@ import (
 
 func TestArrayListContains(t *testing.T) {
 	tests := map[string]struct {
-		list     *value.ArrayList
+		list     *value.ArrayListOfValue
 		val      value.Value
 		contains bool
 		err      value.Value
 	}{
 		"empty list": {
-			list:     &value.ArrayList{},
+			list:     &value.ArrayListOfValue{},
 			val:      value.SmallInt(5).ToValue(),
 			contains: false,
 		},
 		"coercible elements": {
-			list:     &value.ArrayList{value.Ref(value.String("foo")), value.Float(5).ToValue()},
+			list:     &value.ArrayListOfValue{value.Ref(value.String("foo")), value.Float(5).ToValue()},
 			val:      value.SmallInt(5).ToValue(),
 			contains: false,
 		},
 		"has the value": {
-			list:     &value.ArrayList{value.Ref(value.String("foo")), value.SmallInt(5).ToValue(), value.Float(9.3).ToValue()},
+			list:     &value.ArrayListOfValue{value.Ref(value.String("foo")), value.SmallInt(5).ToValue(), value.Float(9.3).ToValue()},
 			val:      value.SmallInt(5).ToValue(),
 			contains: true,
 		},
@@ -36,7 +36,7 @@ func TestArrayListContains(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			v := vm.New()
-			contains, err := vm.ArrayListContains(v, tc.list, tc.val)
+			contains, err := vm.ArrayListOfValueContains(v, tc.list, tc.val)
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatal(diff)
 			}
@@ -52,24 +52,24 @@ func TestArrayListContains(t *testing.T) {
 
 func TestArrayListEqual(t *testing.T) {
 	tests := map[string]struct {
-		list  *value.ArrayList
-		other *value.ArrayList
+		list  *value.ArrayListOfValue
+		other *value.ArrayListOfValue
 		equal bool
 		err   value.Value
 	}{
 		"two identical lists": {
-			list:  &value.ArrayList{value.Ref(value.String("foo")), value.Float(5).ToValue()},
-			other: &value.ArrayList{value.Ref(value.String("foo")), value.Float(5).ToValue()},
+			list:  &value.ArrayListOfValue{value.Ref(value.String("foo")), value.Float(5).ToValue()},
+			other: &value.ArrayListOfValue{value.Ref(value.String("foo")), value.Float(5).ToValue()},
 			equal: true,
 		},
 		"different length": {
-			list:  &value.ArrayList{value.Ref(value.String("foo")), value.Float(5).ToValue()},
-			other: &value.ArrayList{value.Ref(value.String("foo")), value.Float(5).ToValue(), value.Nil},
+			list:  &value.ArrayListOfValue{value.Ref(value.String("foo")), value.Float(5).ToValue()},
+			other: &value.ArrayListOfValue{value.Ref(value.String("foo")), value.Float(5).ToValue(), value.Nil},
 			equal: false,
 		},
 		"the same values of different types": {
-			list:  &value.ArrayList{value.Ref(value.String("foo")), value.SmallInt(5).ToValue()},
-			other: &value.ArrayList{value.Ref(value.String("foo")), value.Float(5).ToValue()},
+			list:  &value.ArrayListOfValue{value.Ref(value.String("foo")), value.SmallInt(5).ToValue()},
+			other: &value.ArrayListOfValue{value.Ref(value.String("foo")), value.Float(5).ToValue()},
 			equal: false,
 		},
 	}
@@ -77,7 +77,7 @@ func TestArrayListEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			v := vm.New()
-			equal, err := vm.ArrayListEqual(v, tc.list, tc.other)
+			equal, err := vm.ArrayListOfValueEqual(v, tc.list, tc.other)
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatal(diff)
 			}

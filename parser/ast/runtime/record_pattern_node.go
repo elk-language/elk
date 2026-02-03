@@ -16,7 +16,7 @@ func initRecordPatternNode() {
 
 			var argElements []ast.PatternNode
 			if !args[1].IsUndefined() {
-				argElementsTuple := args[1].MustReference().(*value.ArrayTuple)
+				argElementsTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 				argElements = make([]ast.PatternNode, argElementsTuple.Length())
 				for i, el := range *argElementsTuple {
 					argElements[i] = el.MustReference().(ast.PatternNode)
@@ -46,7 +46,7 @@ func initRecordPatternNode() {
 			self := args[0].MustReference().(*ast.RecordPatternNode)
 
 			collection := self.Elements
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

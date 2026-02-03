@@ -42,6 +42,10 @@ func (p *Pair) Copy() Reference {
 	return p
 }
 
+func (p *Pair) ToValue() Value {
+	return Ref(p)
+}
+
 func (p *Pair) Inspect() string {
 	return fmt.Sprintf("Std::Pair(%s, %s)", p.Key.Inspect(), p.Value.Inspect())
 }
@@ -149,6 +153,10 @@ func (l *PairIterator) Copy() Reference {
 		Pair:  l.Pair,
 		Index: l.Index,
 	}
+}
+
+func (i *PairIterator) ToValue() Value {
+	return Ref(i)
 }
 
 func (l *PairIterator) Inspect() string {

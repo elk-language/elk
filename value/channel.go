@@ -21,6 +21,10 @@ func (ch *Channel) Copy() Reference {
 	return NewChannel(ch.Length())
 }
 
+func (c *Channel) ToValue() Value {
+	return Ref(c)
+}
+
 func (*Channel) Class() *Class {
 	return ChannelClass
 }

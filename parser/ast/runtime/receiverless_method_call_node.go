@@ -17,7 +17,7 @@ func initReceiverlessMethodCallNode() {
 
 			var argPositionalArguments []ast.ExpressionNode
 			if !args[2].IsUndefined() {
-				argPositionalArgumentsTuple := args[2].MustReference().(*value.ArrayTuple)
+				argPositionalArgumentsTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argPositionalArguments = make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
 				for i, el := range *argPositionalArgumentsTuple {
 					argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
@@ -26,7 +26,7 @@ func initReceiverlessMethodCallNode() {
 
 			var argNamedArguments []ast.NamedArgumentNode
 			if !args[3].IsUndefined() {
-				argNamedArgumentsTuple := args[3].MustReference().(*value.ArrayTuple)
+				argNamedArgumentsTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				argNamedArguments = make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
 				for i, el := range *argNamedArgumentsTuple {
 					argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -69,7 +69,7 @@ func initReceiverlessMethodCallNode() {
 			self := args[0].MustReference().(*ast.ReceiverlessMethodCallNode)
 
 			collection := self.PositionalArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -86,7 +86,7 @@ func initReceiverlessMethodCallNode() {
 			self := args[0].MustReference().(*ast.ReceiverlessMethodCallNode)
 
 			collection := self.NamedArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

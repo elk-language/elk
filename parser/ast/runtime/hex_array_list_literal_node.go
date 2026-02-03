@@ -15,7 +15,7 @@ func initHexArrayListLiteralNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argElements []ast.IntCollectionContentNode
 			if !args[1].IsUndefined() {
-				argElementsTuple := args[1].MustReference().(*value.ArrayTuple)
+				argElementsTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 				argElements = make([]ast.IntCollectionContentNode, argElementsTuple.Length())
 				for i, el := range *argElementsTuple {
 					argElements[i] = el.MustReference().(ast.IntCollectionContentNode)
@@ -51,7 +51,7 @@ func initHexArrayListLiteralNode() {
 			self := args[0].MustReference().(*ast.HexArrayListLiteralNode)
 
 			collection := self.Elements
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

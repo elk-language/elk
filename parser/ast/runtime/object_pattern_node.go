@@ -17,7 +17,7 @@ func initObjectPatternNode() {
 
 			var argAttributes []ast.PatternNode
 			if !args[2].IsUndefined() {
-				argAttributesTuple := args[2].MustReference().(*value.ArrayTuple)
+				argAttributesTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argAttributes = make([]ast.PatternNode, argAttributesTuple.Length())
 				for i, el := range *argAttributesTuple {
 					argAttributes[i] = el.MustReference().(ast.PatternNode)
@@ -58,7 +58,7 @@ func initObjectPatternNode() {
 			self := args[0].MustReference().(*ast.ObjectPatternNode)
 
 			collection := self.Attributes
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

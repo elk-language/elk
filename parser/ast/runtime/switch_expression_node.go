@@ -15,7 +15,7 @@ func initSwitchExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argValue := args[1].MustReference().(ast.ExpressionNode)
 
-			argCasesTuple := args[2].MustReference().(*value.ArrayTuple)
+			argCasesTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 			argCases := make([]*ast.CaseNode, argCasesTuple.Length())
 			for i, el := range *argCasesTuple {
 				argCases[i] = el.MustReference().(*ast.CaseNode)
@@ -23,7 +23,7 @@ func initSwitchExpressionNode() {
 
 			var argElseBody []ast.StatementNode
 			if !args[3].IsUndefined() {
-				argElseBodyTuple := args[3].MustReference().(*value.ArrayTuple)
+				argElseBodyTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				argElseBody = make([]ast.StatementNode, argElseBodyTuple.Length())
 				for i, el := range *argElseBodyTuple {
 					argElseBody[i] = el.MustReference().(ast.StatementNode)
@@ -66,7 +66,7 @@ func initSwitchExpressionNode() {
 			self := args[0].MustReference().(*ast.SwitchExpressionNode)
 
 			collection := self.Cases
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -83,7 +83,7 @@ func initSwitchExpressionNode() {
 			self := args[0].MustReference().(*ast.SwitchExpressionNode)
 
 			collection := self.ElseBody
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

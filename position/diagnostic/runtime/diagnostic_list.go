@@ -80,7 +80,7 @@ func initDiagnosticList() {
 		"append",
 		func(vm *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DiagnosticList)
-			values := args[1].MustReference().(*value.ArrayTuple)
+			values := args[1].MustReference().(*value.ArrayTupleOfValue)
 			*self = slices.Grow(*self, values.Length())
 			for _, element := range *values {
 				*self = append(*self, (*diagnostic.Diagnostic)(element.Pointer()))

@@ -91,6 +91,10 @@ func (n *AssignmentExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *AssignmentExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *AssignmentExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*AssignmentExpressionNode)
 	if !ok {

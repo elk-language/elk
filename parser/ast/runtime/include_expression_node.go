@@ -13,7 +13,7 @@ func initIncludeExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argConstantsTuple := args[1].MustReference().(*value.ArrayTuple)
+			argConstantsTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 			argConstants := make([]ast.ComplexConstantNode, argConstantsTuple.Length())
 			for i, el := range *argConstantsTuple {
 				argConstants[i] = el.MustReference().(ast.ComplexConstantNode)
@@ -42,7 +42,7 @@ func initIncludeExpressionNode() {
 			self := args[0].MustReference().(*ast.IncludeExpressionNode)
 
 			collection := self.Constants
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

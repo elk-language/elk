@@ -177,6 +177,10 @@ func (n *IfExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *IfExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *IfExpressionNode) Error() string {
 	return n.Inspect()
 }

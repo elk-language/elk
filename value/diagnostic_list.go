@@ -37,6 +37,10 @@ func (d *DiagnosticList) Copy() Reference {
 	return &newList
 }
 
+func (d *DiagnosticList) ToValue() Value {
+	return Ref(d)
+}
+
 func (*DiagnosticList) InstanceVariables() *InstanceVariables {
 	return nil
 }
@@ -145,25 +149,25 @@ func (dl *DiagnosticList) SubscriptSet(key Value, val *Diagnostic) Value {
 
 // Concatenate another value with this list, creating a new list, and return the result.
 // If the operation is illegal an error will be returned.
-func (l *DiagnosticList) Concat(other Value) (*ArrayList, Value) {
+func (l *DiagnosticList) Concat(other Value) (*ArrayListOfValue, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
-		case *ArrayList:
-			newList := make(ArrayList, 0, len(*l)+len(*o))
+		case *ArrayListOfValue:
+			newList := make(ArrayListOfValue, 0, len(*l)+len(*o))
 			for _, element := range *l {
 				newList = append(newList, Ref((*Diagnostic)(element)))
 			}
 			newList = append(newList, *o...)
 			return &newList, Undefined
-		case *ArrayTuple:
-			newList := make(ArrayList, 0, len(*l)+len(*o))
+		case *ArrayTupleOfValue:
+			newList := make(ArrayListOfValue, 0, len(*l)+len(*o))
 			for _, element := range *l {
 				newList = append(newList, Ref((*Diagnostic)(element)))
 			}
 			newList = append(newList, *o...)
 			return &newList, Undefined
 		case *DiagnosticList:
-			newList := make(ArrayList, 0, len(*l)+len(*o))
+			newList := make(ArrayListOfValue, 0, len(*l)+len(*o))
 			for _, element := range *l {
 				newList = append(newList, Ref((*Diagnostic)(element)))
 			}
@@ -256,6 +260,10 @@ func (l *DiagnosticListIterator) Copy() Reference {
 		DiagnosticList: l.DiagnosticList,
 		Index:          l.Index,
 	}
+}
+
+func (i *DiagnosticListIterator) ToValue() Value {
+	return Ref(i)
 }
 
 func (l *DiagnosticListIterator) Inspect() string {

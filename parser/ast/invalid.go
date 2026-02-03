@@ -77,6 +77,10 @@ func (n *InvalidNode) Inspect() string {
 	)
 }
 
+func (n *InvalidNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (p *InvalidNode) Error() string {
 	return p.Inspect()
 }

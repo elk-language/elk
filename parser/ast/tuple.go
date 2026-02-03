@@ -159,6 +159,10 @@ func (n *ArrayTupleLiteralNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ArrayTupleLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ArrayTupleLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -287,6 +291,10 @@ func (n *WordArrayTupleLiteralNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *WordArrayTupleLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *WordArrayTupleLiteralNode) Error() string {
@@ -421,6 +429,10 @@ func (n *SymbolArrayTupleLiteralNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *SymbolArrayTupleLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *SymbolArrayTupleLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -550,6 +562,10 @@ func (n *HexArrayTupleLiteralNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *HexArrayTupleLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *HexArrayTupleLiteralNode) Error() string {
@@ -687,6 +703,10 @@ func (n *BinArrayTupleLiteralNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *BinArrayTupleLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *BinArrayTupleLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -802,6 +822,10 @@ func (n *TuplePatternNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *TuplePatternNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *TuplePatternNode) Error() string {

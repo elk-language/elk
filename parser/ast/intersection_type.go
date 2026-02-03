@@ -115,6 +115,10 @@ func (n *IntersectionTypeNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *IntersectionTypeNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *IntersectionTypeNode) Error() string {
 	return n.Inspect()
 }

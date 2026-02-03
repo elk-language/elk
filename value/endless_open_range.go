@@ -21,6 +21,10 @@ func (r *EndlessOpenRange) Copy() Reference {
 	return r
 }
 
+func (r *EndlessOpenRange) ToValue() Value {
+	return Ref(r)
+}
+
 func (*EndlessOpenRange) Class() *Class {
 	return EndlessOpenRangeClass
 }
@@ -96,6 +100,10 @@ func (r *EndlessOpenRangeIterator) Copy() Reference {
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,
 	}
+}
+
+func (i *EndlessOpenRangeIterator) ToValue() Value {
+	return Ref(i)
 }
 
 func (r *EndlessOpenRangeIterator) Error() string {

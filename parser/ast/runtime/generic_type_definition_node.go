@@ -14,7 +14,7 @@ func initGenericTypeDefinitionNode() {
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argConstant := args[1].MustReference().(ast.ComplexConstantNode)
-			argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+			argTypeParametersTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 			argTypeParameters := make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 			for i, el := range *argTypeParametersTuple {
 				argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
@@ -63,7 +63,7 @@ func initGenericTypeDefinitionNode() {
 			self := args[0].MustReference().(*ast.GenericTypeDefinitionNode)
 
 			collection := self.TypeParameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

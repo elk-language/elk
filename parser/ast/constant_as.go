@@ -96,6 +96,10 @@ func (n *ConstantAsNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ConstantAsNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ConstantAsNode) Error() string {
 	return n.Inspect()
 }

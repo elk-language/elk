@@ -55,6 +55,10 @@ func (n *IvarIndices) Copy() Reference {
 	return n
 }
 
+func (i *IvarIndices) ToValue() Value {
+	return Ref(i)
+}
+
 func (*IvarIndices) Class() *Class {
 	return nil
 }

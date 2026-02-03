@@ -65,6 +65,10 @@ func (r *Regex) Copy() Reference {
 	return r
 }
 
+func (r *Regex) ToValue() Value {
+	return Ref(r)
+}
+
 func (*Regex) SingletonClass() *Class {
 	return nil
 }

@@ -69,6 +69,10 @@ func (n *CharLiteralNode) Inspect() string {
 	)
 }
 
+func (n *CharLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *CharLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -141,6 +145,10 @@ func (n *RawCharLiteralNode) Inspect() string {
 		(*value.Location)(n.loc).Inspect(),
 		value.Char(n.Value).Inspect(),
 	)
+}
+
+func (n *RawCharLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *RawCharLiteralNode) Error() string {

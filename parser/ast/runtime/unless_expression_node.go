@@ -17,7 +17,7 @@ func initUnlessExpressionNode() {
 
 			var argThenBody []ast.StatementNode
 			if !args[2].IsUndefined() {
-				argThenBodyTuple := args[2].MustReference().(*value.ArrayTuple)
+				argThenBodyTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argThenBody = make([]ast.StatementNode, argThenBodyTuple.Length())
 				for i, el := range *argThenBodyTuple {
 					argThenBody[i] = el.MustReference().(ast.StatementNode)
@@ -26,7 +26,7 @@ func initUnlessExpressionNode() {
 
 			var argElseBody []ast.StatementNode
 			if !args[3].IsUndefined() {
-				argElseBodyTuple := args[3].MustReference().(*value.ArrayTuple)
+				argElseBodyTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				argElseBody = make([]ast.StatementNode, argElseBodyTuple.Length())
 				for i, el := range *argElseBodyTuple {
 					argElseBody[i] = el.MustReference().(ast.StatementNode)
@@ -69,7 +69,7 @@ func initUnlessExpressionNode() {
 			self := args[0].MustReference().(*ast.UnlessExpressionNode)
 
 			collection := self.ThenBody
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -86,7 +86,7 @@ func initUnlessExpressionNode() {
 			self := args[0].MustReference().(*ast.UnlessExpressionNode)
 
 			collection := self.ElseBody
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

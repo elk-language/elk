@@ -120,11 +120,11 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 	tests := sourceTestTable{
 		"empty arrayTuple literal": {
 			source:       `%[]`,
-			wantStackTop: value.Ref(&value.ArrayTuple{}),
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{}),
 		},
 		"static arrayTuple literal": {
 			source: `%[1, 2.5, :foo]`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
 				value.ToSymbol("foo").ToValue(),
@@ -132,14 +132,14 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 		},
 		"nested static arrayTuple literal": {
 			source: `%[1, 2.5, %["bar", %[]], %[:foo]]`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
-				value.Ref(&value.ArrayTuple{
+				value.Ref(&value.ArrayTupleOfValue{
 					value.Ref(value.String("bar")),
-					value.Ref(&value.ArrayTuple{}),
+					value.Ref(&value.ArrayTupleOfValue{}),
 				}),
-				value.Ref(&value.ArrayTuple{
+				value.Ref(&value.ArrayTupleOfValue{
 					value.ToSymbol("foo").ToValue(),
 				}),
 			}),
@@ -149,7 +149,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				foo := "foo var"
 				%[1, 2.5, foo, :bar]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
 				value.Ref(value.String("foo var")),
@@ -161,7 +161,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				foo := "foo var"
 				%[foo, 1, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.Ref(value.String("foo var")),
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
@@ -173,7 +173,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				foo := nil
 				%["awesome", 1 if foo, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.Ref(value.String("awesome")),
 				value.Float(2.5).ToValue(),
 				value.ToSymbol("bar").ToValue(),
@@ -188,7 +188,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				foo := 57
 				%["awesome", 1 if foo, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.Ref(value.String("awesome")),
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
@@ -203,7 +203,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				foo := nil
 				%["awesome", 1 unless foo, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.Ref(value.String("awesome")),
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
@@ -218,7 +218,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				foo := true
 				%["awesome", 1 unless foo, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.Ref(value.String("awesome")),
 				value.Float(2.5).ToValue(),
 				value.ToSymbol("bar").ToValue(),
@@ -226,7 +226,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 		},
 		"static with indices": {
 			source: `%["awesome", 5 => :foo, 2 => 8.3]`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.Ref(value.String("awesome")),
 				value.Nil,
 				value.Float(8.3).ToValue(),
@@ -240,7 +240,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 			  foo := 3
 				%["awesome", 5 => :foo, 2 => 8.3, foo]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.Ref(value.String("awesome")),
 				value.Nil,
 				value.Float(8.3).ToValue(),
@@ -255,7 +255,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 			  foo := 3
 				%[foo, "awesome", 5 => :foo, 2 => 8.3]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.SmallInt(3).ToValue(),
 				value.Ref(value.String("awesome")),
 				value.Float(8.3).ToValue(),
@@ -269,12 +269,12 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 			  arr := [5, 6, 7]
 				%[1, i * 2 for i in arr, %[:foo]]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.SmallInt(1).ToValue(),
 				value.SmallInt(10).ToValue(),
 				value.SmallInt(12).ToValue(),
 				value.SmallInt(14).ToValue(),
-				value.Ref(&value.ArrayTuple{
+				value.Ref(&value.ArrayTupleOfValue{
 					value.ToSymbol("foo").ToValue(),
 				}),
 			}),
@@ -284,12 +284,12 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 			  arr := [5, 6, 7]
 				%[1, *arr, %[:foo]]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.SmallInt(1).ToValue(),
 				value.SmallInt(5).ToValue(),
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(7).ToValue(),
-				value.Ref(&value.ArrayTuple{
+				value.Ref(&value.ArrayTupleOfValue{
 					value.ToSymbol("foo").ToValue(),
 				}),
 			}),
@@ -298,12 +298,12 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 			source: `
 				%[1, *3, %[:foo]]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.SmallInt(1).ToValue(),
 				value.SmallInt(0).ToValue(),
 				value.SmallInt(1).ToValue(),
 				value.SmallInt(2).ToValue(),
-				value.Ref(&value.ArrayTuple{
+				value.Ref(&value.ArrayTupleOfValue{
 					value.ToSymbol("foo").ToValue(),
 				}),
 			}),
@@ -319,12 +319,12 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 
 				%[1, *gen(), %[:foo]]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.SmallInt(1).ToValue(),
 				value.SmallInt(5).ToValue(),
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(7).ToValue(),
-				value.Ref(&value.ArrayTuple{
+				value.Ref(&value.ArrayTupleOfValue{
 					value.ToSymbol("foo").ToValue(),
 				}),
 			}),
@@ -349,12 +349,12 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				f := Foo()
 				%[1, *f, %[:foo]]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.SmallInt(1).ToValue(),
 				value.SmallInt(5).ToValue(),
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(7).ToValue(),
-				value.Ref(&value.ArrayTuple{
+				value.Ref(&value.ArrayTupleOfValue{
 					value.ToSymbol("foo").ToValue(),
 				}),
 			}),
@@ -364,7 +364,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 			  foo := 3
 				%[foo => :bar, "awesome"]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.Nil,
 				value.Nil,
 				value.Nil,
@@ -377,7 +377,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 			  foo := true
 				%[3 if foo]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.SmallInt(3).ToValue(),
 			}),
 		},
@@ -395,7 +395,7 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 			  foo := "3"
 				%[3 => :bar if foo]
 			`,
-			wantStackTop: value.Ref(&value.ArrayTuple{
+			wantStackTop: value.Ref(&value.ArrayTupleOfValue{
 				value.Nil,
 				value.Nil,
 				value.Nil,
@@ -418,11 +418,11 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 	tests := sourceTestTable{
 		"empty arrayTuple literal": {
 			source:       `[]`,
-			wantStackTop: value.Ref(&value.ArrayList{}),
+			wantStackTop: value.Ref(&value.ArrayListOfValue{}),
 		},
 		"static arrayTuple literal": {
 			source: `[1, 2.5, :foo]`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
 				value.ToSymbol("foo").ToValue(),
@@ -465,14 +465,14 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 		},
 		"nested static arrayTuple literal": {
 			source: `[1, 2.5, ["bar", []], [:foo]]`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
-				value.Ref(&value.ArrayList{
+				value.Ref(&value.ArrayListOfValue{
 					value.Ref(value.String("bar")),
-					value.Ref(&value.ArrayList{}),
+					value.Ref(&value.ArrayListOfValue{}),
 				}),
-				value.Ref(&value.ArrayList{
+				value.Ref(&value.ArrayListOfValue{
 					value.ToSymbol("foo").ToValue(),
 				}),
 			}),
@@ -482,7 +482,7 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				foo := "foo var"
 				[1, 2.5, foo, :bar]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
 				value.Ref(value.String("foo var")),
@@ -494,7 +494,7 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				foo := "foo var"
 				[foo, 1, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.Ref(value.String("foo var")),
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
@@ -516,7 +516,7 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				foo := nil
 				["awesome", 1 if foo, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.Ref(value.String("awesome")),
 				value.Float(2.5).ToValue(),
 				value.ToSymbol("bar").ToValue(),
@@ -531,7 +531,7 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				foo := 57
 				["awesome", 1 if foo, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.Ref(value.String("awesome")),
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
@@ -546,7 +546,7 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				foo := nil
 				["awesome", 1 unless foo, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.Ref(value.String("awesome")),
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
@@ -561,7 +561,7 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				foo := true
 				["awesome", 1 unless foo, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.Ref(value.String("awesome")),
 				value.Float(2.5).ToValue(),
 				value.ToSymbol("bar").ToValue(),
@@ -569,7 +569,7 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 		},
 		"static with indices": {
 			source: `["awesome", 5 => :foo, 2 => 8.3]`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.Ref(value.String("awesome")),
 				value.Nil,
 				value.Float(8.3).ToValue(),
@@ -583,7 +583,7 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 			  foo := 3
 				["awesome", 5 => :foo, 2 => 8.3, foo]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.Ref(value.String("awesome")),
 				value.Nil,
 				value.Float(8.3).ToValue(),
@@ -598,7 +598,7 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 			  foo := 3
 				[foo, "awesome", 5 => :foo, 2 => 8.3]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(3).ToValue(),
 				value.Ref(value.String("awesome")),
 				value.Float(8.3).ToValue(),
@@ -612,12 +612,12 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 			  arr := [5, 6, 7]
 				[1, i * 2 for i in arr, %[:foo]]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(1).ToValue(),
 				value.SmallInt(10).ToValue(),
 				value.SmallInt(12).ToValue(),
 				value.SmallInt(14).ToValue(),
-				value.Ref(&value.ArrayTuple{
+				value.Ref(&value.ArrayTupleOfValue{
 					value.ToSymbol("foo").ToValue(),
 				}),
 			}),
@@ -627,12 +627,12 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 			  arr := [5, 6, 7]
 				[1, *arr, %[:foo]]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(1).ToValue(),
 				value.SmallInt(5).ToValue(),
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(7).ToValue(),
-				value.Ref(&value.ArrayTuple{
+				value.Ref(&value.ArrayTupleOfValue{
 					value.ToSymbol("foo").ToValue(),
 				}),
 			}),
@@ -648,12 +648,12 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 
 				[1, *gen(), %[:foo]]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(1).ToValue(),
 				value.SmallInt(5).ToValue(),
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(7).ToValue(),
-				value.Ref(&value.ArrayTuple{
+				value.Ref(&value.ArrayTupleOfValue{
 					value.ToSymbol("foo").ToValue(),
 				}),
 			}),
@@ -678,12 +678,12 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				f := Foo()
 				[1, *f, %[:foo]]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(1).ToValue(),
 				value.SmallInt(5).ToValue(),
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(7).ToValue(),
-				value.Ref(&value.ArrayTuple{
+				value.Ref(&value.ArrayTupleOfValue{
 					value.ToSymbol("foo").ToValue(),
 				}),
 			}),
@@ -693,7 +693,7 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 			  foo := 3
 				[foo => :bar, "awesome"]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.Nil,
 				value.Nil,
 				value.Nil,
@@ -706,7 +706,7 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 			  foo := true
 				[3 if foo]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(3).ToValue(),
 			}),
 		},
@@ -724,7 +724,7 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 			  foo := "3"
 				[3 => :bar if foo]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.Nil,
 				value.Nil,
 				value.Nil,
@@ -1190,7 +1190,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				},
 				value.Pair{
 					Key: value.SmallInt(0).ToValue(),
-					Value: value.Ref(&value.ArrayList{
+					Value: value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 					}),
@@ -1228,13 +1228,13 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 						nil,
 						value.Pair{
 							Key:   value.Ref(value.String("bar")),
-							Value: value.Ref(&value.ArrayList{}),
+							Value: value.Ref(&value.ArrayListOfValue{}),
 						},
 					)),
 				},
 				value.Pair{
 					Key: value.Ref(value.String("baz")),
-					Value: value.Ref(&value.ArrayList{
+					Value: value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(4).ToValue(),
 					}),
 				},
@@ -1546,7 +1546,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 				},
 				value.Pair{
 					Key: value.SmallInt(0).ToValue(),
-					Value: value.Ref(&value.ArrayList{
+					Value: value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 					}),
@@ -1560,7 +1560,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 				4,
 				value.Pair{
 					Key: value.Ref(value.String("baz")),
-					Value: value.Ref(&value.ArrayList{
+					Value: value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(4).ToValue(),
 					}),
 				},
@@ -1575,7 +1575,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 						5,
 						value.Pair{
 							Key:   value.Ref(value.String("bar")),
-							Value: value.Ref(&value.ArrayList{}),
+							Value: value.Ref(&value.ArrayListOfValue{}),
 						},
 					)),
 				},

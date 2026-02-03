@@ -18,7 +18,7 @@ func initMethodDefinitionNode() {
 
 			var argTypeParameters []ast.TypeParameterNode
 			if !args[2].IsUndefined() {
-				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 				for i, el := range *argTypeParametersTuple {
 					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
@@ -27,7 +27,7 @@ func initMethodDefinitionNode() {
 
 			var argParameters []ast.ParameterNode
 			if !args[3].IsUndefined() {
-				argParametersTuple := args[3].MustReference().(*value.ArrayTuple)
+				argParametersTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				argParameters = make([]ast.ParameterNode, argParametersTuple.Length())
 				for i, el := range *argParametersTuple {
 					argParameters[i] = el.MustReference().(ast.ParameterNode)
@@ -46,7 +46,7 @@ func initMethodDefinitionNode() {
 
 			var argBody []ast.StatementNode
 			if !args[6].IsUndefined() {
-				argBodyTuple := args[6].MustReference().(*value.ArrayTuple)
+				argBodyTuple := args[6].MustReference().(*value.ArrayTupleOfValue)
 				argBody = make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -115,7 +115,7 @@ func initMethodDefinitionNode() {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 
 			collection := self.TypeParameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -132,7 +132,7 @@ func initMethodDefinitionNode() {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 
 			collection := self.Parameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -175,7 +175,7 @@ func initMethodDefinitionNode() {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

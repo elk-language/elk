@@ -20,6 +20,10 @@ func (r *BeginlessClosedRange) Copy() Reference {
 	return r
 }
 
+func (r *BeginlessClosedRange) ToValue() Value {
+	return Ref(r)
+}
+
 func (*BeginlessClosedRange) Class() *Class {
 	return BeginlessClosedRangeClass
 }

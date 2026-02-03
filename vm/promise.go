@@ -114,6 +114,10 @@ func (p *Promise) Copy() value.Reference {
 	return p
 }
 
+func (p *Promise) ToValue() value.Value {
+	return value.Ref(p)
+}
+
 func (p *Promise) Inspect() string {
 	if p.IsResolved() {
 		if !p.err.IsUndefined() {

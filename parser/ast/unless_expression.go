@@ -164,6 +164,10 @@ func (n *UnlessExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *UnlessExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UnlessExpressionNode) Error() string {
 	return n.Inspect()
 }

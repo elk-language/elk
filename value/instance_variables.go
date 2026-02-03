@@ -7,10 +7,10 @@ func (i InstanceVariables) Length() int {
 	return len(i)
 }
 
-func (i *InstanceVariables) BoxOf(index int) *Box {
+func (i *InstanceVariables) BoxOf(index int) *BoxOfValue {
 	i.ExpandUpToIndex(index)
 
-	return (*Box)(&(*i)[index])
+	return (*BoxOfValue)(&(*i)[index])
 }
 
 func (i InstanceVariables) Get(index int) Value {

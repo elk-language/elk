@@ -1395,6 +1395,10 @@ func (i *BigInt) Copy() Reference {
 	return i
 }
 
+func (i *BigInt) ToValue() Value {
+	return Ref(i)
+}
+
 func (i *BigInt) InstanceVariables() *InstanceVariables {
 	return nil
 }
@@ -1641,6 +1645,10 @@ func (l *BigIntIterator) Copy() Reference {
 		Int:     l.Int,
 		Counter: l.Counter,
 	}
+}
+
+func (i *BigIntIterator) ToValue() Value {
+	return Ref(i)
 }
 
 func (l *BigIntIterator) Inspect() string {

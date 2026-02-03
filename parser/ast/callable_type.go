@@ -192,6 +192,10 @@ func (n *CallableTypeNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *CallableTypeNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *CallableTypeNode) Error() string {
 	return n.Inspect()
 }

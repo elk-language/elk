@@ -17,7 +17,7 @@ func initConstructorCallNode() {
 
 			var argPosArgs []ast.ExpressionNode
 			if !args[2].IsUndefined() {
-				argPosArgsTuple := args[2].MustReference().(*value.ArrayTuple)
+				argPosArgsTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argPosArgs = make([]ast.ExpressionNode, argPosArgsTuple.Length())
 				for i, el := range *argPosArgsTuple {
 					argPosArgs[i] = el.MustReference().(ast.ExpressionNode)
@@ -26,7 +26,7 @@ func initConstructorCallNode() {
 
 			var argNamedArgs []ast.NamedArgumentNode
 			if !args[3].IsUndefined() {
-				argNamedArgsTuple := args[3].MustReference().(*value.ArrayTuple)
+				argNamedArgsTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				argNamedArgs = make([]ast.NamedArgumentNode, argNamedArgsTuple.Length())
 				for i, el := range *argNamedArgsTuple {
 					argNamedArgs[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -69,7 +69,7 @@ func initConstructorCallNode() {
 			self := args[0].MustReference().(*ast.ConstructorCallNode)
 
 			collection := self.PositionalArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -86,7 +86,7 @@ func initConstructorCallNode() {
 			self := args[0].MustReference().(*ast.ConstructorCallNode)
 
 			collection := self.NamedArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

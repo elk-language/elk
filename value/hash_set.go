@@ -61,6 +61,10 @@ func (h *HashSet) Copy() Reference {
 	}
 }
 
+func (h *HashSet) ToValue() Value {
+	return Ref(h)
+}
+
 func (h *HashSet) Error() string {
 	return h.Inspect()
 }
@@ -184,6 +188,10 @@ func (h *HashSetIterator) Copy() Reference {
 		HashSet: h.HashSet,
 		Index:   h.Index,
 	}
+}
+
+func (i *HashSetIterator) ToValue() Value {
+	return Ref(i)
 }
 
 func (h *HashSetIterator) Error() string {

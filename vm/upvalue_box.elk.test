@@ -1,0 +1,69 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+describe "UpvalueBox", ->
+	context "get", ->
+		should "return the stored value", ->
+			a := 3
+			b := &a
+			assert! b.get == 3
+
+			a = 25
+			assert! b.get == 25
+		end
+	end
+
+	context "set", ->
+		should "mutate the value of the local", ->
+			a := 3
+			b := &a
+			assert! b.get == 3
+
+			b.set(20)
+
+			assert! b.get == 20
+			assert! a == 20
+		end
+	end
+
+	context "to_immutable_box", ->
+		should "return immutable box to local", ->
+			a := 3
+			b := &a
+
+			c := b.to_immutable_box
+			assert! c <<: ImmutableBox
+			assert! c.get == 3
+
+			a = 10
+			assert! c.get == 10
+		end
+	end
+
+	context "to_box", ->
+		should "return box to local", ->
+			a := 3
+			b := &a
+
+			c := b.to_box
+			assert! c <<: Box
+			assert! c.get == 3
+
+			a = 10
+			assert! c.get == 10
+		end
+	end
+
+	context "address", ->
+		should "return the raw address as UInt", ->
+			a := 3
+			b := &a
+			addr := b.address
+			assert! addr <<: UInt
+
+			c := LocalBox.at(addr)
+			assert! b.get == 3
+		end
+	end
+
+end

@@ -5502,7 +5502,7 @@ func (c *BytecodeCompiler) compileArrayListLiteralNode(node *ast.ArrayListLitera
 			keyValueCount++
 		}
 	}
-	baseList := make(value.ArrayList, 0, len(node.Elements)-keyValueCount)
+	baseList := make(value.ArrayListOfValue, 0, len(node.Elements)-keyValueCount)
 	firstDynamicIndex := -1
 
 elementLoop:
@@ -5679,7 +5679,7 @@ func (c *BytecodeCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLite
 
 	location := node.Location()
 
-	var baseArrayTuple value.ArrayTuple
+	var baseArrayTuple value.ArrayTupleOfValue
 	firstDynamicIndex := -1
 
 elementLoop:
@@ -6577,9 +6577,9 @@ func (c *BytecodeCompiler) resolveAndEmitList(node *ast.ArrayListLiteralNode) bo
 func (c *BytecodeCompiler) emitValue(val value.Value, location *position.Location) {
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
-		case *value.ArrayList:
+		case *value.ArrayListOfValue:
 			c.emitArrayList(v, location)
-		case *value.ArrayTuple:
+		case *value.ArrayTupleOfValue:
 			c.emitArrayTuple(v, location)
 		case *value.HashSet:
 			c.emitHashSet(v, location)
@@ -6824,7 +6824,7 @@ listLoop:
 	c.emitNewHashRecord(len(mutablePairs), location)
 }
 
-func (c *BytecodeCompiler) emitArrayList(list *value.ArrayList, location *position.Location) {
+func (c *BytecodeCompiler) emitArrayList(list *value.ArrayListOfValue, location *position.Location) {
 	firstMutableElementIndex := -1
 	l := *list
 
@@ -6856,7 +6856,7 @@ listLoop:
 	c.emitNewArrayList(len(rest), location)
 }
 
-func (c *BytecodeCompiler) emitArrayTuple(tuple *value.ArrayTuple, location *position.Location) {
+func (c *BytecodeCompiler) emitArrayTuple(tuple *value.ArrayTupleOfValue, location *position.Location) {
 	firstMutableElementIndex := -1
 	t := *tuple
 

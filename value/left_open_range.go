@@ -23,6 +23,10 @@ func (r *LeftOpenRange) Copy() Reference {
 	return r
 }
 
+func (r *LeftOpenRange) ToValue() Value {
+	return Ref(r)
+}
+
 func (*LeftOpenRange) Class() *Class {
 	return LeftOpenRangeClass
 }
@@ -99,6 +103,10 @@ func (r *LeftOpenRangeIterator) Copy() Reference {
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,
 	}
+}
+
+func (i *LeftOpenRangeIterator) ToValue() Value {
+	return Ref(i)
 }
 
 func (r *LeftOpenRangeIterator) Inspect() string {

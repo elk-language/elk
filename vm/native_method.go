@@ -59,6 +59,10 @@ func (n *NativeMethod) Copy() value.Reference {
 	return n
 }
 
+func (n *NativeMethod) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *NativeMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :native}", n.name.Inspect())
 }

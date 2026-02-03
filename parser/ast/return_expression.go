@@ -125,6 +125,10 @@ func (n *ReturnExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ReturnExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ReturnExpressionNode) Error() string {
 	return n.Inspect()
 }

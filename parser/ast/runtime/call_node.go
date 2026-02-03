@@ -16,13 +16,13 @@ func initCallNode() {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
 			argNilSafe := value.Truthy(args[2])
 
-			argPosArgsTuple := args[3].MustReference().(*value.ArrayTuple)
+			argPosArgsTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 			argPosArgs := make([]ast.ExpressionNode, argPosArgsTuple.Length())
 			for i, el := range *argPosArgsTuple {
 				argPosArgs[i] = el.MustReference().(ast.ExpressionNode)
 			}
 
-			argNamedArgsTuple := args[4].MustReference().(*value.ArrayTuple)
+			argNamedArgsTuple := args[4].MustReference().(*value.ArrayTupleOfValue)
 			argNamedArgs := make([]ast.NamedArgumentNode, argNamedArgsTuple.Length())
 			for i, el := range *argNamedArgsTuple {
 				argNamedArgs[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -76,7 +76,7 @@ func initCallNode() {
 			self := args[0].MustReference().(*ast.CallNode)
 
 			collection := self.PositionalArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -93,7 +93,7 @@ func initCallNode() {
 			self := args[0].MustReference().(*ast.CallNode)
 
 			collection := self.NamedArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

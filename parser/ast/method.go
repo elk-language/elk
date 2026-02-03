@@ -397,6 +397,10 @@ func (n *MethodDefinitionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *MethodDefinitionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (p *MethodDefinitionNode) Error() string {
 	return p.Inspect()
 }
@@ -615,6 +619,10 @@ func (n *InitDefinitionNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *InitDefinitionNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *InitDefinitionNode) Error() string {
@@ -865,6 +873,10 @@ func (n *MethodSignatureDefinitionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *MethodSignatureDefinitionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *MethodSignatureDefinitionNode) Error() string {
 	return n.Inspect()
 }
@@ -950,6 +962,10 @@ func (n *AliasDeclarationEntry) Inspect() string {
 	buff.WriteRune('}')
 
 	return buff.String()
+}
+
+func (n *AliasDeclarationEntry) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *AliasDeclarationEntry) Equal(other value.Value) bool {
@@ -1093,6 +1109,10 @@ func (n *AliasDeclarationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *AliasDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *AliasDeclarationNode) Error() string {
 	return n.Inspect()
 }
@@ -1223,6 +1243,10 @@ func (n *GetterDeclarationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *GetterDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *GetterDeclarationNode) Error() string {
 	return n.Inspect()
 }
@@ -1349,6 +1373,10 @@ func (n *SetterDeclarationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *SetterDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *SetterDeclarationNode) Error() string {
 	return n.Inspect()
 }
@@ -1432,6 +1460,10 @@ func (n *AttrDeclarationNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *AttrDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *AttrDeclarationNode) Equal(other value.Value) bool {

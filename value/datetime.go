@@ -34,6 +34,10 @@ func (t *DateTime) Copy() Reference {
 	return &newT
 }
 
+func (d *DateTime) ToValue() Value {
+	return Ref(d)
+}
+
 func (DateTime) Class() *Class {
 	return DateTimeClass
 }

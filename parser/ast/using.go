@@ -124,6 +124,10 @@ func (n *UsingAllEntryNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *UsingAllEntryNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UsingAllEntryNode) Error() string {
 	return n.Inspect()
 }
@@ -258,6 +262,10 @@ func (n *UsingEntryWithSubentriesNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *UsingEntryWithSubentriesNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UsingEntryWithSubentriesNode) Error() string {
 	return n.Inspect()
 }
@@ -366,6 +374,10 @@ func (n *UsingExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *UsingExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UsingExpressionNode) Error() string {
 	return n.Inspect()
 }
@@ -465,6 +477,10 @@ func (n *UsingSubentryAsNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *UsingSubentryAsNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UsingSubentryAsNode) Error() string {
 	return n.Inspect()
 }
@@ -552,6 +568,10 @@ func (n *MacroNameNode) Inspect() string {
 		(*value.Location)(n.loc).Inspect(),
 		n.Value,
 	)
+}
+
+func (n *MacroNameNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *MacroNameNode) Error() string {

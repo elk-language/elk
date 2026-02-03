@@ -15,7 +15,7 @@ func initUsingEntryWithSubentriesNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argNamespace := args[1].MustReference().(ast.UsingEntryNode)
 
-			argSubentriesTuple := args[2].MustReference().(*value.ArrayTuple)
+			argSubentriesTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 			argSubentries := make([]ast.UsingSubentryNode, argSubentriesTuple.Length())
 			for i, el := range *argSubentriesTuple {
 				argSubentries[i] = el.MustReference().(ast.UsingSubentryNode)
@@ -56,7 +56,7 @@ func initUsingEntryWithSubentriesNode() {
 			self := args[0].MustReference().(*ast.UsingEntryWithSubentriesNode)
 
 			collection := self.Subentries
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

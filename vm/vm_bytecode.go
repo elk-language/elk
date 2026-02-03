@@ -1633,7 +1633,6 @@ func (vm *Thread) readByte() byte {
 
 // Read the next 2 bytes of code
 func (vm *Thread) readUint16() uint16 {
-	// BENCHMARK: compare manual bit shifts
 	result := binary.BigEndian.Uint16(unsafe.Slice(vm.ipGet(), 2))
 	vm.ipIncrementBy(2)
 
@@ -1642,7 +1641,6 @@ func (vm *Thread) readUint16() uint16 {
 
 // Read the next 4 bytes of code
 func (vm *Thread) readUint32() uint32 {
-	// BENCHMARK: compare manual bit shifts
 	result := binary.BigEndian.Uint32(unsafe.Slice(vm.ipGet(), 4))
 	vm.ipIncrementBy(4)
 
@@ -1945,13 +1943,13 @@ func (vm *Thread) opAppend() {
 	collection := vm.peek()
 
 	if collection.IsUndefined() {
-		vm.replace(value.Ref(&value.ArrayTuple{element}))
+		vm.replace(value.Ref(&value.ArrayTupleOfValue{element}))
 		return
 	}
 	switch c := collection.SafeAsReference().(type) {
-	case *value.ArrayTuple:
+	case *value.ArrayTupleOfValue:
 		c.Append(element)
-	case *value.ArrayList:
+	case *value.ArrayListOfValue:
 		c.Append(element)
 	case *value.HashSet:
 		HashSetAppend(vm, c, element)
@@ -2333,7 +2331,7 @@ func (vm *Thread) opGetLocal(index int) {
 // Create a box that points to a local
 func (vm *Thread) opBoxLocal(localIndex int) {
 	upvalue := vm.captureUpvalue(vm.fpAdd(localIndex))
-	box := (*LocalBox)(upvalue)
+	box := (*UpvalueBox)(upvalue)
 	vm.push(value.Ref(box))
 }
 
@@ -2940,7 +2938,7 @@ func (vm *Thread) opNewArrayList(dynamicElements int) value.Value {
 	firstElement := vm.spAdd(-dynamicElements)
 	capacity := *vm.spAdd(-dynamicElements - 2)
 	baseList := *vm.spAdd(-dynamicElements - 1)
-	var newArrayList value.ArrayList
+	var newArrayList value.ArrayListOfValue
 
 	var additionalCapacity int
 
@@ -2959,11 +2957,11 @@ func (vm *Thread) opNewArrayList(dynamicElements int) value.Value {
 	}
 
 	if baseList.IsUndefined() {
-		newArrayList = make(value.ArrayList, 0, dynamicElements+additionalCapacity)
+		newArrayList = make(value.ArrayListOfValue, 0, dynamicElements+additionalCapacity)
 	} else {
 		switch l := baseList.SafeAsReference().(type) {
-		case *value.ArrayList:
-			newArrayList = make(value.ArrayList, 0, cap(*l)+additionalCapacity)
+		case *value.ArrayListOfValue:
+			newArrayList = make(value.ArrayListOfValue, 0, cap(*l)+additionalCapacity)
 			newArrayList = append(newArrayList, *l...)
 		default:
 			panic(fmt.Sprintf("invalid array list base: %s", baseList.Inspect()))
@@ -2981,14 +2979,14 @@ func (vm *Thread) opNewArrayList(dynamicElements int) value.Value {
 func (vm *Thread) opNewArrayTuple(dynamicElements int) {
 	firstElement := vm.spAdd(-dynamicElements)
 	baseArrayTuple := *vm.spAdd(-dynamicElements - 1)
-	var newArrayTuple value.ArrayTuple
+	var newArrayTuple value.ArrayTupleOfValue
 
 	if baseArrayTuple.IsUndefined() {
-		newArrayTuple = make(value.ArrayTuple, 0, dynamicElements)
+		newArrayTuple = make(value.ArrayTupleOfValue, 0, dynamicElements)
 	} else {
 		switch t := baseArrayTuple.SafeAsReference().(type) {
-		case *value.ArrayTuple:
-			newArrayTuple = make(value.ArrayTuple, 0, len(*t)+dynamicElements)
+		case *value.ArrayTupleOfValue:
+			newArrayTuple = make(value.ArrayTupleOfValue, 0, len(*t)+dynamicElements)
 			newArrayTuple = append(newArrayTuple, *t...)
 		default:
 			panic(fmt.Sprintf("invalid array tuple base: %s", baseArrayTuple.Inspect()))
@@ -3187,12 +3185,12 @@ func (vm *Thread) opAppendAt() value.Value {
 	collection := vm.peek()
 
 	switch c := collection.SafeAsReference().(type) {
-	case *value.ArrayTuple:
+	case *value.ArrayTupleOfValue:
 		err := c.AppendAt(key, val)
 		if err.IsNotUndefined() {
 			return err
 		}
-	case *value.ArrayList:
+	case *value.ArrayListOfValue:
 		err := c.AppendAt(key, val)
 		if err.IsNotUndefined() {
 			return err

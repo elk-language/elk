@@ -125,6 +125,10 @@ func (n *ProgramNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ProgramNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (p *ProgramNode) Error() string {
 	return p.Inspect()
 }

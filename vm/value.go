@@ -352,7 +352,7 @@ func NextBuiltin(vm *Thread, val value.Value) (result, err value.Value) {
 	}
 
 	switch v := val.AsReference().(type) {
-	case *value.ArrayListIterator:
+	case *value.ArrayListOfValueIterator:
 		return v.Next()
 	case *value.ArrayTupleIterator:
 		return v.Next()
@@ -389,9 +389,9 @@ func SubscriptBuiltin(vm *Thread, collection, key value.Value) (result, err valu
 	}
 
 	switch c := collection.AsReference().(type) {
-	case *value.ArrayTuple:
+	case *value.ArrayTupleOfValue:
 		return c.Subscript(key)
-	case *value.ArrayList:
+	case *value.ArrayListOfValue:
 		return c.Subscript(key)
 	case *value.HashMap:
 		return HashMapGet(vm, c, key)
@@ -408,9 +408,9 @@ func SubscriptSetBuiltin(vm *Thread, collection, key, val value.Value) (err valu
 	}
 
 	switch l := collection.AsReference().(type) {
-	case *value.ArrayList:
+	case *value.ArrayListOfValue:
 		return l.SubscriptSet(key, val)
-	case *value.ArrayTuple:
+	case *value.ArrayTupleOfValue:
 		return l.SubscriptSet(key, val)
 	case *value.HashMap:
 		return HashMapSet(vm, l, key, val)

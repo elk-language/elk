@@ -177,6 +177,10 @@ func (n *RangeLiteralNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *RangeLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *RangeLiteralNode) Error() string {
 	return n.Inspect()
 }

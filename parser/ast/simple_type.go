@@ -67,6 +67,10 @@ func (n *BoolLiteralNode) Inspect() string {
 	return fmt.Sprintf("Std::Elk::AST::BoolLiteralNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
+func (n *BoolLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *BoolLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -130,6 +134,10 @@ func (*VoidTypeNode) DirectClass() *value.Class {
 
 func (n *VoidTypeNode) Inspect() string {
 	return fmt.Sprintf("Std::Elk::AST::VoidTypeNode{location: %s}", (*value.Location)(n.loc).Inspect())
+}
+
+func (n *VoidTypeNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *VoidTypeNode) Error() string {
@@ -201,6 +209,10 @@ func (n *NeverTypeNode) Inspect() string {
 	return fmt.Sprintf("Std::Elk::AST::NeverTypeNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
+func (n *NeverTypeNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *NeverTypeNode) Error() string {
 	return n.Inspect()
 }
@@ -268,6 +280,10 @@ func (*AnyTypeNode) DirectClass() *value.Class {
 
 func (n *AnyTypeNode) Inspect() string {
 	return fmt.Sprintf("Std::Elk::AST::AnyTypeNode{location: %s}", (*value.Location)(n.loc).Inspect())
+}
+
+func (n *AnyTypeNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *AnyTypeNode) Error() string {

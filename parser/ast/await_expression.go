@@ -121,6 +121,10 @@ func (n *AwaitExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *AwaitExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *AwaitExpressionNode) Error() string {
 	return n.Inspect()
 }

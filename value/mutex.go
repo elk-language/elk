@@ -25,6 +25,10 @@ func (m *Mutex) Copy() Reference {
 	return NewMutex()
 }
 
+func (m *Mutex) ToValue() Value {
+	return Ref(m)
+}
+
 func (*Mutex) Class() *Class {
 	return MutexClass
 }

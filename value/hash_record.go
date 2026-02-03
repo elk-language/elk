@@ -53,6 +53,10 @@ func (h *HashRecord) Copy() Reference {
 	return h
 }
 
+func (h *HashRecord) ToValue() Value {
+	return Ref(h)
+}
+
 func (h *HashRecord) Error() string {
 	return h.Inspect()
 }
@@ -187,6 +191,10 @@ func (h *HashRecordIterator) Copy() Reference {
 		HashRecord: h.HashRecord,
 		Index:      h.Index,
 	}
+}
+
+func (i *HashRecordIterator) ToValue() Value {
+	return Ref(i)
 }
 
 func (h *HashRecordIterator) Inspect() string {

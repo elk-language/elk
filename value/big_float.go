@@ -427,6 +427,10 @@ func (f *BigFloat) Copy() Reference {
 	return f
 }
 
+func (f *BigFloat) ToValue() Value {
+	return Ref(f)
+}
+
 func (f *BigFloat) Error() string {
 	return f.Inspect()
 }

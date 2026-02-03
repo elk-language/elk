@@ -157,6 +157,10 @@ func (n *BinaryExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *BinaryExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *BinaryExpressionNode) Error() string {
 	return n.Inspect()
 }

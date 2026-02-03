@@ -110,6 +110,10 @@ func (n *PostfixExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *PostfixExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (p *PostfixExpressionNode) Error() string {
 	return p.Inspect()
 }

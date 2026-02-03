@@ -15,7 +15,7 @@ func initClosureLiteralNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argParameters []ast.ParameterNode
 			if !args[1].IsUndefined() {
-				argParametersTuple := args[1].MustReference().(*value.ArrayTuple)
+				argParametersTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 				argParameters := make([]ast.ParameterNode, argParametersTuple.Length())
 				for i, el := range *argParametersTuple {
 					argParameters[i] = el.MustReference().(ast.ParameterNode)
@@ -34,7 +34,7 @@ func initClosureLiteralNode() {
 
 			var argBody []ast.StatementNode
 			if !args[4].IsUndefined() {
-				argBodyTuple := args[4].MustReference().(*value.ArrayTuple)
+				argBodyTuple := args[4].MustReference().(*value.ArrayTupleOfValue)
 				argBody := make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -72,7 +72,7 @@ func initClosureLiteralNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 			collection := self.Parameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -125,7 +125,7 @@ func initClosureLiteralNode() {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}

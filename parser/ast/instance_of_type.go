@@ -104,6 +104,10 @@ func (n *InstanceOfTypeNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *InstanceOfTypeNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *InstanceOfTypeNode) Error() string {
 	return n.Inspect()
 }

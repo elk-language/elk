@@ -91,6 +91,10 @@ func (n *SimpleSymbolLiteralNode) Inspect() string {
 	)
 }
 
+func (n *SimpleSymbolLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *SimpleSymbolLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -173,6 +177,10 @@ func (n *InterpolatedSymbolLiteralNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *InterpolatedSymbolLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *InterpolatedSymbolLiteralNode) Error() string {

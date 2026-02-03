@@ -214,6 +214,10 @@ func (n *MacroDefinitionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *MacroDefinitionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (p *MacroDefinitionNode) Error() string {
 	return p.Inspect()
 }
@@ -432,6 +436,10 @@ func (n *ScopedMacroCallNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ScopedMacroCallNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ScopedMacroCallNode) Error() string {
 	return n.Inspect()
 }
@@ -646,6 +654,10 @@ func (n *MacroCallNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *MacroCallNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *MacroCallNode) Error() string {
 	return n.Inspect()
 }
@@ -834,6 +846,10 @@ func (n *ReceiverlessMacroCallNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *ReceiverlessMacroCallNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *ReceiverlessMacroCallNode) Error() string {

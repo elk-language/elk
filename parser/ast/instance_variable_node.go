@@ -100,6 +100,10 @@ func (i *PublicInstanceVariableNode) Inspect() string {
 	)
 }
 
+func (n *PublicInstanceVariableNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (p *PublicInstanceVariableNode) Error() string {
 	return p.Inspect()
 }
