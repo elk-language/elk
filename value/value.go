@@ -3926,37 +3926,42 @@ func Next(val Value) (result, err Value) {
 
 	switch v := val.AsReference().(type) {
 	case *ArrayListOfValueIterator:
-		return v.Next()
-	case *ArrayTupleIterator:
-		return v.Next()
+		return v.NextValue()
+	case *ArrayTupleOfValueIterator:
+		return v.NextValue()
 	case *HashMapIterator:
-		return v.Next()
+		return v.NextValue()
 	case *HashRecordIterator:
-		return v.Next()
+		return v.NextValue()
 	case *HashSetIterator:
-		return v.Next()
+		return v.NextValue()
 	case *StringCharIterator:
-		return v.Next()
+		return v.NextValue()
 	case *StringByteIterator:
-		return v.Next()
+		return v.NextValue()
 	case *StringGraphemeIterator:
-		return v.Next()
+		return v.NextValue()
 	case *Channel:
-		return v.Next()
+		return v.NextValue()
 	default:
 		return Undefined, Undefined
 	}
 }
 
+// Represents a native iterable defined in Go
+type NativeIterable interface {
+	Iterate() iter.Seq2[Value, Value]
+}
+
 // Represents an iterator defined in Go
 type NativeIterator interface {
-	Next() (Value, Value)
+	NextValue() (Value, Value)
 }
 
 func IterateNativeIterator(iter NativeIterator) iter.Seq2[Value, Value] {
 	return func(yield func(Value, Value) bool) {
 		for {
-			element, err := iter.Next()
+			element, err := iter.NextValue()
 			if err.IsUndefined() {
 				if !yield(element, Undefined) {
 					return
@@ -3979,7 +3984,7 @@ func Iter(val Value) Value {
 	}
 
 	switch v := val.AsReference().(type) {
-	case *ArrayListOfValueIterator, *ArrayTupleIterator, *HashMapIterator,
+	case *ArrayListOfValueIterator, *ArrayTupleOfValueIterator, *HashMapIterator,
 		*HashRecordIterator, *HashSetIterator, *StringCharIterator,
 		*StringByteIterator, *StringGraphemeIterator, *Channel:
 		return val
@@ -3988,7 +3993,7 @@ func Iter(val Value) Value {
 	case *ArrayListOfValue:
 		return Ref(NewArrayListOfValueIterator(v))
 	case *ArrayTupleOfValue:
-		return Ref(NewArrayTupleIterator(v))
+		return Ref(NewArrayTupleOfValueIterator(v))
 	case *HashMap:
 		return Ref(NewHashMapIterator(v))
 	case *HashRecord:

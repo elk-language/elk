@@ -77,7 +77,7 @@ func (ch *Channel) Pop() (Value, bool) {
 	return result, ok
 }
 
-func (ch *Channel) Next() (Value, Value) {
+func (ch *Channel) NextValue() (Value, Value) {
 	next, ok := <-ch.Native
 	if !ok {
 		return Undefined, stopIterationSymbol.ToValue()

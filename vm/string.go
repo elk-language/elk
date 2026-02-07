@@ -292,7 +292,7 @@ func initStringCharIterator() {
 		"next",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.StringCharIterator)(args[0].Pointer())
-			return self.Next()
+			return self.NextValue()
 		},
 	)
 	Def(
@@ -323,7 +323,7 @@ func initStringByteIterator() {
 		"next",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.StringByteIterator)(args[0].Pointer())
-			return self.Next()
+			return self.NextValue()
 		},
 	)
 	Def(
@@ -354,7 +354,7 @@ func initStringGraphemeIterator() {
 		"next",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.StringGraphemeIterator)(args[0].Pointer())
-			return self.Next()
+			return self.NextValue()
 		},
 	)
 	Def(

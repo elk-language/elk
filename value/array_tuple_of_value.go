@@ -2,19 +2,17 @@ package value
 
 import (
 	"fmt"
+	"iter"
 	"slices"
 	"strings"
 
 	"github.com/elk-language/elk/indent"
 )
 
-// ::Std::ArrayTuple::ValueIterator
-//
-// ArrayTupleOfValue iterator class.
-var ArrayTupleOfValueIteratorClass *Class
-
 // Elk's ArrayTupleOfValue value
 type ArrayTupleOfValue []Value
+
+var _ ArrayTuple = &ArrayTupleOfValue{}
 
 func ArrayTupleOfValueConstructor(class *Class) Value {
 	return Ref(&ArrayTupleOfValue{})
@@ -36,6 +34,14 @@ func NewArrayTupleOfValueWithElements(capacity int, elements ...Value) *ArrayTup
 	return &l
 }
 
+func (t *ArrayTupleOfValue) Iter() *ArrayTupleOfValueIterator {
+	return NewArrayTupleOfValueIterator(t)
+}
+
+func (l *ArrayTupleOfValue) IterTuple() ArrayTupleIterator {
+	return l.Iter()
+}
+
 func (*ArrayTupleOfValue) Class() *Class {
 	return ArrayTupleClass
 }
@@ -50,6 +56,26 @@ func (*ArrayTupleOfValue) SingletonClass() *Class {
 
 func (t *ArrayTupleOfValue) Copy() Reference {
 	return t
+}
+
+func (l *ArrayTupleOfValue) Elements() iter.Seq2[int, Value] {
+	return func(yield func(int, Value) bool) {
+		for i, element := range *l {
+			if !yield(i, element) {
+				return
+			}
+		}
+	}
+}
+
+func (l *ArrayTupleOfValue) Iterate() iter.Seq2[Value, Value] {
+	return func(yield func(Value, Value) bool) {
+		for _, element := range *l {
+			if !yield(element, Undefined) {
+				return
+			}
+		}
+	}
 }
 
 func (t *ArrayTupleOfValue) ToValue() Value {
@@ -137,6 +163,10 @@ func (t *ArrayTupleOfValue) Get(index int) (Value, Value) {
 // Get an element under the given index without bounds checking.
 func (t *ArrayTupleOfValue) At(i int) Value {
 	return (*t)[i]
+}
+
+func (t *ArrayTupleOfValue) AtVal(i int) Value {
+	return t.At(i)
 }
 
 // Get an element under the given index.
@@ -252,19 +282,23 @@ func (t *ArrayTupleOfValue) Repeat(other Value) (*ArrayTupleOfValue, Value) {
 	}
 }
 
+func (t *ArrayTupleOfValue) RepeatVal(other Value) (Value, Value) {
+	return RefErr(t.Repeat(other))
+}
+
 // Return a box pointing to the slot with the given index.
-func (l *ArrayTupleOfValue) ImmutableBoxOfVal(index Value) (*ImmutableBoxOfValue, Value) {
+func (l *ArrayTupleOfValue) ImmutableBoxOfVal(index Value) (Value, Value) {
 	var i int
 
 	i, ok := ToGoInt(index)
 	if !ok {
 		if i == -1 {
-			return nil, Ref(NewIndexOutOfRangeError(index.Inspect(), len(*l)))
+			return Undefined, Ref(NewIndexOutOfRangeError(index.Inspect(), len(*l)))
 		}
-		return nil, Ref(NewCoerceError(IntClass, index.Class()))
+		return Undefined, Ref(NewCoerceError(IntClass, index.Class()))
 	}
 
-	return l.ImmutableBoxOf(i)
+	return RefErr(l.ImmutableBoxOf(i))
 }
 
 // Return a box pointing to the slot with the given index.
@@ -323,60 +357,62 @@ func (t *ArrayTupleOfValue) Length() int {
 	return len(*t)
 }
 
-type ArrayTupleIterator struct {
+type ArrayTupleOfValueIterator struct {
 	ArrayTuple *ArrayTupleOfValue
 	Index      int
 }
 
-func NewArrayTupleIterator(arrayTuple *ArrayTupleOfValue) *ArrayTupleIterator {
-	return &ArrayTupleIterator{
+var _ ArrayTupleIterator = &ArrayTupleOfValueIterator{}
+
+func NewArrayTupleOfValueIterator(arrayTuple *ArrayTupleOfValue) *ArrayTupleOfValueIterator {
+	return &ArrayTupleOfValueIterator{
 		ArrayTuple: arrayTuple,
 	}
 }
 
-func NewArrayTupleIteratorWithIndex(arrayTuple *ArrayTupleOfValue, index int) *ArrayTupleIterator {
-	return &ArrayTupleIterator{
+func NewArrayTupleOfValueIteratorWithIndex(arrayTuple *ArrayTupleOfValue, index int) *ArrayTupleOfValueIterator {
+	return &ArrayTupleOfValueIterator{
 		ArrayTuple: arrayTuple,
 		Index:      index,
 	}
 }
 
-func (*ArrayTupleIterator) Class() *Class {
-	return ArrayTupleOfValueIteratorClass
+func (*ArrayTupleOfValueIterator) Class() *Class {
+	return ArrayTupleIteratorClass
 }
 
-func (*ArrayTupleIterator) DirectClass() *Class {
-	return ArrayTupleOfValueIteratorClass
+func (*ArrayTupleOfValueIterator) DirectClass() *Class {
+	return ArrayTupleIteratorClass
 }
 
-func (*ArrayTupleIterator) SingletonClass() *Class {
+func (*ArrayTupleOfValueIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (t *ArrayTupleIterator) Copy() Reference {
-	return &ArrayTupleIterator{
+func (t *ArrayTupleOfValueIterator) Copy() Reference {
+	return &ArrayTupleOfValueIterator{
 		ArrayTuple: t.ArrayTuple,
 		Index:      t.Index,
 	}
 }
 
-func (i *ArrayTupleIterator) ToValue() Value {
+func (i *ArrayTupleOfValueIterator) ToValue() Value {
 	return Ref(i)
 }
 
-func (t *ArrayTupleIterator) Inspect() string {
-	return fmt.Sprintf("Std::ArrayTuple::ValueIterator{&: %p, tuple: %s, index: %d}", t, t.ArrayTuple.Inspect(), t.Index)
+func (t *ArrayTupleOfValueIterator) Inspect() string {
+	return fmt.Sprintf("Std::ArrayTuple::Iterator{&: %p, tuple: %s, index: %d}", t, t.ArrayTuple.Inspect(), t.Index)
 }
 
-func (t *ArrayTupleIterator) Error() string {
+func (t *ArrayTupleOfValueIterator) Error() string {
 	return t.Inspect()
 }
 
-func (*ArrayTupleIterator) InstanceVariables() *InstanceVariables {
+func (*ArrayTupleOfValueIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (t *ArrayTupleIterator) Next() (Value, Value) {
+func (t *ArrayTupleOfValueIterator) NextValue() (Value, Value) {
 	if t.Index >= t.ArrayTuple.Length() {
 		return Undefined, stopIterationSymbol.ToValue()
 	}
@@ -386,12 +422,16 @@ func (t *ArrayTupleIterator) Next() (Value, Value) {
 	return next, Undefined
 }
 
-func (t *ArrayTupleIterator) Reset() {
-	t.Index = 0
+func (t *ArrayTupleOfValueIterator) Elements() iter.Seq[Value] {
+	return func(yield func(Value) bool) {
+		for ; t.Index >= t.ArrayTuple.Length(); t.Index++ {
+			if !yield((*t.ArrayTuple)[t.Index]) {
+				return
+			}
+		}
+	}
 }
 
-func initArrayTupleOfValue() {
-	ArrayTupleOfValueIteratorClass = NewClass()
-	ArrayTupleClass.AddConstantString("ValueIterator", Ref(ArrayTupleOfValueIteratorClass))
-	RegisterNativeClass("Std::ArrayTuple::ValueIterator", "value.ArrayTupleOfValueIteratorClass")
+func (t *ArrayTupleOfValueIterator) Reset() {
+	t.Index = 0
 }

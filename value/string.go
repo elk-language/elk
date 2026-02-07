@@ -684,7 +684,7 @@ func (*StringCharIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (s *StringCharIterator) Next() (Value, Value) {
+func (s *StringCharIterator) NextValue() (Value, Value) {
 	if s.ByteOffset >= len(s.String) {
 		return Undefined, stopIterationSymbol.ToValue()
 	}
@@ -751,7 +751,7 @@ func (*StringByteIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (s *StringByteIterator) Next() (Value, Value) {
+func (s *StringByteIterator) NextValue() (Value, Value) {
 	if s.ByteOffset >= len(s.String) {
 		return Undefined, stopIterationSymbol.ToValue()
 	}
@@ -822,7 +822,7 @@ func (*StringGraphemeIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (s *StringGraphemeIterator) Next() (Value, Value) {
+func (s *StringGraphemeIterator) NextValue() (Value, Value) {
 	if len(s.Rest) == 0 {
 		return Undefined, stopIterationSymbol.ToValue()
 	}

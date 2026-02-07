@@ -2,7 +2,6 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/value/symbol"
 )
 
 // ::Std::ArrayList
@@ -13,16 +12,16 @@ func initArrayList() {
 		c,
 		"iter",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
-			iterator := value.NewArrayListOfValueIterator(self)
-			return value.Ref(iterator), value.Undefined
+			self := args[0].AsReference().(value.ArrayList)
+			iterator := self.IterList()
+			return iterator.ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"capacity",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
 		},
 	)
@@ -30,7 +29,7 @@ func initArrayList() {
 		c,
 		"length",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
 	)
@@ -38,7 +37,7 @@ func initArrayList() {
 		c,
 		"left_capacity",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
 		},
 	)
@@ -46,10 +45,10 @@ func initArrayList() {
 		c,
 		"box_of",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			other := args[1]
 			b, err := self.BoxOfVal(other)
-			return value.Ref(b), err
+			return b, err
 		},
 		DefWithParameters(1),
 	)
@@ -57,10 +56,10 @@ func initArrayList() {
 		c,
 		"immutable_box_of",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			other := args[1]
 			b, err := self.ImmutableBoxOfVal(other)
-			return value.Ref(b), err
+			return b, err
 		},
 		DefWithParameters(1),
 	)
@@ -68,7 +67,7 @@ func initArrayList() {
 		c,
 		"[]",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			other := args[1]
 			return self.Subscript(other)
 		},
@@ -79,7 +78,7 @@ func initArrayList() {
 		c,
 		"[]=",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			key := args[1]
 			val := args[2]
 			err := self.SubscriptSet(key, val)
@@ -94,9 +93,9 @@ func initArrayList() {
 		c,
 		"+",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			other := args[1]
-			return value.RefErr(self.Concat(other))
+			return self.ConcatVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -104,22 +103,9 @@ func initArrayList() {
 		c,
 		"*",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			other := args[1]
-			return value.RefErr(self.Repeat(other))
-		},
-		DefWithParameters(1),
-	)
-	Def(
-		c,
-		"contains",
-		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
-			contains, err := ArrayListOfValueContains(vm, self, args[1])
-			if !err.IsUndefined() {
-				return value.Undefined, err
-			}
-			return value.ToElkBool(contains), value.Undefined
+			return self.RepeatVal(other)
 		},
 		DefWithParameters(1),
 	)
@@ -127,10 +113,10 @@ func initArrayList() {
 		c,
 		"==",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			switch other := args[1].SafeAsReference().(type) {
-			case *value.ArrayListOfValue:
-				equal, err := ArrayListOfValueEqual(vm, self, other)
+			case value.ArrayList:
+				equal, err := ArrayTupleEqual(vm, self, other)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -145,16 +131,16 @@ func initArrayList() {
 		c,
 		"=~",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			switch other := args[1].SafeAsReference().(type) {
-			case *value.ArrayListOfValue:
-				equal, err := ArrayListOfValueEqual(vm, self, other)
+			case value.ArrayList:
+				equal, err := ArrayTupleEqual(vm, self, other)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
 				return value.ToElkBool(equal), value.Undefined
-			case *value.ArrayTupleOfValue:
-				equal, err := ArrayListOfValueEqual(vm, self, (*value.ArrayListOfValue)(other))
+			case value.ArrayTuple:
+				equal, err := ArrayTupleEqual(vm, self, other)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -169,7 +155,7 @@ func initArrayList() {
 		c,
 		"grow",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			nValue := args[1]
 			n, ok := value.IntToGoInt(nValue)
 			if !ok && n == -1 {
@@ -182,7 +168,7 @@ func initArrayList() {
 				return value.Undefined, value.Ref(value.NewCapacityTypeError(nValue.Inspect()))
 			}
 			self.Grow(n)
-			return value.Ref(self), value.Undefined
+			return self.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -190,12 +176,12 @@ func initArrayList() {
 		c,
 		"append",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			values := args[1]
 			for val := range Iterate(vm, values) {
-				self.Append(val)
+				self.AppendVal(val)
 			}
-			return value.Ref(self), value.Undefined
+			return self.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -203,12 +189,12 @@ func initArrayList() {
 		c,
 		"remove",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			val := args[1]
 
 			var removed bool
 			for i := 0; i < self.Length(); i++ {
-				elem := self.At(i)
+				elem := self.AtVal(i)
 				isEqual, err := Equal(vm, elem, val)
 				if !err.IsUndefined() {
 					return value.Undefined, err
@@ -228,7 +214,7 @@ func initArrayList() {
 		c,
 		"remove_at",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			val := args[1].AsInt()
 			return value.Nil, self.RemoveAtErr(val)
 		},
@@ -238,9 +224,9 @@ func initArrayList() {
 		c,
 		"<<",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
-			self.Append(args[1])
-			return value.Ref(self), value.Undefined
+			self := args[0].AsReference().(value.ArrayList)
+			self.AppendVal(args[1])
+			return self.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -250,31 +236,31 @@ func initArrayList() {
 		c,
 		"map_mut",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			callable := args[1]
 			// callable is a closure
 			if function, ok := callable.SafeAsReference().(*Closure); ok {
 				for i := range self.Length() {
-					element := self.At(i)
+					element := self.AtVal(i)
 					result, err := vm.CallClosure(function, element)
 					if !err.IsUndefined() {
 						return value.Undefined, err
 					}
-					self.SetAt(i, result)
+					self.SetAtVal(i, result)
 				}
-				return value.Ref(self), value.Undefined
+				return self.ToValue(), value.Undefined
 			}
 
 			// callable is another value
 			for i := range self.Length() {
-				element := self.At(i)
+				element := self.AtVal(i)
 				result, err := vm.CallMethodByName(callSymbol, callable, element)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				self.SetAt(i, result)
+				self.SetAtVal(i, result)
 			}
-			return value.Ref(self), value.Undefined
+			return self.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -283,14 +269,14 @@ func initArrayList() {
 		c,
 		"map",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayList)
 			callable := args[1]
 			newList := value.NewArrayListOfValueWithLength(self.Length())
 
 			// callable is a closure
 			if function, ok := callable.SafeAsReference().(*Closure); ok {
 				for i := range self.Length() {
-					element := self.At(i)
+					element := self.AtVal(i)
 					result, err := vm.CallClosure(function, element)
 					if !err.IsUndefined() {
 						return value.Undefined, err
@@ -302,7 +288,7 @@ func initArrayList() {
 
 			// callable is another value
 			for i := range self.Length() {
-				element := self.At(i)
+				element := self.AtVal(i)
 				result, err := vm.CallMethodByName(callSymbol, callable, element)
 				if !err.IsUndefined() {
 					return value.Undefined, err
@@ -319,13 +305,13 @@ func initArrayList() {
 // ::Std::ArrayList::Iterator
 func initArrayListIterator() {
 	// Instance methods
-	c := &value.ArrayListOfValueIteratorClass.MethodContainer
+	c := &value.ArrayListIteratorClass.MethodContainer
 	Def(
 		c,
 		"next",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValueIterator)(args[0].Pointer())
-			return self.Next()
+			self := args[0].AsReference().(value.ArrayListIterator)
+			return self.NextValue()
 		},
 	)
 	Def(
@@ -339,40 +325,9 @@ func initArrayListIterator() {
 		c,
 		"reset",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ArrayListOfValueIterator)(args[0].Pointer())
+			self := args[0].AsReference().(value.ArrayListIterator)
 			self.Reset()
 			return args[0], value.Undefined
 		},
 	)
-}
-
-func ArrayListOfValueContains(vm *Thread, list *value.ArrayListOfValue, val value.Value) (bool, value.Value) {
-	for _, element := range *list {
-		equal, err := vm.CallMethodByName(symbol.OpEqual, element, val)
-		if !err.IsUndefined() {
-			return false, err
-		}
-		if value.Truthy(equal) {
-			return true, value.Undefined
-		}
-	}
-	return false, value.Undefined
-}
-
-func ArrayListOfValueEqual(vm *Thread, x, y *value.ArrayListOfValue) (bool, value.Value) {
-	xLen := x.Length()
-	if xLen != y.Length() {
-		return false, value.Undefined
-	}
-
-	for i := 0; i < xLen; i++ {
-		equal, err := vm.CallMethodByName(symbol.OpEqual, (*x)[i], (*y)[i])
-		if !err.IsUndefined() {
-			return false, err
-		}
-		if value.Falsy(equal) {
-			return false, value.Undefined
-		}
-	}
-	return true, value.Undefined
 }

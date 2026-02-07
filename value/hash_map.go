@@ -233,7 +233,7 @@ func (*HashMapIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (h *HashMapIterator) Next() (Value, Value) {
+func (h *HashMapIterator) NextValue() (Value, Value) {
 	for {
 		if h.Index >= h.HashMap.Capacity() {
 			return Undefined, stopIterationSymbol.ToValue()

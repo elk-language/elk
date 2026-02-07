@@ -206,7 +206,7 @@ func (*HashSetIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (h *HashSetIterator) Next() (Value, Value) {
+func (h *HashSetIterator) NextValue() (Value, Value) {
 	for {
 		if h.Index >= h.HashSet.Capacity() {
 			return Undefined, stopIterationSymbol.ToValue()

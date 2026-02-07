@@ -353,23 +353,23 @@ func NextBuiltin(vm *Thread, val value.Value) (result, err value.Value) {
 
 	switch v := val.AsReference().(type) {
 	case *value.ArrayListOfValueIterator:
-		return v.Next()
-	case *value.ArrayTupleIterator:
-		return v.Next()
+		return v.NextValue()
+	case *value.ArrayTupleOfValueIterator:
+		return v.NextValue()
 	case *value.HashMapIterator:
-		return v.Next()
+		return v.NextValue()
 	case *value.HashRecordIterator:
-		return v.Next()
+		return v.NextValue()
 	case *value.HashSetIterator:
-		return v.Next()
+		return v.NextValue()
 	case *value.StringCharIterator:
-		return v.Next()
+		return v.NextValue()
 	case *value.StringByteIterator:
-		return v.Next()
+		return v.NextValue()
 	case *value.StringGraphemeIterator:
-		return v.Next()
+		return v.NextValue()
 	case *value.Channel:
-		return v.Next()
+		return v.NextValue()
 	case *value.ClosedRangeIterator:
 		return ClosedRangeIteratorNext(vm, v)
 	case *value.OpenRangeIterator:

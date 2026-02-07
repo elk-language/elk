@@ -2177,7 +2177,7 @@ func TestStringGraphemeIterator_Next(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.s.Next()
+			got, err := tc.s.NextValue()
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatal(diff)
@@ -2283,7 +2283,7 @@ func TestStringCharIterator_Next(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.s.Next()
+			got, err := tc.s.NextValue()
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatal(diff)
@@ -2399,7 +2399,7 @@ func TestStringByteIterator_Next(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.s.Next()
+			got, err := tc.s.NextValue()
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatal(diff)

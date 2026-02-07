@@ -7,10 +7,31 @@ import "iter"
 // Represents an immutable array.
 var ArrayTupleClass *Class
 
+// ::Std::ArrayTuple::Iterator
+//
+// ArrayTuple iterator class.
+var ArrayTupleIteratorClass *Class
+
 type ArrayTuple interface {
 	ValueInterface
+	NativeIterable
+	Iterate() iter.Seq2[Value, Value]
 	Elements() iter.Seq2[int, Value]
 	Length() int
+	ImmutableBoxOfVal(index Value) (Value, Value)
+	AtVal(int) Value
+	Subscript(index Value) (Value, Value)
+	ConcatVal(Value) (Value, Value)
+	RepeatVal(Value) (Value, Value)
+	IterTuple() ArrayTupleIterator
+}
+
+type ArrayTupleIterator interface {
+	NativeIterator
+	ValueInterface
+	NextValue() (Value, Value)
+	Reset()
+	Elements() iter.Seq[Value]
 }
 
 func initArrayTuple() {
@@ -19,7 +40,7 @@ func initArrayTuple() {
 	StdModule.AddConstantString("ArrayTuple", Ref(ArrayTupleClass))
 	RegisterNativeClass("Std::ArrayTuple", "value.ArrayTupleClass")
 
-	ArrayTupleOfValueIteratorClass = NewClass()
-	ArrayTupleClass.AddConstantString("Iterator", Ref(ArrayTupleOfValueIteratorClass))
+	ArrayTupleIteratorClass = NewClass()
+	ArrayTupleClass.AddConstantString("Iterator", Ref(ArrayTupleIteratorClass))
 	RegisterNativeClass("Std::ArrayTuple::Iterator", "value.ArrayTupleIteratorClass")
 }

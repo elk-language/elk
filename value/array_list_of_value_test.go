@@ -521,7 +521,7 @@ func TestArrayListOfValueIterator_Next(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.l.Next()
+			got, err := tc.l.NextValue()
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatal(diff)

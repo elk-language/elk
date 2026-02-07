@@ -6,8 +6,27 @@ package value
 // that can shrink and grow.
 var ArrayListClass *Class
 
+// ::Std::ArrayList::Iterator
+//
+// ArrayList iterator class.
+var ArrayListIteratorClass *Class
+
 type ArrayList interface {
 	ArrayTuple
+	Capacity() int
+	LeftCapacity() int
+	BoxOfVal(index Value) (Value, Value)
+	SubscriptSet(index Value, v Value) Value
+	SetAtVal(index int, v Value)
+	Grow(int)
+	AppendVal(elements ...Value)
+	RemoveAt(i int)
+	RemoveAtErr(index int) Value
+	IterList() ArrayListIterator
+}
+
+type ArrayListIterator interface {
+	ArrayTupleIterator
 }
 
 func initArrayList() {
@@ -15,4 +34,8 @@ func initArrayList() {
 	ArrayListClass.IncludeMixin(ListMixin)
 	StdModule.AddConstantString("ArrayList", Ref(ArrayListClass))
 	RegisterNativeClass("Std::ArrayList", "value.ArrayListClass")
+
+	ArrayListIteratorClass = NewClass()
+	ArrayListClass.AddConstantString("Iterator", Ref(ArrayListIteratorClass))
+	RegisterNativeClass("Std::ArrayList::Iterator", "value.ArrayListIteratorClass")
 }

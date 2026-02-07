@@ -9,25 +9,27 @@ import (
 )
 
 // Elk's native array list implementation
-type nativeArrayList[T ValueInterface] []T
+type NativeArrayList[T ValueInterface] []T
 
-func newNativeArrayList[T ValueInterface](capacity int) *nativeArrayList[T] {
-	l := make(nativeArrayList[T], 0, capacity)
+var _ ArrayList = &NativeArrayList[String]{}
+
+func NewNativeArrayList[T ValueInterface](capacity int) *NativeArrayList[T] {
+	l := make(NativeArrayList[T], 0, capacity)
 	return &l
 }
 
-func newNativeArrayListWithLength[T ValueInterface](length int) *nativeArrayList[T] {
-	l := make(nativeArrayList[T], length)
+func NewNativeArrayListWithLength[T ValueInterface](length int) *NativeArrayList[T] {
+	l := make(NativeArrayList[T], length)
 	return &l
 }
 
-func newNativeArrayListWithElements[T ValueInterface](capacity int, elements ...T) *nativeArrayList[T] {
-	l := make(nativeArrayList[T], len(elements), len(elements)+capacity)
+func NewNativeArrayListWithElements[T ValueInterface](capacity int, elements ...T) *NativeArrayList[T] {
+	l := make(NativeArrayList[T], len(elements), len(elements)+capacity)
 	copy(l, elements)
 	return &l
 }
 
-func (l *nativeArrayList[T]) Elements() iter.Seq2[int, Value] {
+func (l *NativeArrayList[T]) Elements() iter.Seq2[int, Value] {
 	return func(yield func(int, Value) bool) {
 		for i, element := range *l {
 			if !yield(i, element.ToValue()) {
@@ -37,37 +39,47 @@ func (l *nativeArrayList[T]) Elements() iter.Seq2[int, Value] {
 	}
 }
 
-func (*nativeArrayList[T]) Class() *Class {
+func (l *NativeArrayList[T]) Iterate() iter.Seq2[Value, Value] {
+	return func(yield func(Value, Value) bool) {
+		for _, element := range *l {
+			if !yield(element.ToValue(), Undefined) {
+				return
+			}
+		}
+	}
+}
+
+func (*NativeArrayList[T]) Class() *Class {
 	return ArrayListClass
 }
 
-func (*nativeArrayList[T]) DirectClass() *Class {
+func (*NativeArrayList[T]) DirectClass() *Class {
 	return ArrayListClass
 }
 
-func (l *nativeArrayList[T]) ToValue() Value {
+func (l *NativeArrayList[T]) ToValue() Value {
 	return Ref(l)
 }
 
-func (*nativeArrayList[T]) SingletonClass() *Class {
+func (*NativeArrayList[T]) SingletonClass() *Class {
 	return nil
 }
 
-func (l *nativeArrayList[T]) Copy() Reference {
+func (l *NativeArrayList[T]) Copy() Reference {
 	if l == nil {
 		return l
 	}
 
-	newList := make(nativeArrayList[T], len(*l))
+	newList := make(NativeArrayList[T], len(*l))
 	copy(newList, *l)
 	return &newList
 }
 
-func (l *nativeArrayList[T]) Error() string {
+func (l *NativeArrayList[T]) Error() string {
 	return l.Inspect()
 }
 
-func (l *nativeArrayList[T]) Inspect() string {
+func (l *NativeArrayList[T]) Inspect() string {
 	var hasMultilineElements bool
 	elementStrings := make(
 		[]string,
@@ -129,15 +141,15 @@ func (l *nativeArrayList[T]) Inspect() string {
 	return buff.String()
 }
 
-func (*nativeArrayList[T]) InstanceVariables() *InstanceVariables {
+func (*NativeArrayList[T]) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (l *nativeArrayList[T]) Capacity() int {
+func (l *NativeArrayList[T]) Capacity() int {
 	return cap(*l)
 }
 
-func (l *nativeArrayList[T]) RemoveAtErr(index int) Value {
+func (l *NativeArrayList[T]) RemoveAtErr(index int) Value {
 	index, err := NormalizeArrayIndex(index, l.Length())
 	if !err.IsUndefined() {
 		return err
@@ -147,45 +159,55 @@ func (l *nativeArrayList[T]) RemoveAtErr(index int) Value {
 	return Undefined
 }
 
-func (l *nativeArrayList[T]) RemoveAt(i int) {
+func (l *NativeArrayList[T]) RemoveAt(i int) {
 	s := *l
 	copy(s[i:], s[i+1:])
 	*l = s[:len(s)-1]
 }
 
-func (l *nativeArrayList[T]) LeftCapacity() int {
+func (l *NativeArrayList[T]) LeftCapacity() int {
 	return l.Capacity() - l.Length()
 }
 
-func (l *nativeArrayList[T]) Length() int {
+func (l *NativeArrayList[T]) Length() int {
 	return len(*l)
 }
 
 // Add new elements.
-func (l *nativeArrayList[T]) Append(elements ...T) {
+func (l *NativeArrayList[T]) Append(elements ...T) {
 	*l = append(*l, elements...)
+}
+
+func (l *NativeArrayList[T]) AppendVal(elements ...Value) {
+	for _, element := range elements {
+		*l = append(*l, element.ToInterface().(T))
+	}
 }
 
 // Expand the array list to have
 // empty slots for new elements.
-func (l *nativeArrayList[T]) Grow(newSlots int) {
-	newList := make(nativeArrayList[T], l.Length(), l.Capacity()+newSlots)
+func (l *NativeArrayList[T]) Grow(newSlots int) {
+	newList := make(NativeArrayList[T], l.Length(), l.Capacity()+newSlots)
 	copy(newList, *l)
 	*l = newList
 }
 
 // Get an element under the given index.
-func (l *nativeArrayList[T]) Get(index int) (T, Value) {
+func (l *NativeArrayList[T]) Get(index int) (T, Value) {
 	return GetFromSlice((*[]T)(l), index)
 }
 
 // Get an element under the given index without bounds checking
-func (l *nativeArrayList[T]) At(i int) T {
+func (l *NativeArrayList[T]) At(i int) T {
 	return (*l)[i]
 }
 
+func (l *NativeArrayList[T]) AtVal(i int) Value {
+	return l.At(i).ToValue()
+}
+
 // Get an element under the given index.
-func (l *nativeArrayList[T]) Subscript(key Value) (t T, err Value) {
+func (l *NativeArrayList[T]) Subscript(key Value) (t Value, err Value) {
 	var i int
 
 	i, ok := ToGoInt(key)
@@ -196,21 +218,25 @@ func (l *nativeArrayList[T]) Subscript(key Value) (t T, err Value) {
 		return t, Ref(NewCoerceError(IntClass, key.Class()))
 	}
 
-	return l.Get(i)
+	return ToValueErr(l.Get(i))
 }
 
 // Set an element under the given index.
-func (l *nativeArrayList[T]) Set(index int, val T) Value {
+func (l *NativeArrayList[T]) Set(index int, val T) Value {
 	return SetInSlice((*[]T)(l), index, val)
 }
 
 // Set an element under the given index without bounds checking.
-func (l *nativeArrayList[T]) SetAt(index int, val T) {
+func (l *NativeArrayList[T]) SetAt(index int, val T) {
 	(*l)[index] = val
 }
 
+func (l *NativeArrayList[T]) SetAtVal(index int, val Value) {
+	(*l)[index] = val.ToInterface().(T)
+}
+
 // Set an element under the given index.
-func (l *nativeArrayList[T]) SubscriptSet(key Value, val T) Value {
+func (l *NativeArrayList[T]) SubscriptSet(key Value, val Value) Value {
 	length := len(*l)
 	i, ok := ToGoInt(key)
 	if !ok {
@@ -220,16 +246,16 @@ func (l *nativeArrayList[T]) SubscriptSet(key Value, val T) Value {
 		return Ref(NewCoerceError(IntClass, key.Class()))
 	}
 
-	return l.Set(i, val)
+	return l.Set(i, val.ToInterface().(T))
 }
 
 // Concatenate another value with this list, creating a new list, and return the result.
 // If the operation is illegal an error will be returned.
-func (l *nativeArrayList[T]) Concat(other Value) (Value, Value) {
+func (l *NativeArrayList[T]) ConcatVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
-		case *nativeArrayList[T]:
-			newList := make(nativeArrayList[T], len(*l), len(*l)+len(*o))
+		case *NativeArrayList[T]:
+			newList := make(NativeArrayList[T], len(*l), len(*l)+len(*o))
 			copy(newList, *l)
 			newList = append(newList, *o...)
 			return Ref(&newList), Undefined
@@ -250,7 +276,7 @@ func (l *nativeArrayList[T]) Concat(other Value) (Value, Value) {
 
 // Repeat the content of this list n times and return a new list containing the result.
 // If the operation is illegal an error will be returned.
-func (l *nativeArrayList[T]) Repeat(other Value) (*nativeArrayList[T], Value) {
+func (l *NativeArrayList[T]) Repeat(other Value) (*NativeArrayList[T], Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
@@ -282,7 +308,7 @@ func (l *nativeArrayList[T]) Repeat(other Value) (*nativeArrayList[T], Value) {
 				o.Inspect(),
 			))
 		}
-		newList := make(nativeArrayList[T], 0, newLen)
+		newList := make(NativeArrayList[T], 0, newLen)
 		for range int(o) {
 			newList = append(newList, *l...)
 		}
@@ -292,14 +318,22 @@ func (l *nativeArrayList[T]) Repeat(other Value) (*nativeArrayList[T], Value) {
 	}
 }
 
+func (l *NativeArrayList[T]) RepeatVal(other Value) (Value, Value) {
+	return RefErr(l.Repeat(other))
+}
+
 // Return an immutable box pointing to the slot with the given index.
-func (l *nativeArrayList[T]) ImmutableBoxOfVal(index Value) (*ImmutableNativeBox[T], Value) {
-	b, err := l.BoxOfVal(index)
-	return b.ToImmutableBox(), err
+func (l *NativeArrayList[T]) ImmutableBoxOfVal(index Value) (Value, Value) {
+	b, err := l.boxOf(index)
+	return b.ToImmutableBox().ToValue(), err
 }
 
 // Return a box pointing to the slot with the given index.
-func (l *nativeArrayList[T]) BoxOfVal(index Value) (*NativeBox[T], Value) {
+func (l *NativeArrayList[T]) BoxOfVal(index Value) (Value, Value) {
+	return RefErr(l.boxOf(index))
+}
+
+func (l *NativeArrayList[T]) boxOf(index Value) (*NativeBox[T], Value) {
 	var i int
 
 	i, ok := ToGoInt(index)
@@ -314,7 +348,7 @@ func (l *nativeArrayList[T]) BoxOfVal(index Value) (*NativeBox[T], Value) {
 }
 
 // Return a box pointing to the slot with the given index.
-func (l *nativeArrayList[T]) BoxOf(index int) (*NativeBox[T], Value) {
+func (l *NativeArrayList[T]) BoxOf(index int) (*NativeBox[T], Value) {
 	index, err := NormalizeArrayIndex(index, l.Length())
 	if !err.IsUndefined() {
 		return nil, err
@@ -324,37 +358,74 @@ func (l *nativeArrayList[T]) BoxOf(index int) (*NativeBox[T], Value) {
 	return box, Undefined
 }
 
-type nativeArrayListIterator[T ValueInterface] struct {
-	ArrayList *nativeArrayList[T]
+func (l *NativeArrayList[T]) Iter() *NativeArrayListIterator[T] {
+	return NewNativeArrayListIterator(l)
+}
+
+func (l *NativeArrayList[T]) IterTuple() ArrayTupleIterator {
+	return l.Iter()
+}
+
+func (l *NativeArrayList[T]) IterList() ArrayListIterator {
+	return l.Iter()
+}
+
+type NativeArrayListIterator[T ValueInterface] struct {
+	ArrayList *NativeArrayList[T]
 	Index     int
 }
 
-func newNativeArrayListIterator[T ValueInterface](list *nativeArrayList[T]) *nativeArrayListIterator[T] {
-	return &nativeArrayListIterator[T]{
+var _ ArrayListIterator = &NativeArrayListIterator[String]{}
+
+func NewNativeArrayListIterator[T ValueInterface](list *NativeArrayList[T]) *NativeArrayListIterator[T] {
+	return &NativeArrayListIterator[T]{
 		ArrayList: list,
 	}
 }
 
-func newNativeArrayListIteratorWithIndex[T ValueInterface](list *nativeArrayList[T], index int) *nativeArrayListIterator[T] {
-	return &nativeArrayListIterator[T]{
+func NewNativeArrayListIteratorWithIndex[T ValueInterface](list *NativeArrayList[T], index int) *NativeArrayListIterator[T] {
+	return &NativeArrayListIterator[T]{
 		ArrayList: list,
 		Index:     index,
 	}
 }
 
-func (*nativeArrayListIterator[T]) SingletonClass() *Class {
+func (*NativeArrayListIterator[T]) SingletonClass() *Class {
 	return nil
 }
 
-func (l *nativeArrayListIterator[T]) inspect() string {
-	return fmt.Sprintf("{&: %p, list: %s, index: %d}", l, l.ArrayList.Inspect(), l.Index)
+func (*NativeArrayListIterator[T]) Class() *Class {
+	return ArrayListIteratorClass
 }
 
-func (*nativeArrayListIterator[T]) InstanceVariables() *InstanceVariables {
+func (*NativeArrayListIterator[T]) DirectClass() *Class {
+	return ArrayListIteratorClass
+}
+
+func (l *NativeArrayListIterator[T]) Inspect() string {
+	return fmt.Sprintf("Std::ArrayList::Iterator{&: %p, list: %s, index: %d}", l, l.ArrayList.Inspect(), l.Index)
+}
+
+func (l *NativeArrayListIterator[T]) Error() string {
+	return l.Inspect()
+}
+
+func (i *NativeArrayListIterator[T]) ToValue() Value {
+	return Ref(i)
+}
+
+func (l *NativeArrayListIterator[T]) Copy() Reference {
+	return &NativeArrayListIterator[T]{
+		ArrayList: l.ArrayList,
+		Index:     l.Index,
+	}
+}
+
+func (*NativeArrayListIterator[T]) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (l *nativeArrayListIterator[T]) Next() (t T, err Value) {
+func (l *NativeArrayListIterator[T]) Next() (t T, err Value) {
 	if l.Index >= l.ArrayList.Length() {
 		return t, stopIterationSymbol.ToValue()
 	}
@@ -364,6 +435,20 @@ func (l *nativeArrayListIterator[T]) Next() (t T, err Value) {
 	return next, Undefined
 }
 
-func (l *nativeArrayListIterator[T]) Reset() {
+func (l *NativeArrayListIterator[T]) NextValue() (t Value, err Value) {
+	return ToValueErr(l.Next())
+}
+
+func (l *NativeArrayListIterator[T]) Elements() iter.Seq[Value] {
+	return func(yield func(Value) bool) {
+		for ; l.Index >= l.ArrayList.Length(); l.Index++ {
+			if !yield((*l.ArrayList)[l.Index].ToValue()) {
+				return
+			}
+		}
+	}
+}
+
+func (l *NativeArrayListIterator[T]) Reset() {
 	l.Index = 0
 }

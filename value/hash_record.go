@@ -205,7 +205,7 @@ func (*HashRecordIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (h *HashRecordIterator) Next() (Value, Value) {
+func (h *HashRecordIterator) NextValue() (Value, Value) {
 	for {
 		if h.Index >= len(h.HashRecord.Table) {
 			return Undefined, stopIterationSymbol.ToValue()

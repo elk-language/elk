@@ -267,7 +267,7 @@ func initHashRecordIterator() {
 		"next",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.HashRecordIterator)(args[0].Pointer())
-			return self.Next()
+			return self.NextValue()
 		},
 	)
 	Def(

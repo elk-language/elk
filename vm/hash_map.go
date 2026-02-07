@@ -361,7 +361,7 @@ func initHashMapIterator() {
 		"next",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.HashMapIterator)(args[0].Pointer())
-			return self.Next()
+			return self.NextValue()
 		},
 	)
 	Def(

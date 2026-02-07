@@ -10,32 +10,10 @@ import (
 // Iterate over an iterable value
 func Iterate(vm *Thread, collectionValue value.Value) iter.Seq2[value.Value, value.Value] {
 	switch c := collectionValue.AsReference().(type) {
-	case *value.ArrayListOfValueIterator:
+	case value.NativeIterator:
 		return value.IterateNativeIterator(c)
-	case *value.ArrayTupleIterator:
-		return value.IterateNativeIterator(c)
-	case *value.HashMapIterator:
-		return value.IterateNativeIterator(c)
-	case *value.HashRecordIterator:
-		return value.IterateNativeIterator(c)
-	case *value.HashSetIterator:
-		return value.IterateNativeIterator(c)
-	case *value.ArrayListOfValue:
-		return func(yield func(value.Value, value.Value) bool) {
-			for _, element := range *c {
-				if !yield(element, value.Undefined) {
-					return
-				}
-			}
-		}
-	case *value.ArrayTupleOfValue:
-		return func(yield func(value.Value, value.Value) bool) {
-			for _, element := range *c {
-				if !yield(element, value.Undefined) {
-					return
-				}
-			}
-		}
+	case value.NativeIterable:
+		return c.Iterate()
 	case *value.HashSet:
 		return func(yield func(value.Value, value.Value) bool) {
 			for _, element := range c.Table {

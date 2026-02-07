@@ -8,13 +8,10 @@ import (
 	"github.com/elk-language/elk/indent"
 )
 
-// ::Std::ArrayList::ValueIterator
-//
-// ArrayListOfValue iterator class.
-var ArrayListOfValueIteratorClass *Class
-
 // Elk's ArrayListOfValue value
 type ArrayListOfValue []Value
+
+var _ ArrayList = &ArrayListOfValue{}
 
 func NormalizeArrayIndex(index, length int) (int, Value) {
 	if index >= length || index < -length {
@@ -80,12 +77,34 @@ func (l *ArrayListOfValue) Elements() iter.Seq2[int, Value] {
 	}
 }
 
+func (l *ArrayListOfValue) Iterate() iter.Seq2[Value, Value] {
+	return func(yield func(Value, Value) bool) {
+		for _, element := range *l {
+			if !yield(element, Undefined) {
+				return
+			}
+		}
+	}
+}
+
 func (l *ArrayListOfValue) ToValue() Value {
 	return Ref(l)
 }
 
 func (l *ArrayListOfValue) Error() string {
 	return l.Inspect()
+}
+
+func (l *ArrayListOfValue) Iter() *ArrayListOfValueIterator {
+	return NewArrayListOfValueIterator(l)
+}
+
+func (l *ArrayListOfValue) IterTuple() ArrayTupleIterator {
+	return l.Iter()
+}
+
+func (l *ArrayListOfValue) IterList() ArrayListIterator {
+	return l.Iter()
 }
 
 const MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT = 300
@@ -189,6 +208,10 @@ func (l *ArrayListOfValue) Append(elements ...Value) {
 	*l = append(*l, elements...)
 }
 
+func (l *ArrayListOfValue) AppendVal(elements ...Value) {
+	l.Append(elements...)
+}
+
 // Expand the array list to have
 // empty slots for new elements.
 func (l *ArrayListOfValue) Grow(newSlots int) {
@@ -229,6 +252,10 @@ func (l *ArrayListOfValue) At(i int) Value {
 	return (*l)[i]
 }
 
+func (l *ArrayListOfValue) AtVal(i int) Value {
+	return l.At(i)
+}
+
 // Get an element under the given index.
 func (l *ArrayListOfValue) Subscript(key Value) (Value, Value) {
 	var i int
@@ -252,6 +279,10 @@ func (l *ArrayListOfValue) Set(index int, val Value) Value {
 // Set an element under the given index without bounds checking.
 func (l *ArrayListOfValue) SetAt(index int, val Value) {
 	(*l)[index] = val
+}
+
+func (l *ArrayListOfValue) SetAtVal(index int, val Value) {
+	l.SetAtVal(index, val)
 }
 
 // Set an element under the given index.
@@ -298,6 +329,10 @@ func (l *ArrayListOfValue) Concat(other Value) (*ArrayListOfValue, Value) {
 	return nil, Ref(Errorf(TypeErrorClass, "cannot concat %s with list %s", other.Inspect(), l.Inspect()))
 }
 
+func (l *ArrayListOfValue) ConcatVal(other Value) (Value, Value) {
+	return RefErr(l.Concat(other))
+}
+
 // Repeat the content of this list n times and return a new list containing the result.
 // If the operation is illegal an error will be returned.
 func (l *ArrayListOfValue) Repeat(other Value) (*ArrayListOfValue, Value) {
@@ -342,14 +377,22 @@ func (l *ArrayListOfValue) Repeat(other Value) (*ArrayListOfValue, Value) {
 	}
 }
 
+func (l *ArrayListOfValue) RepeatVal(other Value) (Value, Value) {
+	return RefErr(l.Repeat(other))
+}
+
 // Return an immutable box pointing to the slot with the given index.
-func (l *ArrayListOfValue) ImmutableBoxOfVal(index Value) (*ImmutableBoxOfValue, Value) {
-	b, err := l.BoxOfVal(index)
-	return b.ToImmutableBox(), err
+func (l *ArrayListOfValue) ImmutableBoxOfVal(index Value) (Value, Value) {
+	b, err := l.boxOf(index)
+	return Ref(b.ToImmutableBox()), err
 }
 
 // Return a box pointing to the slot with the given index.
-func (l *ArrayListOfValue) BoxOfVal(index Value) (*BoxOfValue, Value) {
+func (l *ArrayListOfValue) BoxOfVal(index Value) (Value, Value) {
+	return RefErr(l.boxOf(index))
+}
+
+func (l *ArrayListOfValue) boxOf(index Value) (*BoxOfValue, Value) {
 	var i int
 
 	i, ok := ToGoInt(index)
@@ -421,6 +464,8 @@ type ArrayListOfValueIterator struct {
 	Index     int
 }
 
+var _ ArrayListIterator = &ArrayListOfValueIterator{}
+
 func NewArrayListOfValueIterator(list *ArrayListOfValue) *ArrayListOfValueIterator {
 	return &ArrayListOfValueIterator{
 		ArrayList: list,
@@ -435,11 +480,11 @@ func NewArrayListIteratorWithIndex(list *ArrayListOfValue, index int) *ArrayList
 }
 
 func (*ArrayListOfValueIterator) Class() *Class {
-	return ArrayListOfValueIteratorClass
+	return ArrayListIteratorClass
 }
 
 func (*ArrayListOfValueIterator) DirectClass() *Class {
-	return ArrayListOfValueIteratorClass
+	return ArrayListIteratorClass
 }
 
 func (*ArrayListOfValueIterator) SingletonClass() *Class {
@@ -458,7 +503,7 @@ func (i *ArrayListOfValueIterator) ToValue() Value {
 }
 
 func (l *ArrayListOfValueIterator) Inspect() string {
-	return fmt.Sprintf("Std::ArrayList::ValueIterator{&: %p, list: %s, index: %d}", l, l.ArrayList.Inspect(), l.Index)
+	return fmt.Sprintf("Std::ArrayList::Iterator{&: %p, list: %s, index: %d}", l, l.ArrayList.Inspect(), l.Index)
 }
 
 func (l *ArrayListOfValueIterator) Error() string {
@@ -471,7 +516,7 @@ func (*ArrayListOfValueIterator) InstanceVariables() *InstanceVariables {
 
 var stopIterationSymbol = ToSymbol("stop_iteration")
 
-func (l *ArrayListOfValueIterator) Next() (Value, Value) {
+func (l *ArrayListOfValueIterator) NextValue() (Value, Value) {
 	if l.Index >= l.ArrayList.Length() {
 		return Undefined, stopIterationSymbol.ToValue()
 	}
@@ -481,12 +526,16 @@ func (l *ArrayListOfValueIterator) Next() (Value, Value) {
 	return next, Undefined
 }
 
-func (l *ArrayListOfValueIterator) Reset() {
-	l.Index = 0
+func (l *ArrayListOfValueIterator) Elements() iter.Seq[Value] {
+	return func(yield func(Value) bool) {
+		for ; l.Index >= l.ArrayList.Length(); l.Index++ {
+			if !yield((*l.ArrayList)[l.Index]) {
+				return
+			}
+		}
+	}
 }
 
-func initArrayListOfValue() {
-	ArrayListOfValueIteratorClass = NewClass()
-	ArrayListClass.AddConstantString("ValueIterator", Ref(ArrayListOfValueIteratorClass))
-	RegisterNativeClass("Std::ArrayList::ValueIterator", "value.ArrayListOfValueIteratorClass")
+func (l *ArrayListOfValueIterator) Reset() {
+	l.Index = 0
 }

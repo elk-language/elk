@@ -356,7 +356,7 @@ func Iter(node Node) iter.Seq[Node] {
 	}
 }
 
-func NewNodeIterator(node Node) *value.ArrayTupleIterator {
+func NewNodeIterator(node Node) *value.ArrayTupleOfValueIterator {
 	var tuple value.ArrayTupleOfValue
 	for n := range Iter(node) {
 		tuple = append(tuple, value.Ref(n))

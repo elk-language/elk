@@ -374,25 +374,25 @@ func TestArrayTuple_Subscript(t *testing.T) {
 
 func TestArrayTupleIterator_Inspect(t *testing.T) {
 	tests := map[string]struct {
-		l    *value.ArrayTupleIterator
+		l    *value.ArrayTupleOfValueIterator
 		want string
 	}{
 		"empty": {
-			l: value.NewArrayTupleIteratorWithIndex(
+			l: value.NewArrayTupleOfValueIteratorWithIndex(
 				&value.ArrayTupleOfValue{},
 				0,
 			),
 			want: `Std::ArrayTuple::Iterator\{&: 0x[[:xdigit:]]{4,12}, tuple: %\[\], index: 0\}`,
 		},
 		"with one element": {
-			l: value.NewArrayTupleIteratorWithIndex(
+			l: value.NewArrayTupleOfValueIteratorWithIndex(
 				&value.ArrayTupleOfValue{value.SmallInt(3).ToValue()},
 				0,
 			),
 			want: `Std::ArrayTuple::Iterator\{&: 0x[[:xdigit:]]{4,12}, tuple: %\[3\], index: 0\}`,
 		},
 		"with elements": {
-			l: value.NewArrayTupleIteratorWithIndex(
+			l: value.NewArrayTupleOfValueIteratorWithIndex(
 				&value.ArrayTupleOfValue{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))},
 				1,
 			),
@@ -411,48 +411,48 @@ func TestArrayTupleIterator_Inspect(t *testing.T) {
 	}
 }
 
-func TestArrayTupleIterator_Next(t *testing.T) {
+func TestArrayTupleOfValueIterator_Next(t *testing.T) {
 	tests := map[string]struct {
-		l     *value.ArrayTupleIterator
-		after *value.ArrayTupleIterator
+		l     *value.ArrayTupleOfValueIterator
+		after *value.ArrayTupleOfValueIterator
 		want  value.Value
 		err   value.Value
 	}{
 		"empty": {
-			l: value.NewArrayTupleIteratorWithIndex(
+			l: value.NewArrayTupleOfValueIteratorWithIndex(
 				&value.ArrayTupleOfValue{},
 				0,
 			),
-			after: value.NewArrayTupleIteratorWithIndex(
+			after: value.NewArrayTupleOfValueIteratorWithIndex(
 				&value.ArrayTupleOfValue{},
 				0,
 			),
 			err: value.ToSymbol("stop_iteration").ToValue(),
 		},
 		"with two elements index 0": {
-			l: value.NewArrayTupleIteratorWithIndex(
+			l: value.NewArrayTupleOfValueIteratorWithIndex(
 				&value.ArrayTupleOfValue{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				0,
 			),
-			after: value.NewArrayTupleIteratorWithIndex(
+			after: value.NewArrayTupleOfValueIteratorWithIndex(
 				&value.ArrayTupleOfValue{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				1,
 			),
 			want: value.SmallInt(3).ToValue(),
 		},
 		"with two elements index 1": {
-			l: value.NewArrayTupleIteratorWithIndex(
+			l: value.NewArrayTupleOfValueIteratorWithIndex(
 				&value.ArrayTupleOfValue{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				1,
 			),
-			after: value.NewArrayTupleIteratorWithIndex(
+			after: value.NewArrayTupleOfValueIteratorWithIndex(
 				&value.ArrayTupleOfValue{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				2,
 			),
 			want: value.Float(7.2).ToValue(),
 		},
 		"with two elements index 2": {
-			l: value.NewArrayTupleIteratorWithIndex(
+			l: value.NewArrayTupleOfValueIteratorWithIndex(
 				&value.ArrayTupleOfValue{value.SmallInt(3).ToValue(), value.Float(7.2).ToValue()},
 				2,
 			),
@@ -462,7 +462,7 @@ func TestArrayTupleIterator_Next(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.l.Next()
+			got, err := tc.l.NextValue()
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatal(diff)

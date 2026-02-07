@@ -9,47 +9,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestArrayTupleContains(t *testing.T) {
-	tests := map[string]struct {
-		tuple    *value.ArrayTupleOfValue
-		val      value.Value
-		contains bool
-		err      value.Value
-	}{
-		"empty tuple": {
-			tuple:    &value.ArrayTupleOfValue{},
-			val:      value.SmallInt(5).ToValue(),
-			contains: false,
-		},
-		"coercible elements": {
-			tuple:    &value.ArrayTupleOfValue{value.Ref(value.String("foo")), value.Float(5).ToValue()},
-			val:      value.SmallInt(5).ToValue(),
-			contains: false,
-		},
-		"has the value": {
-			tuple:    &value.ArrayTupleOfValue{value.Ref(value.String("foo")), value.SmallInt(5).ToValue(), value.Float(9.3).ToValue()},
-			val:      value.SmallInt(5).ToValue(),
-			contains: true,
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			v := vm.New()
-			contains, err := vm.ArrayTupleContains(v, tc.tuple, tc.val)
-			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatal(diff)
-			}
-			if !err.IsUndefined() {
-				return
-			}
-			if diff := cmp.Diff(tc.contains, contains, comparer.Options()); diff != "" {
-				t.Fatal(diff)
-			}
-		})
-	}
-}
-
 func TestArrayTupleEqual(t *testing.T) {
 	tests := map[string]struct {
 		tuple *value.ArrayTupleOfValue
