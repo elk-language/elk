@@ -178,10 +178,15 @@ func (l *NativeArrayList[T]) Append(elements ...T) {
 	*l = append(*l, elements...)
 }
 
-func (l *NativeArrayList[T]) AppendVal(elements ...Value) {
+func (l *NativeArrayList[T]) AppendVal(elements ...Value) Value {
 	for _, element := range elements {
-		*l = append(*l, element.ToInterface().(T))
+		e, ok := Downcast[T](element)
+		if !ok {
+			return NewInvalidElementInTypedArray(l, element.Class()).ToValue()
+		}
+		*l = append(*l, e)
 	}
+	return Undefined
 }
 
 // Expand the array list to have
@@ -231,8 +236,14 @@ func (l *NativeArrayList[T]) SetAt(index int, val T) {
 	(*l)[index] = val
 }
 
-func (l *NativeArrayList[T]) SetAtVal(index int, val Value) {
-	(*l)[index] = val.ToInterface().(T)
+func (l *NativeArrayList[T]) SetAtVal(index int, val Value) Value {
+	v, ok := Downcast[T](val)
+	if !ok {
+		return NewInvalidElementInTypedArray(l, val.Class()).ToValue()
+	}
+
+	(*l)[index] = v
+	return Undefined
 }
 
 // Set an element under the given index.
@@ -246,7 +257,11 @@ func (l *NativeArrayList[T]) SubscriptSet(key Value, val Value) Value {
 		return Ref(NewCoerceError(IntClass, key.Class()))
 	}
 
-	return l.Set(i, val.ToInterface().(T))
+	v, ok := Downcast[T](val)
+	if !ok {
+		return NewInvalidElementInTypedArray(l, val.Class()).ToValue()
+	}
+	return l.Set(i, v)
 }
 
 // Concatenate another value with this list, creating a new list, and return the result.
@@ -326,6 +341,11 @@ func (l *NativeArrayList[T]) RepeatVal(other Value) (Value, Value) {
 func (l *NativeArrayList[T]) ImmutableBoxOfVal(index Value) (Value, Value) {
 	b, err := l.boxOf(index)
 	return b.ToImmutableBox().ToValue(), err
+}
+
+func (l *NativeArrayList[T]) ImmutableBoxOf(index int) (*ImmutableNativeBox[T], Value) {
+	b, err := l.BoxOf(index)
+	return b.ToImmutableBox(), err
 }
 
 // Return a box pointing to the slot with the given index.

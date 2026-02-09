@@ -246,7 +246,10 @@ func initArrayList() {
 					if !err.IsUndefined() {
 						return value.Undefined, err
 					}
-					self.SetAtVal(i, result)
+					err = self.SetAtVal(i, result)
+					if err.IsNotUndefined() {
+						return value.Undefined, err
+					}
 				}
 				return self.ToValue(), value.Undefined
 			}
@@ -258,7 +261,10 @@ func initArrayList() {
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				self.SetAtVal(i, result)
+				err = self.SetAtVal(i, result)
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
 			}
 			return self.ToValue(), value.Undefined
 		},

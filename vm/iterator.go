@@ -26,7 +26,7 @@ func Iterate(vm *Thread, collectionValue value.Value) iter.Seq2[value.Value, val
 				}
 			}
 		}
-	case *value.HashMap:
+	case *value.HashMapOfValue:
 		return func(yield func(value.Value, value.Value) bool) {
 			for index, _ := range c.Table {
 				pair := &c.Table[index]
@@ -39,7 +39,7 @@ func Iterate(vm *Thread, collectionValue value.Value) iter.Seq2[value.Value, val
 				}
 			}
 		}
-	case *value.HashRecord:
+	case *value.HashRecordOfValue:
 		return func(yield func(value.Value, value.Value) bool) {
 			for index, _ := range c.Table {
 				pair := &c.Table[index]

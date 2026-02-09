@@ -3858,20 +3858,20 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithCapacityAndElements(
+					value.Ref(vm.MustNewHashMapOfValueWithCapacityAndElements(
 						nil,
 						3,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.SmallInt(2).ToValue(),
-						},
-						value.Pair{
-							Key:   value.ToSymbol("foo").ToValue(),
-							Value: value.ToSymbol("bar").ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.SmallInt(2).ToValue(),
+						),
+						value.MakePairOfValue(
+							value.ToSymbol("foo").ToValue(),
+							value.ToSymbol("bar").ToValue(),
+						),
 					)),
 					value.Ref(value.String("baz")),
-					value.Ref(vm.MustNewHashMapWithCapacityAndElements(nil, 1)),
+					value.Ref(vm.MustNewHashMapOfValueWithCapacityAndElements(nil, 1)),
 					value.ToSymbol("dupa").ToValue(),
 					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(8).ToValue(),
@@ -4024,17 +4024,17 @@ func TestBytecodeSwitch(t *testing.T) {
 				[]value.Value{
 					value.Ref(vm.MustNewHashRecordWithElements(
 						nil,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.SmallInt(2).ToValue(),
-						},
-						value.Pair{
-							Key:   value.ToSymbol("foo").ToValue(),
-							Value: value.ToSymbol("bar").ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.SmallInt(2).ToValue(),
+						),
+						value.MakePairOfValue(
+							value.ToSymbol("foo").ToValue(),
+							value.ToSymbol("bar").ToValue(),
+						),
 					)),
 					value.Ref(value.String("baz")),
-					value.Ref(&value.HashRecord{}),
+					value.Ref(&value.HashRecordOfValue{}),
 					value.ToSymbol("dupa").ToValue(),
 					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(8).ToValue(),

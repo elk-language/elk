@@ -237,8 +237,8 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 		return value.Undefined
 	}
 
-	newTable := make([]value.Pair, len(node.Elements))
-	newMap := &value.HashMap{
+	newTable := make([]value.PairOfValue, len(node.Elements))
+	newMap := &value.HashMapOfValue{
 		Table: newTable,
 	}
 	for _, elementNode := range node.Elements {
@@ -250,7 +250,7 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 				return value.Undefined
 			}
 
-			err := vm.HashMapSet(nil, newMap, key, val)
+			err := vm.HashMapOfValueSet(nil, newMap, key, val)
 			if !err.IsUndefined() {
 				return value.Undefined
 			}
@@ -264,7 +264,7 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 				return value.Undefined
 			}
 
-			err := vm.HashMapSet(nil, newMap, key, val)
+			err := vm.HashMapOfValueSet(nil, newMap, key, val)
 			if !err.IsUndefined() {
 				return value.Undefined
 			}
@@ -281,8 +281,8 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 		return value.Undefined
 	}
 
-	newTable := make([]value.Pair, len(node.Elements))
-	newRecord := &value.HashRecord{
+	newTable := make([]value.PairOfValue, len(node.Elements))
+	newRecord := &value.HashRecordOfValue{
 		Table: newTable,
 	}
 	for _, elementNode := range node.Elements {

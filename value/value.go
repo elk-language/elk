@@ -65,7 +65,14 @@ const (
 
 // Performs a downcast of the given Value
 // to the given concrete type.
-func Downcast[T ValueInterface](v Value) T {
+func Downcast[T ValueInterface](v Value) (T, bool) {
+	t, ok := v.ToInterface().(T)
+	return t, ok
+}
+
+// Performs a downcast of the given Value
+// to the given concrete type.
+func MustDowncast[T ValueInterface](v Value) T {
 	return v.ToInterface().(T)
 }
 
@@ -1148,13 +1155,13 @@ func IsMutableCollection(val Value) bool {
 		return false
 	}
 	switch v := val.AsReference().(type) {
-	case *ArrayListOfValue, *HashMap:
+	case *ArrayListOfValue, *HashMapOfValue:
 		return true
 	case *ArrayTupleOfValue:
 		if slices.ContainsFunc(*v, IsMutableCollection) {
 			return true
 		}
-	case *HashRecord:
+	case *HashRecordOfValue:
 		for _, pair := range v.Table {
 			if IsMutableCollection(pair.Key) || IsMutableCollection(pair.Value) {
 				return true
@@ -3929,9 +3936,9 @@ func Next(val Value) (result, err Value) {
 		return v.NextValue()
 	case *ArrayTupleOfValueIterator:
 		return v.NextValue()
-	case *HashMapIterator:
+	case *HashMapOfValueIterator:
 		return v.NextValue()
-	case *HashRecordIterator:
+	case *HashRecordIteratorOfValue:
 		return v.NextValue()
 	case *HashSetIterator:
 		return v.NextValue()
@@ -3984,8 +3991,8 @@ func Iter(val Value) Value {
 	}
 
 	switch v := val.AsReference().(type) {
-	case *ArrayListOfValueIterator, *ArrayTupleOfValueIterator, *HashMapIterator,
-		*HashRecordIterator, *HashSetIterator, *StringCharIterator,
+	case *ArrayListOfValueIterator, *ArrayTupleOfValueIterator, *HashMapOfValueIterator,
+		*HashRecordIteratorOfValue, *HashSetIterator, *StringCharIterator,
 		*StringByteIterator, *StringGraphemeIterator, *Channel:
 		return val
 	case String:
@@ -3994,10 +4001,10 @@ func Iter(val Value) Value {
 		return Ref(NewArrayListOfValueIterator(v))
 	case *ArrayTupleOfValue:
 		return Ref(NewArrayTupleOfValueIterator(v))
-	case *HashMap:
-		return Ref(NewHashMapIterator(v))
-	case *HashRecord:
-		return Ref(NewHashRecordIterator(v))
+	case *HashMapOfValue:
+		return Ref(NewHashMapOfValueIterator(v))
+	case *HashRecordOfValue:
+		return Ref(NewHashRecordIteratorOfValue(v))
 	case *HashSet:
 		return Ref(NewHashSetIterator(v))
 	default:

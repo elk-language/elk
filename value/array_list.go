@@ -17,9 +17,9 @@ type ArrayList interface {
 	LeftCapacity() int
 	BoxOfVal(index Value) (Value, Value)
 	SubscriptSet(index Value, v Value) Value
-	SetAtVal(index int, v Value)
+	SetAtVal(index int, v Value) Value
 	Grow(int)
-	AppendVal(elements ...Value)
+	AppendVal(elements ...Value) Value
 	RemoveAt(i int)
 	RemoveAtErr(index int) Value
 	IterList() ArrayListIterator

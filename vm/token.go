@@ -92,15 +92,15 @@ func initToken() {
 		},
 	)
 
-	typesToNames := value.NewHashMap(token.Length())
-	namesToTypes := value.NewHashMap(token.Length())
+	typesToNames := value.NewHashMapOfValue(token.Length())
+	namesToTypes := value.NewHashMapOfValue(token.Length())
 	for tokenId, tokenName := range token.Types() {
 		idVal := value.UInt16(tokenId).ToValue()
 		nameVal := value.Ref(value.String(tokenName))
 
 		value.ElkTokenClass.AddConstantString(tokenName, idVal)
-		HashMapSet(nil, typesToNames, idVal, nameVal)
-		HashMapSet(nil, namesToTypes, nameVal, idVal)
+		HashMapOfValueSet(nil, typesToNames, idVal, nameVal)
+		HashMapOfValueSet(nil, namesToTypes, nameVal, idVal)
 	}
 
 	value.ElkTokenClass.AddConstantString("TYPES_TO_NAMES", value.Ref(typesToNames))

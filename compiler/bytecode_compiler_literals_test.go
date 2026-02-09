@@ -3068,7 +3068,7 @@ func TestBytecodeHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashMap(0)),
+					value.Ref(value.NewHashMapOfValue(0)),
 				},
 			),
 		},
@@ -3097,7 +3097,7 @@ func TestBytecodeHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashMap(0)),
+					value.Ref(value.NewHashMapOfValue(0)),
 					value.ToSymbol("foo").ToValue(),
 				},
 			),
@@ -3127,7 +3127,7 @@ func TestBytecodeHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashMap(0)),
+					value.Ref(value.NewHashMapOfValue(0)),
 					value.ToSymbol("_foo").ToValue(),
 				},
 			),
@@ -3146,20 +3146,20 @@ func TestBytecodeHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithElements(
+					value.Ref(vm.MustNewHashMapOfValueWithElements(
 						nil,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
-						value.Pair{
-							Key:   value.ToSymbol("foo").ToValue(),
-							Value: value.SmallInt(5).ToValue(),
-						},
-						value.Pair{
-							Key:   value.Ref(value.String("bar")),
-							Value: value.Float(5.6).ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
+						value.MakePairOfValue(
+							value.ToSymbol("foo").ToValue(),
+							value.SmallInt(5).ToValue(),
+						),
+						value.MakePairOfValue(
+							value.Ref(value.String("bar")),
+							value.Float(5.6).ToValue(),
+						),
 					)),
 				},
 			),
@@ -3196,13 +3196,13 @@ func TestBytecodeHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 27),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithCapacityAndElements(
+					value.Ref(vm.MustNewHashMapOfValueWithCapacityAndElements(
 						nil,
 						3,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
 					)),
 					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
@@ -3228,20 +3228,20 @@ func TestBytecodeHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithElements(
+					value.Ref(vm.MustNewHashMapOfValueWithElements(
 						nil,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
-						value.Pair{
-							Key:   value.ToSymbol("foo").ToValue(),
-							Value: value.SmallInt(5).ToValue(),
-						},
-						value.Pair{
-							Key:   value.Ref(value.String("bar")),
-							Value: value.Float(5.6).ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
+						value.MakePairOfValue(
+							value.ToSymbol("foo").ToValue(),
+							value.SmallInt(5).ToValue(),
+						),
+						value.MakePairOfValue(
+							value.Ref(value.String("bar")),
+							value.Float(5.6).ToValue(),
+						),
 					)),
 				},
 			),
@@ -3269,20 +3269,20 @@ func TestBytecodeHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithElements(
+					value.Ref(vm.MustNewHashMapOfValueWithElements(
 						nil,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
-						value.Pair{
-							Key:   value.ToSymbol("foo").ToValue(),
-							Value: value.SmallInt(5).ToValue(),
-						},
-						value.Pair{
-							Key:   value.Ref(value.String("bar")),
-							Value: value.Float(5.6).ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
+						value.MakePairOfValue(
+							value.ToSymbol("foo").ToValue(),
+							value.SmallInt(5).ToValue(),
+						),
+						value.MakePairOfValue(
+							value.Ref(value.String("bar")),
+							value.Float(5.6).ToValue(),
+						),
 					)),
 				},
 			),
@@ -3309,8 +3309,8 @@ func TestBytecodeHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashMap(1)),
-					value.Ref(value.NewHashMap(1)),
+					value.Ref(value.NewHashMapOfValue(1)),
+					value.Ref(value.NewHashMapOfValue(1)),
 					value.Ref(value.String("bar")),
 					value.Ref(&value.ArrayListOfValue{
 						value.Float(7.2).ToValue(),
@@ -3345,13 +3345,13 @@ func TestBytecodeHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithCapacityAndElements(
+					value.Ref(vm.MustNewHashMapOfValueWithCapacityAndElements(
 						nil,
 						3,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
 					)),
 					value.Ref(&value.ArrayTupleOfValue{
 						value.ToSymbol("foo").ToValue(),
@@ -3392,13 +3392,13 @@ func TestBytecodeHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 19),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithCapacityAndElements(
+					value.Ref(vm.MustNewHashMapOfValueWithCapacityAndElements(
 						nil,
 						2,
-						value.Pair{
-							Key:   value.SmallInt(2).ToValue(),
-							Value: value.SmallInt(5).ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(2).ToValue(),
+							value.SmallInt(5).ToValue(),
+						),
 					)),
 					value.ToSymbol("a").ToValue(),
 					value.Ref(&value.ArrayListOfValue{
@@ -3452,7 +3452,7 @@ func TestBytecodeHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 20),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashMap(2)),
+					value.Ref(value.NewHashMapOfValue(2)),
 					value.Ref(&value.ArrayListOfValue{
 						value.ToSymbol("foo").ToValue(),
 					}),
@@ -3493,7 +3493,7 @@ func TestBytecodeHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 22),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashMap(2)),
+					value.Ref(value.NewHashMapOfValue(2)),
 					value.ToSymbol("Std::Object").ToValue(),
 					value.Ref(&value.ArrayListOfValue{
 						value.ToSymbol("foo").ToValue(),
@@ -3525,7 +3525,7 @@ func TestBytecodeHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashRecord(0)),
+					value.Ref(value.NewHashRecordOfValue(0)),
 				},
 			),
 		},
@@ -3600,18 +3600,18 @@ func TestBytecodeHashRecord(t *testing.T) {
 				[]value.Value{
 					value.Ref(vm.MustNewHashRecordWithElements(
 						nil,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
-						value.Pair{
-							Key:   value.ToSymbol("foo").ToValue(),
-							Value: value.SmallInt(5).ToValue(),
-						},
-						value.Pair{
-							Key:   value.Ref(value.String("bar")),
-							Value: value.Float(5.6).ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
+						value.MakePairOfValue(
+							value.ToSymbol("foo").ToValue(),
+							value.SmallInt(5).ToValue(),
+						),
+						value.MakePairOfValue(
+							value.Ref(value.String("bar")),
+							value.Float(5.6).ToValue(),
+						),
 					)),
 				},
 			),
@@ -3650,10 +3650,10 @@ func TestBytecodeHashRecord(t *testing.T) {
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
 						nil,
 						3,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
 					)),
 					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
@@ -3687,9 +3687,9 @@ func TestBytecodeHashRecord(t *testing.T) {
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
 						nil,
 						2,
-						value.Pair{Key: value.Ref(value.String("foo")), Value: value.SmallInt(9).ToValue()},
+						value.MakePairOfValue(value.Ref(value.String("foo")), value.SmallInt(9).ToValue()),
 					)),
-					value.Ref(value.NewHashRecord(1)),
+					value.Ref(value.NewHashRecordOfValue(1)),
 					value.Ref(value.String("bar")),
 					value.Ref(&value.ArrayListOfValue{
 						value.Float(7.2).ToValue(),
@@ -3726,10 +3726,10 @@ func TestBytecodeHashRecord(t *testing.T) {
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
 						nil,
 						3,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
 					)),
 					value.Ref(&value.ArrayTupleOfValue{
 						value.ToSymbol("foo").ToValue(),
@@ -3772,10 +3772,10 @@ func TestBytecodeHashRecord(t *testing.T) {
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
 						nil,
 						3,
-						value.Pair{
-							Key:   value.SmallInt(2).ToValue(),
-							Value: value.SmallInt(5).ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(2).ToValue(),
+							value.SmallInt(5).ToValue(),
+						),
 					)),
 					value.ToSymbol("a").ToValue(),
 					value.Ref(&value.ArrayListOfValue{

@@ -449,6 +449,15 @@ func NewNoMethodError(methodName string, receiver Value) *Object {
 	)
 }
 
+func NewInvalidElementInTypedArray(arr any, elementClass *Class) *Object {
+	return Errorf(
+		TypeErrorClass,
+		"cannot set element of type %s in a typed array %T, %s",
+		elementClass.Inspect(),
+		arr,
+	)
+}
+
 // Create a new error which signals
 // that a value of one type cannot be coerced
 // into the other type.

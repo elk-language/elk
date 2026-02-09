@@ -1928,9 +1928,9 @@ func (vm *Thread) opMapSet() {
 	collection := vm.peek()
 
 	switch c := collection.SafeAsReference().(type) {
-	case *value.HashMap:
-		HashMapSet(vm, c, key, val)
-	case *value.HashRecord:
+	case *value.HashMapOfValue:
+		HashMapOfValueSet(vm, c, key, val)
+	case *value.HashRecordOfValue:
 		HashRecordSet(vm, c, key, val)
 	default:
 		panic(fmt.Sprintf("invalid map to set a value in: %s", collection.Inspect()))
@@ -2816,7 +2816,7 @@ func (vm *Thread) opNewHashMap(dynamicElements int) value.Value {
 	firstElement := vm.spAdd(firstElementOffset)
 	capacity := *vm.spAdd(firstElementOffset - 2)
 	baseMap := *vm.spAdd(firstElementOffset - 1)
-	var newMap *value.HashMap
+	var newMap *value.HashMapOfValue
 
 	var additionalCapacity int
 
@@ -2835,12 +2835,12 @@ func (vm *Thread) opNewHashMap(dynamicElements int) value.Value {
 	}
 
 	if baseMap.IsUndefined() {
-		newMap = value.NewHashMap(dynamicElements + additionalCapacity)
+		newMap = value.NewHashMapOfValue(dynamicElements + additionalCapacity)
 	} else {
 		switch m := baseMap.SafeAsReference().(type) {
-		case *value.HashMap:
-			newMap = value.NewHashMap(m.Capacity() + additionalCapacity)
-			err := HashMapCopy(vm, newMap, m)
+		case *value.HashMapOfValue:
+			newMap = value.NewHashMapOfValue(m.Capacity() + additionalCapacity)
+			err := HashMapOfValueCopy(vm, newMap, m)
 			if !err.IsUndefined() {
 				return err
 			}
@@ -2852,7 +2852,7 @@ func (vm *Thread) opNewHashMap(dynamicElements int) value.Value {
 	for i := 0; i < dynamicElements*2; i += 2 {
 		key := *vm.stackAdd(firstElement, i)
 		val := *vm.stackAdd(firstElement, i+1)
-		err := HashMapSetWithMaxLoad(vm, newMap, key, val, 1)
+		err := HashMapOfValueSetWithMaxLoad(vm, newMap, key, val, 1)
 		if !err.IsUndefined() {
 			return err
 		}
@@ -2868,14 +2868,14 @@ func (vm *Thread) opNewHashRecord(dynamicElements int) value.Value {
 	firstElementOffset := -(dynamicElements * 2)
 	firstElement := vm.spAdd(firstElementOffset)
 	baseMap := *vm.spAdd(firstElementOffset - 1)
-	var newRecord *value.HashRecord
+	var newRecord *value.HashRecordOfValue
 
 	if baseMap.IsUndefined() {
-		newRecord = value.NewHashRecord(dynamicElements)
+		newRecord = value.NewHashRecordOfValue(dynamicElements)
 	} else {
 		switch m := baseMap.SafeAsReference().(type) {
-		case *value.HashRecord:
-			newRecord = value.NewHashRecord(m.Length())
+		case *value.HashRecordOfValue:
+			newRecord = value.NewHashRecordOfValue(m.Length())
 			err := HashRecordCopy(vm, newRecord, m)
 			if !err.IsUndefined() {
 				return err

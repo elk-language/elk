@@ -356,9 +356,9 @@ func NextBuiltin(vm *Thread, val value.Value) (result, err value.Value) {
 		return v.NextValue()
 	case *value.ArrayTupleOfValueIterator:
 		return v.NextValue()
-	case *value.HashMapIterator:
+	case *value.HashMapOfValueIterator:
 		return v.NextValue()
-	case *value.HashRecordIterator:
+	case *value.HashRecordIteratorOfValue:
 		return v.NextValue()
 	case *value.HashSetIterator:
 		return v.NextValue()
@@ -393,9 +393,9 @@ func SubscriptBuiltin(vm *Thread, collection, key value.Value) (result, err valu
 		return c.Subscript(key)
 	case *value.ArrayListOfValue:
 		return c.Subscript(key)
-	case *value.HashMap:
-		return HashMapGet(vm, c, key)
-	case *value.HashRecord:
+	case *value.HashMapOfValue:
+		return HashMapOfValueGet(vm, c, key)
+	case *value.HashRecordOfValue:
 		return HashRecordGet(vm, c, key)
 	default:
 		return value.Undefined, value.Undefined
@@ -412,9 +412,9 @@ func SubscriptSetBuiltin(vm *Thread, collection, key, val value.Value) (err valu
 		return l.SubscriptSet(key, val)
 	case *value.ArrayTupleOfValue:
 		return l.SubscriptSet(key, val)
-	case *value.HashMap:
-		return HashMapSet(vm, l, key, val)
-	case *value.HashRecord:
+	case *value.HashMapOfValue:
+		return HashMapOfValueSet(vm, l, key, val)
+	case *value.HashRecordOfValue:
 		return HashRecordSet(vm, l, key, val)
 	default:
 		return value.Undefined

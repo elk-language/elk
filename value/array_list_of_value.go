@@ -208,8 +208,9 @@ func (l *ArrayListOfValue) Append(elements ...Value) {
 	*l = append(*l, elements...)
 }
 
-func (l *ArrayListOfValue) AppendVal(elements ...Value) {
+func (l *ArrayListOfValue) AppendVal(elements ...Value) Value {
 	l.Append(elements...)
+	return Undefined
 }
 
 // Expand the array list to have
@@ -281,8 +282,9 @@ func (l *ArrayListOfValue) SetAt(index int, val Value) {
 	(*l)[index] = val
 }
 
-func (l *ArrayListOfValue) SetAtVal(index int, val Value) {
+func (l *ArrayListOfValue) SetAtVal(index int, val Value) Value {
 	l.SetAtVal(index, val)
+	return Undefined
 }
 
 // Set an element under the given index.

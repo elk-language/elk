@@ -786,8 +786,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
 				nil,
-				value.Pair{Key: value.ToSymbol("a").ToValue(), Value: value.Ref(value.String("bar"))},
-				value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("foo"))},
+				value.MakePairOfValue(value.ToSymbol("a").ToValue(), value.Ref(value.String("bar"))),
+				value.MakePairOfValue(value.ToSymbol("d").ToValue(), value.Ref(value.String("foo"))),
 			)),
 		},
 		"call a method with a named rest param and a double splat argument": {
@@ -799,10 +799,10 @@ func TestVMSource_CallMethod(t *testing.T) {
 				map := { foo: 1, bar: 2 }
 				foo(**map)
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashMapWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashMapOfValueWithElements(
 				nil,
-				value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(1).ToValue()},
-				value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+				value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(1).ToValue()),
+				value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
 			)),
 		},
 		"call a method with a named rest param, named and double splat arguments": {
@@ -816,10 +816,10 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
 				nil,
-				value.Pair{Key: value.ToSymbol("a").ToValue(), Value: value.SmallInt(20).ToValue()},
-				value.Pair{Key: value.ToSymbol("b").ToValue(), Value: value.SmallInt(9).ToValue()},
-				value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(1).ToValue()},
-				value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+				value.MakePairOfValue(value.ToSymbol("a").ToValue(), value.SmallInt(20).ToValue()),
+				value.MakePairOfValue(value.ToSymbol("b").ToValue(), value.SmallInt(9).ToValue()),
+				value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(1).ToValue()),
+				value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
 			)),
 		},
 		"call a method with regular params, named rest param and a few named args": {
@@ -835,8 +835,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 				value.Ref(value.String("foo")),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("c").ToValue(), Value: value.Ref(value.String("bar"))},
-					value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("baz"))},
+					value.MakePairOfValue(value.ToSymbol("c").ToValue(), value.Ref(value.String("bar"))),
+					value.MakePairOfValue(value.ToSymbol("d").ToValue(), value.Ref(value.String("baz"))),
 				)),
 			)),
 		},
@@ -851,7 +851,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				2,
 				value.Ref(value.String("foo")),
-				value.Ref(value.NewHashRecord(0)),
+				value.Ref(value.NewHashRecordOfValue(0)),
 			)),
 		},
 		"call a method with regular params, optional params, named rest param and a few named args": {
@@ -868,8 +868,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 				value.SmallInt(5).ToValue(),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("c").ToValue(), Value: value.Ref(value.String("bar"))},
-					value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("baz"))},
+					value.MakePairOfValue(value.ToSymbol("c").ToValue(), value.Ref(value.String("bar"))),
+					value.MakePairOfValue(value.ToSymbol("d").ToValue(), value.Ref(value.String("baz"))),
 				)),
 			)),
 		},
@@ -887,8 +887,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 				value.SmallInt(9).ToValue(),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("c").ToValue(), Value: value.Ref(value.String("bar"))},
-					value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("baz"))},
+					value.MakePairOfValue(value.ToSymbol("c").ToValue(), value.Ref(value.String("bar"))),
+					value.MakePairOfValue(value.ToSymbol("d").ToValue(), value.Ref(value.String("baz"))),
 				)),
 			)),
 		},
@@ -906,8 +906,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 				value.SmallInt(9).ToValue(),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("baz"))},
-					value.Pair{Key: value.ToSymbol("c").ToValue(), Value: value.Ref(value.String("bar"))},
+					value.MakePairOfValue(value.ToSymbol("d").ToValue(), value.Ref(value.String("baz"))),
+					value.MakePairOfValue(value.ToSymbol("c").ToValue(), value.Ref(value.String("bar"))),
 				)),
 			)),
 		},
@@ -944,9 +944,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 				value.Ref(&value.ArrayTupleOfValue{}),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
-					value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
-					value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(8).ToValue()},
+					value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(5).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("baz").ToValue(), value.SmallInt(8).ToValue()),
 				)),
 			)),
 		},
@@ -968,9 +968,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 				)),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
-					value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
-					value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(8).ToValue()},
+					value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(5).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("baz").ToValue(), value.SmallInt(8).ToValue()),
 				)),
 			)),
 		},
@@ -1009,9 +1009,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 				value.Ref(&value.ArrayTupleOfValue{}),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
-					value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
-					value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(8).ToValue()},
+					value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(5).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("baz").ToValue(), value.SmallInt(8).ToValue()),
 				)),
 			)),
 		},
@@ -1033,9 +1033,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 				)),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
-					value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
-					value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(8).ToValue()},
+					value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(5).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("baz").ToValue(), value.SmallInt(8).ToValue()),
 				)),
 			)),
 		},

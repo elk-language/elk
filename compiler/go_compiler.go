@@ -6941,12 +6941,12 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 				return nil
 			}
 			return c.hashSetToGoSource(v)
-		case *value.HashMap:
+		case *value.HashMapOfValue:
 			if !allowMutable {
 				return nil
 			}
 			return c.hashMapToGoSource(v)
-		case *value.HashRecord:
+		case *value.HashRecordOfValue:
 			return c.hashRecordToGoSource(v, allowMutable)
 		case value.String:
 			return newInlineGoValue(
@@ -7584,7 +7584,7 @@ func (c *GoCompiler) hashSetToGoSource(v *value.HashSet) *goValue {
 	)
 }
 
-func (c *GoCompiler) hashMapToGoSource(v *value.HashMap) *goValue {
+func (c *GoCompiler) hashMapToGoSource(v *value.HashMapOfValue) *goValue {
 	var buff strings.Builder
 
 	fmt.Fprintf(&buff, "vm.MustNewHashMapWithCapacityAndElements(nil, %d, ", v.LeftCapacity())
@@ -7606,7 +7606,7 @@ func (c *GoCompiler) hashMapToGoSource(v *value.HashMap) *goValue {
 	)
 }
 
-func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecord, allowMutable bool) *goValue {
+func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecordOfValue, allowMutable bool) *goValue {
 	var buff strings.Builder
 
 	buff.WriteString("vm.MustNewHashRecordWithElements(nil, ")
@@ -7628,12 +7628,12 @@ func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecord, allowMutable bool
 	)
 }
 
-func (c *GoCompiler) valuePairToGoSource(p value.Pair, allowMutable bool) *goValue {
-	k := c.valueToGoSource(p.Key, nil, allowMutable)
+func (c *GoCompiler) valuePairToGoSource(p value.PairOfValue, allowMutable bool) *goValue {
+	k := c.valueToGoSource(p.Key(), nil, allowMutable)
 	if k == nil {
 		return nil
 	}
-	v := c.valueToGoSource(p.Key, nil, allowMutable)
+	v := c.valueToGoSource(p.Key(), nil, allowMutable)
 	if v == nil {
 		return nil
 	}

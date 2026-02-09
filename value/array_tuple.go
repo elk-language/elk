@@ -15,7 +15,6 @@ var ArrayTupleIteratorClass *Class
 type ArrayTuple interface {
 	ValueInterface
 	NativeIterable
-	Iterate() iter.Seq2[Value, Value]
 	Elements() iter.Seq2[int, Value]
 	Length() int
 	ImmutableBoxOfVal(index Value) (Value, Value)
@@ -29,7 +28,6 @@ type ArrayTuple interface {
 type ArrayTupleIterator interface {
 	NativeIterator
 	ValueInterface
-	NextValue() (Value, Value)
 	Reset()
 	Elements() iter.Seq[Value]
 }
