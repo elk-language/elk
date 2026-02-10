@@ -211,9 +211,6 @@ func initHashMap() {
 			// callable is a closure
 			if function, ok := callable.SafeAsReference().(*Closure); ok {
 				for pair := range self.All() {
-					if pair.Key().IsUndefined() {
-						continue
-					}
 					result, err := vm.CallClosure(function, pair.ToValue())
 					if !err.IsUndefined() {
 						return value.Undefined, err
@@ -232,14 +229,11 @@ func initHashMap() {
 
 			// callable is another value
 			for pair := range self.All() {
-				if pair.Key().IsUndefined() {
-					continue
-				}
-				result, err := vm.CallMethodByName(callSymbol, callable, self.ToValue())
+				result, err := vm.CallMethodByName(callSymbol, callable, pair.ToValue())
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				r, ok := result.SafeAsReference().(*value.PairOfValue)
+				r, ok := result.SafeAsReference().(value.Pair)
 				if !ok {
 					return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name))
 				}
@@ -597,6 +591,7 @@ func HashMapOfValueDelete(vm *Thread, hashMap *HashMapOfValue, key value.Value) 
 		value.True,
 	)
 	hashMap.Elements--
+	hashMap.version++
 
 	return true, value.Undefined
 }
@@ -695,6 +690,7 @@ func HashMapOfValueCopyTable(vm *Thread, target *HashMapOfValue, source []value.
 		}
 	}
 
+	target.version++
 	return value.Undefined
 }
 
@@ -705,6 +701,7 @@ func HashMapOfValueCopy(vm *Thread, target *HashMapOfValue, source *HashMapOfVal
 		HashMapOfValueSetCapacity(vm, target, requiredCapacity)
 	}
 
+	target.version++
 	for _, entry := range source.Table {
 		if entry.Key().IsUndefined() {
 			continue
@@ -731,6 +728,7 @@ func HashMapOfValueCopyInterface(vm *Thread, target *HashMapOfValue, source Hash
 		HashMapOfValueSetCapacity(vm, target, requiredCapacity)
 	}
 
+	target.version++
 	for entry := range source.All() {
 		i, err := HashMapOfValueIndex(vm, target, entry.Key())
 		if !err.IsUndefined() {
@@ -763,6 +761,7 @@ func HashMapOfValueSetCapacity(vm *Thread, hashMap *HashMapOfValue, capacity int
 	tmpHashMap := &HashMapOfValue{
 		Table: newTable,
 	}
+	hashMap.version++
 
 	for _, entry := range oldTable {
 		if entry.Key().IsUndefined() {
@@ -811,6 +810,7 @@ func HashMapOfValueSetWithMaxLoad(vm *Thread, hashMap *HashMapOfValue, key, val 
 		key,
 		val,
 	)
+	hashMap.version++
 
 	return value.Undefined
 }

@@ -12,6 +12,8 @@ import (
 
 type HashRecordOfValue HashMapOfValue
 
+var _ HashRecord = &HashRecordOfValue{}
+
 func NewHashRecordOfValue(capacity int) *HashRecordOfValue {
 	return &HashRecordOfValue{
 		Table: make([]value.PairOfValue, capacity),
@@ -34,6 +36,81 @@ func (h *HashRecordOfValue) All() iter.Seq[value.PairOfValue] {
 			}
 		}
 	}
+}
+
+func (h *HashRecordOfValue) Iterate() iter.Seq2[value.Value, value.Value] {
+	return func(yield func(value.Value, value.Value) bool) {
+		for _, pair := range h.Table {
+			if pair.Key().IsUndefined() {
+				continue
+			}
+
+			if !yield(pair.ToValue(), value.Undefined) {
+				return
+			}
+		}
+	}
+}
+
+func (h *HashRecordOfValue) IterRecord() HashRecordIterator {
+	return NewHashRecordOfValueIterator(h)
+}
+
+func (h *HashRecordOfValue) GetVal(thread *Thread, key value.Value) (value.Value, value.Value) {
+	return HashRecordOfValueGet(thread, h, key)
+}
+
+func (h *HashRecordOfValue) SetVal(thread *Thread, key, val value.Value) value.Value {
+	return HashRecordOfValueSet(thread, h, key, val)
+}
+
+func (h *HashRecordOfValue) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+	switch o := other.SafeAsReference().(type) {
+	case *HashRecordOfValue:
+		return value.RefErr(HashRecordOfValueConcat(thread, h, o))
+	case HashRecord:
+		return value.RefErr(HashRecordOfValueConcatInterface(thread, h, o))
+	}
+
+	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with record %s", other.Inspect(), h.Inspect()))
+}
+
+func (h *HashRecordOfValue) Contains(thread *Thread, other value.Pair) (bool, value.Value) {
+	return HashRecordOfValueContains(thread, h, other)
+}
+
+func (h *HashRecordOfValue) ContainsValue(thread *Thread, val value.Value) (bool, value.Value) {
+	return HashRecordOfValueContainsValue(thread, h, val)
+}
+
+func (h *HashRecordOfValue) ContainsKey(thread *Thread, key value.Value) (bool, value.Value) {
+	return HashRecordOfValueContainsKey(thread, h, key)
+}
+
+func (h *HashRecordOfValue) Equal(thread *Thread, other value.Value) (bool, value.Value) {
+	switch o := other.SafeAsReference().(type) {
+	case *HashRecordOfValue:
+		return HashRecordOfValueEqual(thread, h, o)
+	case HashRecord:
+		return HashRecordOfValueEqualInterface(thread, h, o)
+	}
+
+	return false, value.Undefined
+}
+
+func (h *HashRecordOfValue) LaxEqual(thread *Thread, other value.Value) (bool, value.Value) {
+	switch o := other.SafeAsReference().(type) {
+	case *HashRecordOfValue:
+		return HashRecordOfValueLaxEqual(thread, h, o)
+	case HashRecord:
+		return HashRecordOfValueLaxEqualInterface(thread, h, o)
+	}
+
+	return false, value.Undefined
+}
+
+func (h *HashRecordOfValue) Grow(thread *Thread, newSlots int) value.Value {
+	return HashRecordOfValueGrow(thread, h, newSlots)
 }
 
 func (*HashRecordOfValue) Class() *value.Class {
@@ -151,60 +228,62 @@ func (h *HashRecordOfValue) Length() int {
 	return h.Elements
 }
 
-type HashRecordIteratorOfValue struct {
+type HashRecordOfValueIterator struct {
 	HashRecord *HashRecordOfValue
 	Index      int
 }
 
-func NewHashRecordIteratorOfValue(hrec *HashRecordOfValue) *HashRecordIteratorOfValue {
-	return &HashRecordIteratorOfValue{
+var _ HashRecordIterator = &HashRecordOfValueIterator{}
+
+func NewHashRecordOfValueIterator(hrec *HashRecordOfValue) *HashRecordOfValueIterator {
+	return &HashRecordOfValueIterator{
 		HashRecord: hrec,
 	}
 }
 
-func NewHashRecordIteratorOfValueWithIndex(hrec *HashRecordOfValue, index int) *HashRecordIteratorOfValue {
-	return &HashRecordIteratorOfValue{
+func NewHashRecordOfValueIteratorWithIndex(hrec *HashRecordOfValue, index int) *HashRecordOfValueIterator {
+	return &HashRecordOfValueIterator{
 		HashRecord: hrec,
 		Index:      index,
 	}
 }
 
-func (*HashRecordIteratorOfValue) Class() *value.Class {
+func (*HashRecordOfValueIterator) Class() *value.Class {
 	return value.HashRecordIteratorClass
 }
 
-func (*HashRecordIteratorOfValue) DirectClass() *value.Class {
+func (*HashRecordOfValueIterator) DirectClass() *value.Class {
 	return value.HashRecordIteratorClass
 }
 
-func (*HashRecordIteratorOfValue) SingletonClass() *value.Class {
+func (*HashRecordOfValueIterator) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *HashRecordIteratorOfValue) Error() string {
+func (h *HashRecordOfValueIterator) Error() string {
 	return h.Inspect()
 }
 
-func (h *HashRecordIteratorOfValue) Copy() value.Reference {
-	return &HashRecordIteratorOfValue{
+func (h *HashRecordOfValueIterator) Copy() value.Reference {
+	return &HashRecordOfValueIterator{
 		HashRecord: h.HashRecord,
 		Index:      h.Index,
 	}
 }
 
-func (i *HashRecordIteratorOfValue) ToValue() value.Value {
+func (i *HashRecordOfValueIterator) ToValue() value.Value {
 	return value.Ref(i)
 }
 
-func (h *HashRecordIteratorOfValue) Inspect() string {
+func (h *HashRecordOfValueIterator) Inspect() string {
 	return fmt.Sprintf("Std::HashRecord::Iterator{hash_record: %s}", h.HashRecord.Inspect())
 }
 
-func (*HashRecordIteratorOfValue) InstanceVariables() *value.InstanceVariables {
+func (*HashRecordOfValueIterator) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (h *HashRecordIteratorOfValue) NextValue() (value.Value, value.Value) {
+func (h *HashRecordOfValueIterator) NextValue() (value.Value, value.Value) {
 	for {
 		if h.Index >= len(h.HashRecord.Table) {
 			return value.Undefined, symbol.L_stop_iteration.ToValue()
@@ -218,6 +297,6 @@ func (h *HashRecordIteratorOfValue) NextValue() (value.Value, value.Value) {
 	}
 }
 
-func (h *HashRecordIteratorOfValue) Reset() {
+func (h *HashRecordOfValueIterator) Reset() {
 	h.Index = 0
 }

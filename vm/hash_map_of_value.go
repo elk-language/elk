@@ -17,6 +17,7 @@ type HashMapOfValue struct {
 	Table         []value.PairOfValue
 	OccupiedSlots int
 	Elements      int
+	version       int // version of the map, each mutation increments this counter
 }
 
 var _ HashMap = &HashMapOfValue{}
@@ -47,9 +48,15 @@ func (h *HashMapOfValue) All() iter.Seq[value.PairOfValue] {
 
 func (h *HashMapOfValue) Iterate() iter.Seq2[value.Value, value.Value] {
 	return func(yield func(value.Value, value.Value) bool) {
+		originalVersion := h.version
 		for _, pair := range h.Table {
 			if pair.Key().IsUndefined() {
 				continue
+			}
+
+			if originalVersion != h.version {
+				yield(value.Undefined, value.NewMutationDuringIterationError(h.Class().Name).ToValue())
+				return
 			}
 
 			if !yield(pair.ToValue(), value.Undefined) {
@@ -263,6 +270,7 @@ func (h *HashMapOfValue) Length() int {
 type HashMapOfValueIterator struct {
 	HashMap *HashMapOfValue
 	Index   int
+	version int
 }
 
 var _ HashMapIterator = &HashMapOfValueIterator{}
@@ -270,12 +278,14 @@ var _ HashMapIterator = &HashMapOfValueIterator{}
 func NewHashMapOfValueIterator(hmap *HashMapOfValue) *HashMapOfValueIterator {
 	return &HashMapOfValueIterator{
 		HashMap: hmap,
+		version: hmap.version,
 	}
 }
 
 func NewHashMapOfValueIteratorWithIndex(hmap *HashMapOfValue, index int) *HashMapOfValueIterator {
 	return &HashMapOfValueIterator{
 		HashMap: hmap,
+		version: hmap.version,
 		Index:   index,
 	}
 }
@@ -296,6 +306,7 @@ func (h *HashMapOfValueIterator) Copy() value.Reference {
 	return &HashMapOfValueIterator{
 		HashMap: h.HashMap,
 		Index:   h.Index,
+		version: h.version,
 	}
 }
 
@@ -316,6 +327,10 @@ func (*HashMapOfValueIterator) InstanceVariables() *value.InstanceVariables {
 }
 
 func (h *HashMapOfValueIterator) NextValue() (value.Value, value.Value) {
+	if h.version != h.HashMap.version {
+		return value.Undefined, value.NewMutationDuringIterationError(h.HashMap.Class().Name).ToValue()
+	}
+
 	for {
 		if h.Index >= h.HashMap.Capacity() {
 			return value.Undefined, symbol.L_stop_iteration.ToValue()
@@ -331,4 +346,5 @@ func (h *HashMapOfValueIterator) NextValue() (value.Value, value.Value) {
 
 func (h *HashMapOfValueIterator) Reset() {
 	h.Index = 0
+	h.version = h.HashMap.version
 }

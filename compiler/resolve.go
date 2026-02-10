@@ -294,7 +294,7 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 				return value.Undefined
 			}
 
-			err := vm.HashRecordSet(nil, newRecord, key, val)
+			err := vm.HashRecordOfValueSet(nil, newRecord, key, val)
 			if !err.IsUndefined() {
 				return value.Undefined
 			}
@@ -308,7 +308,7 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 				return value.Undefined
 			}
 
-			err := vm.HashRecordSet(nil, newRecord, key, val)
+			err := vm.HashRecordOfValueSet(nil, newRecord, key, val)
 			if !err.IsUndefined() {
 				return value.Undefined
 			}

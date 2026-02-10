@@ -4984,7 +4984,7 @@ func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNod
 
 	for i, elementNode := range node.Elements {
 		element := resolve(elementNode)
-		if element.IsUndefined() || value.IsMutableCollection(element) {
+		if element.IsUndefined() || vm.IsMutableCollection(element) {
 			firstDynamicIndex = i
 			break
 		}
@@ -5100,7 +5100,7 @@ func (c *BytecodeCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNod
 	}
 
 	location := node.Location()
-	baseMap := value.NewHashMapOfValue(len(node.Elements))
+	baseMap := vm.NewHashMapOfValue(len(node.Elements))
 	firstDynamicIndex := -1
 
 elementLoop:
@@ -5113,7 +5113,7 @@ elementLoop:
 			}
 			key := resolve(e.Key)
 			val := resolve(e.Value)
-			if value.IsMutableCollection(key) || value.IsMutableCollection(val) {
+			if vm.IsMutableCollection(key) || vm.IsMutableCollection(val) {
 				break elementSwitch
 			}
 
@@ -5125,7 +5125,7 @@ elementLoop:
 			}
 			key := value.ToSymbol(identifierToName(e.Key))
 			val := resolve(e.Value)
-			if val.IsUndefined() || value.IsMutableCollection(val) {
+			if val.IsUndefined() || vm.IsMutableCollection(val) {
 				break elementSwitch
 			}
 
@@ -5304,7 +5304,7 @@ func (c *BytecodeCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLite
 	}
 
 	location := node.Location()
-	baseRecord := value.NewHashRecordOfValue(len(node.Elements))
+	baseRecord := vm.NewHashRecordOfValue(len(node.Elements))
 	firstDynamicIndex := -1
 
 elementLoop:
@@ -5317,11 +5317,11 @@ elementLoop:
 			}
 			key := resolve(e.Key)
 			val := resolve(e.Value)
-			if value.IsMutableCollection(key) || value.IsMutableCollection(val) {
+			if vm.IsMutableCollection(key) || vm.IsMutableCollection(val) {
 				break elementSwitch
 			}
 
-			vm.HashRecordSetWithMaxLoad(nil, baseRecord, key, val, 1)
+			vm.HashRecordOfValueSetWithMaxLoad(nil, baseRecord, key, val, 1)
 			continue elementLoop
 		case *ast.SymbolKeyValueExpressionNode:
 			if !e.IsStatic() {
@@ -5329,11 +5329,11 @@ elementLoop:
 			}
 			key := value.ToSymbol(identifierToName(e.Key))
 			val := resolve(e.Value)
-			if val.IsUndefined() || value.IsMutableCollection(val) {
+			if val.IsUndefined() || vm.IsMutableCollection(val) {
 				break elementSwitch
 			}
 
-			vm.HashRecordSetWithMaxLoad(nil, baseRecord, key.ToValue(), val, 1)
+			vm.HashRecordOfValueSetWithMaxLoad(nil, baseRecord, key.ToValue(), val, 1)
 			continue elementLoop
 		}
 
@@ -5526,7 +5526,7 @@ elementLoop:
 		}
 
 		element := resolve(elementNode)
-		if element.IsUndefined() || value.IsMutableCollection(element) {
+		if element.IsUndefined() || vm.IsMutableCollection(element) {
 			firstDynamicIndex = i
 			break
 		}
@@ -6583,9 +6583,9 @@ func (c *BytecodeCompiler) emitValue(val value.Value, location *position.Locatio
 			c.emitArrayTuple(v, location)
 		case *value.HashSet:
 			c.emitHashSet(v, location)
-		case *value.HashMapOfValue:
+		case *vm.HashMapOfValue:
 			c.emitHashMap(v, location)
-		case *value.HashRecordOfValue:
+		case *vm.HashRecordOfValue:
 			c.emitHashRecord(v, location)
 		case value.Int64:
 			emitSignedInt(c, val, val.AsInlineInt64(), bytecode.LOAD_INT64_8, location)
@@ -6730,7 +6730,7 @@ listLoop:
 			continue listLoop
 		}
 
-		if value.IsMutableCollection(element) {
+		if vm.IsMutableCollection(element) {
 			mutableElements = append(mutableElements, element)
 			continue listLoop
 		}
@@ -6754,23 +6754,23 @@ listLoop:
 
 	c.emitNewHashMap(len(mutableElements), location)
 }
-func (c *BytecodeCompiler) emitHashMap(hmap *value.HashMapOfValue, location *position.Location) {
-	baseMap := value.NewHashMapOfValue(hmap.Length())
+func (c *BytecodeCompiler) emitHashMap(hmap *vm.HashMapOfValue, location *position.Location) {
+	baseMap := vm.NewHashMapOfValue(hmap.Length())
 	var mutablePairs []value.PairOfValue
 
 listLoop:
 	for _, element := range hmap.Table {
 		// skip if the bucket is empty or deleted
-		if element.Key.IsUndefined() {
+		if element.Key().IsUndefined() {
 			continue listLoop
 		}
 
-		if value.IsMutableCollection(element.Key) || value.IsMutableCollection(element.Value) {
+		if vm.IsMutableCollection(element.Key()) || vm.IsMutableCollection(element.Value()) {
 			mutablePairs = append(mutablePairs, element)
 			continue listLoop
 		}
 
-		vm.HashMapOfValueSet(nil, baseMap, element.Key, element.Value)
+		vm.HashMapOfValueSet(nil, baseMap, element.Key(), element.Value())
 	}
 
 	if len(mutablePairs) == 0 {
@@ -6791,22 +6791,22 @@ listLoop:
 	c.emitNewHashMap(len(mutablePairs), location)
 }
 
-func (c *BytecodeCompiler) emitHashRecord(hrec *value.HashRecordOfValue, location *position.Location) {
-	baseRecord := value.NewHashRecordOfValue(hrec.Length())
+func (c *BytecodeCompiler) emitHashRecord(hrec *vm.HashRecordOfValue, location *position.Location) {
+	baseRecord := vm.NewHashRecordOfValue(hrec.Length())
 	var mutablePairs []value.PairOfValue
 
 listLoop:
 	for _, element := range hrec.Table {
-		if element.Key.IsUndefined() {
+		if element.Key().IsUndefined() {
 			continue listLoop
 		}
 
-		if value.IsMutableCollection(element.Key) || value.IsMutableCollection(element.Value) {
+		if vm.IsMutableCollection(element.Key()) || vm.IsMutableCollection(element.Value()) {
 			mutablePairs = append(mutablePairs, element)
 			continue listLoop
 		}
 
-		vm.HashRecordSet(nil, baseRecord, element.Key, element.Value)
+		vm.HashRecordOfValueSet(nil, baseRecord, element.Key(), element.Value())
 	}
 
 	if len(mutablePairs) == 0 {
@@ -6830,7 +6830,7 @@ func (c *BytecodeCompiler) emitArrayList(list *value.ArrayListOfValue, location 
 
 listLoop:
 	for i, element := range l {
-		if value.IsMutableCollection(element) {
+		if vm.IsMutableCollection(element) {
 			firstMutableElementIndex = i
 			break listLoop
 		}
@@ -6862,7 +6862,7 @@ func (c *BytecodeCompiler) emitArrayTuple(tuple *value.ArrayTupleOfValue, locati
 
 listLoop:
 	for i, element := range t {
-		if value.IsMutableCollection(element) {
+		if vm.IsMutableCollection(element) {
 			firstMutableElementIndex = i
 			break listLoop
 		}

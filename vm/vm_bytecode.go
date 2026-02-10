@@ -1931,7 +1931,7 @@ func (vm *Thread) opMapSet() {
 	case *value.HashMapOfValue:
 		HashMapOfValueSet(vm, c, key, val)
 	case *value.HashRecordOfValue:
-		HashRecordSet(vm, c, key, val)
+		HashRecordOfValueSet(vm, c, key, val)
 	default:
 		panic(fmt.Sprintf("invalid map to set a value in: %s", collection.Inspect()))
 	}
@@ -2403,7 +2403,7 @@ func (vm *Thread) opGetConst(nameIndex int) (err value.Value) {
 // Get the iterator of the value on top of the stack.
 func (vm *Thread) opGetIterator() {
 	val := vm.peek()
-	result := value.Iter(val)
+	result := Iter(val)
 	vm.replace(result)
 }
 
@@ -2876,7 +2876,7 @@ func (vm *Thread) opNewHashRecord(dynamicElements int) value.Value {
 		switch m := baseMap.SafeAsReference().(type) {
 		case *value.HashRecordOfValue:
 			newRecord = value.NewHashRecordOfValue(m.Length())
-			err := HashRecordCopy(vm, newRecord, m)
+			err := HashRecordOfValueCopy(vm, newRecord, m)
 			if !err.IsUndefined() {
 				return err
 			}
@@ -2888,7 +2888,7 @@ func (vm *Thread) opNewHashRecord(dynamicElements int) value.Value {
 	for i := 0; i < dynamicElements*2; i += 2 {
 		key := *vm.stackAdd(firstElement, i)
 		val := *vm.stackAdd(firstElement, i+1)
-		HashRecordSetWithMaxLoad(vm, newRecord, key, val, 1)
+		HashRecordOfValueSetWithMaxLoad(vm, newRecord, key, val, 1)
 	}
 	vm.popN((dynamicElements * 2) + 1)
 

@@ -9,7 +9,7 @@ import (
 
 // Iterate over an iterable value
 func Iterate(vm *Thread, collectionValue value.Value) iter.Seq2[value.Value, value.Value] {
-	switch c := collectionValue.AsReference().(type) {
+	switch c := collectionValue.SafeAsReference().(type) {
 	case value.NativeIterator:
 		return value.IterateNativeIterator(c)
 	case value.NativeIterable:
@@ -22,32 +22,6 @@ func Iterate(vm *Thread, collectionValue value.Value) iter.Seq2[value.Value, val
 				}
 
 				if !yield(element, value.Undefined) {
-					return
-				}
-			}
-		}
-	case *value.HashMapOfValue:
-		return func(yield func(value.Value, value.Value) bool) {
-			for index, _ := range c.Table {
-				pair := &c.Table[index]
-				if pair.Key.IsUndefined() {
-					continue
-				}
-
-				if !yield(value.Ref(pair), value.Undefined) {
-					return
-				}
-			}
-		}
-	case *value.HashRecordOfValue:
-		return func(yield func(value.Value, value.Value) bool) {
-			for index, _ := range c.Table {
-				pair := &c.Table[index]
-				if pair.Key.IsUndefined() {
-					continue
-				}
-
-				if !yield(value.Ref(pair), value.Undefined) {
 					return
 				}
 			}

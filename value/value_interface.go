@@ -10,3 +10,8 @@ type ValueInterface interface {
 	Inspect() string                       // Returns the string representation of the value
 	Error() string                         // Implements the error interface
 }
+
+type ComparableValueInterface interface {
+	ValueInterface
+	comparable
+}

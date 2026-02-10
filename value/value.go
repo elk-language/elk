@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"iter"
 	"math"
-	"slices"
 	"strings"
 	"unsafe"
 
@@ -1148,28 +1147,6 @@ func GetInstanceVariableByName(object Value, name Symbol) (val, err Value) {
 	ivarIndex := class.IvarIndices[name]
 	val = ivars.Get(ivarIndex)
 	return val, Undefined
-}
-
-func IsMutableCollection(val Value) bool {
-	if val.IsInlineValue() {
-		return false
-	}
-	switch v := val.AsReference().(type) {
-	case *ArrayListOfValue, *HashMapOfValue:
-		return true
-	case *ArrayTupleOfValue:
-		if slices.ContainsFunc(*v, IsMutableCollection) {
-			return true
-		}
-	case *HashRecordOfValue:
-		for _, pair := range v.Table {
-			if IsMutableCollection(pair.Key) || IsMutableCollection(pair.Value) {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 type Inspectable interface {
@@ -3936,10 +3913,6 @@ func Next(val Value) (result, err Value) {
 		return v.NextValue()
 	case *ArrayTupleOfValueIterator:
 		return v.NextValue()
-	case *HashMapOfValueIterator:
-		return v.NextValue()
-	case *HashRecordIteratorOfValue:
-		return v.NextValue()
 	case *HashSetIterator:
 		return v.NextValue()
 	case *StringCharIterator:
@@ -3949,6 +3922,8 @@ func Next(val Value) (result, err Value) {
 	case *StringGraphemeIterator:
 		return v.NextValue()
 	case *Channel:
+		return v.NextValue()
+	case NativeIterator:
 		return v.NextValue()
 	default:
 		return Undefined, Undefined
@@ -3981,34 +3956,6 @@ func IterateNativeIterator(iter NativeIterator) iter.Seq2[Value, Value] {
 			}
 			return
 		}
-	}
-}
-
-// Get the iterator of the value
-func Iter(val Value) Value {
-	if !val.IsReference() {
-		return Undefined
-	}
-
-	switch v := val.AsReference().(type) {
-	case *ArrayListOfValueIterator, *ArrayTupleOfValueIterator, *HashMapOfValueIterator,
-		*HashRecordIteratorOfValue, *HashSetIterator, *StringCharIterator,
-		*StringByteIterator, *StringGraphemeIterator, *Channel:
-		return val
-	case String:
-		return Ref(NewStringCharIterator(v))
-	case *ArrayListOfValue:
-		return Ref(NewArrayListOfValueIterator(v))
-	case *ArrayTupleOfValue:
-		return Ref(NewArrayTupleOfValueIterator(v))
-	case *HashMapOfValue:
-		return Ref(NewHashMapOfValueIterator(v))
-	case *HashRecordOfValue:
-		return Ref(NewHashRecordIteratorOfValue(v))
-	case *HashSet:
-		return Ref(NewHashSetIterator(v))
-	default:
-		return Undefined
 	}
 }
 

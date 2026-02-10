@@ -92,8 +92,8 @@ func initToken() {
 		},
 	)
 
-	typesToNames := value.NewHashMapOfValue(token.Length())
-	namesToTypes := value.NewHashMapOfValue(token.Length())
+	typesToNames := NewHashMapOfValue(token.Length())
+	namesToTypes := NewHashMapOfValue(token.Length())
 	for tokenId, tokenName := range token.Types() {
 		idVal := value.UInt16(tokenId).ToValue()
 		nameVal := value.Ref(value.String(tokenName))

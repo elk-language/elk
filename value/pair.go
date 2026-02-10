@@ -8,11 +8,14 @@ var PairClass *Class // ::Std::Pair
 var PairIteratorClass *Class
 
 type Pair interface {
+	ValueInterface
 	NativeIterable
 	Key() Value
 	SetKey(Value) Value
 	Value() Value
 	SetValue(Value) Value
+	Subscript(key Value) (Value, Value)
+	SubscriptSet(key, val Value) Value
 }
 
 type PairIterator interface {
