@@ -109,10 +109,6 @@ func (h *HashRecordOfValue) LaxEqual(thread *Thread, other value.Value) (bool, v
 	return false, value.Undefined
 }
 
-func (h *HashRecordOfValue) Grow(thread *Thread, newSlots int) value.Value {
-	return HashRecordOfValueGrow(thread, h, newSlots)
-}
-
 func (*HashRecordOfValue) Class() *value.Class {
 	return value.HashRecordClass
 }

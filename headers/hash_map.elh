@@ -8,39 +8,9 @@ sealed primitive class ::Std::HashMap[Key, Value]
 	include Map[Key, Value]
 
 	##[
-		Mutates the map.
-
-		Reallocates the underlying array to hold
-		the given number of new elements.
-
-		Expands the `capacity` of the list by `new_slots`
-	]##
-	def grow(new_slots: Int): self; end
-
-	##[
-		Returns the number of key-value pairs that can be
-		held by the underlying array.
-
-		This value will change when the map gets resized,
-		and the underlying array gets reallocated.
-	]##
-	def capacity: Int; end
-
-	##[
 		Returns the number of key-value pairs present in the map.
 	]##
 	def length: Int; end
-
-	##[
-		Returns the number of left slots for new key-value pairs
-		in the underlying array.
-		It tells you how many more elements can be
-		added to the map before the underlying array gets
-		reallocated.
-
-		It is always equal to `capacity - length`.
-	]##
-	def left_capacity: Int; end
 
 	##[
 		Get the element under the given key.

@@ -3,7 +3,10 @@ package vm
 import (
 	"fmt"
 	"iter"
+	"maps"
+	"strings"
 
+	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -27,11 +30,21 @@ func NewNativeHashMap[K value.ComparableValueInterface, V value.ValueInterface](
 	}
 }
 
-func (h *NativeHashMap[K, V]) All() iter.Seq[value.NativePair[K, V]] {
-	return func(yield func(value.NativePair[K, V]) bool) {
+func (h *NativeHashMap[K, V]) All() iter.Seq[value.PairOfValue] {
+	return func(yield func(value.PairOfValue) bool) {
 		for k, v := range h.m {
-			pair := value.MakeNativePair(k, v)
+			pair := value.MakePairOfValue(k.ToValue(), v.ToValue())
 			if !yield(pair) {
+				return
+			}
+		}
+	}
+}
+
+func (h *NativeHashMap[K, V]) AllNative() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for k, v := range h.m {
+			if !yield(k, v) {
 				return
 			}
 		}
@@ -99,209 +112,303 @@ func (h *NativeHashMap[K, V]) SetVal(thread *Thread, key, val value.Value) value
 	return value.Undefined
 }
 
-// func (h *HashMapOfValue) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
-// 	switch o := other.SafeAsReference().(type) {
-// 	case *HashMapOfValue:
-// 		return value.RefErr(HashMapOfValueConcat(thread, h, o))
-// 	case HashRecord:
-// 		return value.RefErr(HashMapOfValueConcatInterface(thread, h, o))
-// 	}
+func (h *NativeHashMap[K, V]) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+	switch o := other.SafeAsReference().(type) {
+	case *NativeHashMap[K, V]:
+		newMap := NewNativeHashMap[K, V](h.Length() + o.Length())
+		maps.Copy(newMap.m, h.m)
+		maps.Copy(newMap.m, o.m)
+		return newMap.ToValue(), value.Undefined
+	case HashRecord:
+		newMap := NewHashMapOfValue(h.Length() + o.Length())
 
-// 	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
-// }
+		err := HashMapOfValueCopyInterface(thread, newMap, h)
+		if err.IsNotUndefined() {
+			return value.Undefined, err
+		}
 
-// func (h *HashMapOfValue) Contains(thread *Thread, other value.Pair) (bool, value.Value) {
-// 	return HashMapOfValueContains(thread, h, other)
-// }
+		err = HashMapOfValueCopyInterface(thread, newMap, o)
+		if err.IsNotUndefined() {
+			return value.Undefined, err
+		}
 
-// func (h *HashMapOfValue) ContainsValue(thread *Thread, val value.Value) (bool, value.Value) {
-// 	return HashMapOfValueContainsValue(thread, h, val)
-// }
+		return newMap.ToValue(), value.Undefined
+	}
 
-// func (h *HashMapOfValue) ContainsKey(thread *Thread, key value.Value) (bool, value.Value) {
-// 	return HashMapOfValueContainsKey(thread, h, key)
-// }
+	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
+}
 
-// func (h *HashMapOfValue) Equal(thread *Thread, other value.Value) (bool, value.Value) {
-// 	switch o := other.SafeAsReference().(type) {
-// 	case *HashMapOfValue:
-// 		return HashMapOfValueEqual(thread, h, o)
-// 	case HashMap:
-// 		return HashMapOfValueEqualInterface(thread, h, o)
-// 	}
+func (h *NativeHashMap[K, V]) ContainsNativePair(thread *Thread, other *value.NativePair[K, V]) (bool, value.Value) {
+	v, ok := h.Get(other.NativeKey())
+	if !ok {
+		return false, value.Undefined
+	}
 
-// 	return false, value.Undefined
-// }
+	eq, err := Equal(thread, v.ToValue(), other.Value())
+	if err.IsNotUndefined() {
+		return false, err
+	}
 
-// func (h *HashMapOfValue) LaxEqual(thread *Thread, other value.Value) (bool, value.Value) {
-// 	switch o := other.SafeAsReference().(type) {
-// 	case *HashMapOfValue:
-// 		return HashMapOfValueLaxEqual(thread, h, o)
-// 	case HashMap:
-// 		return HashMapOfValueLaxEqualInterface(thread, h, o)
-// 	}
+	return value.Truthy(eq), value.Undefined
+}
 
-// 	return false, value.Undefined
-// }
+func (h *NativeHashMap[K, V]) Contains(thread *Thread, other value.Pair) (bool, value.Value) {
+	v, err := h.GetVal(thread, other.Key())
+	if err.IsNotUndefined() {
+		return false, err
+	}
 
-// func (h *HashMapOfValue) Grow(thread *Thread, newSlots int) value.Value {
-// 	return HashMapOfValueGrow(thread, h, newSlots)
-// }
+	eq, err := Equal(thread, v, other.Value())
+	if err.IsNotUndefined() {
+		return false, err
+	}
 
-// func (*HashMapOfValue) Class() *value.Class {
-// 	return value.HashMapClass
-// }
+	return value.Truthy(eq), value.Undefined
+}
 
-// func (*HashMapOfValue) DirectClass() *value.Class {
-// 	return value.HashMapClass
-// }
+func (h *NativeHashMap[K, V]) ContainsNativeValue(thread *Thread, val V) (bool, value.Value) {
+	for _, hval := range h.m {
+		eq, err := Equal(thread, hval.ToValue(), val.ToValue())
+		if err.IsNotUndefined() {
+			return false, err
+		}
 
-// func (*HashMapOfValue) SingletonClass() *value.Class {
-// 	return nil
-// }
+		if value.Truthy(eq) {
+			return true, value.Undefined
+		}
+	}
 
-// func (h *HashMapOfValue) Clone() *HashMapOfValue {
-// 	newTable := slices.Clone(h.Table)
-// 	return &HashMapOfValue{
-// 		Table:         newTable,
-// 		OccupiedSlots: h.OccupiedSlots,
-// 		Elements:      h.Elements,
-// 	}
-// }
+	return false, value.Undefined
+}
 
-// func (h *HashMapOfValue) Copy() value.Reference {
-// 	return h.Clone()
-// }
+func (h *NativeHashMap[K, V]) ContainsValue(thread *Thread, val value.Value) (bool, value.Value) {
+	v, ok := value.Downcast[V](val)
+	if !ok {
+		return false, value.NewInvalidValueInTypedMap(h, val.Class()).ToValue()
+	}
+	return h.ContainsNativeValue(thread, v)
+}
 
-// func (h *HashMapOfValue) ToValue() value.Value {
-// 	return value.Ref(h)
-// }
+func (h *NativeHashMap[K, V]) ContainsNativeKey(thread *Thread, key K) bool {
+	_, ok := h.Get(key)
+	return ok
+}
 
-// func (h *HashMapOfValue) Error() string {
-// 	return h.Inspect()
-// }
+func (h *NativeHashMap[K, V]) ContainsKey(thread *Thread, key value.Value) (bool, value.Value) {
+	k, ok := value.Downcast[K](key)
+	if !ok {
+		return false, value.NewInvalidKeyInTypedMap(h, key.Class()).ToValue()
+	}
+	return h.ContainsNativeKey(thread, k), value.Undefined
+}
 
-// const MAX_HASH_MAP_ELEMENTS_IN_INSPECT = 300
+func (h *NativeHashMap[K, V]) EqualNative(thread *Thread, other *NativeHashMap[K, V]) (bool, value.Value) {
+	if h == other {
+		return true, value.Undefined
+	}
+	if h.Length() != other.Length() {
+		return false, value.Undefined
+	}
 
-// func (h *HashMapOfValue) Inspect() string {
-// 	var hasMultilineElements bool
-// 	keyStrings := make(
-// 		[]string,
-// 		0,
-// 		min(MAX_HASH_MAP_ELEMENTS_IN_INSPECT, h.Length()),
-// 	)
-// 	valStrings := make(
-// 		[]string,
-// 		0,
-// 		min(MAX_HASH_MAP_ELEMENTS_IN_INSPECT, h.Length()),
-// 	)
+	for hkey, hval := range h.m {
+		oval := other.m[hkey]
+		eqVal, err := Equal(thread, hval.ToValue(), oval.ToValue())
+		if !err.IsUndefined() {
+			return false, err
+		}
+		equal := value.Truthy(eqVal)
+		if !equal {
+			return false, value.Undefined
+		}
+	}
 
-// 	i := 0
-// 	for _, entry := range h.Table {
-// 		if entry.Key().IsUndefined() {
-// 			continue
-// 		}
+	return true, value.Undefined
+}
 
-// 		keyString := entry.Key().Inspect()
-// 		keyStrings = append(keyStrings, keyString)
+func (h *NativeHashMap[K, V]) Equal(thread *Thread, other value.Value) (bool, value.Value) {
+	switch o := other.SafeAsReference().(type) {
+	case *NativeHashMap[K, V]:
+		return h.EqualNative(thread, o)
+	case HashMap:
+		return HashRecordEqual(thread, o, h)
+	}
 
-// 		valString := entry.Value().Inspect()
-// 		valStrings = append(valStrings, valString)
+	return false, value.Undefined
+}
 
-// 		if strings.ContainsRune(keyString, '\n') ||
-// 			strings.ContainsRune(valString, '\n') {
-// 			hasMultilineElements = true
-// 		}
+func (h *NativeHashMap[K, V]) LaxEqualNative(thread *Thread, other *NativeHashMap[K, V]) (bool, value.Value) {
+	if h == other {
+		return true, value.Undefined
+	}
+	if h.Length() != other.Length() {
+		return false, value.Undefined
+	}
 
-// 		if i >= MAX_HASH_MAP_ELEMENTS_IN_INSPECT-1 {
-// 			break
-// 		}
-// 		i++
-// 	}
+	for hkey, hval := range h.m {
+		oval := other.m[hkey]
+		eqVal, err := LaxEqual(thread, hval.ToValue(), oval.ToValue())
+		if !err.IsUndefined() {
+			return false, err
+		}
+		equal := value.Truthy(eqVal)
+		if !equal {
+			return false, value.Undefined
+		}
+	}
 
-// 	var buff strings.Builder
+	return true, value.Undefined
+}
 
-// 	buff.WriteRune('{')
-// 	if hasMultilineElements || h.Length() > 15 {
-// 		buff.WriteRune('\n')
-// 		for i := range len(keyStrings) {
-// 			keyString := keyStrings[i]
-// 			valString := valStrings[i]
+func (h *NativeHashMap[K, V]) LaxEqual(thread *Thread, other value.Value) (bool, value.Value) {
+	switch o := other.SafeAsReference().(type) {
+	case *NativeHashMap[K, V]:
+		return h.LaxEqualNative(thread, o)
+	case HashRecord:
+		return HashRecordLaxEqual(thread, h, o)
+	}
 
-// 			if i != 0 {
-// 				buff.WriteString(",\n")
-// 			}
-// 			indent.IndentString(&buff, keyString, 1)
-// 			buff.WriteString(" => ")
-// 			indent.IndentStringFromSecondLine(&buff, valString, 1)
+	return false, value.Undefined
+}
 
-// 			if i >= MAX_HASH_MAP_ELEMENTS_IN_INSPECT-1 {
-// 				buff.WriteString(",\n  ...")
-// 				break
-// 			}
-// 		}
-// 		buff.WriteRune('\n')
-// 	} else {
-// 		for i := range len(keyStrings) {
-// 			keyString := keyStrings[i]
-// 			valString := valStrings[i]
+func (*NativeHashMap[K, V]) Class() *value.Class {
+	return value.HashMapClass
+}
 
-// 			if i != 0 {
-// 				buff.WriteString(", ")
-// 			}
-// 			buff.WriteString(keyString)
-// 			buff.WriteString(" => ")
-// 			buff.WriteString(valString)
+func (*NativeHashMap[K, V]) DirectClass() *value.Class {
+	return value.HashMapClass
+}
 
-// 			if i >= MAX_HASH_MAP_ELEMENTS_IN_INSPECT-1 {
-// 				buff.WriteString(", ...")
-// 				break
-// 			}
-// 		}
-// 	}
-// 	buff.WriteRune('}')
+func (*NativeHashMap[K, V]) SingletonClass() *value.Class {
+	return nil
+}
 
-// 	leftCapacity := h.LeftCapacity()
-// 	if leftCapacity > 0 {
-// 		fmt.Fprintf(&buff, ":%d", leftCapacity)
-// 	}
-// 	return buff.String()
-// }
+func (h *NativeHashMap[K, V]) Clone() *NativeHashMap[K, V] {
+	newMap := NewNativeHashMap[K, V](h.Length())
+	maps.Copy(newMap.m, h.m)
+	return newMap
+}
 
-// func (*HashMapOfValue) InstanceVariables() *value.InstanceVariables {
-// 	return nil
-// }
+func (h *NativeHashMap[K, V]) Copy() value.Reference {
+	return h.Clone()
+}
 
-// func (h *HashMapOfValue) Capacity() int {
-// 	return len(h.Table)
-// }
+func (h *NativeHashMap[K, V]) ToValue() value.Value {
+	return value.Ref(h)
+}
 
-// func (h *HashMapOfValue) LeftCapacity() int {
-// 	return h.Capacity() - h.Length()
-// }
+func (h *NativeHashMap[K, V]) Error() string {
+	return h.Inspect()
+}
 
-// func (h *HashMapOfValue) Length() int {
-// 	return h.Elements
-// }
+func (h *NativeHashMap[K, V]) Inspect() string {
+	var hasMultilineElements bool
+	keyStrings := make(
+		[]string,
+		0,
+		min(MAX_HASH_MAP_ELEMENTS_IN_INSPECT, h.Length()),
+	)
+	valStrings := make(
+		[]string,
+		0,
+		min(MAX_HASH_MAP_ELEMENTS_IN_INSPECT, h.Length()),
+	)
+
+	i := 0
+	for key, val := range h.m {
+		keyString := key.Inspect()
+		keyStrings = append(keyStrings, keyString)
+
+		valString := val.Inspect()
+		valStrings = append(valStrings, valString)
+
+		if strings.ContainsRune(keyString, '\n') ||
+			strings.ContainsRune(valString, '\n') {
+			hasMultilineElements = true
+		}
+
+		if i >= MAX_HASH_MAP_ELEMENTS_IN_INSPECT-1 {
+			break
+		}
+		i++
+	}
+
+	var buff strings.Builder
+
+	buff.WriteRune('{')
+	if hasMultilineElements || h.Length() > 15 {
+		buff.WriteRune('\n')
+		for i := range len(keyStrings) {
+			keyString := keyStrings[i]
+			valString := valStrings[i]
+
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, keyString, 1)
+			buff.WriteString(" => ")
+			indent.IndentStringFromSecondLine(&buff, valString, 1)
+
+			if i >= MAX_HASH_MAP_ELEMENTS_IN_INSPECT-1 {
+				buff.WriteString(",\n  ...")
+				break
+			}
+		}
+		buff.WriteRune('\n')
+	} else {
+		for i := range len(keyStrings) {
+			keyString := keyStrings[i]
+			valString := valStrings[i]
+
+			if i != 0 {
+				buff.WriteString(", ")
+			}
+			buff.WriteString(keyString)
+			buff.WriteString(" => ")
+			buff.WriteString(valString)
+
+			if i >= MAX_HASH_MAP_ELEMENTS_IN_INSPECT-1 {
+				buff.WriteString(", ...")
+				break
+			}
+		}
+	}
+	buff.WriteRune('}')
+
+	return buff.String()
+}
+
+func (*NativeHashMap[K, V]) InstanceVariables() *value.InstanceVariables {
+	return nil
+}
+
+func (h *NativeHashMap[K, V]) Length() int {
+	return len(h.m)
+}
 
 type NativeHashMapIterator[K value.ComparableValueInterface, V value.ValueInterface] struct {
-	HashMap *NativeHashMap[K, V]
-	Index   int
+	HashMap  *NativeHashMap[K, V]
+	index    int
+	snapshot []value.NativePair[K, V]
+	version  int
 }
 
 var _ HashMapIterator = &NativeHashMapIterator[value.String, value.String]{}
 
 func NewNativeHashMapIterator[K value.ComparableValueInterface, V value.ValueInterface](hmap *NativeHashMap[K, V]) *NativeHashMapIterator[K, V] {
-	return &NativeHashMapIterator[K, V]{
+	iterator := &NativeHashMapIterator[K, V]{
 		HashMap: hmap,
+		version: hmap.version,
 	}
+	iterator.captureSnapshot()
+	return iterator
 }
 
-func NewNativeHashMapIteratorWithIndex[K value.ComparableValueInterface, V value.ValueInterface](hmap *NativeHashMap[K, V], index int) *NativeHashMapIterator[K, V] {
-	return &NativeHashMapIterator[K, V]{
-		HashMap: hmap,
-		Index:   index,
+func (h *NativeHashMapIterator[K, V]) captureSnapshot() {
+	snapshot := make([]value.NativePair[K, V], 0, h.HashMap.Length())
+	for k, v := range h.HashMap.AllNative() {
+		snapshot = append(snapshot, value.MakeNativePair(k, v))
 	}
+	h.snapshot = snapshot
 }
 
 func (*NativeHashMapIterator[K, V]) Class() *value.Class {
@@ -318,8 +425,10 @@ func (*NativeHashMapIterator[K, V]) SingletonClass() *value.Class {
 
 func (h *NativeHashMapIterator[K, V]) Copy() value.Reference {
 	return &NativeHashMapIterator[K, V]{
-		HashMap: h.HashMap,
-		Index:   h.Index,
+		HashMap:  h.HashMap,
+		index:    h.index,
+		snapshot: h.snapshot,
+		version:  h.version,
 	}
 }
 
@@ -340,33 +449,26 @@ func (*NativeHashMapIterator[K, V]) InstanceVariables() *value.InstanceVariables
 }
 
 func (h *NativeHashMapIterator[K, V]) Next() (p value.NativePair[K, V], err value.Value) {
-	for {
-		if h.Index >= h.HashMap.Capacity() {
-			return p, symbol.L_stop_iteration.ToValue()
-		}
-
-		pair := h.HashMap.Table[h.Index]
-		h.Index++
-		if !pair.Key().IsUndefined() {
-			return value.Ref(&h.HashMap.Table[h.Index-1]), value.Undefined
-		}
+	if h.version != h.HashMap.version {
+		return p, value.NewMutationDuringIterationError(h.Class().Name).ToValue()
 	}
+	if h.index >= len(h.snapshot) {
+		return p, symbol.L_stop_iteration.ToValue()
+	}
+
+	h.index++
+	return h.snapshot[h.index], value.Undefined
 }
 
 func (h *NativeHashMapIterator[K, V]) NextValue() (value.Value, value.Value) {
-	for {
-		if h.Index >= h.HashMap.Capacity() {
-			return value.Undefined, symbol.L_stop_iteration.ToValue()
-		}
-
-		pair := h.HashMap.Table[h.Index]
-		h.Index++
-		if !pair.Key().IsUndefined() {
-			return value.Ref(&h.HashMap.Table[h.Index-1]), value.Undefined
-		}
+	p, err := h.Next()
+	if err.IsNotUndefined() {
+		return value.Undefined, err
 	}
+
+	return p.ToValue(), value.Undefined
 }
 
 func (h *NativeHashMapIterator[K, V]) Reset() {
-	h.Index = 0
+	h.index = 0
 }

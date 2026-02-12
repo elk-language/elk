@@ -26,6 +26,10 @@ func MakeNativePair[K ComparableValueInterface, V ValueInterface](key K, val V) 
 	}
 }
 
+func (p *NativePair[K, V]) ToPairOfValue() *PairOfValue {
+	return NewPairOfValue(p.Key(), p.Value())
+}
+
 func (p *NativePair[K, V]) NativeKey() K {
 	return p.key
 }

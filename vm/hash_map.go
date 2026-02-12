@@ -10,10 +10,7 @@ import (
 type HashMap interface {
 	HashRecord
 	IterMap() HashMapIterator
-	Capacity() int
-	LeftCapacity() int
 	SetVal(thread *Thread, key, val value.Value) value.Value
-	Grow(thread *Thread, newSlots int) value.Value
 }
 
 type HashMapIterator interface {
@@ -35,26 +32,10 @@ func initHashMap() {
 	)
 	Def(
 		c,
-		"capacity",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsReference().(HashMap)
-			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
-		},
-	)
-	Def(
-		c,
 		"length",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(HashMap)
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"left_capacity",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsReference().(HashMap)
-			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -96,31 +77,6 @@ func initHashMap() {
 			self := args[0].AsReference().(HashMap)
 			other := args[1]
 			return self.ConcatVal(vm, other)
-		},
-		DefWithParameters(1),
-	)
-	Def(
-		c,
-		"grow",
-		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsReference().(HashMap)
-			nValue := args[1]
-			n, ok := value.IntToGoInt(nValue)
-			if !ok && n == -1 {
-				return value.Undefined, value.Ref(value.NewTooLargeCapacityError(nValue.Inspect()))
-			}
-			if n < 0 {
-				return value.Undefined, value.Ref(value.NewNegativeCapacityError(nValue.Inspect()))
-			}
-			if !ok {
-				return value.Undefined, value.Ref(value.NewCapacityTypeError(nValue.Inspect()))
-			}
-			err := self.Grow(vm, n)
-			if err.IsNotUndefined() {
-				return value.Undefined, err
-			}
-
-			return self.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -489,6 +445,36 @@ func HashMapOfValueLaxEqualInterface(vm *Thread, x *HashMapOfValue, y HashRecord
 	return true, value.Undefined
 }
 
+func HashRecordLaxEqual(vm *Thread, x HashRecord, y HashRecord) (bool, value.Value) {
+	if x.Length() != y.Length() {
+		return false, value.Undefined
+	}
+
+	for xPair := range x.All() {
+		if xPair.Key().IsUndefined() {
+			continue
+		}
+
+		yVal, err := y.GetVal(vm, xPair.Key())
+		if !err.IsUndefined() {
+			return false, err
+		}
+		if yVal.IsUndefined() {
+			return false, value.Undefined
+		}
+		eqVal, err := LaxEqual(vm, xPair.Value(), yVal)
+		if !err.IsUndefined() {
+			return false, err
+		}
+		equal := value.Truthy(eqVal)
+		if !equal {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
+}
+
 // Create a new map containing the pairs of both maps.
 func HashMapOfValueConcat(vm *Thread, x, y *HashMapOfValue) (*HashMapOfValue, value.Value) {
 	result := x.Clone()
@@ -510,6 +496,9 @@ func HashMapOfValueConcatInterface(vm *Thread, x *HashMapOfValue, y HashRecord) 
 
 // Checks whether two hash maps are equal
 func HashMapOfValueEqual(vm *Thread, x *HashMapOfValue, y *HashMapOfValue) (bool, value.Value) {
+	if x == y {
+		return true, value.Undefined
+	}
 	if x.Length() != y.Length() {
 		return false, value.Undefined
 	}
@@ -540,6 +529,9 @@ func HashMapOfValueEqual(vm *Thread, x *HashMapOfValue, y *HashMapOfValue) (bool
 }
 
 func HashMapOfValueEqualInterface(vm *Thread, x *HashMapOfValue, y HashRecord) (bool, value.Value) {
+	if x == y {
+		return true, value.Undefined
+	}
 	if x.Length() != y.Length() {
 		return false, value.Undefined
 	}
@@ -557,6 +549,35 @@ func HashMapOfValueEqualInterface(vm *Thread, x *HashMapOfValue, y HashRecord) (
 			return false, value.Undefined
 		}
 		eqVal, err := Equal(vm, xPair.Value(), yVal)
+		if !err.IsUndefined() {
+			return false, err
+		}
+		equal := value.Truthy(eqVal)
+		if !equal {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
+}
+
+func HashRecordEqual(vm *Thread, x HashRecord, y HashRecord) (bool, value.Value) {
+	if x == y {
+		return true, value.Undefined
+	}
+	if x.Length() != y.Length() {
+		return false, value.Undefined
+	}
+
+	for pair := range x.All() {
+		yVal, err := y.GetVal(vm, pair.Key())
+		if !err.IsUndefined() {
+			return false, err
+		}
+		if yVal.IsUndefined() {
+			return false, value.Undefined
+		}
+		eqVal, err := Equal(vm, pair.Value(), yVal)
 		if !err.IsUndefined() {
 			return false, err
 		}

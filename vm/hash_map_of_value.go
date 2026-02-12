@@ -244,10 +244,6 @@ func (h *HashMapOfValue) Inspect() string {
 	}
 	buff.WriteRune('}')
 
-	leftCapacity := h.LeftCapacity()
-	if leftCapacity > 0 {
-		fmt.Fprintf(&buff, ":%d", leftCapacity)
-	}
 	return buff.String()
 }
 

@@ -330,13 +330,25 @@ func HashRecordOfValueCopy(vm *Thread, target *HashRecordOfValue, source *HashRe
 	return HashMapOfValueCopy(vm, (*HashMapOfValue)(target), (*HashMapOfValue)(source))
 }
 
-// Create a new map containing the pairs of both maps.
-func HashRecordOfValueConcat(vm *Thread, x *HashRecordOfValue, y *HashRecordOfValue) (*HashMapOfValue, value.Value) {
-	return HashMapOfValueConcat(vm, (*HashMapOfValue)(x), (*HashMapOfValue)(y))
+func HashRecordOfValueCopyInterface(vm *Thread, target *HashRecordOfValue, source HashRecord) value.Value {
+	return HashMapOfValueCopyInterface(vm, (*HashMapOfValue)(target), source)
 }
 
-func HashRecordOfValueConcatInterface(vm *Thread, x *HashRecordOfValue, y HashRecord) (*HashMapOfValue, value.Value) {
-	return HashMapOfValueConcatInterface(vm, (*HashMapOfValue)(x), y)
+// Create a new map containing the pairs of both maps.
+func HashRecordOfValueConcat(vm *Thread, x *HashRecordOfValue, y *HashRecordOfValue) (*HashRecordOfValue, value.Value) {
+	m, err := HashMapOfValueConcat(vm, (*HashMapOfValue)(x), (*HashMapOfValue)(y))
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+	return (*HashRecordOfValue)(m), value.Undefined
+}
+
+func HashRecordOfValueConcatInterface(vm *Thread, x *HashRecordOfValue, y HashRecord) (*HashRecordOfValue, value.Value) {
+	m, err := HashMapOfValueConcatInterface(vm, (*HashMapOfValue)(x), y)
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+	return (*HashRecordOfValue)(m), value.Undefined
 }
 
 // Check if the given pair is present in the record
