@@ -52,8 +52,16 @@ func (h *HashRecordOfValue) Iterate() iter.Seq2[value.Value, value.Value] {
 	}
 }
 
-func (h *HashRecordOfValue) IterRecord() HashRecordIterator {
+func (h *HashRecordOfValue) IterNative() *HashRecordOfValueIterator {
 	return NewHashRecordOfValueIterator(h)
+}
+
+func (h *HashRecordOfValue) Iter() value.NativeIterator {
+	return h.IterNative()
+}
+
+func (h *HashRecordOfValue) IterRecord() value.NativeResettableIterator {
+	return h.IterNative()
 }
 
 func (h *HashRecordOfValue) GetVal(thread *Thread, key value.Value) (value.Value, value.Value) {
@@ -229,7 +237,7 @@ type HashRecordOfValueIterator struct {
 	Index      int
 }
 
-var _ HashRecordIterator = &HashRecordOfValueIterator{}
+var _ value.NativeResettableIterator = &HashRecordOfValueIterator{}
 
 func NewHashRecordOfValueIterator(hrec *HashRecordOfValue) *HashRecordOfValueIterator {
 	return &HashRecordOfValueIterator{

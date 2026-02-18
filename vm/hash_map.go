@@ -9,12 +9,8 @@ import (
 
 type HashMap interface {
 	HashRecord
-	IterMap() HashMapIterator
+	IterMap() value.NativeResettableIterator
 	SetVal(thread *Thread, key, val value.Value) value.Value
-}
-
-type HashMapIterator interface {
-	HashRecordIterator
 }
 
 // ::Std::HashMap
@@ -295,7 +291,7 @@ func initHashMapIterator() {
 		c,
 		"next",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsReference().(HashMapIterator)
+			self := args[0].AsReference().(value.NativeResettableIterator)
 			return self.NextValue()
 		},
 	)
@@ -310,7 +306,7 @@ func initHashMapIterator() {
 		c,
 		"reset",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsReference().(HashMapIterator)
+			self := args[0].AsReference().(value.NativeResettableIterator)
 			self.Reset()
 			return args[0], value.Undefined
 		},
@@ -529,9 +525,6 @@ func HashMapOfValueEqual(vm *Thread, x *HashMapOfValue, y *HashMapOfValue) (bool
 }
 
 func HashMapOfValueEqualInterface(vm *Thread, x *HashMapOfValue, y HashRecord) (bool, value.Value) {
-	if x == y {
-		return true, value.Undefined
-	}
 	if x.Length() != y.Length() {
 		return false, value.Undefined
 	}
@@ -611,6 +604,10 @@ func HashMapOfValueDelete(vm *Thread, hashMap *HashMapOfValue, key value.Value) 
 		value.Undefined,
 		value.True,
 	)
+	// decrement only the count of active pairs
+	// leave `OccupiedSlots` with the same value, cause
+	// it represents the sum of slots that are active
+	// and "zombie" slots left over by deleted pairs
 	hashMap.Elements--
 	hashMap.version++
 
@@ -822,9 +819,13 @@ func HashMapOfValueSetWithMaxLoad(vm *Thread, hashMap *HashMapOfValue, key, val 
 		panic(fmt.Sprintf("no room in target hashmap when trying to add a new key: %s", hashMap.Inspect()))
 	}
 	entry := hashMap.Table[index]
-	if entry.Key().IsUndefined() && entry.Value().IsUndefined() {
-		hashMap.OccupiedSlots++
+	if entry.Key().IsUndefined() {
 		hashMap.Elements++
+		if entry.Value().IsUndefined() {
+			// increment OccupiedSlots only when the slot was completely empty
+			// leave the count the same when a zombie slot is overwritten
+			hashMap.OccupiedSlots++
+		}
 	}
 
 	hashMap.Table[index] = value.MakePairOfValue(

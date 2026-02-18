@@ -15,7 +15,43 @@ type NativeHashRecord[K value.ComparableValueInterface, V value.ValueInterface] 
 
 var _ HashRecord = NativeHashRecord[value.String, value.String]{}
 
-func MakeNativeHashMapFromMap[K value.ComparableValueInterface, V value.ValueInterface](m map[K]V) NativeHashRecord[K, V] {
+// UNSAFE! Cast a map with native go types to an Elk `NativeHashRecord` with corresponding Elk types.
+// This is EXTREMELY unsafe, use it only if `IK`, OK` and `IV`, `OV` have the same
+// underlying types eg. `CastNativeHashRecord[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `NativeHashRecord[value.String, value.UInt8]`
+func CastNativeHashRecord[
+	IK comparable,
+	IV any,
+	OK value.ComparableValueInterface,
+	OV value.ValueInterface,
+](m map[IK]IV) NativeHashRecord[OK, OV] {
+	return NativeHashRecord[OK, OV](castNativeMap[IK, IV, OK, OV](m))
+}
+
+// Transform a map with native go types to a new Elk `NativeHashRecord` with corresponding Elk types
+// using the given function.
+// eg.
+//
+//	TransformIntoNativeHashRecord(m, func(k string, v uint8) (value.String, value.UInt8) {
+//		return value.String(k), value.UInt8(v)
+//	})
+func TransformIntoNativeHashRecord[
+	IK comparable,
+	IV any,
+	OK value.ComparableValueInterface,
+	OV value.ValueInterface,
+](
+	m map[IK]IV,
+	fn func(k IK, v IV) (OK, OV),
+) NativeHashRecord[OK, OV] {
+	newMap := MakeNativeHashRecord[OK, OV](len(m))
+	for k, v := range m {
+		ok, ov := fn(k, v)
+		newMap[ok] = ov
+	}
+	return newMap
+}
+
+func MakeNativeHashRecordFromMap[K value.ComparableValueInterface, V value.ValueInterface](m map[K]V) NativeHashRecord[K, V] {
 	return NativeHashRecord[K, V](m)
 }
 
@@ -55,7 +91,11 @@ func (h NativeHashRecord[K, V]) Iterate() iter.Seq2[value.Value, value.Value] {
 	}
 }
 
-func (h NativeHashRecord[K, V]) IterRecord() HashRecordIterator {
+func (h NativeHashRecord[K, V]) IterRecord() value.NativeResettableIterator {
+	return NewNativeHashRecordIterator(h)
+}
+
+func (h NativeHashRecord[K, V]) Iter() value.NativeIterator {
 	return NewNativeHashRecordIterator(h)
 }
 
@@ -377,7 +417,7 @@ type NativeHashRecordIterator[K value.ComparableValueInterface, V value.ValueInt
 	snapshot   []value.NativePair[K, V]
 }
 
-var _ HashRecordIterator = &HashRecordOfValueIterator{}
+var _ value.NativeResettableIterator = &HashRecordOfValueIterator{}
 
 func NewNativeHashRecordIterator[K value.ComparableValueInterface, V value.ValueInterface](hrec NativeHashRecord[K, V]) *NativeHashRecordIterator[K, V] {
 	iterator := &NativeHashRecordIterator[K, V]{

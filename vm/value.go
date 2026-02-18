@@ -353,22 +353,6 @@ func NextBuiltin(vm *Thread, val value.Value) (result, err value.Value) {
 	}
 
 	switch v := val.AsReference().(type) {
-	case *value.ArrayListOfValueIterator:
-		return v.NextValue()
-	case *value.ArrayTupleOfValueIterator:
-		return v.NextValue()
-	case HashRecordIterator:
-		return v.NextValue()
-	case *value.HashSetIterator:
-		return v.NextValue()
-	case *value.StringCharIterator:
-		return v.NextValue()
-	case *value.StringByteIterator:
-		return v.NextValue()
-	case *value.StringGraphemeIterator:
-		return v.NextValue()
-	case *value.Channel:
-		return v.NextValue()
 	case *value.ClosedRangeIterator:
 		return ClosedRangeIteratorNext(vm, v)
 	case *value.OpenRangeIterator:
@@ -450,23 +434,11 @@ func Iter(val value.Value) value.Value {
 		return value.Undefined
 	}
 
-	switch v := val.AsReference().(type) {
-	case *value.ArrayListOfValueIterator, *value.ArrayTupleOfValueIterator, *HashMapOfValueIterator,
-		*HashRecordOfValueIterator, *value.HashSetIterator, *value.StringCharIterator,
-		*value.StringByteIterator, *value.StringGraphemeIterator, *value.Channel, value.NativeIterator:
+	switch v := val.ToInterface().(type) {
+	case value.NativeIterator:
 		return val
-	case value.String:
-		return value.NewStringCharIterator(v).ToValue()
-	case *value.ArrayListOfValue:
-		return value.NewArrayListOfValueIterator(v).ToValue()
-	case *value.ArrayTupleOfValue:
-		return value.NewArrayTupleOfValueIterator(v).ToValue()
-	case *HashMapOfValue:
-		return NewHashMapOfValueIterator(v).ToValue()
-	case *HashRecordOfValue:
-		return NewHashRecordOfValueIterator(v).ToValue()
-	case *value.HashSet:
-		return value.NewHashSetIterator(v).ToValue()
+	case value.NativeIterable:
+		return v.Iter().ToValue()
 	default:
 		return value.Undefined
 	}

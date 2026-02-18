@@ -8,39 +8,23 @@ import (
 )
 
 // Iterate over an iterable value
-func Iterate(vm *Thread, collectionValue value.Value) iter.Seq2[value.Value, value.Value] {
-	switch c := collectionValue.SafeAsReference().(type) {
+func Iterate(vm *Thread, iterableVal value.Value) iter.Seq2[value.Value, value.Value] {
+	switch c := iterableVal.SafeAsReference().(type) {
 	case value.NativeIterator:
 		return value.IterateNativeIterator(c)
 	case value.NativeIterable:
 		return c.Iterate()
-	case *value.HashSet:
-		return func(yield func(value.Value, value.Value) bool) {
-			for _, element := range c.Table {
-				if element.IsUndefined() {
-					continue
-				}
-
-				if !yield(element, value.Undefined) {
-					return
-				}
-			}
-		}
 	default:
 		return func(yield func(value.Value, value.Value) bool) {
-			iterator, err := vm.CallMethodByName(symbol.L_iter, collectionValue)
+			iterator, err := vm.CallMethodByName(symbol.L_iter, iterableVal)
 			if !err.IsUndefined() {
 				yield(value.Undefined, err)
 				return
 			}
 
-			for {
-				element, err := vm.CallMethodByName(symbol.L_next, iterator)
-				if err.IsUndefined() {
-					if !yield(element, value.Undefined) {
-						return
-					}
-					continue
+			for element, err := range Iterate(vm, iterator) {
+				if !yield(element, value.Undefined) {
+					return
 				}
 
 				if err != symbol.L_stop_iteration.ToValue() {

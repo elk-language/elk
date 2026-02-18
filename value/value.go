@@ -3909,20 +3909,6 @@ func Next(val Value) (result, err Value) {
 	}
 
 	switch v := val.AsReference().(type) {
-	case *ArrayListOfValueIterator:
-		return v.NextValue()
-	case *ArrayTupleOfValueIterator:
-		return v.NextValue()
-	case *HashSetIterator:
-		return v.NextValue()
-	case *StringCharIterator:
-		return v.NextValue()
-	case *StringByteIterator:
-		return v.NextValue()
-	case *StringGraphemeIterator:
-		return v.NextValue()
-	case *Channel:
-		return v.NextValue()
 	case NativeIterator:
 		return v.NextValue()
 	default:
@@ -3933,11 +3919,18 @@ func Next(val Value) (result, err Value) {
 // Represents a native iterable defined in Go
 type NativeIterable interface {
 	Iterate() iter.Seq2[Value, Value]
+	Iter() NativeIterator
 }
 
 // Represents an iterator defined in Go
 type NativeIterator interface {
+	ValueInterface
 	NextValue() (Value, Value)
+}
+
+type NativeResettableIterator interface {
+	NativeIterator
+	Reset()
 }
 
 func IterateNativeIterator(iter NativeIterator) iter.Seq2[Value, Value] {

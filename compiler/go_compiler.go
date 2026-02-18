@@ -6936,7 +6936,7 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 				return nil
 			}
 			return c.arrayTupleToGoSource(v, true)
-		case *value.HashSet:
+		case *value.HashSetOfValue:
 			if !allowMutable {
 				return nil
 			}
@@ -7562,7 +7562,7 @@ func (c *GoCompiler) arrayTupleToGoSource(v *value.ArrayTupleOfValue, mutable bo
 	)
 }
 
-func (c *GoCompiler) hashSetToGoSource(v *value.HashSet) *goValue {
+func (c *GoCompiler) hashSetToGoSource(v *value.HashSetOfValue) *goValue {
 	var buff strings.Builder
 
 	fmt.Fprintf(&buff, "vm.MustNewHashSetWithCapacityAndElements(nil, %d, ", v.LeftCapacity())

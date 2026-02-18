@@ -21,39 +21,9 @@ sealed primitive class ::Std::HashSet[Val]
 	def clear; end
 
 	##[
-		Mutates the set.
-
-		Reallocates the underlying array to hold
-		the given number of new elements.
-
-		Expands the `capacity` of the list by `new_slots`
-	]##
-	def grow(new_slots: Int): self; end
-
-	##[
-		Returns the number of elements that can be
-		held by the underlying array.
-
-		This value will change when the set gets resized,
-		and the underlying array gets reallocated.
-	]##
-	def capacity: Int; end
-
-	##[
 		Returns the number of elements present in the set.
 	]##
 	def length: Int; end
-
-	##[
-		Returns the number of left slots for new elements
-		in the underlying array.
-		It tells you how many more elements can be
-		added to the set before the underlying array gets
-		reallocated.
-
-		It is always equal to `capacity - length`.
-	]##
-	def left_capacity: Int; end
 
 	##[
 		Return the union of both sets.

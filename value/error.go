@@ -463,6 +463,15 @@ func NewNoMethodError(methodName string, receiver Value) *Object {
 	)
 }
 
+func NewInvalidElementInTypedSet(set any, elementClass *Class) *Object {
+	return Errorf(
+		TypeErrorClass,
+		"cannot set element of type %s in a typed set %T, %s",
+		elementClass.Inspect(),
+		set,
+	)
+}
+
 func NewInvalidElementInTypedArray(arr any, elementClass *Class) *Object {
 	return Errorf(
 		TypeErrorClass,

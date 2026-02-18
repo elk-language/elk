@@ -362,7 +362,7 @@ func NewNodeIterator(node Node) *value.ArrayTupleOfValueIterator {
 		tuple = append(tuple, value.Ref(n))
 	}
 
-	return value.NewArrayTupleIterator(&tuple)
+	return tuple.IterNative()
 }
 
 func SpliceSlice[N Node](slice []N, loc *position.Location, args *[]Node, unquote bool) []N {

@@ -10,7 +10,7 @@ import (
 type HashRecord interface {
 	value.ValueInterface
 	value.NativeIterable
-	IterRecord() HashRecordIterator
+	IterRecord() value.NativeResettableIterator
 	All() iter.Seq[value.PairOfValue]
 	Length() int
 	GetVal(thread *Thread, key value.Value) (value.Value, value.Value)
@@ -25,12 +25,6 @@ type HashRecord interface {
 type mutableHashRecord interface {
 	HashRecord
 	SetVal(thread *Thread, key, val value.Value) value.Value
-}
-
-type HashRecordIterator interface {
-	value.NativeIterator
-	value.ValueInterface
-	Reset()
 }
 
 // ::Std::HashRecord
@@ -252,7 +246,7 @@ func initHashRecordIterator() {
 		c,
 		"next",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsReference().(HashRecordIterator)
+			self := args[0].AsReference().(value.NativeResettableIterator)
 			return self.NextValue()
 		},
 	)
@@ -267,7 +261,7 @@ func initHashRecordIterator() {
 		c,
 		"reset",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsReference().(HashRecordIterator)
+			self := args[0].AsReference().(value.NativeResettableIterator)
 			self.Reset()
 			return args[0], value.Undefined
 		},

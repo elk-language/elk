@@ -34,12 +34,16 @@ func NewArrayTupleOfValueWithElements(capacity int, elements ...Value) *ArrayTup
 	return &l
 }
 
-func (t *ArrayTupleOfValue) Iter() *ArrayTupleOfValueIterator {
+func (t *ArrayTupleOfValue) IterNative() *ArrayTupleOfValueIterator {
 	return NewArrayTupleOfValueIterator(t)
 }
 
+func (l *ArrayTupleOfValue) Iter() NativeIterator {
+	return l.IterNative()
+}
+
 func (l *ArrayTupleOfValue) IterTuple() ArrayTupleIterator {
-	return l.Iter()
+	return l.IterNative()
 }
 
 func (*ArrayTupleOfValue) Class() *Class {

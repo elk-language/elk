@@ -2527,7 +2527,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(&value.HashSet{}),
+					value.Ref(&value.HashSetOfValue{}),
 				},
 			),
 		},
@@ -2545,7 +2545,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -2570,7 +2570,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 						nil,
 						4,
 						1,
@@ -2605,7 +2605,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 						nil,
 						4,
 						1,
@@ -2632,7 +2632,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.Ref(value.String("foo")),
 						value.Ref(value.String("bar")),
@@ -2656,7 +2656,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.Ref(value.String("foo")),
 						value.Ref(value.String("bar")),
@@ -2679,7 +2679,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.ToSymbol("foo").ToValue(),
 						value.ToSymbol("bar").ToValue(),
@@ -2703,7 +2703,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.ToSymbol("foo").ToValue(),
 						value.ToSymbol("bar").ToValue(),
@@ -2726,7 +2726,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(0xab).ToValue(),
 						value.SmallInt(0xcd).ToValue(),
@@ -2750,7 +2750,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(0xab).ToValue(),
 						value.SmallInt(0xcd).ToValue(),
@@ -2774,7 +2774,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(0b101).ToValue(),
 						value.SmallInt(0b11).ToValue(),
@@ -2798,7 +2798,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(0b101).ToValue(),
 						value.SmallInt(0b11).ToValue(),
@@ -2832,7 +2832,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 						nil,
 						5,
 						value.Ref(value.String("foo")),
@@ -2867,7 +2867,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 						nil,
 						2,
 					)),
@@ -2902,7 +2902,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 14),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 						nil,
 						2,
 						value.SmallInt(1).ToValue(),
@@ -2950,7 +2950,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 14),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 						nil,
 						2,
 						value.SmallInt(1).ToValue(),
@@ -2991,7 +2991,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(2, 23),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 						nil,
 						3,
 						value.SmallInt(1).ToValue(),
@@ -3035,7 +3035,7 @@ func TestBytecodeHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 18),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 						nil,
 						2,
 					)),

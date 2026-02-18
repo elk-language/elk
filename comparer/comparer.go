@@ -71,7 +71,7 @@ func init() {
 		value.NewRegexComparer(Comparer),
 		value.NewReferenceComparer(),
 		value.NewInlineValueComparer(Comparer),
-		vm.NewHashSetComparer(Comparer),
+		vm.NewHashSetOfValueComparer(Comparer),
 		vm.NewHashMapOfValueComparer(Comparer),
 		vm.NewHashRecordOfValueComparer(Comparer),
 		cmp.AllowUnexported(

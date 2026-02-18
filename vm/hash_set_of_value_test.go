@@ -9,44 +9,44 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestHashSetEqual(t *testing.T) {
+func TestHashSetOfValueEqual(t *testing.T) {
 	tests := map[string]struct {
-		x     *value.HashSet
-		y     *value.HashSet
+		x     *vm.HashSetOfValue
+		y     *vm.HashSetOfValue
 		equal bool
 		err   value.Value
 	}{
 		"two empty sets should be equal": {
-			x:     &value.HashSet{},
-			y:     &value.HashSet{},
+			x:     &vm.HashSetOfValue{},
+			y:     &vm.HashSetOfValue{},
 			equal: true,
 		},
 		"two sets with different number of elements": {
-			x: vm.MustNewHashSetWithElements(
+			x: vm.MustNewHashSetOfValueWithElements(
 				nil,
 				value.SmallInt(5).ToValue(),
 			),
-			y:     &value.HashSet{},
+			y:     &vm.HashSetOfValue{},
 			equal: false,
 		},
 		"two equal sets": {
-			x: vm.MustNewHashSetWithElements(
+			x: vm.MustNewHashSetOfValueWithElements(
 				nil,
 				value.SmallInt(5).ToValue(),
 			),
-			y: vm.MustNewHashSetWithElements(
+			y: vm.MustNewHashSetOfValueWithElements(
 				nil,
 				value.SmallInt(5).ToValue(),
 			),
 			equal: true,
 		},
 		"two sets with different values": {
-			x: vm.MustNewHashSetWithElements(
+			x: vm.MustNewHashSetOfValueWithElements(
 				nil,
 				value.SmallInt(3).ToValue(),
 				value.Float(8.5).ToValue(),
 			),
-			y: vm.MustNewHashSetWithElements(
+			y: vm.MustNewHashSetOfValueWithElements(
 				nil,
 				value.SmallInt(5).ToValue(),
 				value.Float(8.5).ToValue(),
@@ -58,7 +58,7 @@ func TestHashSetEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			v := vm.New()
-			equal, err := vm.HashSetEqual(v, tc.x, tc.y)
+			equal, err := tc.x.Equal(v, tc.y.ToValue())
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatal(diff)
 			}
@@ -80,7 +80,7 @@ func TestNewHashSetWithElements(t *testing.T) {
 				value.Ref(value.String("bar")),
 			}
 
-			set, err := vm.NewHashSetWithElements(nil, elements...)
+			set, err := vm.NewHashSetOfValueWithElements(nil, elements...)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %#v", err)
 			}
@@ -97,7 +97,7 @@ func TestNewHashSetWithElements(t *testing.T) {
 				value.Ref(value.NewError(value.ArgumentErrorClass, "foo bar")),
 			}
 
-			set, err := vm.NewHashSetWithElements(nil, elements...)
+			set, err := vm.NewHashSetOfValueWithElements(nil, elements...)
 			if !err.IsNil() {
 				t.Fatalf("error is not value.Nil: %#v", err)
 			}
@@ -111,7 +111,7 @@ func TestNewHashSetWithElements(t *testing.T) {
 				value.Ref(value.NewError(value.ArgumentErrorClass, "foo bar")),
 			}
 
-			set, err := vm.NewHashSetWithElements(vm.New(), elements...)
+			set, err := vm.NewHashSetOfValueWithElements(vm.New(), elements...)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %#v", err)
 			}
@@ -133,7 +133,7 @@ func TestNewHashSetWithElements(t *testing.T) {
 				value.Ref(value.NewObject(value.ObjectWithClass(testClass))),
 			}
 
-			set, err := vm.NewHashSetWithElements(vm.New(), elements...)
+			set, err := vm.NewHashSetOfValueWithElements(vm.New(), elements...)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %#v", err)
 			}
@@ -159,7 +159,7 @@ func TestNewHashSetWithElements(t *testing.T) {
 				"`Std::Int` cannot be coerced into `Std::UInt64`",
 			))
 
-			set, err := vm.NewHashSetWithElements(vm.New(), elements...)
+			set, err := vm.NewHashSetOfValueWithElements(vm.New(), elements...)
 			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
 				t.Fatal(diff)
 			}
@@ -182,7 +182,7 @@ func TestNewHashSetWithCapacityAndElements(t *testing.T) {
 				value.Float(25.4).ToValue(),
 			}
 
-			set, err := vm.NewHashSetWithCapacityAndElements(nil, 2, elements...)
+			set, err := vm.NewHashSetOfValueWithCapacityAndElements(nil, 2, elements...)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %#v", err)
 			}
@@ -199,7 +199,7 @@ func TestNewHashSetWithCapacityAndElements(t *testing.T) {
 				value.Float(25.4).ToValue(),
 			}
 
-			set, err := vm.NewHashSetWithCapacityAndElements(nil, 10, elements...)
+			set, err := vm.NewHashSetOfValueWithCapacityAndElements(nil, 10, elements...)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %#v", err)
 			}
@@ -216,7 +216,7 @@ func TestNewHashSetWithCapacityAndElements(t *testing.T) {
 				value.Ref(value.NewError(value.ArgumentErrorClass, "foo bar")),
 			}
 
-			set, err := vm.NewHashSetWithCapacityAndElements(nil, 2, elements...)
+			set, err := vm.NewHashSetOfValueWithCapacityAndElements(nil, 2, elements...)
 			if !err.IsNil() {
 				t.Fatalf("error is not value.Nil: %#v", err)
 			}
@@ -230,7 +230,7 @@ func TestNewHashSetWithCapacityAndElements(t *testing.T) {
 				value.Ref(value.NewError(value.ArgumentErrorClass, "foo bar")),
 			}
 
-			set, err := vm.NewHashSetWithCapacityAndElements(vm.New(), 2, elements...)
+			set, err := vm.NewHashSetOfValueWithCapacityAndElements(vm.New(), 2, elements...)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %#v", err)
 			}
@@ -252,7 +252,7 @@ func TestNewHashSetWithCapacityAndElements(t *testing.T) {
 				value.Ref(value.NewObject(value.ObjectWithClass(testClass))),
 			}
 
-			set, err := vm.NewHashSetWithCapacityAndElements(vm.New(), 2, elements...)
+			set, err := vm.NewHashSetOfValueWithCapacityAndElements(vm.New(), 2, elements...)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %#v", err)
 			}
@@ -274,7 +274,7 @@ func TestNewHashSetWithCapacityAndElements(t *testing.T) {
 				value.Ref(value.NewObject(value.ObjectWithClass(testClass))),
 			}
 
-			set, err := vm.NewHashSetWithCapacityAndElements(vm.New(), 6, elements...)
+			set, err := vm.NewHashSetOfValueWithCapacityAndElements(vm.New(), 6, elements...)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %#v", err)
 			}
@@ -300,7 +300,7 @@ func TestNewHashSetWithCapacityAndElements(t *testing.T) {
 				"`Std::Int` cannot be coerced into `Std::UInt64`",
 			))
 
-			set, err := vm.NewHashSetWithCapacityAndElements(vm.New(), 2, elements...)
+			set, err := vm.NewHashSetOfValueWithCapacityAndElements(vm.New(), 2, elements...)
 			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
 				t.Fatal(diff)
 			}
@@ -318,9 +318,9 @@ func TestNewHashSetWithCapacityAndElements(t *testing.T) {
 func TestHashSetContains(t *testing.T) {
 	tests := map[string]func(*testing.T){
 		"without vm get from empty hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithElements(nil)
+			set := vm.MustNewHashSetOfValueWithElements(nil)
 
-			result, err := vm.HashSetContains(nil, set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueContains(nil, set, value.Ref(value.String("foo")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -329,14 +329,14 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"without vm get missing key from full hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetContains(nil, set, value.Ref(value.String("bar")))
+			result, err := vm.HashSetOfValueContains(nil, set, value.Ref(value.String("bar")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -345,15 +345,15 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"without vm get missing key from hashset with deleted elements": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			vm.HashSetDelete(nil, set, value.ToSymbol("foo").ToValue())
+			vm.HashSetOfValueDelete(nil, set, value.ToSymbol("foo").ToValue())
 
-			result, err := vm.HashSetContains(nil, set, value.Ref(value.String("bar")))
+			result, err := vm.HashSetOfValueContains(nil, set, value.Ref(value.String("bar")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -362,14 +362,14 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"without vm get missing key from hashset with left capacity": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				10,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetContains(nil, set, value.Ref(value.String("bar")))
+			result, err := vm.HashSetOfValueContains(nil, set, value.Ref(value.String("bar")))
 			if result != false {
 				t.Logf("result: %#v, err: %#v", result, err)
 				t.Fatalf("result should be false, got: %#v", result)
@@ -379,14 +379,14 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"without vm get key from full hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetContains(nil, set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueContains(nil, set, value.Ref(value.String("foo")))
 			if result != true {
 				t.Fatalf("result should be true, got: %#v", result)
 			}
@@ -395,14 +395,14 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"without vm get key from full hashset 2": func(t *testing.T) {
-			set := vm.MustNewHashSetWithElements(
+			set := vm.MustNewHashSetOfValueWithElements(
 				nil,
 				value.Ref(value.String("baz")),
 				value.SmallInt(1).ToValue(),
 				value.Ref(value.String("foo")),
 			)
 
-			result, err := vm.HashSetContains(nil, set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueContains(nil, set, value.Ref(value.String("foo")))
 			if result != true {
 				t.Fatalf("result should be true, got: %#v", result)
 			}
@@ -411,15 +411,15 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"without vm get key from hashset with deleted elements": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			vm.HashSetDelete(nil, set, value.ToSymbol("foo").ToValue())
+			vm.HashSetOfValueDelete(nil, set, value.ToSymbol("foo").ToValue())
 
-			result, err := vm.HashSetContains(nil, set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueContains(nil, set, value.Ref(value.String("foo")))
 			if result != true {
 				t.Fatalf("result should be true, got: %#v", result)
 			}
@@ -428,14 +428,14 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"without vm get key from hashset with left capacity": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetContains(nil, set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueContains(nil, set, value.Ref(value.String("foo")))
 			if result != true {
 				t.Fatalf("result should be true, got: %#v", result)
 			}
@@ -444,14 +444,14 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"without vm get key that is a complex type": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetContains(nil, set, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")))
+			result, err := vm.HashSetOfValueContains(nil, set, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -460,9 +460,9 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"with vm get from empty hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithElements(nil)
+			set := vm.MustNewHashSetOfValueWithElements(nil)
 
-			result, err := vm.HashSetContains(vm.New(), set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueContains(vm.New(), set, value.Ref(value.String("foo")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -471,14 +471,14 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"with vm get missing key from full hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetContains(vm.New(), set, value.Ref(value.String("bar")))
+			result, err := vm.HashSetOfValueContains(vm.New(), set, value.Ref(value.String("bar")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -487,14 +487,14 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"with vm get missing key from hashset with left capacity": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				10,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetContains(vm.New(), set, value.Ref(value.String("bar")))
+			result, err := vm.HashSetOfValueContains(vm.New(), set, value.Ref(value.String("bar")))
 			if result != false {
 				t.Logf("result: %#v, err: %#v", result, err)
 				t.Fatalf("result should be false, got: %#v", result)
@@ -504,14 +504,14 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"with vm get key from full hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetContains(vm.New(), set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueContains(vm.New(), set, value.Ref(value.String("foo")))
 			if result != true {
 				t.Fatalf("result should be true, got: %#v", result)
 			}
@@ -520,14 +520,14 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"with vm get key from hashset with left capacity": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetContains(vm.New(), set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueContains(vm.New(), set, value.Ref(value.String("foo")))
 			if result != true {
 				t.Fatalf("result should be true, got: %#v", result)
 			}
@@ -536,14 +536,14 @@ func TestHashSetContains(t *testing.T) {
 			}
 		},
 		"with vm get key that does not implement hash": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetContains(vm.New(), set, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")))
+			result, err := vm.HashSetOfValueContains(vm.New(), set, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -557,14 +557,14 @@ func TestHashSetContains(t *testing.T) {
 				return value.UInt64(5).ToValue(), value.Undefined
 			})
 
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetContains(vm.New(), set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
+			result, err := vm.HashSetOfValueContains(vm.New(), set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -586,14 +586,14 @@ func TestHashSetContains(t *testing.T) {
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.Ref(value.NewObject(value.ObjectWithClass(testClass))),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetContains(v, set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
+			result, err := vm.HashSetOfValueContains(v, set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
 			if result != true {
 				t.Fatalf("result should be true, got: %#v", result)
 			}
@@ -611,20 +611,20 @@ func TestHashSetContains(t *testing.T) {
 func TestHashSetSetCapacity(t *testing.T) {
 	tests := map[string]func(*testing.T){
 		"without VM with primitives and reduce capacity": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				10,
 				value.Float(25.4).ToValue(),
 				value.SmallInt(5).ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Float(25.4).ToValue(),
 				value.SmallInt(5).ToValue(),
 			)
 
-			err := vm.HashSetSetCapacity(nil, set, 2)
+			err := vm.HashSetOfValueSetCapacity(nil, set, 2)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %s", err.Inspect())
 			}
@@ -633,20 +633,20 @@ func TestHashSetSetCapacity(t *testing.T) {
 			}
 		},
 		"without VM with primitives and set capacity to the same value": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				10,
 				value.Float(25.4).ToValue(),
 				value.SmallInt(5).ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				10,
 				value.Float(25.4).ToValue(),
 				value.SmallInt(5).ToValue(),
 			)
 
-			err := vm.HashSetSetCapacity(nil, set, 10)
+			err := vm.HashSetOfValueSetCapacity(nil, set, 10)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %s", err.Inspect())
 			}
@@ -655,20 +655,20 @@ func TestHashSetSetCapacity(t *testing.T) {
 			}
 		},
 		"without VM with primitives and expand capacity": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				10,
 				value.Float(25.4).ToValue(),
 				value.SmallInt(5).ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				25,
 				value.Float(25.4).ToValue(),
 				value.SmallInt(5).ToValue(),
 			)
 
-			err := vm.HashSetSetCapacity(nil, set, 25)
+			err := vm.HashSetOfValueSetCapacity(nil, set, 25)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %s", err.Inspect())
 			}
@@ -677,38 +677,34 @@ func TestHashSetSetCapacity(t *testing.T) {
 			}
 		},
 		"without VM with complex types": func(t *testing.T) {
-			set := &value.HashSet{
-				Table: []value.Value{
-					value.SmallInt(5).ToValue(),
-					value.Ref(value.NewError(value.ArgumentErrorClass, "foo bar")),
-				},
-				OccupiedSlots: 2,
-			}
+			set := vm.MustNewHashSetOfValueWithElements(
+				nil,
+				value.SmallInt(5).ToValue(),
+				value.Ref(value.NewError(value.ArgumentErrorClass, "foo bar")),
+			)
 
-			err := vm.HashSetSetCapacity(nil, set, 25)
+			err := vm.HashSetOfValueSetCapacity(nil, set, 25)
 			if !err.IsNil() {
 				t.Fatalf("error is not nil: %s", err.Inspect())
 			}
 		},
 		"with VM with complex types that don't implement necessary methods": func(t *testing.T) {
 			key := value.NewError(value.ArgumentErrorClass, "foo bar")
-			set := &value.HashSet{
-				Table: []value.Value{
-					value.SmallInt(5).ToValue(),
-					value.Ref(key),
-				},
-				OccupiedSlots: 2,
-			}
+			set := vm.MustNewHashSetOfValueWithElements(
+				nil,
+				value.SmallInt(5).ToValue(),
+				value.Ref(key),
+			)
 
 			v := vm.New()
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				25,
 				value.SmallInt(5).ToValue(),
 				value.Ref(key),
 			)
 
-			err := vm.HashSetSetCapacity(v, set, 25)
+			err := vm.HashSetOfValueSetCapacity(v, set, 25)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %s", err.Inspect())
 			}
@@ -738,20 +734,20 @@ func TestHashSetSetCapacity(t *testing.T) {
 			)
 
 			v := vm.New()
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				5,
 				value.SmallInt(5).ToValue(),
 				value.Ref(value.NewObject(value.ObjectWithClass(testClass))),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				10,
 				value.SmallInt(5).ToValue(),
 				value.Ref(value.NewObject(value.ObjectWithClass(testClass))),
 			)
 
-			err := vm.HashSetSetCapacity(v, set, 10)
+			err := vm.HashSetOfValueSetCapacity(v, set, 10)
 			if !err.IsUndefined() {
 				t.Fatalf("error is not undefined: %s", err.Inspect())
 			}
@@ -769,14 +765,14 @@ func TestHashSetSetCapacity(t *testing.T) {
 func TestHashSetAdd(t *testing.T) {
 	tests := map[string]func(*testing.T){
 		"without vm set in empty hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithElements(nil)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithElements(nil)
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				5,
 				value.Ref(value.String("foo")),
 			)
 
-			err := vm.HashSetAppend(nil, set, value.Ref(value.String("foo")))
+			_, err := vm.HashSetOfValueAppend(nil, set, value.Ref(value.String("foo")))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -785,20 +781,20 @@ func TestHashSetAdd(t *testing.T) {
 			}
 		},
 		"without vm set existing key in full hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				4,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			err := vm.HashSetAppend(nil, set, value.Ref(value.String("foo")))
+			_, err := vm.HashSetOfValueAppend(nil, set, value.Ref(value.String("foo")))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -807,20 +803,20 @@ func TestHashSetAdd(t *testing.T) {
 			}
 		},
 		"without vm set existing key in hashset with left capacity": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				10,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				10,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			err := vm.HashSetAppend(nil, set, value.Ref(value.String("foo")))
+			_, err := vm.HashSetOfValueAppend(nil, set, value.Ref(value.String("foo")))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -829,13 +825,13 @@ func TestHashSetAdd(t *testing.T) {
 			}
 		},
 		"without vm set key in full hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				4,
 				value.Ref(value.String("foo")),
@@ -843,7 +839,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.Ref(value.String("bar")),
 			)
 
-			err := vm.HashSetAppend(nil, set, value.Ref(value.String("bar")))
+			_, err := vm.HashSetOfValueAppend(nil, set, value.Ref(value.String("bar")))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -852,13 +848,13 @@ func TestHashSetAdd(t *testing.T) {
 			}
 		},
 		"without vm set key in hashset with left capacity": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
@@ -866,7 +862,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			err := vm.HashSetAppend(nil, set, value.Ref(value.String("bar")))
+			_, err := vm.HashSetOfValueAppend(nil, set, value.Ref(value.String("bar")))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -875,27 +871,27 @@ func TestHashSetAdd(t *testing.T) {
 			}
 		},
 		"without vm set key that is a complex type": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			err := vm.HashSetAppend(nil, set, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")))
+			_, err := vm.HashSetOfValueAppend(nil, set, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")))
 			if !err.IsNil() {
 				t.Fatalf("error should be value.Nil, got: %s", err.Inspect())
 			}
 		},
 		"with vm set in empty hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithElements(nil)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithElements(nil)
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				5,
 				value.Ref(value.String("foo")),
 			)
 
-			err := vm.HashSetAppend(vm.New(), set, value.Ref(value.String("foo")))
+			_, err := vm.HashSetOfValueAppend(vm.New(), set, value.Ref(value.String("foo")))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -904,20 +900,20 @@ func TestHashSetAdd(t *testing.T) {
 			}
 		},
 		"with vm set existing key in full hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				4,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			err := vm.HashSetAppend(vm.New(), set, value.Ref(value.String("foo")))
+			_, err := vm.HashSetOfValueAppend(vm.New(), set, value.Ref(value.String("foo")))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -926,20 +922,20 @@ func TestHashSetAdd(t *testing.T) {
 			}
 		},
 		"with vm set existing key in hashset with left capacity": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				10,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				10,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			err := vm.HashSetAppend(vm.New(), set, value.Ref(value.String("foo")))
+			_, err := vm.HashSetOfValueAppend(vm.New(), set, value.Ref(value.String("foo")))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -948,13 +944,13 @@ func TestHashSetAdd(t *testing.T) {
 			}
 		},
 		"with vm set key in full hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				4,
 				value.ToSymbol("foo").ToValue(),
@@ -962,7 +958,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.Ref(value.String("bar")),
 			)
 
-			err := vm.HashSetAppend(vm.New(), set, value.Ref(value.String("bar")))
+			_, err := vm.HashSetOfValueAppend(vm.New(), set, value.Ref(value.String("bar")))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -971,13 +967,13 @@ func TestHashSetAdd(t *testing.T) {
 			}
 		},
 		"with vm set key in hashset with left capacity": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
@@ -985,7 +981,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			err := vm.HashSetAppend(vm.New(), set, value.Ref(value.String("bar")))
+			_, err := vm.HashSetOfValueAppend(vm.New(), set, value.Ref(value.String("bar")))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -994,7 +990,7 @@ func TestHashSetAdd(t *testing.T) {
 			}
 		},
 		"with vm set key that does not implement hash": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
@@ -1003,7 +999,7 @@ func TestHashSetAdd(t *testing.T) {
 
 			key := value.NewError(value.ArgumentErrorClass, "foo")
 			v := vm.New()
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.Ref(key),
@@ -1011,7 +1007,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.Ref(value.String("foo")),
 			)
 
-			err := vm.HashSetAppend(vm.New(), set, value.Ref(key))
+			_, err := vm.HashSetOfValueAppend(vm.New(), set, value.Ref(key))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -1033,14 +1029,14 @@ func TestHashSetAdd(t *testing.T) {
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.Ref(value.String("foo")),
 				value.Ref(value.NewObject(value.ObjectWithClass(testClass))),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.Ref(value.NewObject(value.ObjectWithClass(testClass))),
@@ -1048,7 +1044,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.Ref(value.String("foo")),
 			)
 
-			err := vm.HashSetAppend(v, set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
+			_, err := vm.HashSetOfValueAppend(v, set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -1070,13 +1066,13 @@ func TestHashSetAdd(t *testing.T) {
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.ToSymbol("foo").ToValue(),
@@ -1084,7 +1080,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.Ref(value.String("foo")),
 			)
 
-			err := vm.HashSetAppend(v, set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
+			_, err := vm.HashSetOfValueAppend(v, set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %s", err.Inspect())
 			}
@@ -1102,10 +1098,10 @@ func TestHashSetAdd(t *testing.T) {
 func TestHashSetDelete(t *testing.T) {
 	tests := map[string]func(*testing.T){
 		"without vm delete from empty hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithElements(nil)
-			expected := vm.MustNewHashSetWithElements(nil)
+			set := vm.MustNewHashSetOfValueWithElements(nil)
+			expected := vm.MustNewHashSetOfValueWithElements(nil)
 
-			result, err := vm.HashSetDelete(nil, set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueDelete(nil, set, value.Ref(value.String("foo")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -1117,19 +1113,19 @@ func TestHashSetDelete(t *testing.T) {
 			}
 		},
 		"without vm delete key from full hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetDelete(nil, set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueDelete(nil, set, value.Ref(value.String("foo")))
 			if result != true {
 				t.Fatalf("result should be true, got: %#v", result)
 			}
@@ -1141,19 +1137,19 @@ func TestHashSetDelete(t *testing.T) {
 			}
 		},
 		"without vm delete key from hashset with left capacity": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				6,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				6,
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetDelete(nil, set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueDelete(nil, set, value.Ref(value.String("foo")))
 			if result != true {
 				t.Fatalf("result should be true, got: %#v", result)
 			}
@@ -1165,20 +1161,20 @@ func TestHashSetDelete(t *testing.T) {
 			}
 		},
 		"without vm delete missing key from full hashset": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetDelete(nil, set, value.Ref(value.String("bar")))
+			result, err := vm.HashSetOfValueDelete(nil, set, value.Ref(value.String("bar")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -1190,20 +1186,20 @@ func TestHashSetDelete(t *testing.T) {
 			}
 		},
 		"without vm delete missing key from hashset with left capacity": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetDelete(nil, set, value.Ref(value.String("bar")))
+			result, err := vm.HashSetOfValueDelete(nil, set, value.Ref(value.String("bar")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -1215,20 +1211,20 @@ func TestHashSetDelete(t *testing.T) {
 			}
 		},
 		"without vm delete key that is a complex type": func(t *testing.T) {
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetDelete(nil, set, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")))
+			result, err := vm.HashSetOfValueDelete(nil, set, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -1241,9 +1237,9 @@ func TestHashSetDelete(t *testing.T) {
 		},
 		"with vm deletes from empty hashset": func(t *testing.T) {
 			v := vm.New()
-			set := vm.MustNewHashSetWithElements(v)
+			set := vm.MustNewHashSetOfValueWithElements(v)
 
-			result, err := vm.HashSetDelete(v, set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueDelete(v, set, value.Ref(value.String("foo")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -1253,20 +1249,20 @@ func TestHashSetDelete(t *testing.T) {
 		},
 		"with vm delete missing key from full hashset": func(t *testing.T) {
 			v := vm.New()
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetDelete(v, set, value.Ref(value.String("bar")))
+			result, err := vm.HashSetOfValueDelete(v, set, value.Ref(value.String("bar")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -1279,20 +1275,20 @@ func TestHashSetDelete(t *testing.T) {
 		},
 		"with vm delete missing key from hashset with left capacity": func(t *testing.T) {
 			v := vm.New()
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				10,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				10,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetDelete(v, set, value.Ref(value.String("bar")))
+			result, err := vm.HashSetOfValueDelete(v, set, value.Ref(value.String("bar")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -1305,19 +1301,19 @@ func TestHashSetDelete(t *testing.T) {
 		},
 		"with vm delete key from full hashset": func(t *testing.T) {
 			v := vm.New()
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				2,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				2,
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetDelete(v, set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueDelete(v, set, value.Ref(value.String("foo")))
 			if result != true {
 				t.Fatalf("result should be true, got: %#v", result)
 			}
@@ -1330,19 +1326,19 @@ func TestHashSetDelete(t *testing.T) {
 		},
 		"with vm delete key from hashset with left capacity": func(t *testing.T) {
 			v := vm.New()
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetDelete(v, set, value.Ref(value.String("foo")))
+			result, err := vm.HashSetOfValueDelete(v, set, value.Ref(value.String("foo")))
 			if result != true {
 				t.Fatalf("result should be true, got: %#v", result)
 			}
@@ -1355,20 +1351,20 @@ func TestHashSetDelete(t *testing.T) {
 		},
 		"with vm delete key that does not implement hash": func(t *testing.T) {
 			v := vm.New()
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetDelete(v, set, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")))
+			result, err := vm.HashSetOfValueDelete(v, set, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -1386,20 +1382,20 @@ func TestHashSetDelete(t *testing.T) {
 			})
 
 			v := vm.New()
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.Ref(value.String("foo")),
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetDelete(v, set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
+			result, err := vm.HashSetOfValueDelete(v, set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -1424,19 +1420,19 @@ func TestHashSetDelete(t *testing.T) {
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
-			set := vm.MustNewHashSetWithCapacityAndElements(
+			set := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.Ref(value.NewObject(value.ObjectWithClass(testClass))),
 				value.ToSymbol("foo").ToValue(),
 			)
-			expected := vm.MustNewHashSetWithCapacityAndElements(
+			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				8,
 				value.ToSymbol("foo").ToValue(),
 			)
 
-			result, err := vm.HashSetDelete(v, set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
+			result, err := vm.HashSetOfValueDelete(v, set, value.Ref(value.NewObject(value.ObjectWithClass(testClass))))
 			if result != true {
 				t.Fail()
 				t.Logf("result should be true, got: %#v", result)

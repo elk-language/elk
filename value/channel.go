@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"iter"
 )
 
 var ChannelClass *Class            // ::Std::Channel
@@ -10,6 +11,9 @@ var ChannelClosedErrorClass *Class // ::Std::Channel::ClosedError
 type Channel struct {
 	Native chan Value
 }
+
+var _ NativeIterator = &Channel{}
+var _ NativeIterable = &Channel{}
 
 func NewChannel(size int) *Channel {
 	return &Channel{
@@ -84,6 +88,20 @@ func (ch *Channel) NextValue() (Value, Value) {
 	}
 
 	return next, Undefined
+}
+
+func (ch *Channel) Iterate() iter.Seq2[Value, Value] {
+	return func(yield func(Value, Value) bool) {
+		for v := range ch.Native {
+			if !yield(v, Undefined) {
+				return
+			}
+		}
+	}
+}
+
+func (ch *Channel) Iter() NativeIterator {
+	return ch
 }
 
 func (ch *Channel) Close() (err Value) {

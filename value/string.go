@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -17,6 +18,8 @@ var StringGraphemeIteratorClass *Class // ::Std::String::GraphemeIterator
 
 // Elk's String value
 type String string
+
+var _ NativeIterable = String("")
 
 func (s String) Class() *Class {
 	return StringClass
@@ -44,6 +47,20 @@ func (s String) Error() string {
 
 func (s String) String() string {
 	return string(s)
+}
+
+func (s String) Iter() NativeIterator {
+	return NewStringCharIterator(s)
+}
+
+func (s String) Iterate() iter.Seq2[Value, Value] {
+	return func(yield func(Value, Value) bool) {
+		for _, v := range s {
+			if !yield(Char(v).ToValue(), Undefined) {
+				return
+			}
+		}
+	}
 }
 
 func (s String) Inspect() string {
@@ -636,6 +653,8 @@ type StringCharIterator struct {
 	ByteOffset int
 }
 
+var _ NativeResettableIterator = &StringCharIterator{}
+
 func NewStringCharIterator(str String) *StringCharIterator {
 	return &StringCharIterator{
 		String: str,
@@ -703,6 +722,8 @@ type StringByteIterator struct {
 	ByteOffset int
 }
 
+var _ NativeResettableIterator = &StringByteIterator{}
+
 func NewStringByteIterator(str String) *StringByteIterator {
 	return &StringByteIterator{
 		String: str,
@@ -769,6 +790,8 @@ type StringGraphemeIterator struct {
 	Rest   string
 	State  int
 }
+
+var _ NativeResettableIterator = &StringGraphemeIterator{}
 
 func NewStringGraphemeIterator(str String) *StringGraphemeIterator {
 	return &StringGraphemeIterator{

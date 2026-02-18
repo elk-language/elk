@@ -747,11 +747,11 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 	tests := sourceTestTable{
 		"empty hashSet literal": {
 			source:       `^[]`,
-			wantStackTop: value.Ref(&value.HashSet{}),
+			wantStackTop: value.Ref(&value.HashSetOfValue{}),
 		},
 		"static hashSet literal": {
 			source: `^[1, 2.5, :foo]`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithElements(
 				nil,
 				value.SmallInt(1).ToValue(),
 				value.Float(2.5).ToValue(),
@@ -762,7 +762,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 			source: `
 				^[1, 2.5, :foo]:20
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 				nil,
 				23,
 				1,
@@ -775,7 +775,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 			source: `
 				^w[foo bar baz]:20
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 				nil,
 				23,
 				1,
@@ -788,7 +788,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 			source: `
 				^s[foo bar baz]:20
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 				nil,
 				23,
 				1,
@@ -801,7 +801,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 			source: `
 				^b[101 10 11]:20
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 				nil,
 				23,
 				1,
@@ -814,7 +814,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 			source: `
 				^x[ff de4 5]:20
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 				nil,
 				23,
 				1,
@@ -828,7 +828,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				foo := "foo var"
 				^[1, 2.5, foo, :bar]
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 				nil,
 				4,
 				1,
@@ -843,7 +843,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				foo := "foo var"
 				^[foo, 1, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 				nil,
 				4,
 				1,
@@ -859,7 +859,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				foo := "foo var"
 				^[foo, 1, 2.5, :bar]:(cap + 2)
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				11,
 				value.Ref(value.String("foo var")),
@@ -873,7 +873,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				foo := nil
 				^["awesome", 1 if foo, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				4,
 				value.Ref(value.String("awesome")),
@@ -890,7 +890,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				foo := 57
 				^["awesome", 1 if foo, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 				nil,
 				6,
 				1,
@@ -908,7 +908,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				foo := nil
 				^["awesome", 1 unless foo, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 				nil,
 				6,
 				1,
@@ -926,7 +926,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				foo := true
 				^["awesome", 1 unless foo, 2.5, :bar]
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				4,
 				value.Ref(value.String("awesome")),
@@ -939,7 +939,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 			  arr := [5, 6, 7]
 				^[1, i * 2 for i in arr, 2]
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				6,
 				value.SmallInt(1).ToValue(),
@@ -954,7 +954,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 			  arr := [5, 6, 7]
 				^[1, *arr, 2]
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				6,
 				value.SmallInt(1).ToValue(),
@@ -975,7 +975,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 
 				^[1, *gen(), 2]
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				6,
 				value.SmallInt(1).ToValue(),
@@ -1005,7 +1005,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 				f := Foo()
 				^[1, *f, 2]
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 				nil,
 				6,
 				value.SmallInt(1).ToValue(),
@@ -1020,7 +1020,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 			  foo := true
 				^[3 if foo]
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 				nil,
 				1,
 				1,

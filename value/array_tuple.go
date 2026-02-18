@@ -26,9 +26,7 @@ type ArrayTuple interface {
 }
 
 type ArrayTupleIterator interface {
-	NativeIterator
-	ValueInterface
-	Reset()
+	NativeResettableIterator
 	Elements() iter.Seq[Value]
 }
 

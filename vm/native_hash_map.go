@@ -5,6 +5,7 @@ import (
 	"iter"
 	"maps"
 	"strings"
+	"unsafe"
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/value"
@@ -17,6 +18,56 @@ type NativeHashMap[K value.ComparableValueInterface, V value.ValueInterface] str
 }
 
 var _ HashMap = &NativeHashMap[value.String, value.String]{}
+
+// UNSAFE! Cast a map with native go types to a map with corresponding Elk types.
+// This is EXTREMELY unsafe, use it only if `IK`, OK` and `IV`, `OV` have the same
+// underlying types eg. `castNativeMap[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `map[value.String]value.UInt8`
+func castNativeMap[
+	IK comparable,
+	IV any,
+	OK value.ComparableValueInterface,
+	OV value.ValueInterface,
+](m map[IK]IV) map[OK]OV {
+	return *(*map[OK]OV)(unsafe.Pointer(&m))
+}
+
+// UNSAFE! Cast a map with native go types to a new Elk `NativeHashMap` with corresponding Elk types.
+// This is EXTREMELY unsafe, use it only if `IK`, OK` and `IV`, `OV` have the same
+// underlying types eg. `NewCastNativeHashMap[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `*NativeHashMap[value.String, value.UInt8]`
+func NewCastNativeHashMap[
+	IK comparable,
+	IV any,
+	OK value.ComparableValueInterface,
+	OV value.ValueInterface,
+](m map[IK]IV) *NativeHashMap[OK, OV] {
+	return &NativeHashMap[OK, OV]{
+		m: castNativeMap[IK, IV, OK, OV](m),
+	}
+}
+
+// Transform a map with native go types to a new Elk `NativeHashMap` with corresponding Elk types
+// using the given function.
+// eg.
+//
+//	TransformIntoNativeHashMap(m, func(k string, v uint8) (value.String, value.UInt8) {
+//		return value.String(k), value.UInt8(v)
+//	})
+func TransformIntoNativeHashMap[
+	IK comparable,
+	IV any,
+	OK value.ComparableValueInterface,
+	OV value.ValueInterface,
+](
+	m map[IK]IV,
+	fn func(k IK, v IV) (OK, OV),
+) *NativeHashMap[OK, OV] {
+	newMap := NewNativeHashMap[OK, OV](len(m))
+	for k, v := range m {
+		ok, ov := fn(k, v)
+		newMap.m[ok] = ov
+	}
+	return newMap
+}
 
 func NewNativeHashMapFromMap[K value.ComparableValueInterface, V value.ValueInterface](m map[K]V) *NativeHashMap[K, V] {
 	return &NativeHashMap[K, V]{
@@ -69,11 +120,15 @@ func (h *NativeHashMap[K, V]) Iterate() iter.Seq2[value.Value, value.Value] {
 	}
 }
 
-func (h *NativeHashMap[K, V]) IterMap() HashMapIterator {
+func (h *NativeHashMap[K, V]) IterMap() value.NativeResettableIterator {
 	return NewNativeHashMapIterator(h)
 }
 
-func (h *NativeHashMap[K, V]) IterRecord() HashRecordIterator {
+func (h *NativeHashMap[K, V]) IterRecord() value.NativeResettableIterator {
+	return h.IterMap()
+}
+
+func (h *NativeHashMap[K, V]) Iter() value.NativeIterator {
 	return h.IterMap()
 }
 
@@ -392,7 +447,7 @@ type NativeHashMapIterator[K value.ComparableValueInterface, V value.ValueInterf
 	version  int
 }
 
-var _ HashMapIterator = &NativeHashMapIterator[value.String, value.String]{}
+var _ value.NativeResettableIterator = &NativeHashMapIterator[value.String, value.String]{}
 
 func NewNativeHashMapIterator[K value.ComparableValueInterface, V value.ValueInterface](hmap *NativeHashMap[K, V]) *NativeHashMapIterator[K, V] {
 	iterator := &NativeHashMapIterator[K, V]{

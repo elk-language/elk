@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"iter"
 	"strings"
+	"unsafe"
 
 	"github.com/elk-language/elk/indent"
 )
@@ -12,6 +13,35 @@ import (
 type NativeArrayList[T ValueInterface] []T
 
 var _ ArrayList = &NativeArrayList[String]{}
+
+// UNSAFE! Cast a slice with native go types to an Elk `NativeArrayList` with corresponding Elk types.
+// This is EXTREMELY unsafe, use it only if `I` and `O` have the same
+// underlying type eg. `CastNativeArrayList[string, value.String](slice)`, this will convert `[]string` to `value.NativeArrayList[value.String]`
+func CastNativeArrayList[I any, O ValueInterface](slice []I) NativeArrayList[O] {
+	return *(*NativeArrayList[O])(unsafe.Pointer(&slice))
+}
+
+// Transform a map with native go types to a new Elk `NativeArrayList` with corresponding Elk types
+// using the given function.
+// eg.
+//
+//	TransformIntoNativeArrayList(m, func(v uint8) (value.UInt8) {
+//		return value.UInt8(v)
+//	})
+func TransformIntoNativeArrayList[
+	I any,
+	O ValueInterface,
+](
+	slice []I,
+	fn func(v I) O,
+) *NativeArrayList[O] {
+	newList := NewNativeArrayList[O](len(slice))
+	for i, v := range slice {
+		ov := fn(v)
+		newList.SetAt(i, ov)
+	}
+	return newList
+}
 
 func NewNativeArrayList[T ValueInterface](capacity int) *NativeArrayList[T] {
 	l := make(NativeArrayList[T], 0, capacity)
@@ -378,16 +408,20 @@ func (l *NativeArrayList[T]) BoxOf(index int) (*NativeBox[T], Value) {
 	return box, Undefined
 }
 
-func (l *NativeArrayList[T]) Iter() *NativeArrayListIterator[T] {
+func (l *NativeArrayList[T]) IterNative() *NativeArrayListIterator[T] {
 	return NewNativeArrayListIterator(l)
 }
 
+func (l *NativeArrayList[T]) Iter() NativeIterator {
+	return l.IterNative()
+}
+
 func (l *NativeArrayList[T]) IterTuple() ArrayTupleIterator {
-	return l.Iter()
+	return l.IterNative()
 }
 
 func (l *NativeArrayList[T]) IterList() ArrayListIterator {
-	return l.Iter()
+	return l.IterNative()
 }
 
 type NativeArrayListIterator[T ValueInterface] struct {

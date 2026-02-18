@@ -1951,8 +1951,8 @@ func (vm *Thread) opAppend() {
 		c.Append(element)
 	case *value.ArrayListOfValue:
 		c.Append(element)
-	case *value.HashSet:
-		HashSetAppend(vm, c, element)
+	case *value.HashSetOfValue:
+		HashSetOfValueAppend(vm, c, element)
 	default:
 		panic(fmt.Sprintf("invalid collection to append to: %s", collection.Inspect()))
 	}
@@ -2764,7 +2764,7 @@ func (vm *Thread) opNewHashSet(dynamicElements int) value.Value {
 	firstElement := vm.spAdd(-dynamicElements)
 	capacity := *vm.spAdd(-dynamicElements - 2)
 	baseSet := *vm.spAdd(-dynamicElements - 1)
-	var newSet *value.HashSet
+	var newSet *value.HashSetOfValue
 
 	var additionalCapacity int
 
@@ -2783,12 +2783,12 @@ func (vm *Thread) opNewHashSet(dynamicElements int) value.Value {
 	}
 
 	if baseSet.IsUndefined() {
-		newSet = value.NewHashSet(dynamicElements + additionalCapacity)
+		newSet = value.NewHashSetOfValue(dynamicElements + additionalCapacity)
 	} else {
 		switch m := baseSet.SafeAsReference().(type) {
-		case *value.HashSet:
-			newSet = value.NewHashSet(m.Capacity() + additionalCapacity)
-			err := HashSetCopy(vm, newSet, m)
+		case *value.HashSetOfValue:
+			newSet = value.NewHashSetOfValue(m.Capacity() + additionalCapacity)
+			err := HashSetOfValueCopy(vm, newSet, m)
 			if !err.IsUndefined() {
 				return err
 			}
@@ -2799,7 +2799,7 @@ func (vm *Thread) opNewHashSet(dynamicElements int) value.Value {
 
 	for i := range dynamicElements {
 		val := *vm.stackAdd(firstElement, i)
-		err := HashSetAppendWithMaxLoad(vm, newSet, val, 1)
+		err := HashSetOfValueAppendWithMaxLoad(vm, newSet, val, 1)
 		if !err.IsUndefined() {
 			return err
 		}

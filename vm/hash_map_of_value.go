@@ -14,10 +14,10 @@ import (
 const HashMapOfValueMaxLoad = 0.75
 
 type HashMapOfValue struct {
-	Table         []value.PairOfValue
-	OccupiedSlots int
-	Elements      int
-	version       int // version of the map, each mutation increments this counter
+	Table         []value.PairOfValue // underlying data container, it's `len` is always equal to it's `cap` and it also serves as the capacity of the HashMap
+	OccupiedSlots int                 // number of slots taken by active pairs and those left by deleted pairs
+	Elements      int                 // number of slots occupied by active pairs
+	version       int                 // version of the map, each mutation increments this counter, used for guarding against concurrent mutation during iteration
 }
 
 var _ HashMap = &HashMapOfValue{}
@@ -66,12 +66,20 @@ func (h *HashMapOfValue) Iterate() iter.Seq2[value.Value, value.Value] {
 	}
 }
 
-func (h *HashMapOfValue) IterMap() HashMapIterator {
+func (h *HashMapOfValue) IterNative() *HashMapOfValueIterator {
 	return NewHashMapOfValueIterator(h)
 }
 
-func (h *HashMapOfValue) IterRecord() HashRecordIterator {
-	return h.IterMap()
+func (h *HashMapOfValue) Iter() value.NativeIterator {
+	return h.IterNative()
+}
+
+func (h *HashMapOfValue) IterMap() value.NativeResettableIterator {
+	return h.IterNative()
+}
+
+func (h *HashMapOfValue) IterRecord() value.NativeResettableIterator {
+	return h.IterNative()
 }
 
 func (h *HashMapOfValue) GetVal(thread *Thread, key value.Value) (value.Value, value.Value) {
@@ -269,20 +277,12 @@ type HashMapOfValueIterator struct {
 	version int
 }
 
-var _ HashMapIterator = &HashMapOfValueIterator{}
+var _ value.NativeResettableIterator = &HashMapOfValueIterator{}
 
 func NewHashMapOfValueIterator(hmap *HashMapOfValue) *HashMapOfValueIterator {
 	return &HashMapOfValueIterator{
 		HashMap: hmap,
 		version: hmap.version,
-	}
-}
-
-func NewHashMapOfValueIteratorWithIndex(hmap *HashMapOfValue, index int) *HashMapOfValueIterator {
-	return &HashMapOfValueIterator{
-		HashMap: hmap,
-		version: hmap.version,
-		Index:   index,
 	}
 }
 

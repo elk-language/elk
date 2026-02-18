@@ -2101,7 +2101,7 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(1).ToValue(),
@@ -2170,7 +2170,7 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(1).ToValue(),
@@ -2227,13 +2227,13 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.Ref(value.String("foo")),
 						value.Ref(value.String("bar")),
 					)),
 					value.Ref(value.SetMixin),
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.Ref(value.String("bar")),
 						value.Ref(value.String("foo")),
@@ -2284,13 +2284,13 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.ToSymbol("foo").ToValue(),
 						value.ToSymbol("bar").ToValue(),
 					)),
 					value.Ref(value.SetMixin),
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.ToSymbol("foo").ToValue(),
 						value.ToSymbol("bar").ToValue(),
@@ -2343,13 +2343,13 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(38).ToValue(),
 						value.SmallInt(255).ToValue(),
 					)),
 					value.Ref(value.SetMixin),
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(38).ToValue(),
 						value.SmallInt(255).ToValue(),
@@ -2403,13 +2403,13 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(3).ToValue(),
 						value.SmallInt(2).ToValue(),
 					)),
 					value.Ref(value.SetMixin),
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(3).ToValue(),
 						value.SmallInt(2).ToValue(),

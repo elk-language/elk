@@ -31,6 +31,10 @@ func MakePairOfValue(key, val Value) PairOfValue {
 	}
 }
 
+func (p *PairOfValue) Iter() NativeIterator {
+	return NewPairOfValueIterator(p)
+}
+
 func (p *PairOfValue) Key() Value {
 	return p.key
 }

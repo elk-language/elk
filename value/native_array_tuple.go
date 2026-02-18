@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"iter"
 	"strings"
+	"unsafe"
 
 	"github.com/elk-language/elk/indent"
 )
@@ -12,6 +13,35 @@ import (
 type NativeArrayTuple[T ValueInterface] []T
 
 var _ ArrayTuple = &NativeArrayTuple[String]{}
+
+// UNSAFE! Cast a slice with native go types to an Elk `NativeArrayTuple` with corresponding Elk types.
+// This is EXTREMELY unsafe, use it only if `I` and `O` have the same
+// underlying type eg. `CastNativeArrayTuple[string, value.String](slice)`, this will convert `[]string` to `value.NativeArrayTuple[value.String]`
+func CastNativeArrayTuple[I any, O ValueInterface](slice []I) NativeArrayTuple[O] {
+	return *(*NativeArrayTuple[O])(unsafe.Pointer(&slice))
+}
+
+// Transform a map with native go types to a new Elk `NativeArrayTuple` with corresponding Elk types
+// using the given function.
+// eg.
+//
+//	TransformIntoNativeArrayTuple(m, func(v uint8) (value.UInt8) {
+//		return value.UInt8(v)
+//	})
+func TransformIntoNativeArrayTuple[
+	I any,
+	O ValueInterface,
+](
+	slice []I,
+	fn func(v I) O,
+) *NativeArrayTuple[O] {
+	newList := NewNativeArrayTuple[O](len(slice))
+	for i, v := range slice {
+		ov := fn(v)
+		newList.SetAt(i, ov)
+	}
+	return newList
+}
 
 func NewNativeArrayTuple[T ValueInterface](capacity int) *NativeArrayTuple[T] {
 	l := make(NativeArrayTuple[T], 0, capacity)
@@ -29,12 +59,16 @@ func NewNativeArrayTupleWithElements[T ValueInterface](capacity int, elements ..
 	return &l
 }
 
-func (t *NativeArrayTuple[T]) Iter() *NativeArrayTupleIterator[T] {
+func (t *NativeArrayTuple[T]) IterNative() *NativeArrayTupleIterator[T] {
 	return NewNativeArrayTupleIterator(t)
 }
 
+func (t *NativeArrayTuple[T]) Iter() NativeIterator {
+	return t.IterNative()
+}
+
 func (l *NativeArrayTuple[T]) IterTuple() ArrayTupleIterator {
-	return l.Iter()
+	return l.IterNative()
 }
 
 func (*NativeArrayTuple[T]) Class() *Class {

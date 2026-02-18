@@ -95,16 +95,20 @@ func (l *ArrayListOfValue) Error() string {
 	return l.Inspect()
 }
 
-func (l *ArrayListOfValue) Iter() *ArrayListOfValueIterator {
+func (l *ArrayListOfValue) Iter() NativeIterator {
+	return l.IterNative()
+}
+
+func (l *ArrayListOfValue) IterNative() *ArrayListOfValueIterator {
 	return NewArrayListOfValueIterator(l)
 }
 
 func (l *ArrayListOfValue) IterTuple() ArrayTupleIterator {
-	return l.Iter()
+	return l.IterNative()
 }
 
 func (l *ArrayListOfValue) IterList() ArrayListIterator {
-	return l.Iter()
+	return l.IterNative()
 }
 
 const MAX_ARRAY_LIST_ELEMENTS_IN_INSPECT = 300

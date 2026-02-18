@@ -4979,7 +4979,7 @@ func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNod
 		return
 	}
 
-	baseSet := value.NewHashSet(len(node.Elements))
+	baseSet := value.NewHashSetOfValue(len(node.Elements))
 	firstDynamicIndex := -1
 
 	for i, elementNode := range node.Elements {
@@ -4989,7 +4989,7 @@ func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNod
 			break
 		}
 
-		vm.HashSetAppendWithMaxLoad(nil, baseSet, element, 1)
+		vm.HashSetOfValueAppendWithMaxLoad(nil, baseSet, element, 1)
 	}
 
 	if node.Capacity == nil {
@@ -6581,7 +6581,7 @@ func (c *BytecodeCompiler) emitValue(val value.Value, location *position.Locatio
 			c.emitArrayList(v, location)
 		case *value.ArrayTupleOfValue:
 			c.emitArrayTuple(v, location)
-		case *value.HashSet:
+		case *vm.HashSetOfValue:
 			c.emitHashSet(v, location)
 		case *vm.HashMapOfValue:
 			c.emitHashMap(v, location)
@@ -6719,23 +6719,18 @@ func (c *BytecodeCompiler) emitFloat(f value.Float, location *position.Location)
 	c.emitLoadValue(f.ToValue(), location)
 }
 
-func (c *BytecodeCompiler) emitHashSet(set *value.HashSet, location *position.Location) {
-	baseSet := value.NewHashSet(set.Length())
+func (c *BytecodeCompiler) emitHashSet(set *vm.HashSetOfValue, location *position.Location) {
+	baseSet := vm.NewHashSetOfValue(set.Length())
 	var mutableElements []value.Value
 
 listLoop:
-	for _, element := range set.Table {
-		// skip if the bucket is empty or deleted
-		if element.IsUndefined() || element == vm.DeletedHashSetValue {
-			continue listLoop
-		}
-
+	for element := range set.All() {
 		if vm.IsMutableCollection(element) {
 			mutableElements = append(mutableElements, element)
 			continue listLoop
 		}
 
-		vm.HashSetAppend(nil, baseSet, element)
+		vm.HashSetOfValueAppend(nil, baseSet, element)
 	}
 
 	if len(mutableElements) == 0 {
@@ -6759,12 +6754,7 @@ func (c *BytecodeCompiler) emitHashMap(hmap *vm.HashMapOfValue, location *positi
 	var mutablePairs []value.PairOfValue
 
 listLoop:
-	for _, element := range hmap.Table {
-		// skip if the bucket is empty or deleted
-		if element.Key().IsUndefined() {
-			continue listLoop
-		}
-
+	for element := range hmap.All() {
 		if vm.IsMutableCollection(element.Key()) || vm.IsMutableCollection(element.Value()) {
 			mutablePairs = append(mutablePairs, element)
 			continue listLoop
@@ -6796,11 +6786,7 @@ func (c *BytecodeCompiler) emitHashRecord(hrec *vm.HashRecordOfValue, location *
 	var mutablePairs []value.PairOfValue
 
 listLoop:
-	for _, element := range hrec.Table {
-		if element.Key().IsUndefined() {
-			continue listLoop
-		}
-
+	for element := range hrec.All() {
 		if vm.IsMutableCollection(element.Key()) || vm.IsMutableCollection(element.Value()) {
 			mutablePairs = append(mutablePairs, element)
 			continue listLoop

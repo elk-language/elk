@@ -215,7 +215,7 @@ func resolveHashSetLiteral(node *ast.HashSetLiteralNode) value.Value {
 	}
 
 	newTable := make([]value.Value, len(node.Elements))
-	newSet := &value.HashSet{
+	newSet := &value.HashSetOfValue{
 		Table: newTable,
 	}
 	for _, elementNode := range node.Elements {
@@ -223,7 +223,7 @@ func resolveHashSetLiteral(node *ast.HashSetLiteralNode) value.Value {
 		if val.IsUndefined() {
 			return value.Undefined
 		}
-		err := vm.HashSetAppend(nil, newSet, val)
+		err := vm.HashSetOfValueAppend(nil, newSet, val)
 		if !err.IsUndefined() {
 			return value.Undefined
 		}
@@ -325,13 +325,13 @@ func resolveSpecialHashSetLiteral[T ast.ExpressionNode](elements []T, static boo
 		return value.Undefined
 	}
 
-	newSet := value.NewHashSet(len(elements))
+	newSet := value.NewHashSetOfValue(len(elements))
 	for _, elementNode := range elements {
 		element := resolve(elementNode)
 		if element.IsUndefined() {
 			return value.Undefined
 		}
-		err := vm.HashSetAppend(nil, newSet, element)
+		err := vm.HashSetOfValueAppend(nil, newSet, element)
 		if !err.IsUndefined() {
 			return value.Undefined
 		}
