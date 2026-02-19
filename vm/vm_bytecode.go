@@ -1928,9 +1928,9 @@ func (vm *Thread) opMapSet() {
 	collection := vm.peek()
 
 	switch c := collection.SafeAsReference().(type) {
-	case *value.HashMapOfValue:
+	case *HashMapOfValue:
 		HashMapOfValueSet(vm, c, key, val)
-	case *value.HashRecordOfValue:
+	case *HashRecordOfValue:
 		HashRecordOfValueSet(vm, c, key, val)
 	default:
 		panic(fmt.Sprintf("invalid map to set a value in: %s", collection.Inspect()))
@@ -1951,7 +1951,7 @@ func (vm *Thread) opAppend() {
 		c.Append(element)
 	case *value.ArrayListOfValue:
 		c.Append(element)
-	case *value.HashSetOfValue:
+	case *HashSetOfValue:
 		HashSetOfValueAppend(vm, c, element)
 	default:
 		panic(fmt.Sprintf("invalid collection to append to: %s", collection.Inspect()))
@@ -2764,7 +2764,7 @@ func (vm *Thread) opNewHashSet(dynamicElements int) value.Value {
 	firstElement := vm.spAdd(-dynamicElements)
 	capacity := *vm.spAdd(-dynamicElements - 2)
 	baseSet := *vm.spAdd(-dynamicElements - 1)
-	var newSet *value.HashSetOfValue
+	var newSet *HashSetOfValue
 
 	var additionalCapacity int
 
@@ -2783,11 +2783,11 @@ func (vm *Thread) opNewHashSet(dynamicElements int) value.Value {
 	}
 
 	if baseSet.IsUndefined() {
-		newSet = value.NewHashSetOfValue(dynamicElements + additionalCapacity)
+		newSet = NewHashSetOfValue(dynamicElements + additionalCapacity)
 	} else {
 		switch m := baseSet.SafeAsReference().(type) {
-		case *value.HashSetOfValue:
-			newSet = value.NewHashSetOfValue(m.Capacity() + additionalCapacity)
+		case *HashSetOfValue:
+			newSet = NewHashSetOfValue(m.Capacity() + additionalCapacity)
 			err := HashSetOfValueCopy(vm, newSet, m)
 			if !err.IsUndefined() {
 				return err
@@ -2799,7 +2799,7 @@ func (vm *Thread) opNewHashSet(dynamicElements int) value.Value {
 
 	for i := range dynamicElements {
 		val := *vm.stackAdd(firstElement, i)
-		err := HashSetOfValueAppendWithMaxLoad(vm, newSet, val, 1)
+		_, err := HashSetOfValueAppendWithMaxLoad(vm, newSet, val, 1)
 		if !err.IsUndefined() {
 			return err
 		}
@@ -2816,7 +2816,7 @@ func (vm *Thread) opNewHashMap(dynamicElements int) value.Value {
 	firstElement := vm.spAdd(firstElementOffset)
 	capacity := *vm.spAdd(firstElementOffset - 2)
 	baseMap := *vm.spAdd(firstElementOffset - 1)
-	var newMap *value.HashMapOfValue
+	var newMap *HashMapOfValue
 
 	var additionalCapacity int
 
@@ -2835,11 +2835,11 @@ func (vm *Thread) opNewHashMap(dynamicElements int) value.Value {
 	}
 
 	if baseMap.IsUndefined() {
-		newMap = value.NewHashMapOfValue(dynamicElements + additionalCapacity)
+		newMap = NewHashMapOfValue(dynamicElements + additionalCapacity)
 	} else {
 		switch m := baseMap.SafeAsReference().(type) {
-		case *value.HashMapOfValue:
-			newMap = value.NewHashMapOfValue(m.Capacity() + additionalCapacity)
+		case *HashMapOfValue:
+			newMap = NewHashMapOfValue(m.Capacity() + additionalCapacity)
 			err := HashMapOfValueCopy(vm, newMap, m)
 			if !err.IsUndefined() {
 				return err
@@ -2868,14 +2868,14 @@ func (vm *Thread) opNewHashRecord(dynamicElements int) value.Value {
 	firstElementOffset := -(dynamicElements * 2)
 	firstElement := vm.spAdd(firstElementOffset)
 	baseMap := *vm.spAdd(firstElementOffset - 1)
-	var newRecord *value.HashRecordOfValue
+	var newRecord *HashRecordOfValue
 
 	if baseMap.IsUndefined() {
-		newRecord = value.NewHashRecordOfValue(dynamicElements)
+		newRecord = NewHashRecordOfValue(dynamicElements)
 	} else {
 		switch m := baseMap.SafeAsReference().(type) {
-		case *value.HashRecordOfValue:
-			newRecord = value.NewHashRecordOfValue(m.Length())
+		case *HashRecordOfValue:
+			newRecord = NewHashRecordOfValue(m.Length())
 			err := HashRecordOfValueCopy(vm, newRecord, m)
 			if !err.IsUndefined() {
 				return err

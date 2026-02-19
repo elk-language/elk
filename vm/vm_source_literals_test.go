@@ -747,7 +747,7 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 	tests := sourceTestTable{
 		"empty hashSet literal": {
 			source:       `^[]`,
-			wantStackTop: value.Ref(&value.HashSetOfValue{}),
+			wantStackTop: value.Ref(&vm.HashSetOfValue{}),
 		},
 		"static hashSet literal": {
 			source: `^[1, 2.5, :foo]`,
@@ -1040,7 +1040,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 	tests := sourceTestTable{
 		"empty": {
 			source:       `{}`,
-			wantStackTop: value.Ref(value.NewHashMapOfValue(0)),
+			wantStackTop: value.Ref(vm.NewHashMapOfValue(0)),
 		},
 		"static literal": {
 			source: `{ 1 => 2.5, "bar" => :foo }`,
@@ -1395,7 +1395,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 	tests := sourceTestTable{
 		"empty": {
 			source:       `%{}`,
-			wantStackTop: value.Ref(value.NewHashRecordOfValue(0)),
+			wantStackTop: value.Ref(vm.NewHashRecordOfValue(0)),
 		},
 		"static literal": {
 			source: `%{ 1 => 2.5, "bar" => :foo }`,

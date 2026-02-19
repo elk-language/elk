@@ -4979,7 +4979,7 @@ func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNod
 		return
 	}
 
-	baseSet := value.NewHashSetOfValue(len(node.Elements))
+	baseSet := vm.NewHashSetOfValue(len(node.Elements))
 	firstDynamicIndex := -1
 
 	for i, elementNode := range node.Elements {

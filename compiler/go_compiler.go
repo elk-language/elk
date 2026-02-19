@@ -6936,17 +6936,17 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 				return nil
 			}
 			return c.arrayTupleToGoSource(v, true)
-		case *value.HashSetOfValue:
+		case *vm.HashSetOfValue:
 			if !allowMutable {
 				return nil
 			}
 			return c.hashSetToGoSource(v)
-		case *value.HashMapOfValue:
+		case *vm.HashMapOfValue:
 			if !allowMutable {
 				return nil
 			}
 			return c.hashMapToGoSource(v)
-		case *value.HashRecordOfValue:
+		case *vm.HashRecordOfValue:
 			return c.hashRecordToGoSource(v, allowMutable)
 		case value.String:
 			return newInlineGoValue(
@@ -7562,7 +7562,7 @@ func (c *GoCompiler) arrayTupleToGoSource(v *value.ArrayTupleOfValue, mutable bo
 	)
 }
 
-func (c *GoCompiler) hashSetToGoSource(v *value.HashSetOfValue) *goValue {
+func (c *GoCompiler) hashSetToGoSource(v *vm.HashSetOfValue) *goValue {
 	var buff strings.Builder
 
 	fmt.Fprintf(&buff, "vm.MustNewHashSetWithCapacityAndElements(nil, %d, ", v.LeftCapacity())
@@ -7584,7 +7584,7 @@ func (c *GoCompiler) hashSetToGoSource(v *value.HashSetOfValue) *goValue {
 	)
 }
 
-func (c *GoCompiler) hashMapToGoSource(v *value.HashMapOfValue) *goValue {
+func (c *GoCompiler) hashMapToGoSource(v *vm.HashMapOfValue) *goValue {
 	var buff strings.Builder
 
 	fmt.Fprintf(&buff, "vm.MustNewHashMapWithCapacityAndElements(nil, %d, ", v.LeftCapacity())
@@ -7606,7 +7606,7 @@ func (c *GoCompiler) hashMapToGoSource(v *value.HashMapOfValue) *goValue {
 	)
 }
 
-func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecordOfValue, allowMutable bool) *goValue {
+func (c *GoCompiler) hashRecordToGoSource(v *vm.HashRecordOfValue, allowMutable bool) *goValue {
 	var buff strings.Builder
 
 	buff.WriteString("vm.MustNewHashRecordWithElements(nil, ")

@@ -4034,7 +4034,7 @@ func TestBytecodeSwitch(t *testing.T) {
 						),
 					)),
 					value.Ref(value.String("baz")),
-					value.Ref(&value.HashRecordOfValue{}),
+					value.Ref(&vm.HashRecordOfValue{}),
 					value.ToSymbol("dupa").ToValue(),
 					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(8).ToValue(),

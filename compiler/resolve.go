@@ -214,16 +214,13 @@ func resolveHashSetLiteral(node *ast.HashSetLiteralNode) value.Value {
 		return value.Undefined
 	}
 
-	newTable := make([]value.Value, len(node.Elements))
-	newSet := &value.HashSetOfValue{
-		Table: newTable,
-	}
+	newSet := vm.NewHashSetOfValue(len(node.Elements))
 	for _, elementNode := range node.Elements {
 		val := resolve(elementNode)
 		if val.IsUndefined() {
 			return value.Undefined
 		}
-		err := vm.HashSetOfValueAppend(nil, newSet, val)
+		_, err := vm.HashSetOfValueAppend(nil, newSet, val)
 		if !err.IsUndefined() {
 			return value.Undefined
 		}
@@ -237,10 +234,7 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 		return value.Undefined
 	}
 
-	newTable := make([]value.PairOfValue, len(node.Elements))
-	newMap := &value.HashMapOfValue{
-		Table: newTable,
-	}
+	newMap := vm.NewHashMapOfValue(len(node.Elements))
 	for _, elementNode := range node.Elements {
 		switch element := elementNode.(type) {
 		case *ast.SymbolKeyValueExpressionNode:
@@ -281,10 +275,7 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 		return value.Undefined
 	}
 
-	newTable := make([]value.PairOfValue, len(node.Elements))
-	newRecord := &value.HashRecordOfValue{
-		Table: newTable,
-	}
+	newRecord := vm.NewHashRecordOfValue(len(node.Elements))
 	for _, elementNode := range node.Elements {
 		switch element := elementNode.(type) {
 		case *ast.SymbolKeyValueExpressionNode:
@@ -325,13 +316,13 @@ func resolveSpecialHashSetLiteral[T ast.ExpressionNode](elements []T, static boo
 		return value.Undefined
 	}
 
-	newSet := value.NewHashSetOfValue(len(elements))
+	newSet := vm.NewHashSetOfValue(len(elements))
 	for _, elementNode := range elements {
 		element := resolve(elementNode)
 		if element.IsUndefined() {
 			return value.Undefined
 		}
-		err := vm.HashSetOfValueAppend(nil, newSet, element)
+		_, err := vm.HashSetOfValueAppend(nil, newSet, element)
 		if !err.IsUndefined() {
 			return value.Undefined
 		}

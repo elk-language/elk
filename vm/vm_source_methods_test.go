@@ -851,7 +851,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				2,
 				value.Ref(value.String("foo")),
-				value.Ref(value.NewHashRecordOfValue(0)),
+				value.Ref(vm.NewHashRecordOfValue(0)),
 			)),
 		},
 		"call a method with regular params, optional params, named rest param and a few named args": {

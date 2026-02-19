@@ -466,7 +466,7 @@ func NewNoMethodError(methodName string, receiver Value) *Object {
 func NewInvalidElementInTypedSet(set any, elementClass *Class) *Object {
 	return Errorf(
 		TypeErrorClass,
-		"cannot set element of type %s in a typed set %T, %s",
+		"cannot set element of type %s in a typed set %[2]T, %[2]s",
 		elementClass.Inspect(),
 		set,
 	)
@@ -475,7 +475,7 @@ func NewInvalidElementInTypedSet(set any, elementClass *Class) *Object {
 func NewInvalidElementInTypedArray(arr any, elementClass *Class) *Object {
 	return Errorf(
 		TypeErrorClass,
-		"cannot set element of type %s in a typed array %T, %s",
+		"cannot set element of type %s in a typed array %[2]T, %[2]s",
 		elementClass.Inspect(),
 		arr,
 	)
@@ -484,7 +484,7 @@ func NewInvalidElementInTypedArray(arr any, elementClass *Class) *Object {
 func NewInvalidValueInTypedMap(m any, elementClass *Class) *Object {
 	return Errorf(
 		TypeErrorClass,
-		"cannot set value of type %s in a typed map %T, %s",
+		"cannot set value of type %s in a typed map %[2]T, %[2]s",
 		elementClass.Inspect(),
 		m,
 	)
@@ -493,7 +493,7 @@ func NewInvalidValueInTypedMap(m any, elementClass *Class) *Object {
 func NewInvalidKeyInTypedMap(m any, elementClass *Class) *Object {
 	return Errorf(
 		TypeErrorClass,
-		"cannot set key of type %s in a typed map %T, %s",
+		"cannot set key of type %s in a typed map %[2]T, %[2]s",
 		elementClass.Inspect(),
 		m,
 	)
@@ -502,7 +502,7 @@ func NewInvalidKeyInTypedMap(m any, elementClass *Class) *Object {
 func NewInvalidValueInTypedPair(m any, elementClass *Class) *Object {
 	return Errorf(
 		TypeErrorClass,
-		"cannot set value of type %s in a typed pair %T, %s",
+		"cannot set value of type %s in a typed pair %[2]T, %[2]s",
 		elementClass.Inspect(),
 		m,
 	)
@@ -511,7 +511,7 @@ func NewInvalidValueInTypedPair(m any, elementClass *Class) *Object {
 func NewInvalidKeyInTypedPair(m any, elementClass *Class) *Object {
 	return Errorf(
 		TypeErrorClass,
-		"cannot set key of type %s in a typed pair %T, %s",
+		"cannot set key of type %s in a typed pair %[2]T, %[2]s",
 		elementClass.Inspect(),
 		m,
 	)
