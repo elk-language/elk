@@ -96,7 +96,6 @@ func InitGlobalEnvironment() {
 	initPath()
 	initWeak()
 	initImmutableBox()
-	initLocalBox()
 	initBox()
 	initResult()
 	initDate()

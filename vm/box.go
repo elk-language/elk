@@ -63,4 +63,12 @@ func initBox() {
 			return args[0], value.Undefined
 		},
 	)
+	Def(
+		c,
+		"inspect",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.Box)
+			return value.String(self.Inspect()).ToValue(), value.Undefined
+		},
+	)
 }

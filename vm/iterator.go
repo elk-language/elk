@@ -9,7 +9,7 @@ import (
 
 // Iterate over an iterable value
 func Iterate(vm *Thread, iterableVal value.Value) iter.Seq2[value.Value, value.Value] {
-	switch c := iterableVal.SafeAsReference().(type) {
+	switch c := iterableVal.ToInterface().(type) {
 	case value.NativeIterator:
 		return value.IterateNativeIterator(c)
 	case value.NativeIterable:
@@ -22,9 +22,34 @@ func Iterate(vm *Thread, iterableVal value.Value) iter.Seq2[value.Value, value.V
 				return
 			}
 
-			for element, err := range Iterate(vm, iterator) {
+			for element, err := range IterateIterator(vm, iterator) {
+				if !err.IsUndefined() {
+					yield(value.Undefined, err)
+					return
+				}
+
 				if !yield(element, value.Undefined) {
 					return
+				}
+			}
+		}
+	}
+}
+
+// Iterate over an iterator
+func IterateIterator(vm *Thread, iteratorVal value.Value) iter.Seq2[value.Value, value.Value] {
+	switch c := iteratorVal.ToInterface().(type) {
+	case value.NativeIterator:
+		return value.IterateNativeIterator(c)
+	default:
+		return func(yield func(value.Value, value.Value) bool) {
+			for {
+				element, err := vm.CallMethodByName(symbol.L_next, iteratorVal)
+				if err.IsUndefined() {
+					if !yield(element, value.Undefined) {
+						return
+					}
+					continue
 				}
 
 				if err != symbol.L_stop_iteration.ToValue() {

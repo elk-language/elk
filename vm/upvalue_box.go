@@ -12,6 +12,8 @@ import (
 // Represents a pointer to a local variable/value
 type UpvalueBox Upvalue
 
+var _ value.Box = &UpvalueBox{}
+
 func (l *UpvalueBox) IsClosed() bool {
 	return (*Upvalue)(l).IsClosed()
 }
@@ -25,11 +27,11 @@ func (l *UpvalueBox) Close() {
 }
 
 func (*UpvalueBox) Class() *value.Class {
-	return value.UpvalueBoxClass
+	return value.BoxClass
 }
 
 func (*UpvalueBox) DirectClass() *value.Class {
-	return value.UpvalueBoxClass
+	return value.BoxClass
 }
 
 func (*UpvalueBox) SingletonClass() *value.Class {
@@ -41,9 +43,17 @@ func (l *UpvalueBox) Get() value.Value {
 	return *l.slot
 }
 
+func (l *UpvalueBox) GetValue() value.Value {
+	return l.Get()
+}
+
 // Set the value in the box
 func (l *UpvalueBox) Set(v value.Value) {
 	*l.slot = v
+}
+
+func (l *UpvalueBox) SetValue(v value.Value) {
+	l.Set(v)
 }
 
 func (l *UpvalueBox) ToBox() *value.BoxOfValue {
@@ -56,6 +66,10 @@ func (l *UpvalueBox) LocalAddress() uintptr {
 
 func (l *UpvalueBox) ToImmutableBox() *value.ImmutableBoxOfValue {
 	return (*value.ImmutableBoxOfValue)(l.slot)
+}
+
+func (l *UpvalueBox) ToImmutableBoxInterface() value.ImmutableBox {
+	return l.ToImmutableBox()
 }
 
 // Return the box of the next value in memory
@@ -76,6 +90,10 @@ func (l *UpvalueBox) Prev(step int) *value.BoxOfValue {
 
 func (l *UpvalueBox) PrevImmutableBox(step int) *value.ImmutableBoxOfValue {
 	return (*value.ImmutableBoxOfValue)(l.Prev(step))
+}
+
+func (l *UpvalueBox) Address() value.UInt {
+	return value.UInt(uintptr(unsafe.Pointer(l)))
 }
 
 func (l *UpvalueBox) Inspect() string {
@@ -110,53 +128,4 @@ func (v *UpvalueBox) Copy() value.Reference {
 
 func (v *UpvalueBox) ToValue() value.Value {
 	return value.Ref(v)
-}
-
-// Std::UpvalueBox
-func initLocalBox() {
-	// Instance methods
-	c := &value.UpvalueBoxClass.MethodContainer
-	Def(
-		c,
-		"get",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*UpvalueBox)(args[0].Pointer())
-			return self.Get(), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"set",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*UpvalueBox)(args[0].Pointer())
-			v := args[1]
-			self.Set(v)
-
-			return v, value.Undefined
-		},
-		DefWithParameters(1),
-	)
-	Def(
-		c,
-		"address",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*UpvalueBox)(args[0].Pointer())
-			return value.UInt(uintptr(unsafe.Pointer(self))).ToValue(), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"to_immutable_box",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*UpvalueBox)(args[0].Pointer())
-			return value.Ref(self.ToImmutableBox()), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"to_box",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			return args[0], value.Undefined
-		},
-	)
 }
