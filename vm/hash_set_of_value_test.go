@@ -676,9 +676,10 @@ func TestHashSetSetCapacity(t *testing.T) {
 				t.Fatal(diff)
 			}
 		},
-		"without VM with complex types": func(t *testing.T) {
+		"with VM with complex types": func(t *testing.T) {
+			v := vm.New()
 			set := vm.MustNewHashSetOfValueWithElements(
-				nil,
+				v,
 				value.SmallInt(5).ToValue(),
 				value.Ref(value.NewError(value.ArgumentErrorClass, "foo bar")),
 			)
@@ -689,14 +690,14 @@ func TestHashSetSetCapacity(t *testing.T) {
 			}
 		},
 		"with VM with complex types that don't implement necessary methods": func(t *testing.T) {
+			v := vm.New()
 			key := value.NewError(value.ArgumentErrorClass, "foo bar")
 			set := vm.MustNewHashSetOfValueWithElements(
-				nil,
+				v,
 				value.SmallInt(5).ToValue(),
 				value.Ref(key),
 			)
 
-			v := vm.New()
 			expected := vm.MustNewHashSetOfValueWithCapacityAndElements(
 				v,
 				25,

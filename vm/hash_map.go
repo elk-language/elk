@@ -334,7 +334,7 @@ func NewHashMapOfValueComparer(opts *cmp.Options) cmp.Option {
 				return false
 			}
 
-			if !cmp.Equal(xPair.Value, yVal, *opts...) {
+			if !cmp.Equal(xPair.Value(), yVal, *opts...) {
 				return false
 			}
 

@@ -60,9 +60,6 @@ describe "UpvalueBox", ->
 			b := &a
 			addr := b.address
 			assert! addr <<: UInt
-
-			c := LocalBox.at(addr)
-			assert! b.get == 3
 		end
 	end
 

@@ -441,21 +441,21 @@ func TestArrayListOfValueIterator_Inspect(t *testing.T) {
 				&value.ArrayListOfValue{},
 				0,
 			),
-			want: `Std::ArrayListOfValue::Iterator\{&: 0x[[:xdigit:]]{4,12}, list: \[\], index: 0\}`,
+			want: `Std::ArrayList::Iterator\{&: 0x[[:xdigit:]]{4,12}, list: \[\], index: 0\}`,
 		},
 		"with one element": {
 			l: value.NewArrayListIteratorWithIndex(
 				&value.ArrayListOfValue{value.SmallInt(3).ToValue()},
 				0,
 			),
-			want: `Std::ArrayListOfValue::Iterator\{&: 0x[[:xdigit:]]{4,12}, list: \[3\], index: 0\}`,
+			want: `Std::ArrayList::Iterator\{&: 0x[[:xdigit:]]{4,12}, list: \[3\], index: 0\}`,
 		},
 		"with elements": {
 			l: value.NewArrayListIteratorWithIndex(
 				&value.ArrayListOfValue{value.SmallInt(3).ToValue(), value.Ref(value.String("foo"))},
 				1,
 			),
-			want: `Std::ArrayListOfValue::Iterator\{&: 0x[[:xdigit:]]{4,12}, list: \[3, "foo"\], index: 1\}`,
+			want: `Std::ArrayList::Iterator\{&: 0x[[:xdigit:]]{4,12}, list: \[3, "foo"\], index: 1\}`,
 		},
 	}
 
