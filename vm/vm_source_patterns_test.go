@@ -13,14 +13,14 @@ func TestVMSource_Match(t *testing.T) {
 				var a: Int | String = 5
 				a match Int()
 			`,
-			wantStackTop: value.True,
+			wantStackTop: value.True.ToValue(),
 		},
 		"return false when pattern does not match": {
 			source: `
 				var a: Int | String = 5
 				a match String()
 			`,
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 		},
 	}
 

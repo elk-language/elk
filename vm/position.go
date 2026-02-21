@@ -41,7 +41,7 @@ func initPosition() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Position)(args[0].Pointer())
 			other := (*value.Position)(args[1].Pointer())
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)

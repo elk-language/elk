@@ -1769,7 +1769,7 @@ func TestVMSource_Setters(t *testing.T) {
 				list := [false, 8, 7.8]
 				list[0] &&= 5
 			`,
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 		},
 		"subscript setter logic and truthy": {
 			source: `
@@ -1793,7 +1793,7 @@ func TestVMSource_Setters(t *testing.T) {
 				list := [false, 8, 7.8]
 				list[0] ??= 5
 			`,
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(33, 3, 5), P(39, 3, 11)), "this condition will always have the same result since type `bool | Std::Int | Std::Float` can never be nil"),
 				diagnostic.NewWarning(L(P(45, 3, 17), P(45, 3, 17)), "unreachable code"),

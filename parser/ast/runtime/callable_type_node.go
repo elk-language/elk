@@ -113,7 +113,7 @@ func initCallableTypeNode() {
 		"is_closure",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
-			result := value.ToElkBool(self.IsClosure)
+			result := value.BoolVal(self.IsClosure)
 			return result, value.Undefined
 		},
 	)
@@ -123,7 +123,7 @@ func initCallableTypeNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

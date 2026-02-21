@@ -33,7 +33,7 @@ func TestChannelPush(t *testing.T) {
 	opts := comparer.Options()
 
 	ch := value.NewChannel(2)
-	got := ch.Push(value.True)
+	got := ch.Push(value.True.ToValue())
 	if !got.IsUndefined() {
 		t.Logf("got an error when pushing to an open channel: %s", got.Inspect())
 		t.Fail()
@@ -44,7 +44,7 @@ func TestChannelPush(t *testing.T) {
 		t.Log("got false when popping from an open channel")
 		t.Fail()
 	}
-	want := value.True
+	want := value.True.ToValue()
 	if diff := cmp.Diff(want, got, opts...); diff != "" {
 		t.Log(diff)
 		t.Fail()

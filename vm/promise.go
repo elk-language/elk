@@ -263,7 +263,7 @@ func initPromise() {
 		"is_resolved",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*Promise)(args[0].Pointer())
-			return value.ToElkBool(self.IsResolved()), value.Undefined
+			return value.BoolVal(self.IsResolved()), value.Undefined
 		},
 	)
 }

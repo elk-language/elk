@@ -54,7 +54,7 @@ func initHashSet() {
 				return value.Undefined, err
 			}
 
-			return value.ToElkBool(removed), value.Undefined
+			return value.BoolVal(removed), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -94,7 +94,7 @@ func initHashSet() {
 				return value.Undefined, err
 			}
 
-			return value.ToElkBool(result), value.Undefined
+			return value.BoolVal(result), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -110,7 +110,7 @@ func initHashSet() {
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(contains), value.Undefined
+			return value.BoolVal(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -156,7 +156,7 @@ func initHashSet() {
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(added), value.Undefined
+			return value.BoolVal(added), value.Undefined
 		},
 		DefWithParameters(1),
 	)

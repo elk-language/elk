@@ -126,7 +126,7 @@ func initVariantTypeParameterNode() {
 		"is_invariant",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VariantTypeParameterNode)
-			result := value.ToElkBool(self.Variance == ast.INVARIANT)
+			result := value.BoolVal(self.Variance == ast.INVARIANT)
 			return result, value.Undefined
 		},
 	)
@@ -136,7 +136,7 @@ func initVariantTypeParameterNode() {
 		"is_covariant",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VariantTypeParameterNode)
-			result := value.ToElkBool(self.Variance == ast.COVARIANT)
+			result := value.BoolVal(self.Variance == ast.COVARIANT)
 			return result, value.Undefined
 		},
 	)
@@ -146,7 +146,7 @@ func initVariantTypeParameterNode() {
 		"is_contravariant",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VariantTypeParameterNode)
-			result := value.ToElkBool(self.Variance == ast.CONTRAVARIANT)
+			result := value.BoolVal(self.Variance == ast.CONTRAVARIANT)
 			return result, value.Undefined
 		},
 	)
@@ -157,7 +157,7 @@ func initVariantTypeParameterNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.VariantTypeParameterNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

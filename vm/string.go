@@ -241,7 +241,7 @@ func initString() {
 		"is_empty",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
-			return value.ToElkBool(self.IsEmpty()), value.Undefined
+			return value.BoolVal(self.IsEmpty()), value.Undefined
 		},
 	)
 	Def(

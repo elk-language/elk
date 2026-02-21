@@ -201,7 +201,7 @@ func initMethodDefinitionNode() {
 		"is_abstract",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
-			result := value.ToElkBool(self.IsAbstract())
+			result := value.BoolVal(self.IsAbstract())
 			return result, value.Undefined
 
 		},
@@ -212,7 +212,7 @@ func initMethodDefinitionNode() {
 		"is_sealed",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
-			result := value.ToElkBool(self.IsSealed())
+			result := value.BoolVal(self.IsSealed())
 			return result, value.Undefined
 
 		},
@@ -223,7 +223,7 @@ func initMethodDefinitionNode() {
 		"is_generator",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
-			result := value.ToElkBool(self.IsGenerator())
+			result := value.BoolVal(self.IsGenerator())
 			return result, value.Undefined
 
 		},
@@ -234,7 +234,7 @@ func initMethodDefinitionNode() {
 		"is_async",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
-			result := value.ToElkBool(self.IsAsync())
+			result := value.BoolVal(self.IsAsync())
 			return result, value.Undefined
 
 		},
@@ -245,7 +245,7 @@ func initMethodDefinitionNode() {
 		"is_overload",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
-			result := value.ToElkBool(self.IsOverload())
+			result := value.BoolVal(self.IsOverload())
 			return result, value.Undefined
 
 		},
@@ -279,7 +279,7 @@ func initMethodDefinitionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

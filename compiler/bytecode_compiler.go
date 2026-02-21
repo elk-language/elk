@@ -6602,10 +6602,12 @@ func (c *BytecodeCompiler) emitValue(val value.Value, location *position.Locatio
 	}
 
 	switch val.ValueFlag() {
-	case value.TRUE_FLAG:
-		c.emit(location.StartPos.Line, bytecode.TRUE)
-	case value.FALSE_FLAG:
-		c.emit(location.StartPos.Line, bytecode.FALSE)
+	case value.BOOL_FLAG:
+		if val.AsBool() {
+			c.emit(location.StartPos.Line, bytecode.TRUE)
+		} else {
+			c.emit(location.StartPos.Line, bytecode.FALSE)
+		}
 	case value.NIL_FLAG:
 		c.emit(location.StartPos.Line, bytecode.NIL)
 	case value.SMALL_INT_FLAG:

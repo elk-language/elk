@@ -256,7 +256,7 @@ func (i Int32) CompareInt32(other Int32) SmallInt {
 
 func (i Int32) GreaterThanVal(other Value) (Value, Value) {
 	result, err := i.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (i Int32) GreaterThan(other Value) (bool, Value) {
@@ -270,7 +270,7 @@ func (i Int32) GreaterThan(other Value) (bool, Value) {
 
 func (i Int32) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := i.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (i Int32) GreaterThanEqual(other Value) (bool, Value) {
@@ -284,7 +284,7 @@ func (i Int32) GreaterThanEqual(other Value) (bool, Value) {
 
 func (i Int32) LessThanVal(other Value) (Value, Value) {
 	result, err := i.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (i Int32) LessThan(other Value) (bool, Value) {
@@ -298,7 +298,7 @@ func (i Int32) LessThan(other Value) (bool, Value) {
 
 func (i Int32) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := i.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (i Int32) LessThanEqual(other Value) (bool, Value) {
@@ -310,7 +310,7 @@ func (i Int32) LessThanEqual(other Value) (bool, Value) {
 	return i <= o, Undefined
 }
 func (i Int32) EqualVal(other Value) Value {
-	return ToElkBool(i.Equal(other))
+	return Bool(i.Equal(other)).ToValue()
 }
 
 func (i Int32) Equal(other Value) bool {

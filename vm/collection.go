@@ -34,7 +34,7 @@ func initCollection() {
 				}
 			}
 
-			return value.ToElkBool(deleted), value.Undefined
+			return value.BoolVal(deleted), value.Undefined
 		},
 		DefWithParameters(1),
 	)

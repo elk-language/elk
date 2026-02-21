@@ -119,9 +119,9 @@ func initSyncDiagnosticList() {
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				return value.ToElkBool(equal), value.Undefined
+				return value.BoolVal(equal), value.Undefined
 			default:
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}
 		},
 		vm.DefWithParameters(1),
@@ -137,7 +137,7 @@ func initSyncDiagnosticList() {
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(contains), value.Undefined
+			return value.BoolVal(contains), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)
@@ -195,7 +195,7 @@ func initSyncDiagnosticList() {
 		"is_failure",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*diagnostic.DiagnosticList)(args[0].Pointer())
-			return value.ToElkBool(self.IsFailure()), value.Undefined
+			return value.BoolVal(self.IsFailure()), value.Undefined
 		},
 	)
 }

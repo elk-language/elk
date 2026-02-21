@@ -137,10 +137,10 @@ func (s Symbol) InstanceVariables() *InstanceVariables {
 // Check whether s is equal to other
 func (s Symbol) EqualVal(other Value) Value {
 	if other.IsInlineSymbol() {
-		return ToElkBool(s == other.AsInlineSymbol())
+		return BoolVal(s == other.AsInlineSymbol())
 	}
 
-	return False
+	return False.ToValue()
 }
 
 // Check whether s is equal to other

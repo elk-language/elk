@@ -361,7 +361,7 @@ func (s String) CompareVal(other Value) (Value, Value) {
 // if something went wrong.
 func (s String) GreaterThanVal(other Value) (Value, Value) {
 	result, err := s.GreaterThan(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 // Check whether s is greater than other and return an error
@@ -388,7 +388,7 @@ func (s String) GreaterThan(other Value) (bool, Value) {
 // if something went wrong.
 func (s String) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := s.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 // Check whether s is greater than or equal to other and return an error
@@ -415,7 +415,7 @@ func (s String) GreaterThanEqual(other Value) (bool, Value) {
 // if something went wrong.
 func (s String) LessThanVal(other Value) (Value, Value) {
 	result, err := s.LessThan(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 // Check whether s is less than other and return an error
@@ -442,7 +442,7 @@ func (s String) LessThan(other Value) (bool, Value) {
 // if something went wrong.
 func (s String) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := s.LessThanEqual(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 // Check whether s is less than or equal to other and return an error
@@ -467,7 +467,7 @@ func (s String) LessThanEqual(other Value) (bool, Value) {
 
 // Check whether s is equal to other
 func (s String) LaxEqualVal(other Value) Value {
-	return ToElkBool(s.LaxEqualBool(other))
+	return BoolVal(s.LaxEqualBool(other))
 }
 
 // Check whether s is equal to other
@@ -496,7 +496,7 @@ func (s String) LaxEqualBool(other Value) bool {
 
 // Check whether s is equal to other
 func (s String) EqualVal(other Value) Value {
-	return ToElkBool(s.Equal(other))
+	return BoolVal(s.Equal(other))
 }
 
 // Check whether s is equal to other

@@ -81,13 +81,13 @@ func initPair() {
 			self := args[0].AsReference().(value.Pair)
 			other, ok := args[1].AsReference().(value.Pair)
 			if !ok {
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}
 			equal, err := PairEqual(vm, self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(equal), value.Undefined
+			return value.BoolVal(equal), value.Undefined
 		},
 		DefWithParameters(1),
 	)

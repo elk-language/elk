@@ -85,9 +85,9 @@ func resolve(node ast.Node, checker types.Checker) value.Value {
 	case *ast.NilLiteralNode:
 		return value.Nil
 	case *ast.TrueLiteralNode:
-		return value.True
+		return value.True.ToValue()
 	case *ast.FalseLiteralNode:
-		return value.False
+		return value.False.ToValue()
 	case *ast.IntLiteralNode:
 		return resolveInt(n)
 	case *ast.Int64LiteralNode:
@@ -352,6 +352,9 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode, checker types.Check
 	if checker.IsSubtype(elementType, checker.Std(symbol.Symbol)) {
 		return resolveNativeArrayList[value.Symbol](node.Elements, checker)
 	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt)) {
+		return resolveNativeArrayList[value.UInt](node.Elements, checker)
+	}
 	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
 		return resolveNativeArrayList[value.UInt64](node.Elements, checker)
 	}
@@ -384,6 +387,18 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode, checker types.Check
 	}
 	if checker.IsSubtype(elementType, checker.Std(symbol.Float32)) {
 		return resolveNativeArrayList[value.Float32](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Char)) {
+		return resolveNativeArrayList[value.Char](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Bool)) {
+		return resolveNativeArrayList[value.Bool](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Date)) {
+		return resolveNativeArrayList[value.Date](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Time)) {
+		return resolveNativeArrayList[value.Time](node.Elements, checker)
 	}
 
 	newList := make(value.ArrayListOfValue, 0, len(node.Elements))
@@ -643,6 +658,9 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode, checker types.Che
 	if checker.IsSubtype(elementType, checker.Std(symbol.Symbol)) {
 		return resolveNativeArrayTuple[value.Symbol](node.Elements, checker)
 	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt)) {
+		return resolveNativeArrayTuple[value.UInt](node.Elements, checker)
+	}
 	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
 		return resolveNativeArrayTuple[value.UInt64](node.Elements, checker)
 	}
@@ -675,6 +693,18 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode, checker types.Che
 	}
 	if checker.IsSubtype(elementType, checker.Std(symbol.Float32)) {
 		return resolveNativeArrayTuple[value.Float32](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Char)) {
+		return resolveNativeArrayTuple[value.Char](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Bool)) {
+		return resolveNativeArrayTuple[value.Bool](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Time)) {
+		return resolveNativeArrayTuple[value.Time](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Date)) {
+		return resolveNativeArrayTuple[value.Date](node.Elements, checker)
 	}
 
 	newArrayTuple := make(value.ArrayTupleOfValue, 0, len(node.Elements))
@@ -799,7 +829,7 @@ func resolveUnaryExpression(node *ast.UnaryExpressionNode, checker types.Checker
 		}
 		return result
 	case token.BANG:
-		return value.ToNotBool(right)
+		return value.ToNotBool(right).ToValue()
 	case token.AND:
 		singleton := right.SingletonClass()
 		if singleton == nil {

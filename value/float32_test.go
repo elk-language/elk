@@ -194,29 +194,29 @@ func TestFloat32_GreaterThan(t *testing.T) {
 		"String and return an error": {
 			a:    value.Float32(5),
 			b:    value.Ref(value.String("foo")),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float32`")),
 		},
 		"Int32 and return an error": {
 			a:    value.Float32(5),
 			b:    value.Int32(2).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float32`")),
 		},
 		"15f32 > 30f32": {
 			a:    value.Float32(15),
 			b:    value.Float32(30).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"780f32 > -800f32": {
 			a:    value.Float32(780),
 			b:    value.Float32(-800).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"15f32 > 15f32": {
 			a:    value.Float32(15),
 			b:    value.Float32(15).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 	}
 
@@ -244,29 +244,29 @@ func TestFloat32_GreaterThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:    value.Float32(5),
 			b:    value.Ref(value.String("foo")),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float32`")),
 		},
 		"Int32 and return an error": {
 			a:    value.Float32(5),
 			b:    value.Int32(2).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float32`")),
 		},
 		"15f32 >= 30f32": {
 			a:    value.Float32(15),
 			b:    value.Float32(30).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"780f32 >= -800f32": {
 			a:    value.Float32(780),
 			b:    value.Float32(-800).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"15f32 >= 15f32": {
 			a:    value.Float32(15),
 			b:    value.Float32(15).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 	}
 
@@ -293,29 +293,29 @@ func TestFloat32_LessThan(t *testing.T) {
 		"String and return an error": {
 			a:    value.Float32(5),
 			b:    value.Ref(value.String("foo")),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float32`")),
 		},
 		"Int32 and return an error": {
 			a:    value.Float32(5),
 			b:    value.Int32(2).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float32`")),
 		},
 		"15f32 < 30f32": {
 			a:    value.Float32(15),
 			b:    value.Float32(30).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"780f32 < -800f32": {
 			a:    value.Float32(780),
 			b:    value.Float32(-800).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"15f32 < 15f32": {
 			a:    value.Float32(15),
 			b:    value.Float32(15).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 	}
 
@@ -342,29 +342,29 @@ func TestFloat32_LessThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:    value.Float32(5),
 			b:    value.Ref(value.String("foo")),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float32`")),
 		},
 		"Int32 and return an error": {
 			a:    value.Float32(5),
 			b:    value.Int32(2).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float32`")),
 		},
 		"15f32 <= 30f32": {
 			a:    value.Float32(15),
 			b:    value.Float32(30).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"780f32 <= -800f32": {
 			a:    value.Float32(780),
 			b:    value.Float32(-800).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"15f32 <= 15f32": {
 			a:    value.Float32(15),
 			b:    value.Float32(15).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 	}
 
@@ -391,471 +391,471 @@ func TestFloat32_Equal(t *testing.T) {
 		"String 5.5f32 == '5.5'": {
 			a:    value.Float32(5.5),
 			b:    value.Ref(value.String("5.5")),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int64 5.0f32 == 5i64": {
 			a:    value.Float32(5),
 			b:    value.Int64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int64 5.5f32 == 5i64": {
 			a:    value.Float32(5.5),
 			b:    value.Int64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int64 NaN == 0i64": {
 			a:    value.Float32NaN(),
 			b:    value.Int64(0).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int64 +Inf == 69i64": {
 			a:    value.Float32Inf(),
 			b:    value.Int64(69).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int64 -Inf == -89i64": {
 			a:    value.Float32NegInf(),
 			b:    value.Int64(-89).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt64 5.0f32 == 5u64": {
 			a:    value.Float32(5),
 			b:    value.UInt64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt64 -5.0f32 == 5u64": {
 			a:    value.Float32(-5),
 			b:    value.UInt64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt64 5.5f32 == 5u64": {
 			a:    value.Float32(5.5),
 			b:    value.UInt64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt64 NaN == 0u64": {
 			a:    value.Float32NaN(),
 			b:    value.UInt64(0).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt64 +Inf == 69u64": {
 			a:    value.Float32Inf(),
 			b:    value.UInt64(69).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt64 -Inf == 89u64": {
 			a:    value.Float32NegInf(),
 			b:    value.UInt64(89).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int32 5.0f32 == 5i32": {
 			a:    value.Float32(5),
 			b:    value.Int32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int32 5.5f32 == 5i32": {
 			a:    value.Float32(5.5),
 			b:    value.Int32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int32 NaN == 0i32": {
 			a:    value.Float32NaN(),
 			b:    value.Int32(0).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int32 +Inf == 69i32": {
 			a:    value.Float32Inf(),
 			b:    value.Int32(69).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int32 -Inf == -89i32": {
 			a:    value.Float32NegInf(),
 			b:    value.Int32(-89).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt32 5.0f32 == 5u32": {
 			a:    value.Float32(5),
 			b:    value.UInt32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt32 -5.0f32 == 5u32": {
 			a:    value.Float32(-5),
 			b:    value.UInt32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt32 5.5f32 == 5u32": {
 			a:    value.Float32(5.5),
 			b:    value.UInt32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt32 NaN == 0u32": {
 			a:    value.Float32NaN(),
 			b:    value.UInt32(0).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt32 +Inf == 69u32": {
 			a:    value.Float32Inf(),
 			b:    value.UInt32(69).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt32 -Inf == 89u32": {
 			a:    value.Float32NegInf(),
 			b:    value.UInt32(89).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int16 5.0f32 == 5i16": {
 			a:    value.Float32(5),
 			b:    value.Int16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int16 5.5f32 == 5i16": {
 			a:    value.Float32(5.5),
 			b:    value.Int16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int16 NaN == 0i16": {
 			a:    value.Float32NaN(),
 			b:    value.Int16(0).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int16 +Inf == 69i16": {
 			a:    value.Float32Inf(),
 			b:    value.Int16(69).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int16 -Inf == -89i16": {
 			a:    value.Float32NegInf(),
 			b:    value.Int16(-89).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt16 5.0f32 == 5u16": {
 			a:    value.Float32(5),
 			b:    value.UInt16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt16 -5.0f32 == 5u16": {
 			a:    value.Float32(-5),
 			b:    value.UInt16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt16 5.5f32 == 5u16": {
 			a:    value.Float32(5.5),
 			b:    value.UInt16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt16 NaN == 0u16": {
 			a:    value.Float32NaN(),
 			b:    value.UInt16(0).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt16 +Inf == 69u16": {
 			a:    value.Float32Inf(),
 			b:    value.UInt16(69).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt16 -Inf == 89u16": {
 			a:    value.Float32NegInf(),
 			b:    value.UInt16(89).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int8 5.0f32 == 5i8": {
 			a:    value.Float32(5),
 			b:    value.Int8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int8 5.5f32 == 5i8": {
 			a:    value.Float32(5.5),
 			b:    value.Int8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int8 NaN == 0i8": {
 			a:    value.Float32NaN(),
 			b:    value.Int8(0).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int8 +Inf == 69i8": {
 			a:    value.Float32Inf(),
 			b:    value.Int8(69).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int8 -Inf == -89i8": {
 			a:    value.Float32NegInf(),
 			b:    value.Int8(-89).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt8 5.0f32 == 5u8": {
 			a:    value.Float32(5),
 			b:    value.UInt8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt8 -5.0f32 == 5u8": {
 			a:    value.Float32(-5),
 			b:    value.UInt8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt8 5.5f32 == 5u8": {
 			a:    value.Float32(5.5),
 			b:    value.UInt8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt8 NaN == 0u8": {
 			a:    value.Float32NaN(),
 			b:    value.UInt8(0).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt8 +Inf == 69u8": {
 			a:    value.Float32Inf(),
 			b:    value.UInt8(69).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt8 -Inf == 89u8": {
 			a:    value.Float32NegInf(),
 			b:    value.UInt8(89).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Float64 21.9f32 == 21.9f64": {
 			a:    value.Float32(21.9),
 			b:    value.Float64(21.9).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 21.9f32 == 38.0f64": {
 			a:    value.Float32(21.9),
 			b:    value.Float64(38).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 NaN == NaN": {
 			a:    value.Float32NaN(),
 			b:    value.Float64NaN().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 +Inf == +Inf": {
 			a:    value.Float32Inf(),
 			b:    value.Float64Inf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 -Inf == -Inf": {
 			a:    value.Float32NegInf(),
 			b:    value.Float64NegInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 +Inf == -Inf": {
 			a:    value.Float32Inf(),
 			b:    value.Float64NegInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 -Inf == +Inf": {
 			a:    value.Float32NegInf(),
 			b:    value.Float64Inf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 8.5f32 == +Inf": {
 			a:    value.Float32(8.5),
 			b:    value.Float64Inf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 +Inf == 98.0f64": {
 			a:    value.Float32Inf(),
 			b:    value.Float64(98).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Float32 21.0f32 == 21.0f32": {
 			a:    value.Float32(21),
 			b:    value.Float32(21).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float32 21.9f32 == 38.0f32": {
 			a:    value.Float32(21.9),
 			b:    value.Float32(38).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 NaN == NaN": {
 			a:    value.Float32NaN(),
 			b:    value.Float32NaN().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 +Inf == +Inf": {
 			a:    value.Float32Inf(),
 			b:    value.Float32Inf().ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float32 -Inf == -Inf": {
 			a:    value.Float32NegInf(),
 			b:    value.Float32NegInf().ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float32 +Inf == -Inf": {
 			a:    value.Float32Inf(),
 			b:    value.Float32NegInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 -Inf == +Inf": {
 			a:    value.Float32NegInf(),
 			b:    value.Float32Inf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 8.5f32 == +Inf": {
 			a:    value.Float32(8.5),
 			b:    value.Float32Inf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 +Inf == 98.0f32": {
 			a:    value.Float32Inf(),
 			b:    value.Float32(98).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"SmallInt 16.0f32 == 16": {
 			a:    value.Float32(16),
 			b:    value.SmallInt(16).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt 16.5f32 == 16": {
 			a:    value.Float32(16.5),
 			b:    value.SmallInt(16).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt NaN == 0": {
 			a:    value.Float32NaN(),
 			b:    value.SmallInt(0).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt +Inf == 69": {
 			a:    value.Float32Inf(),
 			b:    value.SmallInt(69).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt -Inf == -89": {
 			a:    value.Float32NegInf(),
 			b:    value.SmallInt(-89).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"BigInt 16.0f32 == 16": {
 			a:    value.Float32(16),
 			b:    value.Ref(value.NewBigInt(16)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt 16.5f32 == 16": {
 			a:    value.Float32(16.5),
 			b:    value.Ref(value.NewBigInt(16)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt NaN == 0": {
 			a:    value.Float32NaN(),
 			b:    value.Ref(value.NewBigInt(0)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt +Inf == 69": {
 			a:    value.Float32Inf(),
 			b:    value.Ref(value.NewBigInt(69)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt -Inf == -89": {
 			a:    value.Float32NegInf(),
 			b:    value.Ref(value.NewBigInt(-89)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Float 21.9f32 == 21.9": {
 			a:    value.Float32(21.9),
 			b:    value.Float(21.9).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 21.9f32 == 38.0": {
 			a:    value.Float32(21.9),
 			b:    value.Float(38).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float NaN == NaN": {
 			a:    value.Float32NaN(),
 			b:    value.FloatNaN().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float +Inf == +Inf": {
 			a:    value.Float32Inf(),
 			b:    value.FloatInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float -Inf == -Inf": {
 			a:    value.Float32NegInf(),
 			b:    value.FloatNegInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float +Inf == -Inf": {
 			a:    value.Float32Inf(),
 			b:    value.FloatNegInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float -Inf == +Inf": {
 			a:    value.Float32NegInf(),
 			b:    value.FloatInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 8.5f32 == +Inf": {
 			a:    value.Float32(8.5),
 			b:    value.FloatInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float +Inf == 98.0": {
 			a:    value.Float32Inf(),
 			b:    value.Float(98).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"BigFloat 21.9f32 == 21.9bf": {
 			a:    value.Float32(21.9),
 			b:    value.Ref(value.NewBigFloat(21.9)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 21.9f32 == 38.0bf": {
 			a:    value.Float32(21.9),
 			b:    value.Ref(value.NewBigFloat(38)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat NaN == NaN": {
 			a:    value.Float32NaN(),
 			b:    value.Ref(value.BigFloatNaN()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat +Inf == +Inf": {
 			a:    value.Float32Inf(),
 			b:    value.Ref(value.BigFloatInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat -Inf == -Inf": {
 			a:    value.Float32NegInf(),
 			b:    value.Ref(value.BigFloatNegInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat +Inf == -Inf": {
 			a:    value.Float32Inf(),
 			b:    value.Ref(value.BigFloatNegInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat -Inf == +Inf": {
 			a:    value.Float32NegInf(),
 			b:    value.Ref(value.BigFloatInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 8.5f32 == +Inf": {
 			a:    value.Float32(8.5),
 			b:    value.Ref(value.BigFloatInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat +Inf == 98.0bf": {
 			a:    value.Float32Inf(),
 			b:    value.Ref(value.NewBigFloat(98)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 	}
 

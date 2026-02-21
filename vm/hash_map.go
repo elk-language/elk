@@ -89,7 +89,7 @@ func initHashMap() {
 					return value.Undefined, err
 				}
 
-				return value.ToElkBool(contains), value.Undefined
+				return value.BoolVal(contains), value.Undefined
 			default:
 				return value.Undefined, value.Ref(value.NewCoerceError(value.PairClass, otherVal.Class()))
 			}
@@ -106,7 +106,7 @@ func initHashMap() {
 				return value.Undefined, err
 			}
 
-			return value.ToElkBool(contains), value.Undefined
+			return value.BoolVal(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -120,7 +120,7 @@ func initHashMap() {
 				return value.Undefined, err
 			}
 
-			return value.ToElkBool(contains), value.Undefined
+			return value.BoolVal(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -134,7 +134,7 @@ func initHashMap() {
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(equal), value.Undefined
+			return value.BoolVal(equal), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -147,7 +147,7 @@ func initHashMap() {
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(equal), value.Undefined
+			return value.BoolVal(equal), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -602,7 +602,7 @@ func HashMapOfValueDelete(vm *Thread, hashMap *HashMapOfValue, key value.Value) 
 
 	hashMap.Table[index] = value.MakePairOfValue(
 		value.Undefined,
-		value.True,
+		value.True.ToValue(),
 	)
 	// decrement only the count of active pairs
 	// leave `OccupiedSlots` with the same value, cause

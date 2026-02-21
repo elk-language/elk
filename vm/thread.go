@@ -51,7 +51,7 @@ func initThread() {
 		c,
 		"==",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.ToElkBool(args[0] == args[1]), value.Undefined
+			return value.BoolVal(args[0] == args[1]), value.Undefined
 		},
 		DefWithParameters(1),
 	)

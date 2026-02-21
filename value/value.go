@@ -32,8 +32,7 @@ func MakeSentinelValue() Value {
 
 const (
 	UNDEFINED_FLAG = iota
-	TRUE_FLAG
-	FALSE_FLAG
+	BOOL_FLAG
 	NIL_FLAG
 	SMALL_INT_FLAG
 	FLOAT_FLAG
@@ -81,10 +80,8 @@ func (v Value) ToInterface() ValueInterface {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue()
-	case FALSE_FLAG:
-		return v.AsFalse()
+	case BOOL_FLAG:
+		return v.AsBool()
 	case NIL_FLAG:
 		return v.AsNil()
 	case UNDEFINED_FLAG:
@@ -140,10 +137,8 @@ func (v Value) Inspect() string {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue().Inspect()
-	case FALSE_FLAG:
-		return v.AsFalse().Inspect()
+	case BOOL_FLAG:
+		return v.AsBool().Inspect()
 	case NIL_FLAG:
 		return v.AsNil().Inspect()
 	case UNDEFINED_FLAG:
@@ -207,10 +202,8 @@ func (v Value) Class() *Class {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue().Class()
-	case FALSE_FLAG:
-		return v.AsFalse().Class()
+	case BOOL_FLAG:
+		return v.AsBool().Class()
 	case NIL_FLAG:
 		return v.AsNil().Class()
 	case UNDEFINED_FLAG:
@@ -266,10 +259,8 @@ func (v Value) DirectClass() *Class {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue().DirectClass()
-	case FALSE_FLAG:
-		return v.AsFalse().DirectClass()
+	case BOOL_FLAG:
+		return v.AsBool().DirectClass()
 	case NIL_FLAG:
 		return v.AsNil().DirectClass()
 	case UNDEFINED_FLAG:
@@ -325,10 +316,8 @@ func (v Value) SingletonClass() *Class {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue().SingletonClass()
-	case FALSE_FLAG:
-		return v.AsFalse().SingletonClass()
+	case BOOL_FLAG:
+		return v.AsBool().SingletonClass()
 	case NIL_FLAG:
 		return v.AsNil().SingletonClass()
 	case UNDEFINED_FLAG:
@@ -384,10 +373,8 @@ func (v Value) InstanceVariables() *InstanceVariables {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue().InstanceVariables()
-	case FALSE_FLAG:
-		return v.AsFalse().InstanceVariables()
+	case BOOL_FLAG:
+		return v.AsBool().InstanceVariables()
 	case NIL_FLAG:
 		return v.AsNil().InstanceVariables()
 	case UNDEFINED_FLAG:
@@ -443,10 +430,8 @@ func (v Value) Error() string {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue().Error()
-	case FALSE_FLAG:
-		return v.AsFalse().Error()
+	case BOOL_FLAG:
+		return v.AsBool().Error()
 	case NIL_FLAG:
 		return v.AsNil().Error()
 	case UNDEFINED_FLAG:
@@ -1039,34 +1024,35 @@ func (v Value) MustInlineSymbol() Symbol {
 	return v.AsInlineSymbol()
 }
 
+func (v Value) IsBool() bool {
+	return v.flag == BOOL_FLAG
+}
+
 func (v Value) IsTrue() bool {
-	return v.flag == TRUE_FLAG
-}
-
-func (v Value) AsTrue() TrueType {
-	return *(*TrueType)(unsafe.Pointer(&v.data))
-}
-
-func (v Value) MustTrue() TrueType {
-	if !v.IsTrue() {
-		panic(fmt.Sprintf("value `%s` is not True", v.Inspect()))
+	if !v.IsBool() {
+		return false
 	}
-	return v.AsTrue()
+
+	return bool(v.AsBool())
 }
 
 func (v Value) IsFalse() bool {
-	return v.flag == FALSE_FLAG
-}
-
-func (v Value) AsFalse() FalseType {
-	return *(*FalseType)(unsafe.Pointer(&v.data))
-}
-
-func (v Value) MustFalse() FalseType {
-	if !v.IsFalse() {
-		panic(fmt.Sprintf("value `%s` is not False", v.Inspect()))
+	if !v.IsBool() {
+		return false
 	}
-	return v.AsFalse()
+
+	return !bool(v.AsBool())
+}
+
+func (v Value) AsBool() Bool {
+	return v.data != 0
+}
+
+func (v Value) MustBool() Bool {
+	if !v.IsBool() {
+		panic(fmt.Sprintf("value `%s` is not Bool", v.Inspect()))
+	}
+	return v.AsBool()
 }
 
 func (v Value) IsNil() bool {
@@ -1170,44 +1156,6 @@ func InspectSlice[T Inspectable](slice []T) string {
 
 	builder.WriteString("]")
 	return builder.String()
-}
-
-// Convert a Go bool value to Elk.
-func ToElkBool(val bool) Value {
-	if val {
-		return True
-	}
-
-	return False
-}
-
-// Converts an Elk Value to an Elk Bool.
-func ToBool(val Value) Value {
-	if val.IsReference() {
-		return True
-	}
-
-	switch val.ValueFlag() {
-	case FALSE_FLAG, NIL_FLAG:
-		return False
-	default:
-		return True
-	}
-}
-
-// Converts an Elk Value to an Elk Bool
-// and negates it.
-func ToNotBool(val Value) Value {
-	if val.IsReference() {
-		return False
-	}
-
-	switch val.ValueFlag() {
-	case FALSE_FLAG, NIL_FLAG:
-		return True
-	default:
-		return False
-	}
 }
 
 // Converts an Elk value strictly to Go int.
@@ -1379,7 +1327,9 @@ func Truthy(val Value) bool {
 		return true
 	}
 	switch val.ValueFlag() {
-	case FALSE_FLAG, NIL_FLAG, UNDEFINED_FLAG:
+	case BOOL_FLAG:
+		return bool(val.AsBool())
+	case NIL_FLAG, UNDEFINED_FLAG:
 		return false
 	default:
 		return true
@@ -1393,7 +1343,9 @@ func Falsy(val Value) bool {
 		return false
 	}
 	switch val.ValueFlag() {
-	case FALSE_FLAG, NIL_FLAG, UNDEFINED_FLAG:
+	case BOOL_FLAG:
+		return !bool(val.AsBool())
+	case NIL_FLAG, UNDEFINED_FLAG:
 		return true
 	default:
 		return false
@@ -1518,11 +1470,8 @@ func Hash(key Value) (result UInt64, err Value) {
 	case NIL_FLAG:
 		k := key.AsNil()
 		return k.Hash(), err
-	case TRUE_FLAG:
-		k := key.AsTrue()
-		return k.Hash(), err
-	case FALSE_FLAG:
-		k := key.AsFalse()
+	case BOOL_FLAG:
+		k := key.AsBool()
 		return k.Hash(), err
 	case FLOAT64_FLAG:
 		k := key.AsInlineFloat64()
@@ -3065,7 +3014,7 @@ func LaxNotEqualVal(left, right Value) Value {
 		return Undefined
 	}
 
-	return ToNotBool(val)
+	return ToNotBool(val).ToValue()
 }
 
 // Check whether left is equal to right.
@@ -3074,7 +3023,7 @@ func LaxNotEqualVal(left, right Value) Value {
 func EqualVal(left, right Value) Value {
 	class := left.Class()
 	if !IsA(right, class) {
-		return False
+		return False.ToValue()
 	}
 
 	if left.IsReference() {
@@ -3232,7 +3181,7 @@ func NotEqualVal(left, right Value) Value {
 		return Undefined
 	}
 
-	return ToNotBool(val)
+	return ToNotBool(val).ToValue()
 }
 
 // Check whether left is strictly equal to right.
@@ -3254,7 +3203,7 @@ func StrictEqualVal(left, right Value) Value {
 		case UInt64:
 			return l.StrictEqualVal(right)
 		default:
-			return ToElkBool(left == right)
+			return BoolVal(left == right)
 		}
 	}
 
@@ -3305,7 +3254,7 @@ func StrictEqualVal(left, right Value) Value {
 		l := left.AsUInt8()
 		return l.StrictEqualVal(right)
 	default:
-		return ToElkBool(left == right)
+		return BoolVal(left == right)
 	}
 }
 
@@ -3386,7 +3335,7 @@ func StrictEqual(left, right Value) bool {
 func StrictNotEqualVal(left, right Value) Value {
 	val := StrictEqual(left, right)
 
-	return ToElkBool(!val)
+	return BoolVal(!val)
 }
 
 // Execute a right bit shift >>.

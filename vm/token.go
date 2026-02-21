@@ -46,7 +46,7 @@ func initToken() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*token.Token)(args[0].Pointer())
 			other := (*token.Token)(args[1].Pointer())
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)

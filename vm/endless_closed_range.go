@@ -27,13 +27,13 @@ func initEndlessClosedRange() {
 			self := args[0].MustReference().(*value.EndlessClosedRange)
 			other, ok := args[1].SafeAsReference().(*value.EndlessClosedRange)
 			if !ok {
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}
 			equal, err := EndlessClosedRangeEqual(vm, self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(equal), value.Undefined
+			return value.BoolVal(equal), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -47,13 +47,13 @@ func initEndlessClosedRange() {
 			self := args[0].MustReference().(*value.EndlessClosedRange)
 			other := args[1]
 			if !value.IsA(other, self.Start.Class()) {
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}
 			contains, err := EndlessClosedRangeContains(vm, self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(contains), value.Undefined
+			return value.BoolVal(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -67,7 +67,7 @@ func initEndlessClosedRange() {
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(contains), value.Undefined
+			return value.BoolVal(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -75,28 +75,28 @@ func initEndlessClosedRange() {
 		c,
 		"is_left_closed",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.True, value.Undefined
+			return value.True.ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_left_open",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_closed",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_open",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.True, value.Undefined
+			return value.True.ToValue(), value.Undefined
 		},
 	)
 	Def(

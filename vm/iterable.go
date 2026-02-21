@@ -27,11 +27,11 @@ func initIterableFiniteBase() {
 				}
 
 				if value.Truthy(eq) {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
 			}
 
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -51,7 +51,7 @@ func initIterableFiniteBase() {
 				break
 			}
 
-			return value.ToElkBool(!anyElements), value.Undefined
+			return value.BoolVal(!anyElements), value.Undefined
 		},
 	)
 
@@ -293,11 +293,11 @@ func initIterableFiniteBase() {
 				}
 
 				if value.Truthy(ok) {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
 			}
 
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -320,11 +320,11 @@ func initIterableFiniteBase() {
 				}
 
 				if value.Falsy(ok) {
-					return value.False, value.Undefined
+					return value.False.ToValue(), value.Undefined
 				}
 			}
 
-			return value.True, value.Undefined
+			return value.True.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)

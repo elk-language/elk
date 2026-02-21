@@ -88,7 +88,7 @@ func initClassDeclarationNode() {
 		"is_abstract",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
-			result := value.ToElkBool(self.Abstract)
+			result := value.BoolVal(self.Abstract)
 			return result, value.Undefined
 
 		},
@@ -99,7 +99,7 @@ func initClassDeclarationNode() {
 		"is_sealed",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
-			result := value.ToElkBool(self.Sealed)
+			result := value.BoolVal(self.Sealed)
 			return result, value.Undefined
 
 		},
@@ -110,7 +110,7 @@ func initClassDeclarationNode() {
 		"is_primitive",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
-			result := value.ToElkBool(self.Primitive)
+			result := value.BoolVal(self.Primitive)
 			return result, value.Undefined
 
 		},
@@ -121,7 +121,7 @@ func initClassDeclarationNode() {
 		"is_no_init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
-			result := value.ToElkBool(self.NoInit)
+			result := value.BoolVal(self.NoInit)
 			return result, value.Undefined
 
 		},
@@ -211,7 +211,7 @@ func initClassDeclarationNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

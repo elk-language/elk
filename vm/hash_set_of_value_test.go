@@ -580,9 +580,9 @@ func TestHashSetContains(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
@@ -727,9 +727,9 @@ func TestHashSetSetCapacity(t *testing.T) {
 				"==",
 				func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 					if _, ok := args[1].MustReference().(*value.Object); ok {
-						return value.True, value.Undefined
+						return value.True.ToValue(), value.Undefined
 					}
-					return value.False, value.Undefined
+					return value.False.ToValue(), value.Undefined
 				},
 				vm.DefWithParameters(1),
 			)
@@ -1024,9 +1024,9 @@ func TestHashSetAdd(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
@@ -1061,9 +1061,9 @@ func TestHashSetAdd(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
@@ -1415,9 +1415,9 @@ func TestHashSetDelete(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()

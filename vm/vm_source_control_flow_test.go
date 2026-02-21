@@ -2234,7 +2234,7 @@ func TestVMSource_UnlessExpressions(t *testing.T) {
 			source: `
 				a unless a := false
 			`,
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 		},
 	}
 
@@ -2263,7 +2263,7 @@ func TestVMSource_LogicalOrOperator(t *testing.T) {
 		},
 		"return right operand (false) if left is nil": {
 			source:       "nil || false",
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(2, 1, 3)), "this condition will always have the same result since type `nil` is falsy"),
 			},
@@ -2321,7 +2321,7 @@ func TestVMSource_LogicalAndOperator(t *testing.T) {
 		},
 		"return left operand if left is false": {
 			source:       "false && 'foo'",
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(4, 1, 5)), "this condition will always have the same result since type `false` is falsy"),
 				diagnostic.NewWarning(L(P(9, 1, 10), P(13, 1, 14)), "unreachable code"),
@@ -2336,7 +2336,7 @@ func TestVMSource_LogicalAndOperator(t *testing.T) {
 		},
 		"return right operand (false) if left is truthy": {
 			source:       "3 && false",
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(0, 1, 1)), "this condition will always have the same result since type `3` is truthy"),
 			},
@@ -2385,14 +2385,14 @@ func TestVMSource_NilCoalescingOperator(t *testing.T) {
 		},
 		"return right operand (false) if left is nil": {
 			source:       "nil ?? false",
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(2, 1, 3)), "this condition will always have the same result"),
 			},
 		},
 		"return left operand if left is false": {
 			source:       "false ?? 'foo'",
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(4, 1, 5)), "this condition will always have the same result since type `false` can never be nil"),
 				diagnostic.NewWarning(L(P(9, 1, 10), P(13, 1, 14)), "unreachable code"),
@@ -2416,7 +2416,7 @@ func TestVMSource_NilCoalescingOperator(t *testing.T) {
 		},
 		"return middle nested operand if left is nil": {
 			source:       "nil ?? false ?? 5",
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(0, 1, 1), P(2, 1, 3)), "this condition will always have the same result"),
 				diagnostic.NewWarning(L(P(0, 1, 1), P(11, 1, 12)), "this condition will always have the same result since type `false` can never be nil"),

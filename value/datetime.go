@@ -1634,7 +1634,7 @@ func (t *DateTime) GreaterThan(other Value) (result bool, err Value) {
 
 func (t *DateTime) GreaterThanVal(other Value) (Value, Value) {
 	result, err := t.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether t is greater than or equal to other and return an error
@@ -1661,7 +1661,7 @@ func (t *DateTime) GreaterThanEqual(other Value) (result bool, err Value) {
 
 func (t *DateTime) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := t.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether t is less than other and return an error
@@ -1688,7 +1688,7 @@ func (t *DateTime) LessThan(other Value) (result bool, err Value) {
 
 func (t *DateTime) LessThanVal(other Value) (Value, Value) {
 	result, err := t.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether t is less than or equal to other and return an error
@@ -1715,7 +1715,7 @@ func (t *DateTime) LessThanEqual(other Value) (result bool, err Value) {
 
 func (t *DateTime) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := t.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (t *DateTime) LaxEqual(other Value) bool {

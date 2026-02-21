@@ -369,66 +369,66 @@ func StrictFloatLaxEqual[T StrictFloat](left T, right Value) Value {
 	if right.IsReference() {
 		switch r := right.AsReference().(type) {
 		case *BigInt:
-			return ToElkBool(T(left) == T(r.ToFloat()))
+			return BoolVal(T(left) == T(r.ToFloat()))
 		case *BigFloat:
 			if r.IsNaN() {
-				return False
+				return False.ToValue()
 			}
 			iBigFloat := (&big.Float{}).SetFloat64(float64(left))
-			return ToElkBool(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
+			return BoolVal(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
 		case Int64:
-			return ToElkBool(T(left) == T(r))
+			return BoolVal(T(left) == T(r))
 		case UInt64:
-			return ToElkBool(T(left) == T(r))
+			return BoolVal(T(left) == T(r))
 		case Float64:
-			return ToElkBool(float64(left) == float64(r))
+			return BoolVal(float64(left) == float64(r))
 		default:
-			return False
+			return False.ToValue()
 		}
 	}
 
 	switch right.ValueFlag() {
 	case SMALL_INT_FLAG:
 		r := right.AsSmallInt()
-		return ToElkBool(T(left) == T(r))
+		return BoolVal(T(left) == T(r))
 	case FLOAT_FLAG:
 		r := right.AsFloat()
-		return ToElkBool(float64(left) == float64(r))
+		return BoolVal(float64(left) == float64(r))
 	case INT64_FLAG:
 		r := right.AsInlineInt64()
-		return ToElkBool(T(left) == T(r))
+		return BoolVal(T(left) == T(r))
 	case INT32_FLAG:
 		r := right.AsInt32()
-		return ToElkBool(T(left) == T(r))
+		return BoolVal(T(left) == T(r))
 	case INT16_FLAG:
 		r := right.AsInt16()
-		return ToElkBool(T(left) == T(r))
+		return BoolVal(T(left) == T(r))
 	case INT8_FLAG:
 		r := right.AsInt8()
-		return ToElkBool(T(left) == T(r))
+		return BoolVal(T(left) == T(r))
 	case UINT_FLAG:
 		r := right.AsUInt()
-		return ToElkBool(T(left) == T(r))
+		return BoolVal(T(left) == T(r))
 	case UINT64_FLAG:
 		r := right.AsInlineUInt64()
-		return ToElkBool(T(left) == T(r))
+		return BoolVal(T(left) == T(r))
 	case UINT32_FLAG:
 		r := right.AsUInt32()
-		return ToElkBool(T(left) == T(r))
+		return BoolVal(T(left) == T(r))
 	case UINT16_FLAG:
 		r := right.AsUInt16()
-		return ToElkBool(T(left) == T(r))
+		return BoolVal(T(left) == T(r))
 	case UINT8_FLAG:
 		r := right.AsUInt8()
-		return ToElkBool(T(left) == T(r))
+		return BoolVal(T(left) == T(r))
 	case FLOAT64_FLAG:
 		r := right.AsInlineFloat64()
-		return ToElkBool(float64(left) == float64(r))
+		return BoolVal(float64(left) == float64(r))
 	case FLOAT32_FLAG:
 		r := right.AsFloat32()
-		return ToElkBool(T(left) == T(r))
+		return BoolVal(T(left) == T(r))
 	default:
-		return False
+		return False.ToValue()
 	}
 }
 
@@ -438,75 +438,75 @@ func StrictSignedIntLaxEqual[T StrictSignedInt](left T, right Value) Value {
 		switch r := right.AsReference().(type) {
 		case *BigInt:
 			iBigInt := big.NewInt(int64(left))
-			return ToElkBool(iBigInt.Cmp(r.ToGoBigInt()) == 0)
+			return BoolVal(iBigInt.Cmp(r.ToGoBigInt()) == 0)
 		case *BigFloat:
 			if r.IsNaN() {
-				return False
+				return False.ToValue()
 			}
 			iBigFloat := (&big.Float{}).SetInt64(int64(left))
-			return ToElkBool(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
+			return BoolVal(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
 		case Int64:
-			return ToElkBool(int64(left) == int64(r))
+			return BoolVal(int64(left) == int64(r))
 		case UInt64:
 			if r > math.MaxInt64 {
-				return False
+				return False.ToValue()
 			}
-			return ToElkBool(int64(left) == int64(r))
+			return BoolVal(int64(left) == int64(r))
 		case Float64:
-			return ToElkBool(float64(left) == float64(r))
+			return BoolVal(float64(left) == float64(r))
 		default:
-			return False
+			return False.ToValue()
 		}
 	}
 
 	switch right.ValueFlag() {
 	case SMALL_INT_FLAG:
 		r := right.AsSmallInt()
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case FLOAT_FLAG:
 		r := right.AsFloat()
-		return ToElkBool(float64(left) == float64(r))
+		return BoolVal(float64(left) == float64(r))
 	case INT64_FLAG:
 		r := right.AsInlineInt64()
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case INT32_FLAG:
 		r := right.AsInt32()
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case INT16_FLAG:
 		r := right.AsInt16()
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case INT8_FLAG:
 		r := right.AsInt8()
-		return ToElkBool(left == T(r))
+		return BoolVal(left == T(r))
 	case UINT_FLAG:
 		r := right.AsUInt()
 		if r > math.MaxInt64 {
-			return False
+			return False.ToValue()
 		}
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case UINT64_FLAG:
 		r := right.AsInlineUInt64()
 		if r > math.MaxInt64 {
-			return False
+			return False.ToValue()
 		}
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case UINT32_FLAG:
 		r := right.AsUInt32()
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case UINT16_FLAG:
 		r := right.AsUInt16()
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case UINT8_FLAG:
 		r := right.AsUInt8()
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case FLOAT64_FLAG:
 		r := right.AsInlineFloat64()
-		return ToElkBool(float64(left) == float64(r))
+		return BoolVal(float64(left) == float64(r))
 	case FLOAT32_FLAG:
 		r := right.AsFloat32()
-		return ToElkBool(float64(left) == float64(r))
+		return BoolVal(float64(left) == float64(r))
 	default:
-		return False
+		return False.ToValue()
 	}
 }
 
@@ -516,24 +516,24 @@ func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) Value {
 		switch r := right.AsReference().(type) {
 		case *BigInt:
 			iBigInt := (&big.Int{}).SetUint64(uint64(left))
-			return ToElkBool(iBigInt.Cmp(r.ToGoBigInt()) == 0)
+			return BoolVal(iBigInt.Cmp(r.ToGoBigInt()) == 0)
 		case *BigFloat:
 			if r.IsNaN() {
-				return False
+				return False.ToValue()
 			}
 			iBigFloat := (&big.Float{}).SetUint64(uint64(left))
-			return ToElkBool(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
+			return BoolVal(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
 		case Int64:
 			if uint64(left) > math.MaxInt64 {
-				return False
+				return False.ToValue()
 			}
-			return ToElkBool(int64(left) == int64(r))
+			return BoolVal(int64(left) == int64(r))
 		case UInt64:
-			return ToElkBool(uint64(left) == uint64(r))
+			return BoolVal(uint64(left) == uint64(r))
 		case Float64:
-			return ToElkBool(float64(left) == float64(r))
+			return BoolVal(float64(left) == float64(r))
 		default:
-			return False
+			return False.ToValue()
 		}
 	}
 
@@ -541,59 +541,59 @@ func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) Value {
 	case SMALL_INT_FLAG:
 		r := right.AsSmallInt()
 		if uint64(left) > math.MaxInt64 {
-			return False
+			return False.ToValue()
 		}
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case FLOAT_FLAG:
 		r := right.AsFloat()
-		return ToElkBool(float64(left) == float64(r))
+		return BoolVal(float64(left) == float64(r))
 	case INT64_FLAG:
 		r := right.AsInlineInt64()
 		if uint64(left) > math.MaxInt64 {
-			return False
+			return False.ToValue()
 		}
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case INT32_FLAG:
 		r := right.AsInt32()
 		if uint64(left) > math.MaxInt64 {
-			return False
+			return False.ToValue()
 		}
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case INT16_FLAG:
 		r := right.AsInt16()
 		if uint64(left) > math.MaxInt64 {
-			return False
+			return False.ToValue()
 		}
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case INT8_FLAG:
 		r := right.AsInt8()
 		if uint64(left) > math.MaxInt64 {
-			return False
+			return False.ToValue()
 		}
-		return ToElkBool(int64(left) == int64(r))
+		return BoolVal(int64(left) == int64(r))
 	case UINT_FLAG:
 		r := right.AsUInt()
-		return ToElkBool(uint64(left) == uint64(r))
+		return BoolVal(uint64(left) == uint64(r))
 	case UINT64_FLAG:
 		r := right.AsInlineUInt64()
-		return ToElkBool(uint64(left) == uint64(r))
+		return BoolVal(uint64(left) == uint64(r))
 	case UINT32_FLAG:
 		r := right.AsUInt32()
-		return ToElkBool(uint64(left) == uint64(r))
+		return BoolVal(uint64(left) == uint64(r))
 	case UINT16_FLAG:
 		r := right.AsUInt16()
-		return ToElkBool(uint64(left) == uint64(r))
+		return BoolVal(uint64(left) == uint64(r))
 	case UINT8_FLAG:
 		r := right.AsUInt8()
-		return ToElkBool(left == T(r))
+		return BoolVal(left == T(r))
 	case FLOAT64_FLAG:
 		r := right.AsInlineFloat64()
-		return ToElkBool(float64(left) == float64(r))
+		return BoolVal(float64(left) == float64(r))
 	case FLOAT32_FLAG:
 		r := right.AsFloat32()
-		return ToElkBool(float64(left) == float64(r))
+		return BoolVal(float64(left) == float64(r))
 	default:
-		return False
+		return False.ToValue()
 	}
 }
 

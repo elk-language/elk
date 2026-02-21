@@ -63,7 +63,7 @@ func initCallNode() {
 		"nil_safe",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallNode)
-			result := value.ToElkBool(self.NilSafe)
+			result := value.BoolVal(self.NilSafe)
 			return result, value.Undefined
 
 		},
@@ -119,7 +119,7 @@ func initCallNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

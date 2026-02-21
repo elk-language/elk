@@ -36,7 +36,7 @@ func initValue() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			return value.ToElkBool(self == other), value.Undefined
+			return value.BoolVal(self == other), value.Undefined
 		},
 		DefWithParameters(1),
 	)

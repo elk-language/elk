@@ -15,13 +15,13 @@ func initBeginlessOpenRange() {
 			self := args[0].MustReference().(*value.BeginlessOpenRange)
 			other, ok := args[1].SafeAsReference().(*value.BeginlessOpenRange)
 			if !ok {
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}
 			equal, err := BeginlessOpenRangeEqual(vm, self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(equal), value.Undefined
+			return value.BoolVal(equal), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -35,13 +35,13 @@ func initBeginlessOpenRange() {
 			self := args[0].MustReference().(*value.BeginlessOpenRange)
 			other := args[1]
 			if !value.IsA(other, self.End.Class()) {
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}
 			contains, err := BeginlessOpenRangeContains(vm, self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(contains), value.Undefined
+			return value.BoolVal(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -55,7 +55,7 @@ func initBeginlessOpenRange() {
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(contains), value.Undefined
+			return value.BoolVal(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -63,28 +63,28 @@ func initBeginlessOpenRange() {
 		c,
 		"is_left_closed",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_left_open",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.True, value.Undefined
+			return value.True.ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_closed",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_open",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.True, value.Undefined
+			return value.True.ToValue(), value.Undefined
 		},
 	)
 	Def(

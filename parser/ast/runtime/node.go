@@ -36,7 +36,7 @@ func initNode() {
 						return value.Undefined, err
 					}
 					if value.Falsy(ok) {
-						return value.False, value.Undefined
+						return value.False.ToValue(), value.Undefined
 					}
 				}
 			default:
@@ -46,12 +46,12 @@ func initNode() {
 						return value.Undefined, err
 					}
 					if value.Falsy(ok) {
-						return value.False, value.Undefined
+						return value.False.ToValue(), value.Undefined
 					}
 				}
 			}
 
-			return value.True, value.Undefined
+			return value.True.ToValue(), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

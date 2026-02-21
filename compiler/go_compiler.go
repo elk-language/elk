@@ -6983,18 +6983,20 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 	}
 
 	switch val.ValueFlag() {
-	case value.TRUE_FLAG:
-		return newInlineGoValue(
-			"true",
-			types.Bool{},
-			"bool",
-		)
-	case value.FALSE_FLAG:
-		return newInlineGoValue(
-			"false",
-			types.Bool{},
-			"bool",
-		)
+	case value.BOOL_FLAG:
+		if val.AsBool() {
+			return newInlineGoValue(
+				"true",
+				types.Bool{},
+				"bool",
+			)
+		} else {
+			return newInlineGoValue(
+				"false",
+				types.Bool{},
+				"bool",
+			)
+		}
 	case value.NIL_FLAG:
 		return nilGoValue
 	case value.SMALL_INT_FLAG:
@@ -7124,7 +7126,7 @@ func (c *GoCompiler) convertToValue(v *goValue) string {
 		"*value.Mixin", "*value.Interface", "*value.Timezone":
 		return fmt.Sprintf("value.Ref(%s)", v.value())
 	case "bool":
-		return fmt.Sprintf("value.ToElkBool(%s)", v.value())
+		return fmt.Sprintf("value.ToBoolVal(%s)", v.value())
 	}
 
 	if c.checker.IsSubtype(v.elkType, c.checker.StdInt()) {

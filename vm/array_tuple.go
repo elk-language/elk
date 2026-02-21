@@ -83,15 +83,15 @@ func initArrayTuple() {
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				return value.ToElkBool(equal), value.Undefined
+				return value.BoolVal(equal), value.Undefined
 			case value.ArrayTuple:
 				equal, err := ArrayTupleEqual(vm, self, other)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				return value.ToElkBool(equal), value.Undefined
+				return value.BoolVal(equal), value.Undefined
 			default:
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}
 		},
 		DefWithParameters(1),
@@ -107,9 +107,9 @@ func initArrayTuple() {
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				return value.ToElkBool(equal), value.Undefined
+				return value.BoolVal(equal), value.Undefined
 			default:
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}
 		},
 		DefWithParameters(1),

@@ -58,7 +58,7 @@ func initYieldExpressionNode() {
 		"forward",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.YieldExpressionNode)
-			result := value.ToElkBool(self.Forward)
+			result := value.BoolVal(self.Forward)
 			return result, value.Undefined
 
 		},
@@ -80,7 +80,7 @@ func initYieldExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.YieldExpressionNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

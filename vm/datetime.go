@@ -665,7 +665,7 @@ func initDateTime() {
 		"is_utc",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkBool(self.IsUTC()), value.Undefined
+			return value.BoolVal(self.IsUTC()), value.Undefined
 		},
 	)
 	Def(
@@ -673,7 +673,7 @@ func initDateTime() {
 		"is_local",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkBool(self.IsLocal()), value.Undefined
+			return value.BoolVal(self.IsLocal()), value.Undefined
 		},
 	)
 
@@ -682,7 +682,7 @@ func initDateTime() {
 		"is_monday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkBool(self.IsMonday()), value.Undefined
+			return value.BoolVal(self.IsMonday()), value.Undefined
 		},
 	)
 	Def(
@@ -690,7 +690,7 @@ func initDateTime() {
 		"is_tuesday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkBool(self.IsTuesday()), value.Undefined
+			return value.BoolVal(self.IsTuesday()), value.Undefined
 		},
 	)
 	Def(
@@ -698,7 +698,7 @@ func initDateTime() {
 		"is_wednesday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkBool(self.IsWednesday()), value.Undefined
+			return value.BoolVal(self.IsWednesday()), value.Undefined
 		},
 	)
 	Def(
@@ -706,7 +706,7 @@ func initDateTime() {
 		"is_thursday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkBool(self.IsThursday()), value.Undefined
+			return value.BoolVal(self.IsThursday()), value.Undefined
 		},
 	)
 	Def(
@@ -714,7 +714,7 @@ func initDateTime() {
 		"is_friday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkBool(self.IsFriday()), value.Undefined
+			return value.BoolVal(self.IsFriday()), value.Undefined
 		},
 	)
 	Def(
@@ -722,7 +722,7 @@ func initDateTime() {
 		"is_saturday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkBool(self.IsSaturday()), value.Undefined
+			return value.BoolVal(self.IsSaturday()), value.Undefined
 		},
 	)
 	Def(
@@ -730,7 +730,7 @@ func initDateTime() {
 		"is_sunday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkBool(self.IsSunday()), value.Undefined
+			return value.BoolVal(self.IsSunday()), value.Undefined
 		},
 	)
 
@@ -739,7 +739,7 @@ func initDateTime() {
 		"is_am",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkBool(self.IsAM()), value.Undefined
+			return value.BoolVal(self.IsAM()), value.Undefined
 		},
 	)
 	Def(
@@ -747,7 +747,7 @@ func initDateTime() {
 		"is_pm",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
-			return value.ToElkBool(self.IsPM()), value.Undefined
+			return value.BoolVal(self.IsPM()), value.Undefined
 		},
 	)
 	Def(
@@ -845,7 +845,7 @@ func initDateTime() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.DateTime)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)

@@ -87,7 +87,7 @@ func initClosureLiteralNode() {
 		"lambda",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
-			return value.ToElkBool(self.Lambda), value.Undefined
+			return value.BoolVal(self.Lambda), value.Undefined
 		},
 	)
 
@@ -151,7 +151,7 @@ func initClosureLiteralNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

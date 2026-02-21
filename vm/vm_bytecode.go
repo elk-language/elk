@@ -751,11 +751,11 @@ func (vm *Thread) run() {
 		case bytecode.BITWISE_NOT:
 			vm.throwIfErr(vm.opBitwiseNot())
 		case bytecode.NOT:
-			vm.replace(value.ToNotBool(vm.peek()))
+			vm.replace(value.ToNotBool(vm.peek()).ToValue())
 		case bytecode.TRUE:
-			vm.push(value.True)
+			vm.push(value.True.ToValue())
 		case bytecode.FALSE:
-			vm.push(value.False)
+			vm.push(value.False.ToValue())
 		case bytecode.NIL:
 			vm.push(value.Nil)
 		case bytecode.POP:
@@ -3221,7 +3221,7 @@ func (vm *Thread) opIsA() (err value.Value) {
 
 	switch class := classVal.SafeAsReference().(type) {
 	case *value.Class:
-		vm.replace(value.ToElkBool(value.IsA(val, class)))
+		vm.replace(value.BoolVal(value.IsA(val, class)))
 	default:
 		vm.pop()
 		return value.Ref(value.NewIsNotClassOrMixinError(class.Inspect()))
@@ -3240,7 +3240,7 @@ func (vm *Thread) opInstanceOf() (err value.Value) {
 		return value.Ref(value.NewIsNotClassError(classVal.Inspect()))
 	}
 
-	vm.replace(value.ToElkBool(value.InstanceOf(val, class)))
+	vm.replace(value.BoolVal(value.InstanceOf(val, class)))
 	return value.Undefined
 }
 
@@ -3280,7 +3280,7 @@ func (vm *Thread) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrF
 	if !er.IsUndefined() {
 		return er
 	}
-	vm.replace(value.ToNotBool(vm.peek()))
+	vm.replace(value.ToNotBool(vm.peek()).ToValue())
 
 	return value.Undefined
 }
@@ -3372,7 +3372,7 @@ func (vm *Thread) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodN
 	class := self.DirectClass()
 	method := class.LookupMethod(methodName)
 	if method == nil {
-		vm.push(value.ToElkBool(left == right))
+		vm.push(value.BoolVal(left == right))
 		return value.Undefined
 	}
 
@@ -3394,7 +3394,7 @@ func (vm *Thread) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, 
 	class := self.DirectClass()
 	method := class.LookupMethod(methodName)
 	if method == nil {
-		vm.push(value.ToElkBool(left != right))
+		vm.push(value.BoolVal(left != right))
 		return value.Undefined
 	}
 
@@ -3403,7 +3403,7 @@ func (vm *Thread) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, 
 		return err
 	}
 
-	vm.replace(value.ToNotBool(vm.peek()))
+	vm.replace(value.ToNotBool(vm.peek()).ToValue())
 	return value.Undefined
 }
 
@@ -3836,7 +3836,7 @@ func (vm *Thread) opNotEqualInt() {
 		leftBig := left.AsReference().(*value.BigInt)
 		result = leftBig.Equal(right)
 	}
-	vm.replace(value.ToElkBool(!result))
+	vm.replace(value.BoolVal(!result))
 }
 
 func (vm *Thread) opNotEqualFloat() {
@@ -3846,7 +3846,7 @@ func (vm *Thread) opNotEqualFloat() {
 	var result bool
 	l := left.AsFloat()
 	result = l.Equal(right)
-	vm.replace(value.ToElkBool(!result))
+	vm.replace(value.BoolVal(!result))
 }
 
 // Multiply two operands together and push the result to the stack.

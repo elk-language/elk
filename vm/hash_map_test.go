@@ -18,7 +18,7 @@ func TestHashMapContainsValue(t *testing.T) {
 	}{
 		"empty map": {
 			h:        &vm.HashMapOfValue{},
-			val:      value.True,
+			val:      value.True.ToValue(),
 			contains: false,
 		},
 		"contains a non-duplicated value": {
@@ -434,11 +434,11 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
-			result, err := vm.HashMapOfValueContains(nil, hmap, value.NewPairOfValue(value.Ref(value.String("bar")), value.True))
+			result, err := vm.HashMapOfValueContains(nil, hmap, value.NewPairOfValue(value.Ref(value.String("bar")), value.True.ToValue()))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -456,12 +456,12 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			vm.HashMapOfValueDelete(nil, hmap, value.ToSymbol("foo").ToValue())
 
-			result, err := vm.HashMapOfValueContains(nil, hmap, value.NewPairOfValue(value.Ref(value.String("bar")), value.False))
+			result, err := vm.HashMapOfValueContains(nil, hmap, value.NewPairOfValue(value.Ref(value.String("bar")), value.False.ToValue()))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -479,7 +479,7 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -502,7 +502,7 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -524,7 +524,7 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -562,7 +562,7 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			vm.HashMapOfValueDelete(nil, hmap, value.ToSymbol("foo").ToValue())
@@ -585,7 +585,7 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -607,11 +607,11 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
-			result, err := vm.HashMapOfValueContains(nil, hmap, value.NewPairOfValue(value.Ref(value.NewError(value.ArgumentErrorClass, "foo")), value.True))
+			result, err := vm.HashMapOfValueContains(nil, hmap, value.NewPairOfValue(value.Ref(value.NewError(value.ArgumentErrorClass, "foo")), value.True.ToValue()))
 			if result != false {
 				t.Fatalf("result should be false, got: %#v", result)
 			}
@@ -640,7 +640,7 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -662,11 +662,11 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
-			result, err := vm.HashMapOfValueContains(vm.New(), hmap, value.NewPairOfValue(value.Ref(value.String("bar")), value.False))
+			result, err := vm.HashMapOfValueContains(vm.New(), hmap, value.NewPairOfValue(value.Ref(value.String("bar")), value.False.ToValue()))
 			if result != false {
 				t.Logf("result: %#v, err: %#v", result, err)
 				t.Fatalf("result should be false, got: %#v", result)
@@ -685,7 +685,7 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -707,7 +707,7 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -729,7 +729,7 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -756,7 +756,7 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -776,9 +776,9 @@ func TestHashMapContains(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
@@ -791,7 +791,7 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -811,9 +811,9 @@ func TestHashMapContains(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
@@ -826,7 +826,7 @@ func TestHashMapContains(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -874,7 +874,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -896,7 +896,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			vm.HashMapOfValueDelete(nil, hmap, value.ToSymbol("foo").ToValue())
@@ -919,7 +919,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -942,7 +942,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -980,7 +980,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			vm.HashMapOfValueDelete(nil, hmap, value.ToSymbol("foo").ToValue())
@@ -1003,7 +1003,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1025,7 +1025,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1058,7 +1058,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1080,7 +1080,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1103,7 +1103,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1125,7 +1125,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1147,7 +1147,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1174,7 +1174,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1194,9 +1194,9 @@ func TestHashMapContainsKey(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
@@ -1209,7 +1209,7 @@ func TestHashMapContainsKey(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1251,7 +1251,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1273,7 +1273,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			vm.HashMapOfValueDelete(nil, hmap, value.ToSymbol("foo").ToValue())
@@ -1296,7 +1296,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1319,7 +1319,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1366,7 +1366,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			vm.HashMapOfValueDelete(nil, hmap, value.ToSymbol("foo").ToValue())
@@ -1389,7 +1389,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1411,7 +1411,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1444,7 +1444,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1466,7 +1466,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1489,7 +1489,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1511,7 +1511,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1533,7 +1533,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1560,7 +1560,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1580,9 +1580,9 @@ func TestHashMapGet(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
@@ -1595,7 +1595,7 @@ func TestHashMapGet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1735,9 +1735,9 @@ func TestHashMapSetCapacity(t *testing.T) {
 				"==",
 				func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 					if _, ok := args[1].MustReference().(*value.Object); ok {
-						return value.True, value.Undefined
+						return value.True.ToValue(), value.Undefined
 					}
-					return value.False, value.Undefined
+					return value.False.ToValue(), value.Undefined
 				},
 				vm.DefWithParameters(1),
 			)
@@ -1802,7 +1802,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -1814,7 +1814,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1836,7 +1836,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -1848,7 +1848,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -1870,7 +1870,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -1882,7 +1882,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 				value.MakePairOfValue(
 					value.Ref(value.String("bar")),
@@ -1908,7 +1908,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -1920,15 +1920,15 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.Ref(value.String("bar")),
-					value.False,
+					value.False.ToValue(),
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
-			err := vm.HashMapOfValueSet(nil, hmap, value.Ref(value.String("bar")), value.False)
+			err := vm.HashMapOfValueSet(nil, hmap, value.Ref(value.String("bar")), value.False.ToValue())
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %#v", err)
 			}
@@ -1946,11 +1946,11 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
-			err := vm.HashMapOfValueSet(nil, hmap, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")), value.True)
+			err := vm.HashMapOfValueSet(nil, hmap, value.Ref(value.NewError(value.ArgumentErrorClass, "foo")), value.True.ToValue())
 			if !err.IsNil() {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
@@ -1984,7 +1984,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -1996,7 +1996,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -2018,7 +2018,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -2030,7 +2030,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -2052,7 +2052,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -2060,7 +2060,7 @@ func TestHashMapSet(t *testing.T) {
 				4,
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 				value.MakePairOfValue(
 					value.Ref(value.String("foo")),
@@ -2068,11 +2068,11 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.Ref(value.String("bar")),
-					value.False,
+					value.False.ToValue(),
 				),
 			)
 
-			err := vm.HashMapOfValueSet(vm.New(), hmap, value.Ref(value.String("bar")), value.False)
+			err := vm.HashMapOfValueSet(vm.New(), hmap, value.Ref(value.String("bar")), value.False.ToValue())
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %#v", err)
 			}
@@ -2090,7 +2090,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -2106,7 +2106,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -2128,7 +2128,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -2139,11 +2139,11 @@ func TestHashMapSet(t *testing.T) {
 				8,
 				value.MakePairOfValue(
 					value.Ref(key),
-					value.True,
+					value.True.ToValue(),
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 				value.MakePairOfValue(
 					value.Ref(value.String("foo")),
@@ -2151,7 +2151,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 			)
 
-			err := vm.HashMapOfValueSet(vm.New(), hmap, value.Ref(key), value.True)
+			err := vm.HashMapOfValueSet(vm.New(), hmap, value.Ref(key), value.True.ToValue())
 			if !err.IsUndefined() {
 				t.Fatalf("error should be undefined, got: %#v", err)
 			}
@@ -2167,9 +2167,9 @@ func TestHashMapSet(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
@@ -2186,7 +2186,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -2198,7 +2198,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 				value.MakePairOfValue(
 					value.Ref(value.String("foo")),
@@ -2222,9 +2222,9 @@ func TestHashMapSet(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
@@ -2237,7 +2237,7 @@ func TestHashMapSet(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -2245,7 +2245,7 @@ func TestHashMapSet(t *testing.T) {
 				8,
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 				value.MakePairOfValue(
 					value.Ref(value.NewObject(value.ObjectWithClass(testClass))),
@@ -2365,7 +2365,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -2377,7 +2377,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -2402,7 +2402,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -2414,7 +2414,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -2439,7 +2439,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -2451,7 +2451,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -2489,7 +2489,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -2501,7 +2501,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -2527,7 +2527,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -2539,7 +2539,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -2633,7 +2633,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -2645,7 +2645,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -2676,7 +2676,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 			expected := vm.MustNewHashMapOfValueWithCapacityAndElements(
@@ -2688,7 +2688,7 @@ func TestHashMapDelete(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.True,
+					value.True.ToValue(),
 				),
 			)
 
@@ -2711,9 +2711,9 @@ func TestHashMapDelete(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}, vm.DefWithParameters(1))
 
 			v := vm.New()
