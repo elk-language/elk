@@ -123,6 +123,13 @@ func (i *BigInt) ToFloat32() Float32 {
 	return Float32(i.ToFloat())
 }
 
+func (i *BigInt) Normalize() Value {
+	if i.IsSmallInt() {
+		return i.ToSmallInt().ToValue()
+	}
+	return i.ToValue()
+}
+
 // Negate the number and return the result.
 func (i *BigInt) Negate() *BigInt {
 	return ToElkBigInt((&big.Int{}).Neg(i.ToGoBigInt()))

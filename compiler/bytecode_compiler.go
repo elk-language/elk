@@ -1830,7 +1830,7 @@ func (c *BytecodeCompiler) compileLoopExpressionNode(label string, body []ast.St
 func (c *BytecodeCompiler) compileWhileExpressionNode(label string, node *ast.WhileExpressionNode) {
 	location := node.Location()
 
-	if result := resolve(node.Condition); !result.IsUndefined() {
+	if result := c.resolve(node.Condition); !result.IsUndefined() {
 		if value.Falsy(result) {
 			// the loop won't run at all
 			// it can be optimised into a simple NIL operation
@@ -1885,7 +1885,7 @@ func (c *BytecodeCompiler) modifierWhileExpression(label string, node *ast.Modif
 
 	var conditionIsStaticFalsy bool
 
-	if result := resolve(condition); !result.IsUndefined() {
+	if result := c.resolve(condition); !result.IsUndefined() {
 		if value.Truthy(result) {
 			// the loop is endless
 			c.compileLoopExpressionNode(label, ast.ExpressionToStatements(body), location)
@@ -1947,7 +1947,7 @@ func (c *BytecodeCompiler) modifierUntilExpression(label string, node *ast.Modif
 
 	var conditionIsStaticTruthy bool
 
-	if result := resolve(condition); !result.IsUndefined() {
+	if result := c.resolve(condition); !result.IsUndefined() {
 		if value.Falsy(result) {
 			// the loop is endless
 			c.compileLoopExpressionNode(label, ast.ExpressionToStatements(body), location)
@@ -2004,7 +2004,7 @@ func (c *BytecodeCompiler) modifierUntilExpression(label string, node *ast.Modif
 func (c *BytecodeCompiler) compileUntilExpressionNode(label string, node *ast.UntilExpressionNode) {
 	location := node.Location()
 
-	if result := resolve(node.Condition); !result.IsUndefined() {
+	if result := c.resolve(node.Condition); !result.IsUndefined() {
 		if value.Falsy(result) {
 			// the loop is endless
 			c.compileLoopExpressionNode(label, node.ThenBody, location)
@@ -3298,7 +3298,7 @@ func valueIgnoredToResult(valueIsIgnored bool) expressionResult {
 }
 
 func (c *BytecodeCompiler) compileIfWithConditionExpression(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), location *position.Location, valueIsIgnored bool) expressionResult {
-	if result := resolve(condition); !result.IsUndefined() {
+	if result := c.resolve(condition); !result.IsUndefined() {
 		// if gets optimised away
 		c.enterScope("", defaultBytecodeScopeType)
 		defer c.leaveScope(location.StartPos.Line)
@@ -4983,7 +4983,7 @@ func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNod
 	firstDynamicIndex := -1
 
 	for i, elementNode := range node.Elements {
-		element := resolve(elementNode)
+		element := c.resolve(elementNode)
 		if element.IsUndefined() || vm.IsMutableCollection(element) {
 			firstDynamicIndex = i
 			break
@@ -5111,8 +5111,8 @@ elementLoop:
 			if !e.IsStatic() {
 				break elementSwitch
 			}
-			key := resolve(e.Key)
-			val := resolve(e.Value)
+			key := c.resolve(e.Key)
+			val := c.resolve(e.Value)
 			if vm.IsMutableCollection(key) || vm.IsMutableCollection(val) {
 				break elementSwitch
 			}
@@ -5124,7 +5124,7 @@ elementLoop:
 				break elementSwitch
 			}
 			key := value.ToSymbol(identifierToName(e.Key))
-			val := resolve(e.Value)
+			val := c.resolve(e.Value)
 			if val.IsUndefined() || vm.IsMutableCollection(val) {
 				break elementSwitch
 			}
@@ -5298,6 +5298,10 @@ elementLoop:
 	c.emitNewHashMap(len(dynamicElementNodes), location)
 }
 
+func (c *BytecodeCompiler) resolve(node ast.Node) value.Value {
+	return resolve(node, c.checker)
+}
+
 func (c *BytecodeCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
@@ -5315,8 +5319,8 @@ elementLoop:
 			if !e.IsStatic() {
 				break elementSwitch
 			}
-			key := resolve(e.Key)
-			val := resolve(e.Value)
+			key := c.resolve(e.Key)
+			val := c.resolve(e.Value)
 			if vm.IsMutableCollection(key) || vm.IsMutableCollection(val) {
 				break elementSwitch
 			}
@@ -5328,7 +5332,7 @@ elementLoop:
 				break elementSwitch
 			}
 			key := value.ToSymbol(identifierToName(e.Key))
-			val := resolve(e.Value)
+			val := c.resolve(e.Value)
 			if val.IsUndefined() || vm.IsMutableCollection(val) {
 				break elementSwitch
 			}
@@ -5513,8 +5517,8 @@ elementLoop:
 			if !e.IsStatic() {
 				break elementSwitch
 			}
-			key := resolve(e.Key)
-			val := resolve(e.Value)
+			key := c.resolve(e.Key)
+			val := c.resolve(e.Value)
 			index, ok := value.ToGoInt(key)
 			if !ok {
 				break elementSwitch
@@ -5525,7 +5529,7 @@ elementLoop:
 			continue elementLoop
 		}
 
-		element := resolve(elementNode)
+		element := c.resolve(elementNode)
 		if element.IsUndefined() || vm.IsMutableCollection(element) {
 			firstDynamicIndex = i
 			break
@@ -5690,8 +5694,8 @@ elementLoop:
 			if !e.IsStatic() {
 				break elementSwitch
 			}
-			key := resolve(e.Key)
-			val := resolve(e.Value)
+			key := c.resolve(e.Key)
+			val := c.resolve(e.Value)
 			index, ok := value.ToGoInt(key)
 			if !ok {
 				break elementSwitch
@@ -5702,7 +5706,7 @@ elementLoop:
 			continue elementLoop
 		}
 
-		element := resolve(elementNode)
+		element := c.resolve(elementNode)
 		if element.IsUndefined() {
 			firstDynamicIndex = i
 			break
@@ -5869,7 +5873,7 @@ func (c *BytecodeCompiler) compileHexArrayTupleLiteralNode(node *ast.HexArrayTup
 }
 
 func (c *BytecodeCompiler) compileWordArrayListLiteralNode(node *ast.WordArrayListLiteralNode) {
-	list := resolve(node)
+	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
 		c.Errors.AddFailure("invalid word arrayList literal", location)
@@ -5887,7 +5891,7 @@ func (c *BytecodeCompiler) compileWordArrayListLiteralNode(node *ast.WordArrayLi
 }
 
 func (c *BytecodeCompiler) compileBinArrayListLiteralNode(node *ast.BinArrayListLiteralNode) {
-	list := resolve(node)
+	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
 		c.Errors.AddFailure("invalid bin arrayList literal", location)
@@ -5905,7 +5909,7 @@ func (c *BytecodeCompiler) compileBinArrayListLiteralNode(node *ast.BinArrayList
 }
 
 func (c *BytecodeCompiler) compileSymbolArrayListLiteralNode(node *ast.SymbolArrayListLiteralNode) {
-	list := resolve(node)
+	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
 		c.Errors.AddFailure("invalid symbol arrayList literal", location)
@@ -5923,7 +5927,7 @@ func (c *BytecodeCompiler) compileSymbolArrayListLiteralNode(node *ast.SymbolArr
 }
 
 func (c *BytecodeCompiler) compileHexArrayListLiteralNode(node *ast.HexArrayListLiteralNode) {
-	list := resolve(node)
+	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
 		c.Errors.AddFailure("invalid hex arrayList literal", location)
@@ -5941,7 +5945,7 @@ func (c *BytecodeCompiler) compileHexArrayListLiteralNode(node *ast.HexArrayList
 }
 
 func (c *BytecodeCompiler) compileWordHashSetLiteralNode(node *ast.WordHashSetLiteralNode) {
-	list := resolve(node)
+	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
 		c.Errors.AddFailure("invalid word hashSet literal", location)
@@ -5959,7 +5963,7 @@ func (c *BytecodeCompiler) compileWordHashSetLiteralNode(node *ast.WordHashSetLi
 }
 
 func (c *BytecodeCompiler) compileBinHashSetLiteralNode(node *ast.BinHashSetLiteralNode) {
-	list := resolve(node)
+	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
 		c.Errors.AddFailure("invalid bin hashSet literal", location)
@@ -5977,7 +5981,7 @@ func (c *BytecodeCompiler) compileBinHashSetLiteralNode(node *ast.BinHashSetLite
 }
 
 func (c *BytecodeCompiler) compileSymbolHashSetLiteralNode(node *ast.SymbolHashSetLiteralNode) {
-	list := resolve(node)
+	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
 		c.Errors.AddFailure("invalid symbol hashSet literal", location)
@@ -5995,7 +5999,7 @@ func (c *BytecodeCompiler) compileSymbolHashSetLiteralNode(node *ast.SymbolHashS
 }
 
 func (c *BytecodeCompiler) compileHexHashSetLiteralNode(node *ast.HexHashSetLiteralNode) {
-	list := resolve(node)
+	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
 		c.Errors.AddFailure("invalid hex hashSet literal", location)
@@ -6186,7 +6190,7 @@ func (c *BytecodeCompiler) compileIntLiteralNode(node *ast.IntLiteralNode) {
 
 // Compiles boolean binary operators
 func (c *BytecodeCompiler) compileLogicalExpressionNode(node *ast.LogicalExpressionNode, valueIsIgnored bool) expressionResult {
-	if r := resolve(node); !r.IsUndefined() {
+	if r := c.resolve(node); !r.IsUndefined() {
 		if valueIsIgnored {
 			return expressionCompiledWithoutResult
 		}
@@ -6555,7 +6559,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 // Returns false when the node cannot be optimised at compile-time
 // and no Bytecode has been generated.
 func (c *BytecodeCompiler) resolveAndEmit(node ast.ExpressionNode) bool {
-	result := resolve(node)
+	result := c.resolve(node)
 	if result.IsUndefined() {
 		return false
 	}
@@ -6565,7 +6569,7 @@ func (c *BytecodeCompiler) resolveAndEmit(node ast.ExpressionNode) bool {
 }
 
 func (c *BytecodeCompiler) resolveAndEmitList(node *ast.ArrayListLiteralNode) bool {
-	result := resolveArrayListLiteral(node)
+	result := resolveArrayListLiteral(node, c.checker)
 	if result.IsUndefined() {
 		return false
 	}

@@ -9,30 +9,35 @@ import (
 // Strict numerics are sized and cannot be automatically coerced
 // to other types.
 type StrictNumeric interface {
+	ValueInterface
 	Float64 | Float32 | Int64 | Int32 | Int16 | Int8 | UInt | UInt64 | UInt32 | UInt16 | UInt8
 }
 
 // Strict integers are sized and cannot be automatically coerced
 // to other types.
 type StrictInt interface {
+	ValueInterface
 	Int64 | Int32 | Int16 | Int8 | UInt | UInt64 | UInt32 | UInt16 | UInt8
 }
 
 // Strict unsigned integers are sized and cannot be automatically coerced
 // to other types.
 type StrictUnsignedInt interface {
+	ValueInterface
 	UInt | UInt64 | UInt32 | UInt16 | UInt8
 }
 
 // Strict signed integers are sized and cannot be automatically coerced
 // to other types.
 type StrictSignedInt interface {
+	ValueInterface
 	Int64 | Int32 | Int16 | Int8
 }
 
 // Strict floats are sized and cannot be automatically coerced
 // to other types.
 type StrictFloat interface {
+	ValueInterface
 	Float64 | Float32
 }
 

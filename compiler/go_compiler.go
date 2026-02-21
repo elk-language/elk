@@ -3033,7 +3033,7 @@ func (c *GoCompiler) compileIfExpression(condType conditionType, condition ast.E
 }
 
 func (c *GoCompiler) compileIfWithConditionExpression(condType conditionType, condition ast.ExpressionNode, then, els func() *goValue, typ types.Type, valueIsIgnored bool) *goValue {
-	if result := resolve(condition); !result.IsUndefined() {
+	if result := resolve(condition, c.checker); !result.IsUndefined() {
 		// if gets optimised away
 		c.enterScope("", defaultNativeElkScopeType)
 		defer c.leaveScope()
@@ -6911,7 +6911,7 @@ func (c *GoCompiler) compileAddUInt8(left, right *goValue, valueIsIgnored bool) 
 }
 
 func (c *GoCompiler) resolve(node ast.ExpressionNode) *goValue {
-	result := resolve(node)
+	result := resolve(node, c.checker)
 	if result.IsUndefined() {
 		return nil
 	}

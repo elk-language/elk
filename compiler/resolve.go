@@ -1,74 +1,77 @@
 package compiler
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/regex"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
 // Create Elk runtime values from static AST nodes.
 // Returns undefined when no value could be created.
-func resolve(node ast.Node) value.Value {
+func resolve(node ast.Node, checker types.Checker) value.Value {
 	if !node.IsStatic() {
 		return value.Undefined
 	}
 
 	switch n := node.(type) {
 	case *ast.LabeledExpressionNode:
-		return resolve(n.Expression)
+		return resolve(n.Expression, checker)
 	case *ast.UninterpolatedRegexLiteralNode:
 		return resolveUninterpolatedRegexLiteral(n)
 	case *ast.RangeLiteralNode:
-		return resolveRangeLiteral(n)
+		return resolveRangeLiteral(n, checker)
 	case *ast.HashSetLiteralNode:
-		return resolveHashSetLiteral(n)
+		return resolveHashSetLiteral(n, checker)
 	case *ast.WordHashSetLiteralNode:
-		return resolveSpecialHashSetLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialHashSetLiteral(n.Elements, checker, n.IsStatic())
 	case *ast.SymbolHashSetLiteralNode:
-		return resolveSpecialHashSetLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialHashSetLiteral(n.Elements, checker, n.IsStatic())
 	case *ast.BinHashSetLiteralNode:
-		return resolveSpecialHashSetLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialHashSetLiteral(n.Elements, checker, n.IsStatic())
 	case *ast.HexHashSetLiteralNode:
-		return resolveSpecialHashSetLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialHashSetLiteral(n.Elements, checker, n.IsStatic())
 	case *ast.HashMapLiteralNode:
-		return resolveHashMapLiteral(n)
+		return resolveHashMapLiteral(n, checker)
 	case *ast.HashRecordLiteralNode:
-		return resolveHashRecordLiteral(n)
+		return resolveHashRecordLiteral(n, checker)
 	case *ast.ArrayListLiteralNode:
-		return resolveArrayListLiteral(n)
+		return resolveArrayListLiteral(n, checker)
 	case *ast.WordArrayListLiteralNode:
-		return resolveSpecialArrayListLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialNativeArrayListLiteral[ast.WordCollectionContentNode, value.String](n.Elements, checker, n.IsStatic())
 	case *ast.SymbolArrayListLiteralNode:
-		return resolveSpecialArrayListLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialNativeArrayListLiteral[ast.SymbolCollectionContentNode, value.Symbol](n.Elements, checker, n.IsStatic())
 	case *ast.BinArrayListLiteralNode:
-		return resolveSpecialArrayListLiteral(n.Elements, n.IsStatic())
+		return resolveIntArrayListLiteral(n.Elements, n.Type(checker.Env()), checker, n.IsStatic())
 	case *ast.HexArrayListLiteralNode:
-		return resolveSpecialArrayListLiteral(n.Elements, n.IsStatic())
+		return resolveIntArrayListLiteral(n.Elements, n.Type(checker.Env()), checker, n.IsStatic())
 	case *ast.ArrayTupleLiteralNode:
-		return resolveArrayTupleLiteral(n)
+		return resolveArrayTupleLiteral(n, checker)
 	case *ast.WordArrayTupleLiteralNode:
-		return resolveSpecialArrayTupleLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialNativeArrayTupleLiteral[ast.WordCollectionContentNode, value.String](n.Elements, checker, n.IsStatic())
 	case *ast.SymbolArrayTupleLiteralNode:
-		return resolveSpecialArrayTupleLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialNativeArrayTupleLiteral[ast.SymbolCollectionContentNode, value.Symbol](n.Elements, checker, n.IsStatic())
 	case *ast.BinArrayTupleLiteralNode:
-		return resolveSpecialArrayTupleLiteral(n.Elements, n.IsStatic())
+		return resolveIntArrayTupleLiteral(n.Elements, n.Type(checker.Env()), checker, n.IsStatic())
 	case *ast.HexArrayTupleLiteralNode:
-		return resolveSpecialArrayTupleLiteral(n.Elements, n.IsStatic())
+		return resolveIntArrayTupleLiteral(n.Elements, n.Type(checker.Env()), checker, n.IsStatic())
 	case *ast.LogicalExpressionNode:
-		return resolveLogicalExpression(n)
+		return resolveLogicalExpression(n, checker)
 	case *ast.BinaryExpressionNode:
-		return resolveBinaryExpression(n)
+		return resolveBinaryExpression(n, checker)
 	case *ast.UnaryExpressionNode:
-		return resolveUnaryExpression(n)
+		return resolveUnaryExpression(n, checker)
 	case *ast.SubscriptExpressionNode:
-		return resolveSubscript(n)
+		return resolveSubscript(n, checker)
 	case *ast.NilSafeSubscriptExpressionNode:
-		return resolveNilSafeSubscript(n)
+		return resolveNilSafeSubscript(n, checker)
 	case *ast.SimpleSymbolLiteralNode:
 		return value.ToSymbol(n.Content).ToValue()
 	case *ast.RawStringLiteralNode:
@@ -112,13 +115,13 @@ func resolve(node ast.Node) value.Value {
 	case *ast.FloatLiteralNode:
 		return resolveFloat(n)
 	case *ast.MacroBoundaryNode:
-		return resolveMacroBoundary(n)
+		return resolveMacroBoundary(n, checker)
 	}
 
 	return value.Undefined
 }
 
-func resolveMacroBoundary(n *ast.MacroBoundaryNode) value.Value {
+func resolveMacroBoundary(n *ast.MacroBoundaryNode, checker types.Checker) value.Value {
 	if len(n.Body) != 1 {
 		return value.Undefined
 	}
@@ -129,7 +132,7 @@ func resolveMacroBoundary(n *ast.MacroBoundaryNode) value.Value {
 		return value.Undefined
 	}
 
-	return resolve(exprStmt.Expression)
+	return resolve(exprStmt.Expression, checker)
 }
 
 func resolveUninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode) value.Value {
@@ -146,17 +149,17 @@ func resolveUninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode)
 	return value.Ref(value.NewRegex(*re, node.Content, node.Flags))
 }
 
-func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
+func resolveRangeLiteral(node *ast.RangeLiteralNode, checker types.Checker) value.Value {
 	if node.Start == nil {
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP:
-			to := resolve(node.End)
+			to := resolve(node.End, checker)
 			if to.IsUndefined() {
 				return value.Undefined
 			}
 			return value.Ref(value.NewBeginlessClosedRange(to))
 		case token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
-			to := resolve(node.End)
+			to := resolve(node.End, checker)
 			if to.IsUndefined() {
 				return value.Undefined
 			}
@@ -169,13 +172,13 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 	if node.End == nil {
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP:
-			from := resolve(node.Start)
+			from := resolve(node.Start, checker)
 			if from.IsUndefined() {
 				return value.Undefined
 			}
 			return value.Ref(value.NewEndlessClosedRange(from))
 		case token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
-			from := resolve(node.Start)
+			from := resolve(node.Start, checker)
 			if from.IsUndefined() {
 				return value.Undefined
 			}
@@ -185,11 +188,11 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 		}
 	}
 
-	from := resolve(node.Start)
+	from := resolve(node.Start, checker)
 	if from.IsUndefined() {
 		return value.Undefined
 	}
-	to := resolve(node.End)
+	to := resolve(node.End, checker)
 	if to.IsUndefined() {
 		return value.Undefined
 	}
@@ -209,14 +212,14 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 
 }
 
-func resolveHashSetLiteral(node *ast.HashSetLiteralNode) value.Value {
+func resolveHashSetLiteral(node *ast.HashSetLiteralNode, checker types.Checker) value.Value {
 	if !node.IsStatic() || node.Capacity != nil {
 		return value.Undefined
 	}
 
 	newSet := vm.NewHashSetOfValue(len(node.Elements))
 	for _, elementNode := range node.Elements {
-		val := resolve(elementNode)
+		val := resolve(elementNode, checker)
 		if val.IsUndefined() {
 			return value.Undefined
 		}
@@ -229,7 +232,7 @@ func resolveHashSetLiteral(node *ast.HashSetLiteralNode) value.Value {
 	return value.Ref(newSet)
 }
 
-func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
+func resolveHashMapLiteral(node *ast.HashMapLiteralNode, checker types.Checker) value.Value {
 	if !node.IsStatic() || node.Capacity != nil {
 		return value.Undefined
 	}
@@ -239,7 +242,7 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 		switch element := elementNode.(type) {
 		case *ast.SymbolKeyValueExpressionNode:
 			key := value.ToSymbol(identifierToName(element.Key)).ToValue()
-			val := resolve(element.Value)
+			val := resolve(element.Value, checker)
 			if val.IsUndefined() {
 				return value.Undefined
 			}
@@ -249,11 +252,11 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 				return value.Undefined
 			}
 		case *ast.KeyValueExpressionNode:
-			key := resolve(element.Key)
+			key := resolve(element.Key, checker)
 			if key.IsUndefined() {
 				return value.Undefined
 			}
-			val := resolve(element.Value)
+			val := resolve(element.Value, checker)
 			if val.IsUndefined() {
 				return value.Undefined
 			}
@@ -270,7 +273,7 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 	return value.Ref(newMap)
 }
 
-func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
+func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode, checker types.Checker) value.Value {
 	if !node.IsStatic() {
 		return value.Undefined
 	}
@@ -280,7 +283,7 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 		switch element := elementNode.(type) {
 		case *ast.SymbolKeyValueExpressionNode:
 			key := value.ToSymbol(identifierToName(element.Key)).ToValue()
-			val := resolve(element.Value)
+			val := resolve(element.Value, checker)
 			if val.IsUndefined() {
 				return value.Undefined
 			}
@@ -290,11 +293,11 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 				return value.Undefined
 			}
 		case *ast.KeyValueExpressionNode:
-			key := resolve(element.Key)
+			key := resolve(element.Key, checker)
 			if key.IsUndefined() {
 				return value.Undefined
 			}
-			val := resolve(element.Value)
+			val := resolve(element.Value, checker)
 			if val.IsUndefined() {
 				return value.Undefined
 			}
@@ -311,14 +314,14 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 	return value.Ref(newRecord)
 }
 
-func resolveSpecialHashSetLiteral[T ast.ExpressionNode](elements []T, static bool) value.Value {
+func resolveSpecialHashSetLiteral[T ast.ExpressionNode](elements []T, checker types.Checker, static bool) value.Value {
 	if !static {
 		return value.Undefined
 	}
 
 	newSet := vm.NewHashSetOfValue(len(elements))
 	for _, elementNode := range elements {
-		element := resolve(elementNode)
+		element := resolve(elementNode, checker)
 		if element.IsUndefined() {
 			return value.Undefined
 		}
@@ -330,16 +333,64 @@ func resolveSpecialHashSetLiteral[T ast.ExpressionNode](elements []T, static boo
 
 	return value.Ref(newSet)
 }
-func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
+
+func resolveArrayListLiteral(node *ast.ArrayListLiteralNode, checker types.Checker) value.Value {
 	if !node.IsStatic() || node.Capacity != nil {
 		return value.Undefined
+	}
+
+	g, ok := node.Type(checker.Env()).(*types.Generic)
+	if !ok {
+		return value.Undefined
+	}
+
+	elementType := g.Get(0).Type
+
+	if checker.IsSubtype(elementType, checker.Std(symbol.String)) {
+		return resolveNativeArrayList[value.String](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Symbol)) {
+		return resolveNativeArrayList[value.Symbol](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+		return resolveNativeArrayList[value.UInt64](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int64)) {
+		return resolveNativeArrayList[value.Int64](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+		return resolveNativeArrayList[value.UInt32](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int32)) {
+		return resolveNativeArrayList[value.Int32](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+		return resolveNativeArrayList[value.UInt16](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int16)) {
+		return resolveNativeArrayList[value.Int16](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+		return resolveNativeArrayList[value.UInt8](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int8)) {
+		return resolveNativeArrayList[value.Int8](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float)) {
+		return resolveNativeArrayList[value.Float](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float64)) {
+		return resolveNativeArrayList[value.Float64](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float32)) {
+		return resolveNativeArrayList[value.Float32](node.Elements, checker)
 	}
 
 	newList := make(value.ArrayListOfValue, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		switch e := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
-			key := resolve(e.Key)
+			key := resolve(e.Key, checker)
 			if key.IsUndefined() {
 				return value.Undefined
 			}
@@ -349,7 +400,7 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 				return value.Undefined
 			}
 
-			val := resolve(e.Value)
+			val := resolve(e.Value, checker)
 			if val.IsUndefined() {
 				return value.Undefined
 			}
@@ -360,7 +411,7 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 			}
 			newList[index] = val
 		default:
-			element := resolve(elementNode)
+			element := resolve(elementNode, checker)
 			if element.IsUndefined() {
 				return value.Undefined
 			}
@@ -372,50 +423,265 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 	return value.Ref(&newList)
 }
 
-func resolveSpecialArrayListLiteral[T ast.ExpressionNode](elements []T, static bool) value.Value {
+func resolveNativeArrayList[T value.ValueInterface](elements []ast.ExpressionNode, checker types.Checker) value.Value {
+	newList := value.NewNativeArrayList[T](len(elements))
+	for _, elementNode := range elements {
+		element := resolve(elementNode, checker)
+		if element.IsUndefined() {
+			return value.Undefined
+		}
+
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			return value.Undefined
+		}
+
+		newList.Append(e)
+	}
+
+	return newList.ToValue()
+}
+
+func resolveNativeArrayTuple[T value.ValueInterface](elements []ast.ExpressionNode, checker types.Checker) value.Value {
+	newTuple := value.NewNativeArrayTuple[T](len(elements))
+	for _, elementNode := range elements {
+		element := resolve(elementNode, checker)
+		if element.IsUndefined() {
+			return value.Undefined
+		}
+
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			return value.Undefined
+		}
+
+		newTuple.Append(e)
+	}
+
+	return newTuple.ToValue()
+}
+
+func resolveSpecialNativeArrayListLiteral[N ast.ExpressionNode, T value.ValueInterface](elements []N, checker types.Checker, static bool) value.Value {
+	if !static {
+		return value.Undefined
+	}
+	var t T
+
+	newList := value.NewNativeArrayList[T](len(elements))
+	for _, elementNode := range elements {
+		element := resolve(elementNode, checker)
+		if element.IsUndefined() {
+			return value.Undefined
+		}
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			panic(fmt.Sprintf("cannot cast %s to %T while resolving an array list", element.Inspect(), t))
+		}
+		newList.Append(e)
+	}
+
+	return newList.ToValue()
+}
+
+func resolveSpecialNativeArrayTupleLiteral[N ast.ExpressionNode, T value.ValueInterface](elements []N, checker types.Checker, static bool) value.Value {
+	if !static {
+		return value.Undefined
+	}
+	var t T
+
+	newTuple := value.NewNativeArrayTuple[T](len(elements))
+	for _, elementNode := range elements {
+		element := resolve(elementNode, checker)
+		if element.IsUndefined() {
+			return value.Undefined
+		}
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			panic(fmt.Sprintf("cannot cast %s to %T while resolving an array list", element.Inspect(), t))
+		}
+		newTuple.Append(e)
+	}
+
+	return newTuple.ToValue()
+}
+
+func resolveIntArrayListLiteral(elements []ast.IntCollectionContentNode, typ types.Type, checker types.Checker, static bool) value.Value {
 	if !static {
 		return value.Undefined
 	}
 
-	newList := make(value.ArrayListOfValue, 0, len(elements))
+	tmpList := make([]*value.BigInt, 0, len(elements))
 	for _, elementNode := range elements {
-		element := resolve(elementNode)
-		if element.IsUndefined() {
-			return value.Undefined
+		n, ok := elementNode.(*ast.IntLiteralNode)
+		if !ok {
+			continue
 		}
-		newList = append(newList, element)
+
+		val := value.ParseBigIntPanic(n.Value, 0)
+		tmpList = append(tmpList, val)
 	}
 
-	return value.Ref(&newList)
+	g, ok := typ.(*types.Generic)
+	if !ok {
+		return value.Undefined
+	}
+
+	elementType := g.Get(0).Type
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int)) {
+		return resolveBigIntSliceToArrayListOfValue(tmpList).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+		return resolveBigIntSliceToNativeArrayList[value.UInt64](tmpList).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+		return resolveBigIntSliceToNativeArrayList[value.UInt32](tmpList).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+		return resolveBigIntSliceToNativeArrayList[value.UInt16](tmpList).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+		return resolveBigIntSliceToNativeArrayList[value.UInt8](tmpList).ToValue()
+	}
+
+	return value.Undefined
 }
 
-func resolveSpecialArrayTupleLiteral[T ast.ExpressionNode](elements []T, static bool) value.Value {
+func resolveIntArrayTupleLiteral(elements []ast.IntCollectionContentNode, typ types.Type, checker types.Checker, static bool) value.Value {
 	if !static {
 		return value.Undefined
 	}
 
-	newList := make(value.ArrayTupleOfValue, 0, len(elements))
+	tmpTuple := make([]*value.BigInt, 0, len(elements))
 	for _, elementNode := range elements {
-		element := resolve(elementNode)
-		if element.IsUndefined() {
-			return value.Undefined
+		n, ok := elementNode.(*ast.IntLiteralNode)
+		if !ok {
+			continue
 		}
-		newList = append(newList, element)
+
+		val := value.ParseBigIntPanic(n.Value, 0)
+		tmpTuple = append(tmpTuple, val)
 	}
 
-	return value.Ref(&newList)
+	g, ok := typ.(*types.Generic)
+	if !ok {
+		return value.Undefined
+	}
+
+	elementType := g.Get(0).Type
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int)) {
+		return resolveBigIntSliceToArrayTupleOfValue(tmpTuple).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+		return resolveBigIntSliceToNativeArrayTuple[value.UInt64](tmpTuple).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+		return resolveBigIntSliceToNativeArrayTuple[value.UInt32](tmpTuple).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+		return resolveBigIntSliceToNativeArrayTuple[value.UInt16](tmpTuple).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+		return resolveBigIntSliceToNativeArrayTuple[value.UInt8](tmpTuple).ToValue()
+	}
+
+	return value.Undefined
 }
 
-func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
+func resolveBigIntSliceToNativeArrayList[I value.StrictNumeric](elements []*value.BigInt) *value.NativeArrayList[I] {
+	newList := value.NewNativeArrayList[I](len(elements))
+	for _, element := range elements {
+		nativeVal := I(element.ToUInt64())
+		newList.Append(nativeVal)
+	}
+
+	return newList
+}
+
+func resolveBigIntSliceToNativeArrayTuple[I value.StrictNumeric](elements []*value.BigInt) *value.NativeArrayTuple[I] {
+	newTuple := value.NewNativeArrayTuple[I](len(elements))
+	for _, element := range elements {
+		nativeVal := I(element.ToUInt64())
+		newTuple.Append(nativeVal)
+	}
+
+	return newTuple
+}
+
+func resolveBigIntSliceToArrayListOfValue(elements []*value.BigInt) *value.ArrayListOfValue {
+	newList := value.NewArrayListOfValue(len(elements))
+	for _, element := range elements {
+		newList.Append(element.Normalize())
+	}
+
+	return newList
+}
+
+func resolveBigIntSliceToArrayTupleOfValue(elements []*value.BigInt) *value.ArrayTupleOfValue {
+	newTuple := value.NewArrayTupleOfValue(len(elements))
+	for _, element := range elements {
+		newTuple.Append(element.Normalize())
+	}
+
+	return newTuple
+}
+
+func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode, checker types.Checker) value.Value {
 	if !node.IsStatic() {
 		return value.Undefined
+	}
+
+	g, ok := node.Type(checker.Env()).(*types.Generic)
+	if !ok {
+		return value.Undefined
+	}
+
+	elementType := g.Get(0).Type
+
+	if checker.IsSubtype(elementType, checker.Std(symbol.String)) {
+		return resolveNativeArrayTuple[value.String](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Symbol)) {
+		return resolveNativeArrayTuple[value.Symbol](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+		return resolveNativeArrayTuple[value.UInt64](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int64)) {
+		return resolveNativeArrayTuple[value.Int64](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+		return resolveNativeArrayTuple[value.UInt32](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int32)) {
+		return resolveNativeArrayTuple[value.Int32](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+		return resolveNativeArrayTuple[value.UInt16](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int16)) {
+		return resolveNativeArrayTuple[value.Int16](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+		return resolveNativeArrayTuple[value.UInt8](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int8)) {
+		return resolveNativeArrayTuple[value.Int8](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float)) {
+		return resolveNativeArrayTuple[value.Float](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float64)) {
+		return resolveNativeArrayTuple[value.Float64](node.Elements, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float32)) {
+		return resolveNativeArrayTuple[value.Float32](node.Elements, checker)
 	}
 
 	newArrayTuple := make(value.ArrayTupleOfValue, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		switch e := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
-			key := resolve(e.Key)
+			key := resolve(e.Key, checker)
 			if key.IsUndefined() {
 				return value.Undefined
 			}
@@ -425,7 +691,7 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
 				return value.Undefined
 			}
 
-			val := resolve(e.Value)
+			val := resolve(e.Value, checker)
 			if val.IsUndefined() {
 				return value.Undefined
 			}
@@ -436,7 +702,7 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
 			}
 			newArrayTuple[index] = val
 		default:
-			element := resolve(elementNode)
+			element := resolve(elementNode, checker)
 			if element.IsUndefined() {
 				return value.Undefined
 			}
@@ -448,12 +714,12 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
 	return value.Ref(&newArrayTuple)
 }
 
-func resolveLogicalExpression(node *ast.LogicalExpressionNode) value.Value {
-	left := resolve(node.Left)
+func resolveLogicalExpression(node *ast.LogicalExpressionNode, checker types.Checker) value.Value {
+	left := resolve(node.Left, checker)
 	if left.IsUndefined() {
 		return value.Undefined
 	}
-	right := resolve(node.Right)
+	right := resolve(node.Right, checker)
 	if right.IsUndefined() {
 		return value.Undefined
 	}
@@ -479,9 +745,9 @@ func resolveLogicalExpression(node *ast.LogicalExpressionNode) value.Value {
 	return value.Undefined
 }
 
-func resolveNilSafeSubscript(node *ast.NilSafeSubscriptExpressionNode) value.Value {
-	receiver := resolve(node.Receiver)
-	key := resolve(node.Key)
+func resolveNilSafeSubscript(node *ast.NilSafeSubscriptExpressionNode, checker types.Checker) value.Value {
+	receiver := resolve(node.Receiver, checker)
+	key := resolve(node.Key, checker)
 
 	if receiver == value.Nil {
 		return value.Nil
@@ -495,9 +761,9 @@ func resolveNilSafeSubscript(node *ast.NilSafeSubscriptExpressionNode) value.Val
 	return result
 }
 
-func resolveSubscript(node *ast.SubscriptExpressionNode) value.Value {
-	receiver := resolve(node.Receiver)
-	key := resolve(node.Key)
+func resolveSubscript(node *ast.SubscriptExpressionNode, checker types.Checker) value.Value {
+	receiver := resolve(node.Receiver, checker)
+	key := resolve(node.Key, checker)
 
 	result, err := value.SubscriptVal(receiver, key)
 	if !err.IsUndefined() {
@@ -507,8 +773,8 @@ func resolveSubscript(node *ast.SubscriptExpressionNode) value.Value {
 	return result
 }
 
-func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
-	right := resolve(node.Right)
+func resolveUnaryExpression(node *ast.UnaryExpressionNode, checker types.Checker) value.Value {
+	right := resolve(node.Right, checker)
 	if right.IsUndefined() {
 		return value.Undefined
 	}
@@ -545,12 +811,12 @@ func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
 	}
 }
 
-func resolveBinaryExpression(node *ast.BinaryExpressionNode) value.Value {
-	left := resolve(node.Left)
+func resolveBinaryExpression(node *ast.BinaryExpressionNode, checker types.Checker) value.Value {
+	left := resolve(node.Left, checker)
 	if left.IsUndefined() {
 		return value.Undefined
 	}
-	right := resolve(node.Right)
+	right := resolve(node.Right, checker)
 	if right.IsUndefined() {
 		return value.Undefined
 	}
