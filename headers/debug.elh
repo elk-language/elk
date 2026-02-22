@@ -15,4 +15,9 @@ module Std::Debug
   def stack_trace: StackTrace; end
 
   def inspect_inheritance(klass: Class): String; end
+
+  ##[
+    Returns the name of the native type of the value.
+  ]##
+  def inspect_native_type(value: any): String; end
 end

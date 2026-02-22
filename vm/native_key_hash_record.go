@@ -11,39 +11,26 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
-type NativeHashRecord[K value.ComparableValueInterface, V value.ValueInterface] map[K]V
+type NativeKeyHashRecord[K value.ComparableValueInterface] map[K]value.Value
 
 var _ HashRecord = NativeHashRecord[value.String, value.String]{}
 
-// UNSAFE! Cast a map with native go types to an Elk `NativeHashRecord` with corresponding Elk types.
-// This is EXTREMELY unsafe, use it only if `IK`, OK` and `IV`, `OV` have the same
-// underlying types eg. `CastNativeHashRecord[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `NativeHashRecord[value.String, value.UInt8]`
-func CastNativeHashRecord[
-	IK comparable,
-	IV any,
-	OK value.ComparableValueInterface,
-	OV value.ValueInterface,
-](m map[IK]IV) NativeHashRecord[OK, OV] {
-	return NativeHashRecord[OK, OV](castNativeMap[IK, IV, OK, OV](m))
-}
-
-// Transform a map with native go types to a new Elk `NativeHashRecord` with corresponding Elk types
+// Transform a map with native go types to a new Elk `NativeKeyHashRecord` with corresponding Elk types
 // using the given function.
 // eg.
 //
-//	TransformIntoNativeHashRecord(m, func(k string, v uint8) (value.String, value.UInt8) {
-//		return value.String(k), value.UInt8(v)
+//	TransformIntoNativeKeyHashRecord(m, func(k string, v uint8) (value.String, value.Value) {
+//		return value.String(k), value.UInt8(v).ToValue()
 //	})
-func TransformIntoNativeHashRecord[
+func TransformIntoNativeKeyHashRecord[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,
-	OV value.ValueInterface,
 ](
 	m map[IK]IV,
-	fn func(k IK, v IV) (OK, OV),
-) NativeHashRecord[OK, OV] {
-	newMap := MakeNativeHashRecord[OK, OV](len(m))
+	fn func(k IK, v IV) (OK, value.Value),
+) NativeHashRecord[OK, value.Value] {
+	newMap := MakeNativeHashRecord[OK, value.Value](len(m))
 	for k, v := range m {
 		ok, ov := fn(k, v)
 		newMap[ok] = ov
@@ -51,15 +38,15 @@ func TransformIntoNativeHashRecord[
 	return newMap
 }
 
-func MakeNativeHashRecordFromMap[K value.ComparableValueInterface, V value.ValueInterface](m map[K]V) NativeHashRecord[K, V] {
-	return NativeHashRecord[K, V](m)
+func MakeNativeKeyHashRecordFromMap[K value.ComparableValueInterface](m map[K]value.Value) NativeKeyHashRecord[K] {
+	return NativeKeyHashRecord[K](m)
 }
 
-func MakeNativeHashRecord[K value.ComparableValueInterface, V value.ValueInterface](capacity int) NativeHashRecord[K, V] {
-	return make(NativeHashRecord[K, V], capacity)
+func MakeNativeKeyHashRecord[K value.ComparableValueInterface](capacity int) NativeKeyHashRecord[K] {
+	return make(NativeKeyHashRecord[K], capacity)
 }
 
-func (h NativeHashRecord[K, V]) All() iter.Seq[value.PairOfValue] {
+func (h NativeKeyHashRecord[K]) All() iter.Seq[value.PairOfValue] {
 	return func(yield func(value.PairOfValue) bool) {
 		for k, v := range h {
 			pair := value.MakePairOfValue(k.ToValue(), v.ToValue())
@@ -70,8 +57,8 @@ func (h NativeHashRecord[K, V]) All() iter.Seq[value.PairOfValue] {
 	}
 }
 
-func (h NativeHashRecord[K, V]) AllNative() iter.Seq2[K, V] {
-	return func(yield func(K, V) bool) {
+func (h NativeKeyHashRecord[K]) AllNative() iter.Seq2[K, value.Value] {
+	return func(yield func(K, value.Value) bool) {
 		for k, v := range h {
 			if !yield(k, v) {
 				return
@@ -80,7 +67,7 @@ func (h NativeHashRecord[K, V]) AllNative() iter.Seq2[K, V] {
 	}
 }
 
-func (h NativeHashRecord[K, V]) Iterate() iter.Seq2[value.Value, value.Value] {
+func (h NativeKeyHashRecord[K]) Iterate() iter.Seq2[value.Value, value.Value] {
 	return func(yield func(value.Value, value.Value) bool) {
 		for k, v := range h {
 			pair := value.NewNativePair(k, v)
@@ -91,20 +78,24 @@ func (h NativeHashRecord[K, V]) Iterate() iter.Seq2[value.Value, value.Value] {
 	}
 }
 
-func (h NativeHashRecord[K, V]) IterRecord() value.NativeResettableIterator {
-	return NewNativeHashRecordIterator(h)
+func (h NativeKeyHashRecord[K]) IterNative() *NativeKeyHashRecordIterator[K] {
+	return NewNativeKeyHashRecordIterator(h)
 }
 
-func (h NativeHashRecord[K, V]) Iter() value.NativeIterator {
-	return NewNativeHashRecordIterator(h)
+func (h NativeKeyHashRecord[K]) IterRecord() value.NativeResettableIterator {
+	return h.IterNative()
 }
 
-func (h NativeHashRecord[K, V]) Get(key K) (V, bool) {
+func (h NativeKeyHashRecord[K]) Iter() value.NativeIterator {
+	return h.IterNative()
+}
+
+func (h NativeKeyHashRecord[K]) Get(key K) (value.Value, bool) {
 	v, ok := h[key]
 	return v, ok
 }
 
-func (h NativeHashRecord[K, V]) GetVal(thread *Thread, key value.Value) (value.Value, value.Value) {
+func (h NativeKeyHashRecord[K]) GetVal(thread *Thread, key value.Value) (value.Value, value.Value) {
 	k, ok := value.Downcast[K](key)
 	if !ok {
 		return value.Undefined, value.Undefined
@@ -116,24 +107,19 @@ func (h NativeHashRecord[K, V]) GetVal(thread *Thread, key value.Value) (value.V
 	return v.ToValue(), value.Undefined
 }
 
-func (h NativeHashRecord[K, V]) SetVal(thread *Thread, key, val value.Value) value.Value {
+func (h NativeKeyHashRecord[K]) SetVal(thread *Thread, key, val value.Value) value.Value {
 	k, ok := value.Downcast[K](key)
 	if !ok {
 		return value.NewInvalidKeyInTypedMap(h, k.Class()).ToValue()
 	}
-	v, ok := value.Downcast[V](val)
-	if !ok {
-		return value.NewInvalidValueInTypedMap(h, v.Class()).ToValue()
-	}
-
-	h[k] = v
+	h[k] = val
 	return value.Undefined
 }
 
-func (h NativeHashRecord[K, V]) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+func (h NativeKeyHashRecord[K]) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
 	switch o := other.SafeAsReference().(type) {
-	case NativeHashRecord[K, V]:
-		newMap := MakeNativeHashRecord[K, V](h.Length() + o.Length())
+	case NativeKeyHashRecord[K]:
+		newMap := MakeNativeKeyHashRecord[K](h.Length() + o.Length())
 		maps.Copy(newMap, h)
 		maps.Copy(newMap, o)
 		return newMap.ToValue(), value.Undefined
@@ -170,7 +156,7 @@ func (h NativeHashRecord[K, V]) ConcatVal(thread *Thread, other value.Value) (va
 	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
 }
 
-func (h NativeHashRecord[K, V]) ContainsNativePair(thread *Thread, other *value.NativePair[K, V]) (bool, value.Value) {
+func (h NativeKeyHashRecord[K]) ContainsNativePair(thread *Thread, other *value.NativePair[K, value.Value]) (bool, value.Value) {
 	v, ok := h.Get(other.NativeKey())
 	if !ok {
 		return false, value.Undefined
@@ -184,7 +170,7 @@ func (h NativeHashRecord[K, V]) ContainsNativePair(thread *Thread, other *value.
 	return value.Truthy(eq), value.Undefined
 }
 
-func (h NativeHashRecord[K, V]) Contains(thread *Thread, other value.Pair) (bool, value.Value) {
+func (h NativeKeyHashRecord[K]) Contains(thread *Thread, other value.Pair) (bool, value.Value) {
 	v, err := h.GetVal(thread, other.Key())
 	if err.IsNotUndefined() {
 		return false, err
@@ -198,7 +184,7 @@ func (h NativeHashRecord[K, V]) Contains(thread *Thread, other value.Pair) (bool
 	return value.Truthy(eq), value.Undefined
 }
 
-func (h NativeHashRecord[K, V]) ContainsNativeValue(thread *Thread, val V) (bool, value.Value) {
+func (h NativeKeyHashRecord[K]) ContainsValue(thread *Thread, val value.Value) (bool, value.Value) {
 	for _, hval := range h {
 		eq, err := Equal(thread, hval.ToValue(), val.ToValue())
 		if err.IsNotUndefined() {
@@ -213,20 +199,12 @@ func (h NativeHashRecord[K, V]) ContainsNativeValue(thread *Thread, val V) (bool
 	return false, value.Undefined
 }
 
-func (h NativeHashRecord[K, V]) ContainsValue(thread *Thread, val value.Value) (bool, value.Value) {
-	v, ok := value.Downcast[V](val)
-	if !ok {
-		return false, value.NewInvalidValueInTypedMap(h, val.Class()).ToValue()
-	}
-	return h.ContainsNativeValue(thread, v)
-}
-
-func (h NativeHashRecord[K, V]) ContainsNativeKey(thread *Thread, key K) bool {
+func (h NativeKeyHashRecord[K]) ContainsNativeKey(thread *Thread, key K) bool {
 	_, ok := h.Get(key)
 	return ok
 }
 
-func (h NativeHashRecord[K, V]) ContainsKey(thread *Thread, key value.Value) (bool, value.Value) {
+func (h NativeKeyHashRecord[K]) ContainsKey(thread *Thread, key value.Value) (bool, value.Value) {
 	k, ok := value.Downcast[K](key)
 	if !ok {
 		return false, value.NewInvalidKeyInTypedMap(h, key.Class()).ToValue()
@@ -234,7 +212,7 @@ func (h NativeHashRecord[K, V]) ContainsKey(thread *Thread, key value.Value) (bo
 	return h.ContainsNativeKey(thread, k), value.Undefined
 }
 
-func (h NativeHashRecord[K, V]) EqualNative(thread *Thread, other NativeHashRecord[K, V]) (bool, value.Value) {
+func (h NativeKeyHashRecord[K]) EqualNative(thread *Thread, other NativeKeyHashRecord[K]) (bool, value.Value) {
 	if h.Length() != other.Length() {
 		return false, value.Undefined
 	}
@@ -254,9 +232,9 @@ func (h NativeHashRecord[K, V]) EqualNative(thread *Thread, other NativeHashReco
 	return true, value.Undefined
 }
 
-func (h NativeHashRecord[K, V]) Equal(thread *Thread, other value.Value) (bool, value.Value) {
+func (h NativeKeyHashRecord[K]) Equal(thread *Thread, other value.Value) (bool, value.Value) {
 	switch o := other.SafeAsReference().(type) {
-	case NativeHashRecord[K, V]:
+	case NativeKeyHashRecord[K]:
 		return h.EqualNative(thread, o)
 	case HashRecord:
 		return HashRecordEqual(thread, o, h)
@@ -265,7 +243,7 @@ func (h NativeHashRecord[K, V]) Equal(thread *Thread, other value.Value) (bool, 
 	return false, value.Undefined
 }
 
-func (h NativeHashRecord[K, V]) LaxEqualNative(thread *Thread, other NativeHashRecord[K, V]) (bool, value.Value) {
+func (h NativeKeyHashRecord[K]) LaxEqualNative(thread *Thread, other NativeKeyHashRecord[K]) (bool, value.Value) {
 	if h.Length() != other.Length() {
 		return false, value.Undefined
 	}
@@ -285,9 +263,9 @@ func (h NativeHashRecord[K, V]) LaxEqualNative(thread *Thread, other NativeHashR
 	return true, value.Undefined
 }
 
-func (h NativeHashRecord[K, V]) LaxEqual(thread *Thread, other value.Value) (bool, value.Value) {
+func (h NativeKeyHashRecord[K]) LaxEqual(thread *Thread, other value.Value) (bool, value.Value) {
 	switch o := other.SafeAsReference().(type) {
-	case NativeHashRecord[K, V]:
+	case NativeKeyHashRecord[K]:
 		return h.LaxEqualNative(thread, o)
 	case HashRecord:
 		return HashRecordLaxEqual(thread, h, o)
@@ -296,37 +274,37 @@ func (h NativeHashRecord[K, V]) LaxEqual(thread *Thread, other value.Value) (boo
 	return false, value.Undefined
 }
 
-func (NativeHashRecord[K, V]) Class() *value.Class {
+func (NativeKeyHashRecord[K]) Class() *value.Class {
 	return value.HashRecordClass
 }
 
-func (NativeHashRecord[K, V]) DirectClass() *value.Class {
+func (NativeKeyHashRecord[K]) DirectClass() *value.Class {
 	return value.HashRecordClass
 }
 
-func (NativeHashRecord[K, V]) SingletonClass() *value.Class {
+func (NativeKeyHashRecord[K]) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h NativeHashRecord[K, V]) Clone() NativeHashRecord[K, V] {
-	newMap := MakeNativeHashRecord[K, V](h.Length())
+func (h NativeKeyHashRecord[K]) Clone() NativeKeyHashRecord[K] {
+	newMap := MakeNativeKeyHashRecord[K](h.Length())
 	maps.Copy(newMap, h)
 	return newMap
 }
 
-func (h NativeHashRecord[K, V]) Copy() value.Reference {
+func (h NativeKeyHashRecord[K]) Copy() value.Reference {
 	return h.Clone()
 }
 
-func (h NativeHashRecord[K, V]) ToValue() value.Value {
+func (h NativeKeyHashRecord[K]) ToValue() value.Value {
 	return value.Ref(h)
 }
 
-func (h NativeHashRecord[K, V]) Error() string {
+func (h NativeKeyHashRecord[K]) Error() string {
 	return h.Inspect()
 }
 
-func (h NativeHashRecord[K, V]) Inspect() string {
+func (h NativeKeyHashRecord[K]) Inspect() string {
 	var hasMultilineElements bool
 	keyStrings := make(
 		[]string,
@@ -403,74 +381,74 @@ func (h NativeHashRecord[K, V]) Inspect() string {
 	return buff.String()
 }
 
-func (NativeHashRecord[K, V]) InstanceVariables() *value.InstanceVariables {
+func (NativeKeyHashRecord[K]) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (h NativeHashRecord[K, V]) Length() int {
+func (h NativeKeyHashRecord[K]) Length() int {
 	return len(h)
 }
 
-type NativeHashRecordIterator[K value.ComparableValueInterface, V value.ValueInterface] struct {
-	HashRecord NativeHashRecord[K, V]
+type NativeKeyHashRecordIterator[K value.ComparableValueInterface] struct {
+	HashRecord NativeKeyHashRecord[K]
 	index      int
-	snapshot   []value.NativePair[K, V]
+	snapshot   []value.NativePair[K, value.Value]
 }
 
-var _ value.NativeResettableIterator = &NativeHashRecordIterator[value.String, value.UInt8]{}
+var _ value.NativeResettableIterator = &NativeKeyHashRecordIterator[value.String]{}
 
-func NewNativeHashRecordIterator[K value.ComparableValueInterface, V value.ValueInterface](hrec NativeHashRecord[K, V]) *NativeHashRecordIterator[K, V] {
-	iterator := &NativeHashRecordIterator[K, V]{
+func NewNativeKeyHashRecordIterator[K value.ComparableValueInterface](hrec NativeKeyHashRecord[K]) *NativeKeyHashRecordIterator[K] {
+	iterator := &NativeKeyHashRecordIterator[K]{
 		HashRecord: hrec,
 	}
 	iterator.captureSnapshot()
 	return iterator
 }
 
-func (h *NativeHashRecordIterator[K, V]) captureSnapshot() {
-	snapshot := make([]value.NativePair[K, V], 0, h.HashRecord.Length())
+func (h *NativeKeyHashRecordIterator[K]) captureSnapshot() {
+	snapshot := make([]value.NativePair[K, value.Value], 0, h.HashRecord.Length())
 	for k, v := range h.HashRecord.AllNative() {
 		snapshot = append(snapshot, value.MakeNativePair(k, v))
 	}
 	h.snapshot = snapshot
 }
 
-func (*NativeHashRecordIterator[K, V]) Class() *value.Class {
+func (*NativeKeyHashRecordIterator[K]) Class() *value.Class {
 	return value.HashRecordIteratorClass
 }
 
-func (*NativeHashRecordIterator[K, V]) DirectClass() *value.Class {
+func (*NativeKeyHashRecordIterator[K]) DirectClass() *value.Class {
 	return value.HashRecordIteratorClass
 }
 
-func (*NativeHashRecordIterator[K, V]) SingletonClass() *value.Class {
+func (*NativeKeyHashRecordIterator[K]) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *NativeHashRecordIterator[K, V]) Error() string {
+func (h *NativeKeyHashRecordIterator[K]) Error() string {
 	return h.Inspect()
 }
 
-func (h *NativeHashRecordIterator[K, V]) Copy() value.Reference {
-	return &NativeHashRecordIterator[K, V]{
+func (h *NativeKeyHashRecordIterator[K]) Copy() value.Reference {
+	return &NativeKeyHashRecordIterator[K]{
 		HashRecord: h.HashRecord,
 		index:      h.index,
 	}
 }
 
-func (i *NativeHashRecordIterator[K, V]) ToValue() value.Value {
+func (i *NativeKeyHashRecordIterator[K]) ToValue() value.Value {
 	return value.Ref(i)
 }
 
-func (h *NativeHashRecordIterator[K, V]) Inspect() string {
+func (h *NativeKeyHashRecordIterator[K]) Inspect() string {
 	return fmt.Sprintf("Std::HashRecord::Iterator{hash_record: %s}", h.HashRecord.Inspect())
 }
 
-func (*NativeHashRecordIterator[K, V]) InstanceVariables() *value.InstanceVariables {
+func (*NativeKeyHashRecordIterator[K]) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (h *NativeHashRecordIterator[K, V]) Next() (p value.NativePair[K, V], err value.Value) {
+func (h *NativeKeyHashRecordIterator[K]) Next() (p value.NativePair[K, value.Value], err value.Value) {
 	if h.index >= len(h.snapshot) {
 		return p, symbol.L_stop_iteration.ToValue()
 	}
@@ -479,7 +457,7 @@ func (h *NativeHashRecordIterator[K, V]) Next() (p value.NativePair[K, V], err v
 	return h.snapshot[h.index], value.Undefined
 }
 
-func (h *NativeHashRecordIterator[K, V]) NextValue() (value.Value, value.Value) {
+func (h *NativeKeyHashRecordIterator[K]) NextValue() (value.Value, value.Value) {
 	p, err := h.Next()
 	if err.IsNotUndefined() {
 		return value.Undefined, err
@@ -488,6 +466,6 @@ func (h *NativeHashRecordIterator[K, V]) NextValue() (value.Value, value.Value) 
 	return p.ToValue(), value.Undefined
 }
 
-func (h *NativeHashRecordIterator[K, V]) Reset() {
+func (h *NativeKeyHashRecordIterator[K]) Reset() {
 	h.index = 0
 }

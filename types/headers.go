@@ -1880,6 +1880,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define methods
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("inspect_call_stack"), nil, nil, Void{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("inspect_inheritance"), nil, []*Parameter{NewParameter(value.ToSymbol("klass"), NameToType("Std::Class", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the name of the native type of the value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("inspect_native_type"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), Any{}, NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("inspect_value_stack"), nil, nil, Void{}, Never{})
 				namespace.DefineMethod("Returns the current stack trace.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("stack_trace"), nil, nil, NameToType("Std::StackTrace", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("start_cpu_profile"), nil, []*Parameter{NewParameter(value.ToSymbol("file_path"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, NameToType("Std::FileSystemError", env))

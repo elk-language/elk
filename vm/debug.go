@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"fmt"
 	"os"
 	"runtime/pprof"
 
@@ -68,5 +69,14 @@ func initDebug() {
 		func(v *Thread, args []value.Value) (value.Value, value.Value) {
 			return value.Ref(v.BuildStackTrace()), value.Undefined
 		},
+	)
+	Def(
+		c,
+		"inspect_native_type",
+		func(v *Thread, args []value.Value) (value.Value, value.Value) {
+			val := args[1].ToInterface()
+			return value.String(fmt.Sprintf("%T", val)).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
 	)
 }

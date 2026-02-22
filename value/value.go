@@ -26,6 +26,8 @@ type Value struct {
 	flag uint8
 }
 
+var _ ValueInterface = Value{}
+
 func MakeSentinelValue() Value {
 	return Value{flag: SENTINEL_FLAG}
 }
@@ -72,6 +74,10 @@ func Downcast[T ValueInterface](v Value) (T, bool) {
 // to the given concrete type.
 func MustDowncast[T ValueInterface](v Value) T {
 	return v.ToInterface().(T)
+}
+
+func (v Value) ToValue() Value {
+	return v
 }
 
 func (v Value) ToInterface() ValueInterface {
