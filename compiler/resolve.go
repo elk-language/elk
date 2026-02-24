@@ -31,9 +31,9 @@ func resolve(node ast.Node, checker types.Checker) value.Value {
 	case *ast.HashSetLiteralNode:
 		return resolveHashSetLiteral(n, checker)
 	case *ast.WordHashSetLiteralNode:
-		return resolveSpecialHashSetLiteral(n.Elements, checker, n.IsStatic())
+		return resolveSpecialNativeHashSetLiteral[ast.WordCollectionContentNode, value.String](n.Elements, checker, n.IsStatic())
 	case *ast.SymbolHashSetLiteralNode:
-		return resolveSpecialHashSetLiteral(n.Elements, checker, n.IsStatic())
+		return resolveSpecialNativeHashSetLiteral[ast.SymbolCollectionContentNode, value.Symbol](n.Elements, checker, n.IsStatic())
 	case *ast.BinHashSetLiteralNode:
 		return resolveSpecialHashSetLiteral(n.Elements, checker, n.IsStatic())
 	case *ast.HexHashSetLiteralNode:
@@ -1167,6 +1167,28 @@ func resolveSpecialHashSetLiteral[T ast.ExpressionNode](elements []T, checker ty
 		if !err.IsUndefined() {
 			return value.Undefined
 		}
+	}
+
+	return value.Ref(newSet)
+}
+
+func resolveSpecialNativeHashSetLiteral[N ast.ExpressionNode, T value.ComparableValueInterface](elements []N, checker types.Checker, static bool) value.Value {
+	if !static {
+		return value.Undefined
+	}
+	var t T
+
+	newSet := vm.NewNativeHashSet[T](len(elements))
+	for _, elementNode := range elements {
+		element := resolve(elementNode, checker)
+		if element.IsUndefined() {
+			return value.Undefined
+		}
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			panic(fmt.Sprintf("cannot cast %s to %T while resolving a hash set", element.Inspect(), t))
+		}
+		newSet.Append(e)
 	}
 
 	return value.Ref(newSet)
