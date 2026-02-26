@@ -59,6 +59,14 @@ func NewNativeArrayListWithElements[T ValueInterface](capacity int, elements ...
 	return &l
 }
 
+func (t *NativeArrayList[T]) NewArrayList(capacity int) ArrayList {
+	return NewNativeArrayList[T](capacity)
+}
+
+func (t *NativeArrayList[T]) NewArrayTuple(capacity int) ArrayTuple {
+	return t.NewArrayList(capacity)
+}
+
 func (l *NativeArrayList[T]) Elements() iter.Seq2[int, Value] {
 	return func(yield func(int, Value) bool) {
 		for i, element := range *l {

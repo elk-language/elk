@@ -1,6 +1,8 @@
 package value
 
-import "iter"
+import (
+	"iter"
+)
 
 // ::Std::ArrayTuple
 //
@@ -23,6 +25,10 @@ type ArrayTuple interface {
 	ConcatVal(Value) (Value, Value)
 	RepeatVal(Value) (Value, Value)
 	IterTuple() ArrayTupleIterator
+	NewArrayTuple(capacity int) ArrayTuple
+
+	SubscriptSet(key, val Value) Value
+	AppendVal(elements ...Value) Value
 }
 
 type ArrayTupleIterator interface {

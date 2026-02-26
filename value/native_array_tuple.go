@@ -59,6 +59,10 @@ func NewNativeArrayTupleWithElements[T ValueInterface](capacity int, elements ..
 	return &l
 }
 
+func (t *NativeArrayTuple[T]) NewArrayTuple(capacity int) ArrayTuple {
+	return NewNativeArrayTuple[T](capacity)
+}
+
 func (t *NativeArrayTuple[T]) IterNative() *NativeArrayTupleIterator[T] {
 	return NewNativeArrayTupleIterator(t)
 }
@@ -116,12 +120,19 @@ func (t *NativeArrayTuple[T]) Error() string {
 }
 
 // Add a new element.
-func (t *NativeArrayTuple[T]) Append(element T) {
-	*t = append(*t, element)
+func (t *NativeArrayTuple[T]) Append(elements ...T) {
+	*t = append(*t, elements...)
 }
 
-func (t *NativeArrayTuple[T]) AppendVal(element Value) {
-	*t = append(*t, element.ToInterface().(T))
+func (l *NativeArrayTuple[T]) AppendVal(elements ...Value) Value {
+	for _, element := range elements {
+		e, ok := Downcast[T](element)
+		if !ok {
+			return NewInvalidElementInTypedArray(l, element.Class()).ToValue()
+		}
+		*l = append(*l, e)
+	}
+	return Undefined
 }
 
 func (t *NativeArrayTuple[T]) Inspect() string {

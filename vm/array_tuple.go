@@ -5,11 +5,6 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
-type mutableArrayTuple interface {
-	value.ArrayTuple
-	SubscriptSet(key, val value.Value) value.Value
-}
-
 // ::Std::ArrayTuple
 func initArrayTuple() {
 	// Instance methods

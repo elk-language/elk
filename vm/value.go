@@ -395,7 +395,7 @@ func SubscriptSetBuiltin(vm *Thread, collection, key, val value.Value) (err valu
 	switch l := collection.AsReference().(type) {
 	case value.ArrayList:
 		return l.SubscriptSet(key, val)
-	case mutableArrayTuple:
+	case value.ArrayTuple:
 		return l.SubscriptSet(key, val)
 	case HashMap:
 		return l.SetVal(vm, key, val)

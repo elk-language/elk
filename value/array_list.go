@@ -23,6 +23,7 @@ type ArrayList interface {
 	RemoveAt(i int)
 	RemoveAtErr(index int) Value
 	IterList() ArrayListIterator
+	NewArrayList(capacity int) ArrayList
 }
 
 type ArrayListIterator interface {

@@ -2979,24 +2979,22 @@ func (vm *Thread) opNewArrayList(dynamicElements int) value.Value {
 func (vm *Thread) opNewArrayTuple(dynamicElements int) {
 	firstElement := vm.spAdd(-dynamicElements)
 	baseArrayTuple := *vm.spAdd(-dynamicElements - 1)
-	var newArrayTuple value.ArrayTupleOfValue
+	var newArrayTuple value.ArrayTuple
 
 	if baseArrayTuple.IsUndefined() {
-		newArrayTuple = make(value.ArrayTupleOfValue, 0, dynamicElements)
+		newArrayTuple = value.NewArrayTupleOfValue(dynamicElements)
 	} else {
-		switch t := baseArrayTuple.SafeAsReference().(type) {
-		case *value.ArrayTupleOfValue:
-			newArrayTuple = make(value.ArrayTupleOfValue, 0, len(*t)+dynamicElements)
-			newArrayTuple = append(newArrayTuple, *t...)
-		default:
-			panic(fmt.Sprintf("invalid array tuple base: %s", baseArrayTuple.Inspect()))
+		t := baseArrayTuple.AsReference().(value.ArrayTuple)
+		newArrayTuple = t.NewArrayTuple(t.Length() + dynamicElements)
+		for _, e := range t.Elements() {
+			newArrayTuple.AppendVal(e)
 		}
 	}
 
-	newArrayTuple = append(newArrayTuple, unsafe.Slice(firstElement, dynamicElements)...)
+	newArrayTuple.AppendVal(unsafe.Slice(firstElement, dynamicElements)...)
 	vm.popN(dynamicElements + 1)
 
-	vm.push(value.Ref(&newArrayTuple))
+	vm.push(newArrayTuple.ToValue())
 }
 
 // Define a new constant

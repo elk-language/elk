@@ -90,7 +90,16 @@ func (t *ArrayTupleOfValue) Error() string {
 	return t.Inspect()
 }
 
+func (t *ArrayTupleOfValue) NewArrayTuple(capacity int) ArrayTuple {
+	return NewArrayTupleOfValue(capacity)
+}
+
 // Add a new element.
+func (t *ArrayTupleOfValue) AppendVal(elements ...Value) Value {
+	*t = append(*t, elements...)
+	return Undefined
+}
+
 func (t *ArrayTupleOfValue) Append(element Value) {
 	*t = append(*t, element)
 }

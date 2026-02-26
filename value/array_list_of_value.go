@@ -45,6 +45,14 @@ func NewArrayListOfValueWithElements(capacity int, elements ...Value) *ArrayList
 	return &l
 }
 
+func (t *ArrayListOfValue) NewArrayList(capacity int) ArrayList {
+	return NewArrayListOfValue(capacity)
+}
+
+func (t *ArrayListOfValue) NewArrayTuple(capacity int) ArrayTuple {
+	return t.NewArrayList(capacity)
+}
+
 func (*ArrayListOfValue) Class() *Class {
 	return ArrayListClass
 }

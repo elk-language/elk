@@ -5676,15 +5676,9 @@ elementLoop:
 	c.emitNewArrayList(len(dynamicElementNodes), location)
 }
 
-func (c *BytecodeCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) {
-	if c.resolveAndEmit(node) {
-		return
-	}
-
-	location := node.Location()
-
-	var baseArrayTuple value.ArrayTupleOfValue
-	firstDynamicIndex := -1
+func (c *BytecodeCompiler) compileArrayTupleOfValueBase(node *ast.ArrayTupleLiteralNode) (baseArrayTuple value.ArrayTuple, firstDynamicIndex int) {
+	firstDynamicIndex = -1
+	var base value.ArrayTupleOfValue
 
 elementLoop:
 	for i, elementNode := range node.Elements {
@@ -5701,24 +5695,102 @@ elementLoop:
 				break elementSwitch
 			}
 
-			baseArrayTuple.Expand((index + 1) - len(baseArrayTuple))
-			baseArrayTuple[index] = val
+			base.Expand((index + 1) - len(base))
+			base[index] = val
 			continue elementLoop
 		}
 
 		element := c.resolve(elementNode)
 		if element.IsUndefined() {
 			firstDynamicIndex = i
-			break
+			break elementLoop
 		}
 
-		baseArrayTuple = append(baseArrayTuple, element)
+		base = append(base, element)
 	}
 
-	if len(baseArrayTuple) == 0 {
+	return &base, firstDynamicIndex
+}
+
+func compileNativeArrayTupleBase[T value.ValueInterface](c *BytecodeCompiler, node *ast.ArrayTupleLiteralNode) (baseArrayTuple value.ArrayTuple, firstDynamicIndex int) {
+	firstDynamicIndex = -1
+	base := value.NewNativeArrayTuple[T](5)
+
+elementLoop:
+	for i, elementNode := range node.Elements {
+		element := c.resolve(elementNode)
+		if element.IsUndefined() {
+			firstDynamicIndex = i
+			break elementLoop
+		}
+
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			firstDynamicIndex = i
+			break elementLoop
+		}
+		base.Append(e)
+	}
+
+	return base, firstDynamicIndex
+}
+
+func (c *BytecodeCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	location := node.Location()
+
+	elementType, _ := c.checker.GetIteratorElementType(c.typeOf(node))
+
+	var baseArrayTuple value.ArrayTuple
+	var firstDynamicIndex int
+	isNative := true
+
+	if c.checker.IsSubtype(elementType, c.checker.Std(symbol.String)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.String](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Symbol)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Symbol](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.UInt](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt64)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.UInt64](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int64)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Int64](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt32)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.UInt32](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int32)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Int32](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt16)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.UInt16](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int16)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Int16](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt8)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.UInt8](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int8)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Int8](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Float](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float64)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Float64](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float32)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Float32](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Char)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Char](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Date)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Date](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Time)) {
+		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Time](c, node)
+	} else {
+		isNative = false
+		baseArrayTuple, firstDynamicIndex = c.compileArrayTupleOfValueBase(node)
+	}
+
+	if baseArrayTuple.Length() == 0 && !isNative {
 		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitLoadValue(value.Ref(&baseArrayTuple), location)
+		c.emitLoadValue(baseArrayTuple.ToValue(), location)
 	}
 
 	firstModifierElementIndex := -1
@@ -6582,15 +6654,15 @@ func (c *BytecodeCompiler) emitValue(val value.Value, location *position.Locatio
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
 		case *value.ArrayListOfValue:
-			c.emitArrayList(v, location)
+			c.emitArrayListOfValue(v, location)
 		case *value.ArrayTupleOfValue:
-			c.emitArrayTuple(v, location)
+			c.emitArrayTupleOfValue(v, location)
 		case *vm.HashSetOfValue:
-			c.emitHashSet(v, location)
+			c.emitHashSetOfValue(v, location)
 		case *vm.HashMapOfValue:
-			c.emitHashMap(v, location)
+			c.emitHashMapOfValue(v, location)
 		case *vm.HashRecordOfValue:
-			c.emitHashRecord(v, location)
+			c.emitHashRecordOfValue(v, location)
 		case value.Int64:
 			emitSignedInt(c, val, val.AsInlineInt64(), bytecode.LOAD_INT64_8, location)
 		case value.UInt64:
@@ -6725,7 +6797,7 @@ func (c *BytecodeCompiler) emitFloat(f value.Float, location *position.Location)
 	c.emitLoadValue(f.ToValue(), location)
 }
 
-func (c *BytecodeCompiler) emitHashSet(set *vm.HashSetOfValue, location *position.Location) {
+func (c *BytecodeCompiler) emitHashSetOfValue(set *vm.HashSetOfValue, location *position.Location) {
 	baseSet := vm.NewHashSetOfValue(set.Length())
 	var mutableElements []value.Value
 
@@ -6755,7 +6827,7 @@ listLoop:
 
 	c.emitNewHashMap(len(mutableElements), location)
 }
-func (c *BytecodeCompiler) emitHashMap(hmap *vm.HashMapOfValue, location *position.Location) {
+func (c *BytecodeCompiler) emitHashMapOfValue(hmap *vm.HashMapOfValue, location *position.Location) {
 	baseMap := vm.NewHashMapOfValue(hmap.Length())
 	var mutablePairs []value.PairOfValue
 
@@ -6787,7 +6859,7 @@ listLoop:
 	c.emitNewHashMap(len(mutablePairs), location)
 }
 
-func (c *BytecodeCompiler) emitHashRecord(hrec *vm.HashRecordOfValue, location *position.Location) {
+func (c *BytecodeCompiler) emitHashRecordOfValue(hrec *vm.HashRecordOfValue, location *position.Location) {
 	baseRecord := vm.NewHashRecordOfValue(hrec.Length())
 	var mutablePairs []value.PairOfValue
 
@@ -6816,7 +6888,7 @@ listLoop:
 	c.emitNewHashRecord(len(mutablePairs), location)
 }
 
-func (c *BytecodeCompiler) emitArrayList(list *value.ArrayListOfValue, location *position.Location) {
+func (c *BytecodeCompiler) emitArrayListOfValue(list *value.ArrayListOfValue, location *position.Location) {
 	firstMutableElementIndex := -1
 	l := *list
 
@@ -6848,7 +6920,7 @@ listLoop:
 	c.emitNewArrayList(len(rest), location)
 }
 
-func (c *BytecodeCompiler) emitArrayTuple(tuple *value.ArrayTupleOfValue, location *position.Location) {
+func (c *BytecodeCompiler) emitArrayTupleOfValue(tuple *value.ArrayTupleOfValue, location *position.Location) {
 	firstMutableElementIndex := -1
 	t := *tuple
 
@@ -6873,7 +6945,7 @@ listLoop:
 		c.emitValue(element, location)
 	}
 
-	c.emitNewArrayList(len(rest), location)
+	c.emitNewArrayTuple(len(rest), location)
 }
 
 func (c *BytecodeCompiler) compileBoxOfExpressionNode(node *ast.BoxOfExpressionNode) {
