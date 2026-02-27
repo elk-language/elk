@@ -24,6 +24,7 @@ type ArrayList interface {
 	RemoveAtErr(index int) Value
 	IterList() ArrayListIterator
 	NewArrayList(capacity int) ArrayList
+	CloneArrayList(capacity int) ArrayList
 }
 
 type ArrayListIterator interface {

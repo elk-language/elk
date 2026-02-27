@@ -607,7 +607,7 @@ func (vm *Thread) run() {
 		case bytecode.DEF_IVARS:
 			vm.throwIfErr(vm.opDefIvars())
 		case bytecode.APPEND:
-			vm.opAppend()
+			vm.throwIfErr(vm.opAppend())
 		case bytecode.MAP_SET:
 			vm.opMapSet()
 		case bytecode.COPY:
@@ -1938,24 +1938,35 @@ func (vm *Thread) opMapSet() {
 }
 
 // Append an element to a list, arrayTuple or hashSet.
-func (vm *Thread) opAppend() {
+func (vm *Thread) opAppend() (err value.Value) {
 	element := vm.popGet()
 	collection := vm.peek()
 
 	if collection.IsUndefined() {
 		vm.replace(value.Ref(&value.ArrayTupleOfValue{element}))
-		return
+		return value.Undefined
 	}
 	switch c := collection.SafeAsReference().(type) {
-	case *value.ArrayTupleOfValue:
-		c.Append(element)
-	case *value.ArrayListOfValue:
-		c.Append(element)
-	case *HashSetOfValue:
-		HashSetOfValueAppend(vm, c, element)
+	case value.ArrayList:
+		err := c.AppendVal(element)
+		if err.IsNotUndefined() {
+			return err
+		}
+	case value.ArrayTuple:
+		err := c.AppendVal(element)
+		if err.IsNotUndefined() {
+			return err
+		}
+	case HashSet:
+		_, err := c.AppendVal(vm, element)
+		if err.IsNotUndefined() {
+			return err
+		}
 	default:
 		panic(fmt.Sprintf("invalid collection to append to: %s", collection.Inspect()))
 	}
+
+	return value.Undefined
 }
 
 // Create a new instance of a class
@@ -2938,7 +2949,6 @@ func (vm *Thread) opNewArrayList(dynamicElements int) value.Value {
 	firstElement := vm.spAdd(-dynamicElements)
 	capacity := *vm.spAdd(-dynamicElements - 2)
 	baseList := *vm.spAdd(-dynamicElements - 1)
-	var newArrayList value.ArrayListOfValue
 
 	var additionalCapacity int
 
@@ -2956,22 +2966,18 @@ func (vm *Thread) opNewArrayList(dynamicElements int) value.Value {
 		additionalCapacity = c
 	}
 
+	var newArrayList value.ArrayList
 	if baseList.IsUndefined() {
-		newArrayList = make(value.ArrayListOfValue, 0, dynamicElements+additionalCapacity)
+		newArrayList = value.NewArrayListOfValue(dynamicElements + additionalCapacity)
 	} else {
-		switch l := baseList.SafeAsReference().(type) {
-		case *value.ArrayListOfValue:
-			newArrayList = make(value.ArrayListOfValue, 0, cap(*l)+additionalCapacity)
-			newArrayList = append(newArrayList, *l...)
-		default:
-			panic(fmt.Sprintf("invalid array list base: %s", baseList.Inspect()))
-		}
+		l := baseList.AsReference().(value.ArrayList)
+		newArrayList = l.CloneArrayList(l.Capacity() + additionalCapacity)
 	}
 
-	newArrayList = append(newArrayList, unsafe.Slice(firstElement, dynamicElements)...)
+	newArrayList.AppendVal(unsafe.Slice(firstElement, dynamicElements)...)
 	vm.popN(dynamicElements + 2)
 
-	vm.push(value.Ref(&newArrayList))
+	vm.push(newArrayList.ToValue())
 	return value.Undefined
 }
 
@@ -2985,10 +2991,7 @@ func (vm *Thread) opNewArrayTuple(dynamicElements int) {
 		newArrayTuple = value.NewArrayTupleOfValue(dynamicElements)
 	} else {
 		t := baseArrayTuple.AsReference().(value.ArrayTuple)
-		newArrayTuple = t.NewArrayTuple(t.Length() + dynamicElements)
-		for _, e := range t.Elements() {
-			newArrayTuple.AppendVal(e)
-		}
+		newArrayTuple = t.CloneArrayTuple(t.Length() + dynamicElements)
 	}
 
 	newArrayTuple.AppendVal(unsafe.Slice(firstElement, dynamicElements)...)

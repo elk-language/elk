@@ -94,14 +94,20 @@ func (t *ArrayTupleOfValue) NewArrayTuple(capacity int) ArrayTuple {
 	return NewArrayTupleOfValue(capacity)
 }
 
+func (t *ArrayTupleOfValue) CloneArrayTuple(capacity int) ArrayTuple {
+	newTuple := NewArrayTupleOfValue(capacity)
+	newTuple.Append(*t...)
+	return newTuple
+}
+
 // Add a new element.
 func (t *ArrayTupleOfValue) AppendVal(elements ...Value) Value {
 	*t = append(*t, elements...)
 	return Undefined
 }
 
-func (t *ArrayTupleOfValue) Append(element Value) {
-	*t = append(*t, element)
+func (t *ArrayTupleOfValue) Append(elements ...Value) {
+	*t = append(*t, elements...)
 }
 
 const MAX_ARRAY_TUPLE_ELEMENTS_IN_INSPECT = 300

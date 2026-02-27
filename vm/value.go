@@ -411,14 +411,20 @@ func IsMutableCollection(val value.Value) bool {
 		return false
 	}
 	switch v := val.AsReference().(type) {
-	case *value.ArrayListOfValue, *HashMapOfValue, HashMap, value.ArrayList:
+	case HashMap, value.ArrayList, HashSet:
 		return true
 	case *value.ArrayTupleOfValue:
 		if slices.ContainsFunc(*v, IsMutableCollection) {
 			return true
 		}
-	case *HashRecordOfValue:
-		for _, pair := range v.Table {
+	case value.ArrayTuple:
+		for _, element := range v.Elements() {
+			if IsMutableCollection(element) {
+				return true
+			}
+		}
+	case HashRecord:
+		for pair := range v.All() {
 			if IsMutableCollection(pair.Key()) || IsMutableCollection(pair.Value()) {
 				return true
 			}

@@ -63,6 +63,12 @@ func (t *NativeArrayTuple[T]) NewArrayTuple(capacity int) ArrayTuple {
 	return NewNativeArrayTuple[T](capacity)
 }
 
+func (t *NativeArrayTuple[T]) CloneArrayTuple(capacity int) ArrayTuple {
+	newTuple := NewNativeArrayTuple[T](capacity)
+	newTuple.Append(*t...)
+	return newTuple
+}
+
 func (t *NativeArrayTuple[T]) IterNative() *NativeArrayTupleIterator[T] {
 	return NewNativeArrayTupleIterator(t)
 }

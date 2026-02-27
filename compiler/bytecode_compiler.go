@@ -5493,21 +5493,9 @@ elementLoop:
 	c.emitNewHashRecord(len(dynamicElementNodes), location)
 }
 
-func (c *BytecodeCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode) {
-	location := node.Location()
-	if c.resolveAndEmitList(node) {
-		return
-	}
-
-	var keyValueCount int
-	for _, elementNode := range node.Elements {
-		switch elementNode.(type) {
-		case *ast.KeyValueExpressionNode:
-			keyValueCount++
-		}
-	}
-	baseList := make(value.ArrayListOfValue, 0, len(node.Elements)-keyValueCount)
-	firstDynamicIndex := -1
+func (c *BytecodeCompiler) compileArrayListOfValueBase(node *ast.ArrayListLiteralNode, keyValueCount int) (baseArrayList value.ArrayList, firstDynamicIndex int) {
+	firstDynamicIndex = -1
+	base := make(value.ArrayListOfValue, 0, len(node.Elements)-keyValueCount)
 
 elementLoop:
 	for i, elementNode := range node.Elements {
@@ -5524,8 +5512,8 @@ elementLoop:
 				break elementSwitch
 			}
 
-			baseList.Expand((index + 1) - len(baseList))
-			baseList[index] = val
+			base.Expand((index + 1) - len(base))
+			base[index] = val
 			continue elementLoop
 		}
 
@@ -5535,7 +5523,92 @@ elementLoop:
 			break
 		}
 
-		baseList = append(baseList, element)
+		base = append(base, element)
+	}
+
+	return &base, firstDynamicIndex
+}
+
+func compileNativeArrayListBase[T value.ValueInterface](c *BytecodeCompiler, node *ast.ArrayListLiteralNode, keyValueCount int) (baseArrayList value.ArrayList, firstDynamicIndex int) {
+	firstDynamicIndex = -1
+	base := value.NewNativeArrayList[T](len(node.Elements) - keyValueCount)
+
+	for i, elementNode := range node.Elements {
+		element := c.resolve(elementNode)
+		if element.IsUndefined() || vm.IsMutableCollection(element) {
+			firstDynamicIndex = i
+			break
+		}
+
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			firstDynamicIndex = i
+			break
+		}
+
+		base.Append(e)
+	}
+
+	return base, firstDynamicIndex
+}
+
+func (c *BytecodeCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode) {
+	location := node.Location()
+	if c.resolveAndEmitList(node) {
+		return
+	}
+
+	var keyValueCount int
+	for _, elementNode := range node.Elements {
+		switch elementNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			keyValueCount++
+		}
+	}
+
+	var baseList value.ArrayList
+	var firstDynamicIndex int
+	isNative := true
+
+	elementType, _ := c.checker.GetIteratorElementType(c.typeOf(node))
+
+	if c.checker.IsSubtype(elementType, c.checker.Std(symbol.String)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.String](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Symbol)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Symbol](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.UInt](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt64)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.UInt64](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int64)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Int64](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt32)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.UInt32](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int32)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Int32](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt16)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.UInt16](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int16)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Int16](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt8)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.UInt8](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int8)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Int8](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Float](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float64)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Float64](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float32)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Float32](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Char)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Char](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Date)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Date](c, node, keyValueCount)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Time)) {
+		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Time](c, node, keyValueCount)
+	} else {
+		isNative = false
+		baseList, firstDynamicIndex = c.compileArrayListOfValueBase(node, keyValueCount)
 	}
 
 	if node.Capacity == nil {
@@ -5544,10 +5617,10 @@ elementLoop:
 		c.compileNodeWithResult(node.Capacity)
 	}
 
-	if len(baseList) == 0 && (keyValueCount == 0 || cap(baseList) == 0) {
+	if baseList.Length() == 0 && (keyValueCount == 0 || baseList.Capacity() == 0) && !isNative {
 		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitLoadValue(value.Ref(&baseList), location)
+		c.emitLoadValue(baseList.ToValue(), location)
 	}
 
 	firstModifierElementIndex := -1

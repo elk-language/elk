@@ -45,12 +45,22 @@ func NewArrayListOfValueWithElements(capacity int, elements ...Value) *ArrayList
 	return &l
 }
 
-func (t *ArrayListOfValue) NewArrayList(capacity int) ArrayList {
+func (l *ArrayListOfValue) NewArrayList(capacity int) ArrayList {
 	return NewArrayListOfValue(capacity)
 }
 
-func (t *ArrayListOfValue) NewArrayTuple(capacity int) ArrayTuple {
-	return t.NewArrayList(capacity)
+func (l *ArrayListOfValue) CloneArrayList(capacity int) ArrayList {
+	newList := NewArrayListOfValue(capacity)
+	newList.Append(*l...)
+	return newList
+}
+
+func (l *ArrayListOfValue) NewArrayTuple(capacity int) ArrayTuple {
+	return l.NewArrayList(capacity)
+}
+
+func (l *ArrayListOfValue) CloneArrayTuple(capacity int) ArrayTuple {
+	return l.CloneArrayList(capacity)
 }
 
 func (*ArrayListOfValue) Class() *Class {
