@@ -609,7 +609,7 @@ func (vm *Thread) run() {
 		case bytecode.APPEND:
 			vm.throwIfErr(vm.opAppend())
 		case bytecode.MAP_SET:
-			vm.opMapSet()
+			vm.throwIfErr(vm.opMapSet())
 		case bytecode.COPY:
 			vm.opCopy()
 		case bytecode.APPEND_AT:
@@ -1922,19 +1922,27 @@ func (vm *Thread) opCopy() {
 }
 
 // Set the value under the given key in a hash-map or hash-record
-func (vm *Thread) opMapSet() {
+func (vm *Thread) opMapSet() (err value.Value) {
 	val := vm.popGet()
 	key := vm.popGet()
 	collection := vm.peek()
 
 	switch c := collection.SafeAsReference().(type) {
-	case *HashMapOfValue:
-		HashMapOfValueSet(vm, c, key, val)
-	case *HashRecordOfValue:
-		HashRecordOfValueSet(vm, c, key, val)
+	case HashMap:
+		err = c.SetVal(vm, key, val)
+		if err.IsNotUndefined() {
+			return err
+		}
+	case HashRecord:
+		err = c.SetVal(vm, key, val)
+		if err.IsNotUndefined() {
+			return err
+		}
 	default:
-		panic(fmt.Sprintf("invalid map to set a value in: %s", collection.Inspect()))
+		panic(fmt.Sprintf("invalid map to set a value in: %s, %T", collection.Inspect(), collection))
 	}
+
+	return value.Undefined
 }
 
 // Append an element to a list, arrayTuple or hashSet.
@@ -1963,7 +1971,7 @@ func (vm *Thread) opAppend() (err value.Value) {
 			return err
 		}
 	default:
-		panic(fmt.Sprintf("invalid collection to append to: %s", collection.Inspect()))
+		panic(fmt.Sprintf("invalid collection to append to: %s, %T", collection.Inspect(), collection))
 	}
 
 	return value.Undefined
@@ -2875,35 +2883,33 @@ func (vm *Thread) opNewHashMap(dynamicElements int) value.Value {
 }
 
 // Create a new hash record.
-func (vm *Thread) opNewHashRecord(dynamicElements int) value.Value {
+func (vm *Thread) opNewHashRecord(dynamicElements int) (err value.Value) {
 	firstElementOffset := -(dynamicElements * 2)
 	firstElement := vm.spAdd(firstElementOffset)
 	baseMap := *vm.spAdd(firstElementOffset - 1)
-	var newRecord *HashRecordOfValue
+	var newRecord HashRecord
 
 	if baseMap.IsUndefined() {
 		newRecord = NewHashRecordOfValue(dynamicElements)
 	} else {
-		switch m := baseMap.SafeAsReference().(type) {
-		case *HashRecordOfValue:
-			newRecord = NewHashRecordOfValue(m.Length())
-			err := HashRecordOfValueCopy(vm, newRecord, m)
-			if !err.IsUndefined() {
-				return err
-			}
-		default:
-			panic(fmt.Sprintf("invalid hash record base: %s", baseMap.Inspect()))
+		m := baseMap.AsReference().(HashRecord)
+		newRecord, err = m.CloneHashRecord(vm, m.Length())
+		if !err.IsUndefined() {
+			return err
 		}
 	}
 
 	for i := 0; i < dynamicElements*2; i += 2 {
 		key := *vm.stackAdd(firstElement, i)
 		val := *vm.stackAdd(firstElement, i+1)
-		HashRecordOfValueSetWithMaxLoad(vm, newRecord, key, val, 1)
+		err = newRecord.SetVal(vm, key, val)
+		if !err.IsUndefined() {
+			return err
+		}
 	}
 	vm.popN((dynamicElements * 2) + 1)
 
-	vm.push(value.Ref(newRecord))
+	vm.push(newRecord.ToValue())
 	return value.Undefined
 }
 
@@ -3197,7 +3203,7 @@ func (vm *Thread) opAppendAt() value.Value {
 			return err
 		}
 	default:
-		panic(fmt.Sprintf("cannot APPEND_AT to: %s", collection.Inspect()))
+		panic(fmt.Sprintf("cannot APPEND_AT to: %s, %T", collection.Inspect(), collection))
 	}
 
 	return value.Undefined

@@ -59,6 +59,12 @@ func MakeNativeHashRecord[K value.ComparableValueInterface, V value.ValueInterfa
 	return make(NativeHashRecord[K, V], capacity)
 }
 
+func (h NativeHashRecord[K, V]) CloneHashRecord(thread *Thread, capacity int) (HashRecord, value.Value) {
+	newRecord := MakeNativeHashRecord[K, V](capacity)
+	maps.Copy(newRecord, h)
+	return newRecord, value.Undefined
+}
+
 func (h NativeHashRecord[K, V]) All() iter.Seq[value.PairOfValue] {
 	return func(yield func(value.PairOfValue) bool) {
 		for k, v := range h {

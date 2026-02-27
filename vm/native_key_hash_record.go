@@ -13,7 +13,7 @@ import (
 
 type NativeKeyHashRecord[K value.ComparableValueInterface] map[K]value.Value
 
-var _ HashRecord = NativeHashRecord[value.String, value.String]{}
+var _ HashRecord = NativeKeyHashRecord[value.String]{}
 
 // Transform a map with native go types to a new Elk `NativeKeyHashRecord` with corresponding Elk types
 // using the given function.
@@ -44,6 +44,12 @@ func MakeNativeKeyHashRecordFromMap[K value.ComparableValueInterface](m map[K]va
 
 func MakeNativeKeyHashRecord[K value.ComparableValueInterface](capacity int) NativeKeyHashRecord[K] {
 	return make(NativeKeyHashRecord[K], capacity)
+}
+
+func (h NativeKeyHashRecord[K]) CloneHashRecord(thread *Thread, capacity int) (HashRecord, value.Value) {
+	newMap := MakeNativeKeyHashRecord[K](capacity)
+	maps.Copy(newMap, h)
+	return newMap, value.Undefined
 }
 
 func (h NativeKeyHashRecord[K]) All() iter.Seq[value.PairOfValue] {

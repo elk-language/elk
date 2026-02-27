@@ -399,7 +399,7 @@ func SubscriptSetBuiltin(vm *Thread, collection, key, val value.Value) (err valu
 		return l.SubscriptSet(key, val)
 	case HashMap:
 		return l.SetVal(vm, key, val)
-	case mutableHashRecord:
+	case HashRecord:
 		return l.SetVal(vm, key, val)
 	default:
 		return value.Undefined

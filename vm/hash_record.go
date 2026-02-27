@@ -20,10 +20,7 @@ type HashRecord interface {
 	ContainsValue(thread *Thread, val value.Value) (bool, value.Value)
 	Equal(thread *Thread, other value.Value) (bool, value.Value)
 	LaxEqual(thread *Thread, other value.Value) (bool, value.Value)
-}
-
-type mutableHashRecord interface {
-	HashRecord
+	CloneHashRecord(thread *Thread, capacity int) (HashRecord, value.Value)
 	SetVal(thread *Thread, key, val value.Value) value.Value
 }
 

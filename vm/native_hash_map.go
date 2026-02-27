@@ -81,6 +81,16 @@ func NewNativeHashMap[K value.ComparableValueInterface, V value.ValueInterface](
 	}
 }
 
+func (h *NativeHashMap[K, V]) CloneHashMap(thread *Thread, capacity int) (HashMap, value.Value) {
+	newMap := NewNativeHashMap[K, V](capacity)
+	maps.Copy(newMap.m, h.m)
+	return newMap, value.Undefined
+}
+
+func (h *NativeHashMap[K, V]) CloneHashRecord(thread *Thread, capacity int) (HashRecord, value.Value) {
+	return h.CloneHashMap(thread, capacity)
+}
+
 func (h *NativeHashMap[K, V]) All() iter.Seq[value.PairOfValue] {
 	return func(yield func(value.PairOfValue) bool) {
 		for k, v := range h.m {

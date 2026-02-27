@@ -11,6 +11,7 @@ type HashMap interface {
 	HashRecord
 	IterMap() value.NativeResettableIterator
 	SetVal(thread *Thread, key, val value.Value) value.Value
+	CloneHashMap(thread *Thread, capacity int) (HashMap, value.Value)
 }
 
 // ::Std::HashMap

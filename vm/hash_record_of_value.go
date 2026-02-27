@@ -52,6 +52,16 @@ func (h *HashRecordOfValue) Iterate() iter.Seq2[value.Value, value.Value] {
 	}
 }
 
+func (h *HashRecordOfValue) CloneHashRecord(thread *Thread, capacity int) (HashRecord, value.Value) {
+	newRecord := NewHashRecordOfValue(capacity)
+	err := HashRecordOfValueCopy(thread, newRecord, h)
+	if !err.IsUndefined() {
+		return nil, err
+	}
+
+	return newRecord, value.Undefined
+}
+
 func (h *HashRecordOfValue) IterNative() *HashRecordOfValueIterator {
 	return NewHashRecordOfValueIterator(h)
 }

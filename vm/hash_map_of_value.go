@@ -66,6 +66,20 @@ func (h *HashMapOfValue) Iterate() iter.Seq2[value.Value, value.Value] {
 	}
 }
 
+func (h *HashMapOfValue) CloneHashMap(thread *Thread, capacity int) (HashMap, value.Value) {
+	newMap := NewHashMapOfValue(capacity)
+	err := HashMapOfValueCopy(thread, newMap, h)
+	if !err.IsUndefined() {
+		return nil, err
+	}
+
+	return newMap, value.Undefined
+}
+
+func (h *HashMapOfValue) CloneHashRecord(thread *Thread, capacity int) (HashRecord, value.Value) {
+	return h.CloneHashMap(thread, capacity)
+}
+
 func (h *HashMapOfValue) IterNative() *HashMapOfValueIterator {
 	return NewHashMapOfValueIterator(h)
 }
