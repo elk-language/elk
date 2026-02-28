@@ -5094,14 +5094,9 @@ func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNod
 	c.emitNewHashSet(len(dynamicElementNodes), location)
 }
 
-func (c *BytecodeCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) {
-	if c.resolveAndEmit(node) {
-		return
-	}
-
-	location := node.Location()
-	baseMap := vm.NewHashMapOfValue(len(node.Elements))
-	firstDynamicIndex := -1
+func (c *BytecodeCompiler) compileHashMapOfValueBase(node *ast.HashMapLiteralNode) (baseMap vm.HashMap, firstDynamicIndex int) {
+	base := vm.NewHashMapOfValue(len(node.Elements))
+	firstDynamicIndex = -1
 
 elementLoop:
 	for i, elementNode := range node.Elements {
@@ -5117,7 +5112,7 @@ elementLoop:
 				break elementSwitch
 			}
 
-			vm.HashMapOfValueSetWithMaxLoad(nil, baseMap, key, val, 1)
+			vm.HashMapOfValueSetWithMaxLoad(nil, base, key, val, 1)
 			continue elementLoop
 		case *ast.SymbolKeyValueExpressionNode:
 			if !e.IsStatic() {
@@ -5129,12 +5124,362 @@ elementLoop:
 				break elementSwitch
 			}
 
-			vm.HashMapOfValueSetWithMaxLoad(nil, baseMap, key.ToValue(), val, 1)
+			vm.HashMapOfValueSetWithMaxLoad(nil, base, key.ToValue(), val, 1)
 			continue elementLoop
 		}
 
 		firstDynamicIndex = i
 		break elementLoop
+	}
+
+	return base, firstDynamicIndex
+}
+
+func compileNativeHashMapBase[K value.ComparableValueInterface, V value.ValueInterface](c *BytecodeCompiler, node *ast.HashMapLiteralNode) (baseMap vm.HashMap, firstDynamicIndex int) {
+	base := vm.NewNativeHashMap[K, V](len(node.Elements))
+	firstDynamicIndex = -1
+
+elementLoop:
+	for i, elementNode := range node.Elements {
+	elementSwitch:
+		switch e := elementNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			if !e.IsStatic() {
+				break elementSwitch
+			}
+			key := c.resolve(e.Key)
+			val := c.resolve(e.Value)
+			if vm.IsMutableCollection(key) || vm.IsMutableCollection(val) {
+				break elementSwitch
+			}
+
+			k, ok := value.Downcast[K](key)
+			if !ok {
+				break elementSwitch
+			}
+			v, ok := value.Downcast[V](val)
+			if !ok {
+				break elementSwitch
+			}
+
+			base.Set(k, v)
+			continue elementLoop
+		case *ast.SymbolKeyValueExpressionNode:
+			if !e.IsStatic() {
+				break elementSwitch
+			}
+			key := value.ToSymbol(identifierToName(e.Key)).ToValue()
+			val := c.resolve(e.Value)
+			if val.IsUndefined() || vm.IsMutableCollection(val) {
+				break elementSwitch
+			}
+
+			k, ok := value.Downcast[K](key)
+			if !ok {
+				break elementSwitch
+			}
+			v, ok := value.Downcast[V](val)
+			if !ok {
+				break elementSwitch
+			}
+
+			base.Set(k, v)
+			continue elementLoop
+		}
+
+		firstDynamicIndex = i
+		break elementLoop
+	}
+
+	return base, firstDynamicIndex
+}
+
+func compileNativeKeyHashMapBase[K value.ComparableValueInterface](c *BytecodeCompiler, node *ast.HashMapLiteralNode) (baseMap vm.HashMap, firstDynamicIndex int) {
+	base := vm.NewNativeKeyHashMap[K](len(node.Elements))
+	firstDynamicIndex = -1
+
+elementLoop:
+	for i, elementNode := range node.Elements {
+	elementSwitch:
+		switch e := elementNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			if !e.IsStatic() {
+				break elementSwitch
+			}
+			key := c.resolve(e.Key)
+			val := c.resolve(e.Value)
+			if vm.IsMutableCollection(key) || vm.IsMutableCollection(val) {
+				break elementSwitch
+			}
+
+			k, ok := value.Downcast[K](key)
+			if !ok {
+				break elementSwitch
+			}
+
+			base.Set(k, val)
+			continue elementLoop
+		case *ast.SymbolKeyValueExpressionNode:
+			if !e.IsStatic() {
+				break elementSwitch
+			}
+			key := value.ToSymbol(identifierToName(e.Key)).ToValue()
+			val := c.resolve(e.Value)
+			if val.IsUndefined() || vm.IsMutableCollection(val) {
+				break elementSwitch
+			}
+
+			k, ok := value.Downcast[K](key)
+			if !ok {
+				break elementSwitch
+			}
+
+			base.Set(k, val)
+			continue elementLoop
+		}
+
+		firstDynamicIndex = i
+		break elementLoop
+	}
+
+	return base, firstDynamicIndex
+}
+
+func (c *BytecodeCompiler) compileNativeHashMapOfStringBase(node *ast.HashMapLiteralNode, valType types.Type) (baseMap vm.HashMap, firstDynamicIndex int) {
+	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.String](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Symbol](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.UInt](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.UInt64](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int64)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Int64](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt32)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.UInt32](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int32)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Int32](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt16)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.UInt16](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int16)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Int16](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt8)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.UInt8](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int8)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Int8](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Float](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float64)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Float64](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float32)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Float32](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Char)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Char](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Bool)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Bool](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Date)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Date](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Time)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Time](c, node)
+	} else {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.String](c, node)
+	}
+
+	return baseMap, firstDynamicIndex
+}
+
+func (c *BytecodeCompiler) compileNativeHashMapOfSymbolBase(node *ast.HashMapLiteralNode, valType types.Type) (baseMap vm.HashMap, firstDynamicIndex int) {
+	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.String](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Symbol](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.UInt](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.UInt64](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int64)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Int64](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt32)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.UInt32](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int32)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Int32](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt16)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.UInt16](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int16)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Int16](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt8)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.UInt8](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int8)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Int8](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Float](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float64)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Float64](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float32)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Float32](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Char)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Char](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Bool)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Bool](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Date)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Date](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Time)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Time](c, node)
+	} else {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Symbol](c, node)
+	}
+
+	return baseMap, firstDynamicIndex
+}
+
+func (c *BytecodeCompiler) compileNativeHashMapOfCharBase(node *ast.HashMapLiteralNode, valType types.Type) (baseMap vm.HashMap, firstDynamicIndex int) {
+	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.String](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Symbol](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.UInt](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.UInt64](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int64)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Int64](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt32)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.UInt32](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int32)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Int32](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt16)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.UInt16](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int16)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Int16](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt8)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.UInt8](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int8)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Int8](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Float](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float64)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Float64](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float32)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Float32](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Char)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Char](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Bool)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Bool](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Date)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Date](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Time)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Time](c, node)
+	} else {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Char](c, node)
+	}
+
+	return baseMap, firstDynamicIndex
+}
+
+func (c *BytecodeCompiler) compileNativeHashMapOfFloatBase(node *ast.HashMapLiteralNode, valType types.Type) (baseMap vm.HashMap, firstDynamicIndex int) {
+	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.String](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Symbol](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.UInt](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.UInt64](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int64)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Int64](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt32)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.UInt32](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int32)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Int32](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt16)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.UInt16](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int16)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Int16](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt8)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.UInt8](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int8)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Int8](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Float](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float64)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Float64](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float32)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Float32](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Char)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Char](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Bool)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Bool](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Date)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Date](c, node)
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Time)) {
+		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Time](c, node)
+	} else {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Float](c, node)
+	}
+
+	return baseMap, firstDynamicIndex
+}
+
+func (c *BytecodeCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	location := node.Location()
+
+	var keyType, valType types.Type
+
+	typ := c.typeOf(node)
+	elementType, _ := c.checker.GetIteratorElementType(typ)
+	if g, ok := elementType.(*types.Generic); ok {
+		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.Pair).(*types.Class)) {
+			keyType = g.Get(0).Type
+			valType = g.Get(1).Type
+		}
+	}
+
+	var baseMap vm.HashMap
+	var firstDynamicIndex int
+	isNative := true
+
+	if c.checker.IsSubtype(keyType, c.checker.Std(symbol.String)) {
+		baseMap, firstDynamicIndex = c.compileNativeHashMapOfStringBase(node, valType)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Symbol)) {
+		baseMap, firstDynamicIndex = c.compileNativeHashMapOfSymbolBase(node, valType)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Char)) {
+		baseMap, firstDynamicIndex = c.compileNativeHashMapOfCharBase(node, valType)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Float)) {
+		baseMap, firstDynamicIndex = c.compileNativeHashMapOfFloatBase(node, valType)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Float64)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Float64](c, node)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Float32)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Float32](c, node)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.UInt](c, node)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt64)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.UInt64](c, node)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Int64)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Int64](c, node)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt32)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.UInt32](c, node)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Int32)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Int32](c, node)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt16)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.UInt16](c, node)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Int16)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Int16](c, node)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt8)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.UInt8](c, node)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Int8)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Int8](c, node)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Date)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Date](c, node)
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Time)) {
+		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Time](c, node)
+	} else {
+		isNative = false
+		baseMap, firstDynamicIndex = c.compileHashMapOfValueBase(node)
 	}
 
 	if node.Capacity == nil {
@@ -5143,10 +5488,10 @@ elementLoop:
 		c.compileNodeWithResult(node.Capacity)
 	}
 
-	if baseMap.Length() == 0 && baseMap.Capacity() == 0 {
+	if baseMap.Length() == 0 && !isNative {
 		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitLoadValue(value.Ref(baseMap), location)
+		c.emitLoadValue(baseMap.ToValue(), location)
 	}
 
 	firstModifierElementIndex := -1
@@ -5459,7 +5804,7 @@ func (c *BytecodeCompiler) compileNativeHashRecordOfStringBase(node *ast.HashRec
 	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.String](c, node)
 	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
-		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.String](c, node)
+		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Symbol](c, node)
 	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.UInt](c, node)
 	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
@@ -5503,7 +5848,7 @@ func (c *BytecodeCompiler) compileNativeHashRecordOfSymbolBase(node *ast.HashRec
 	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.String](c, node)
 	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
-		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.String](c, node)
+		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Symbol](c, node)
 	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.UInt](c, node)
 	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
@@ -5547,7 +5892,7 @@ func (c *BytecodeCompiler) compileNativeHashRecordOfCharBase(node *ast.HashRecor
 	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.String](c, node)
 	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
-		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.String](c, node)
+		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Symbol](c, node)
 	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.UInt](c, node)
 	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
@@ -5591,7 +5936,7 @@ func (c *BytecodeCompiler) compileNativeHashRecordOfFloatBase(node *ast.HashReco
 	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.String](c, node)
 	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
-		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.String](c, node)
+		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Symbol](c, node)
 	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.UInt](c, node)
 	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {

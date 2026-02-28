@@ -2830,12 +2830,12 @@ func (vm *Thread) opNewHashSet(dynamicElements int) value.Value {
 }
 
 // Create a new hashmap.
-func (vm *Thread) opNewHashMap(dynamicElements int) value.Value {
+func (vm *Thread) opNewHashMap(dynamicElements int) (err value.Value) {
 	firstElementOffset := -(dynamicElements * 2)
 	firstElement := vm.spAdd(firstElementOffset)
 	capacity := *vm.spAdd(firstElementOffset - 2)
 	baseMap := *vm.spAdd(firstElementOffset - 1)
-	var newMap *HashMapOfValue
+	var newMap HashMap
 
 	var additionalCapacity int
 
@@ -2856,29 +2856,24 @@ func (vm *Thread) opNewHashMap(dynamicElements int) value.Value {
 	if baseMap.IsUndefined() {
 		newMap = NewHashMapOfValue(dynamicElements + additionalCapacity)
 	} else {
-		switch m := baseMap.SafeAsReference().(type) {
-		case *HashMapOfValue:
-			newMap = NewHashMapOfValue(m.Capacity() + additionalCapacity)
-			err := HashMapOfValueCopy(vm, newMap, m)
-			if !err.IsUndefined() {
-				return err
-			}
-		default:
-			panic(fmt.Sprintf("invalid hash map base: %s", baseMap.Inspect()))
+		m := baseMap.AsReference().(HashMap)
+		newMap, err = m.CloneHashMap(vm, m.Length()+additionalCapacity)
+		if !err.IsUndefined() {
+			return err
 		}
 	}
 
 	for i := 0; i < dynamicElements*2; i += 2 {
 		key := *vm.stackAdd(firstElement, i)
 		val := *vm.stackAdd(firstElement, i+1)
-		err := HashMapOfValueSetWithMaxLoad(vm, newMap, key, val, 1)
+		err = newMap.SetVal(vm, key, val)
 		if !err.IsUndefined() {
 			return err
 		}
 	}
 	vm.popN((dynamicElements * 2) + 2)
 
-	vm.push(value.Ref(newMap))
+	vm.push(newMap.ToValue())
 	return value.Undefined
 }
 
