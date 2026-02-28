@@ -20,6 +20,7 @@ type HashSet interface {
 	AppendVal(*Thread, value.Value) (added bool, err value.Value)
 	RemoveVal(thread *Thread, other value.Value) (removed bool, err value.Value)
 	IterSet() value.NativeResettableIterator
+	CloneHashSet(thread *Thread, capacity int) (result HashSet, err value.Value)
 }
 
 // ::Std::HashSet

@@ -69,6 +69,12 @@ func NewNativeHashSet[V value.ComparableValueInterface](capacity int) *NativeHas
 	}
 }
 
+func (h *NativeHashSet[V]) CloneHashSet(thread *Thread, capacity int) (HashSet, value.Value) {
+	newSet := NewNativeHashSet[V](capacity)
+	maps.Copy(newSet.m, h.m)
+	return newSet, value.Undefined
+}
+
 func (h *NativeHashSet[V]) All() iter.Seq[value.Value] {
 	return func(yield func(value.Value) bool) {
 		for element := range h.m {
@@ -346,7 +352,7 @@ func (h *NativeHashSet[V]) Equal(thread *Thread, other value.Value) (result bool
 
 func (h *NativeHashSet[V]) Append(val V) (result bool) {
 	_, present := h.m[val]
-	if !present {
+	if present {
 		return false
 	}
 

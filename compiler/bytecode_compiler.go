@@ -4973,14 +4973,9 @@ func (c *BytecodeCompiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) {
 	}
 }
 
-func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
-	location := node.Location()
-	if c.resolveAndEmit(node) {
-		return
-	}
-
+func (c *BytecodeCompiler) compileHashSetOfValueBase(node *ast.HashSetLiteralNode) (baseHashSet vm.HashSet, firstDynamicIndex int) {
 	baseSet := vm.NewHashSetOfValue(len(node.Elements))
-	firstDynamicIndex := -1
+	firstDynamicIndex = -1
 
 	for i, elementNode := range node.Elements {
 		element := c.resolve(elementNode)
@@ -4992,16 +4987,93 @@ func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNod
 		vm.HashSetOfValueAppendWithMaxLoad(nil, baseSet, element, 1)
 	}
 
+	return baseSet, firstDynamicIndex
+}
+
+func compileNativeHashSetBase[T value.ComparableValueInterface](c *BytecodeCompiler, node *ast.HashSetLiteralNode) (baseHashSet vm.HashSet, firstDynamicIndex int) {
+	baseSet := vm.NewNativeHashSet[T](len(node.Elements))
+	firstDynamicIndex = -1
+
+	for i, elementNode := range node.Elements {
+		element := c.resolve(elementNode)
+		if element.IsUndefined() || vm.IsMutableCollection(element) {
+			firstDynamicIndex = i
+			break
+		}
+
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			firstDynamicIndex = i
+			break
+		}
+
+		baseSet.Append(e)
+	}
+
+	return baseSet, firstDynamicIndex
+}
+
+func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) {
+	location := node.Location()
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	elementType, _ := c.checker.GetIteratorElementType(c.typeOf(node))
+
+	var baseSet vm.HashSet
+	var firstDynamicIndex int
+	isNative := true
+
+	if c.checker.IsSubtype(elementType, c.checker.Std(symbol.String)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.String](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Symbol)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Symbol](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.UInt](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt64)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.UInt64](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int64)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Int64](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt32)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.UInt32](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int32)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Int32](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt16)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.UInt16](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int16)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Int16](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt8)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.UInt8](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int8)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Int8](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Float](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float64)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Float64](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float32)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Float32](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Char)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Char](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Date)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Date](c, node)
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Time)) {
+		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Time](c, node)
+	} else {
+		isNative = false
+		baseSet, firstDynamicIndex = c.compileHashSetOfValueBase(node)
+	}
+
 	if node.Capacity == nil {
 		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
 		c.compileNodeWithResult(node.Capacity)
 	}
 
-	if baseSet.Length() == 0 && baseSet.Capacity() == 0 {
+	if baseSet.Length() == 0 && !isNative {
 		c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitLoadValue(value.Ref(baseSet), location)
+		c.emitLoadValue(baseSet.ToValue(), location)
 	}
 
 	firstModifierElementIndex := -1

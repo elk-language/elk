@@ -27,6 +27,16 @@ func NewHashSetOfValue(capacity int) *HashSetOfValue {
 	}
 }
 
+func (h *HashSetOfValue) CloneHashSet(thread *Thread, capacity int) (HashSet, value.Value) {
+	newSet := NewHashSetOfValue(capacity)
+	err := HashSetOfValueCopy(thread, newSet, h)
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+
+	return newSet, value.Undefined
+}
+
 func (h *HashSetOfValue) All() iter.Seq[value.Value] {
 	return func(yield func(value.Value) bool) {
 		for _, element := range h.table {

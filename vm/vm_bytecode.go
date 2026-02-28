@@ -2779,11 +2779,11 @@ func (vm *Thread) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 }
 
 // Create a new hashset.
-func (vm *Thread) opNewHashSet(dynamicElements int) value.Value {
+func (vm *Thread) opNewHashSet(dynamicElements int) (err value.Value) {
 	firstElement := vm.spAdd(-dynamicElements)
 	capacity := *vm.spAdd(-dynamicElements - 2)
 	baseSet := *vm.spAdd(-dynamicElements - 1)
-	var newSet *HashSetOfValue
+	var newSet HashSet
 
 	var additionalCapacity int
 
@@ -2804,28 +2804,23 @@ func (vm *Thread) opNewHashSet(dynamicElements int) value.Value {
 	if baseSet.IsUndefined() {
 		newSet = NewHashSetOfValue(dynamicElements + additionalCapacity)
 	} else {
-		switch m := baseSet.SafeAsReference().(type) {
-		case *HashSetOfValue:
-			newSet = NewHashSetOfValue(m.Capacity() + additionalCapacity)
-			err := HashSetOfValueCopy(vm, newSet, m)
-			if !err.IsUndefined() {
-				return err
-			}
-		default:
-			panic(fmt.Sprintf("invalid hash set base: %s", baseSet.Inspect()))
+		m := baseSet.AsReference().(HashSet)
+		newSet, err = m.CloneHashSet(vm, m.Length()+additionalCapacity)
+		if !err.IsUndefined() {
+			return err
 		}
 	}
 
 	for i := range dynamicElements {
 		val := *vm.stackAdd(firstElement, i)
-		_, err := HashSetOfValueAppendWithMaxLoad(vm, newSet, val, 1)
+		_, err := newSet.AppendVal(vm, val)
 		if !err.IsUndefined() {
 			return err
 		}
 	}
 	vm.popN(dynamicElements + 2)
 
-	vm.push(value.Ref(newSet))
+	vm.push(newSet.ToValue())
 	return value.Undefined
 }
 
