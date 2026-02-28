@@ -450,8 +450,9 @@ func (h *NativeHashSetIterator[V]) Next() (v V, err value.Value) {
 		return v, symbol.L_stop_iteration.ToValue()
 	}
 
+	v = h.snapshot[h.index]
 	h.index++
-	return h.snapshot[h.index], value.Undefined
+	return v, value.Undefined
 }
 
 func (h *NativeHashSetIterator[V]) NextValue() (value.Value, value.Value) {

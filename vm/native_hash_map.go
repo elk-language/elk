@@ -521,8 +521,9 @@ func (h *NativeHashMapIterator[K, V]) Next() (p value.NativePair[K, V], err valu
 		return p, symbol.L_stop_iteration.ToValue()
 	}
 
+	v := h.snapshot[h.index]
 	h.index++
-	return h.snapshot[h.index], value.Undefined
+	return v, value.Undefined
 }
 
 func (h *NativeHashMapIterator[K, V]) NextValue() (value.Value, value.Value) {
