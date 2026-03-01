@@ -17,6 +17,12 @@ func NewThreadPool(threadCount, queueSize int, opts ...Option) *ThreadPool {
 	return tp
 }
 
+func (tp *ThreadPool) Call(fn func(vm *Thread) (result value.Value, err value.Value)) *Promise {
+	return NewNativePromise(tp, func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
+		return fn(vm)
+	})
+}
+
 func (tp *ThreadPool) initThreadPool(threadCount, queueSize int, opts ...Option) {
 	tp.TaskQueue = make(chan *Promise, queueSize)
 

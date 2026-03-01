@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/value"
-	"github.com/google/go-cmp/cmp"
 )
 
 type HashMap interface {
@@ -313,36 +312,6 @@ func initHashMapIterator() {
 		},
 	)
 
-}
-
-func NewHashMapOfValueComparer(opts *cmp.Options) cmp.Option {
-	return cmp.Comparer(func(x, y *HashMapOfValue) bool {
-		if x == y {
-			return true
-		}
-		if x.Length() != y.Length() {
-			return false
-		}
-
-		v := New()
-		for _, xPair := range x.Table {
-			if xPair.Key().IsUndefined() {
-				continue
-			}
-
-			yVal, err := HashMapOfValueGet(v, y, xPair.Key())
-			if !err.IsUndefined() {
-				return false
-			}
-
-			if !cmp.Equal(xPair.Value(), yVal, *opts...) {
-				return false
-			}
-
-		}
-
-		return true
-	})
 }
 
 // Create a new hashmap with the given entries.

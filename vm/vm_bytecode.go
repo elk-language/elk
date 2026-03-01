@@ -387,7 +387,12 @@ func (vm *Thread) callMethodOnStack(method value.Method, args int) value.Value {
 		vm.popN(args + 1)
 		vm.push(result)
 	default:
-		panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+		panic(
+			fmt.Sprintf(
+				"tried to call a method that is neither bytecode nor native: %#v",
+				method,
+			),
+		)
 	}
 
 	return value.Undefined
@@ -397,6 +402,16 @@ func (vm *Thread) callMethodOnStackByName(name value.Symbol, args int) value.Val
 	self := *vm.spAdd(-args - 1)
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
+	if method == nil {
+		panic(
+			fmt.Sprintf(
+				"tried to call a method that is neither bytecode nor native: %#v, %s in %s",
+				method,
+				name,
+				class.Name,
+			),
+		)
+	}
 	return vm.callMethodOnStack(method, args)
 }
 

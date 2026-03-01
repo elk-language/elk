@@ -100,6 +100,11 @@ func (t *ArrayTupleOfValue) CloneArrayTuple(capacity int) ArrayTuple {
 	return newTuple
 }
 
+func (t *ArrayTupleOfValue) SliceArrayTuple(from, to int) ArrayTuple {
+	n := (*t)[from:to]
+	return &n
+}
+
 // Add a new element.
 func (t *ArrayTupleOfValue) AppendVal(elements ...Value) Value {
 	*t = append(*t, elements...)

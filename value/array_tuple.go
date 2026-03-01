@@ -27,6 +27,7 @@ type ArrayTuple interface {
 	IterTuple() ArrayTupleIterator
 	NewArrayTuple(capacity int) ArrayTuple
 	CloneArrayTuple(capacity int) ArrayTuple
+	SliceArrayTuple(from, to int) ArrayTuple
 
 	SubscriptSet(key, val Value) Value
 	AppendVal(elements ...Value) Value

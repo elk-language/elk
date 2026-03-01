@@ -394,32 +394,28 @@ func HashRecordOfValueSet(vm *Thread, hashRecord *HashRecordOfValue, key, val va
 	return HashMapOfValueSet(vm, (*HashMapOfValue)(hashRecord), key, val)
 }
 
-func NewHashRecordOfValueComparer(opts *cmp.Options) cmp.Option {
-	return cmp.Comparer(func(x, y *HashRecordOfValue) bool {
-		if x == y {
-			return true
-		}
+func NewHashRecordComparer(opts *cmp.Options) cmp.Option {
+	return cmp.Comparer(func(x, y HashRecord) bool {
 		if x.Length() != y.Length() {
 			return false
 		}
 
-		v := New()
-		for _, xPair := range x.Table {
-			if xPair.Key().IsUndefined() {
-				continue
+		result := DefaultThreadPool.Call(func(vm *Thread) (result value.Value, err value.Value) {
+			v := New()
+			for xPair := range x.All() {
+				yVal, err := y.GetVal(v, xPair.Key())
+				if !err.IsUndefined() {
+					return value.False.ToValue(), value.Undefined
+				}
+
+				if !cmp.Equal(xPair.Value(), yVal, *opts...) {
+					return value.False.ToValue(), value.Undefined
+				}
 			}
 
-			yVal, err := HashRecordOfValueGet(v, y, xPair.Key())
-			if !err.IsUndefined() {
-				return false
-			}
+			return value.True.ToValue(), value.Undefined
+		}).MustAwaitSync()
 
-			if !cmp.Equal(xPair.Value(), yVal, *opts...) {
-				return false
-			}
-
-		}
-
-		return true
+		return value.Truthy(result)
 	})
 }

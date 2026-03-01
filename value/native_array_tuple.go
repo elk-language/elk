@@ -69,6 +69,11 @@ func (t *NativeArrayTuple[T]) CloneArrayTuple(capacity int) ArrayTuple {
 	return newTuple
 }
 
+func (t *NativeArrayTuple[T]) SliceArrayTuple(from, to int) ArrayTuple {
+	n := (*t)[from:to]
+	return &n
+}
+
 func (t *NativeArrayTuple[T]) IterNative() *NativeArrayTupleIterator[T] {
 	return NewNativeArrayTupleIterator(t)
 }

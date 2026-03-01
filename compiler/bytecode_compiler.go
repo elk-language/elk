@@ -247,7 +247,7 @@ func (c *BytecodeCompiler) EmitReturn() {
 }
 
 func (c *BytecodeCompiler) typeOf(node ast.Node) types.Type {
-	return node.Type(c.checker.Env())
+	return types.Normalise(node.Type(c.checker.Env()))
 }
 
 func (c *BytecodeCompiler) compileGlobalEnv() {
@@ -2216,7 +2216,7 @@ func (c *BytecodeCompiler) compileForInRangeAsNumericFor(label string, inExpress
 		nil,
 		nil,
 	)
-	rangeElementType := inExpressionType.Get(0).Type
+	rangeElementType := types.Normalise(inExpressionType.Get(0).Type)
 	initVal.SetType(rangeElementType)
 
 	var cmpOp token.Type
@@ -2457,7 +2457,7 @@ func (c *BytecodeCompiler) compileForIn(
 
 	var loopBodyOffset int
 
-	nextType := c.checker.GetIteratorType(inExpressionType)
+	nextType := types.Normalise(c.checker.GetIteratorType(inExpressionType))
 	if c.checker.IsSubtype(nextType, c.checker.Std(symbol.S_BuiltinIterator)) {
 		loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.FOR_IN_BUILTIN)
 	} else {
@@ -2600,6 +2600,7 @@ func (c *BytecodeCompiler) emitGetterCall(name string, location *position.Locati
 }
 
 func (c *BytecodeCompiler) compileIncrement(typ types.Type, location *position.Location) {
+	typ = types.Normalise(typ)
 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 		c.emit(location.EndPos.Line, bytecode.INCREMENT_INT)
 		return
@@ -2613,6 +2614,7 @@ func (c *BytecodeCompiler) compileIncrement(typ types.Type, location *position.L
 }
 
 func (c *BytecodeCompiler) compileDecrement(typ types.Type, location *position.Location) {
+	typ = types.Normalise(typ)
 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 		c.emit(location.EndPos.Line, bytecode.DECREMENT_INT)
 		return
@@ -2626,6 +2628,7 @@ func (c *BytecodeCompiler) compileDecrement(typ types.Type, location *position.L
 }
 
 func (c *BytecodeCompiler) compileSubscript(typ types.Type, location *position.Location) {
+	typ = types.Normalise(typ)
 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinSubscriptable)) {
 		c.emit(location.EndPos.Line, bytecode.SUBSCRIPT)
 		return
@@ -2635,6 +2638,7 @@ func (c *BytecodeCompiler) compileSubscript(typ types.Type, location *position.L
 }
 
 func (c *BytecodeCompiler) compileSubscriptSet(typ types.Type, location *position.Location) {
+	typ = types.Normalise(typ)
 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinSubscriptable)) {
 		c.emit(location.EndPos.Line, bytecode.SUBSCRIPT_SET)
 		return
@@ -5020,6 +5024,7 @@ func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNod
 	}
 
 	elementType, _ := c.checker.GetIteratorElementType(c.typeOf(node))
+	elementType = types.Normalise(elementType)
 
 	var baseSet vm.HashSet
 	var firstDynamicIndex int
@@ -5506,8 +5511,8 @@ func (c *BytecodeCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNod
 	elementType, _ := c.checker.GetIteratorElementType(typ)
 	if g, ok := elementType.(*types.Generic); ok {
 		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.Pair).(*types.Class)) {
-			keyType = g.Get(0).Type
-			valType = g.Get(1).Type
+			keyType = types.Normalise(g.Get(0).Type)
+			valType = types.Normalise(g.Get(1).Type)
 		}
 	}
 
@@ -6061,8 +6066,8 @@ func (c *BytecodeCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLite
 	elementType, _ := c.checker.GetIteratorElementType(typ)
 	if g, ok := elementType.(*types.Generic); ok {
 		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.Pair).(*types.Class)) {
-			keyType = g.Get(0).Type
-			valType = g.Get(1).Type
+			keyType = types.Normalise(g.Get(0).Type)
+			valType = types.Normalise(g.Get(1).Type)
 		}
 	}
 
@@ -6335,6 +6340,7 @@ func (c *BytecodeCompiler) compileArrayListLiteralNode(node *ast.ArrayListLitera
 	isNative := true
 
 	elementType, _ := c.checker.GetIteratorElementType(c.typeOf(node))
+	elementType = types.Normalise(elementType)
 
 	if c.checker.IsSubtype(elementType, c.checker.Std(symbol.String)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.String](c, node, keyValueCount)
@@ -6580,6 +6586,7 @@ func (c *BytecodeCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLite
 	location := node.Location()
 
 	elementType, _ := c.checker.GetIteratorElementType(c.typeOf(node))
+	elementType = types.Normalise(elementType)
 
 	var baseArrayTuple value.ArrayTuple
 	var firstDynamicIndex int
@@ -7195,6 +7202,8 @@ func (c *BytecodeCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressio
 
 func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.Token, location *position.Location) {
 	line := location.StartPos.Line
+	typ = types.Normalise(typ)
+
 	switch opToken.Type {
 	case token.PLUS:
 		if c.checker.IsSubtype(typ, c.checker.StdInt()) {
@@ -7490,14 +7499,14 @@ func (c *BytecodeCompiler) resolveAndEmitList(node *ast.ArrayListLiteralNode) bo
 func (c *BytecodeCompiler) emitValue(val value.Value, location *position.Location) {
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
-		case *value.ArrayListOfValue:
-			c.emitArrayListOfValue(v, location)
+		case value.ArrayList:
+			c.emitArrayList(v, location)
 		case *value.ArrayTupleOfValue:
 			c.emitArrayTupleOfValue(v, location)
 		case *vm.HashSetOfValue:
-			c.emitHashSetOfValue(v, location)
+			c.emitHashSet(v, location)
 		case *vm.HashMapOfValue:
-			c.emitHashMapOfValue(v, location)
+			c.emitHashMap(v, location)
 		case *vm.HashRecordOfValue:
 			c.emitHashRecordOfValue(v, location)
 		case value.Int64:
@@ -7634,8 +7643,12 @@ func (c *BytecodeCompiler) emitFloat(f value.Float, location *position.Location)
 	c.emitLoadValue(f.ToValue(), location)
 }
 
-func (c *BytecodeCompiler) emitHashSetOfValue(set *vm.HashSetOfValue, location *position.Location) {
-	baseSet := vm.NewHashSetOfValue(set.Length())
+func (c *BytecodeCompiler) emitHashSet(set vm.HashSet, location *position.Location) {
+	baseSet, err := set.CloneHashSet(nil, set.Length())
+	if err.IsNotUndefined() {
+		panic(err)
+	}
+
 	var mutableElements []value.Value
 
 listLoop:
@@ -7645,27 +7658,32 @@ listLoop:
 			continue listLoop
 		}
 
-		vm.HashSetOfValueAppend(nil, baseSet, element)
+		baseSet.AppendVal(nil, element)
 	}
 
 	if len(mutableElements) == 0 {
-		c.emitLoadValue(value.Ref(baseSet), location)
+		c.emitLoadValue(baseSet.ToValue(), location)
 		c.emit(location.EndPos.Line, bytecode.COPY)
 		return
 	}
 
 	// capacity
 	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
-	c.emitLoadValue(value.Ref(baseSet), location)
+	c.emitLoadValue(baseSet.ToValue(), location)
 
 	for _, element := range mutableElements {
 		c.emitValue(element, location)
 	}
 
-	c.emitNewHashMap(len(mutableElements), location)
+	c.emitNewHashSet(len(mutableElements), location)
 }
-func (c *BytecodeCompiler) emitHashMapOfValue(hmap *vm.HashMapOfValue, location *position.Location) {
-	baseMap := vm.NewHashMapOfValue(hmap.Length())
+
+func (c *BytecodeCompiler) emitHashMap(hmap vm.HashMap, location *position.Location) {
+	baseMap, err := hmap.CloneHashMap(nil, hmap.Length())
+	if err.IsNotUndefined() {
+		panic(err)
+	}
+
 	var mutablePairs []value.PairOfValue
 
 listLoop:
@@ -7675,18 +7693,18 @@ listLoop:
 			continue listLoop
 		}
 
-		vm.HashMapOfValueSet(nil, baseMap, element.Key(), element.Value())
+		baseMap.SetVal(nil, element.Key(), element.Value())
 	}
 
 	if len(mutablePairs) == 0 {
-		c.emitLoadValue(value.Ref(baseMap), location)
+		c.emitLoadValue(baseMap.ToValue(), location)
 		c.emit(location.EndPos.Line, bytecode.COPY)
 		return
 	}
 
 	// capacity
 	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
-	c.emitLoadValue(value.Ref(baseMap), location)
+	c.emitLoadValue(baseMap.ToValue(), location)
 
 	for _, element := range mutablePairs {
 		c.emitValue(element.Key(), location)
@@ -7725,12 +7743,11 @@ listLoop:
 	c.emitNewHashRecord(len(mutablePairs), location)
 }
 
-func (c *BytecodeCompiler) emitArrayListOfValue(list *value.ArrayListOfValue, location *position.Location) {
+func (c *BytecodeCompiler) emitArrayList(list value.ArrayList, location *position.Location) {
 	firstMutableElementIndex := -1
-	l := *list
 
 listLoop:
-	for i, element := range l {
+	for i, element := range list.Elements() {
 		if vm.IsMutableCollection(element) {
 			firstMutableElementIndex = i
 			break listLoop
@@ -7738,7 +7755,7 @@ listLoop:
 	}
 
 	if firstMutableElementIndex == -1 {
-		c.emitLoadValue(value.Ref(list), location)
+		c.emitLoadValue(list.ToValue(), location)
 		c.emit(location.EndPos.Line, bytecode.COPY)
 		return
 	}
@@ -7746,15 +7763,15 @@ listLoop:
 	// capacity
 	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 
-	baseList := l[:firstMutableElementIndex]
-	c.emitLoadValue(value.Ref(&baseList), location)
+	baseList := list.SliceArrayList(0, firstMutableElementIndex)
+	c.emitLoadValue(baseList.ToValue(), location)
 
-	rest := l[firstMutableElementIndex:]
-	for _, element := range rest {
+	rest := list.SliceArrayList(firstMutableElementIndex, list.Length())
+	for _, element := range rest.Elements() {
 		c.emitValue(element, location)
 	}
 
-	c.emitNewArrayList(len(rest), location)
+	c.emitNewArrayList(rest.Length(), location)
 }
 
 func (c *BytecodeCompiler) emitArrayTupleOfValue(tuple *value.ArrayTupleOfValue, location *position.Location) {

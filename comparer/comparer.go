@@ -71,9 +71,8 @@ func init() {
 		value.NewRegexComparer(Comparer),
 		value.NewReferenceComparer(),
 		value.NewInlineValueComparer(Comparer),
-		vm.NewHashSetOfValueComparer(Comparer),
-		vm.NewHashMapOfValueComparer(Comparer),
-		vm.NewHashRecordOfValueComparer(Comparer),
+		vm.NewHashSetComparer(Comparer),
+		vm.NewHashRecordComparer(Comparer),
 		cmp.AllowUnexported(
 			value.Result{},
 			ast.NodeBase{},

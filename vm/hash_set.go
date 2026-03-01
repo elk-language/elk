@@ -233,34 +233,30 @@ func initHashSetIterator() {
 
 }
 
-func NewHashSetOfValueComparer(opts *cmp.Options) cmp.Option {
-	return cmp.Comparer(func(x, y *HashSetOfValue) bool {
+func NewHashSetComparer(opts *cmp.Options) cmp.Option {
+	return cmp.Comparer(func(x, y HashSet) bool {
 		if x == y {
 			return true
 		}
 		if x.Length() != y.Length() {
 			return false
 		}
-		if x.Capacity() != y.Capacity() {
-			return false
-		}
 
-		v := New()
-		for _, xVal := range x.table {
-			if xVal == DeletedHashSetValue || xVal.IsUndefined() {
-				continue
+		result := DefaultThreadPool.Call(func(vm *Thread) (result value.Value, err value.Value) {
+			for xVal := range x.All() {
+				contains, err := y.Contains(vm, xVal)
+				if !err.IsUndefined() {
+					return value.False.ToValue(), value.Undefined
+				}
+				if !contains {
+					return value.False.ToValue(), value.Undefined
+				}
 			}
 
-			contains, err := HashSetOfValueContains(v, y, xVal)
-			if !err.IsUndefined() {
-				return false
-			}
-			if !contains {
-				return false
-			}
-		}
+			return value.True.ToValue(), value.Undefined
+		}).MustAwaitSync()
 
-		return true
+		return value.Truthy(result)
 	})
 }
 

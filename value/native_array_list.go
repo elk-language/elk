@@ -69,6 +69,15 @@ func (l *NativeArrayList[T]) CloneArrayList(capacity int) ArrayList {
 	return newList
 }
 
+func (l *NativeArrayList[T]) SliceArrayList(from, to int) ArrayList {
+	n := (*l)[from:to]
+	return &n
+}
+
+func (l *NativeArrayList[T]) SliceArrayTuple(from, to int) ArrayTuple {
+	return l.SliceArrayList(from, to)
+}
+
 func (l *NativeArrayList[T]) NewArrayTuple(capacity int) ArrayTuple {
 	return l.NewArrayList(capacity)
 }

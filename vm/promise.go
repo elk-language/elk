@@ -142,10 +142,19 @@ func (p *Promise) IsResolved() bool {
 	return p.ThreadPool == nil
 }
 
-// Wait for the result of the promise
+// Wait for the result of the promise.
 func (p *Promise) AwaitSync() (value.Value, *value.StackTrace, value.Value) {
 	p.wg.Wait()
 	return p.result, p.stackTrace, p.err
+}
+
+// Wait for the result of the promise. Panics on error.
+func (p *Promise) MustAwaitSync() value.Value {
+	p.wg.Wait()
+	if p.err.IsNotUndefined() {
+		panic(p.err)
+	}
+	return p.result
 }
 
 func (p *Promise) RegisterContinuation(continuation *Promise) {

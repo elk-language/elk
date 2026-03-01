@@ -25,6 +25,7 @@ type ArrayList interface {
 	IterList() ArrayListIterator
 	NewArrayList(capacity int) ArrayList
 	CloneArrayList(capacity int) ArrayList
+	SliceArrayList(from, to int) ArrayList
 }
 
 type ArrayListIterator interface {

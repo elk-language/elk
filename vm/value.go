@@ -374,14 +374,10 @@ func SubscriptBuiltin(vm *Thread, collection, key value.Value) (result, err valu
 	}
 
 	switch c := collection.AsReference().(type) {
-	case *value.ArrayTupleOfValue:
+	case value.ArrayTuple:
 		return c.Subscript(key)
-	case *value.ArrayListOfValue:
-		return c.Subscript(key)
-	case *HashMapOfValue:
-		return HashMapOfValueGet(vm, c, key)
-	case *HashRecordOfValue:
-		return HashRecordOfValueGet(vm, c, key)
+	case HashRecord:
+		return c.GetVal(vm, key)
 	default:
 		return value.Undefined, value.Undefined
 	}
@@ -393,12 +389,8 @@ func SubscriptSetBuiltin(vm *Thread, collection, key, val value.Value) (err valu
 	}
 
 	switch l := collection.AsReference().(type) {
-	case value.ArrayList:
-		return l.SubscriptSet(key, val)
 	case value.ArrayTuple:
 		return l.SubscriptSet(key, val)
-	case HashMap:
-		return l.SetVal(vm, key, val)
 	case HashRecord:
 		return l.SetVal(vm, key, val)
 	default:

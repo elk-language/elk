@@ -479,9 +479,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -656,9 +656,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -837,9 +837,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.Float(5.5).ToValue(),
-						value.Float(3.9).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						5.5,
+						3.9,
 					}),
 					value.Float(3.0).ToValue(),
 				},
@@ -874,9 +874,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -1230,9 +1230,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.Float(5.5).ToValue(),
-						value.Float(3.9).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						5.5,
+						3.9,
 					}),
 					value.Float(3.0).ToValue(),
 				},
@@ -1267,9 +1267,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -1450,9 +1450,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.Float(5.5).ToValue(),
-						value.Float(3.9).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						5.5,
+						3.9,
 					}),
 					value.Float(3.0).ToValue(),
 				},
@@ -1487,9 +1487,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -1670,9 +1670,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.Float(5.2).ToValue(),
-						value.Float(3.0).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						5.2,
+						3.0,
 					}),
 					value.Float(10.9).ToValue(),
 				},
@@ -1707,9 +1707,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -1890,9 +1890,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -2073,9 +2073,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.Float(5.5).ToValue(),
-						value.Float(3.9).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						5.5,
+						3.9,
 					}),
 					value.Float(2.5).ToValue(),
 				},
@@ -2110,9 +2110,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -2293,9 +2293,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -2475,9 +2475,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -2657,9 +2657,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -2839,9 +2839,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -3021,9 +3021,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -3168,9 +3168,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt64(5).ToValue(),
-						value.UInt64(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt64]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -3204,9 +3204,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -3350,9 +3350,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt64(5).ToValue(),
-						value.UInt64(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt64]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -3386,9 +3386,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -5176,7 +5176,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 0,
 					byte(bytecode.INT_0),
 					byte(bytecode.SET_LOCAL_1),
@@ -5189,7 +5189,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.LOOP), 0, 13,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(66, 5, 16)),
@@ -5254,6 +5254,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						},
 					)),
 					value.ToSymbol("Foo").ToValue(),
+					value.NewArrayTupleOfValue(0).ToValue(),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
 				},
 			),
