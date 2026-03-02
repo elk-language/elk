@@ -108,6 +108,10 @@ func (n *NamedCallArgumentNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *NamedCallArgumentNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *NamedCallArgumentNode) Error() string {
 	return n.Inspect()
 }

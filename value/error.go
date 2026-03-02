@@ -15,6 +15,12 @@ var ErrorClass *Class
 // Thrown when a `nil` value is encountered in a `must` expression.
 var UnexpectedNilErrorClass *Class
 
+// ::Std::ConcurrentModificationError
+//
+// Thrown when a data structure is modified concurrently (eg. during iteration)
+// in an illegal manner.
+var ConcurrentModificationErrorClass *Class
+
 // ::Std::OpenClosureError
 //
 // Thrown when another thread tried to execute an open closure.
@@ -240,6 +246,14 @@ func NewSingletonError(given string) *Object {
 	)
 }
 
+func NewMutationDuringIterationError(className string) *Object {
+	return Errorf(
+		ConcurrentModificationErrorClass,
+		"cannot mutate `%s` during iteration",
+		className,
+	)
+}
+
 // Create a new error that signals that
 // the given superclass is not a valid class object.
 func NewInvalidSuperclassError(superclass string) *Object {
@@ -449,6 +463,60 @@ func NewNoMethodError(methodName string, receiver Value) *Object {
 	)
 }
 
+func NewInvalidElementInTypedSet(set any, elementClass *Class) *Object {
+	return Errorf(
+		TypeErrorClass,
+		"cannot set element of type %s in a typed set %[2]T, %[2]s",
+		elementClass.Inspect(),
+		set,
+	)
+}
+
+func NewInvalidElementInTypedArray(arr any, elementClass *Class) *Object {
+	return Errorf(
+		TypeErrorClass,
+		"cannot set element of type %s in a typed array %[2]T, %[2]s",
+		elementClass.Inspect(),
+		arr,
+	)
+}
+
+func NewInvalidValueInTypedMap(m any, elementClass *Class) *Object {
+	return Errorf(
+		TypeErrorClass,
+		"cannot set value of type %s in a typed map %[2]T, %[2]s",
+		elementClass.Inspect(),
+		m,
+	)
+}
+
+func NewInvalidKeyInTypedMap(m any, elementClass *Class) *Object {
+	return Errorf(
+		TypeErrorClass,
+		"cannot set key of type %s in a typed map %[2]T, %[2]s",
+		elementClass.Inspect(),
+		m,
+	)
+}
+
+func NewInvalidValueInTypedPair(m any, elementClass *Class) *Object {
+	return Errorf(
+		TypeErrorClass,
+		"cannot set value of type %s in a typed pair %[2]T, %[2]s",
+		elementClass.Inspect(),
+		m,
+	)
+}
+
+func NewInvalidKeyInTypedPair(m any, elementClass *Class) *Object {
+	return Errorf(
+		TypeErrorClass,
+		"cannot set key of type %s in a typed pair %[2]T, %[2]s",
+		elementClass.Inspect(),
+		m,
+	)
+}
+
 // Create a new error which signals
 // that a value of one type cannot be coerced
 // into the other type.
@@ -547,6 +615,10 @@ func initError() {
 	)
 	StdModule.AddConstantString("Error", Ref(ErrorClass))
 	RegisterNativeClass("Std::Error", "value.ErrorClass")
+
+	ConcurrentModificationErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
+	StdModule.AddConstantString("ConcurrentModificationError", Ref(ConcurrentModificationErrorClass))
+	RegisterNativeClass("Std::ConcurrentModificationError", "value.ConcurrentModificationErrorClass")
 
 	UnexpectedNilErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("UnexpectedNilError", Ref(UnexpectedNilErrorClass))

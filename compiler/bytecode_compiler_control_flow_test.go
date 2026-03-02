@@ -364,7 +364,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -446,16 +446,16 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
-						value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(1).ToValue(),
 							value.SmallInt(2).ToValue(),
 						}),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(3).ToValue(),
 							value.SmallInt(4).ToValue(),
 						}),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(5).ToValue(),
 							value.SmallInt(6).ToValue(),
 						}),
@@ -517,7 +517,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -575,7 +575,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -634,7 +634,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -689,7 +689,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -744,7 +744,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -817,13 +817,13 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Ref(value.String("a")),
-						value.Ref(value.String("b")),
-						value.Ref(value.String("c")),
-						value.Ref(value.String("d")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"a",
+						"b",
+						"c",
+						"d",
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -896,13 +896,13 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Ref(value.String("a")),
-						value.Ref(value.String("b")),
-						value.Ref(value.String("c")),
-						value.Ref(value.String("d")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"a",
+						"b",
+						"c",
+						"d",
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -974,13 +974,13 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Ref(value.String("a")),
-						value.Ref(value.String("b")),
-						value.Ref(value.String("c")),
-						value.Ref(value.String("d")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"a",
+						"b",
+						"c",
+						"d",
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1052,13 +1052,13 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Ref(value.String("a")),
-						value.Ref(value.String("b")),
-						value.Ref(value.String("c")),
-						value.Ref(value.String("d")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"a",
+						"b",
+						"c",
+						"d",
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1321,7 +1321,7 @@ func TestBytecodeModifierForIn(t *testing.T) {
 					bytecode.NewLineInfo(1, 22),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1394,16 +1394,16 @@ func TestBytecodeModifierForIn(t *testing.T) {
 					bytecode.NewLineInfo(1, 67),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
-						value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(1).ToValue(),
 							value.SmallInt(2).ToValue(),
 						}),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(3).ToValue(),
 							value.SmallInt(4).ToValue(),
 						}),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(5).ToValue(),
 							value.SmallInt(6).ToValue(),
 						}),

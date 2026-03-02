@@ -27,6 +27,10 @@ func (g GlobalObjectType) Copy() Reference {
 	return g
 }
 
+func (g GlobalObjectType) ToValue() Value {
+	return Ref(g)
+}
+
 func (GlobalObjectType) Inspect() string {
 	return "<GlobalObject>"
 }

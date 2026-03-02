@@ -208,6 +208,10 @@ func (n *ConstantDeclarationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ConstantDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ConstantDeclarationNode) Error() string {
 	return n.Inspect()
 }

@@ -230,29 +230,29 @@ func TestUInt32_GreaterThan(t *testing.T) {
 		"String and return an error": {
 			a:    value.UInt32(5),
 			b:    value.Ref(value.String("foo")),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt32`")),
 		},
 		"Int64 and return an error": {
 			a:    value.UInt32(5),
 			b:    value.Int64(2).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::UInt32`")),
 		},
 		"15u32 > 30u32": {
 			a:    value.UInt32(15),
 			b:    value.UInt32(30).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"780u32 > 800u32": {
 			a:    value.UInt32(780),
 			b:    value.UInt32(800).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"15u32 > 15u32": {
 			a:    value.UInt32(15),
 			b:    value.UInt32(15).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 	}
 
@@ -279,29 +279,29 @@ func TestUInt32_GreaterThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:    value.UInt32(5),
 			b:    value.Ref(value.String("foo")),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt32`")),
 		},
 		"Int64 and return an error": {
 			a:    value.UInt32(5),
 			b:    value.Int64(2).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::UInt32`")),
 		},
 		"15u32 >= 30u32": {
 			a:    value.UInt32(15),
 			b:    value.UInt32(30).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"780u32 >= 800u32": {
 			a:    value.UInt32(780),
 			b:    value.UInt32(800).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"15u32 >= 15u32": {
 			a:    value.UInt32(15),
 			b:    value.UInt32(15).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 	}
 
@@ -329,29 +329,29 @@ func TestUInt32_LessThan(t *testing.T) {
 		"String and return an error": {
 			a:    value.UInt32(5),
 			b:    value.Ref(value.String("foo")),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt32`")),
 		},
 		"Int64 and return an error": {
 			a:    value.UInt32(5),
 			b:    value.Int64(2).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::UInt32`")),
 		},
 		"15u32 < 30u32": {
 			a:    value.UInt32(15),
 			b:    value.UInt32(30).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"780u32 < 800u32": {
 			a:    value.UInt32(780),
 			b:    value.UInt32(800).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"15u32 < 15u32": {
 			a:    value.UInt32(15),
 			b:    value.UInt32(15).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 	}
 
@@ -379,29 +379,29 @@ func TestUInt32_LessThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:    value.UInt32(5),
 			b:    value.Ref(value.String("foo")),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::UInt32`")),
 		},
 		"Int64 and return an error": {
 			a:    value.UInt32(5),
 			b:    value.Int64(2).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::UInt32`")),
 		},
 		"15u32 <= 30u32": {
 			a:    value.UInt32(15),
 			b:    value.UInt32(30).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"780u32 <= 800u32": {
 			a:    value.UInt32(780),
 			b:    value.UInt32(800).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"15u32 <= 15u32": {
 			a:    value.UInt32(15),
 			b:    value.UInt32(15).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 	}
 
@@ -429,226 +429,226 @@ func TestUInt32_Equal(t *testing.T) {
 		"String 5u32 == '5'": {
 			a:    value.UInt32(5),
 			b:    value.Ref(value.String("5")),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int64 5u32 == 5i64": {
 			a:    value.UInt32(5),
 			b:    value.Int64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int64 4u32 == 5i64": {
 			a:    value.UInt32(4),
 			b:    value.Int64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int64 5u32 == -5i64": {
 			a:    value.UInt32(5),
 			b:    value.Int64(-5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt64 5u32 == 5u64": {
 			a:    value.UInt32(5),
 			b:    value.UInt64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt64 4u32 == 5u64": {
 			a:    value.UInt32(4),
 			b:    value.UInt64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int32 5u32 == 5i32": {
 			a:    value.UInt32(5),
 			b:    value.Int32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int32 4u32 == 5i32": {
 			a:    value.UInt32(4),
 			b:    value.Int32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt32 5u32 == 5u32": {
 			a:    value.UInt32(5),
 			b:    value.UInt32(5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"UInt32 4u32 == 5u32": {
 			a:    value.UInt32(4),
 			b:    value.UInt32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int16 5u32 == 5i16": {
 			a:    value.UInt32(5),
 			b:    value.Int16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int16 4u32 == 5i16": {
 			a:    value.UInt32(4),
 			b:    value.Int16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt16 5u32 == 5u16": {
 			a:    value.UInt32(5),
 			b:    value.UInt16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt16 4u32 == 5u16": {
 			a:    value.UInt32(4),
 			b:    value.UInt16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int8 5u32 == 5i8": {
 			a:    value.UInt32(5),
 			b:    value.Int8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int8 4u32 == 5i8": {
 			a:    value.UInt32(4),
 			b:    value.Int8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt8 5u32 == 5u8": {
 			a:    value.UInt32(5),
 			b:    value.UInt8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt8 4u32 == 5u8": {
 			a:    value.UInt32(4),
 			b:    value.UInt8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Float64 5u32 == 5.0f64": {
 			a:    value.UInt32(5),
 			b:    value.Float64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 5u32 == 5.5f64": {
 			a:    value.UInt32(5),
 			b:    value.Float64(5.5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 5u32 == NaN": {
 			a:    value.UInt32(5),
 			b:    value.Float64NaN().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 5u32 == +Inf": {
 			a:    value.UInt32(5),
 			b:    value.Float64Inf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 5u32 == -Inf": {
 			a:    value.UInt32(5),
 			b:    value.Float64NegInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Float32 5u32 == 5.0f32": {
 			a:    value.UInt32(5),
 			b:    value.Float32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 5u32 == 5.5f32": {
 			a:    value.UInt32(5),
 			b:    value.Float32(5.5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 5u32 == NaN": {
 			a:    value.UInt32(5),
 			b:    value.Float32NaN().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 5u32 == +Inf": {
 			a:    value.UInt32(5),
 			b:    value.Float32Inf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 5u32 == -Inf": {
 			a:    value.UInt32(5),
 			b:    value.Float32NegInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"SmallInt 5u32 == 5": {
 			a:    value.UInt32(5),
 			b:    value.SmallInt(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt 4u32 == 5": {
 			a:    value.UInt32(4),
 			b:    value.SmallInt(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"BigInt 5u32 == 5bi": {
 			a:    value.UInt32(5),
 			b:    value.Ref(value.NewBigInt(5)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt 4u32 == 5bi": {
 			a:    value.UInt32(4),
 			b:    value.Ref(value.NewBigInt(5)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Float 5u32 == 5.0": {
 			a:    value.UInt32(5),
 			b:    value.Float(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 5u32 == 5.5": {
 			a:    value.UInt32(5),
 			b:    value.Float(5.5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 5u32 == +Inf": {
 			a:    value.UInt32(5),
 			b:    value.FloatInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 5u32 == -Inf": {
 			a:    value.UInt32(5),
 			b:    value.FloatNegInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 5u32 == NaN": {
 			a:    value.UInt32(5),
 			b:    value.FloatNaN().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"BigFloat 5u32 == 5.0bf": {
 			a:    value.UInt32(5),
 			b:    value.Ref(value.NewBigFloat(5)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 5u32 == 5.5bf": {
 			a:    value.UInt32(5),
 			b:    value.Ref(value.NewBigFloat(5.5)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 5u32 == +Inf": {
 			a:    value.UInt32(5),
 			b:    value.Ref(value.BigFloatInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 5u32 == -Inf": {
 			a:    value.UInt32(5),
 			b:    value.Ref(value.BigFloatNegInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 5u32 == NaN": {
 			a:    value.UInt32(5),
 			b:    value.Ref(value.BigFloatNaN()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 	}
 

@@ -117,6 +117,10 @@ func (n *LoopExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *LoopExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *LoopExpressionNode) Error() string {
 	return n.Inspect()
 }

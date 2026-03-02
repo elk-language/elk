@@ -124,6 +124,10 @@ func (n *MapPatternNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *MapPatternNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *MapPatternNode) Error() string {
 	return n.Inspect()
 }

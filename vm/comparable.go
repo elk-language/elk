@@ -22,10 +22,10 @@ func initComparable() {
 
 			if result.IsSmallInt() {
 				r := result.AsSmallInt()
-				return value.ToElkBool(r > 0), value.Undefined
+				return value.BoolVal(r > 0), value.Undefined
 			}
 
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -42,10 +42,10 @@ func initComparable() {
 
 			if result.IsSmallInt() {
 				r := result.AsSmallInt()
-				return value.ToElkBool(r >= 0), value.Undefined
+				return value.BoolVal(r >= 0), value.Undefined
 			}
 
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -62,10 +62,10 @@ func initComparable() {
 
 			if result.IsSmallInt() {
 				r := result.AsSmallInt()
-				return value.ToElkBool(r < 0), value.Undefined
+				return value.BoolVal(r < 0), value.Undefined
 			}
 
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -82,10 +82,10 @@ func initComparable() {
 
 			if result.IsSmallInt() {
 				r := result.AsSmallInt()
-				return value.ToElkBool(r <= 0), value.Undefined
+				return value.BoolVal(r <= 0), value.Undefined
 			}
 
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -102,10 +102,10 @@ func initComparable() {
 
 			if result.IsSmallInt() {
 				r := result.AsSmallInt()
-				return value.ToElkBool(r == 0), value.Undefined
+				return value.BoolVal(r == 0), value.Undefined
 			}
 
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -116,7 +116,7 @@ func initComparable() {
 			self := args[0]
 			other := args[1]
 			if self.Class() != other.Class() {
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}
 			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
 			if !err.IsUndefined() {
@@ -125,10 +125,10 @@ func initComparable() {
 
 			if result.IsSmallInt() {
 				r := result.AsSmallInt()
-				return value.ToElkBool(r == 0), value.Undefined
+				return value.BoolVal(r == 0), value.Undefined
 			}
 
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)

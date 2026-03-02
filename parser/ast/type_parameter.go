@@ -220,6 +220,10 @@ func (n *VariantTypeParameterNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *VariantTypeParameterNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *VariantTypeParameterNode) Error() string {
 	return n.Inspect()
 }

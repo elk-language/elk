@@ -15,7 +15,7 @@ func initGenericReceiverlessMethodCallNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argName := args[1].MustReference().(ast.IdentifierNode)
 
-			argTypeArgsTuple := args[2].MustReference().(*value.ArrayTuple)
+			argTypeArgsTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 			argTypeArgs := make([]ast.TypeNode, argTypeArgsTuple.Length())
 			for i, el := range *argTypeArgsTuple {
 				argTypeArgs[i] = el.MustReference().(ast.TypeNode)
@@ -23,7 +23,7 @@ func initGenericReceiverlessMethodCallNode() {
 
 			var argPosArgs []ast.ExpressionNode
 			if !args[3].IsUndefined() {
-				argPosArgsTuple := args[3].MustReference().(*value.ArrayTuple)
+				argPosArgsTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				argPosArgs = make([]ast.ExpressionNode, argPosArgsTuple.Length())
 				for i, el := range *argPosArgsTuple {
 					argPosArgs[i] = el.MustReference().(ast.ExpressionNode)
@@ -32,7 +32,7 @@ func initGenericReceiverlessMethodCallNode() {
 
 			var argNamedArgs []ast.NamedArgumentNode
 			if !args[4].IsUndefined() {
-				argNamedArgsTuple := args[4].MustReference().(*value.ArrayTuple)
+				argNamedArgsTuple := args[4].MustReference().(*value.ArrayTupleOfValue)
 				argNamedArgs = make([]ast.NamedArgumentNode, argNamedArgsTuple.Length())
 				for i, el := range *argNamedArgsTuple {
 					argNamedArgs[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -76,7 +76,7 @@ func initGenericReceiverlessMethodCallNode() {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
 
 			collection := self.TypeArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -93,7 +93,7 @@ func initGenericReceiverlessMethodCallNode() {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
 
 			collection := self.PositionalArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -110,7 +110,7 @@ func initGenericReceiverlessMethodCallNode() {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
 
 			collection := self.NamedArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -137,7 +137,7 @@ func initGenericReceiverlessMethodCallNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

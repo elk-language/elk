@@ -64,7 +64,7 @@ func initTimezone() {
 		"is_utc",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Timezone)
-			return value.ToElkBool(self.IsUTC()), value.Undefined
+			return value.BoolVal(self.IsUTC()), value.Undefined
 		},
 	)
 	Def(
@@ -72,7 +72,7 @@ func initTimezone() {
 		"is_local",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Timezone)
-			return value.ToElkBool(self.IsLocal()), value.Undefined
+			return value.BoolVal(self.IsLocal()), value.Undefined
 		},
 	)
 	Def(
@@ -81,7 +81,7 @@ func initTimezone() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Timezone)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)

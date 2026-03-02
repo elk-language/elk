@@ -235,7 +235,7 @@ func (f Float64) CompareVal(other Value) (Value, Value) {
 
 func (f Float64) GreaterThanVal(other Value) (Value, Value) {
 	result, err := f.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (f Float64) GreaterThan(other Value) (bool, Value) {
@@ -257,7 +257,7 @@ func (f Float64) GreaterThan(other Value) (bool, Value) {
 
 func (f Float64) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := f.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (f Float64) GreaterThanEqual(other Value) (bool, Value) {
@@ -279,7 +279,7 @@ func (f Float64) GreaterThanEqual(other Value) (bool, Value) {
 
 func (f Float64) LessThanVal(other Value) (Value, Value) {
 	result, err := f.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (f Float64) LessThan(other Value) (bool, Value) {
@@ -301,7 +301,7 @@ func (f Float64) LessThan(other Value) (bool, Value) {
 
 func (f Float64) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := f.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (f Float64) LessThanEqual(other Value) (bool, Value) {
@@ -322,7 +322,7 @@ func (f Float64) LessThanEqual(other Value) (bool, Value) {
 }
 
 func (f Float64) EqualVal(other Value) Value {
-	return ToElkBool(f.Equal(other))
+	return Bool(f.Equal(other)).ToValue()
 }
 
 func (f Float64) Equal(other Value) bool {

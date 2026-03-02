@@ -125,6 +125,10 @@ func (n *RecordPatternNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *RecordPatternNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *RecordPatternNode) Error() string {
 	return n.Inspect()
 }

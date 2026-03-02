@@ -102,3 +102,7 @@ func (u *Upvalue) Copy() value.Reference {
 		closed: u.closed,
 	}
 }
+
+func (u *Upvalue) ToValue() value.Value {
+	return value.Ref(u)
+}

@@ -786,8 +786,8 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
 				nil,
-				value.Pair{Key: value.ToSymbol("a").ToValue(), Value: value.Ref(value.String("bar"))},
-				value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("foo"))},
+				value.MakePairOfValue(value.ToSymbol("a").ToValue(), value.Ref(value.String("bar"))),
+				value.MakePairOfValue(value.ToSymbol("d").ToValue(), value.Ref(value.String("foo"))),
 			)),
 		},
 		"call a method with a named rest param and a double splat argument": {
@@ -799,10 +799,11 @@ func TestVMSource_CallMethod(t *testing.T) {
 				map := { foo: 1, bar: 2 }
 				foo(**map)
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashMapWithElements(
-				nil,
-				value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(1).ToValue()},
-				value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+			wantStackTop: value.Ref(vm.NewNativeKeyHashMapFromMap(
+				map[value.Symbol]value.Value{
+					value.ToSymbol("foo"): value.SmallInt(1).ToValue(),
+					value.ToSymbol("bar"): value.SmallInt(2).ToValue(),
+				},
 			)),
 		},
 		"call a method with a named rest param, named and double splat arguments": {
@@ -816,10 +817,10 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
 				nil,
-				value.Pair{Key: value.ToSymbol("a").ToValue(), Value: value.SmallInt(20).ToValue()},
-				value.Pair{Key: value.ToSymbol("b").ToValue(), Value: value.SmallInt(9).ToValue()},
-				value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(1).ToValue()},
-				value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
+				value.MakePairOfValue(value.ToSymbol("a").ToValue(), value.SmallInt(20).ToValue()),
+				value.MakePairOfValue(value.ToSymbol("b").ToValue(), value.SmallInt(9).ToValue()),
+				value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(1).ToValue()),
+				value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
 			)),
 		},
 		"call a method with regular params, named rest param and a few named args": {
@@ -830,13 +831,13 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo", c: "bar", d: "baz")
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				2,
 				value.Ref(value.String("foo")),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("c").ToValue(), Value: value.Ref(value.String("bar"))},
-					value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("baz"))},
+					value.MakePairOfValue(value.ToSymbol("c").ToValue(), value.Ref(value.String("bar"))),
+					value.MakePairOfValue(value.ToSymbol("d").ToValue(), value.Ref(value.String("baz"))),
 				)),
 			)),
 		},
@@ -848,10 +849,10 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo")
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				2,
 				value.Ref(value.String("foo")),
-				value.Ref(value.NewHashRecord(0)),
+				value.Ref(vm.NewHashRecordOfValue(0)),
 			)),
 		},
 		"call a method with regular params, optional params, named rest param and a few named args": {
@@ -862,14 +863,14 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo", c: "bar", d: "baz")
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				3,
 				value.Ref(value.String("foo")),
 				value.SmallInt(5).ToValue(),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("c").ToValue(), Value: value.Ref(value.String("bar"))},
-					value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("baz"))},
+					value.MakePairOfValue(value.ToSymbol("c").ToValue(), value.Ref(value.String("bar"))),
+					value.MakePairOfValue(value.ToSymbol("d").ToValue(), value.Ref(value.String("baz"))),
 				)),
 			)),
 		},
@@ -881,14 +882,14 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo", 9, c: "bar", d: "baz")
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				3,
 				value.Ref(value.String("foo")),
 				value.SmallInt(9).ToValue(),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("c").ToValue(), Value: value.Ref(value.String("bar"))},
-					value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("baz"))},
+					value.MakePairOfValue(value.ToSymbol("c").ToValue(), value.Ref(value.String("bar"))),
+					value.MakePairOfValue(value.ToSymbol("d").ToValue(), value.Ref(value.String("baz"))),
 				)),
 			)),
 		},
@@ -900,14 +901,14 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo("foo", c: "bar", d: "baz", b: 9)
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				3,
 				value.Ref(value.String("foo")),
 				value.SmallInt(9).ToValue(),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("d").ToValue(), Value: value.Ref(value.String("baz"))},
-					value.Pair{Key: value.ToSymbol("c").ToValue(), Value: value.Ref(value.String("bar"))},
+					value.MakePairOfValue(value.ToSymbol("d").ToValue(), value.Ref(value.String("baz"))),
+					value.MakePairOfValue(value.ToSymbol("c").ToValue(), value.Ref(value.String("bar"))),
 				)),
 			)),
 		},
@@ -939,14 +940,14 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				2,
-				value.Ref(&value.ArrayTuple{}),
+				value.Ref(&value.ArrayTupleOfValue{}),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
-					value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
-					value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(8).ToValue()},
+					value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(5).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("baz").ToValue(), value.SmallInt(8).ToValue()),
 				)),
 			)),
 		},
@@ -958,9 +959,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				2,
-				value.Ref(value.NewArrayTupleWithElements(
+				value.Ref(value.NewArrayTupleOfValueWithElements(
 					3,
 					value.SmallInt(10).ToValue(),
 					value.SmallInt(20).ToValue(),
@@ -968,9 +969,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 				)),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
-					value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
-					value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(8).ToValue()},
+					value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(5).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("baz").ToValue(), value.SmallInt(8).ToValue()),
 				)),
 			)),
 		},
@@ -1003,15 +1004,15 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(1, foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				3,
 				value.SmallInt(1).ToValue(),
-				value.Ref(&value.ArrayTuple{}),
+				value.Ref(&value.ArrayTupleOfValue{}),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
-					value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
-					value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(8).ToValue()},
+					value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(5).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("baz").ToValue(), value.SmallInt(8).ToValue()),
 				)),
 			)),
 		},
@@ -1023,19 +1024,19 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.Ref(value.NewArrayListWithElements(
+			wantStackTop: value.Ref(value.NewArrayListOfValueWithElements(
 				3,
 				value.SmallInt(10).ToValue(),
-				value.Ref(value.NewArrayTupleWithElements(
+				value.Ref(value.NewArrayTupleOfValueWithElements(
 					2,
 					value.SmallInt(20).ToValue(),
 					value.SmallInt(30).ToValue(),
 				)),
 				value.Ref(vm.MustNewHashRecordWithElements(
 					nil,
-					value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(5).ToValue()},
-					value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
-					value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(8).ToValue()},
+					value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(5).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
+					value.MakePairOfValue(value.ToSymbol("baz").ToValue(), value.SmallInt(8).ToValue()),
 				)),
 			)),
 		},
@@ -1602,7 +1603,7 @@ func TestVMSource_Setters(t *testing.T) {
 				list[0] = :foo
 				list
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.ToSymbol("foo").ToValue(),
 				value.SmallInt(8).ToValue(),
 				value.SmallInt(20).ToValue(),
@@ -1621,7 +1622,7 @@ func TestVMSource_Setters(t *testing.T) {
 				list[0] = 8
 				list
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(8).ToValue(),
 				value.SmallInt(2).ToValue(),
 				value.Float(7.8).ToValue(),
@@ -1769,7 +1770,7 @@ func TestVMSource_Setters(t *testing.T) {
 				list := [false, 8, 7.8]
 				list[0] &&= 5
 			`,
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 		},
 		"subscript setter logic and truthy": {
 			source: `
@@ -1793,7 +1794,7 @@ func TestVMSource_Setters(t *testing.T) {
 				list := [false, 8, 7.8]
 				list[0] ??= 5
 			`,
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(33, 3, 5), P(39, 3, 11)), "this condition will always have the same result since type `bool | Std::Int | Std::Float` can never be nil"),
 				diagnostic.NewWarning(L(P(45, 3, 17), P(45, 3, 17)), "unreachable code"),

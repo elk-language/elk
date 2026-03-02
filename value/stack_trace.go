@@ -16,6 +16,10 @@ func (s *StackTrace) Copy() Reference {
 	return s
 }
 
+func (s *StackTrace) ToValue() Value {
+	return Ref(s)
+}
+
 func (*StackTrace) Class() *Class {
 	return StackTraceClass
 }
@@ -113,6 +117,10 @@ func (s *StackTraceIterator) Copy() Reference {
 		StackTrace: s.StackTrace,
 		Index:      s.Index,
 	}
+}
+
+func (i *StackTraceIterator) ToValue() Value {
+	return Ref(i)
 }
 
 func (s *StackTraceIterator) Inspect() string {

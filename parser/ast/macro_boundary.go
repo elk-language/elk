@@ -129,6 +129,10 @@ func (n *MacroBoundaryNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *MacroBoundaryNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *MacroBoundaryNode) Error() string {
 	return n.Inspect()
 }

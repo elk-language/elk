@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -17,6 +18,8 @@ var StringGraphemeIteratorClass *Class // ::Std::String::GraphemeIterator
 
 // Elk's String value
 type String string
+
+var _ NativeIterable = String("")
 
 func (s String) Class() *Class {
 	return StringClass
@@ -34,12 +37,30 @@ func (s String) Copy() Reference {
 	return s
 }
 
+func (s String) ToValue() Value {
+	return Ref(s)
+}
+
 func (s String) Error() string {
 	return s.Inspect()
 }
 
 func (s String) String() string {
 	return string(s)
+}
+
+func (s String) Iter() NativeIterator {
+	return NewStringCharIterator(s)
+}
+
+func (s String) Iterate() iter.Seq2[Value, Value] {
+	return func(yield func(Value, Value) bool) {
+		for _, v := range s {
+			if !yield(Char(v).ToValue(), Undefined) {
+				return
+			}
+		}
+	}
 }
 
 func (s String) Inspect() string {
@@ -340,7 +361,7 @@ func (s String) CompareVal(other Value) (Value, Value) {
 // if something went wrong.
 func (s String) GreaterThanVal(other Value) (Value, Value) {
 	result, err := s.GreaterThan(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 // Check whether s is greater than other and return an error
@@ -367,7 +388,7 @@ func (s String) GreaterThan(other Value) (bool, Value) {
 // if something went wrong.
 func (s String) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := s.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 // Check whether s is greater than or equal to other and return an error
@@ -394,7 +415,7 @@ func (s String) GreaterThanEqual(other Value) (bool, Value) {
 // if something went wrong.
 func (s String) LessThanVal(other Value) (Value, Value) {
 	result, err := s.LessThan(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 // Check whether s is less than other and return an error
@@ -421,7 +442,7 @@ func (s String) LessThan(other Value) (bool, Value) {
 // if something went wrong.
 func (s String) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := s.LessThanEqual(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 // Check whether s is less than or equal to other and return an error
@@ -446,7 +467,7 @@ func (s String) LessThanEqual(other Value) (bool, Value) {
 
 // Check whether s is equal to other
 func (s String) LaxEqualVal(other Value) Value {
-	return ToElkBool(s.LaxEqualBool(other))
+	return BoolVal(s.LaxEqualBool(other))
 }
 
 // Check whether s is equal to other
@@ -475,7 +496,7 @@ func (s String) LaxEqualBool(other Value) bool {
 
 // Check whether s is equal to other
 func (s String) EqualVal(other Value) Value {
-	return ToElkBool(s.Equal(other))
+	return BoolVal(s.Equal(other))
 }
 
 // Check whether s is equal to other
@@ -632,6 +653,8 @@ type StringCharIterator struct {
 	ByteOffset int
 }
 
+var _ NativeResettableIterator = &StringCharIterator{}
+
 func NewStringCharIterator(str String) *StringCharIterator {
 	return &StringCharIterator{
 		String: str,
@@ -664,6 +687,10 @@ func (s *StringCharIterator) Copy() Reference {
 	}
 }
 
+func (s *StringCharIterator) ToValue() Value {
+	return Ref(s)
+}
+
 func (s *StringCharIterator) Inspect() string {
 	return fmt.Sprintf("Std::String::CharIterator{string: %s, byte_offset: %d}", s.String.Inspect(), s.ByteOffset)
 }
@@ -676,7 +703,7 @@ func (*StringCharIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (s *StringCharIterator) Next() (Value, Value) {
+func (s *StringCharIterator) NextValue() (Value, Value) {
 	if s.ByteOffset >= len(s.String) {
 		return Undefined, stopIterationSymbol.ToValue()
 	}
@@ -694,6 +721,8 @@ type StringByteIterator struct {
 	String     String
 	ByteOffset int
 }
+
+var _ NativeResettableIterator = &StringByteIterator{}
 
 func NewStringByteIterator(str String) *StringByteIterator {
 	return &StringByteIterator{
@@ -731,6 +760,10 @@ func (s *StringByteIterator) Copy() Reference {
 	}
 }
 
+func (s *StringByteIterator) ToValue() Value {
+	return Ref(s)
+}
+
 func (s *StringByteIterator) Inspect() string {
 	return fmt.Sprintf("Std::String::ByteIterator{string: %s, byte_offset: %d}", s.String.Inspect(), s.ByteOffset)
 }
@@ -739,7 +772,7 @@ func (*StringByteIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (s *StringByteIterator) Next() (Value, Value) {
+func (s *StringByteIterator) NextValue() (Value, Value) {
 	if s.ByteOffset >= len(s.String) {
 		return Undefined, stopIterationSymbol.ToValue()
 	}
@@ -757,6 +790,8 @@ type StringGraphemeIterator struct {
 	Rest   string
 	State  int
 }
+
+var _ NativeResettableIterator = &StringGraphemeIterator{}
 
 func NewStringGraphemeIterator(str String) *StringGraphemeIterator {
 	return &StringGraphemeIterator{
@@ -798,6 +833,10 @@ func (s *StringGraphemeIterator) Copy() Reference {
 	}
 }
 
+func (s *StringGraphemeIterator) ToValue() Value {
+	return Ref(s)
+}
+
 func (s *StringGraphemeIterator) Inspect() string {
 	return fmt.Sprintf("Std::String::GraphemeIterator{string: %s}", s.String.Inspect())
 }
@@ -806,7 +845,7 @@ func (*StringGraphemeIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (s *StringGraphemeIterator) Next() (Value, Value) {
+func (s *StringGraphemeIterator) NextValue() (Value, Value) {
 	if len(s.Rest) == 0 {
 		return Undefined, stopIterationSymbol.ToValue()
 	}

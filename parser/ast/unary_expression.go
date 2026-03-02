@@ -110,6 +110,10 @@ func (n *UnaryExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *UnaryExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UnaryExpressionNode) Error() string {
 	return n.Inspect()
 }

@@ -86,6 +86,10 @@ func (n *PatternExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *PatternExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *PatternExpressionNode) Error() string {
 	return n.Inspect()
 }

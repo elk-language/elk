@@ -131,6 +131,10 @@ func (n *GoExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *GoExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *GoExpressionNode) Error() string {
 	return n.Inspect()
 }

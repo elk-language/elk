@@ -31,6 +31,10 @@ func (l *Location) Copy() Reference {
 	return l
 }
 
+func (l *Location) ToValue() Value {
+	return Ref(l)
+}
+
 func (*Location) InstanceVariables() *InstanceVariables {
 	return nil
 }

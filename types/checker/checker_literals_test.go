@@ -231,9 +231,33 @@ func TestArrayTupleLiteral(t *testing.T) {
 			},
 		},
 
-		"infer hex array tuple": {
+		"infer hex array tuple UInt8": {
 			input: `
-				var foo = %x[1f4 fff]
+				var foo = %x[ff 10]
+				var a: ArrayTuple[UInt8] = foo
+			`,
+		},
+		"infer hex array tuple UInt16": {
+			input: `
+				var foo = %x[1f4 100]
+				var a: ArrayTuple[UInt16] = foo
+			`,
+		},
+		"infer hex array tuple UInt32": {
+			input: `
+				var foo = %x[1f4 10000]
+				var a: ArrayTuple[UInt32] = foo
+			`,
+		},
+		"infer hex array tuple UInt64": {
+			input: `
+				var foo = %x[1f4 100000000]
+				var a: ArrayTuple[UInt64] = foo
+			`,
+		},
+		"infer hex array tuple Int": {
+			input: `
+				var foo = %x[1f4 10000000000000000]
 				var a: ArrayTuple[Int] = foo
 			`,
 		},
@@ -243,14 +267,14 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var a: 9 = foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayTuple[Std::Int]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayTuple[Std::UInt8]` cannot be assigned to type `9`"),
 			},
 		},
 
-		"infer bin array tuple": {
+		"infer bin array tuple UInt8": {
 			input: `
 				var foo = %b[111 100]
-				var a: ArrayTuple[Int] = foo
+				var a: ArrayTuple[UInt8] = foo
 			`,
 		},
 		"infer empty bin array tuple": {
@@ -259,7 +283,7 @@ func TestArrayTupleLiteral(t *testing.T) {
 				var a: 9 = foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayTuple[Std::Int]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayTuple[Std::UInt8]` cannot be assigned to type `9`"),
 			},
 		},
 	}
@@ -904,7 +928,7 @@ func TestArrayListLiteral(t *testing.T) {
 		"infer hex array list": {
 			input: `
 				var foo = \x[1f4 fff]
-				var a: ArrayList[Int] = foo
+				var a: ArrayList[UInt16] = foo
 			`,
 		},
 		"infer empty hex array list": {
@@ -913,17 +937,17 @@ func TestArrayListLiteral(t *testing.T) {
 				var a: 9 = foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayList[Std::Int]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayList[Std::UInt8]` cannot be assigned to type `9`"),
 			},
 		},
 		"hex array list int capacity": {
 			input: `
-				var foo: ArrayList[Int] = \x[1f9]:9
+				var foo: ArrayList[UInt16] = \x[1f9]:9
 			`,
 		},
 		"hex array list uint8 capacity": {
 			input: `
-				var foo: ArrayList[Int] = \x[fff]:9u8
+				var foo: ArrayList[UInt16] = \x[fff]:9u8
 			`,
 		},
 		"hex array list invalid capacity": {
@@ -938,7 +962,7 @@ func TestArrayListLiteral(t *testing.T) {
 		"infer bin array list": {
 			input: `
 				var foo = \b[111 100]
-				var a: ArrayList[Int] = foo
+				var a: ArrayList[UInt8] = foo
 			`,
 		},
 		"infer empty bin array list": {
@@ -947,17 +971,17 @@ func TestArrayListLiteral(t *testing.T) {
 				var a: 9 = foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayList[Std::Int]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(35, 3, 16), P(37, 3, 18)), "type `Std::ArrayList[Std::UInt8]` cannot be assigned to type `9`"),
 			},
 		},
 		"bin array list int capacity": {
 			input: `
-				var foo: ArrayList[Int] = \b[100]:9
+				var foo: ArrayList[UInt8] = \b[100]:9
 			`,
 		},
 		"bin array list uint8 capacity": {
 			input: `
-				var foo: ArrayList[Int] = \x[111]:9u8
+				var foo: ArrayList[UInt16] = \x[111]:9u8
 			`,
 		},
 		"bin array list invalid capacity": {

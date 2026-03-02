@@ -115,6 +115,10 @@ func (n *LabeledExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *LabeledExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *LabeledExpressionNode) Error() string {
 	return n.Inspect()
 }

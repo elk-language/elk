@@ -167,10 +167,10 @@ func Lex(source string) []*token.Token {
 }
 
 // Lex the given string and return a slice containing all the tokens.
-func LexValue(source string) *value.ArrayList {
+func LexValue(source string) *value.ArrayListOfValue {
 	l := New(source)
 
-	tokens := value.NewArrayList(10)
+	tokens := value.NewArrayListOfValue(10)
 	for {
 		tok := l.Next()
 		if tok.Type == token.END_OF_FILE {
@@ -230,6 +230,10 @@ func (l *Lexer) InstanceVariables() *value.InstanceVariables {
 
 func (l *Lexer) Copy() value.Reference {
 	return l
+}
+
+func (l *Lexer) ToValue() value.Value {
+	return value.Ref(l)
 }
 
 // Returns true if there is any code left to analyse.

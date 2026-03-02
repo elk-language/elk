@@ -52,7 +52,7 @@ func initBoxTypeNode() {
 		"immutable",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*ast.BoxTypeNode)(args[0].Pointer())
-			result := value.ToElkBool(self.Immutable)
+			result := value.BoolVal(self.Immutable)
 			return result, value.Undefined
 		},
 	)
@@ -74,7 +74,7 @@ func initBoxTypeNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*ast.BoxTypeNode)(args[0].Pointer())
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

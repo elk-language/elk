@@ -165,6 +165,10 @@ func (n *ExtendWhereBlockExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ExtendWhereBlockExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ExtendWhereBlockExpressionNode) Error() string {
 	return n.Inspect()
 }

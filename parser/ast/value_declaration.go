@@ -166,6 +166,10 @@ func (n *ValueDeclarationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ValueDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (v *ValueDeclarationNode) Error() string {
 	return v.Inspect()
 }

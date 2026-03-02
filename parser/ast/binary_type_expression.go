@@ -151,6 +151,10 @@ func (n *BinaryTypeNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *BinaryTypeNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *BinaryTypeNode) Error() string {
 	return n.Inspect()
 }

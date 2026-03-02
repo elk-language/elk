@@ -1,109 +1,15 @@
 package value
 
-import (
-	"fmt"
-	"strings"
-	"unsafe"
-
-	"github.com/elk-language/elk/indent"
-)
-
 var BoxClass *Class // ::Std::Box
 
+type Box interface {
+	ImmutableBox
+	SetValue(Value)
+	ToImmutableBoxInterface() ImmutableBox
+}
+
 func initBox() {
-	BoxClass = NewClassWithOptions(ClassWithConstructor(BoxConstructor), ClassWithSuperclass(ImmutableBoxClass))
+	BoxClass = NewClassWithOptions(ClassWithConstructor(BoxOfValueConstructor), ClassWithSuperclass(ImmutableBoxClass))
 	StdModule.AddConstantString("Box", Ref(BoxClass))
 	RegisterNativeClass("Std::Box", "value.BoxClass")
-}
-
-func BoxConstructor(class *Class) Value {
-	return Ref(NewBox(Undefined))
-}
-
-// Box wraps another value, it's a pointer to another `Value`.
-type Box Value
-
-type NativeBox[T any] struct {
-	ptr *T
-}
-
-func (b NativeBox[T]) Get() T {
-	return *b.ptr
-}
-
-func (b NativeBox[T]) Set(v T) {
-	*b.ptr = v
-}
-
-func NewBox(v Value) *Box {
-	b := Box(v)
-	return &b
-}
-
-// Retrieve the value stored in the box
-func (b *Box) Get() Value {
-	return Value(*b)
-}
-
-// Set the value in the box
-func (b *Box) Set(v Value) {
-	*b = Box(v)
-}
-
-// Return the box of the next value in memory
-func (b *Box) Next(step int) *Box {
-	ptr := unsafe.Pointer(b)
-	return (*Box)(unsafe.Add(ptr, step*int(ValueSize)))
-}
-
-// Return the box of the previous value in memory
-func (b *Box) Prev(step int) *Box {
-	ptr := unsafe.Pointer(b)
-	return (*Box)(unsafe.Add(ptr, -step*int(ValueSize)))
-}
-
-func (*Box) Class() *Class {
-	return BoxClass
-}
-
-func (*Box) DirectClass() *Class {
-	return BoxClass
-}
-
-func (*Box) SingletonClass() *Class {
-	return nil
-}
-
-func (b *Box) Copy() Reference {
-	return b
-}
-
-func (*Box) InstanceVariables() *InstanceVariables {
-	return nil
-}
-
-func (b *Box) ToImmutableBox() *ImmutableBox {
-	return (*ImmutableBox)(unsafe.Pointer(b))
-}
-
-func (b *Box) Inspect() string {
-	valInspect := b.Get().Inspect()
-	if !strings.ContainsRune(valInspect, '\n') {
-		return fmt.Sprintf("Std::Box{&: %p, %s}", b, valInspect)
-	}
-
-	var buff strings.Builder
-
-	fmt.Fprintf(&buff, "Std::Box{\n  &: %p", b)
-
-	buff.WriteString(",\n  ")
-	indent.IndentStringFromSecondLine(&buff, b.Get().Inspect(), 1)
-
-	buff.WriteString("\n}")
-
-	return buff.String()
-}
-
-func (b *Box) Error() string {
-	return b.Inspect()
 }

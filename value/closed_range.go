@@ -23,6 +23,10 @@ func (r *ClosedRange) Copy() Reference {
 	return r
 }
 
+func (r *ClosedRange) ToValue() Value {
+	return Ref(r)
+}
+
 func (*ClosedRange) Class() *Class {
 	return ClosedRangeClass
 }
@@ -99,6 +103,10 @@ func (r *ClosedRangeIterator) Copy() Reference {
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,
 	}
+}
+
+func (r *ClosedRangeIterator) ToValue() Value {
+	return Ref(r)
 }
 
 func (r *ClosedRangeIterator) Error() string {

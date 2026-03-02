@@ -84,6 +84,10 @@ func (n *AsPatternNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *AsPatternNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *AsPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*AsPatternNode)
 	if !ok {

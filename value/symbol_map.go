@@ -31,6 +31,10 @@ func (s SymbolMap) Copy() Reference {
 	return maps.Clone(s)
 }
 
+func (s SymbolMap) ToValue() Value {
+	return Ref(s)
+}
+
 func (s SymbolMap) Error() string {
 	return s.Inspect()
 }

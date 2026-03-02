@@ -14,13 +14,13 @@ func initExtendWhereBlockExpressionNode() {
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
-			argBodyTuple := args[1].MustReference().(*value.ArrayTuple)
+			argBodyTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 			argBody := make([]ast.StatementNode, argBodyTuple.Length())
 			for i, el := range *argBodyTuple {
 				argBody[i] = el.MustReference().(ast.StatementNode)
 			}
 
-			argWhereTuple := args[2].MustReference().(*value.ArrayTuple)
+			argWhereTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 			argWhere := make([]ast.TypeParameterNode, argWhereTuple.Length())
 			for i, el := range *argWhereTuple {
 				argWhere[i] = el.MustReference().(ast.TypeParameterNode)
@@ -50,7 +50,7 @@ func initExtendWhereBlockExpressionNode() {
 			self := args[0].MustReference().(*ast.ExtendWhereBlockExpressionNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -67,7 +67,7 @@ func initExtendWhereBlockExpressionNode() {
 			self := args[0].MustReference().(*ast.ExtendWhereBlockExpressionNode)
 
 			collection := self.Where
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -93,7 +93,7 @@ func initExtendWhereBlockExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ExtendWhereBlockExpressionNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

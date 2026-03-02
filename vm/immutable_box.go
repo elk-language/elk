@@ -1,36 +1,20 @@
 package vm
 
 import (
-	"unsafe"
-
 	"github.com/elk-language/elk/value"
 )
 
 // Std::ImmutableBox
 func initImmutableBox() {
-	// Class methods
-	c := &value.ImmutableBoxClass.SingletonClass().MethodContainer
-	Def(
-		c,
-		"at",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			address := args[1].AsUInt()
-			b := (*value.ImmutableBox)(unsafe.Pointer(uintptr(address)))
-
-			return value.Ref(b), value.Undefined
-		},
-		DefWithParameters(1),
-	)
-
 	// Instance methods
-	c = &value.ImmutableBoxClass.MethodContainer
+	c := &value.ImmutableBoxClass.MethodContainer
 	Def(
 		c,
 		"#init",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ImmutableBox)(args[0].Pointer())
+			self := (*value.ImmutableBoxOfValue)(args[0].Pointer())
 			v := args[1]
-			*self = value.ImmutableBox(v)
+			*self = value.ImmutableBoxOfValue(v)
 
 			return value.Ref(self), value.Undefined
 		},
@@ -40,16 +24,16 @@ func initImmutableBox() {
 		c,
 		"get",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ImmutableBox)(args[0].Pointer())
-			return self.Get(), value.Undefined
+			self := args[0].AsReference().(value.ImmutableBox)
+			return self.GetValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"address",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ImmutableBox)(args[0].Pointer())
-			return value.UInt(uintptr(unsafe.Pointer(self))).ToValue(), value.Undefined
+			self := args[0].AsReference().(value.ImmutableBox)
+			return self.Address().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -59,42 +43,4 @@ func initImmutableBox() {
 			return args[0], value.Undefined
 		},
 	)
-
-	Def(
-		c,
-		"next",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ImmutableBox)(args[0].Pointer())
-
-			var step int
-			if args[1].IsUndefined() {
-				step = 1
-			} else {
-				step = args[1].AsInt()
-			}
-
-			return value.Ref(self.Next(step)), value.Undefined
-		},
-		DefWithParameters(1),
-	)
-	Alias(c, "next_immutable_box", "next")
-
-	Def(
-		c,
-		"prev",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ImmutableBox)(args[0].Pointer())
-
-			var step int
-			if args[1].IsUndefined() {
-				step = 1
-			} else {
-				step = args[1].AsInt()
-			}
-
-			return value.Ref(self.Prev(step)), value.Undefined
-		},
-		DefWithParameters(1),
-	)
-	Alias(c, "prev_immutable_box", "prev")
 }

@@ -27,11 +27,11 @@ func initIterableFiniteBase() {
 				}
 
 				if value.Truthy(eq) {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
 			}
 
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -51,7 +51,7 @@ func initIterableFiniteBase() {
 				break
 			}
 
-			return value.ToElkBool(!anyElements), value.Undefined
+			return value.BoolVal(!anyElements), value.Undefined
 		},
 	)
 
@@ -168,7 +168,7 @@ func initIterableFiniteBase() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -195,7 +195,7 @@ func initIterableFiniteBase() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -253,7 +253,7 @@ func initIterableFiniteBase() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -293,11 +293,11 @@ func initIterableFiniteBase() {
 				}
 
 				if value.Truthy(ok) {
-					return value.True, value.Undefined
+					return value.True.ToValue(), value.Undefined
 				}
 			}
 
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -320,11 +320,11 @@ func initIterableFiniteBase() {
 				}
 
 				if value.Falsy(ok) {
-					return value.False, value.Undefined
+					return value.False.ToValue(), value.Undefined
 				}
 			}
 
-			return value.True, value.Undefined
+			return value.True.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -473,7 +473,7 @@ func initIterableFiniteBase() {
 					),
 				)
 			}
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -500,7 +500,7 @@ func initIterableFiniteBase() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 			var collect bool
 
 			for elem, err := range Iterate(vm, self) {
@@ -547,7 +547,7 @@ func initIterableFiniteBase() {
 					),
 				)
 			}
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -575,7 +575,7 @@ func initIterableFiniteBase() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -665,7 +665,7 @@ func initIterableFiniteBase() {
 		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
 					return value.Undefined, err
@@ -685,7 +685,7 @@ func initIterableFiniteBase() {
 		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0]
 
-			var result value.ArrayTuple
+			var result value.ArrayTupleOfValue
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
 					return value.Undefined, err

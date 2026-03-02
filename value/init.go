@@ -143,7 +143,6 @@ func InitGlobalEnvironment() {
 	initChannel()
 	initImmutableBox()
 	initWeak()
-	initLocalBox()
 	initBox()
 	initResult()
 	initColorizer()

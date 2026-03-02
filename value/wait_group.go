@@ -19,6 +19,10 @@ func (w *WaitGroup) Copy() Reference {
 	return &WaitGroup{}
 }
 
+func (w *WaitGroup) ToValue() Value {
+	return Ref(w)
+}
+
 func (*WaitGroup) Class() *Class {
 	return WaitGroupClass
 }

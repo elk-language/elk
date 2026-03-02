@@ -37,6 +37,10 @@ func (t *Timezone) Copy() Reference {
 	return t
 }
 
+func (t *Timezone) ToValue() Value {
+	return Ref(t)
+}
+
 func (t *Timezone) Error() string {
 	return t.Inspect()
 }

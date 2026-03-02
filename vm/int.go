@@ -145,12 +145,12 @@ func initInt() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
-				return value.ToElkBool(self.AsSmallInt().IsEven()), value.Undefined
+				return value.BoolVal(self.AsSmallInt().IsEven()), value.Undefined
 			}
 
 			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
-				return value.ToElkBool(s.IsEven()), value.Undefined
+				return value.BoolVal(s.IsEven()), value.Undefined
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
@@ -162,12 +162,12 @@ func initInt() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			if self.IsSmallInt() {
-				return value.ToElkBool(self.AsSmallInt().IsOdd()), value.Undefined
+				return value.BoolVal(self.AsSmallInt().IsOdd()), value.Undefined
 			}
 
 			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
-				return value.ToElkBool(s.IsOdd()), value.Undefined
+				return value.BoolVal(s.IsOdd()), value.Undefined
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))

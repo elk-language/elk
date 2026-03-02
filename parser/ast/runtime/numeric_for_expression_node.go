@@ -30,7 +30,7 @@ func initNumericForExpressionNode() {
 
 			var argThenBody []ast.StatementNode
 			if !args[4].IsUndefined() {
-				argThenBodyTuple := args[4].MustReference().(*value.ArrayTuple)
+				argThenBodyTuple := args[4].MustReference().(*value.ArrayTupleOfValue)
 				argThenBody = make([]ast.StatementNode, argThenBodyTuple.Length())
 				for i, el := range *argThenBodyTuple {
 					argThenBody[i] = el.MustReference().(ast.StatementNode)
@@ -104,7 +104,7 @@ func initNumericForExpressionNode() {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
 
 			collection := self.ThenBody
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -131,7 +131,7 @@ func initNumericForExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

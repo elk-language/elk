@@ -17,7 +17,7 @@ func initClassDeclarationNode() {
 
 			var body []ast.StatementNode
 			if !args[2].IsUndefined() {
-				bodyTuple := args[2].MustReference().(*value.ArrayTuple)
+				bodyTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				body = make([]ast.StatementNode, bodyTuple.Length())
 				for _, el := range *bodyTuple {
 					body = append(body, el.MustReference().(ast.StatementNode))
@@ -26,7 +26,7 @@ func initClassDeclarationNode() {
 
 			var typeParams []ast.TypeParameterNode
 			if !args[3].IsUndefined() {
-				typeParamTuple := args[3].MustReference().(*value.ArrayTuple)
+				typeParamTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				typeParams = make([]ast.TypeParameterNode, typeParamTuple.Length())
 				for _, el := range *typeParamTuple {
 					typeParams = append(typeParams, el.MustReference().(ast.TypeParameterNode))
@@ -88,7 +88,7 @@ func initClassDeclarationNode() {
 		"is_abstract",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
-			result := value.ToElkBool(self.Abstract)
+			result := value.BoolVal(self.Abstract)
 			return result, value.Undefined
 
 		},
@@ -99,7 +99,7 @@ func initClassDeclarationNode() {
 		"is_sealed",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
-			result := value.ToElkBool(self.Sealed)
+			result := value.BoolVal(self.Sealed)
 			return result, value.Undefined
 
 		},
@@ -110,7 +110,7 @@ func initClassDeclarationNode() {
 		"is_primitive",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
-			result := value.ToElkBool(self.Primitive)
+			result := value.BoolVal(self.Primitive)
 			return result, value.Undefined
 
 		},
@@ -121,7 +121,7 @@ func initClassDeclarationNode() {
 		"is_no_init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
-			result := value.ToElkBool(self.NoInit)
+			result := value.BoolVal(self.NoInit)
 			return result, value.Undefined
 
 		},
@@ -145,7 +145,7 @@ func initClassDeclarationNode() {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 
 			collection := self.TypeParameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -174,7 +174,7 @@ func initClassDeclarationNode() {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -211,7 +211,7 @@ func initClassDeclarationNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

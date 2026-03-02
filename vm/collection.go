@@ -34,7 +34,7 @@ func initCollection() {
 				}
 			}
 
-			return value.ToElkBool(deleted), value.Undefined
+			return value.BoolVal(deleted), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -86,7 +86,7 @@ func initCollection() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -113,7 +113,7 @@ func initCollection() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -142,7 +142,7 @@ func initCollection() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -180,7 +180,7 @@ func initCollection() {
 					),
 				)
 			}
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -207,7 +207,7 @@ func initCollection() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 			var collect bool
 
 			for elem, err := range Iterate(vm, self) {
@@ -254,7 +254,7 @@ func initCollection() {
 					),
 				)
 			}
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -282,7 +282,7 @@ func initCollection() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayList
+			var result value.ArrayListOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {

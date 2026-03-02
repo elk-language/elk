@@ -56,6 +56,10 @@ func (s *SetterMethod) Copy() value.Reference {
 	return s
 }
 
+func (s *SetterMethod) ToValue() value.Value {
+	return value.Ref(s)
+}
+
 func (s *SetterMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :setter}", s.AttributeName.Inspect())
 }

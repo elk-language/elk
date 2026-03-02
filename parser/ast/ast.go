@@ -356,13 +356,13 @@ func Iter(node Node) iter.Seq[Node] {
 	}
 }
 
-func NewNodeIterator(node Node) *value.ArrayTupleIterator {
-	var tuple value.ArrayTuple
+func NewNodeIterator(node Node) *value.ArrayTupleOfValueIterator {
+	var tuple value.ArrayTupleOfValue
 	for n := range Iter(node) {
 		tuple = append(tuple, value.Ref(n))
 	}
 
-	return value.NewArrayTupleIterator(&tuple)
+	return tuple.IterNative()
 }
 
 func SpliceSlice[N Node](slice []N, loc *position.Location, args *[]Node, unquote bool) []N {
@@ -445,6 +445,10 @@ func (t *TypedNodeBase) Copy() value.Reference {
 	return t
 }
 
+func (n *TypedNodeBase) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (t *TypedNodeBase) Inspect() string {
 	return fmt.Sprintf("Std::Node{&: %p}", t)
 }
@@ -502,6 +506,10 @@ func (n *NodeBase) InstanceVariables() *value.InstanceVariables {
 
 func (n *NodeBase) Copy() value.Reference {
 	return n
+}
+
+func (n *NodeBase) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *NodeBase) Inspect() string {

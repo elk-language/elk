@@ -6,6 +6,8 @@ import (
 	"io"
 	"iter"
 	"maps"
+	"math"
+	"math/big"
 	"os"
 	"path"
 	"path/filepath"
@@ -1685,7 +1687,7 @@ func (c *Checker) checkBoxOfExpression(node *ast.BoxOfExpressionNode) ast.Expres
 			node.SetType(types.Untyped{})
 			return node
 		}
-		box := types.NewGenericWithTypeArgs(c.Std(symbol.LocalBox).(*types.Class), typ)
+		box := types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), typ)
 		node.SetType(box)
 		return node
 	case *ast.PublicInstanceVariableNode:
@@ -2336,11 +2338,72 @@ func checkSpecialCollectionLiteralNode[E ast.ExpressionNode](c *Checker, collect
 	return generic
 }
 
+func checkIntCollectionLiteralNode(c *Checker, collectionType types.Namespace, elements []ast.IntCollectionContentNode, capacity ast.ExpressionNode) types.Type {
+	for _, elementNode := range elements {
+		c.checkExpression(elementNode)
+	}
+
+	if capacity != nil {
+		capacity = c.checkExpression(capacity)
+		capacityType := c.TypeOf(capacity)
+		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
+			c.addFailure(
+				fmt.Sprintf(
+					"capacity must be an integer, got `%s`",
+					types.InspectWithColor(capacityType),
+				),
+				capacity.Location(),
+			)
+		}
+	}
+
+	var largestElement *value.BigInt
+	for _, elementNode := range elements {
+		n, ok := elementNode.(*ast.IntLiteralNode)
+		if !ok {
+			continue
+		}
+
+		val, err := value.ParseBigInt(n.Value, 0)
+		if err.IsNotUndefined() {
+			c.addFailure(err.Error(), elementNode.Location())
+		}
+		if largestElement == nil || val.GreaterThanBigInt(largestElement) {
+			largestElement = val
+		}
+	}
+	if c.Errors.IsFailure() {
+		return types.Untyped{}
+	}
+
+	maxUInt64 := value.ToElkBigInt(big.NewInt(0).SetUint64(math.MaxUint64))
+	maxUInt32 := value.ToElkBigInt(big.NewInt(0).SetUint64(math.MaxUint32))
+	maxUInt16 := value.SmallInt(math.MaxUint16)
+	maxUInt8 := value.SmallInt(math.MaxUint8)
+
+	var elementType types.Type
+	if largestElement == nil {
+		elementType = c.Std(symbol.UInt8)
+	} else if largestElement.GreaterThanBigInt(maxUInt64) {
+		elementType = c.Std(symbol.Int)
+	} else if largestElement.GreaterThanBigInt(maxUInt32) {
+		elementType = c.Std(symbol.UInt64)
+	} else if largestElement.GreaterThanSmallInt(maxUInt16) {
+		elementType = c.Std(symbol.UInt32)
+	} else if largestElement.GreaterThanSmallInt(maxUInt8) {
+		elementType = c.Std(symbol.UInt16)
+	} else {
+		elementType = c.Std(symbol.UInt8)
+	}
+
+	generic := types.NewGenericWithTypeArgs(collectionType, elementType)
+	return generic
+}
+
 func (c *Checker) checkBinArrayListLiteralNode(node *ast.BinArrayListLiteralNode) ast.ExpressionNode {
-	typ := checkSpecialCollectionLiteralNode(
+	typ := checkIntCollectionLiteralNode(
 		c,
 		c.StdArrayList(),
-		c.Std(symbol.Int),
 		node.Elements,
 		node.Capacity,
 	)
@@ -2350,10 +2413,9 @@ func (c *Checker) checkBinArrayListLiteralNode(node *ast.BinArrayListLiteralNode
 }
 
 func (c *Checker) checkHexArrayListLiteralNode(node *ast.HexArrayListLiteralNode) ast.ExpressionNode {
-	typ := checkSpecialCollectionLiteralNode(
+	typ := checkIntCollectionLiteralNode(
 		c,
 		c.StdArrayList(),
-		c.Std(symbol.Int),
 		node.Elements,
 		node.Capacity,
 	)
@@ -2389,10 +2451,9 @@ func (c *Checker) checkWordArrayListLiteralNode(node *ast.WordArrayListLiteralNo
 }
 
 func (c *Checker) checkBinArrayTupleLiteralNode(node *ast.BinArrayTupleLiteralNode) ast.ExpressionNode {
-	typ := checkSpecialCollectionLiteralNode(
+	typ := checkIntCollectionLiteralNode(
 		c,
 		c.StdArrayTuple(),
-		c.Std(symbol.Int),
 		node.Elements,
 		nil,
 	)
@@ -2402,10 +2463,9 @@ func (c *Checker) checkBinArrayTupleLiteralNode(node *ast.BinArrayTupleLiteralNo
 }
 
 func (c *Checker) checkHexArrayTupleLiteralNode(node *ast.HexArrayTupleLiteralNode) ast.ExpressionNode {
-	typ := checkSpecialCollectionLiteralNode(
+	typ := checkIntCollectionLiteralNode(
 		c,
 		c.StdArrayTuple(),
-		c.Std(symbol.Int),
 		node.Elements,
 		nil,
 	)

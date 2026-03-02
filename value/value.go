@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"iter"
 	"math"
-	"slices"
 	"strings"
 	"unsafe"
 
@@ -27,14 +26,15 @@ type Value struct {
 	flag uint8
 }
 
+var _ ValueInterface = Value{}
+
 func MakeSentinelValue() Value {
 	return Value{flag: SENTINEL_FLAG}
 }
 
 const (
 	UNDEFINED_FLAG = iota
-	TRUE_FLAG
-	FALSE_FLAG
+	BOOL_FLAG
 	NIL_FLAG
 	SMALL_INT_FLAG
 	FLOAT_FLAG
@@ -63,14 +63,77 @@ const (
 	SENTINEL_FLAG = 0xFF
 )
 
-// Convert a Reference to a Value
-func Ref(ref Reference) Value {
-	i := *(*iface)(unsafe.Pointer(&ref))
+// Performs a downcast of the given Value
+// to the given concrete type.
+func Downcast[T ValueInterface](v Value) (T, bool) {
+	t, ok := v.ToInterface().(T)
+	return t, ok
+}
 
-	return Value{
-		data: i.tab,
-		ptr:  i.ptr,
-		flag: REFERENCE_FLAG,
+// Performs a downcast of the given Value
+// to the given concrete type.
+func MustDowncast[T ValueInterface](v Value) T {
+	return v.ToInterface().(T)
+}
+
+func (v Value) ToValue() Value {
+	return v
+}
+
+func (v Value) ToInterface() ValueInterface {
+	if v.IsReference() {
+		return v.AsReference()
+	}
+
+	switch v.ValueFlag() {
+	case BOOL_FLAG:
+		return v.AsBool()
+	case NIL_FLAG:
+		return v.AsNil()
+	case UNDEFINED_FLAG:
+		return v.AsUndefined()
+	case SMALL_INT_FLAG:
+		return v.AsSmallInt()
+	case FLOAT_FLAG:
+		return v.AsFloat()
+	case SYMBOL_FLAG:
+		return v.AsInlineSymbol()
+	case FLOAT64_FLAG:
+		return v.AsInlineFloat64()
+	case FLOAT32_FLAG:
+		return v.AsFloat32()
+	case INT8_FLAG:
+		return v.AsInt8()
+	case INT16_FLAG:
+		return v.AsInt16()
+	case INT32_FLAG:
+		return v.AsInt32()
+	case INT64_FLAG:
+		return v.AsInlineInt64()
+	case UINT8_FLAG:
+		return v.AsUInt8()
+	case UINT16_FLAG:
+		return v.AsUInt16()
+	case UINT32_FLAG:
+		return v.AsUInt32()
+	case UINT64_FLAG:
+		return v.AsInlineUInt64()
+	case UINT_FLAG:
+		return v.AsUInt()
+	case CHAR_FLAG:
+		return v.AsChar()
+	case TIME_SPAN_FLAG:
+		return v.AsInlineTimeSpan()
+	case DATE_FLAG:
+		return v.AsDate()
+	case DATE_SPAN_FLAG:
+		return v.AsDateSpan()
+	case TIME_FLAG:
+		return v.AsTime()
+	case WEAK_FLAG:
+		return v.AsWeak()
+	default:
+		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
 }
 
@@ -80,10 +143,8 @@ func (v Value) Inspect() string {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue().Inspect()
-	case FALSE_FLAG:
-		return v.AsFalse().Inspect()
+	case BOOL_FLAG:
+		return v.AsBool().Inspect()
 	case NIL_FLAG:
 		return v.AsNil().Inspect()
 	case UNDEFINED_FLAG:
@@ -147,10 +208,8 @@ func (v Value) Class() *Class {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue().Class()
-	case FALSE_FLAG:
-		return v.AsFalse().Class()
+	case BOOL_FLAG:
+		return v.AsBool().Class()
 	case NIL_FLAG:
 		return v.AsNil().Class()
 	case UNDEFINED_FLAG:
@@ -206,10 +265,8 @@ func (v Value) DirectClass() *Class {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue().DirectClass()
-	case FALSE_FLAG:
-		return v.AsFalse().DirectClass()
+	case BOOL_FLAG:
+		return v.AsBool().DirectClass()
 	case NIL_FLAG:
 		return v.AsNil().DirectClass()
 	case UNDEFINED_FLAG:
@@ -265,10 +322,8 @@ func (v Value) SingletonClass() *Class {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue().SingletonClass()
-	case FALSE_FLAG:
-		return v.AsFalse().SingletonClass()
+	case BOOL_FLAG:
+		return v.AsBool().SingletonClass()
 	case NIL_FLAG:
 		return v.AsNil().SingletonClass()
 	case UNDEFINED_FLAG:
@@ -324,10 +379,8 @@ func (v Value) InstanceVariables() *InstanceVariables {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue().InstanceVariables()
-	case FALSE_FLAG:
-		return v.AsFalse().InstanceVariables()
+	case BOOL_FLAG:
+		return v.AsBool().InstanceVariables()
 	case NIL_FLAG:
 		return v.AsNil().InstanceVariables()
 	case UNDEFINED_FLAG:
@@ -383,10 +436,8 @@ func (v Value) Error() string {
 	}
 
 	switch v.ValueFlag() {
-	case TRUE_FLAG:
-		return v.AsTrue().Error()
-	case FALSE_FLAG:
-		return v.AsFalse().Error()
+	case BOOL_FLAG:
+		return v.AsBool().Error()
 	case NIL_FLAG:
 		return v.AsNil().Error()
 	case UNDEFINED_FLAG:
@@ -979,34 +1030,35 @@ func (v Value) MustInlineSymbol() Symbol {
 	return v.AsInlineSymbol()
 }
 
+func (v Value) IsBool() bool {
+	return v.flag == BOOL_FLAG
+}
+
 func (v Value) IsTrue() bool {
-	return v.flag == TRUE_FLAG
-}
-
-func (v Value) AsTrue() TrueType {
-	return *(*TrueType)(unsafe.Pointer(&v.data))
-}
-
-func (v Value) MustTrue() TrueType {
-	if !v.IsTrue() {
-		panic(fmt.Sprintf("value `%s` is not True", v.Inspect()))
+	if !v.IsBool() {
+		return false
 	}
-	return v.AsTrue()
+
+	return bool(v.AsBool())
 }
 
 func (v Value) IsFalse() bool {
-	return v.flag == FALSE_FLAG
-}
-
-func (v Value) AsFalse() FalseType {
-	return *(*FalseType)(unsafe.Pointer(&v.data))
-}
-
-func (v Value) MustFalse() FalseType {
-	if !v.IsFalse() {
-		panic(fmt.Sprintf("value `%s` is not False", v.Inspect()))
+	if !v.IsBool() {
+		return false
 	}
-	return v.AsFalse()
+
+	return !bool(v.AsBool())
+}
+
+func (v Value) AsBool() Bool {
+	return v.data != 0
+}
+
+func (v Value) MustBool() Bool {
+	if !v.IsBool() {
+		panic(fmt.Sprintf("value `%s` is not Bool", v.Inspect()))
+	}
+	return v.AsBool()
 }
 
 func (v Value) IsNil() bool {
@@ -1089,39 +1141,6 @@ func GetInstanceVariableByName(object Value, name Symbol) (val, err Value) {
 	return val, Undefined
 }
 
-// Elk Reference Value
-type Reference interface {
-	Class() *Class                         // Return the class of the value
-	DirectClass() *Class                   // Return the direct class of this value that will be searched for methods first
-	SingletonClass() *Class                // Return the singleton class of this value that holds methods unique to this object
-	InstanceVariables() *InstanceVariables // Returns a pointer to the slice of instance vars of this value, nil if value doesn't support instance vars
-	Copy() Reference                       // Creates a shallow copy of the reference. If the value is immutable, no copying should be done, the same value should be returned.
-	Inspect() string                       // Returns the string representation of the value
-	Error() string                         // Implements the error interface
-}
-
-func IsMutableCollection(val Value) bool {
-	if val.IsInlineValue() {
-		return false
-	}
-	switch v := val.AsReference().(type) {
-	case *ArrayList, *HashMap:
-		return true
-	case *ArrayTuple:
-		if slices.ContainsFunc(*v, IsMutableCollection) {
-			return true
-		}
-	case *HashRecord:
-		for _, pair := range v.Table {
-			if IsMutableCollection(pair.Key) || IsMutableCollection(pair.Value) {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
 type Inspectable interface {
 	Inspect() string
 }
@@ -1143,44 +1162,6 @@ func InspectSlice[T Inspectable](slice []T) string {
 
 	builder.WriteString("]")
 	return builder.String()
-}
-
-// Convert a Go bool value to Elk.
-func ToElkBool(val bool) Value {
-	if val {
-		return True
-	}
-
-	return False
-}
-
-// Converts an Elk Value to an Elk Bool.
-func ToBool(val Value) Value {
-	if val.IsReference() {
-		return True
-	}
-
-	switch val.ValueFlag() {
-	case FALSE_FLAG, NIL_FLAG:
-		return False
-	default:
-		return True
-	}
-}
-
-// Converts an Elk Value to an Elk Bool
-// and negates it.
-func ToNotBool(val Value) Value {
-	if val.IsReference() {
-		return False
-	}
-
-	switch val.ValueFlag() {
-	case FALSE_FLAG, NIL_FLAG:
-		return True
-	default:
-		return False
-	}
 }
 
 // Converts an Elk value strictly to Go int.
@@ -1352,7 +1333,9 @@ func Truthy(val Value) bool {
 		return true
 	}
 	switch val.ValueFlag() {
-	case FALSE_FLAG, NIL_FLAG, UNDEFINED_FLAG:
+	case BOOL_FLAG:
+		return bool(val.AsBool())
+	case NIL_FLAG, UNDEFINED_FLAG:
 		return false
 	default:
 		return true
@@ -1366,7 +1349,9 @@ func Falsy(val Value) bool {
 		return false
 	}
 	switch val.ValueFlag() {
-	case FALSE_FLAG, NIL_FLAG, UNDEFINED_FLAG:
+	case BOOL_FLAG:
+		return !bool(val.AsBool())
+	case NIL_FLAG, UNDEFINED_FLAG:
 		return true
 	default:
 		return false
@@ -1423,9 +1408,9 @@ func SubscriptVal(collection, key Value) (result, err Value) {
 	}
 
 	switch l := collection.AsReference().(type) {
-	case *ArrayTuple:
+	case *ArrayTupleOfValue:
 		return l.Subscript(key)
-	case *ArrayList:
+	case *ArrayListOfValue:
 		return l.Subscript(key)
 	default:
 		return Undefined, Undefined
@@ -1442,9 +1427,9 @@ func SubscriptSet(collection, key, val Value) (err Value) {
 	}
 
 	switch l := collection.AsReference().(type) {
-	case *ArrayList:
+	case *ArrayListOfValue:
 		return l.SubscriptSet(key, val)
-	case *ArrayTuple:
+	case *ArrayTupleOfValue:
 		return l.SubscriptSet(key, val)
 	default:
 		return Undefined
@@ -1491,11 +1476,8 @@ func Hash(key Value) (result UInt64, err Value) {
 	case NIL_FLAG:
 		k := key.AsNil()
 		return k.Hash(), err
-	case TRUE_FLAG:
-		k := key.AsTrue()
-		return k.Hash(), err
-	case FALSE_FLAG:
-		k := key.AsFalse()
+	case BOOL_FLAG:
+		k := key.AsBool()
 		return k.Hash(), err
 	case FLOAT64_FLAG:
 		k := key.AsInlineFloat64()
@@ -1566,9 +1548,9 @@ func AddVal(left, right Value) (result, err Value) {
 			return RefErr(l.Concat(right))
 		case *Regex:
 			return l.ConcatVal(right)
-		case *ArrayList:
+		case *ArrayListOfValue:
 			return RefErr(l.Concat(right))
-		case *ArrayTuple:
+		case *ArrayTupleOfValue:
 			return l.ConcatVal(right)
 		default:
 			return Undefined, Undefined
@@ -1723,9 +1705,9 @@ func MultiplyVal(left, right Value) (result, err Value) {
 			return RefErr(l.Repeat(right))
 		case *Regex:
 			return l.RepeatVal(right)
-		case *ArrayList:
+		case *ArrayListOfValue:
 			return RefErr(l.Repeat(right))
-		case *ArrayTuple:
+		case *ArrayTupleOfValue:
 			return RefErr(l.Repeat(right))
 		default:
 			return Undefined, Undefined
@@ -3038,7 +3020,7 @@ func LaxNotEqualVal(left, right Value) Value {
 		return Undefined
 	}
 
-	return ToNotBool(val)
+	return ToNotBool(val).ToValue()
 }
 
 // Check whether left is equal to right.
@@ -3047,7 +3029,7 @@ func LaxNotEqualVal(left, right Value) Value {
 func EqualVal(left, right Value) Value {
 	class := left.Class()
 	if !IsA(right, class) {
-		return False
+		return False.ToValue()
 	}
 
 	if left.IsReference() {
@@ -3205,7 +3187,7 @@ func NotEqualVal(left, right Value) Value {
 		return Undefined
 	}
 
-	return ToNotBool(val)
+	return ToNotBool(val).ToValue()
 }
 
 // Check whether left is strictly equal to right.
@@ -3227,7 +3209,7 @@ func StrictEqualVal(left, right Value) Value {
 		case UInt64:
 			return l.StrictEqualVal(right)
 		default:
-			return ToElkBool(left == right)
+			return BoolVal(left == right)
 		}
 	}
 
@@ -3278,7 +3260,7 @@ func StrictEqualVal(left, right Value) Value {
 		l := left.AsUInt8()
 		return l.StrictEqualVal(right)
 	default:
-		return ToElkBool(left == right)
+		return BoolVal(left == right)
 	}
 }
 
@@ -3359,7 +3341,7 @@ func StrictEqual(left, right Value) bool {
 func StrictNotEqualVal(left, right Value) Value {
 	val := StrictEqual(left, right)
 
-	return ToElkBool(!val)
+	return BoolVal(!val)
 }
 
 // Execute a right bit shift >>.
@@ -3502,7 +3484,7 @@ func LeftBitshiftVal(left, right Value) (result, err Value) {
 		case UInt64:
 			r, err := StrictIntLeftBitshift(l, right)
 			return r.ToValue(), err
-		case *ArrayList:
+		case *ArrayListOfValue:
 			l.Append(right)
 			return Ref(l), Undefined
 		default:
@@ -3882,38 +3864,34 @@ func Next(val Value) (result, err Value) {
 	}
 
 	switch v := val.AsReference().(type) {
-	case *ArrayListIterator:
-		return v.Next()
-	case *ArrayTupleIterator:
-		return v.Next()
-	case *HashMapIterator:
-		return v.Next()
-	case *HashRecordIterator:
-		return v.Next()
-	case *HashSetIterator:
-		return v.Next()
-	case *StringCharIterator:
-		return v.Next()
-	case *StringByteIterator:
-		return v.Next()
-	case *StringGraphemeIterator:
-		return v.Next()
-	case *Channel:
-		return v.Next()
+	case NativeIterator:
+		return v.NextValue()
 	default:
 		return Undefined, Undefined
 	}
 }
 
+// Represents a native iterable defined in Go
+type NativeIterable interface {
+	Iterate() iter.Seq2[Value, Value]
+	Iter() NativeIterator
+}
+
 // Represents an iterator defined in Go
 type NativeIterator interface {
-	Next() (Value, Value)
+	ValueInterface
+	NextValue() (Value, Value)
+}
+
+type NativeResettableIterator interface {
+	NativeIterator
+	Reset()
 }
 
 func IterateNativeIterator(iter NativeIterator) iter.Seq2[Value, Value] {
 	return func(yield func(Value, Value) bool) {
 		for {
-			element, err := iter.Next()
+			element, err := iter.NextValue()
 			if err.IsUndefined() {
 				if !yield(element, Undefined) {
 					return
@@ -3926,34 +3904,6 @@ func IterateNativeIterator(iter NativeIterator) iter.Seq2[Value, Value] {
 			}
 			return
 		}
-	}
-}
-
-// Get the iterator of the value
-func Iter(val Value) Value {
-	if !val.IsReference() {
-		return Undefined
-	}
-
-	switch v := val.AsReference().(type) {
-	case *ArrayListIterator, *ArrayTupleIterator, *HashMapIterator,
-		*HashRecordIterator, *HashSetIterator, *StringCharIterator,
-		*StringByteIterator, *StringGraphemeIterator, *Channel:
-		return val
-	case String:
-		return Ref(NewStringCharIterator(v))
-	case *ArrayList:
-		return Ref(NewArrayListIterator(v))
-	case *ArrayTuple:
-		return Ref(NewArrayTupleIterator(v))
-	case *HashMap:
-		return Ref(NewHashMapIterator(v))
-	case *HashRecord:
-		return Ref(NewHashRecordIterator(v))
-	case *HashSet:
-		return Ref(NewHashSetIterator(v))
-	default:
-		return Undefined
 	}
 }
 

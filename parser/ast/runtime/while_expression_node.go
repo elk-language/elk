@@ -17,7 +17,7 @@ func initWhileExpressionNode() {
 
 			var argThenBody []ast.StatementNode
 			if !args[2].IsUndefined() {
-				argThenBodyTuple := args[2].MustReference().(*value.ArrayTuple)
+				argThenBodyTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argThenBody = make([]ast.StatementNode, argThenBodyTuple.Length())
 				for i, el := range *argThenBodyTuple {
 					argThenBody[i] = el.MustReference().(ast.StatementNode)
@@ -59,7 +59,7 @@ func initWhileExpressionNode() {
 			self := args[0].MustReference().(*ast.WhileExpressionNode)
 
 			collection := self.ThenBody
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -86,7 +86,7 @@ func initWhileExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.WhileExpressionNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

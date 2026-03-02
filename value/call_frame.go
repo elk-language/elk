@@ -31,6 +31,10 @@ func (c *CallFrame) Copy() Reference {
 	return c
 }
 
+func (c *CallFrame) ToValue() Value {
+	return Ref(c)
+}
+
 func (*CallFrame) Class() *Class {
 	return CallFrameClass
 }

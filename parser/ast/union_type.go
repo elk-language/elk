@@ -115,6 +115,10 @@ func (n *UnionTypeNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *UnionTypeNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UnionTypeNode) Error() string {
 	return n.Inspect()
 }

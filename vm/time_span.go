@@ -519,7 +519,7 @@ func initTimeSpan() {
 		">=",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
-			return value.ToElkBool(self >= args[1].AsTimeSpan()), value.Undefined
+			return value.BoolVal(self >= args[1].AsTimeSpan()), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -529,7 +529,7 @@ func initTimeSpan() {
 		">",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
-			return value.ToElkBool(self > args[1].AsTimeSpan()), value.Undefined
+			return value.BoolVal(self > args[1].AsTimeSpan()), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -539,7 +539,7 @@ func initTimeSpan() {
 		"<=",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
-			return value.ToElkBool(self <= args[1].AsTimeSpan()), value.Undefined
+			return value.BoolVal(self <= args[1].AsTimeSpan()), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -549,7 +549,7 @@ func initTimeSpan() {
 		"<",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
-			return value.ToElkBool(self < args[1].AsTimeSpan()), value.Undefined
+			return value.BoolVal(self < args[1].AsTimeSpan()), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -559,7 +559,7 @@ func initTimeSpan() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTimeSpan()
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)

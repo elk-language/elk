@@ -147,7 +147,7 @@ b7: 42
 				var [b, a] = [a, b]
 				[a, b]
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(-7).ToValue(),
 				value.SmallInt(5).ToValue(),
 			}),
@@ -322,7 +322,7 @@ b7: 42
 				var a: Int | bool = false
 				a &&= 5
 			`,
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 		},
 		"set logic and truthy": {
 			source: `
@@ -346,7 +346,7 @@ b7: 42
 				var a: Int | bool = false
 				a ??= 5
 			`,
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(35, 3, 5), P(35, 3, 5)), "this condition will always have the same result since type `Std::Int | bool` can never be nil"),
 				diagnostic.NewWarning(L(P(41, 3, 11), P(41, 3, 11)), "unreachable code"),

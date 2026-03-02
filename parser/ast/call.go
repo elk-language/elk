@@ -178,6 +178,10 @@ func (n *NewExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *NewExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *NewExpressionNode) Error() string {
 	return n.Inspect()
 }
@@ -386,6 +390,10 @@ func (n *GenericConstructorCallNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *GenericConstructorCallNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *GenericConstructorCallNode) Error() string {
 	return n.Inspect()
 }
@@ -572,6 +580,10 @@ func (n *ConstructorCallNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ConstructorCallNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ConstructorCallNode) Error() string {
 	return n.Inspect()
 }
@@ -635,6 +647,7 @@ func (*AttributeAccessNode) Class() *value.Class {
 func (*AttributeAccessNode) DirectClass() *value.Class {
 	return value.AttributeAccessNodeClass
 }
+
 func (n *AttributeAccessNode) Inspect() string {
 	var buff strings.Builder
 
@@ -649,6 +662,10 @@ func (n *AttributeAccessNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *AttributeAccessNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *AttributeAccessNode) Equal(other value.Value) bool {
@@ -800,6 +817,10 @@ func (n *SubscriptExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *SubscriptExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *SubscriptExpressionNode) Error() string {
 	return n.Inspect()
 }
@@ -918,6 +939,10 @@ func (n *NilSafeSubscriptExpressionNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *NilSafeSubscriptExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *NilSafeSubscriptExpressionNode) Error() string {
@@ -1119,6 +1144,10 @@ func (n *CallNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *CallNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *CallNode) Error() string {
@@ -1370,6 +1399,10 @@ func (n *GenericMethodCallNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *GenericMethodCallNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *GenericMethodCallNode) Error() string {
 	return n.Inspect()
 }
@@ -1581,6 +1614,10 @@ func (n *MethodCallNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *MethodCallNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *MethodCallNode) Error() string {
 	return n.Inspect()
 }
@@ -1763,6 +1800,10 @@ func (n *ReceiverlessMethodCallNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *ReceiverlessMethodCallNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *ReceiverlessMethodCallNode) Error() string {
@@ -1983,6 +2024,10 @@ func (n *GenericReceiverlessMethodCallNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *GenericReceiverlessMethodCallNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *GenericReceiverlessMethodCallNode) Error() string {

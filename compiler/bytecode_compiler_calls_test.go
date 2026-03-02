@@ -51,7 +51,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -85,7 +85,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -260,7 +260,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -292,7 +292,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -445,7 +445,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -479,9 +479,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -622,7 +622,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -656,9 +656,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -801,7 +801,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -837,9 +837,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Float(5.5).ToValue(),
-						value.Float(3.9).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						5.5,
+						3.9,
 					}),
 					value.Float(3.0).ToValue(),
 				},
@@ -874,9 +874,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -1194,7 +1194,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -1230,9 +1230,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Float(5.5).ToValue(),
-						value.Float(3.9).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						5.5,
+						3.9,
 					}),
 					value.Float(3.0).ToValue(),
 				},
@@ -1267,9 +1267,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -1414,7 +1414,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -1450,9 +1450,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Float(5.5).ToValue(),
-						value.Float(3.9).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						5.5,
+						3.9,
 					}),
 					value.Float(3.0).ToValue(),
 				},
@@ -1487,9 +1487,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -1634,7 +1634,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -1670,9 +1670,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Float(5.2).ToValue(),
-						value.Float(3.0).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						5.2,
+						3.0,
 					}),
 					value.Float(10.9).ToValue(),
 				},
@@ -1707,9 +1707,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -1854,7 +1854,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -1890,9 +1890,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -2037,7 +2037,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -2073,9 +2073,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Float(5.5).ToValue(),
-						value.Float(3.9).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						5.5,
+						3.9,
 					}),
 					value.Float(2.5).ToValue(),
 				},
@@ -2110,9 +2110,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -2257,7 +2257,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -2293,9 +2293,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -2439,7 +2439,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -2475,9 +2475,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -2621,7 +2621,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -2657,9 +2657,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -2803,7 +2803,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -2839,9 +2839,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -2985,7 +2985,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -3021,9 +3021,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -3168,9 +3168,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt64(5).ToValue(),
-						value.UInt64(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt64]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -3204,9 +3204,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -3350,9 +3350,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt64(5).ToValue(),
-						value.UInt64(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt64]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -3386,9 +3386,9 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.UInt8(5).ToValue(),
-						value.UInt8(3).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						5,
+						3,
 					}),
 				},
 			),
@@ -3534,7 +3534,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -3573,7 +3573,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -3612,7 +3612,7 @@ func TestBytecodeSubscript(t *testing.T) {
 					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
@@ -5051,7 +5051,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						},
 					)),
 					value.ToSymbol("Foo").ToValue(),
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -5148,7 +5148,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 							value.ToSymbol("foo").ToValue(),
 						},
 					)),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -5358,13 +5358,13 @@ func TestBytecodeCallMethod(t *testing.T) {
 							value.ToSymbol("foo").ToValue(),
 						},
 					)),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
 					value.ToSymbol("Foo").ToValue(),
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(5).ToValue(),
 					}),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
@@ -5457,9 +5457,9 @@ func TestBytecodeCallMethod(t *testing.T) {
 					value.ToSymbol("Foo").ToValue(),
 					value.Ref(vm.MustNewHashRecordWithElements(
 						nil,
-						value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(1).ToValue()},
-						value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
-						value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(3).ToValue()},
+						value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(1).ToValue()),
+						value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
+						value.MakePairOfValue(value.ToSymbol("baz").ToValue(), value.SmallInt(3).ToValue()),
 					)),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
 				},
@@ -5553,12 +5553,13 @@ func TestBytecodeCallMethod(t *testing.T) {
 							value.ToSymbol("foo").ToValue(),
 						},
 					)),
-					value.Ref(vm.MustNewHashMapWithElements(
-						nil,
-						value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(1).ToValue()},
-						value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
-						value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(3).ToValue()},
-					)),
+					vm.NewNativeKeyHashMapFromMap[value.Symbol](
+						map[value.Symbol]value.Value{
+							value.ToSymbol("foo"): value.SmallInt(1).ToValue(),
+							value.ToSymbol("bar"): value.SmallInt(2).ToValue(),
+							value.ToSymbol("baz"): value.SmallInt(3).ToValue(),
+						},
+					).ToValue(),
 					value.ToSymbol("Foo").ToValue(),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
 				},
@@ -5840,16 +5841,17 @@ func TestBytecodeCallMethod(t *testing.T) {
 							value.ToSymbol("foo").ToValue(),
 						},
 					)),
-					value.Ref(vm.MustNewHashMapWithElements(
-						nil,
-						value.Pair{Key: value.ToSymbol("foo").ToValue(), Value: value.SmallInt(1).ToValue()},
-						value.Pair{Key: value.ToSymbol("bar").ToValue(), Value: value.SmallInt(2).ToValue()},
-						value.Pair{Key: value.ToSymbol("baz").ToValue(), Value: value.SmallInt(3).ToValue()},
-					)),
+					vm.NewNativeKeyHashMapFromMap(
+						map[value.Symbol]value.Value{
+							value.ToSymbol("foo"): value.SmallInt(1).ToValue(),
+							value.ToSymbol("bar"): value.SmallInt(2).ToValue(),
+							value.ToSymbol("baz"): value.SmallInt(3).ToValue(),
+						},
+					).ToValue(),
 					value.ToSymbol("Foo").ToValue(),
 					value.Ref(vm.MustNewHashRecordWithElements(
 						nil,
-						value.Pair{Key: value.ToSymbol("elo").ToValue(), Value: value.SmallInt(5).ToValue()},
+						value.MakePairOfValue(value.ToSymbol("elo").ToValue(), value.SmallInt(5).ToValue()),
 					)),
 					value.ToSymbol("Std::Pair").ToValue(),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("key"), 0)),

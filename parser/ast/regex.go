@@ -183,6 +183,10 @@ func (n *UninterpolatedRegexLiteralNode) Inspect() string {
 	)
 }
 
+func (n *UninterpolatedRegexLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UninterpolatedRegexLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -250,6 +254,10 @@ func (n *RegexLiteralContentSectionNode) Inspect() string {
 		(*value.Location)(n.loc).Inspect(),
 		value.String(n.Value).Inspect(),
 	)
+}
+
+func (n *RegexLiteralContentSectionNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *RegexLiteralContentSectionNode) Error() string {
@@ -343,6 +351,10 @@ func (n *RegexInterpolationNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *RegexInterpolationNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *RegexInterpolationNode) Error() string {
@@ -532,6 +544,10 @@ func (n *InterpolatedRegexLiteralNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *InterpolatedRegexLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *InterpolatedRegexLiteralNode) Error() string {

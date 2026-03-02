@@ -25,6 +25,10 @@ func (m *ROMutex) Copy() Reference {
 	return NewROMutex(m.RWMutex)
 }
 
+func (r *ROMutex) ToValue() Value {
+	return Ref(r)
+}
+
 func (*ROMutex) Class() *Class {
 	return ROMutexClass
 }

@@ -62,6 +62,10 @@ func (i *Interface) Copy() Reference {
 	return newInterface
 }
 
+func (i *Interface) ToValue() Value {
+	return Ref(i)
+}
+
 func (i *Interface) Class() *Class {
 	return InterfaceClass
 }

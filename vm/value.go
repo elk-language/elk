@@ -2,6 +2,7 @@ package vm
 
 import (
 	"encoding/binary"
+	"slices"
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/elk-language/elk/lexer"
@@ -35,7 +36,7 @@ func initValue() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			return value.ToElkBool(self == other), value.Undefined
+			return value.BoolVal(self == other), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -352,24 +353,6 @@ func NextBuiltin(vm *Thread, val value.Value) (result, err value.Value) {
 	}
 
 	switch v := val.AsReference().(type) {
-	case *value.ArrayListIterator:
-		return v.Next()
-	case *value.ArrayTupleIterator:
-		return v.Next()
-	case *value.HashMapIterator:
-		return v.Next()
-	case *value.HashRecordIterator:
-		return v.Next()
-	case *value.HashSetIterator:
-		return v.Next()
-	case *value.StringCharIterator:
-		return v.Next()
-	case *value.StringByteIterator:
-		return v.Next()
-	case *value.StringGraphemeIterator:
-		return v.Next()
-	case *value.Channel:
-		return v.Next()
 	case *value.ClosedRangeIterator:
 		return ClosedRangeIteratorNext(vm, v)
 	case *value.OpenRangeIterator:
@@ -378,6 +361,8 @@ func NextBuiltin(vm *Thread, val value.Value) (result, err value.Value) {
 		return LeftOpenRangeIteratorNext(vm, v)
 	case *value.RightOpenRangeIterator:
 		return RightOpenRangeIteratorNext(vm, v)
+	case value.NativeIterator:
+		return v.NextValue()
 	default:
 		return value.Undefined, value.Undefined
 	}
@@ -389,14 +374,10 @@ func SubscriptBuiltin(vm *Thread, collection, key value.Value) (result, err valu
 	}
 
 	switch c := collection.AsReference().(type) {
-	case *value.ArrayTuple:
+	case value.ArrayTuple:
 		return c.Subscript(key)
-	case *value.ArrayList:
-		return c.Subscript(key)
-	case *value.HashMap:
-		return HashMapGet(vm, c, key)
-	case *value.HashRecord:
-		return HashRecordGet(vm, c, key)
+	case HashRecord:
+		return c.GetVal(vm, key)
 	default:
 		return value.Undefined, value.Undefined
 	}
@@ -408,14 +389,54 @@ func SubscriptSetBuiltin(vm *Thread, collection, key, val value.Value) (err valu
 	}
 
 	switch l := collection.AsReference().(type) {
-	case *value.ArrayList:
+	case value.ArrayTuple:
 		return l.SubscriptSet(key, val)
-	case *value.ArrayTuple:
-		return l.SubscriptSet(key, val)
-	case *value.HashMap:
-		return HashMapSet(vm, l, key, val)
-	case *value.HashRecord:
-		return HashRecordSet(vm, l, key, val)
+	case HashRecord:
+		return l.SetVal(vm, key, val)
+	default:
+		return value.Undefined
+	}
+}
+
+func IsMutableCollection(val value.Value) bool {
+	if val.IsInlineValue() {
+		return false
+	}
+	switch v := val.AsReference().(type) {
+	case HashMap, value.ArrayList, HashSet:
+		return true
+	case *value.ArrayTupleOfValue:
+		if slices.ContainsFunc(*v, IsMutableCollection) {
+			return true
+		}
+	case value.ArrayTuple:
+		for _, element := range v.Elements() {
+			if IsMutableCollection(element) {
+				return true
+			}
+		}
+	case HashRecord:
+		for pair := range v.All() {
+			if IsMutableCollection(pair.Key()) || IsMutableCollection(pair.Value()) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// Get the iterator of the value
+func Iter(val value.Value) value.Value {
+	if !val.IsReference() {
+		return value.Undefined
+	}
+
+	switch v := val.ToInterface().(type) {
+	case value.NativeIterator:
+		return val
+	case value.NativeIterable:
+		return v.Iter().ToValue()
 	default:
 		return value.Undefined
 	}

@@ -31,6 +31,10 @@ func (d *Diagnostic) Copy() Reference {
 	return d
 }
 
+func (d *Diagnostic) ToValue() Value {
+	return Ref(d)
+}
+
 func (*Diagnostic) InstanceVariables() *InstanceVariables {
 	return nil
 }

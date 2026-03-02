@@ -96,6 +96,10 @@ func (n *DoubleSplatExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *DoubleSplatExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *DoubleSplatExpressionNode) Error() string {
 	return n.Inspect()
 }
@@ -190,6 +194,10 @@ func (n *SplatExpressionNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *SplatExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *SplatExpressionNode) Error() string {

@@ -243,7 +243,7 @@ func initTime() {
 		"is_am",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
-			return value.ToElkBool(self.IsAM()), value.Undefined
+			return value.BoolVal(self.IsAM()), value.Undefined
 		},
 	)
 	Def(
@@ -251,7 +251,7 @@ func initTime() {
 		"is_pm",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
-			return value.ToElkBool(self.IsPM()), value.Undefined
+			return value.BoolVal(self.IsPM()), value.Undefined
 		},
 	)
 	Def(
@@ -326,7 +326,7 @@ func initTime() {
 		">=",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
-			return value.ToElkBool(self.GreaterThanEqual(args[1].AsTime())), value.Undefined
+			return value.BoolVal(self.GreaterThanEqual(args[1].AsTime())), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -336,7 +336,7 @@ func initTime() {
 		">",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
-			return value.ToElkBool(self.GreaterThan(args[1].AsTime())), value.Undefined
+			return value.BoolVal(self.GreaterThan(args[1].AsTime())), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -346,7 +346,7 @@ func initTime() {
 		"<=",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
-			return value.ToElkBool(self.LessThanEqual(args[1].AsTime())), value.Undefined
+			return value.BoolVal(self.LessThanEqual(args[1].AsTime())), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -356,7 +356,7 @@ func initTime() {
 		"<",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
-			return value.ToElkBool(self.LessThan(args[1].AsTime())), value.Undefined
+			return value.BoolVal(self.LessThan(args[1].AsTime())), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -367,7 +367,7 @@ func initTime() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsTime()
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)

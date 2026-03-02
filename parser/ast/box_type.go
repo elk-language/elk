@@ -114,6 +114,10 @@ func (n *BoxTypeNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *BoxTypeNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *BoxTypeNode) Error() string {
 	return n.Inspect()
 }

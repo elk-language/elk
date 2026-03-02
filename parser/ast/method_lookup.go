@@ -115,6 +115,10 @@ func (n *InstanceMethodLookupNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *InstanceMethodLookupNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *InstanceMethodLookupNode) Error() string {
 	return n.Inspect()
 }
@@ -229,6 +233,10 @@ func (n *MethodLookupNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *MethodLookupNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *MethodLookupNode) Error() string {
 	return n.Inspect()
 }
@@ -335,6 +343,10 @@ func (n *MethodLookupAsNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *MethodLookupAsNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *MethodLookupAsNode) Error() string {

@@ -13,7 +13,7 @@ func initInterpolatedStringLiteralNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argContentTuple := args[1].MustReference().(*value.ArrayTuple)
+			argContentTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 			argContent := make([]ast.StringLiteralContentNode, argContentTuple.Length())
 			for i, el := range *argContentTuple {
 				argContent[i] = el.MustReference().(ast.StringLiteralContentNode)
@@ -42,7 +42,7 @@ func initInterpolatedStringLiteralNode() {
 			self := args[0].MustReference().(*ast.InterpolatedStringLiteralNode)
 
 			collection := self.Content
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -68,7 +68,7 @@ func initInterpolatedStringLiteralNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedStringLiteralNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

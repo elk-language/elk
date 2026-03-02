@@ -51,6 +51,10 @@ func (p *Path) Copy() Reference {
 	return p
 }
 
+func (p *Path) ToValue() Value {
+	return Ref(p)
+}
+
 func (p *Path) Inspect() string {
 	return fmt.Sprintf("Std::FS::Path(%s)", String(p.Value).Inspect())
 }

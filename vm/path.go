@@ -27,7 +27,7 @@ func initPath() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			other := (*value.Path)(args[1].Pointer())
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -36,7 +36,7 @@ func initPath() {
 		"is_absolute",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
-			return value.ToElkBool(self.IsAbsolute()), value.Undefined
+			return value.BoolVal(self.IsAbsolute()), value.Undefined
 		},
 	)
 	Def(
@@ -44,7 +44,7 @@ func initPath() {
 		"is_local",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
-			return value.ToElkBool(self.IsLocal()), value.Undefined
+			return value.BoolVal(self.IsLocal()), value.Undefined
 		},
 	)
 	Def(
@@ -102,7 +102,7 @@ func initPath() {
 			self := (*value.Path)(args[0].Pointer())
 			splitSlice := self.Split()
 
-			result := value.NewArrayListWithLength(len(splitSlice))
+			result := value.NewArrayListOfValueWithLength(len(splitSlice))
 			for i, element := range splitSlice {
 				result.SetAt(i, value.Ref(value.String(element)))
 			}
@@ -166,7 +166,7 @@ func initPath() {
 				return value.Undefined, value.Ref(value.NewError(value.GlobErrorClass, err.Error()))
 			}
 
-			return value.ToElkBool(result), value.Undefined
+			return value.BoolVal(result), value.Undefined
 		},
 	)
 	Def(

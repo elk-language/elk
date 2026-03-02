@@ -24,6 +24,10 @@ func (o *Once) Copy() Reference {
 	return NewOnce()
 }
 
+func (o *Once) ToValue() Value {
+	return Ref(o)
+}
+
 func (*Once) Class() *Class {
 	return OnceClass
 }

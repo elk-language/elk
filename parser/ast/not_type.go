@@ -102,6 +102,10 @@ func (n *NotTypeNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *NotTypeNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *NotTypeNode) Error() string {
 	return n.Inspect()
 }

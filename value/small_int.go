@@ -578,7 +578,7 @@ func (i SmallInt) CompareInt(other Value) SmallInt {
 // if something went wrong.
 func (i SmallInt) GreaterThanVal(other Value) (Value, Value) {
 	result, err := i.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether i is greater than other and return an error
@@ -637,7 +637,7 @@ func (i SmallInt) GreaterThanBigFloat(other *BigFloat) bool {
 // if something went wrong.
 func (i SmallInt) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := i.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether i is greater than or equal to other and return an error
@@ -696,7 +696,7 @@ func (i SmallInt) GreaterThanEqualBigFloat(other *BigFloat) bool {
 // if something went wrong.
 func (i SmallInt) LessThanVal(other Value) (Value, Value) {
 	result, err := i.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether i is less than other and return an error
@@ -755,7 +755,7 @@ func (i SmallInt) LessThanBigFloat(other *BigFloat) bool {
 // if something went wrong.
 func (i SmallInt) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := i.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether i is less than or equal to other and return an error
@@ -816,66 +816,66 @@ func (i SmallInt) LaxEqualVal(other Value) Value {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
 			iBigInt := NewBigInt(int64(i))
-			return ToElkBool(iBigInt.Cmp(o) == 0)
+			return Bool(iBigInt.Cmp(o) == 0).ToValue()
 		case *BigFloat:
 			if o.IsNaN() {
-				return False
+				return False.ToValue()
 			}
 			iBigFloat := (&BigFloat{}).SetSmallInt(i)
-			return ToElkBool(iBigFloat.Cmp(o) == 0)
+			return Bool(iBigFloat.Cmp(o) == 0).ToValue()
 		case Int64:
-			return ToElkBool(i == SmallInt(o))
+			return Bool(i == SmallInt(o)).ToValue()
 		case UInt64:
 			if o > MaxSmallInt {
-				return False
+				return False.ToValue()
 			}
-			return ToElkBool(i == SmallInt(o))
+			return Bool(i == SmallInt(o)).ToValue()
 		default:
-			return False
+			return False.ToValue()
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return ToElkBool(i == other.AsSmallInt())
+		return Bool(i == other.AsSmallInt()).ToValue()
 	case FLOAT_FLAG:
-		return ToElkBool(Float(i) == other.AsFloat())
+		return Bool(Float(i) == other.AsFloat()).ToValue()
 	case INT64_FLAG:
 		o := other.AsInlineInt64()
 		if o > MaxSmallInt {
-			return False
+			return False.ToValue()
 		}
-		return ToElkBool(i == SmallInt(o))
+		return Bool(i == SmallInt(o)).ToValue()
 	case INT32_FLAG:
-		return ToElkBool(i == SmallInt(other.AsInt32()))
+		return Bool(i == SmallInt(other.AsInt32())).ToValue()
 	case INT16_FLAG:
-		return ToElkBool(i == SmallInt(other.AsInt16()))
+		return Bool(i == SmallInt(other.AsInt16())).ToValue()
 	case INT8_FLAG:
-		return ToElkBool(i == SmallInt(other.AsInt8()))
+		return Bool(i == SmallInt(other.AsInt8())).ToValue()
 	case UINT_FLAG:
 		o := other.AsUInt()
 		if o > MaxSmallInt {
-			return False
+			return False.ToValue()
 		}
-		return ToElkBool(i == SmallInt(o))
+		return Bool(i == SmallInt(o)).ToValue()
 	case UINT64_FLAG:
 		o := other.AsInlineUInt64()
 		if o > MaxSmallInt {
-			return False
+			return False.ToValue()
 		}
-		return ToElkBool(i == SmallInt(o))
+		return Bool(i == SmallInt(o)).ToValue()
 	case UINT32_FLAG:
-		return ToElkBool(i == SmallInt(other.AsUInt32()))
+		return Bool(i == SmallInt(other.AsUInt32())).ToValue()
 	case UINT16_FLAG:
-		return ToElkBool(i == SmallInt(other.AsUInt16()))
+		return Bool(i == SmallInt(other.AsUInt16())).ToValue()
 	case UINT8_FLAG:
-		return ToElkBool(i == SmallInt(other.AsUInt8()))
+		return Bool(i == SmallInt(other.AsUInt8())).ToValue()
 	case FLOAT64_FLAG:
-		return ToElkBool(Float64(i) == other.AsInlineFloat64())
+		return Bool(Float64(i) == other.AsInlineFloat64()).ToValue()
 	case FLOAT32_FLAG:
-		return ToElkBool(Float32(i) == other.AsFloat32())
+		return Bool(Float32(i) == other.AsFloat32()).ToValue()
 	default:
-		return False
+		return False.ToValue()
 	}
 }
 
@@ -929,16 +929,16 @@ func (i SmallInt) StrictEqualVal(other Value) Value {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
 			iBigInt := NewBigInt(int64(i))
-			return ToElkBool(iBigInt.Cmp(o) == 0)
+			return Bool(iBigInt.Cmp(o) == 0).ToValue()
 		default:
-			return False
+			return False.ToValue()
 		}
 	}
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return ToElkBool(i == other.AsSmallInt())
+		return Bool(i == other.AsSmallInt()).ToValue()
 	default:
-		return False
+		return False.ToValue()
 	}
 }
 
@@ -1526,6 +1526,10 @@ func (l *SmallIntIterator) Copy() Reference {
 		Int:     l.Int,
 		Counter: l.Counter,
 	}
+}
+
+func (l *SmallIntIterator) ToValue() Value {
+	return Ref(l)
 }
 
 func (l *SmallIntIterator) Inspect() string {

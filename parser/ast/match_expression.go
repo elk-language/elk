@@ -116,6 +116,10 @@ func (n *MatchExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *MatchExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *MatchExpressionNode) Error() string {
 	return n.Inspect()
 }

@@ -337,7 +337,7 @@ func (i UInt64) CompareUInt64(other UInt64) SmallInt {
 
 func (i UInt64) GreaterThanVal(other Value) (Value, Value) {
 	result, err := i.GreaterThan(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 func (i UInt64) GreaterThan(other Value) (bool, Value) {
@@ -359,7 +359,7 @@ func (i UInt64) GreaterThan(other Value) (bool, Value) {
 
 func (i UInt64) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := i.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 func (i UInt64) GreaterThanEqual(other Value) (bool, Value) {
@@ -381,7 +381,7 @@ func (i UInt64) GreaterThanEqual(other Value) (bool, Value) {
 
 func (i UInt64) LessThanVal(other Value) (Value, Value) {
 	result, err := i.LessThan(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 func (i UInt64) LessThan(other Value) (bool, Value) {
@@ -403,7 +403,7 @@ func (i UInt64) LessThan(other Value) (bool, Value) {
 
 func (i UInt64) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := i.LessThanEqual(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 func (i UInt64) LessThanEqual(other Value) (bool, Value) {
@@ -424,7 +424,7 @@ func (i UInt64) LessThanEqual(other Value) (bool, Value) {
 }
 
 func (i UInt64) EqualVal(other Value) Value {
-	return ToElkBool(i.Equal(other))
+	return BoolVal(i.Equal(other))
 }
 
 func (i UInt64) Equal(other Value) bool {

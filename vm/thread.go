@@ -34,6 +34,10 @@ func (vm *Thread) Copy() value.Reference {
 	return vm
 }
 
+func (vm *Thread) ToValue() value.Value {
+	return value.Ref(vm)
+}
+
 func (vm *Thread) StateSymbol() value.Symbol {
 	return stateSymbols[vm.state]
 }
@@ -47,7 +51,7 @@ func initThread() {
 		c,
 		"==",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.ToElkBool(args[0] == args[1]), value.Undefined
+			return value.BoolVal(args[0] == args[1]), value.Undefined
 		},
 		DefWithParameters(1),
 	)

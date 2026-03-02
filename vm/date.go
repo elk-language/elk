@@ -376,7 +376,7 @@ func initDate() {
 		"is_monday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
-			return value.ToElkBool(self.IsMonday()), value.Undefined
+			return value.BoolVal(self.IsMonday()), value.Undefined
 		},
 	)
 	Def(
@@ -384,7 +384,7 @@ func initDate() {
 		"is_tuesday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
-			return value.ToElkBool(self.IsTuesday()), value.Undefined
+			return value.BoolVal(self.IsTuesday()), value.Undefined
 		},
 	)
 	Def(
@@ -392,7 +392,7 @@ func initDate() {
 		"is_wednesday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
-			return value.ToElkBool(self.IsWednesday()), value.Undefined
+			return value.BoolVal(self.IsWednesday()), value.Undefined
 		},
 	)
 	Def(
@@ -400,7 +400,7 @@ func initDate() {
 		"is_thursday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
-			return value.ToElkBool(self.IsThursday()), value.Undefined
+			return value.BoolVal(self.IsThursday()), value.Undefined
 		},
 	)
 	Def(
@@ -408,7 +408,7 @@ func initDate() {
 		"is_friday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
-			return value.ToElkBool(self.IsFriday()), value.Undefined
+			return value.BoolVal(self.IsFriday()), value.Undefined
 		},
 	)
 	Def(
@@ -416,7 +416,7 @@ func initDate() {
 		"is_saturday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
-			return value.ToElkBool(self.IsSaturday()), value.Undefined
+			return value.BoolVal(self.IsSaturday()), value.Undefined
 		},
 	)
 	Def(
@@ -424,7 +424,7 @@ func initDate() {
 		"is_sunday",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
-			return value.ToElkBool(self.IsSunday()), value.Undefined
+			return value.BoolVal(self.IsSunday()), value.Undefined
 		},
 	)
 
@@ -444,7 +444,7 @@ func initDate() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			ok, err := self.GreaterThanEqual(args[1])
-			return value.ToElkBool(ok), err
+			return value.BoolVal(ok), err
 		},
 		DefWithParameters(1),
 	)
@@ -455,7 +455,7 @@ func initDate() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			ok, err := self.GreaterThan(args[1])
-			return value.ToElkBool(ok), err
+			return value.BoolVal(ok), err
 		},
 		DefWithParameters(1),
 	)
@@ -466,7 +466,7 @@ func initDate() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			ok, err := self.LessThanEqual(args[1])
-			return value.ToElkBool(ok), err
+			return value.BoolVal(ok), err
 		},
 		DefWithParameters(1),
 	)
@@ -477,7 +477,7 @@ func initDate() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			ok, err := self.LessThan(args[1])
-			return value.ToElkBool(ok), err
+			return value.BoolVal(ok), err
 		},
 		DefWithParameters(1),
 	)
@@ -487,7 +487,7 @@ func initDate() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDate()
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)

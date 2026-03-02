@@ -14,7 +14,7 @@ func initAliasDeclarationNode() {
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
-			arg0Tuple := args[1].MustReference().(*value.ArrayTuple)
+			arg0Tuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 			arg0 := make([]*ast.AliasDeclarationEntry, arg0Tuple.Length())
 			for i, el := range *arg0Tuple {
 				arg0[i] = el.MustReference().(*ast.AliasDeclarationEntry)
@@ -43,7 +43,7 @@ func initAliasDeclarationNode() {
 			self := args[0].MustReference().(*ast.AliasDeclarationNode)
 
 			collection := self.Entries
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -70,7 +70,7 @@ func initAliasDeclarationNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AliasDeclarationNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

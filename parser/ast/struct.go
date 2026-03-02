@@ -221,6 +221,10 @@ func (n *StructDeclarationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *StructDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *StructDeclarationNode) Error() string {
 	return n.Inspect()
 }

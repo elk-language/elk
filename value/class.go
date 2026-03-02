@@ -70,6 +70,13 @@ func ClassWithSuperclass(parent *Class) ClassOption {
 	}
 }
 
+func ClassWithHidden(name string) ClassOption {
+	return func(c *Class) {
+		c.Name = name
+		c.SetSingleton()
+	}
+}
+
 func ClassWithMetaClass(metaClass *Class) ClassOption {
 	return func(c *Class) {
 		c.metaClass = metaClass
@@ -281,6 +288,10 @@ func (c *Class) SingletonClass() *Class {
 	singletonClass := NewSingletonClass(c.metaClass, c.Name)
 	c.metaClass = singletonClass
 	return singletonClass
+}
+
+func (c *Class) ToValue() Value {
+	return Ref(c)
 }
 
 func (c *Class) Copy() Reference {

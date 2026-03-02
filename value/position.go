@@ -31,6 +31,10 @@ func (p *Position) Copy() Reference {
 	return p
 }
 
+func (p *Position) ToValue() Value {
+	return Ref(p)
+}
+
 func (*Position) InstanceVariables() *InstanceVariables {
 	return nil
 }

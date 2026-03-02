@@ -13,11 +13,11 @@ func initWeak() {
 		"#init",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			switch box := args[1].AsReference().(type) {
-			case *value.Box:
+			case *value.BoxOfValue:
 				return value.MakeWeak(box).ToValue(), value.Undefined
-			case *value.ImmutableBox:
+			case *value.ImmutableBoxOfValue:
 				return value.MakeWeak(box.ToBox()).ToValue(), value.Undefined
-			case *LocalBox:
+			case *UpvalueBox:
 				return value.MakeWeak(box.ToBox()).ToValue(), value.Undefined
 			default:
 				return value.Undefined, value.Ref(

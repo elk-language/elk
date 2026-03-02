@@ -199,6 +199,10 @@ func (n *HashSetLiteralNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *HashSetLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *HashSetLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -378,6 +382,10 @@ func (n *WordHashSetLiteralNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *WordHashSetLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *WordHashSetLiteralNode) Error() string {
@@ -560,6 +568,10 @@ func (n *SymbolHashSetLiteralNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *SymbolHashSetLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *SymbolHashSetLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -739,6 +751,10 @@ func (n *HexHashSetLiteralNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *HexHashSetLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *HexHashSetLiteralNode) Error() string {
@@ -926,6 +942,10 @@ func (n *BinHashSetLiteralNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *BinHashSetLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *BinHashSetLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -1025,6 +1045,10 @@ func (n *SetPatternNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *SetPatternNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *SetPatternNode) Error() string {

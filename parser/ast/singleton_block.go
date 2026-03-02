@@ -119,6 +119,10 @@ func (n *SingletonBlockExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *SingletonBlockExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *SingletonBlockExpressionNode) Error() string {
 	return n.Inspect()
 }

@@ -34,6 +34,7 @@ func (*GoSourceMethod) InstanceVariables() *value.InstanceVariables { return nil
 func (*GoSourceMethod) OptionalParameterCount() int                 { return 0 }
 func (*GoSourceMethod) ParameterCount() int                         { return 0 }
 func (*GoSourceMethod) SingletonClass() *value.Class                { return nil }
+func (m *GoSourceMethod) ToValue() value.Value                      { return value.Ref(m) }
 
 type nativeBigInt struct {
 	id  int
@@ -636,7 +637,7 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 				typ,
 				goValueType,
 			)
-			c.emit("%s = %s\n", localName, c.valueToNarrowerType(argVal))
+			c.emit("%s = %s\n", localName, c.valueToNarrowerType(argVal).value())
 			c.emit("}\n")
 		} else {
 			local.goLocal.predefined = true
@@ -1283,11 +1284,11 @@ func (c *GoCompiler) CompileInclude(target types.Namespace, mixin *types.Mixin, 
 		c.emit("class = (%s).SingletonClass()\n", namespaceVal.value())
 	default:
 		namespaceVal := c.emitGetConst(value.ToSymbol(target.Name()), c.checker.Std(symbol.Class))
-		c.emit("class = %s\n", c.valueToNarrowerType(namespaceVal))
+		c.emit("class = %s\n", c.valueToNarrowerType(namespaceVal).value())
 	}
 
 	mixinVal := c.emitGetConst(value.ToSymbol(mixin.Name()), c.checker.Std(symbol.Mixin))
-	c.emit("mixin = %s\n", c.valueToNarrowerType(mixinVal))
+	c.emit("mixin = %s\n", c.valueToNarrowerType(mixinVal).value())
 
 	c.emit("class.IncludeMixin(mixin)\n")
 }
@@ -3032,7 +3033,7 @@ func (c *GoCompiler) compileIfExpression(condType conditionType, condition ast.E
 }
 
 func (c *GoCompiler) compileIfWithConditionExpression(condType conditionType, condition ast.ExpressionNode, then, els func() *goValue, typ types.Type, valueIsIgnored bool) *goValue {
-	if result := resolve(condition); !result.IsUndefined() {
+	if result := resolve(condition, c.checker); !result.IsUndefined() {
 		// if gets optimised away
 		c.enterScope("", defaultNativeElkScopeType)
 		defer c.leaveScope()
@@ -3328,7 +3329,7 @@ func (c *GoCompiler) emitCachedRange(val value.Value, typ types.Type) *goValue {
 	)
 }
 
-func (c *GoCompiler) emitCachedArrayTuple(tuple *value.ArrayTuple, typ types.Type) *goValue {
+func (c *GoCompiler) emitCachedArrayTuple(tuple *value.ArrayTupleOfValue, typ types.Type) *goValue {
 	tupleSource := c.arrayTupleToGoSource(tuple, false)
 	if tupleSource == nil {
 		return nil
@@ -6910,7 +6911,7 @@ func (c *GoCompiler) compileAddUInt8(left, right *goValue, valueIsIgnored bool) 
 }
 
 func (c *GoCompiler) resolve(node ast.ExpressionNode) *goValue {
-	result := resolve(node)
+	result := resolve(node, c.checker)
 	if result.IsUndefined() {
 		return nil
 	}
@@ -6921,12 +6922,12 @@ func (c *GoCompiler) resolve(node ast.ExpressionNode) *goValue {
 func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutable bool) *goValue {
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
-		case *value.ArrayList:
+		case *value.ArrayListOfValue:
 			if !allowMutable {
 				return nil
 			}
 			return c.arrayListToGoSource(v)
-		case *value.ArrayTuple:
+		case *value.ArrayTupleOfValue:
 			cached := c.emitCachedArrayTuple(v, typ)
 			if cached != nil {
 				return cached
@@ -6935,17 +6936,17 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 				return nil
 			}
 			return c.arrayTupleToGoSource(v, true)
-		case *value.HashSet:
+		case *vm.HashSetOfValue:
 			if !allowMutable {
 				return nil
 			}
 			return c.hashSetToGoSource(v)
-		case *value.HashMap:
+		case *vm.HashMapOfValue:
 			if !allowMutable {
 				return nil
 			}
 			return c.hashMapToGoSource(v)
-		case *value.HashRecord:
+		case *vm.HashRecordOfValue:
 			return c.hashRecordToGoSource(v, allowMutable)
 		case value.String:
 			return newInlineGoValue(
@@ -6982,18 +6983,20 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 	}
 
 	switch val.ValueFlag() {
-	case value.TRUE_FLAG:
-		return newInlineGoValue(
-			"true",
-			types.Bool{},
-			"bool",
-		)
-	case value.FALSE_FLAG:
-		return newInlineGoValue(
-			"false",
-			types.Bool{},
-			"bool",
-		)
+	case value.BOOL_FLAG:
+		if val.AsBool() {
+			return newInlineGoValue(
+				"true",
+				types.Bool{},
+				"bool",
+			)
+		} else {
+			return newInlineGoValue(
+				"false",
+				types.Bool{},
+				"bool",
+			)
+		}
 	case value.NIL_FLAG:
 		return nilGoValue
 	case value.SMALL_INT_FLAG:
@@ -7091,7 +7094,7 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 	return nil
 }
 
-func (c *GoCompiler) arrayListToGoSource(v *value.ArrayList) *goValue {
+func (c *GoCompiler) arrayListToGoSource(v *value.ArrayListOfValue) *goValue {
 	var buff strings.Builder
 
 	fmt.Fprintf(&buff, "value.NewArrayListWithElements(%d, ", v.LeftCapacity())
@@ -7123,7 +7126,7 @@ func (c *GoCompiler) convertToValue(v *goValue) string {
 		"*value.Mixin", "*value.Interface", "*value.Timezone":
 		return fmt.Sprintf("value.Ref(%s)", v.value())
 	case "bool":
-		return fmt.Sprintf("value.ToElkBool(%s)", v.value())
+		return fmt.Sprintf("value.ToBoolVal(%s)", v.value())
 	}
 
 	if c.checker.IsSubtype(v.elkType, c.checker.StdInt()) {
@@ -7539,7 +7542,7 @@ func (c *GoCompiler) rangeToGoSource(v value.Value, typ types.Type, mutable bool
 	)
 }
 
-func (c *GoCompiler) arrayTupleToGoSource(v *value.ArrayTuple, mutable bool) *goValue {
+func (c *GoCompiler) arrayTupleToGoSource(v *value.ArrayTupleOfValue, mutable bool) *goValue {
 	var buff strings.Builder
 
 	buff.WriteString("value.NewArrayTupleWithElements(0, ")
@@ -7561,7 +7564,7 @@ func (c *GoCompiler) arrayTupleToGoSource(v *value.ArrayTuple, mutable bool) *go
 	)
 }
 
-func (c *GoCompiler) hashSetToGoSource(v *value.HashSet) *goValue {
+func (c *GoCompiler) hashSetToGoSource(v *vm.HashSetOfValue) *goValue {
 	var buff strings.Builder
 
 	fmt.Fprintf(&buff, "vm.MustNewHashSetWithCapacityAndElements(nil, %d, ", v.LeftCapacity())
@@ -7583,7 +7586,7 @@ func (c *GoCompiler) hashSetToGoSource(v *value.HashSet) *goValue {
 	)
 }
 
-func (c *GoCompiler) hashMapToGoSource(v *value.HashMap) *goValue {
+func (c *GoCompiler) hashMapToGoSource(v *vm.HashMapOfValue) *goValue {
 	var buff strings.Builder
 
 	fmt.Fprintf(&buff, "vm.MustNewHashMapWithCapacityAndElements(nil, %d, ", v.LeftCapacity())
@@ -7605,7 +7608,7 @@ func (c *GoCompiler) hashMapToGoSource(v *value.HashMap) *goValue {
 	)
 }
 
-func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecord, allowMutable bool) *goValue {
+func (c *GoCompiler) hashRecordToGoSource(v *vm.HashRecordOfValue, allowMutable bool) *goValue {
 	var buff strings.Builder
 
 	buff.WriteString("vm.MustNewHashRecordWithElements(nil, ")
@@ -7627,12 +7630,12 @@ func (c *GoCompiler) hashRecordToGoSource(v *value.HashRecord, allowMutable bool
 	)
 }
 
-func (c *GoCompiler) valuePairToGoSource(p value.Pair, allowMutable bool) *goValue {
-	k := c.valueToGoSource(p.Key, nil, allowMutable)
+func (c *GoCompiler) valuePairToGoSource(p value.PairOfValue, allowMutable bool) *goValue {
+	k := c.valueToGoSource(p.Key(), nil, allowMutable)
 	if k == nil {
 		return nil
 	}
-	v := c.valueToGoSource(p.Key, nil, allowMutable)
+	v := c.valueToGoSource(p.Key(), nil, allowMutable)
 	if v == nil {
 		return nil
 	}

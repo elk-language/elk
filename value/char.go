@@ -219,7 +219,7 @@ func (c Char) CompareVal(other Value) (Value, Value) {
 // if something went wrong.
 func (c Char) GreaterThanVal(other Value) (Value, Value) {
 	result, err := c.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether c is greater than other and return an error
@@ -254,7 +254,7 @@ func (c Char) GreaterThanChar(other Char) bool {
 // if something went wrong.
 func (c Char) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := c.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether c is greater than or equal to other and return an error
@@ -289,7 +289,7 @@ func (c Char) GreaterThanEqualChar(other Char) bool {
 // if something went wrong.
 func (c Char) LessThanVal(other Value) (Value, Value) {
 	result, err := c.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether c is less than other and return an error
@@ -324,7 +324,7 @@ func (c Char) LessThanChar(other Char) bool {
 // if something went wrong.
 func (c Char) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := c.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether c is less than or equal to other and return an error
@@ -362,26 +362,26 @@ func (c Char) LaxEqualVal(other Value) Value {
 		case String:
 			ch, ok := o.ToChar()
 			if !ok {
-				return False
+				return False.ToValue()
 			}
 
-			return ToElkBool(c == ch)
+			return Bool(c == ch).ToValue()
 		default:
-			return False
+			return False.ToValue()
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return ToElkBool(c == other.AsChar())
+		return Bool(c == other.AsChar()).ToValue()
 	default:
-		return False
+		return False.ToValue()
 	}
 }
 
 // Check whether s is equal to other
 func (c Char) EqualVal(other Value) Value {
-	return ToElkBool(c.Equal(other))
+	return Bool(c.Equal(other)).ToValue()
 }
 
 // Check whether s is equal to other

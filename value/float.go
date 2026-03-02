@@ -554,7 +554,7 @@ func (f Float) CompareBigInt(other *BigInt) Value {
 // if something went wrong.
 func (f Float) GreaterThanVal(other Value) (Value, Value) {
 	result, err := f.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether f is greater than other and return an error
@@ -613,7 +613,7 @@ func (f Float) GreaterThanBigInt(other *BigInt) bool {
 // if something went wrong.
 func (f Float) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := f.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether f is greater than or equal to other and return an error
@@ -672,7 +672,7 @@ func (f Float) GreaterThanEqualBigInt(other *BigInt) bool {
 // if something went wrong.
 func (f Float) LessThanVal(other Value) (Value, Value) {
 	result, err := f.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether f is less than other and return an error
@@ -731,7 +731,7 @@ func (f Float) LessThanBigInt(other *BigInt) bool {
 // if something went wrong.
 func (f Float) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := f.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether f is less than or equal to other and return an error
@@ -791,58 +791,58 @@ func (f Float) LaxEqualVal(other Value) Value {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return ToElkBool(f == o.ToFloat())
+			return Bool(f == o.ToFloat()).ToValue()
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False
+				return False.ToValue()
 			}
 			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return ToElkBool(fBigFloat.Cmp(o) == 0)
+			return Bool(fBigFloat.Cmp(o) == 0).ToValue()
 		case Int64:
-			return ToElkBool(f == Float(o))
+			return Bool(f == Float(o)).ToValue()
 		case UInt64:
-			return ToElkBool(f == Float(o))
+			return Bool(f == Float(o)).ToValue()
 		case Float64:
-			return ToElkBool(float64(f) == float64(o))
+			return Bool(float64(f) == float64(o)).ToValue()
 		default:
-			return False
+			return False.ToValue()
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return ToElkBool(f == Float(other.AsSmallInt()))
+		return Bool(f == Float(other.AsSmallInt())).ToValue()
 	case FLOAT_FLAG:
-		return ToElkBool(f == other.AsFloat())
+		return Bool(f == other.AsFloat()).ToValue()
 	case INT64_FLAG:
-		return ToElkBool(f == Float(other.AsInlineInt64()))
+		return Bool(f == Float(other.AsInlineInt64())).ToValue()
 	case INT32_FLAG:
-		return ToElkBool(f == Float(other.AsInt32()))
+		return Bool(f == Float(other.AsInt32())).ToValue()
 	case INT16_FLAG:
-		return ToElkBool(f == Float(other.AsInt16()))
+		return Bool(f == Float(other.AsInt16())).ToValue()
 	case INT8_FLAG:
-		return ToElkBool(f == Float(other.AsInt8()))
+		return Bool(f == Float(other.AsInt8())).ToValue()
 	case UINT64_FLAG:
-		return ToElkBool(f == Float(other.AsInlineUInt64()))
+		return Bool(f == Float(other.AsInlineUInt64())).ToValue()
 	case UINT32_FLAG:
-		return ToElkBool(f == Float(other.AsUInt32()))
+		return Bool(f == Float(other.AsUInt32())).ToValue()
 	case UINT16_FLAG:
-		return ToElkBool(f == Float(other.AsUInt16()))
+		return Bool(f == Float(other.AsUInt16())).ToValue()
 	case UINT8_FLAG:
-		return ToElkBool(f == Float(other.AsUInt8()))
+		return Bool(f == Float(other.AsUInt8())).ToValue()
 	case FLOAT64_FLAG:
-		return ToElkBool(float64(f) == float64(other.AsInlineFloat64()))
+		return Bool(float64(f) == float64(other.AsInlineFloat64())).ToValue()
 	case FLOAT32_FLAG:
-		return ToElkBool(Float(f) == Float(other.AsFloat32()))
+		return Bool(Float(f) == Float(other.AsFloat32())).ToValue()
 	default:
-		return False
+		return False.ToValue()
 	}
 }
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
 func (f Float) EqualVal(other Value) Value {
-	return ToElkBool(f.Equal(other))
+	return Bool(f.Equal(other)).ToValue()
 }
 
 // Check whether f is equal to other and return an error

@@ -55,6 +55,10 @@ func (d *DateTimeSpan) Copy() Reference {
 	return d.Dup()
 }
 
+func (d *DateTimeSpan) ToValue() Value {
+	return Ref(d)
+}
+
 func (*DateTimeSpan) Class() *Class {
 	return DateTimeSpanClass
 }
@@ -182,7 +186,7 @@ func (d *DateTimeSpan) GreaterThan(other Value) (result bool, err Value) {
 
 func (d *DateTimeSpan) GreaterThanVal(other Value) (Value, Value) {
 	result, err := d.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether d is greater than or equal to other and return an error
@@ -211,7 +215,7 @@ func (d *DateTimeSpan) GreaterThanEqual(other Value) (result bool, err Value) {
 
 func (d *DateTimeSpan) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := d.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether d is less than other and return an error
@@ -240,7 +244,7 @@ func (d *DateTimeSpan) LessThan(other Value) (result bool, err Value) {
 
 func (d *DateTimeSpan) LessThanVal(other Value) (Value, Value) {
 	result, err := d.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether d is less than or equal to other and return an error

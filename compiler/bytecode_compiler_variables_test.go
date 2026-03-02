@@ -3585,7 +3585,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 49),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
+					value.Ref(&value.ArrayListOfValue{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
 					value.Ref(value.ListMixin),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in variable declaration")),
@@ -4294,7 +4294,7 @@ func TestBytecodeLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(1, 49),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
+					value.Ref(&value.ArrayListOfValue{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
 					value.Ref(value.ListMixin),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in value declaration")),

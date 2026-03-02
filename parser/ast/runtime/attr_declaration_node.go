@@ -13,7 +13,7 @@ func initAttrDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			entriesTuple := args[1].MustReference().(*value.ArrayTuple)
+			entriesTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 			entries := make([]ast.ParameterNode, entriesTuple.Length())
 			for _, el := range *entriesTuple {
 				entries = append(entries, el.MustReference().(ast.ParameterNode))
@@ -47,7 +47,7 @@ func initAttrDeclarationNode() {
 			self := args[0].MustReference().(*ast.AttrDeclarationNode)
 
 			collection := self.Entries
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -84,7 +84,7 @@ func initAttrDeclarationNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttrDeclarationNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

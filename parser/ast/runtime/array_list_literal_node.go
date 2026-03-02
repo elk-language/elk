@@ -15,7 +15,7 @@ func initArrayListLiteralNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argElements []ast.ExpressionNode
 			if !args[1].IsUndefined() {
-				arg0Tuple := args[1].MustReference().(*value.ArrayTuple)
+				arg0Tuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 				argElements = make([]ast.ExpressionNode, arg0Tuple.Length())
 				for i, el := range *arg0Tuple {
 					argElements[i] = el.MustReference().(ast.ExpressionNode)
@@ -51,7 +51,7 @@ func initArrayListLiteralNode() {
 			self := args[0].MustReference().(*ast.ArrayListLiteralNode)
 
 			collection := self.Elements
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -91,7 +91,7 @@ func initArrayListLiteralNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ArrayListLiteralNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

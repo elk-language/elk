@@ -1714,101 +1714,101 @@ func TestSmallInt_GreaterThan(t *testing.T) {
 		"String and return an error": {
 			a:    value.SmallInt(5),
 			b:    value.Ref(value.String("foo")),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`")),
 		},
 
 		"SmallInt 25 > 3": {
 			a:    value.SmallInt(25),
 			b:    value.SmallInt(3).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"SmallInt 6 > 18": {
 			a:    value.SmallInt(6),
 			b:    value.SmallInt(18).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt 6 > 6": {
 			a:    value.SmallInt(6),
 			b:    value.SmallInt(6).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"BigInt 25 > 3": {
 			a:    value.SmallInt(25),
 			b:    value.Ref(value.NewBigInt(3)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigInt 6 > 18": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigInt(18)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt 6 > 6": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigInt(6)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 25 > 3": {
 			a:    value.SmallInt(25),
 			b:    value.Float(3).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 6 > 18.5": {
 			a:    value.SmallInt(6),
 			b:    value.Float(18.5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 > 6": {
 			a:    value.SmallInt(6),
 			b:    value.Float(6).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 > Inf": {
 			a:    value.SmallInt(6),
 			b:    value.FloatInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 > -Inf": {
 			a:    value.SmallInt(6),
 			b:    value.FloatNegInf().ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 6 > NaN": {
 			a:    value.SmallInt(6),
 			b:    value.FloatNaN().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"BigFloat 25 > 3": {
 			a:    value.SmallInt(25),
 			b:    value.Ref(value.NewBigFloat(3)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigFloat 6 > 18.5": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigFloat(18.5)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 > 6": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigFloat(6)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 > Inf": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 > -Inf": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatNegInf()),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigFloat 6 > NaN": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatNaN()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 	}
 
@@ -1837,101 +1837,101 @@ func TestSmallInt_GreaterThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:    value.SmallInt(5),
 			b:    value.Ref(value.String("foo")),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`")),
 		},
 
 		"SmallInt 25 >= 3": {
 			a:    value.SmallInt(25),
 			b:    value.SmallInt(3).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"SmallInt 6 >= 18": {
 			a:    value.SmallInt(6),
 			b:    value.SmallInt(18).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt 6 >= 6": {
 			a:    value.SmallInt(6),
 			b:    value.SmallInt(6).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 
 		"BigInt 25 >= 3": {
 			a:    value.SmallInt(25),
 			b:    value.Ref(value.NewBigInt(3)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigInt 6 >= 18": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigInt(18)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt 6 >= 6": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigInt(6)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 25 >= 3": {
 			a:    value.SmallInt(25),
 			b:    value.Float(3).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 6 >= 18.5": {
 			a:    value.SmallInt(6),
 			b:    value.Float(18.5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 >= 6": {
 			a:    value.SmallInt(6),
 			b:    value.Float(6).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 6 >= Inf": {
 			a:    value.SmallInt(6),
 			b:    value.FloatInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 >= -Inf": {
 			a:    value.SmallInt(6),
 			b:    value.FloatNegInf().ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 6 >= NaN": {
 			a:    value.SmallInt(6),
 			b:    value.FloatNaN().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"BigFloat 25 >= 3": {
 			a:    value.SmallInt(25),
 			b:    value.Ref(value.NewBigFloat(3)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigFloat 6 >= 18.5": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigFloat(18.5)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 >= 6": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigFloat(6)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigFloat 6 >= Inf": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 >= -Inf": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatNegInf()),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigFloat 6 >= NaN": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatNaN()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 	}
 
@@ -1960,101 +1960,101 @@ func TestSmallInt_LessThan(t *testing.T) {
 		"String and return an error": {
 			a:    value.SmallInt(5),
 			b:    value.Ref(value.String("foo")),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`")),
 		},
 
 		"SmallInt 25 < 3": {
 			a:    value.SmallInt(25),
 			b:    value.SmallInt(3).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt 6 < 18": {
 			a:    value.SmallInt(6),
 			b:    value.SmallInt(18).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"SmallInt 6 < 6": {
 			a:    value.SmallInt(6),
 			b:    value.SmallInt(6).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"BigInt 25 < 3": {
 			a:    value.SmallInt(25),
 			b:    value.Ref(value.NewBigInt(3)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt 6 < 18": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigInt(18)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigInt 6 < 6": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigInt(6)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 25 < 3": {
 			a:    value.SmallInt(25),
 			b:    value.Float(3).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 < 18.5": {
 			a:    value.SmallInt(6),
 			b:    value.Float(18.5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 6 < 6": {
 			a:    value.SmallInt(6),
 			b:    value.Float(6).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 < Inf": {
 			a:    value.SmallInt(6),
 			b:    value.FloatInf().ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 6 < -Inf": {
 			a:    value.SmallInt(6),
 			b:    value.FloatNegInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 < NaN": {
 			a:    value.SmallInt(6),
 			b:    value.FloatNaN().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"BigFloat 25 < 3": {
 			a:    value.SmallInt(25),
 			b:    value.Ref(value.NewBigFloat(3)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 < 18.5": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigFloat(18.5)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigFloat 6 < 6": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigFloat(6)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 < Inf": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatInf()),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigFloat 6 < -Inf": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatNegInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 < NaN": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatNaN()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 	}
 
@@ -2083,101 +2083,101 @@ func TestSmallInt_LessThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:    value.SmallInt(5),
 			b:    value.Ref(value.String("foo")),
-			want: value.False,
+			want: value.False.ToValue(),
 			err:  value.Ref(value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`")),
 		},
 
 		"SmallInt 25 <= 3": {
 			a:    value.SmallInt(25),
 			b:    value.SmallInt(3).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt 6 <= 18": {
 			a:    value.SmallInt(6),
 			b:    value.SmallInt(18).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"SmallInt 6 <= 6": {
 			a:    value.SmallInt(6),
 			b:    value.SmallInt(6).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 
 		"BigInt 25 <= 3": {
 			a:    value.SmallInt(25),
 			b:    value.Ref(value.NewBigInt(3)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt 6 <= 18": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigInt(18)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigInt 6 <= 6": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigInt(6)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 25 <= 3": {
 			a:    value.SmallInt(25),
 			b:    value.Float(3).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 <= 18.5": {
 			a:    value.SmallInt(6),
 			b:    value.Float(18.5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 6 <= 6": {
 			a:    value.SmallInt(6),
 			b:    value.Float(6).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 6 <= Inf": {
 			a:    value.SmallInt(6),
 			b:    value.FloatInf().ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 6 <= -Inf": {
 			a:    value.SmallInt(6),
 			b:    value.FloatNegInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 <= NaN": {
 			a:    value.SmallInt(6),
 			b:    value.FloatNaN().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"BigFloat 25 <= 3": {
 			a:    value.SmallInt(25),
 			b:    value.Ref(value.NewBigFloat(3)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 <= 18.5": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigFloat(18.5)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigFloat 6 <= 6": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigFloat(6)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigFloat 6 <= Inf": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatInf()),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigFloat 6 <= -Inf": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatNegInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 <= NaN": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatNaN()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 	}
 
@@ -2205,223 +2205,223 @@ func TestSmallInt_LaxEqual(t *testing.T) {
 		"String 5 =~ '5'": {
 			a:    value.SmallInt(5),
 			b:    value.Ref(value.String("5")),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Char 5 =~ `5`": {
 			a:    value.SmallInt(5),
 			b:    value.Char('5').ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int64 5 =~ 5i64": {
 			a:    value.SmallInt(5),
 			b:    value.Int64(5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Int64 4 =~ 5i64": {
 			a:    value.SmallInt(4),
 			b:    value.Int64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int32 5 =~ 5i32": {
 			a:    value.SmallInt(5),
 			b:    value.Int32(5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Int32 4 =~ 5i32": {
 			a:    value.SmallInt(4),
 			b:    value.Int32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int16 5 =~ 5i16": {
 			a:    value.SmallInt(5),
 			b:    value.Int16(5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Int16 4 =~ 5i16": {
 			a:    value.SmallInt(4),
 			b:    value.Int16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int8 5 =~ 5i8": {
 			a:    value.SmallInt(5),
 			b:    value.Int8(5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Int8 4 =~ 5i8": {
 			a:    value.SmallInt(4),
 			b:    value.Int8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt64 5 =~ 5u64": {
 			a:    value.SmallInt(5),
 			b:    value.UInt64(5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"UInt64 4 =~ 5u64": {
 			a:    value.SmallInt(4),
 			b:    value.UInt64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt32 5 =~ 5u32": {
 			a:    value.SmallInt(5),
 			b:    value.UInt32(5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"UInt32 4 =~ 5u32": {
 			a:    value.SmallInt(4),
 			b:    value.UInt32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt16 5 =~ 5u16": {
 			a:    value.SmallInt(5),
 			b:    value.UInt16(5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"UInt16 4 =~ 5u16": {
 			a:    value.SmallInt(4),
 			b:    value.UInt16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt8 5 =~ 5u8": {
 			a:    value.SmallInt(5),
 			b:    value.UInt8(5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"UInt8 4 =~ 5u8": {
 			a:    value.SmallInt(4),
 			b:    value.UInt8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Float64 5 =~ 5f64": {
 			a:    value.SmallInt(5),
 			b:    value.Float64(5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float64 5 =~ 5.5f64": {
 			a:    value.SmallInt(5),
 			b:    value.Float64(5.5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 4 =~ 5f64": {
 			a:    value.SmallInt(4),
 			b:    value.Float64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 5 =~ 5f32": {
 			a:    value.SmallInt(5),
 			b:    value.Float32(5).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float32 5 =~ 5.5f32": {
 			a:    value.SmallInt(5),
 			b:    value.Float32(5.5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 4 =~ 5f32": {
 			a:    value.SmallInt(4),
 			b:    value.Float32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"SmallInt 25 =~ 3": {
 			a:    value.SmallInt(25),
 			b:    value.SmallInt(3).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt 6 =~ 18": {
 			a:    value.SmallInt(6),
 			b:    value.SmallInt(18).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt 6 =~ 6": {
 			a:    value.SmallInt(6),
 			b:    value.SmallInt(6).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 
 		"BigInt 25 =~ 3": {
 			a:    value.SmallInt(25),
 			b:    value.Ref(value.NewBigInt(3)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt 6 =~ 18": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigInt(18)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt 6 =~ 6": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigInt(6)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 25 =~ 3": {
 			a:    value.SmallInt(25),
 			b:    value.Float(3).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 =~ 18.5": {
 			a:    value.SmallInt(6),
 			b:    value.Float(18.5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 =~ 6": {
 			a:    value.SmallInt(6),
 			b:    value.Float(6).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"Float 6 =~ Inf": {
 			a:    value.SmallInt(6),
 			b:    value.FloatInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 =~ -Inf": {
 			a:    value.SmallInt(6),
 			b:    value.FloatNegInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 =~ NaN": {
 			a:    value.SmallInt(6),
 			b:    value.FloatNaN().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"BigFloat 25 =~ 3": {
 			a:    value.SmallInt(25),
 			b:    value.Ref(value.NewBigFloat(3)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 =~ 18.5": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigFloat(18.5)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 =~ 6": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigFloat(6)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 		"BigFloat 6 =~ Inf": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 =~ -Inf": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatNegInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 =~ NaN": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatNaN()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 	}
 
@@ -2446,222 +2446,222 @@ func TestSmallInt_Equal(t *testing.T) {
 		"String 5 == '5'": {
 			a:    value.SmallInt(5),
 			b:    value.Ref(value.String("5")),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Char 5 == `5`": {
 			a:    value.SmallInt(5),
 			b:    value.Char('5').ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int64 5 == 5i64": {
 			a:    value.SmallInt(5),
 			b:    value.Int64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int64 4 == 5i64": {
 			a:    value.SmallInt(4),
 			b:    value.Int64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int32 5 == 5i32": {
 			a:    value.SmallInt(5),
 			b:    value.Int32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int32 4 == 5i32": {
 			a:    value.SmallInt(4),
 			b:    value.Int32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Int16 5 == 5i16": {
 			a:    value.SmallInt(5),
 			b:    value.Int16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int16 4 == 5i16": {
 			a:    value.SmallInt(4),
 			b:    value.Int16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int8 5 == 5i8": {
 			a:    value.SmallInt(5),
 			b:    value.Int8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Int8 4 == 5i8": {
 			a:    value.SmallInt(4),
 			b:    value.Int8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt64 5 == 5u64": {
 			a:    value.SmallInt(5),
 			b:    value.UInt64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt64 4 == 5u64": {
 			a:    value.SmallInt(4),
 			b:    value.UInt64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt32 5 == 5u32": {
 			a:    value.SmallInt(5),
 			b:    value.UInt32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt32 4 == 5u32": {
 			a:    value.SmallInt(4),
 			b:    value.UInt32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"UInt16 5 == 5u16": {
 			a:    value.SmallInt(5),
 			b:    value.UInt16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt16 4 == 5u16": {
 			a:    value.SmallInt(4),
 			b:    value.UInt16(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt8 5 == 5u8": {
 			a:    value.SmallInt(5),
 			b:    value.UInt8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"UInt8 4 == 5u8": {
 			a:    value.SmallInt(4),
 			b:    value.UInt8(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Float64 5 == 5f64": {
 			a:    value.SmallInt(5),
 			b:    value.Float64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 5 == 5.5f64": {
 			a:    value.SmallInt(5),
 			b:    value.Float64(5.5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float64 4 == 5f64": {
 			a:    value.SmallInt(4),
 			b:    value.Float64(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 
 		"Float32 5 == 5f32": {
 			a:    value.SmallInt(5),
 			b:    value.Float32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 5 == 5.5f32": {
 			a:    value.SmallInt(5),
 			b:    value.Float32(5.5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float32 4 == 5f32": {
 			a:    value.SmallInt(4),
 			b:    value.Float32(5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt 25 == 3": {
 			a:    value.SmallInt(25),
 			b:    value.SmallInt(3).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt 6 == 18": {
 			a:    value.SmallInt(6),
 			b:    value.SmallInt(18).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"SmallInt 6 == 6": {
 			a:    value.SmallInt(6),
 			b:    value.SmallInt(6).ToValue(),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 
 		"BigInt 25 == 3": {
 			a:    value.SmallInt(25),
 			b:    value.Ref(value.NewBigInt(3)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt 6 == 18": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigInt(18)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigInt 6 == 6": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigInt(6)),
-			want: value.True,
+			want: value.True.ToValue(),
 		},
 
 		"Float 25 == 3": {
 			a:    value.SmallInt(25),
 			b:    value.Float(3).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 == 18.5": {
 			a:    value.SmallInt(6),
 			b:    value.Float(18.5).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 == 6": {
 			a:    value.SmallInt(6),
 			b:    value.Float(6).ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 == Inf": {
 			a:    value.SmallInt(6),
 			b:    value.FloatInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 == -Inf": {
 			a:    value.SmallInt(6),
 			b:    value.FloatNegInf().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"Float 6 == NaN": {
 			a:    value.SmallInt(6),
 			b:    value.FloatNaN().ToValue(),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 25 == 3": {
 			a:    value.SmallInt(25),
 			b:    value.Ref(value.NewBigFloat(3)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 == 18.5": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigFloat(18.5)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 == 6": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.NewBigFloat(6)),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 == Inf": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 == -Inf": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatNegInf()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 		"BigFloat 6 == NaN": {
 			a:    value.SmallInt(6),
 			b:    value.Ref(value.BigFloatNaN()),
-			want: value.False,
+			want: value.False.ToValue(),
 		},
 	}
 

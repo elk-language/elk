@@ -387,7 +387,12 @@ func (vm *Thread) callMethodOnStack(method value.Method, args int) value.Value {
 		vm.popN(args + 1)
 		vm.push(result)
 	default:
-		panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+		panic(
+			fmt.Sprintf(
+				"tried to call a method that is neither bytecode nor native: %#v",
+				method,
+			),
+		)
 	}
 
 	return value.Undefined
@@ -397,6 +402,16 @@ func (vm *Thread) callMethodOnStackByName(name value.Symbol, args int) value.Val
 	self := *vm.spAdd(-args - 1)
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
+	if method == nil {
+		panic(
+			fmt.Sprintf(
+				"tried to call a method that is neither bytecode nor native: %#v, %s in %s",
+				method,
+				name,
+				class.Name,
+			),
+		)
+	}
 	return vm.callMethodOnStack(method, args)
 }
 
@@ -607,9 +622,9 @@ func (vm *Thread) run() {
 		case bytecode.DEF_IVARS:
 			vm.throwIfErr(vm.opDefIvars())
 		case bytecode.APPEND:
-			vm.opAppend()
+			vm.throwIfErr(vm.opAppend())
 		case bytecode.MAP_SET:
-			vm.opMapSet()
+			vm.throwIfErr(vm.opMapSet())
 		case bytecode.COPY:
 			vm.opCopy()
 		case bytecode.APPEND_AT:
@@ -751,11 +766,11 @@ func (vm *Thread) run() {
 		case bytecode.BITWISE_NOT:
 			vm.throwIfErr(vm.opBitwiseNot())
 		case bytecode.NOT:
-			vm.replace(value.ToNotBool(vm.peek()))
+			vm.replace(value.ToNotBool(vm.peek()).ToValue())
 		case bytecode.TRUE:
-			vm.push(value.True)
+			vm.push(value.True.ToValue())
 		case bytecode.FALSE:
-			vm.push(value.False)
+			vm.push(value.False.ToValue())
 		case bytecode.NIL:
 			vm.push(value.Nil)
 		case bytecode.POP:
@@ -1633,7 +1648,6 @@ func (vm *Thread) readByte() byte {
 
 // Read the next 2 bytes of code
 func (vm *Thread) readUint16() uint16 {
-	// BENCHMARK: compare manual bit shifts
 	result := binary.BigEndian.Uint16(unsafe.Slice(vm.ipGet(), 2))
 	vm.ipIncrementBy(2)
 
@@ -1642,7 +1656,6 @@ func (vm *Thread) readUint16() uint16 {
 
 // Read the next 4 bytes of code
 func (vm *Thread) readUint32() uint32 {
-	// BENCHMARK: compare manual bit shifts
 	result := binary.BigEndian.Uint32(unsafe.Slice(vm.ipGet(), 4))
 	vm.ipIncrementBy(4)
 
@@ -1924,40 +1937,59 @@ func (vm *Thread) opCopy() {
 }
 
 // Set the value under the given key in a hash-map or hash-record
-func (vm *Thread) opMapSet() {
+func (vm *Thread) opMapSet() (err value.Value) {
 	val := vm.popGet()
 	key := vm.popGet()
 	collection := vm.peek()
 
 	switch c := collection.SafeAsReference().(type) {
-	case *value.HashMap:
-		HashMapSet(vm, c, key, val)
-	case *value.HashRecord:
-		HashRecordSet(vm, c, key, val)
+	case HashMap:
+		err = c.SetVal(vm, key, val)
+		if err.IsNotUndefined() {
+			return err
+		}
+	case HashRecord:
+		err = c.SetVal(vm, key, val)
+		if err.IsNotUndefined() {
+			return err
+		}
 	default:
-		panic(fmt.Sprintf("invalid map to set a value in: %s", collection.Inspect()))
+		panic(fmt.Sprintf("invalid map to set a value in: %s, %T", collection.Inspect(), collection))
 	}
+
+	return value.Undefined
 }
 
 // Append an element to a list, arrayTuple or hashSet.
-func (vm *Thread) opAppend() {
+func (vm *Thread) opAppend() (err value.Value) {
 	element := vm.popGet()
 	collection := vm.peek()
 
 	if collection.IsUndefined() {
-		vm.replace(value.Ref(&value.ArrayTuple{element}))
-		return
+		vm.replace(value.Ref(&value.ArrayTupleOfValue{element}))
+		return value.Undefined
 	}
 	switch c := collection.SafeAsReference().(type) {
-	case *value.ArrayTuple:
-		c.Append(element)
-	case *value.ArrayList:
-		c.Append(element)
-	case *value.HashSet:
-		HashSetAppend(vm, c, element)
+	case value.ArrayList:
+		err := c.AppendVal(element)
+		if err.IsNotUndefined() {
+			return err
+		}
+	case value.ArrayTuple:
+		err := c.AppendVal(element)
+		if err.IsNotUndefined() {
+			return err
+		}
+	case HashSet:
+		_, err := c.AppendVal(vm, element)
+		if err.IsNotUndefined() {
+			return err
+		}
 	default:
-		panic(fmt.Sprintf("invalid collection to append to: %s", collection.Inspect()))
+		panic(fmt.Sprintf("invalid collection to append to: %s, %T", collection.Inspect(), collection))
 	}
+
+	return value.Undefined
 }
 
 // Create a new instance of a class
@@ -2333,7 +2365,7 @@ func (vm *Thread) opGetLocal(index int) {
 // Create a box that points to a local
 func (vm *Thread) opBoxLocal(localIndex int) {
 	upvalue := vm.captureUpvalue(vm.fpAdd(localIndex))
-	box := (*LocalBox)(upvalue)
+	box := (*UpvalueBox)(upvalue)
 	vm.push(value.Ref(box))
 }
 
@@ -2405,7 +2437,7 @@ func (vm *Thread) opGetConst(nameIndex int) (err value.Value) {
 // Get the iterator of the value on top of the stack.
 func (vm *Thread) opGetIterator() {
 	val := vm.peek()
-	result := value.Iter(val)
+	result := Iter(val)
 	vm.replace(result)
 }
 
@@ -2762,11 +2794,11 @@ func (vm *Thread) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 }
 
 // Create a new hashset.
-func (vm *Thread) opNewHashSet(dynamicElements int) value.Value {
+func (vm *Thread) opNewHashSet(dynamicElements int) (err value.Value) {
 	firstElement := vm.spAdd(-dynamicElements)
 	capacity := *vm.spAdd(-dynamicElements - 2)
 	baseSet := *vm.spAdd(-dynamicElements - 1)
-	var newSet *value.HashSet
+	var newSet HashSet
 
 	var additionalCapacity int
 
@@ -2785,40 +2817,35 @@ func (vm *Thread) opNewHashSet(dynamicElements int) value.Value {
 	}
 
 	if baseSet.IsUndefined() {
-		newSet = value.NewHashSet(dynamicElements + additionalCapacity)
+		newSet = NewHashSetOfValue(dynamicElements + additionalCapacity)
 	} else {
-		switch m := baseSet.SafeAsReference().(type) {
-		case *value.HashSet:
-			newSet = value.NewHashSet(m.Capacity() + additionalCapacity)
-			err := HashSetCopy(vm, newSet, m)
-			if !err.IsUndefined() {
-				return err
-			}
-		default:
-			panic(fmt.Sprintf("invalid hash set base: %s", baseSet.Inspect()))
+		m := baseSet.AsReference().(HashSet)
+		newSet, err = m.CloneHashSet(vm, m.Length()+additionalCapacity)
+		if !err.IsUndefined() {
+			return err
 		}
 	}
 
 	for i := range dynamicElements {
 		val := *vm.stackAdd(firstElement, i)
-		err := HashSetAppendWithMaxLoad(vm, newSet, val, 1)
+		_, err := newSet.AppendVal(vm, val)
 		if !err.IsUndefined() {
 			return err
 		}
 	}
 	vm.popN(dynamicElements + 2)
 
-	vm.push(value.Ref(newSet))
+	vm.push(newSet.ToValue())
 	return value.Undefined
 }
 
 // Create a new hashmap.
-func (vm *Thread) opNewHashMap(dynamicElements int) value.Value {
+func (vm *Thread) opNewHashMap(dynamicElements int) (err value.Value) {
 	firstElementOffset := -(dynamicElements * 2)
 	firstElement := vm.spAdd(firstElementOffset)
 	capacity := *vm.spAdd(firstElementOffset - 2)
 	baseMap := *vm.spAdd(firstElementOffset - 1)
-	var newMap *value.HashMap
+	var newMap HashMap
 
 	var additionalCapacity int
 
@@ -2837,64 +2864,57 @@ func (vm *Thread) opNewHashMap(dynamicElements int) value.Value {
 	}
 
 	if baseMap.IsUndefined() {
-		newMap = value.NewHashMap(dynamicElements + additionalCapacity)
+		newMap = NewHashMapOfValue(dynamicElements + additionalCapacity)
 	} else {
-		switch m := baseMap.SafeAsReference().(type) {
-		case *value.HashMap:
-			newMap = value.NewHashMap(m.Capacity() + additionalCapacity)
-			err := HashMapCopy(vm, newMap, m)
-			if !err.IsUndefined() {
-				return err
-			}
-		default:
-			panic(fmt.Sprintf("invalid hash map base: %s", baseMap.Inspect()))
+		m := baseMap.AsReference().(HashMap)
+		newMap, err = m.CloneHashMap(vm, m.Length()+additionalCapacity)
+		if !err.IsUndefined() {
+			return err
 		}
 	}
 
 	for i := 0; i < dynamicElements*2; i += 2 {
 		key := *vm.stackAdd(firstElement, i)
 		val := *vm.stackAdd(firstElement, i+1)
-		err := HashMapSetWithMaxLoad(vm, newMap, key, val, 1)
+		err = newMap.SetVal(vm, key, val)
 		if !err.IsUndefined() {
 			return err
 		}
 	}
 	vm.popN((dynamicElements * 2) + 2)
 
-	vm.push(value.Ref(newMap))
+	vm.push(newMap.ToValue())
 	return value.Undefined
 }
 
 // Create a new hash record.
-func (vm *Thread) opNewHashRecord(dynamicElements int) value.Value {
+func (vm *Thread) opNewHashRecord(dynamicElements int) (err value.Value) {
 	firstElementOffset := -(dynamicElements * 2)
 	firstElement := vm.spAdd(firstElementOffset)
 	baseMap := *vm.spAdd(firstElementOffset - 1)
-	var newRecord *value.HashRecord
+	var newRecord HashRecord
 
 	if baseMap.IsUndefined() {
-		newRecord = value.NewHashRecord(dynamicElements)
+		newRecord = NewHashRecordOfValue(dynamicElements)
 	} else {
-		switch m := baseMap.SafeAsReference().(type) {
-		case *value.HashRecord:
-			newRecord = value.NewHashRecord(m.Length())
-			err := HashRecordCopy(vm, newRecord, m)
-			if !err.IsUndefined() {
-				return err
-			}
-		default:
-			panic(fmt.Sprintf("invalid hash record base: %s", baseMap.Inspect()))
+		m := baseMap.AsReference().(HashRecord)
+		newRecord, err = m.CloneHashRecord(vm, m.Length())
+		if !err.IsUndefined() {
+			return err
 		}
 	}
 
 	for i := 0; i < dynamicElements*2; i += 2 {
 		key := *vm.stackAdd(firstElement, i)
 		val := *vm.stackAdd(firstElement, i+1)
-		HashRecordSetWithMaxLoad(vm, newRecord, key, val, 1)
+		err = newRecord.SetVal(vm, key, val)
+		if !err.IsUndefined() {
+			return err
+		}
 	}
 	vm.popN((dynamicElements * 2) + 1)
 
-	vm.push(value.Ref(newRecord))
+	vm.push(newRecord.ToValue())
 	return value.Undefined
 }
 
@@ -2940,7 +2960,6 @@ func (vm *Thread) opNewArrayList(dynamicElements int) value.Value {
 	firstElement := vm.spAdd(-dynamicElements)
 	capacity := *vm.spAdd(-dynamicElements - 2)
 	baseList := *vm.spAdd(-dynamicElements - 1)
-	var newArrayList value.ArrayList
 
 	var additionalCapacity int
 
@@ -2958,22 +2977,18 @@ func (vm *Thread) opNewArrayList(dynamicElements int) value.Value {
 		additionalCapacity = c
 	}
 
+	var newArrayList value.ArrayList
 	if baseList.IsUndefined() {
-		newArrayList = make(value.ArrayList, 0, dynamicElements+additionalCapacity)
+		newArrayList = value.NewArrayListOfValue(dynamicElements + additionalCapacity)
 	} else {
-		switch l := baseList.SafeAsReference().(type) {
-		case *value.ArrayList:
-			newArrayList = make(value.ArrayList, 0, cap(*l)+additionalCapacity)
-			newArrayList = append(newArrayList, *l...)
-		default:
-			panic(fmt.Sprintf("invalid array list base: %s", baseList.Inspect()))
-		}
+		l := baseList.AsReference().(value.ArrayList)
+		newArrayList = l.CloneArrayList(l.Capacity() + additionalCapacity)
 	}
 
-	newArrayList = append(newArrayList, unsafe.Slice(firstElement, dynamicElements)...)
+	newArrayList.AppendVal(unsafe.Slice(firstElement, dynamicElements)...)
 	vm.popN(dynamicElements + 2)
 
-	vm.push(value.Ref(&newArrayList))
+	vm.push(newArrayList.ToValue())
 	return value.Undefined
 }
 
@@ -2984,21 +2999,16 @@ func (vm *Thread) opNewArrayTuple(dynamicElements int) {
 	var newArrayTuple value.ArrayTuple
 
 	if baseArrayTuple.IsUndefined() {
-		newArrayTuple = make(value.ArrayTuple, 0, dynamicElements)
+		newArrayTuple = value.NewArrayTupleOfValue(dynamicElements)
 	} else {
-		switch t := baseArrayTuple.SafeAsReference().(type) {
-		case *value.ArrayTuple:
-			newArrayTuple = make(value.ArrayTuple, 0, len(*t)+dynamicElements)
-			newArrayTuple = append(newArrayTuple, *t...)
-		default:
-			panic(fmt.Sprintf("invalid array tuple base: %s", baseArrayTuple.Inspect()))
-		}
+		t := baseArrayTuple.AsReference().(value.ArrayTuple)
+		newArrayTuple = t.CloneArrayTuple(t.Length() + dynamicElements)
 	}
 
-	newArrayTuple = append(newArrayTuple, unsafe.Slice(firstElement, dynamicElements)...)
+	newArrayTuple.AppendVal(unsafe.Slice(firstElement, dynamicElements)...)
 	vm.popN(dynamicElements + 1)
 
-	vm.push(value.Ref(&newArrayTuple))
+	vm.push(newArrayTuple.ToValue())
 }
 
 // Define a new constant
@@ -3187,18 +3197,18 @@ func (vm *Thread) opAppendAt() value.Value {
 	collection := vm.peek()
 
 	switch c := collection.SafeAsReference().(type) {
-	case *value.ArrayTuple:
+	case *value.ArrayTupleOfValue:
 		err := c.AppendAt(key, val)
 		if err.IsNotUndefined() {
 			return err
 		}
-	case *value.ArrayList:
+	case *value.ArrayListOfValue:
 		err := c.AppendAt(key, val)
 		if err.IsNotUndefined() {
 			return err
 		}
 	default:
-		panic(fmt.Sprintf("cannot APPEND_AT to: %s", collection.Inspect()))
+		panic(fmt.Sprintf("cannot APPEND_AT to: %s, %T", collection.Inspect(), collection))
 	}
 
 	return value.Undefined
@@ -3223,7 +3233,7 @@ func (vm *Thread) opIsA() (err value.Value) {
 
 	switch class := classVal.SafeAsReference().(type) {
 	case *value.Class:
-		vm.replace(value.ToElkBool(value.IsA(val, class)))
+		vm.replace(value.BoolVal(value.IsA(val, class)))
 	default:
 		vm.pop()
 		return value.Ref(value.NewIsNotClassOrMixinError(class.Inspect()))
@@ -3242,7 +3252,7 @@ func (vm *Thread) opInstanceOf() (err value.Value) {
 		return value.Ref(value.NewIsNotClassError(classVal.Inspect()))
 	}
 
-	vm.replace(value.ToElkBool(value.InstanceOf(val, class)))
+	vm.replace(value.BoolVal(value.InstanceOf(val, class)))
 	return value.Undefined
 }
 
@@ -3282,7 +3292,7 @@ func (vm *Thread) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrF
 	if !er.IsUndefined() {
 		return er
 	}
-	vm.replace(value.ToNotBool(vm.peek()))
+	vm.replace(value.ToNotBool(vm.peek()).ToValue())
 
 	return value.Undefined
 }
@@ -3374,7 +3384,7 @@ func (vm *Thread) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodN
 	class := self.DirectClass()
 	method := class.LookupMethod(methodName)
 	if method == nil {
-		vm.push(value.ToElkBool(left == right))
+		vm.push(value.BoolVal(left == right))
 		return value.Undefined
 	}
 
@@ -3396,7 +3406,7 @@ func (vm *Thread) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, 
 	class := self.DirectClass()
 	method := class.LookupMethod(methodName)
 	if method == nil {
-		vm.push(value.ToElkBool(left != right))
+		vm.push(value.BoolVal(left != right))
 		return value.Undefined
 	}
 
@@ -3405,7 +3415,7 @@ func (vm *Thread) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, 
 		return err
 	}
 
-	vm.replace(value.ToNotBool(vm.peek()))
+	vm.replace(value.ToNotBool(vm.peek()).ToValue())
 	return value.Undefined
 }
 
@@ -3838,7 +3848,7 @@ func (vm *Thread) opNotEqualInt() {
 		leftBig := left.AsReference().(*value.BigInt)
 		result = leftBig.Equal(right)
 	}
-	vm.replace(value.ToElkBool(!result))
+	vm.replace(value.BoolVal(!result))
 }
 
 func (vm *Thread) opNotEqualFloat() {
@@ -3848,7 +3858,7 @@ func (vm *Thread) opNotEqualFloat() {
 	var result bool
 	l := left.AsFloat()
 	result = l.Equal(right)
-	vm.replace(value.ToElkBool(!result))
+	vm.replace(value.BoolVal(!result))
 }
 
 // Multiply two operands together and push the result to the stack.

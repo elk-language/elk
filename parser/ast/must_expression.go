@@ -94,6 +94,10 @@ func (n *MustExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *MustExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *MustExpressionNode) Error() string {
 	return n.Inspect()
 }

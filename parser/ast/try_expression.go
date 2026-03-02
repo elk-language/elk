@@ -107,6 +107,10 @@ func (n *TryExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *TryExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *TryExpressionNode) Error() string {
 	return n.Inspect()
 }

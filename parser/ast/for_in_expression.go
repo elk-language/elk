@@ -143,6 +143,10 @@ func (n *ForInExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ForInExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ForInExpressionNode) Error() string {
 	return n.Inspect()
 }
