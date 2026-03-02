@@ -62,6 +62,10 @@ func (h *HashRecordOfValue) CloneHashRecord(thread *Thread, capacity int) (HashR
 	return newRecord, value.Undefined
 }
 
+func (h *HashRecordOfValue) NewHashRecord(capacity int) HashRecord {
+	return NewHashRecordOfValue(capacity)
+}
+
 func (h *HashRecordOfValue) IterNative() *HashRecordOfValueIterator {
 	return NewHashRecordOfValueIterator(h)
 }

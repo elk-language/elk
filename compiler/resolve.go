@@ -321,7 +321,7 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode, checker types.Checker) 
 	elementType, _ := checker.GetIteratorElementType(typ)
 	g, ok := elementType.(*types.Generic)
 	if !ok {
-		return value.Undefined
+		return resolveHashMapOfValue(node, checker)
 	}
 	if !checker.IsTheSameNamespace(g.Namespace, checker.Std(symbol.Pair).(*types.Class)) {
 		return value.Undefined
@@ -741,7 +741,7 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode, checker types.Che
 	elementType, _ := checker.GetIteratorElementType(typ)
 	g, ok := elementType.(*types.Generic)
 	if !ok {
-		return value.Undefined
+		return resolveHashRecordOfValue(node, checker)
 	}
 	if !checker.IsTheSameNamespace(g.Namespace, checker.Std(symbol.Pair).(*types.Class)) {
 		return value.Undefined

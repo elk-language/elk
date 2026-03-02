@@ -87,6 +87,14 @@ func (h *NativeHashMap[K, V]) CloneHashMap(thread *Thread, capacity int) (HashMa
 	return newMap, value.Undefined
 }
 
+func (h *NativeHashMap[K, V]) NewHashMap(capacity int) HashMap {
+	return NewNativeHashMap[K, V](capacity)
+}
+
+func (h *NativeHashMap[K, V]) NewHashRecord(capacity int) HashRecord {
+	return h.NewHashMap(capacity)
+}
+
 func (h *NativeHashMap[K, V]) CloneHashRecord(thread *Thread, capacity int) (HashRecord, value.Value) {
 	return h.CloneHashMap(thread, capacity)
 }

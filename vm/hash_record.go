@@ -21,6 +21,7 @@ type HashRecord interface {
 	Equal(thread *Thread, other value.Value) (bool, value.Value)
 	LaxEqual(thread *Thread, other value.Value) (bool, value.Value)
 	CloneHashRecord(thread *Thread, capacity int) (HashRecord, value.Value)
+	NewHashRecord(capacity int) HashRecord
 	SetVal(thread *Thread, key, val value.Value) value.Value
 }
 

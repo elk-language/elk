@@ -139,8 +139,8 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 					value.Ref(value.String("bar")),
 					value.Ref(&value.ArrayTupleOfValue{}),
 				}),
-				value.Ref(&value.ArrayTupleOfValue{
-					value.ToSymbol("foo").ToValue(),
+				value.Ref(&value.NativeArrayTuple[value.Symbol]{
+					value.ToSymbol("foo"),
 				}),
 			}),
 		},
@@ -274,8 +274,8 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				value.SmallInt(10).ToValue(),
 				value.SmallInt(12).ToValue(),
 				value.SmallInt(14).ToValue(),
-				value.Ref(&value.ArrayTupleOfValue{
-					value.ToSymbol("foo").ToValue(),
+				value.Ref(&value.NativeArrayTuple[value.Symbol]{
+					value.ToSymbol("foo"),
 				}),
 			}),
 		},
@@ -289,8 +289,8 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				value.SmallInt(5).ToValue(),
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(7).ToValue(),
-				value.Ref(&value.ArrayTupleOfValue{
-					value.ToSymbol("foo").ToValue(),
+				value.Ref(&value.NativeArrayTuple[value.Symbol]{
+					value.ToSymbol("foo"),
 				}),
 			}),
 		},
@@ -303,8 +303,8 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				value.SmallInt(0).ToValue(),
 				value.SmallInt(1).ToValue(),
 				value.SmallInt(2).ToValue(),
-				value.Ref(&value.ArrayTupleOfValue{
-					value.ToSymbol("foo").ToValue(),
+				value.Ref(&value.NativeArrayTuple[value.Symbol]{
+					value.ToSymbol("foo"),
 				}),
 			}),
 		},
@@ -324,8 +324,8 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				value.SmallInt(5).ToValue(),
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(7).ToValue(),
-				value.Ref(&value.ArrayTupleOfValue{
-					value.ToSymbol("foo").ToValue(),
+				value.Ref(&value.NativeArrayTuple[value.Symbol]{
+					value.ToSymbol("foo"),
 				}),
 			}),
 		},
@@ -354,8 +354,8 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				value.SmallInt(5).ToValue(),
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(7).ToValue(),
-				value.Ref(&value.ArrayTupleOfValue{
-					value.ToSymbol("foo").ToValue(),
+				value.Ref(&value.NativeArrayTuple[value.Symbol]{
+					value.ToSymbol("foo"),
 				}),
 			}),
 		},
@@ -453,14 +453,14 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 			source: `
 				print(\b[101 10 11]:20.inspect)
 			`,
-			wantStdout:   `[5, 2, 3]:20`,
+			wantStdout:   `[5u8, 2u8, 3u8]:20`,
 			wantStackTop: value.Nil,
 		},
 		"hex arrayTuple literal with static capacity": {
 			source: `
 				print(\x[ff de4 5]:20.inspect)
 			`,
-			wantStdout:   `[255, 3556, 5]:20`,
+			wantStdout:   `[255u16, 3556u16, 5u16]:20`,
 			wantStackTop: value.Nil,
 		},
 		"nested static arrayTuple literal": {
@@ -472,8 +472,8 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 					value.Ref(value.String("bar")),
 					value.Ref(&value.ArrayListOfValue{}),
 				}),
-				value.Ref(&value.ArrayListOfValue{
-					value.ToSymbol("foo").ToValue(),
+				value.Ref(&value.NativeArrayList[value.Symbol]{
+					value.ToSymbol("foo"),
 				}),
 			}),
 		},
@@ -617,8 +617,8 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.SmallInt(10).ToValue(),
 				value.SmallInt(12).ToValue(),
 				value.SmallInt(14).ToValue(),
-				value.Ref(&value.ArrayTupleOfValue{
-					value.ToSymbol("foo").ToValue(),
+				value.Ref(&value.NativeArrayTuple[value.Symbol]{
+					value.ToSymbol("foo"),
 				}),
 			}),
 		},
@@ -632,8 +632,8 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.SmallInt(5).ToValue(),
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(7).ToValue(),
-				value.Ref(&value.ArrayTupleOfValue{
-					value.ToSymbol("foo").ToValue(),
+				value.Ref(&value.NativeArrayTuple[value.Symbol]{
+					value.ToSymbol("foo"),
 				}),
 			}),
 		},
@@ -653,8 +653,8 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.SmallInt(5).ToValue(),
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(7).ToValue(),
-				value.Ref(&value.ArrayTupleOfValue{
-					value.ToSymbol("foo").ToValue(),
+				value.Ref(&value.NativeArrayTuple[value.Symbol]{
+					value.ToSymbol("foo"),
 				}),
 			}),
 		},
@@ -683,8 +683,8 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.SmallInt(5).ToValue(),
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(7).ToValue(),
-				value.Ref(&value.ArrayTupleOfValue{
-					value.ToSymbol("foo").ToValue(),
+				value.Ref(&value.NativeArrayTuple[value.Symbol]{
+					value.ToSymbol("foo"),
 				}),
 			}),
 		},
@@ -775,26 +775,20 @@ func TestVMSource_HashSetLiteral(t *testing.T) {
 			source: `
 				^w[foo bar baz]:20
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
-				nil,
-				23,
-				1,
-				value.Ref(value.String("foo")),
-				value.Ref(value.String("bar")),
-				value.Ref(value.String("baz")),
+			wantStackTop: value.Ref(vm.NewNativeHashSetWithElements[value.String](
+				"foo",
+				"bar",
+				"baz",
 			)),
 		},
 		"symbol hashSet literal with static capacity": {
 			source: `
 				^s[foo bar baz]:20
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
-				nil,
-				23,
-				1,
-				value.ToSymbol("foo").ToValue(),
-				value.ToSymbol("bar").ToValue(),
-				value.ToSymbol("baz").ToValue(),
+			wantStackTop: value.Ref(vm.NewNativeHashSetWithElements[value.Symbol](
+				value.ToSymbol("foo"),
+				value.ToSymbol("bar"),
+				value.ToSymbol("baz"),
 			)),
 		},
 		"bin hashSet literal with static capacity": {
@@ -1224,12 +1218,10 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.Ref(vm.MustNewHashMapOfValueWithElements(
-						nil,
-						value.MakePairOfValue(
-							value.Ref(value.String("bar")),
-							value.Ref(&value.ArrayListOfValue{}),
-						),
+					value.Ref(vm.NewNativeKeyHashMapFromMap(
+						map[value.String]value.Value{
+							"bar": value.Ref(&value.ArrayListOfValue{}),
+						},
 					)),
 				),
 				value.MakePairOfValue(
@@ -1302,13 +1294,10 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				foo := nil
 				{ "awesome" => 1 if foo, 2.5 => :bar }
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashMapOfValueWithCapacityAndElements(
-				nil,
-				2,
-				value.MakePairOfValue(
-					value.Float(2.5).ToValue(),
-					value.ToSymbol("bar").ToValue(),
-				),
+			wantStackTop: value.Ref(vm.NewNativeHashMapFromMap(
+				map[value.Float]value.Symbol{
+					2.5: value.ToSymbol("bar"),
+				},
 			)),
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(40, 3, 25), P(42, 3, 27)), "this condition will always have the same result since type `nil` is falsy"),
@@ -1570,14 +1559,11 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 				),
 				value.MakePairOfValue(
 					value.ToSymbol("foo").ToValue(),
-					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
-						nil,
-						5,
-						value.MakePairOfValue(
-							value.Ref(value.String("bar")),
-							value.Ref(&value.ArrayListOfValue{}),
-						),
-					)),
+					vm.MakeNativeKeyHashRecordFromMap(
+						map[value.String]value.Value{
+							"bar": value.Ref(&value.ArrayListOfValue{}),
+						},
+					).ToValue(),
 				),
 			)),
 		},
@@ -1625,13 +1611,10 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 				foo := nil
 				%{ "awesome" => 1 if foo, 2.5 => :bar }
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
-				nil,
-				5,
-				value.MakePairOfValue(
-					value.Float(2.5).ToValue(),
-					value.ToSymbol("bar").ToValue(),
-				),
+			wantStackTop: value.Ref(vm.MakeNativeHashRecordFromMap(
+				map[value.Float]value.Symbol{
+					value.Float(2.5): value.ToSymbol("bar"),
+				},
 			)),
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(41, 3, 26), P(43, 3, 28)), "this condition will always have the same result since type `nil` is falsy"),

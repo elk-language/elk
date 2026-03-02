@@ -21,6 +21,7 @@ type HashSet interface {
 	RemoveVal(thread *Thread, other value.Value) (removed bool, err value.Value)
 	IterSet() value.NativeResettableIterator
 	CloneHashSet(thread *Thread, capacity int) (result HashSet, err value.Value)
+	NewHashSet(capacity int) HashSet
 }
 
 // ::Std::HashSet

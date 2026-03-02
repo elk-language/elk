@@ -76,6 +76,14 @@ func (h *HashMapOfValue) CloneHashMap(thread *Thread, capacity int) (HashMap, va
 	return newMap, value.Undefined
 }
 
+func (h *HashMapOfValue) NewHashMap(capacity int) HashMap {
+	return NewHashMapOfValue(capacity)
+}
+
+func (h *HashMapOfValue) NewHashRecord(capacity int) HashRecord {
+	return h.NewHashMap(capacity)
+}
+
 func (h *HashMapOfValue) CloneHashRecord(thread *Thread, capacity int) (HashRecord, value.Value) {
 	return h.CloneHashMap(thread, capacity)
 }

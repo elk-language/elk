@@ -799,10 +799,11 @@ func TestVMSource_CallMethod(t *testing.T) {
 				map := { foo: 1, bar: 2 }
 				foo(**map)
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashMapOfValueWithElements(
-				nil,
-				value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(1).ToValue()),
-				value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
+			wantStackTop: value.Ref(vm.NewNativeKeyHashMapFromMap(
+				map[value.Symbol]value.Value{
+					value.ToSymbol("foo"): value.SmallInt(1).ToValue(),
+					value.ToSymbol("bar"): value.SmallInt(2).ToValue(),
+				},
 			)),
 		},
 		"call a method with a named rest param, named and double splat arguments": {

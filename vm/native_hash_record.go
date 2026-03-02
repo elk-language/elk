@@ -65,6 +65,10 @@ func (h NativeHashRecord[K, V]) CloneHashRecord(thread *Thread, capacity int) (H
 	return newRecord, value.Undefined
 }
 
+func (h NativeHashRecord[K, V]) NewHashRecord(capacity int) HashRecord {
+	return MakeNativeHashRecord[K, V](capacity)
+}
+
 func (h NativeHashRecord[K, V]) All() iter.Seq[value.PairOfValue] {
 	return func(yield func(value.PairOfValue) bool) {
 		for k, v := range h {

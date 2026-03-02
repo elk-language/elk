@@ -6259,7 +6259,9 @@ func (c *BytecodeCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLite
 		return
 	}
 
-	c.emitNewHashRecord(len(dynamicElementNodes), location)
+	if firstModifierElementIndex != -1 || len(dynamicElementNodes) > 0 {
+		c.emitNewHashRecord(len(dynamicElementNodes), location)
+	}
 }
 
 func (c *BytecodeCompiler) compileArrayListOfValueBase(node *ast.ArrayListLiteralNode, keyValueCount int) (baseArrayList value.ArrayList, firstDynamicIndex int) {
@@ -6753,7 +6755,9 @@ func (c *BytecodeCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLite
 		return
 	}
 
-	c.emitNewArrayTuple(len(dynamicElementNodes), location)
+	if firstModifierElementIndex != -1 || len(dynamicElementNodes) > 0 {
+		c.emitNewArrayTuple(len(dynamicElementNodes), location)
+	}
 }
 
 func (c *BytecodeCompiler) compileWordArrayTupleLiteralNode(node *ast.WordArrayTupleLiteralNode) {
@@ -7503,12 +7507,12 @@ func (c *BytecodeCompiler) emitValue(val value.Value, location *position.Locatio
 			c.emitArrayList(v, location)
 		case *value.ArrayTupleOfValue:
 			c.emitArrayTupleOfValue(v, location)
-		case *vm.HashSetOfValue:
+		case vm.HashSet:
 			c.emitHashSet(v, location)
-		case *vm.HashMapOfValue:
+		case vm.HashMap:
 			c.emitHashMap(v, location)
-		case *vm.HashRecordOfValue:
-			c.emitHashRecordOfValue(v, location)
+		case vm.HashRecord:
+			c.emitHashRecord(v, location)
 		case value.Int64:
 			emitSignedInt(c, val, val.AsInlineInt64(), bytecode.LOAD_INT64_8, location)
 		case value.UInt64:
@@ -7644,11 +7648,7 @@ func (c *BytecodeCompiler) emitFloat(f value.Float, location *position.Location)
 }
 
 func (c *BytecodeCompiler) emitHashSet(set vm.HashSet, location *position.Location) {
-	baseSet, err := set.CloneHashSet(nil, set.Length())
-	if err.IsNotUndefined() {
-		panic(err)
-	}
-
+	baseSet := set.NewHashSet(set.Length())
 	var mutableElements []value.Value
 
 listLoop:
@@ -7679,10 +7679,7 @@ listLoop:
 }
 
 func (c *BytecodeCompiler) emitHashMap(hmap vm.HashMap, location *position.Location) {
-	baseMap, err := hmap.CloneHashMap(nil, hmap.Length())
-	if err.IsNotUndefined() {
-		panic(err)
-	}
+	baseMap := hmap.NewHashMap(hmap.Length())
 
 	var mutablePairs []value.PairOfValue
 
@@ -7714,8 +7711,8 @@ listLoop:
 	c.emitNewHashMap(len(mutablePairs), location)
 }
 
-func (c *BytecodeCompiler) emitHashRecordOfValue(hrec *vm.HashRecordOfValue, location *position.Location) {
-	baseRecord := vm.NewHashRecordOfValue(hrec.Length())
+func (c *BytecodeCompiler) emitHashRecord(hrec vm.HashRecord, location *position.Location) {
+	baseRecord := hrec.NewHashRecord(hrec.Length())
 	var mutablePairs []value.PairOfValue
 
 listLoop:
@@ -7725,15 +7722,15 @@ listLoop:
 			continue listLoop
 		}
 
-		vm.HashRecordOfValueSet(nil, baseRecord, element.Key(), element.Value())
+		baseRecord.SetVal(nil, element.Key(), element.Value())
 	}
 
 	if len(mutablePairs) == 0 {
-		c.emitLoadValue(value.Ref(baseRecord), location)
+		c.emitLoadValue(baseRecord.ToValue(), location)
 		return
 	}
 
-	c.emitLoadValue(value.Ref(baseRecord), location)
+	c.emitLoadValue(baseRecord.ToValue(), location)
 
 	for _, element := range mutablePairs {
 		c.emitValue(element.Key(), location)
@@ -8029,7 +8026,8 @@ func (c *BytecodeCompiler) patchJumpWithTarget(target int, offset int, location 
 
 // Overwrite the placeholder operand of a jump instruction
 func (c *BytecodeCompiler) patchJump(offset int, location *position.Location) {
-	c.patchJumpWithTarget(c.nextInstructionOffset()-offset-2, offset, location)
+	target := c.nextInstructionOffset() - offset - 2
+	c.patchJumpWithTarget(target, offset, location)
 }
 
 // Emit an instruction that sets a local variable or value

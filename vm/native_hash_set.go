@@ -69,10 +69,25 @@ func NewNativeHashSet[V value.ComparableValueInterface](capacity int) *NativeHas
 	}
 }
 
+func NewNativeHashSetWithElements[V value.ComparableValueInterface](elements ...V) *NativeHashSet[V] {
+	m := make(map[V]struct{}, len(elements))
+	for _, element := range elements {
+		m[element] = struct{}{}
+	}
+
+	return &NativeHashSet[V]{
+		m: m,
+	}
+}
+
 func (h *NativeHashSet[V]) CloneHashSet(thread *Thread, capacity int) (HashSet, value.Value) {
 	newSet := NewNativeHashSet[V](capacity)
 	maps.Copy(newSet.m, h.m)
 	return newSet, value.Undefined
+}
+
+func (h *NativeHashSet[V]) NewHashSet(capacity int) HashSet {
+	return NewNativeHashSet[V](capacity)
 }
 
 func (h *NativeHashSet[V]) All() iter.Seq[value.Value] {

@@ -59,6 +59,14 @@ func (h *NativeKeyHashMap[K]) CloneHashMap(thread *Thread, capacity int) (HashMa
 	return newMap, value.Undefined
 }
 
+func (h *NativeKeyHashMap[K]) NewHashMap(capacity int) HashMap {
+	return NewNativeKeyHashMap[K](capacity)
+}
+
+func (h *NativeKeyHashMap[K]) NewHashRecord(capacity int) HashRecord {
+	return h.NewHashMap(capacity)
+}
+
 func (h *NativeKeyHashMap[K]) CloneHashRecord(thread *Thread, capacity int) (HashRecord, value.Value) {
 	return h.CloneHashMap(thread, capacity)
 }

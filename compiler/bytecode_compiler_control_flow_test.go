@@ -817,11 +817,11 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.Ref(value.String("a")),
-						value.Ref(value.String("b")),
-						value.Ref(value.String("c")),
-						value.Ref(value.String("d")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"a",
+						"b",
+						"c",
+						"d",
 					}),
 					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
@@ -896,11 +896,11 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.Ref(value.String("a")),
-						value.Ref(value.String("b")),
-						value.Ref(value.String("c")),
-						value.Ref(value.String("d")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"a",
+						"b",
+						"c",
+						"d",
 					}),
 					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
@@ -974,11 +974,11 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.Ref(value.String("a")),
-						value.Ref(value.String("b")),
-						value.Ref(value.String("c")),
-						value.Ref(value.String("d")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"a",
+						"b",
+						"c",
+						"d",
 					}),
 					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
@@ -1052,11 +1052,11 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.Ref(value.String("a")),
-						value.Ref(value.String("b")),
-						value.Ref(value.String("c")),
-						value.Ref(value.String("d")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"a",
+						"b",
+						"c",
+						"d",
 					}),
 					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
