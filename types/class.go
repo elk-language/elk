@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -21,6 +22,7 @@ type Class struct {
 	singleton      *SingletonClass
 	typeParameters []*TypeParameter
 	ivarIndices    *value.IvarIndices
+	Children       ds.Set[*Class]
 	NamespaceBase
 }
 
@@ -167,9 +169,25 @@ func (c *Class) Superclass() Namespace {
 
 func (c *Class) SetParent(parent Namespace) {
 	c.parent = parent
+	c.registerAsChild(parent)
+
 	superclass := c.Superclass()
 	if superclass != nil && c.singleton != nil {
-		c.singleton.parent = superclass.Singleton()
+		singleton := superclass.Singleton()
+		c.singleton.parent = singleton
+		singleton.registerAsChild(c.singleton)
+	}
+}
+
+func (c *Class) registerAsChild(parent Namespace) {
+	switch parent := parent.(type) {
+	case *Class:
+		if parent.Children == nil {
+			parent.Children = ds.Set[*Class]{}
+		}
+		parent.Children.Add(c)
+	case *Generic:
+		c.registerAsChild(parent.Namespace)
 	}
 }
 

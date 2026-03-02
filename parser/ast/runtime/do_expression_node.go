@@ -15,7 +15,7 @@ func initDoExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argBody []ast.StatementNode
 			if !args[1].IsUndefined() {
-				argBodyTuple := args[1].MustReference().(*value.ArrayTuple)
+				argBodyTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 				argBody = make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -24,7 +24,7 @@ func initDoExpressionNode() {
 
 			var argCatches []*ast.CatchNode
 			if !args[2].IsUndefined() {
-				argCatchesTuple := args[2].MustReference().(*value.ArrayTuple)
+				argCatchesTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argCatches = make([]*ast.CatchNode, argCatchesTuple.Length())
 				for i, el := range *argCatchesTuple {
 					argCatches[i] = el.MustReference().(*ast.CatchNode)
@@ -33,7 +33,7 @@ func initDoExpressionNode() {
 
 			var argFinally []ast.StatementNode
 			if !args[3].IsUndefined() {
-				argFinallyTuple := args[3].MustReference().(*value.ArrayTuple)
+				argFinallyTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				argFinally = make([]ast.StatementNode, argFinallyTuple.Length())
 				for i, el := range *argFinallyTuple {
 					argFinally[i] = el.MustReference().(ast.StatementNode)
@@ -65,7 +65,7 @@ func initDoExpressionNode() {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -82,7 +82,7 @@ func initDoExpressionNode() {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
 
 			collection := self.Catches
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -99,7 +99,7 @@ func initDoExpressionNode() {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
 
 			collection := self.Finally
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -126,7 +126,7 @@ func initDoExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

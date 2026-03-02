@@ -25,6 +25,10 @@ func (m *RWMutex) Copy() Reference {
 	return NewRWMutex()
 }
 
+func (r *RWMutex) ToValue() Value {
+	return Ref(r)
+}
+
 func (*RWMutex) Class() *Class {
 	return RWMutexClass
 }
@@ -84,7 +88,9 @@ func initRWMutex() {
 		ClassWithConstructor(RWMutexConstructor),
 	)
 	SyncModule.AddConstantString("RWMutex", Ref(RWMutexClass))
+	RegisterNativeClass("Std::Sync::RWMutex", "value.RWMutexClass")
 
 	RWMutexUnlockedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	RWMutexClass.AddConstantString("UnlockedError", Ref(RWMutexUnlockedErrorClass))
+	RegisterNativeClass("Std::Sync::RWMutex::UnlockedError", "value.RWMutexUnlockedErrorClass")
 }

@@ -34,6 +34,10 @@ func (t *DateTime) Copy() Reference {
 	return &newT
 }
 
+func (d *DateTime) ToValue() Value {
+	return Ref(d)
+}
+
 func (DateTime) Class() *Class {
 	return DateTimeClass
 }
@@ -1630,7 +1634,7 @@ func (t *DateTime) GreaterThan(other Value) (result bool, err Value) {
 
 func (t *DateTime) GreaterThanVal(other Value) (Value, Value) {
 	result, err := t.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether t is greater than or equal to other and return an error
@@ -1657,7 +1661,7 @@ func (t *DateTime) GreaterThanEqual(other Value) (result bool, err Value) {
 
 func (t *DateTime) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := t.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether t is less than other and return an error
@@ -1684,7 +1688,7 @@ func (t *DateTime) LessThan(other Value) (result bool, err Value) {
 
 func (t *DateTime) LessThanVal(other Value) (Value, Value) {
 	result, err := t.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether t is less than or equal to other and return an error
@@ -1711,7 +1715,7 @@ func (t *DateTime) LessThanEqual(other Value) (result bool, err Value) {
 
 func (t *DateTime) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := t.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (t *DateTime) LaxEqual(other Value) bool {
@@ -1739,5 +1743,8 @@ func (t *DateTime) StrictEqual(other Value) bool {
 func initDateTime() {
 	DateTimeClass = NewClass()
 	StdModule.AddConstantString("DateTime", Ref(DateTimeClass))
+	RegisterNativeClass("Std::DateTime", "value.DateTimeClass")
+
 	DateTimeClass.AddConstantString("DEFAULT_FORMAT", Ref(String(DefaultDateTimeFormat)))
+	RegisterNativeConstant("Std::DateTime::DEFAULT_FORMAT", "value.String(value.DefaultDateTimeFormat)", "value.String")
 }

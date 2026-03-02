@@ -154,7 +154,7 @@ func (d DateSpan) GreaterThan(other Value) (result bool, err Value) {
 
 func (d DateSpan) GreaterThanVal(other Value) (Value, Value) {
 	result, err := d.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether d is greater than or equal to other and return an error
@@ -183,7 +183,7 @@ func (d DateSpan) GreaterThanEqual(other Value) (result bool, err Value) {
 
 func (d DateSpan) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := d.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether d is less than other and return an error
@@ -212,7 +212,7 @@ func (d DateSpan) LessThan(other Value) (result bool, err Value) {
 
 func (d DateSpan) LessThanVal(other Value) (Value, Value) {
 	result, err := d.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether d is less than or equal to other and return an error
@@ -788,4 +788,5 @@ func initDateSpan() {
 	DateSpanClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	DateSpanClass.IncludeMixin(DurationMixin)
 	DateClass.AddConstantString("Span", Ref(DateSpanClass))
+	RegisterNativeClass("Std::Date::Span", "value.DateSpanClass")
 }

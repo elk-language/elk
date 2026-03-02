@@ -131,6 +131,10 @@ func (n *ObjectPatternNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ObjectPatternNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ObjectPatternNode) Error() string {
 	return n.Inspect()
 }

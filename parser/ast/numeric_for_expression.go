@@ -221,6 +221,10 @@ func (n *NumericForExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *NumericForExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *NumericForExpressionNode) Error() string {
 	return n.Inspect()
 }

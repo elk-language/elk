@@ -261,7 +261,7 @@ func (c *Checker) classCanIntersectWithMixin(a *types.Class, b *types.Mixin) boo
 	}
 
 	for mixinMethodName, mixinMethod := range c.methodsInNamespace(b) {
-		classMethod := c.getMethod(a, mixinMethodName, nil)
+		classMethod := c.GetMethod(a, mixinMethodName, nil)
 		if classMethod == nil && mixinMethod.IsAbstract() && !a.IsAbstract() {
 			return false
 		}
@@ -286,7 +286,7 @@ func (c *Checker) canIntersectWithInterfaceOrMixin(a types.Type, b types.Namespa
 	}
 
 	for ifaceMethodName, ifaceMethod := range c.methodsInNamespace(b) {
-		bMethod := c.getMethod(a, ifaceMethodName, nil)
+		bMethod := c.GetMethod(a, ifaceMethodName, nil)
 		if bMethod == nil {
 			continue
 		}

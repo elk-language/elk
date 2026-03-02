@@ -179,7 +179,7 @@ func initChar() {
 		c,
 		"is_empty",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 	)
 

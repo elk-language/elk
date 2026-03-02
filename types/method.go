@@ -336,7 +336,7 @@ func (m *Method) AllOverloads() iter.Seq[*Method] {
 	}
 }
 
-func (m *Method) ReverseOverloads() iter.Seq[*Method] {
+func (m *Method) ReversedOverloads() iter.Seq[*Method] {
 	return func(yield func(*Method) bool) {
 		for i := len(m.Overloads) - 1; i >= 0; i-- {
 			overload := m.Overloads[i]
@@ -355,6 +355,8 @@ func (m *Method) RegisterOverload(overload *Method) {
 	m.Overloads = append(m.Overloads, overload)
 	overload.OverloadId = len(m.Overloads)
 	overload.Name = value.ToSymbol(fmt.Sprintf("%s@%d", overload.Name.String(), len(m.Overloads)))
+
+	m.DefinedUnder.SetMethod(overload.Name, overload)
 }
 
 func (m *Method) Location() *position.Location {
@@ -634,6 +636,10 @@ func (m *Method) PositionalRestParam() *Parameter {
 		return nil
 	}
 	return m.Params[index]
+}
+
+func (m *Method) NamespacedName() string {
+	return m.inspect()
 }
 
 func (m *Method) inspect() string {

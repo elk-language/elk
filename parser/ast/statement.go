@@ -98,6 +98,10 @@ func (n *ExpressionStatementNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ExpressionStatementNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (e *ExpressionStatementNode) Error() string {
 	return e.Inspect()
 }
@@ -171,6 +175,10 @@ func (e *EmptyStatementNode) DirectClass() *value.Class {
 
 func (e *EmptyStatementNode) Inspect() string {
 	return fmt.Sprintf("Std::Elk::AST::EmptyStatementNode{location: %s}", (*value.Location)(e.loc).Inspect())
+}
+
+func (n *EmptyStatementNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (e *EmptyStatementNode) Error() string {
@@ -252,6 +260,10 @@ func (e *ImportStatementNode) DirectClass() *value.Class {
 
 func (e *ImportStatementNode) Inspect() string {
 	return fmt.Sprintf("Std::Elk::AST::ImportStatementNode{location: %s, path: %s}", (*value.Location)(e.loc).Inspect(), e.Path.Inspect())
+}
+
+func (n *ImportStatementNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (e *ImportStatementNode) Error() string {
@@ -336,6 +348,10 @@ func (n *ParameterStatementNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *ParameterStatementNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (e *ParameterStatementNode) Error() string {
@@ -430,6 +446,10 @@ func (n *TypeStatementNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *TypeStatementNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (e *TypeStatementNode) Error() string {
 	return e.Inspect()
 }
@@ -512,6 +532,10 @@ func (n *PatternStatementNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *PatternStatementNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (e *PatternStatementNode) Error() string {

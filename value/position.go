@@ -31,6 +31,10 @@ func (p *Position) Copy() Reference {
 	return p
 }
 
+func (p *Position) ToValue() Value {
+	return Ref(p)
+}
+
 func (*Position) InstanceVariables() *InstanceVariables {
 	return nil
 }
@@ -64,4 +68,5 @@ func (p *Position) Equal(other *Position) bool {
 func initPosition() {
 	PositionClass = NewClassWithOptions(ClassWithConstructor(PositionConstructor))
 	StringClass.AddConstantString("Position", Ref(PositionClass))
+	RegisterNativeClass("Std::String::Position", "value.PositionClass")
 }

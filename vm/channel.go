@@ -69,7 +69,7 @@ func initChannel() {
 		c,
 		"==",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.ToElkBool(args[0] == args[1]), value.Undefined
+			return value.BoolVal(args[0] == args[1]), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -77,7 +77,7 @@ func initChannel() {
 		c,
 		"=~",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.ToElkBool(args[0] == args[1]), value.Undefined
+			return value.BoolVal(args[0] == args[1]), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -128,7 +128,7 @@ func initChannel() {
 		"next",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Channel)(args[0].Pointer())
-			return self.Next()
+			return self.NextValue()
 		},
 	)
 	Def(

@@ -184,6 +184,10 @@ func (n *ModuleDeclarationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ModuleDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ModuleDeclarationNode) Error() string {
 	return n.Inspect()
 }

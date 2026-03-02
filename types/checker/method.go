@@ -623,6 +623,10 @@ type methodBodyCheckEntry struct {
 }
 
 func (c *Checker) registerMethodBodyCheck(method *types.Method, node *ast.MethodDefinitionNode) {
+	if c.compiler != nil {
+		c.compiler.RegisterMethod(node)
+	}
+
 	c.methodBodyChecks = append(c.methodBodyChecks, methodBodyCheckEntry{
 		method:         method,
 		constantScopes: c.constantScopesCopyWithoutCache(),
@@ -1526,7 +1530,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	prevDiagnostics := c.Errors
 	tempDiagnostics := diagnostic.NewSyncDiagnosticList()
 	c.Errors = tempDiagnostics
-	for overload := range method.ReverseOverloads() {
+	for overload := range method.ReversedOverloads() {
 		tempDiagnostics.Clear()
 
 		posArgs := ds.MapSlice(positionalArguments, func(arg ast.ExpressionNode) ast.ExpressionNode {
@@ -2155,10 +2159,10 @@ func (c *Checker) checkSimpleMethodCall(
 	var method *types.Method
 	switch op {
 	case token.DOT, token.DOT_DOT:
-		method = c.getMethod(receiverType, methodName, location)
+		method = c.GetMethod(receiverType, methodName, location)
 	case token.QUESTION_DOT, token.QUESTION_DOT_DOT:
 		nonNilableReceiverType := c.ToNonNilable(receiverType)
-		method = c.getMethod(nonNilableReceiverType, methodName, location)
+		method = c.GetMethod(nonNilableReceiverType, methodName, location)
 	default:
 		panic(fmt.Sprintf("invalid call operator: %#v", op))
 	}
@@ -2934,7 +2938,7 @@ func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideM
 	return areCompatible
 }
 
-func (c *Checker) getMethod(typ types.Type, name value.Symbol, errSpan *position.Location) *types.Method {
+func (c *Checker) GetMethod(typ types.Type, name value.Symbol, errSpan *position.Location) *types.Method {
 	return c._getMethod(typ, name, errSpan, false, false)
 }
 
@@ -3379,9 +3383,9 @@ func (c *Checker) getReceiverlessMethod(name value.Symbol, location *position.Lo
 		if !local.initialised {
 			c.addUninitialisedLocalError(nameStr, location)
 		}
-		return c.getMethod(local.typ, symbol.L_call, location), nil, true
+		return c.GetMethod(local.typ, symbol.L_call, location), nil, true
 	}
-	method := c.getMethod(c.selfType, name, nil)
+	method := c.GetMethod(c.selfType, name, nil)
 	if method != nil {
 		return method, nil, false
 	}
@@ -3394,7 +3398,7 @@ func (c *Checker) getReceiverlessMethod(name value.Symbol, location *position.Lo
 		}
 
 		namespace := methodScope.container
-		method := c.getMethod(namespace, name, nil)
+		method := c.GetMethod(namespace, name, nil)
 		if method != nil {
 			return method, namespace, false
 		}
@@ -3444,20 +3448,20 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 			case *types.Not:
 				switch t := e.Type.(type) {
 				case *types.Interface:
-					elementMethod := c.getMethod(t, name, nil)
+					elementMethod := c.GetMethod(t, name, nil)
 					if elementMethod == nil {
 						continue
 					}
 					return nil
 				case *types.Mixin:
-					elementMethod := c.getMethod(t, name, nil)
+					elementMethod := c.GetMethod(t, name, nil)
 					if elementMethod == nil {
 						continue
 					}
 					return nil
 				}
 			default:
-				elementMethod := c.getMethod(element, name, nil)
+				elementMethod := c.GetMethod(element, name, nil)
 				if elementMethod == nil {
 					continue
 				}
@@ -3496,7 +3500,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		if nilMethod == nil {
 			c.addMissingMethodError(nilType, name.String(), errSpan)
 		}
-		nonNilMethod := c.getMethod(t.Type, name, errSpan)
+		nonNilMethod := c.GetMethod(t.Type, name, errSpan)
 		if nilMethod == nil || nonNilMethod == nil {
 			return nil
 		}
@@ -3520,7 +3524,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 		var baseMethod *types.Method
 
 		for _, element := range t.Elements {
-			elementMethod := c.getMethod(element, name, errSpan)
+			elementMethod := c.GetMethod(element, name, errSpan)
 			if elementMethod == nil {
 				continue
 			}

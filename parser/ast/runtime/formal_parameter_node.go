@@ -90,7 +90,7 @@ func initFormalParameterNode() {
 		"is_optional",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.FormalParameterNode)
-			result := value.ToElkBool(self.IsOptional())
+			result := value.BoolVal(self.IsOptional())
 			return result, value.Undefined
 		},
 	)
@@ -100,7 +100,7 @@ func initFormalParameterNode() {
 		"is_normal",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.FormalParameterNode)
-			result := value.ToElkBool(self.Kind == ast.NormalParameterKind)
+			result := value.BoolVal(self.Kind == ast.NormalParameterKind)
 			return result, value.Undefined
 		},
 	)
@@ -110,7 +110,7 @@ func initFormalParameterNode() {
 		"is_positional_rest",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.FormalParameterNode)
-			result := value.ToElkBool(self.Kind == ast.PositionalRestParameterKind)
+			result := value.BoolVal(self.Kind == ast.PositionalRestParameterKind)
 			return result, value.Undefined
 		},
 	)
@@ -120,7 +120,7 @@ func initFormalParameterNode() {
 		"is_named_rest",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.FormalParameterNode)
-			result := value.ToElkBool(self.Kind == ast.NamedRestParameterKind)
+			result := value.BoolVal(self.Kind == ast.NamedRestParameterKind)
 			return result, value.Undefined
 		},
 	)
@@ -141,7 +141,7 @@ func initFormalParameterNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.FormalParameterNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

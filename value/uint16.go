@@ -241,7 +241,7 @@ func (i UInt16) CompareVal(other Value) (Value, Value) {
 
 func (i UInt16) GreaterThanVal(other Value) (Value, Value) {
 	result, err := i.GreaterThan(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 func (i UInt16) GreaterThan(other Value) (bool, Value) {
@@ -255,7 +255,7 @@ func (i UInt16) GreaterThan(other Value) (bool, Value) {
 
 func (i UInt16) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := i.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 func (i UInt16) GreaterThanEqual(other Value) (bool, Value) {
@@ -269,7 +269,7 @@ func (i UInt16) GreaterThanEqual(other Value) (bool, Value) {
 
 func (i UInt16) LessThanVal(other Value) (Value, Value) {
 	result, err := i.LessThan(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 func (i UInt16) LessThan(other Value) (bool, Value) {
@@ -283,7 +283,7 @@ func (i UInt16) LessThan(other Value) (bool, Value) {
 
 func (i UInt16) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := i.LessThanEqual(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 func (i UInt16) LessThanEqual(other Value) (bool, Value) {
@@ -296,7 +296,7 @@ func (i UInt16) LessThanEqual(other Value) (bool, Value) {
 }
 
 func (i UInt16) EqualVal(other Value) Value {
-	return ToElkBool(i.Equal(other))
+	return BoolVal(i.Equal(other))
 }
 
 func (i UInt16) Equal(other Value) bool {
@@ -315,4 +315,7 @@ func (i UInt16) StrictEqualVal(other Value) Value {
 func initUInt16() {
 	UInt16Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("UInt16", Ref(UInt16Class))
+	RegisterNativeClass("Std::UInt16", "value.UInt16Class")
+
+	UInt16Class.AddConstantString("Convertible", Ref(NewInterface()))
 }

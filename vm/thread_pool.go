@@ -17,6 +17,12 @@ func NewThreadPool(threadCount, queueSize int, opts ...Option) *ThreadPool {
 	return tp
 }
 
+func (tp *ThreadPool) Call(fn func(vm *Thread) (result value.Value, err value.Value)) *Promise {
+	return NewNativePromise(tp, func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
+		return fn(vm)
+	})
+}
+
 func (tp *ThreadPool) initThreadPool(threadCount, queueSize int, opts ...Option) {
 	tp.TaskQueue = make(chan *Promise, queueSize)
 
@@ -55,27 +61,6 @@ func executeNativePromise(thread *Thread, queue chan *Promise, task *Promise, bo
 	task.Resolve(result)
 }
 
-func executeBytecodePromise(thread *Thread, queue chan *Promise, task *Promise) {
-	thread.callBytecodePromise(task)
-
-	switch thread.state {
-	case awaitState:
-		awaitedPromise := (*Promise)(thread.peek().Pointer())
-		awaitedPromise.RegisterContinuationUnsafe(task)
-
-		// promise has been locked in the VM
-		awaitedPromise.m.Unlock()
-	case errorState:
-		err := thread.popGet()
-		stackTrace := thread.GetStackTrace()
-		task.Reject(err, stackTrace)
-	default:
-		result := thread.popGet()
-		task.Resolve(result)
-	}
-
-}
-
 func (*ThreadPool) Class() *value.Class {
 	return value.ThreadPoolClass
 }
@@ -90,6 +75,10 @@ func (*ThreadPool) SingletonClass() *value.Class {
 
 func (t *ThreadPool) Copy() value.Reference {
 	return t
+}
+
+func (t *ThreadPool) ToValue() value.Value {
+	return value.Ref(t)
 }
 
 func (t *ThreadPool) Inspect() string {

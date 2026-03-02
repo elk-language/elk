@@ -17,7 +17,7 @@ func initMacroDefinitionNode() {
 
 			var argParameters []ast.ParameterNode
 			if !args[2].IsUndefined() {
-				argParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+				argParametersTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argParameters = make([]ast.ParameterNode, argParametersTuple.Length())
 				for i, el := range *argParametersTuple {
 					argParameters[i] = el.MustReference().(ast.ParameterNode)
@@ -31,7 +31,7 @@ func initMacroDefinitionNode() {
 
 			var argBody []ast.StatementNode
 			if !args[4].IsUndefined() {
-				argBodyTuple := args[4].MustReference().(*value.ArrayTuple)
+				argBodyTuple := args[4].MustReference().(*value.ArrayTupleOfValue)
 				argBody = make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -98,7 +98,7 @@ func initMacroDefinitionNode() {
 			self := args[0].MustReference().(*ast.MacroDefinitionNode)
 
 			collection := self.Parameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -128,7 +128,7 @@ func initMacroDefinitionNode() {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -143,7 +143,7 @@ func initMacroDefinitionNode() {
 		"is_sealed",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
-			result := value.ToElkBool(self.IsSealed())
+			result := value.BoolVal(self.IsSealed())
 			return result, value.Undefined
 
 		},
@@ -177,7 +177,7 @@ func initMacroDefinitionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

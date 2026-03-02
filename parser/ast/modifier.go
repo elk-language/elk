@@ -123,6 +123,10 @@ func (n *ModifierNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ModifierNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (m *ModifierNode) Error() string {
 	return m.Inspect()
 }
@@ -256,6 +260,10 @@ func (m *ModifierIfElseNode) Error() string {
 	return m.Inspect()
 }
 
+func (n *ModifierIfElseNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 // Create a new modifier `if` .. `else` node eg. `foo = 1 if bar else foo = 2“.
 func NewModifierIfElseNode(loc *position.Location, then, cond, els ExpressionNode) *ModifierIfElseNode {
 	return &ModifierIfElseNode{
@@ -370,6 +378,10 @@ func (n *ModifierForInNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *ModifierForInNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (m *ModifierForInNode) Error() string {

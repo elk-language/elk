@@ -17,7 +17,7 @@ func initStructDeclarationNode() {
 
 			var argTypeParameters []ast.TypeParameterNode
 			if !args[2].IsUndefined() {
-				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 				for i, el := range *argTypeParametersTuple {
 					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
@@ -26,7 +26,7 @@ func initStructDeclarationNode() {
 
 			var argBody []ast.StructBodyStatementNode
 			if !args[3].IsUndefined() {
-				argBodyTuple := args[3].MustReference().(*value.ArrayTuple)
+				argBodyTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				argBody = make([]ast.StructBodyStatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StructBodyStatementNode)
@@ -88,7 +88,7 @@ func initStructDeclarationNode() {
 			self := args[0].MustReference().(*ast.StructDeclarationNode)
 
 			collection := self.TypeParameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -105,7 +105,7 @@ func initStructDeclarationNode() {
 			self := args[0].MustReference().(*ast.StructDeclarationNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -131,7 +131,7 @@ func initStructDeclarationNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.StructDeclarationNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

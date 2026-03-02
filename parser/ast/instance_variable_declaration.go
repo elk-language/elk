@@ -134,6 +134,10 @@ func (n *InstanceVariableDeclarationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *InstanceVariableDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (p *InstanceVariableDeclarationNode) Error() string {
 	return p.Inspect()
 }

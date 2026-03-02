@@ -242,6 +242,10 @@ func (n *ClosureLiteralNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ClosureLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ClosureLiteralNode) Error() string {
 	return n.Inspect()
 }

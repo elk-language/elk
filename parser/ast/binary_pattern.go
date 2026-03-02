@@ -146,6 +146,10 @@ func (n *BinaryPatternNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *BinaryPatternNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *BinaryPatternNode) Error() string {
 	return n.Inspect()
 }

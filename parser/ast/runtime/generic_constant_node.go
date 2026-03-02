@@ -15,7 +15,7 @@ func initGenericConstantNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argConst := args[1].MustReference().(ast.ComplexConstantNode)
 
-			argArgsTuple := args[2].MustReference().(*value.ArrayTuple)
+			argArgsTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 			argArgs := make([]ast.TypeNode, argArgsTuple.Length())
 			for i, el := range *argArgsTuple {
 				argArgs[i] = el.MustReference().(ast.TypeNode)
@@ -56,7 +56,7 @@ func initGenericConstantNode() {
 			self := args[0].MustReference().(*ast.GenericConstantNode)
 
 			collection := self.TypeArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -83,7 +83,7 @@ func initGenericConstantNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstantNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

@@ -31,6 +31,10 @@ func (d *Diagnostic) Copy() Reference {
 	return d
 }
 
+func (d *Diagnostic) ToValue() Value {
+	return Ref(d)
+}
+
 func (*Diagnostic) InstanceVariables() *InstanceVariables {
 	return nil
 }
@@ -48,10 +52,30 @@ func (d *Diagnostic) Error() string {
 	return d.Inspect()
 }
 
+func DiagnosticInfo() UInt8 {
+	return UInt8(diagnostic.INFO)
+}
+
+func DiagnosticWarn() UInt8 {
+	return UInt8(diagnostic.WARN)
+}
+
+func DiagnosticFail() UInt8 {
+	return UInt8(diagnostic.FAIL)
+}
+
 func initDiagnostic() {
 	DiagnosticClass = NewClassWithOptions(ClassWithConstructor(DiagnosticConstructor))
-	DiagnosticClass.AddConstantString("INFO", UInt8(diagnostic.INFO).ToValue())
-	DiagnosticClass.AddConstantString("WARN", UInt8(diagnostic.WARN).ToValue())
-	DiagnosticClass.AddConstantString("FAIL", UInt8(diagnostic.FAIL).ToValue())
 	StdModule.AddConstantString("Diagnostic", Ref(DiagnosticClass))
+	RegisterNativeInterface("Std::Diagnostic", "value.DiagnosticClass")
+
+	DiagnosticClass.AddConstantString("INFO", DiagnosticInfo().ToValue())
+	RegisterNativeConstant("Std::Diagnostic", "value.DiagnosticInfo()", "value.UInt8")
+
+	DiagnosticClass.AddConstantString("WARN", DiagnosticWarn().ToValue())
+	RegisterNativeConstant("Std::Diagnostic", "value.DiagnosticWarn()", "value.UInt8")
+
+	DiagnosticClass.AddConstantString("FAIL", DiagnosticFail().ToValue())
+	RegisterNativeConstant("Std::Diagnostic", "value.DiagnosticFail()", "value.UInt8")
+
 }

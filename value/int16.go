@@ -241,7 +241,7 @@ func (i Int16) CompareVal(other Value) (Value, Value) {
 
 func (i Int16) GreaterThanVal(other Value) (Value, Value) {
 	result, err := i.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (i Int16) GreaterThan(other Value) (bool, Value) {
@@ -255,7 +255,7 @@ func (i Int16) GreaterThan(other Value) (bool, Value) {
 
 func (i Int16) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := i.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (i Int16) GreaterThanEqual(other Value) (bool, Value) {
@@ -269,7 +269,7 @@ func (i Int16) GreaterThanEqual(other Value) (bool, Value) {
 
 func (i Int16) LessThanVal(other Value) (Value, Value) {
 	result, err := i.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (i Int16) LessThan(other Value) (bool, Value) {
@@ -283,7 +283,7 @@ func (i Int16) LessThan(other Value) (bool, Value) {
 
 func (i Int16) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := i.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (i Int16) LessThanEqual(other Value) (bool, Value) {
@@ -296,7 +296,7 @@ func (i Int16) LessThanEqual(other Value) (bool, Value) {
 }
 
 func (i Int16) EqualVal(other Value) Value {
-	return ToElkBool(i.Equal(other))
+	return Bool(i.Equal(other)).ToValue()
 }
 
 func (i Int16) Equal(other Value) bool {
@@ -315,6 +315,7 @@ func (i Int16) StrictEqualVal(other Value) Value {
 func initInt16() {
 	Int16Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Int16", Ref(Int16Class))
+	RegisterNativeClass("Std::Int16", "value.Int16Class")
 
 	Int16Class.AddConstantString("Convertible", Ref(NewInterface()))
 }

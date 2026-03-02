@@ -15,7 +15,7 @@ func initSymbolHashSetLiteralNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argElements []ast.SymbolCollectionContentNode
 			if !args[1].IsUndefined() {
-				argElementsTuple := args[1].MustReference().(*value.ArrayTuple)
+				argElementsTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 				argElements = make([]ast.SymbolCollectionContentNode, argElementsTuple.Length())
 				for i, el := range *argElementsTuple {
 					argElements[i] = el.MustReference().(ast.SymbolCollectionContentNode)
@@ -51,7 +51,7 @@ func initSymbolHashSetLiteralNode() {
 			self := args[0].MustReference().(*ast.SymbolHashSetLiteralNode)
 
 			collection := self.Elements
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -90,7 +90,7 @@ func initSymbolHashSetLiteralNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolHashSetLiteralNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

@@ -123,6 +123,10 @@ func (n *IncludeExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *IncludeExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *IncludeExpressionNode) Error() string {
 	return n.Inspect()
 }

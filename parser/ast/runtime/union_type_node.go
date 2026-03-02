@@ -13,7 +13,7 @@ func initUnionTypeNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argElementsTuple := args[1].MustReference().(*value.ArrayTuple)
+			argElementsTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 			argElements := make([]ast.TypeNode, argElementsTuple.Length())
 			for i, el := range *argElementsTuple {
 				argElements[i] = el.MustReference().(ast.TypeNode)
@@ -42,7 +42,7 @@ func initUnionTypeNode() {
 			self := args[0].MustReference().(*ast.UnionTypeNode)
 
 			collection := self.Elements
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -69,7 +69,7 @@ func initUnionTypeNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnionTypeNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

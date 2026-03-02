@@ -15,7 +15,7 @@ func initQuoteExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argBody []ast.StatementNode
 			if !args[1].IsUndefined() {
-				argBodyTuple := args[1].MustReference().(*value.ArrayTuple)
+				argBodyTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 				argBody = make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -51,7 +51,7 @@ func initQuoteExpressionNode() {
 			self := args[0].MustReference().(*ast.QuoteExpressionNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -87,7 +87,7 @@ func initQuoteExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.QuoteExpressionNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

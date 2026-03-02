@@ -25,6 +25,10 @@ func (m *ROMutex) Copy() Reference {
 	return NewROMutex(m.RWMutex)
 }
 
+func (r *ROMutex) ToValue() Value {
+	return Ref(r)
+}
+
 func (*ROMutex) Class() *Class {
 	return ROMutexClass
 }
@@ -62,4 +66,5 @@ func initROMutex() {
 		ClassWithConstructor(ROMutexConstructor),
 	)
 	SyncModule.AddConstantString("ROMutex", Ref(ROMutexClass))
+	RegisterNativeClass("Std::Sync::ROMutex", "value.ROMutexClass")
 }

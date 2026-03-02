@@ -111,6 +111,10 @@ func (n *RawStringLiteralNode) Inspect() string {
 	)
 }
 
+func (n *RawStringLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *RawStringLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -181,6 +185,10 @@ func (n *StringLiteralContentSectionNode) Inspect() string {
 		(*value.Location)(n.loc).Inspect(),
 		value.String(n.Value).Inspect(),
 	)
+}
+
+func (n *StringLiteralContentSectionNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *StringLiteralContentSectionNode) Error() string {
@@ -272,6 +280,10 @@ func (n *StringInspectInterpolationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *StringInspectInterpolationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *StringInspectInterpolationNode) Error() string {
 	return n.Inspect()
 }
@@ -359,6 +371,10 @@ func (n *StringInterpolationNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *StringInterpolationNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *StringInterpolationNode) Error() string {
@@ -474,6 +490,10 @@ func (n *InterpolatedStringLiteralNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *InterpolatedStringLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *InterpolatedStringLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -545,6 +565,10 @@ func (n *DoubleQuotedStringLiteralNode) Inspect() string {
 		(*value.Location)(n.loc).Inspect(),
 		value.String(n.Value).Inspect(),
 	)
+}
+
+func (n *DoubleQuotedStringLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *DoubleQuotedStringLiteralNode) Error() string {

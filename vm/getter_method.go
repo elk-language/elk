@@ -53,6 +53,10 @@ func (g *GetterMethod) Copy() value.Reference {
 	return g
 }
 
+func (g *GetterMethod) ToValue() value.Value {
+	return value.Ref(g)
+}
+
 func (g *GetterMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :getter}", g.AttributeName.Inspect())
 }

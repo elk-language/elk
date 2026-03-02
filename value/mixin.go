@@ -100,4 +100,5 @@ var MixinClass *Class // ::Std::Mixin
 func initMixin() {
 	MixinClass = NewClass()
 	StdModule.AddConstantString("Mixin", Ref(MixinClass))
+	RegisterNativeClass("Std::Mixin", "value.MixinClass")
 }

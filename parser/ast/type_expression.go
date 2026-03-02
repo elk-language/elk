@@ -86,6 +86,10 @@ func (n *TypeExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *TypeExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *TypeExpressionNode) Error() string {
 	return n.Inspect()
 }

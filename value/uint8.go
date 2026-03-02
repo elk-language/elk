@@ -238,7 +238,7 @@ func (i UInt8) CompareVal(other Value) (Value, Value) {
 
 func (i UInt8) GreaterThanVal(other Value) (Value, Value) {
 	result, err := i.GreaterThan(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 func (i UInt8) GreaterThan(other Value) (bool, Value) {
@@ -252,7 +252,7 @@ func (i UInt8) GreaterThan(other Value) (bool, Value) {
 
 func (i UInt8) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := i.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 func (i UInt8) GreaterThanEqual(other Value) (bool, Value) {
@@ -266,7 +266,7 @@ func (i UInt8) GreaterThanEqual(other Value) (bool, Value) {
 
 func (i UInt8) LessThanVal(other Value) (Value, Value) {
 	result, err := i.LessThan(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 func (i UInt8) LessThan(other Value) (bool, Value) {
@@ -280,7 +280,7 @@ func (i UInt8) LessThan(other Value) (bool, Value) {
 
 func (i UInt8) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := i.LessThanEqual(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 func (i UInt8) LessThanEqual(other Value) (bool, Value) {
@@ -293,7 +293,7 @@ func (i UInt8) LessThanEqual(other Value) (bool, Value) {
 }
 
 func (i UInt8) EqualVal(other Value) Value {
-	return ToElkBool(i.Equal(other))
+	return BoolVal(i.Equal(other))
 }
 
 func (i UInt8) Equal(other Value) bool {
@@ -312,4 +312,7 @@ func (i UInt8) StrictEqualVal(other Value) Value {
 func initUInt8() {
 	UInt8Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("UInt8", Ref(UInt8Class))
+	RegisterNativeClass("Std::UInt8", "value.UInt8Class")
+
+	UInt8Class.AddConstantString("Convertible", Ref(NewInterface()))
 }

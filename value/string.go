@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -17,6 +18,8 @@ var StringGraphemeIteratorClass *Class // ::Std::String::GraphemeIterator
 
 // Elk's String value
 type String string
+
+var _ NativeIterable = String("")
 
 func (s String) Class() *Class {
 	return StringClass
@@ -34,12 +37,30 @@ func (s String) Copy() Reference {
 	return s
 }
 
+func (s String) ToValue() Value {
+	return Ref(s)
+}
+
 func (s String) Error() string {
 	return s.Inspect()
 }
 
 func (s String) String() string {
 	return string(s)
+}
+
+func (s String) Iter() NativeIterator {
+	return NewStringCharIterator(s)
+}
+
+func (s String) Iterate() iter.Seq2[Value, Value] {
+	return func(yield func(Value, Value) bool) {
+		for _, v := range s {
+			if !yield(Char(v).ToValue(), Undefined) {
+				return
+			}
+		}
+	}
 }
 
 func (s String) Inspect() string {
@@ -227,7 +248,7 @@ func (s String) Concat(other Value) (result String, err Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return s + o, err
+			return s.ConcatString(o), err
 		default:
 			return result, Ref(Errorf(TypeErrorClass, "cannot concat %s to string %s", other.Inspect(), s.Inspect()))
 		}
@@ -236,13 +257,22 @@ func (s String) Concat(other Value) (result String, err Value) {
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
 		ch := other.AsChar()
-		var buff strings.Builder
-		buff.WriteString(string(s))
-		buff.WriteRune(rune(ch))
-		return String(buff.String()), err
+		return s.ConcatChar(ch), err
 	default:
 		return result, Ref(Errorf(TypeErrorClass, "cannot concat %s to string %s", other.Inspect(), s.Inspect()))
 	}
+}
+
+func (s String) ConcatString(other String) String {
+	return s + other
+}
+
+func (s String) ConcatChar(other Char) String {
+	ch := other
+	var buff strings.Builder
+	buff.WriteString(string(s))
+	buff.WriteRune(rune(ch))
+	return String(buff.String())
 }
 
 // Repeat the content of this string n times and return a new string containing the result.
@@ -263,17 +293,21 @@ func (s String) Repeat(other Value) (result String, err Value) {
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		o := other.AsSmallInt()
-		if o < 0 {
-			return result, Ref(Errorf(
-				OutOfRangeErrorClass,
-				"repeat count cannot be negative: %s",
-				o.Inspect(),
-			))
-		}
-		return String(strings.Repeat(string(s), int(o))), err
+		return s.RepeatSmallInt(o)
 	default:
 		return result, Ref(Errorf(TypeErrorClass, "cannot repeat a string using %s", other.Inspect()))
 	}
+}
+
+func (s String) RepeatSmallInt(other SmallInt) (String, Value) {
+	if other < 0 {
+		return "", Ref(Errorf(
+			OutOfRangeErrorClass,
+			"repeat count cannot be negative: %s",
+			other.Inspect(),
+		))
+	}
+	return String(strings.Repeat(string(s), int(other))), Undefined
 }
 
 // Return a copy of the string without the given suffix.
@@ -327,7 +361,7 @@ func (s String) CompareVal(other Value) (Value, Value) {
 // if something went wrong.
 func (s String) GreaterThanVal(other Value) (Value, Value) {
 	result, err := s.GreaterThan(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 // Check whether s is greater than other and return an error
@@ -354,7 +388,7 @@ func (s String) GreaterThan(other Value) (bool, Value) {
 // if something went wrong.
 func (s String) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := s.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 // Check whether s is greater than or equal to other and return an error
@@ -381,7 +415,7 @@ func (s String) GreaterThanEqual(other Value) (bool, Value) {
 // if something went wrong.
 func (s String) LessThanVal(other Value) (Value, Value) {
 	result, err := s.LessThan(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 // Check whether s is less than other and return an error
@@ -408,7 +442,7 @@ func (s String) LessThan(other Value) (bool, Value) {
 // if something went wrong.
 func (s String) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := s.LessThanEqual(other)
-	return ToElkBool(result), err
+	return BoolVal(result), err
 }
 
 // Check whether s is less than or equal to other and return an error
@@ -433,7 +467,7 @@ func (s String) LessThanEqual(other Value) (bool, Value) {
 
 // Check whether s is equal to other
 func (s String) LaxEqualVal(other Value) Value {
-	return ToElkBool(s.LaxEqualBool(other))
+	return BoolVal(s.LaxEqualBool(other))
 }
 
 // Check whether s is equal to other
@@ -462,7 +496,7 @@ func (s String) LaxEqualBool(other Value) bool {
 
 // Check whether s is equal to other
 func (s String) EqualVal(other Value) Value {
-	return ToElkBool(s.Equal(other))
+	return BoolVal(s.Equal(other))
 }
 
 // Check whether s is equal to other
@@ -619,6 +653,8 @@ type StringCharIterator struct {
 	ByteOffset int
 }
 
+var _ NativeResettableIterator = &StringCharIterator{}
+
 func NewStringCharIterator(str String) *StringCharIterator {
 	return &StringCharIterator{
 		String: str,
@@ -651,6 +687,10 @@ func (s *StringCharIterator) Copy() Reference {
 	}
 }
 
+func (s *StringCharIterator) ToValue() Value {
+	return Ref(s)
+}
+
 func (s *StringCharIterator) Inspect() string {
 	return fmt.Sprintf("Std::String::CharIterator{string: %s, byte_offset: %d}", s.String.Inspect(), s.ByteOffset)
 }
@@ -663,7 +703,7 @@ func (*StringCharIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (s *StringCharIterator) Next() (Value, Value) {
+func (s *StringCharIterator) NextValue() (Value, Value) {
 	if s.ByteOffset >= len(s.String) {
 		return Undefined, stopIterationSymbol.ToValue()
 	}
@@ -681,6 +721,8 @@ type StringByteIterator struct {
 	String     String
 	ByteOffset int
 }
+
+var _ NativeResettableIterator = &StringByteIterator{}
 
 func NewStringByteIterator(str String) *StringByteIterator {
 	return &StringByteIterator{
@@ -718,6 +760,10 @@ func (s *StringByteIterator) Copy() Reference {
 	}
 }
 
+func (s *StringByteIterator) ToValue() Value {
+	return Ref(s)
+}
+
 func (s *StringByteIterator) Inspect() string {
 	return fmt.Sprintf("Std::String::ByteIterator{string: %s, byte_offset: %d}", s.String.Inspect(), s.ByteOffset)
 }
@@ -726,7 +772,7 @@ func (*StringByteIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (s *StringByteIterator) Next() (Value, Value) {
+func (s *StringByteIterator) NextValue() (Value, Value) {
 	if s.ByteOffset >= len(s.String) {
 		return Undefined, stopIterationSymbol.ToValue()
 	}
@@ -744,6 +790,8 @@ type StringGraphemeIterator struct {
 	Rest   string
 	State  int
 }
+
+var _ NativeResettableIterator = &StringGraphemeIterator{}
 
 func NewStringGraphemeIterator(str String) *StringGraphemeIterator {
 	return &StringGraphemeIterator{
@@ -785,6 +833,10 @@ func (s *StringGraphemeIterator) Copy() Reference {
 	}
 }
 
+func (s *StringGraphemeIterator) ToValue() Value {
+	return Ref(s)
+}
+
 func (s *StringGraphemeIterator) Inspect() string {
 	return fmt.Sprintf("Std::String::GraphemeIterator{string: %s}", s.String.Inspect())
 }
@@ -793,7 +845,7 @@ func (*StringGraphemeIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (s *StringGraphemeIterator) Next() (Value, Value) {
+func (s *StringGraphemeIterator) NextValue() (Value, Value) {
 	if len(s.Rest) == 0 {
 		return Undefined, stopIterationSymbol.ToValue()
 	}
@@ -811,15 +863,19 @@ func (s *StringGraphemeIterator) Reset() {
 func initString() {
 	StringClass = NewClass()
 	StdModule.AddConstantString("String", Ref(StringClass))
+	RegisterNativeClass("Std::String", "value.StringClass")
 
 	StringClass.AddConstantString("Convertible", Ref(NewInterface()))
 
 	StringCharIteratorClass = NewClass()
 	StringClass.AddConstantString("CharIterator", Ref(StringCharIteratorClass))
+	RegisterNativeClass("Std::String::CharIterator", "value.StringCharIteratorClass")
 
 	StringByteIteratorClass = NewClass()
 	StringClass.AddConstantString("ByteIterator", Ref(StringByteIteratorClass))
+	RegisterNativeClass("Std::String::ByteIterator", "value.StringByteIteratorClass")
 
 	StringGraphemeIteratorClass = NewClass()
 	StringClass.AddConstantString("GraphemeIterator", Ref(StringGraphemeIteratorClass))
+	RegisterNativeClass("Std::String::GraphemeIterator", "value.StringGraphemeIteratorClass")
 }

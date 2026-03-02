@@ -23,6 +23,10 @@ func (r *ClosedRange) Copy() Reference {
 	return r
 }
 
+func (r *ClosedRange) ToValue() Value {
+	return Ref(r)
+}
+
 func (*ClosedRange) Class() *Class {
 	return ClosedRangeClass
 }
@@ -101,6 +105,10 @@ func (r *ClosedRangeIterator) Copy() Reference {
 	}
 }
 
+func (r *ClosedRangeIterator) ToValue() Value {
+	return Ref(r)
+}
+
 func (r *ClosedRangeIterator) Error() string {
 	return r.Inspect()
 }
@@ -117,7 +125,9 @@ func initClosedRange() {
 	ClosedRangeClass = NewClass()
 	ClosedRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("ClosedRange", Ref(ClosedRangeClass))
+	RegisterNativeClass("Std::ClosedRange", "value.ClosedRangeClass")
 
 	ClosedRangeIteratorClass = NewClass()
 	ClosedRangeClass.AddConstantString("Iterator", Ref(ClosedRangeIteratorClass))
+	RegisterNativeClass("Std::ClosedRange::Iterator", "value.ClosedRangeIteratorClass")
 }

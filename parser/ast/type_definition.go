@@ -168,6 +168,10 @@ func (n *GenericTypeDefinitionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *GenericTypeDefinitionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *GenericTypeDefinitionNode) Error() string {
 	return n.Inspect()
 }
@@ -273,6 +277,10 @@ func (n *TypeDefinitionNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *TypeDefinitionNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *TypeDefinitionNode) Error() string {

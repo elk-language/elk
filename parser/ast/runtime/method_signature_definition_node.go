@@ -17,7 +17,7 @@ func initMethodSignatureDefinitionNode() {
 
 			var argTypeParameters []ast.TypeParameterNode
 			if !args[2].IsUndefined() {
-				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 				for i, el := range *argTypeParametersTuple {
 					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
@@ -26,7 +26,7 @@ func initMethodSignatureDefinitionNode() {
 
 			var argParameters []ast.ParameterNode
 			if !args[3].IsUndefined() {
-				argParametersTuple := args[3].MustReference().(*value.ArrayTuple)
+				argParametersTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				argParameters = make([]ast.ParameterNode, argParametersTuple.Length())
 				for i, el := range *argParametersTuple {
 					argParameters[i] = el.MustReference().(ast.ParameterNode)
@@ -98,7 +98,7 @@ func initMethodSignatureDefinitionNode() {
 			self := args[0].MustReference().(*ast.MethodSignatureDefinitionNode)
 
 			collection := self.TypeParameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -115,7 +115,7 @@ func initMethodSignatureDefinitionNode() {
 			self := args[0].MustReference().(*ast.MethodSignatureDefinitionNode)
 
 			collection := self.Parameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -167,7 +167,7 @@ func initMethodSignatureDefinitionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodSignatureDefinitionNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

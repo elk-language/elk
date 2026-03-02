@@ -62,6 +62,10 @@ func (i *Interface) Copy() Reference {
 	return newInterface
 }
 
+func (i *Interface) ToValue() Value {
+	return Ref(i)
+}
+
 func (i *Interface) Class() *Class {
 	return InterfaceClass
 }
@@ -108,4 +112,5 @@ var InterfaceClass *Class // ::Std::Interface
 func initInterface() {
 	InterfaceClass = NewClassWithOptions()
 	StdModule.AddConstantString("Interface", Ref(InterfaceClass))
+	RegisterNativeClass("Std::Interface", "value.InterfaceClass")
 }

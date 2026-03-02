@@ -1,7 +1,10 @@
 package vm
 
 import (
+	"iter"
+
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // ::Std::EndlessOpenRange
@@ -24,13 +27,13 @@ func initEndlessOpenRange() {
 			self := args[0].MustReference().(*value.EndlessOpenRange)
 			other, ok := args[1].SafeAsReference().(*value.EndlessOpenRange)
 			if !ok {
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}
 			equal, err := EndlessOpenRangeEqual(vm, self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(equal), value.Undefined
+			return value.BoolVal(equal), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -44,13 +47,13 @@ func initEndlessOpenRange() {
 			self := args[0].MustReference().(*value.EndlessOpenRange)
 			other := args[1]
 			if !value.IsA(other, self.Start.Class()) {
-				return value.False, value.Undefined
+				return value.False.ToValue(), value.Undefined
 			}
 			contains, err := EndlessOpenRangeContains(vm, self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(contains), value.Undefined
+			return value.BoolVal(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -64,7 +67,7 @@ func initEndlessOpenRange() {
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
-			return value.ToElkBool(contains), value.Undefined
+			return value.BoolVal(contains), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -72,28 +75,28 @@ func initEndlessOpenRange() {
 		c,
 		"is_left_closed",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_left_open",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.True, value.Undefined
+			return value.True.ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_closed",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.False, value.Undefined
+			return value.False.ToValue(), value.Undefined
 		},
 	)
 	Def(
 		c,
 		"is_right_open",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.True, value.Undefined
+			return value.True.ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -176,4 +179,22 @@ func EndlessOpenRangeIteratorNext(vm *Thread, i *value.EndlessOpenRangeIterator)
 	current := i.CurrentElement
 
 	return current, value.Undefined
+}
+
+// Iterate over all elements of the iterator
+func EndlessOpenRangeIteratorAll(vm *Thread, i *value.EndlessOpenRangeIterator) iter.Seq2[value.Value, value.Value] {
+	return func(yield func(value.Value, value.Value) bool) {
+		for {
+			element, err := EndlessOpenRangeIteratorNext(vm, i)
+			if err.IsInlineSymbol() {
+				if element.AsInlineSymbol() == symbol.L_stop_iteration {
+					break
+				}
+			}
+
+			if !yield(element, err) {
+				return
+			}
+		}
+	}
 }

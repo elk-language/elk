@@ -318,7 +318,7 @@ func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedT
 
 	intersection := c.NewNormalisedIntersection(rightType, matchedType)
 	node.SetType(intersection)
-	c.getMethod(intersection, operator, node.Op.Location())
+	c.GetMethod(intersection, operator, node.Op.Location())
 	return node, types.Never{}
 }
 
@@ -464,7 +464,7 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 }
 
 func (c *Checker) checkObjectKeyValuePattern(namespace types.Namespace, node *ast.SymbolKeyValuePatternNode) (attrType types.Type, fullyCaptured bool) {
-	getter := c.getMethod(namespace, value.ToSymbol(node.Key), node.Location())
+	getter := c.GetMethod(namespace, value.ToSymbol(node.Key), node.Location())
 	if getter == nil {
 		c.checkPattern(node.Value, types.Untyped{})
 		return types.Untyped{}, false
@@ -482,7 +482,7 @@ func (c *Checker) checkObjectKeyValuePattern(namespace types.Namespace, node *as
 }
 
 func (c *Checker) checkObjectIdentifierPattern(namespace types.Namespace, name string, location *position.Location) (attrType types.Type, fullyCaptured bool) {
-	getter := c.getMethod(namespace, value.ToSymbol(name), location)
+	getter := c.GetMethod(namespace, value.ToSymbol(name), location)
 	if getter == nil {
 		c.checkIdentifierPattern(name, types.Untyped{}, types.Untyped{}, location)
 		return types.Untyped{}, false

@@ -94,6 +94,10 @@ func (n *RestPatternNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *RestPatternNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *RestPatternNode) Error() string {
 	return n.Inspect()
 }

@@ -21,6 +21,10 @@ func (r *EndlessClosedRange) Copy() Reference {
 	return r
 }
 
+func (r *EndlessClosedRange) ToValue() Value {
+	return Ref(r)
+}
+
 func (*EndlessClosedRange) Class() *Class {
 	return EndlessClosedRangeClass
 }
@@ -102,6 +106,10 @@ func (r *EndlessClosedRangeIterator) Copy() Reference {
 	}
 }
 
+func (i *EndlessClosedRangeIterator) ToValue() Value {
+	return Ref(i)
+}
+
 func (r *EndlessClosedRangeIterator) Inspect() string {
 	return fmt.Sprintf("Std::EndlessClosedRange::Iterator{range: %s, current_element: %s}", r.Range.Inspect(), r.CurrentElement.Inspect())
 }
@@ -114,7 +122,9 @@ func initEndlessClosedRange() {
 	EndlessClosedRangeClass = NewClass()
 	EndlessClosedRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("EndlessClosedRange", Ref(EndlessClosedRangeClass))
+	RegisterNativeClass("Std::EndlessClosedRange", "value.EndlessClosedRangeClass")
 
 	EndlessClosedRangeIteratorClass = NewClass()
 	EndlessClosedRangeClass.AddConstantString("Iterator", Ref(EndlessClosedRangeIteratorClass))
+	RegisterNativeClass("Std::EndlessClosedRange::Iterator", "value.EndlessClosedRangeIteratorClass")
 }

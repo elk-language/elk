@@ -13,7 +13,7 @@ func initUsingExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argEntriesTuple := args[1].MustReference().(*value.ArrayTuple)
+			argEntriesTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 			argEntries := make([]ast.UsingEntryNode, argEntriesTuple.Length())
 			for i, el := range *argEntriesTuple {
 				argEntries[i] = el.MustReference().(ast.UsingEntryNode)
@@ -42,7 +42,7 @@ func initUsingExpressionNode() {
 			self := args[0].MustReference().(*ast.UsingExpressionNode)
 
 			collection := self.Entries
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -69,7 +69,7 @@ func initUsingExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UsingExpressionNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

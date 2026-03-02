@@ -15,7 +15,7 @@ func initNewExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argPositionalArguments []ast.ExpressionNode
 			if !args[1].IsUndefined() {
-				argPositionalArgumentsTuple := args[1].MustReference().(*value.ArrayTuple)
+				argPositionalArgumentsTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 				argPositionalArguments = make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
 				for i, el := range *argPositionalArgumentsTuple {
 					argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
@@ -23,7 +23,7 @@ func initNewExpressionNode() {
 			}
 			var argNamedArguments []ast.NamedArgumentNode
 			if !args[2].IsUndefined() {
-				argNamedArgumentsTuple := args[2].MustReference().(*value.ArrayTuple)
+				argNamedArgumentsTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argNamedArguments = make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
 				for i, el := range *argNamedArgumentsTuple {
 					argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -54,7 +54,7 @@ func initNewExpressionNode() {
 			self := args[0].MustReference().(*ast.NewExpressionNode)
 
 			collection := self.PositionalArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -71,7 +71,7 @@ func initNewExpressionNode() {
 			self := args[0].MustReference().(*ast.NewExpressionNode)
 
 			collection := self.NamedArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -97,7 +97,7 @@ func initNewExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NewExpressionNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

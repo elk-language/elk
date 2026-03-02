@@ -57,6 +57,10 @@ func (c *Generator) Copy() value.Reference {
 	return c
 }
 
+func (c *Generator) ToValue() value.Value {
+	return value.Ref(c)
+}
+
 func (c *Generator) Inspect() string {
 	return fmt.Sprintf("Std::Generator{location: %s}", c.Bytecode.Location.String())
 }

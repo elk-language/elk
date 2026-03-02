@@ -20,6 +20,10 @@ func (r *BeginlessOpenRange) Copy() Reference {
 	return r
 }
 
+func (r *BeginlessOpenRange) ToValue() Value {
+	return Ref(r)
+}
+
 func (*BeginlessOpenRange) Class() *Class {
 	return BeginlessOpenRangeClass
 }
@@ -54,4 +58,5 @@ func initBeginlessOpenRange() {
 	BeginlessOpenRangeClass = NewClass()
 	BeginlessOpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("BeginlessOpenRange", Ref(BeginlessOpenRangeClass))
+	RegisterNativeClass("Std::BeginlessOpenRange", "value.BeginlessOpenRangeClass")
 }

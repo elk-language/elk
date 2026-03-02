@@ -692,7 +692,7 @@ func TestLocalAccess(t *testing.T) {
 				var b: nil = &a
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(29, 3, 18), P(30, 3, 19)), "type `Std::LocalBox[Std::Int]` cannot be assigned to type `nil`"),
+				diagnostic.NewFailure(L("<main>", P(29, 3, 18), P(30, 3, 19)), "type `Std::Box[Std::Int]` cannot be assigned to type `nil`"),
 			},
 		},
 	}

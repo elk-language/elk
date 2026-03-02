@@ -58,6 +58,10 @@ func (c *Closure) Copy() value.Reference {
 	return c
 }
 
+func (c *Closure) ToValue() value.Value {
+	return value.Ref(c)
+}
+
 func (c *Closure) Inspect() string {
 	return fmt.Sprintf("Std::Closure{location: %s}", c.Bytecode.Location.String())
 }

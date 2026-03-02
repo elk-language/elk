@@ -89,6 +89,10 @@ func (p *Parser) Copy() value.Reference {
 	return p
 }
 
+func (p *Parser) ToValue() value.Value {
+	return value.Ref(p)
+}
+
 // Returns true when the parser had finished early
 // because of an END_OF_FILE token.
 func (p *Parser) IsIncomplete() bool {

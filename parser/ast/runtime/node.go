@@ -36,7 +36,7 @@ func initNode() {
 						return value.Undefined, err
 					}
 					if value.Falsy(ok) {
-						return value.False, value.Undefined
+						return value.False.ToValue(), value.Undefined
 					}
 				}
 			default:
@@ -46,12 +46,12 @@ func initNode() {
 						return value.Undefined, err
 					}
 					if value.Falsy(ok) {
-						return value.False, value.Undefined
+						return value.False.ToValue(), value.Undefined
 					}
 				}
 			}
 
-			return value.True, value.Undefined
+			return value.True.ToValue(), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)
@@ -77,7 +77,7 @@ func initNode() {
 			switch node := node.(type) {
 			case ast.StatementNode:
 				expr = ast.NewDoExpressionNode(node.Location(), []ast.StatementNode{node}, nil, nil)
-			case *value.ArrayTuple:
+			case *value.ArrayTupleOfValue:
 				body := ds.MapSlice(
 					*node,
 					func(v value.Value) ast.StatementNode {
@@ -115,9 +115,9 @@ func initNode() {
 		func(vm *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			baseNode := args[1].AsReference().(ast.Node)
 
-			var replacementNodes value.ArrayTuple
+			var replacementNodes value.ArrayTupleOfValue
 			if !args[2].IsUndefined() {
-				replacementNodes = *(*value.ArrayTuple)(args[2].Pointer())
+				replacementNodes = *(*value.ArrayTupleOfValue)(args[2].Pointer())
 			}
 
 			r := ds.MapSlice(

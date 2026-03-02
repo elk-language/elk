@@ -18,6 +18,10 @@ func (n *Native) Copy() Reference {
 	return n
 }
 
+func (n *Native) ToValue() Value {
+	return Ref(n)
+}
+
 func (*Native) Class() *Class {
 	return nil
 }

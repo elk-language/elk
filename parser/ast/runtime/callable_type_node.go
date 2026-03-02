@@ -15,7 +15,7 @@ func initCallableTypeNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argParams []ast.ParameterNode
 			if !args[1].IsUndefined() {
-				argParamsTuple := args[1].MustReference().(*value.ArrayTuple)
+				argParamsTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
 				argParams := make([]ast.ParameterNode, argParamsTuple.Length())
 				for i, el := range *argParamsTuple {
 					argParams[i] = el.MustReference().(ast.ParameterNode)
@@ -63,7 +63,7 @@ func initCallableTypeNode() {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
 
 			collection := self.Parameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -113,7 +113,7 @@ func initCallableTypeNode() {
 		"is_closure",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
-			result := value.ToElkBool(self.IsClosure)
+			result := value.BoolVal(self.IsClosure)
 			return result, value.Undefined
 		},
 	)
@@ -123,7 +123,7 @@ func initCallableTypeNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

@@ -117,6 +117,10 @@ func (n *KeyValueExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *KeyValueExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *KeyValueExpressionNode) Error() string {
 	return n.Inspect()
 }
@@ -213,6 +217,10 @@ func (n *SymbolKeyValueExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *SymbolKeyValueExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *SymbolKeyValueExpressionNode) Error() string {
 	return n.Inspect()
 }
@@ -298,6 +306,10 @@ func (n *SymbolKeyValuePatternNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *SymbolKeyValuePatternNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *SymbolKeyValuePatternNode) Error() string {
@@ -398,6 +410,10 @@ func (n *KeyValuePatternNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *KeyValuePatternNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *KeyValuePatternNode) Error() string {

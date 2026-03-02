@@ -300,6 +300,10 @@ func (n *ClassDeclarationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ClassDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ClassDeclarationNode) Error() string {
 	return n.Inspect()
 }

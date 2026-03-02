@@ -8,8 +8,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestGetConstant(t *testing.T) {
-	tests := testTable{
+func TestBytecodeGetConstant(t *testing.T) {
+	tests := bytecodeTestTable{
 		"absolute path ::Std": {
 			input: "::Std",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -144,9 +144,7 @@ func TestGetConstant(t *testing.T) {
 								value.ToSymbol("<module: Foo::Baz>"),
 								[]byte{
 									byte(bytecode.GET_CONST8), 0,
-									byte(bytecode.UNDEFINED),
 									byte(bytecode.GET_CONST8), 1,
-									byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 									byte(bytecode.CALL_METHOD8), 2,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
@@ -154,13 +152,13 @@ func TestGetConstant(t *testing.T) {
 								},
 								L(P(40, 4, 6), P(76, 6, 8)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(5, 9),
+									bytecode.NewLineInfo(5, 6),
 									bytecode.NewLineInfo(6, 3),
 								},
 								[]value.Value{
 									value.ToSymbol("Std::Kernel").ToValue(),
 									value.ToSymbol("Foo::BAR").ToValue(),
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
+									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 								},
 							)),
 						},
@@ -172,13 +170,13 @@ func TestGetConstant(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestDefConstant(t *testing.T) {
-	tests := testTable{
+func TestBytecodeDefConstant(t *testing.T) {
+	tests := bytecodeTestTable{
 		"relative path Foo": {
 			input: "const Foo = 3",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -205,7 +203,7 @@ func TestDefConstant(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }

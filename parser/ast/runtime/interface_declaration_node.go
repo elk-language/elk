@@ -16,7 +16,7 @@ func initInterfaceDeclarationNode() {
 			argConstant := args[1].MustReference().(ast.ExpressionNode)
 			var argTypeParameters []ast.TypeParameterNode
 			if !args[2].IsUndefined() {
-				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTuple)
+				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
 				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
 				for i, el := range *argTypeParametersTuple {
 					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
@@ -25,7 +25,7 @@ func initInterfaceDeclarationNode() {
 
 			var argBody []ast.StatementNode
 			if !args[3].IsUndefined() {
-				argBodyTuple := args[3].MustReference().(*value.ArrayTuple)
+				argBodyTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
 				argBody = make([]ast.StatementNode, argBodyTuple.Length())
 				for i, el := range *argBodyTuple {
 					argBody[i] = el.MustReference().(ast.StatementNode)
@@ -87,7 +87,7 @@ func initInterfaceDeclarationNode() {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
 
 			collection := self.TypeParameters
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -104,7 +104,7 @@ func initInterfaceDeclarationNode() {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
 
 			collection := self.Body
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -130,7 +130,7 @@ func initInterfaceDeclarationNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

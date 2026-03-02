@@ -225,6 +225,10 @@ func (n *FormalParameterNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *FormalParameterNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *FormalParameterNode) Error() string {
 	return n.Inspect()
 }
@@ -392,6 +396,10 @@ func (n *MethodParameterNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *MethodParameterNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *MethodParameterNode) Error() string {
 	return n.Inspect()
 }
@@ -532,6 +540,10 @@ func (n *SignatureParameterNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *SignatureParameterNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *SignatureParameterNode) Error() string {
@@ -697,6 +709,10 @@ func (n *AttributeParameterNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *AttributeParameterNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *AttributeParameterNode) Error() string {

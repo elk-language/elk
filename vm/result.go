@@ -29,7 +29,7 @@ func initResult() {
 		"ok",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Result)(args[0].Pointer())
-			return value.ToElkBool(self.Ok()), value.Undefined
+			return value.BoolVal(self.Ok()), value.Undefined
 		},
 	)
 

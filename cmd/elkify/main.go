@@ -152,7 +152,7 @@ func goTypeToElkType(goType string, isSlice bool) string {
 func simpleGoTypeToElkTypeConversion(value string, fldType *fieldType) string {
 	switch fldType.name {
 	case "bool":
-		return fmt.Sprintf("value.ToElkBool(%s)", value)
+		return fmt.Sprintf("value.ToBoolVal(%s)", value)
 	case "string":
 		return fmt.Sprintf("value.Ref(value.String(%s))", value)
 	case "int":

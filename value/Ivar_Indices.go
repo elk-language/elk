@@ -27,7 +27,7 @@ func (n IvarIndices) GetIndexOk(name Symbol) (int, bool) {
 func (n IvarIndices) ToGoSource() string {
 	var buff strings.Builder
 
-	buff.WriteString("IvarIndices{")
+	buff.WriteString("value.IvarIndices{")
 	for key, val := range n {
 		fmt.Fprintf(&buff, "value.ToSymbol(%q): %d,", key.String(), val)
 	}
@@ -53,6 +53,10 @@ func (n IvarIndices) GetNameOk(index int) (Symbol, bool) {
 
 func (n *IvarIndices) Copy() Reference {
 	return n
+}
+
+func (i *IvarIndices) ToValue() Value {
+	return Ref(i)
 }
 
 func (*IvarIndices) Class() *Class {

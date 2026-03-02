@@ -123,6 +123,10 @@ func (n *ImplementExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ImplementExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *ImplementExpressionNode) Error() string {
 	return n.Inspect()
 }

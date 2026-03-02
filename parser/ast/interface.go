@@ -217,6 +217,10 @@ func (n *InterfaceDeclarationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *InterfaceDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *InterfaceDeclarationNode) Error() string {
 	return n.Inspect()
 }

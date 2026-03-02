@@ -25,6 +25,10 @@ func (m *Mutex) Copy() Reference {
 	return NewMutex()
 }
 
+func (m *Mutex) ToValue() Value {
+	return Ref(m)
+}
+
 func (*Mutex) Class() *Class {
 	return MutexClass
 }
@@ -69,7 +73,9 @@ func initMutex() {
 		ClassWithConstructor(MutexConstructor),
 	)
 	SyncModule.AddConstantString("Mutex", Ref(MutexClass))
+	RegisterNativeClass("Std::Sync::Mutex", "value.MutexClass")
 
 	MutexUnlockedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	MutexClass.AddConstantString("UnlockedError", Ref(MutexUnlockedErrorClass))
+	RegisterNativeClass("Std::Sync::Mutex::UnlockedError", "value.MutexUnlockedErrorClass")
 }

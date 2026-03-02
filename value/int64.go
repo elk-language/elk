@@ -115,6 +115,14 @@ func (i Int64) Hash() UInt64 {
 }
 
 func (i Int64) Add(other Value) (Int64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i + o, Undefined
+	default:
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -125,6 +133,14 @@ func (i Int64) Add(other Value) (Int64, Value) {
 
 // Perform a bitwise AND.
 func (i Int64) BitwiseAnd(other Value) (Int64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i & o, Undefined
+	default:
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -135,6 +151,14 @@ func (i Int64) BitwiseAnd(other Value) (Int64, Value) {
 
 // Perform a bitwise AND NOT.
 func (i Int64) BitwiseAndNot(other Value) (Int64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i &^ o, Undefined
+	default:
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -145,6 +169,14 @@ func (i Int64) BitwiseAndNot(other Value) (Int64, Value) {
 
 // Perform a bitwise OR.
 func (i Int64) BitwiseOr(other Value) (Int64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i | o, Undefined
+	default:
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -155,6 +187,14 @@ func (i Int64) BitwiseOr(other Value) (Int64, Value) {
 
 // Perform a bitwise XOR.
 func (i Int64) BitwiseXor(other Value) (Int64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i ^ o, Undefined
+	default:
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -164,23 +204,43 @@ func (i Int64) BitwiseXor(other Value) (Int64, Value) {
 }
 
 func (i Int64) ExponentiateVal(other Value) (Int64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i.ExponentiateInt64(o), Undefined
+	default:
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 
 	o := other.AsInlineInt64()
-	if o <= 0 {
-		return 1, Undefined
+	return i.ExponentiateInt64(o), Undefined
+}
+
+func (i Int64) ExponentiateInt64(other Int64) Int64 {
+	if other <= 0 {
+		return 1
 	}
 	result := i
 	var j Int64
-	for j = 2; j <= o; j++ {
+	for j = 2; j <= other; j++ {
 		result *= i
 	}
-	return result, Undefined
+	return result
 }
 
 func (i Int64) Subtract(other Value) (Int64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i - o, Undefined
+	default:
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -190,6 +250,14 @@ func (i Int64) Subtract(other Value) (Int64, Value) {
 }
 
 func (i Int64) Multiply(other Value) (Int64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i * o, Undefined
+	default:
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -199,6 +267,14 @@ func (i Int64) Multiply(other Value) (Int64, Value) {
 }
 
 func (i Int64) ModuloVal(other Value) (Int64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i % o, Undefined
+	default:
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -211,37 +287,68 @@ func (i Int64) ModuloVal(other Value) (Int64, Value) {
 }
 
 func (i Int64) Divide(other Value) (Int64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i.DivideInt64(o)
+	default:
+		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsInlineInt64()
-	if o == 0 {
+	return i.DivideInt64(o)
+}
+
+func (i Int64) DivideInt64(other Int64) (Int64, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i / o, Undefined
+	return i / other, Undefined
 }
 
 func (i Int64) CompareVal(other Value) (Value, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i.CompareInt64(o).ToValue(), Undefined
+	default:
+		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsInlineInt64()
+	return i.CompareInt64(o).ToValue(), Undefined
+}
 
-	if i > o {
-		return SmallInt(1).ToValue(), Undefined
+func (i Int64) CompareInt64(other Int64) SmallInt {
+	if i > other {
+		return SmallInt(1)
 	}
-	if i < o {
-		return SmallInt(-1).ToValue(), Undefined
+	if i < other {
+		return SmallInt(-1)
 	}
-	return SmallInt(0).ToValue(), Undefined
+	return SmallInt(0)
 }
 
 func (i Int64) GreaterThanVal(other Value) (Value, Value) {
 	result, err := i.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (i Int64) GreaterThan(other Value) (bool, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i > o, Undefined
+	default:
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -252,10 +359,18 @@ func (i Int64) GreaterThan(other Value) (bool, Value) {
 
 func (i Int64) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := i.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (i Int64) GreaterThanEqual(other Value) (bool, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i >= o, Undefined
+	default:
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -266,10 +381,18 @@ func (i Int64) GreaterThanEqual(other Value) (bool, Value) {
 
 func (i Int64) LessThanVal(other Value) (Value, Value) {
 	result, err := i.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (i Int64) LessThan(other Value) (bool, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i < o, Undefined
+	default:
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -280,10 +403,18 @@ func (i Int64) LessThan(other Value) (bool, Value) {
 
 func (i Int64) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := i.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (i Int64) LessThanEqual(other Value) (bool, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Int64:
+		return i <= o, Undefined
+	default:
+		return false, Ref(NewCoerceError(i.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineInt64() {
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -293,7 +424,7 @@ func (i Int64) LessThanEqual(other Value) (bool, Value) {
 }
 
 func (i Int64) EqualVal(other Value) Value {
-	return ToElkBool(i.Equal(other))
+	return Bool(i.Equal(other)).ToValue()
 }
 
 func (i Int64) Equal(other Value) bool {
@@ -312,6 +443,7 @@ func (i Int64) StrictEqualVal(other Value) Value {
 func initInt64() {
 	Int64Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Int64", Ref(Int64Class))
+	RegisterNativeClass("Std::Int64", "value.Int64Class")
 
 	Int64Class.AddConstantString("Convertible", Ref(NewInterface()))
 }

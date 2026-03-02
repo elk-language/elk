@@ -24,6 +24,10 @@ func (o *Once) Copy() Reference {
 	return NewOnce()
 }
 
+func (o *Once) ToValue() Value {
+	return Ref(o)
+}
+
 func (*Once) Class() *Class {
 	return OnceClass
 }
@@ -53,4 +57,5 @@ func initOnce() {
 		ClassWithConstructor(OnceConstructor),
 	)
 	SyncModule.AddConstantString("Once", Ref(OnceClass))
+	RegisterNativeClass("Std::Sync::Once", "value.OnceClass")
 }

@@ -15,4 +15,5 @@ func initMethod() {
 		ClassWithSuperclass(FunctionClass),
 	)
 	StdModule.AddConstantString("Method", Ref(MethodClass))
+	RegisterNativeClass("Std::Method", "value.MethodClass")
 }

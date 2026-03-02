@@ -173,6 +173,10 @@ func (n *SwitchExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *SwitchExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *SwitchExpressionNode) Error() string {
 	return n.Inspect()
 }
@@ -287,6 +291,10 @@ func (n *CaseNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *CaseNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *CaseNode) Error() string {

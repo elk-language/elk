@@ -97,6 +97,10 @@ func (o *Object) Copy() Reference {
 	return newObject
 }
 
+func (o *Object) ToValue() Value {
+	return Ref(o)
+}
+
 func (o *Object) InstanceVariables() *InstanceVariables {
 	return &o.instanceVariables
 }

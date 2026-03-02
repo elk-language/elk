@@ -55,6 +55,8 @@ func init() {
 	DefaultThreadPool.initThreadPool(DEFAULT_THREAD_POOL_SIZE, DEFAULT_THREAD_POOL_QUEUE_SIZE)
 }
 
+var stopIterationSymbol = value.ToSymbol("stop_iteration")
+
 type Option func(*Thread) // constructor option function
 
 // Assign the given io.Reader as the Stdin of the VM.

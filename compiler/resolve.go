@@ -1,74 +1,77 @@
 package compiler
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/regex"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
 // Create Elk runtime values from static AST nodes.
 // Returns undefined when no value could be created.
-func resolve(node ast.Node) value.Value {
+func resolve(node ast.Node, checker types.Checker) value.Value {
 	if !node.IsStatic() {
 		return value.Undefined
 	}
 
 	switch n := node.(type) {
 	case *ast.LabeledExpressionNode:
-		return resolve(n.Expression)
+		return resolve(n.Expression, checker)
 	case *ast.UninterpolatedRegexLiteralNode:
 		return resolveUninterpolatedRegexLiteral(n)
 	case *ast.RangeLiteralNode:
-		return resolveRangeLiteral(n)
+		return resolveRangeLiteral(n, checker)
 	case *ast.HashSetLiteralNode:
-		return resolveHashSetLiteral(n)
+		return resolveHashSetLiteral(n, checker)
 	case *ast.WordHashSetLiteralNode:
-		return resolveSpecialHashSetLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialNativeHashSetLiteral[ast.WordCollectionContentNode, value.String](n.Elements, checker, n.IsStatic())
 	case *ast.SymbolHashSetLiteralNode:
-		return resolveSpecialHashSetLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialNativeHashSetLiteral[ast.SymbolCollectionContentNode, value.Symbol](n.Elements, checker, n.IsStatic())
 	case *ast.BinHashSetLiteralNode:
-		return resolveSpecialHashSetLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialHashSetLiteral(n.Elements, checker, n.IsStatic())
 	case *ast.HexHashSetLiteralNode:
-		return resolveSpecialHashSetLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialHashSetLiteral(n.Elements, checker, n.IsStatic())
 	case *ast.HashMapLiteralNode:
-		return resolveHashMapLiteral(n)
+		return resolveHashMapLiteral(n, checker)
 	case *ast.HashRecordLiteralNode:
-		return resolveHashRecordLiteral(n)
+		return resolveHashRecordLiteral(n, checker)
 	case *ast.ArrayListLiteralNode:
-		return resolveArrayListLiteral(n)
+		return resolveArrayListLiteral(n, checker)
 	case *ast.WordArrayListLiteralNode:
-		return resolveSpecialArrayListLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialNativeArrayListLiteral[ast.WordCollectionContentNode, value.String](n.Elements, checker, n.IsStatic())
 	case *ast.SymbolArrayListLiteralNode:
-		return resolveSpecialArrayListLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialNativeArrayListLiteral[ast.SymbolCollectionContentNode, value.Symbol](n.Elements, checker, n.IsStatic())
 	case *ast.BinArrayListLiteralNode:
-		return resolveSpecialArrayListLiteral(n.Elements, n.IsStatic())
+		return resolveIntArrayListLiteral(n.Elements, n.Type(checker.Env()), checker, n.IsStatic())
 	case *ast.HexArrayListLiteralNode:
-		return resolveSpecialArrayListLiteral(n.Elements, n.IsStatic())
+		return resolveIntArrayListLiteral(n.Elements, n.Type(checker.Env()), checker, n.IsStatic())
 	case *ast.ArrayTupleLiteralNode:
-		return resolveArrayTupleLiteral(n)
+		return resolveArrayTupleLiteral(n, checker)
 	case *ast.WordArrayTupleLiteralNode:
-		return resolveSpecialArrayTupleLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialNativeArrayTupleLiteral[ast.WordCollectionContentNode, value.String](n.Elements, checker, n.IsStatic())
 	case *ast.SymbolArrayTupleLiteralNode:
-		return resolveSpecialArrayTupleLiteral(n.Elements, n.IsStatic())
+		return resolveSpecialNativeArrayTupleLiteral[ast.SymbolCollectionContentNode, value.Symbol](n.Elements, checker, n.IsStatic())
 	case *ast.BinArrayTupleLiteralNode:
-		return resolveSpecialArrayTupleLiteral(n.Elements, n.IsStatic())
+		return resolveIntArrayTupleLiteral(n.Elements, n.Type(checker.Env()), checker, n.IsStatic())
 	case *ast.HexArrayTupleLiteralNode:
-		return resolveSpecialArrayTupleLiteral(n.Elements, n.IsStatic())
+		return resolveIntArrayTupleLiteral(n.Elements, n.Type(checker.Env()), checker, n.IsStatic())
 	case *ast.LogicalExpressionNode:
-		return resolveLogicalExpression(n)
+		return resolveLogicalExpression(n, checker)
 	case *ast.BinaryExpressionNode:
-		return resolveBinaryExpression(n)
+		return resolveBinaryExpression(n, checker)
 	case *ast.UnaryExpressionNode:
-		return resolveUnaryExpression(n)
+		return resolveUnaryExpression(n, checker)
 	case *ast.SubscriptExpressionNode:
-		return resolveSubscript(n)
+		return resolveSubscript(n, checker)
 	case *ast.NilSafeSubscriptExpressionNode:
-		return resolveNilSafeSubscript(n)
+		return resolveNilSafeSubscript(n, checker)
 	case *ast.SimpleSymbolLiteralNode:
 		return value.ToSymbol(n.Content).ToValue()
 	case *ast.RawStringLiteralNode:
@@ -82,9 +85,9 @@ func resolve(node ast.Node) value.Value {
 	case *ast.NilLiteralNode:
 		return value.Nil
 	case *ast.TrueLiteralNode:
-		return value.True
+		return value.True.ToValue()
 	case *ast.FalseLiteralNode:
-		return value.False
+		return value.False.ToValue()
 	case *ast.IntLiteralNode:
 		return resolveInt(n)
 	case *ast.Int64LiteralNode:
@@ -112,13 +115,13 @@ func resolve(node ast.Node) value.Value {
 	case *ast.FloatLiteralNode:
 		return resolveFloat(n)
 	case *ast.MacroBoundaryNode:
-		return resolveMacroBoundary(n)
+		return resolveMacroBoundary(n, checker)
 	}
 
 	return value.Undefined
 }
 
-func resolveMacroBoundary(n *ast.MacroBoundaryNode) value.Value {
+func resolveMacroBoundary(n *ast.MacroBoundaryNode, checker types.Checker) value.Value {
 	if len(n.Body) != 1 {
 		return value.Undefined
 	}
@@ -129,7 +132,7 @@ func resolveMacroBoundary(n *ast.MacroBoundaryNode) value.Value {
 		return value.Undefined
 	}
 
-	return resolve(exprStmt.Expression)
+	return resolve(exprStmt.Expression, checker)
 }
 
 func resolveUninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode) value.Value {
@@ -146,17 +149,17 @@ func resolveUninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode)
 	return value.Ref(value.NewRegex(*re, node.Content, node.Flags))
 }
 
-func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
+func resolveRangeLiteral(node *ast.RangeLiteralNode, checker types.Checker) value.Value {
 	if node.Start == nil {
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP:
-			to := resolve(node.End)
+			to := resolve(node.End, checker)
 			if to.IsUndefined() {
 				return value.Undefined
 			}
 			return value.Ref(value.NewBeginlessClosedRange(to))
 		case token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
-			to := resolve(node.End)
+			to := resolve(node.End, checker)
 			if to.IsUndefined() {
 				return value.Undefined
 			}
@@ -169,13 +172,13 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 	if node.End == nil {
 		switch node.Op.Type {
 		case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP:
-			from := resolve(node.Start)
+			from := resolve(node.Start, checker)
 			if from.IsUndefined() {
 				return value.Undefined
 			}
 			return value.Ref(value.NewEndlessClosedRange(from))
 		case token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
-			from := resolve(node.Start)
+			from := resolve(node.Start, checker)
 			if from.IsUndefined() {
 				return value.Undefined
 			}
@@ -185,11 +188,11 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 		}
 	}
 
-	from := resolve(node.Start)
+	from := resolve(node.Start, checker)
 	if from.IsUndefined() {
 		return value.Undefined
 	}
-	to := resolve(node.End)
+	to := resolve(node.End, checker)
 	if to.IsUndefined() {
 		return value.Undefined
 	}
@@ -209,21 +212,98 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 
 }
 
-func resolveHashSetLiteral(node *ast.HashSetLiteralNode) value.Value {
+func resolveHashSetLiteral(node *ast.HashSetLiteralNode, checker types.Checker) value.Value {
 	if !node.IsStatic() || node.Capacity != nil {
 		return value.Undefined
 	}
 
-	newTable := make([]value.Value, len(node.Elements))
-	newSet := &value.HashSet{
-		Table: newTable,
+	typ := node.Type(checker.Env())
+	elementType, _ := checker.GetIteratorElementType(typ)
+	if types.IsUntyped(elementType) {
+		return resolveHashSetOfValue(node, checker)
 	}
+
+	if checker.IsSubtype(elementType, checker.Std(symbol.String)) {
+		return resolveNativeHashSet[value.String](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Symbol)) {
+		return resolveNativeHashSet[value.Symbol](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt)) {
+		return resolveNativeHashSet[value.UInt](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+		return resolveNativeHashSet[value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int64)) {
+		return resolveNativeHashSet[value.Int64](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+		return resolveNativeHashSet[value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int32)) {
+		return resolveNativeHashSet[value.Int32](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+		return resolveNativeHashSet[value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int16)) {
+		return resolveNativeHashSet[value.Int16](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+		return resolveNativeHashSet[value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int8)) {
+		return resolveNativeHashSet[value.Int8](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float)) {
+		return resolveNativeHashSet[value.Float](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float64)) {
+		return resolveNativeHashSet[value.Float64](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float32)) {
+		return resolveNativeHashSet[value.Float32](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Char)) {
+		return resolveNativeHashSet[value.Char](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Date)) {
+		return resolveNativeHashSet[value.Date](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Time)) {
+		return resolveNativeHashSet[value.Time](node, checker)
+	}
+
+	return resolveHashSetOfValue(node, checker)
+}
+
+func resolveNativeHashSet[V value.ComparableValueInterface](node *ast.HashSetLiteralNode, checker types.Checker) value.Value {
+	newSet := vm.NewNativeHashSet[V](len(node.Elements))
 	for _, elementNode := range node.Elements {
-		val := resolve(elementNode)
+		val := resolve(elementNode, checker)
 		if val.IsUndefined() {
 			return value.Undefined
 		}
-		err := vm.HashSetAppend(nil, newSet, val)
+		v, ok := value.Downcast[V](val)
+		if !ok {
+			return value.Undefined
+		}
+
+		newSet.Append(v)
+	}
+
+	return value.Ref(newSet)
+}
+
+func resolveHashSetOfValue(node *ast.HashSetLiteralNode, checker types.Checker) value.Value {
+	newSet := vm.NewHashSetOfValue(len(node.Elements))
+	for _, elementNode := range node.Elements {
+		val := resolve(elementNode, checker)
+		if val.IsUndefined() {
+			return value.Undefined
+		}
+		_, err := vm.HashSetOfValueAppend(nil, newSet, val)
 		if !err.IsUndefined() {
 			return value.Undefined
 		}
@@ -232,39 +312,415 @@ func resolveHashSetLiteral(node *ast.HashSetLiteralNode) value.Value {
 	return value.Ref(newSet)
 }
 
-func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
+func resolveHashMapLiteral(node *ast.HashMapLiteralNode, checker types.Checker) value.Value {
 	if !node.IsStatic() || node.Capacity != nil {
 		return value.Undefined
 	}
 
-	newTable := make([]value.Pair, len(node.Elements))
-	newMap := &value.HashMap{
-		Table: newTable,
+	typ := node.Type(checker.Env())
+	elementType, _ := checker.GetIteratorElementType(typ)
+	g, ok := elementType.(*types.Generic)
+	if !ok {
+		return resolveHashMapOfValue(node, checker)
 	}
+	if !checker.IsTheSameNamespace(g.Namespace, checker.Std(symbol.Pair).(*types.Class)) {
+		return value.Undefined
+	}
+
+	keyType := g.Get(0).Type
+	valType := g.Get(1).Type
+
+	if checker.IsSubtype(keyType, checker.Std(symbol.String)) {
+		return resolveNativeHashMapOfString(node, valType, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Symbol)) {
+		return resolveNativeHashMapOfSymbol(node, valType, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Char)) {
+		return resolveNativeHashMapOfChar(node, valType, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Float)) {
+		return resolveNativeHashMapOfFloat(node, valType, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Float64)) {
+		return resolveNativeKeyHashMap[value.Float64](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Float32)) {
+		return resolveNativeKeyHashMap[value.Float32](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.UInt)) {
+		return resolveNativeKeyHashMap[value.UInt](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.UInt64)) {
+		return resolveNativeKeyHashMap[value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Int64)) {
+		return resolveNativeKeyHashMap[value.Int64](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.UInt32)) {
+		return resolveNativeKeyHashMap[value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Int32)) {
+		return resolveNativeKeyHashMap[value.Int32](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.UInt16)) {
+		return resolveNativeKeyHashMap[value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Int16)) {
+		return resolveNativeKeyHashMap[value.Int16](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.UInt8)) {
+		return resolveNativeKeyHashMap[value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Int8)) {
+		return resolveNativeKeyHashMap[value.Int8](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Date)) {
+		return resolveNativeKeyHashMap[value.Date](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Time)) {
+		return resolveNativeKeyHashMap[value.Time](node, checker)
+	}
+
+	return resolveHashMapOfValue(node, checker)
+}
+
+func resolveNativeHashMapOfString(node *ast.HashMapLiteralNode, valType types.Type, checker types.Checker) value.Value {
+	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+		return resolveNativeHashMap[value.String, value.String](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+		return resolveNativeHashMap[value.String, value.Symbol](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+		return resolveNativeHashMap[value.String, value.UInt](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+		return resolveNativeHashMap[value.String, value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+		return resolveNativeHashMap[value.String, value.Int64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+		return resolveNativeHashMap[value.String, value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+		return resolveNativeHashMap[value.String, value.Int32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+		return resolveNativeHashMap[value.String, value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+		return resolveNativeHashMap[value.String, value.Int16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+		return resolveNativeHashMap[value.String, value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+		return resolveNativeHashMap[value.String, value.Int8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+		return resolveNativeHashMap[value.String, value.Float](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+		return resolveNativeHashMap[value.String, value.Float64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+		return resolveNativeHashMap[value.String, value.Float32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+		return resolveNativeHashMap[value.String, value.Char](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+		return resolveNativeHashMap[value.String, value.Bool](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+		return resolveNativeHashMap[value.String, value.Date](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+		return resolveNativeHashMap[value.String, value.Time](node, checker)
+	}
+
+	return resolveNativeKeyHashMap[value.String](node, checker)
+}
+
+func resolveNativeHashMapOfFloat(node *ast.HashMapLiteralNode, valType types.Type, checker types.Checker) value.Value {
+	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+		return resolveNativeHashMap[value.Float, value.String](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+		return resolveNativeHashMap[value.Float, value.Symbol](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+		return resolveNativeHashMap[value.Float, value.UInt](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+		return resolveNativeHashMap[value.Float, value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+		return resolveNativeHashMap[value.Float, value.Int64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+		return resolveNativeHashMap[value.Float, value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+		return resolveNativeHashMap[value.Float, value.Int32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+		return resolveNativeHashMap[value.Float, value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+		return resolveNativeHashMap[value.Float, value.Int16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+		return resolveNativeHashMap[value.Float, value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+		return resolveNativeHashMap[value.Float, value.Int8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+		return resolveNativeHashMap[value.Float, value.Float](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+		return resolveNativeHashMap[value.Float, value.Float64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+		return resolveNativeHashMap[value.Float, value.Float32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+		return resolveNativeHashMap[value.Float, value.Char](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+		return resolveNativeHashMap[value.Float, value.Bool](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+		return resolveNativeHashMap[value.Float, value.Date](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+		return resolveNativeHashMap[value.Float, value.Time](node, checker)
+	}
+
+	return resolveNativeKeyHashMap[value.Float](node, checker)
+}
+
+func resolveNativeHashMapOfChar(node *ast.HashMapLiteralNode, valType types.Type, checker types.Checker) value.Value {
+	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+		return resolveNativeHashMap[value.Char, value.String](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+		return resolveNativeHashMap[value.Char, value.Symbol](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+		return resolveNativeHashMap[value.Char, value.UInt](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+		return resolveNativeHashMap[value.Char, value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+		return resolveNativeHashMap[value.Char, value.Int64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+		return resolveNativeHashMap[value.Char, value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+		return resolveNativeHashMap[value.Char, value.Int32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+		return resolveNativeHashMap[value.Char, value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+		return resolveNativeHashMap[value.Char, value.Int16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+		return resolveNativeHashMap[value.Char, value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+		return resolveNativeHashMap[value.Char, value.Int8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+		return resolveNativeHashMap[value.Char, value.Float](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+		return resolveNativeHashMap[value.Char, value.Float64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+		return resolveNativeHashMap[value.Char, value.Float32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+		return resolveNativeHashMap[value.Char, value.Char](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+		return resolveNativeHashMap[value.Char, value.Bool](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+		return resolveNativeHashMap[value.Char, value.Date](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+		return resolveNativeHashMap[value.Char, value.Time](node, checker)
+	}
+
+	return resolveNativeKeyHashMap[value.Char](node, checker)
+}
+
+func resolveNativeHashMapOfSymbol(node *ast.HashMapLiteralNode, valType types.Type, checker types.Checker) value.Value {
+	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+		return resolveNativeHashMap[value.Symbol, value.String](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+		return resolveNativeHashMap[value.Symbol, value.Symbol](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+		return resolveNativeHashMap[value.Symbol, value.UInt](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+		return resolveNativeHashMap[value.Symbol, value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+		return resolveNativeHashMap[value.Symbol, value.Int64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+		return resolveNativeHashMap[value.Symbol, value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+		return resolveNativeHashMap[value.Symbol, value.Int32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+		return resolveNativeHashMap[value.Symbol, value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+		return resolveNativeHashMap[value.Symbol, value.Int16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+		return resolveNativeHashMap[value.Symbol, value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+		return resolveNativeHashMap[value.Symbol, value.Int8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+		return resolveNativeHashMap[value.Symbol, value.Float](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+		return resolveNativeHashMap[value.Symbol, value.Float64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+		return resolveNativeHashMap[value.Symbol, value.Float32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+		return resolveNativeHashMap[value.Symbol, value.Char](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+		return resolveNativeHashMap[value.Symbol, value.Bool](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+		return resolveNativeHashMap[value.Symbol, value.Date](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+		return resolveNativeHashMap[value.Symbol, value.Time](node, checker)
+	}
+
+	return resolveNativeKeyHashMap[value.Symbol](node, checker)
+}
+
+func resolveNativeHashMap[K value.ComparableValueInterface, V value.ValueInterface](node *ast.HashMapLiteralNode, checker types.Checker) value.Value {
+	newMap := vm.NewNativeHashMap[K, V](len(node.Elements))
 	for _, elementNode := range node.Elements {
 		switch element := elementNode.(type) {
 		case *ast.SymbolKeyValueExpressionNode:
 			key := value.ToSymbol(identifierToName(element.Key)).ToValue()
-			val := resolve(element.Value)
+			k, ok := value.Downcast[K](key)
+			if !ok {
+				return value.Undefined
+			}
+			val := resolve(element.Value, checker)
+			v, ok := value.Downcast[V](val)
+			if !ok {
+				return value.Undefined
+			}
+
+			newMap.Set(k, v)
+		case *ast.KeyValueExpressionNode:
+			key := resolve(element.Key, checker)
+			k, ok := value.Downcast[K](key)
+			if !ok {
+				return value.Undefined
+			}
+			val := resolve(element.Value, checker)
+			v, ok := value.Downcast[V](val)
+			if !ok {
+				return value.Undefined
+			}
+
+			newMap.Set(k, v)
+		default:
+			return value.Undefined
+		}
+	}
+
+	return newMap.ToValue()
+}
+
+func resolveNativeKeyHashMap[K value.ComparableValueInterface](node *ast.HashMapLiteralNode, checker types.Checker) value.Value {
+	newMap := vm.NewNativeKeyHashMap[K](len(node.Elements))
+	for _, elementNode := range node.Elements {
+		switch element := elementNode.(type) {
+		case *ast.SymbolKeyValueExpressionNode:
+			key := value.ToSymbol(identifierToName(element.Key)).ToValue()
+			k, ok := value.Downcast[K](key)
+			if !ok {
+				return value.Undefined
+			}
+			val := resolve(element.Value, checker)
 			if val.IsUndefined() {
 				return value.Undefined
 			}
 
-			err := vm.HashMapSet(nil, newMap, key, val)
+			newMap.Set(k, val)
+		case *ast.KeyValueExpressionNode:
+			key := resolve(element.Key, checker)
+			k, ok := value.Downcast[K](key)
+			if !ok {
+				return value.Undefined
+			}
+			val := resolve(element.Value, checker)
+			if val.IsUndefined() {
+				return value.Undefined
+			}
+
+			newMap.Set(k, val)
+		default:
+			return value.Undefined
+		}
+	}
+
+	return newMap.ToValue()
+}
+
+func resolveHashMapOfValue(node *ast.HashMapLiteralNode, checker types.Checker) value.Value {
+	newMap := vm.NewHashMapOfValue(len(node.Elements))
+	for _, elementNode := range node.Elements {
+		switch element := elementNode.(type) {
+		case *ast.SymbolKeyValueExpressionNode:
+			key := value.ToSymbol(identifierToName(element.Key)).ToValue()
+			val := resolve(element.Value, checker)
+			if val.IsUndefined() {
+				return value.Undefined
+			}
+
+			err := vm.HashMapOfValueSet(nil, newMap, key, val)
 			if !err.IsUndefined() {
 				return value.Undefined
 			}
 		case *ast.KeyValueExpressionNode:
-			key := resolve(element.Key)
+			key := resolve(element.Key, checker)
 			if key.IsUndefined() {
 				return value.Undefined
 			}
-			val := resolve(element.Value)
+			val := resolve(element.Value, checker)
 			if val.IsUndefined() {
 				return value.Undefined
 			}
 
-			err := vm.HashMapSet(nil, newMap, key, val)
+			err := vm.HashMapOfValueSet(nil, newMap, key, val)
 			if !err.IsUndefined() {
 				return value.Undefined
 			}
@@ -273,42 +729,418 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 		}
 	}
 
-	return value.Ref(newMap)
+	return newMap.ToValue()
 }
 
-func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
+func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode, checker types.Checker) value.Value {
 	if !node.IsStatic() {
 		return value.Undefined
 	}
 
-	newTable := make([]value.Pair, len(node.Elements))
-	newRecord := &value.HashRecord{
-		Table: newTable,
+	typ := node.Type(checker.Env())
+	elementType, _ := checker.GetIteratorElementType(typ)
+	g, ok := elementType.(*types.Generic)
+	if !ok {
+		return resolveHashRecordOfValue(node, checker)
 	}
+	if !checker.IsTheSameNamespace(g.Namespace, checker.Std(symbol.Pair).(*types.Class)) {
+		return value.Undefined
+	}
+
+	keyType := g.Get(0).Type
+	valType := g.Get(1).Type
+
+	if checker.IsSubtype(keyType, checker.Std(symbol.String)) {
+		return resolveNativeHashRecordOfString(node, valType, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Symbol)) {
+		return resolveNativeHashRecordOfSymbol(node, valType, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Char)) {
+		return resolveNativeHashRecordOfChar(node, valType, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Float)) {
+		return resolveNativeHashRecordOfFloat(node, valType, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Float64)) {
+		return resolveNativeKeyHashRecord[value.Float64](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Float32)) {
+		return resolveNativeKeyHashRecord[value.Float32](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.UInt)) {
+		return resolveNativeKeyHashRecord[value.UInt](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.UInt64)) {
+		return resolveNativeKeyHashRecord[value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Int64)) {
+		return resolveNativeKeyHashRecord[value.Int64](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.UInt32)) {
+		return resolveNativeKeyHashRecord[value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Int32)) {
+		return resolveNativeKeyHashRecord[value.Int32](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.UInt16)) {
+		return resolveNativeKeyHashRecord[value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Int16)) {
+		return resolveNativeKeyHashRecord[value.Int16](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.UInt8)) {
+		return resolveNativeKeyHashRecord[value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Int8)) {
+		return resolveNativeKeyHashRecord[value.Int8](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Date)) {
+		return resolveNativeKeyHashRecord[value.Date](node, checker)
+	}
+	if checker.IsSubtype(keyType, checker.Std(symbol.Time)) {
+		return resolveNativeKeyHashRecord[value.Time](node, checker)
+	}
+
+	return resolveHashRecordOfValue(node, checker)
+}
+
+func resolveNativeHashRecordOfString(node *ast.HashRecordLiteralNode, valType types.Type, checker types.Checker) value.Value {
+	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+		return resolveNativeHashRecord[value.String, value.String](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+		return resolveNativeHashRecord[value.String, value.Symbol](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+		return resolveNativeHashRecord[value.String, value.UInt](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+		return resolveNativeHashRecord[value.String, value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+		return resolveNativeHashRecord[value.String, value.Int64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+		return resolveNativeHashRecord[value.String, value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+		return resolveNativeHashRecord[value.String, value.Int32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+		return resolveNativeHashRecord[value.String, value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+		return resolveNativeHashRecord[value.String, value.Int16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+		return resolveNativeHashRecord[value.String, value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+		return resolveNativeHashRecord[value.String, value.Int8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+		return resolveNativeHashRecord[value.String, value.Float](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+		return resolveNativeHashRecord[value.String, value.Float64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+		return resolveNativeHashRecord[value.String, value.Float32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+		return resolveNativeHashRecord[value.String, value.Char](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+		return resolveNativeHashRecord[value.String, value.Bool](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+		return resolveNativeHashRecord[value.String, value.Date](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+		return resolveNativeHashRecord[value.String, value.Time](node, checker)
+	}
+
+	return resolveNativeKeyHashRecord[value.String](node, checker)
+}
+
+func resolveNativeHashRecordOfFloat(node *ast.HashRecordLiteralNode, valType types.Type, checker types.Checker) value.Value {
+	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+		return resolveNativeHashRecord[value.Float, value.String](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+		return resolveNativeHashRecord[value.Float, value.Symbol](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+		return resolveNativeHashRecord[value.Float, value.UInt](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+		return resolveNativeHashRecord[value.Float, value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+		return resolveNativeHashRecord[value.Float, value.Int64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+		return resolveNativeHashRecord[value.Float, value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+		return resolveNativeHashRecord[value.Float, value.Int32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+		return resolveNativeHashRecord[value.Float, value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+		return resolveNativeHashRecord[value.Float, value.Int16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+		return resolveNativeHashRecord[value.Float, value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+		return resolveNativeHashRecord[value.Float, value.Int8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+		return resolveNativeHashRecord[value.Float, value.Float](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+		return resolveNativeHashRecord[value.Float, value.Float64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+		return resolveNativeHashRecord[value.Float, value.Float32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+		return resolveNativeHashRecord[value.Float, value.Char](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+		return resolveNativeHashRecord[value.Float, value.Bool](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+		return resolveNativeHashRecord[value.Float, value.Date](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+		return resolveNativeHashRecord[value.Float, value.Time](node, checker)
+	}
+
+	return resolveNativeKeyHashRecord[value.Float](node, checker)
+}
+
+func resolveNativeHashRecordOfChar(node *ast.HashRecordLiteralNode, valType types.Type, checker types.Checker) value.Value {
+	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+		return resolveNativeHashRecord[value.Char, value.String](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+		return resolveNativeHashRecord[value.Char, value.Symbol](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+		return resolveNativeHashRecord[value.Char, value.UInt](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+		return resolveNativeHashRecord[value.Char, value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+		return resolveNativeHashRecord[value.Char, value.Int64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+		return resolveNativeHashRecord[value.Char, value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+		return resolveNativeHashRecord[value.Char, value.Int32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+		return resolveNativeHashRecord[value.Char, value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+		return resolveNativeHashRecord[value.Char, value.Int16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+		return resolveNativeHashRecord[value.Char, value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+		return resolveNativeHashRecord[value.Char, value.Int8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+		return resolveNativeHashRecord[value.Char, value.Float](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+		return resolveNativeHashRecord[value.Char, value.Float64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+		return resolveNativeHashRecord[value.Char, value.Float32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+		return resolveNativeHashRecord[value.Char, value.Char](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+		return resolveNativeHashRecord[value.Char, value.Bool](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+		return resolveNativeHashRecord[value.Char, value.Date](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+		return resolveNativeHashRecord[value.Char, value.Time](node, checker)
+	}
+
+	return resolveNativeKeyHashRecord[value.Char](node, checker)
+}
+
+func resolveNativeHashRecordOfSymbol(node *ast.HashRecordLiteralNode, valType types.Type, checker types.Checker) value.Value {
+	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+		return resolveNativeHashRecord[value.Symbol, value.String](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+		return resolveNativeHashRecord[value.Symbol, value.Symbol](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+		return resolveNativeHashRecord[value.Symbol, value.UInt](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+		return resolveNativeHashRecord[value.Symbol, value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+		return resolveNativeHashRecord[value.Symbol, value.Int64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+		return resolveNativeHashRecord[value.Symbol, value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+		return resolveNativeHashRecord[value.Symbol, value.Int32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+		return resolveNativeHashRecord[value.Symbol, value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+		return resolveNativeHashRecord[value.Symbol, value.Int16](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+		return resolveNativeHashRecord[value.Symbol, value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+		return resolveNativeHashRecord[value.Symbol, value.Int8](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+		return resolveNativeHashRecord[value.Symbol, value.Float](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+		return resolveNativeHashRecord[value.Symbol, value.Float64](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+		return resolveNativeHashRecord[value.Symbol, value.Float32](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+		return resolveNativeHashRecord[value.Symbol, value.Char](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+		return resolveNativeHashRecord[value.Symbol, value.Bool](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+		return resolveNativeHashRecord[value.Symbol, value.Date](node, checker)
+	}
+	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+		return resolveNativeHashRecord[value.Symbol, value.Time](node, checker)
+	}
+
+	return resolveNativeKeyHashRecord[value.Symbol](node, checker)
+}
+
+func resolveNativeHashRecord[K value.ComparableValueInterface, V value.ValueInterface](node *ast.HashRecordLiteralNode, checker types.Checker) value.Value {
+	newMap := vm.MakeNativeHashRecord[K, V](len(node.Elements))
 	for _, elementNode := range node.Elements {
 		switch element := elementNode.(type) {
 		case *ast.SymbolKeyValueExpressionNode:
 			key := value.ToSymbol(identifierToName(element.Key)).ToValue()
-			val := resolve(element.Value)
+			k, ok := value.Downcast[K](key)
+			if !ok {
+				return value.Undefined
+			}
+			val := resolve(element.Value, checker)
+			v, ok := value.Downcast[V](val)
+			if !ok {
+				return value.Undefined
+			}
+
+			newMap[k] = v
+		case *ast.KeyValueExpressionNode:
+			key := resolve(element.Key, checker)
+			k, ok := value.Downcast[K](key)
+			if !ok {
+				return value.Undefined
+			}
+			val := resolve(element.Value, checker)
+			v, ok := value.Downcast[V](val)
+			if !ok {
+				return value.Undefined
+			}
+
+			newMap[k] = v
+		default:
+			return value.Undefined
+		}
+	}
+
+	return newMap.ToValue()
+}
+
+func resolveNativeKeyHashRecord[K value.ComparableValueInterface](node *ast.HashRecordLiteralNode, checker types.Checker) value.Value {
+	newRecord := vm.MakeNativeKeyHashRecord[K](len(node.Elements))
+	for _, elementNode := range node.Elements {
+		switch element := elementNode.(type) {
+		case *ast.SymbolKeyValueExpressionNode:
+			key := value.ToSymbol(identifierToName(element.Key)).ToValue()
+			k, ok := value.Downcast[K](key)
+			if !ok {
+				return value.Undefined
+			}
+			val := resolve(element.Value, checker)
 			if val.IsUndefined() {
 				return value.Undefined
 			}
 
-			err := vm.HashRecordSet(nil, newRecord, key, val)
+			newRecord[k] = val
+		case *ast.KeyValueExpressionNode:
+			key := resolve(element.Key, checker)
+			k, ok := value.Downcast[K](key)
+			if !ok {
+				return value.Undefined
+			}
+			val := resolve(element.Value, checker)
+			if val.IsUndefined() {
+				return value.Undefined
+			}
+
+			newRecord[k] = val
+		default:
+			return value.Undefined
+		}
+	}
+
+	return newRecord.ToValue()
+}
+
+func resolveHashRecordOfValue(node *ast.HashRecordLiteralNode, checker types.Checker) value.Value {
+	newRecord := vm.NewHashRecordOfValue(len(node.Elements))
+	for _, elementNode := range node.Elements {
+		switch element := elementNode.(type) {
+		case *ast.SymbolKeyValueExpressionNode:
+			key := value.ToSymbol(identifierToName(element.Key)).ToValue()
+			val := resolve(element.Value, checker)
+			if val.IsUndefined() {
+				return value.Undefined
+			}
+
+			err := vm.HashRecordOfValueSet(nil, newRecord, key, val)
 			if !err.IsUndefined() {
 				return value.Undefined
 			}
 		case *ast.KeyValueExpressionNode:
-			key := resolve(element.Key)
+			key := resolve(element.Key, checker)
 			if key.IsUndefined() {
 				return value.Undefined
 			}
-			val := resolve(element.Value)
+			val := resolve(element.Value, checker)
 			if val.IsUndefined() {
 				return value.Undefined
 			}
 
-			err := vm.HashRecordSet(nil, newRecord, key, val)
+			err := vm.HashRecordOfValueSet(nil, newRecord, key, val)
 			if !err.IsUndefined() {
 				return value.Undefined
 			}
@@ -320,18 +1152,18 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 	return value.Ref(newRecord)
 }
 
-func resolveSpecialHashSetLiteral[T ast.ExpressionNode](elements []T, static bool) value.Value {
+func resolveSpecialHashSetLiteral[T ast.ExpressionNode](elements []T, checker types.Checker, static bool) value.Value {
 	if !static {
 		return value.Undefined
 	}
 
-	newSet := value.NewHashSet(len(elements))
+	newSet := vm.NewHashSetOfValue(len(elements))
 	for _, elementNode := range elements {
-		element := resolve(elementNode)
+		element := resolve(elementNode, checker)
 		if element.IsUndefined() {
 			return value.Undefined
 		}
-		err := vm.HashSetAppend(nil, newSet, element)
+		_, err := vm.HashSetOfValueAppend(nil, newSet, element)
 		if !err.IsUndefined() {
 			return value.Undefined
 		}
@@ -339,16 +1171,104 @@ func resolveSpecialHashSetLiteral[T ast.ExpressionNode](elements []T, static boo
 
 	return value.Ref(newSet)
 }
-func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
+
+func resolveSpecialNativeHashSetLiteral[N ast.ExpressionNode, T value.ComparableValueInterface](elements []N, checker types.Checker, static bool) value.Value {
+	if !static {
+		return value.Undefined
+	}
+	var t T
+
+	newSet := vm.NewNativeHashSet[T](len(elements))
+	for _, elementNode := range elements {
+		element := resolve(elementNode, checker)
+		if element.IsUndefined() {
+			return value.Undefined
+		}
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			panic(fmt.Sprintf("cannot cast %s to %T while resolving a hash set", element.Inspect(), t))
+		}
+		newSet.Append(e)
+	}
+
+	return value.Ref(newSet)
+}
+
+func resolveArrayListLiteral(node *ast.ArrayListLiteralNode, checker types.Checker) value.Value {
 	if !node.IsStatic() || node.Capacity != nil {
 		return value.Undefined
 	}
 
-	newList := make(value.ArrayList, 0, len(node.Elements))
+	typ := node.Type(checker.Env())
+	elementType, _ := checker.GetIteratorElementType(typ)
+	if types.IsUntyped(elementType) {
+		return resolveArrayListOfValue(node, checker)
+	}
+
+	if checker.IsSubtype(elementType, checker.Std(symbol.String)) {
+		return resolveNativeArrayList[value.String](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Symbol)) {
+		return resolveNativeArrayList[value.Symbol](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt)) {
+		return resolveNativeArrayList[value.UInt](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+		return resolveNativeArrayList[value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int64)) {
+		return resolveNativeArrayList[value.Int64](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+		return resolveNativeArrayList[value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int32)) {
+		return resolveNativeArrayList[value.Int32](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+		return resolveNativeArrayList[value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int16)) {
+		return resolveNativeArrayList[value.Int16](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+		return resolveNativeArrayList[value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int8)) {
+		return resolveNativeArrayList[value.Int8](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float)) {
+		return resolveNativeArrayList[value.Float](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float64)) {
+		return resolveNativeArrayList[value.Float64](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float32)) {
+		return resolveNativeArrayList[value.Float32](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Char)) {
+		return resolveNativeArrayList[value.Char](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Bool)) {
+		return resolveNativeArrayList[value.Bool](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Date)) {
+		return resolveNativeArrayList[value.Date](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Time)) {
+		return resolveNativeArrayList[value.Time](node, checker)
+	}
+
+	return resolveArrayListOfValue(node, checker)
+}
+
+func resolveArrayListOfValue(node *ast.ArrayListLiteralNode, checker types.Checker) value.Value {
+	newList := make(value.ArrayListOfValue, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		switch e := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
-			key := resolve(e.Key)
+			key := resolve(e.Key, checker)
 			if key.IsUndefined() {
 				return value.Undefined
 			}
@@ -358,7 +1278,7 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 				return value.Undefined
 			}
 
-			val := resolve(e.Value)
+			val := resolve(e.Value, checker)
 			if val.IsUndefined() {
 				return value.Undefined
 			}
@@ -369,7 +1289,7 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 			}
 			newList[index] = val
 		default:
-			element := resolve(elementNode)
+			element := resolve(elementNode, checker)
 			if element.IsUndefined() {
 				return value.Undefined
 			}
@@ -381,50 +1301,283 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 	return value.Ref(&newList)
 }
 
-func resolveSpecialArrayListLiteral[T ast.ExpressionNode](elements []T, static bool) value.Value {
+func resolveNativeArrayList[T value.ValueInterface](node *ast.ArrayListLiteralNode, checker types.Checker) value.Value {
+	newList := value.NewNativeArrayList[T](len(node.Elements))
+	for _, elementNode := range node.Elements {
+		element := resolve(elementNode, checker)
+		if element.IsUndefined() {
+			return value.Undefined
+		}
+
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			return value.Undefined
+		}
+
+		newList.Append(e)
+	}
+
+	return newList.ToValue()
+}
+
+func resolveNativeArrayTuple[T value.ValueInterface](node *ast.ArrayTupleLiteralNode, checker types.Checker) value.Value {
+	newTuple := value.NewNativeArrayTuple[T](len(node.Elements))
+	for _, elementNode := range node.Elements {
+		element := resolve(elementNode, checker)
+		if element.IsUndefined() {
+			return value.Undefined
+		}
+
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			return value.Undefined
+		}
+
+		newTuple.Append(e)
+	}
+
+	return newTuple.ToValue()
+}
+
+func resolveSpecialNativeArrayListLiteral[N ast.ExpressionNode, T value.ValueInterface](elements []N, checker types.Checker, static bool) value.Value {
+	if !static {
+		return value.Undefined
+	}
+	var t T
+
+	newList := value.NewNativeArrayList[T](len(elements))
+	for _, elementNode := range elements {
+		element := resolve(elementNode, checker)
+		if element.IsUndefined() {
+			return value.Undefined
+		}
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			panic(fmt.Sprintf("cannot cast %s to %T while resolving an array list", element.Inspect(), t))
+		}
+		newList.Append(e)
+	}
+
+	return newList.ToValue()
+}
+
+func resolveSpecialNativeArrayTupleLiteral[N ast.ExpressionNode, T value.ValueInterface](elements []N, checker types.Checker, static bool) value.Value {
+	if !static {
+		return value.Undefined
+	}
+	var t T
+
+	newTuple := value.NewNativeArrayTuple[T](len(elements))
+	for _, elementNode := range elements {
+		element := resolve(elementNode, checker)
+		if element.IsUndefined() {
+			return value.Undefined
+		}
+		e, ok := value.Downcast[T](element)
+		if !ok {
+			panic(fmt.Sprintf("cannot cast %s to %T while resolving an array list", element.Inspect(), t))
+		}
+		newTuple.Append(e)
+	}
+
+	return newTuple.ToValue()
+}
+
+func resolveIntArrayListLiteral(elements []ast.IntCollectionContentNode, typ types.Type, checker types.Checker, static bool) value.Value {
 	if !static {
 		return value.Undefined
 	}
 
-	newList := make(value.ArrayList, 0, len(elements))
+	tmpList := make([]*value.BigInt, 0, len(elements))
 	for _, elementNode := range elements {
-		element := resolve(elementNode)
-		if element.IsUndefined() {
-			return value.Undefined
+		n, ok := elementNode.(*ast.IntLiteralNode)
+		if !ok {
+			continue
 		}
-		newList = append(newList, element)
+
+		val := value.ParseBigIntPanic(n.Value, 0)
+		tmpList = append(tmpList, val)
 	}
 
-	return value.Ref(&newList)
+	g, ok := typ.(*types.Generic)
+	if !ok {
+		return value.Undefined
+	}
+
+	elementType := g.Get(0).Type
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int)) {
+		return resolveBigIntSliceToArrayListOfValue(tmpList).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+		return resolveBigIntSliceToNativeArrayList[value.UInt64](tmpList).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+		return resolveBigIntSliceToNativeArrayList[value.UInt32](tmpList).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+		return resolveBigIntSliceToNativeArrayList[value.UInt16](tmpList).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+		return resolveBigIntSliceToNativeArrayList[value.UInt8](tmpList).ToValue()
+	}
+
+	return value.Undefined
 }
 
-func resolveSpecialArrayTupleLiteral[T ast.ExpressionNode](elements []T, static bool) value.Value {
+func resolveIntArrayTupleLiteral(elements []ast.IntCollectionContentNode, typ types.Type, checker types.Checker, static bool) value.Value {
 	if !static {
 		return value.Undefined
 	}
 
-	newList := make(value.ArrayTuple, 0, len(elements))
+	tmpTuple := make([]*value.BigInt, 0, len(elements))
 	for _, elementNode := range elements {
-		element := resolve(elementNode)
-		if element.IsUndefined() {
-			return value.Undefined
+		n, ok := elementNode.(*ast.IntLiteralNode)
+		if !ok {
+			continue
 		}
-		newList = append(newList, element)
+
+		val := value.ParseBigIntPanic(n.Value, 0)
+		tmpTuple = append(tmpTuple, val)
 	}
 
-	return value.Ref(&newList)
+	g, ok := typ.(*types.Generic)
+	if !ok {
+		return value.Undefined
+	}
+
+	elementType := g.Get(0).Type
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int)) {
+		return resolveBigIntSliceToArrayTupleOfValue(tmpTuple).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+		return resolveBigIntSliceToNativeArrayTuple[value.UInt64](tmpTuple).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+		return resolveBigIntSliceToNativeArrayTuple[value.UInt32](tmpTuple).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+		return resolveBigIntSliceToNativeArrayTuple[value.UInt16](tmpTuple).ToValue()
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+		return resolveBigIntSliceToNativeArrayTuple[value.UInt8](tmpTuple).ToValue()
+	}
+
+	return value.Undefined
 }
 
-func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
+func resolveBigIntSliceToNativeArrayList[I value.StrictNumeric](elements []*value.BigInt) *value.NativeArrayList[I] {
+	newList := value.NewNativeArrayList[I](len(elements))
+	for _, element := range elements {
+		nativeVal := I(element.ToUInt64())
+		newList.Append(nativeVal)
+	}
+
+	return newList
+}
+
+func resolveBigIntSliceToNativeArrayTuple[I value.StrictNumeric](elements []*value.BigInt) *value.NativeArrayTuple[I] {
+	newTuple := value.NewNativeArrayTuple[I](len(elements))
+	for _, element := range elements {
+		nativeVal := I(element.ToUInt64())
+		newTuple.Append(nativeVal)
+	}
+
+	return newTuple
+}
+
+func resolveBigIntSliceToArrayListOfValue(elements []*value.BigInt) *value.ArrayListOfValue {
+	newList := value.NewArrayListOfValue(len(elements))
+	for _, element := range elements {
+		newList.Append(element.Normalize())
+	}
+
+	return newList
+}
+
+func resolveBigIntSliceToArrayTupleOfValue(elements []*value.BigInt) *value.ArrayTupleOfValue {
+	newTuple := value.NewArrayTupleOfValue(len(elements))
+	for _, element := range elements {
+		newTuple.Append(element.Normalize())
+	}
+
+	return newTuple
+}
+
+func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode, checker types.Checker) value.Value {
 	if !node.IsStatic() {
 		return value.Undefined
 	}
 
-	newArrayTuple := make(value.ArrayTuple, 0, len(node.Elements))
+	typ := node.Type(checker.Env())
+	elementType, _ := checker.GetIteratorElementType(typ)
+	if types.IsUntyped(elementType) {
+		return resolveArrayTupleOfValue(node, checker)
+	}
+
+	if checker.IsSubtype(elementType, checker.Std(symbol.String)) {
+		return resolveNativeArrayTuple[value.String](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Symbol)) {
+		return resolveNativeArrayTuple[value.Symbol](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt)) {
+		return resolveNativeArrayTuple[value.UInt](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+		return resolveNativeArrayTuple[value.UInt64](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int64)) {
+		return resolveNativeArrayTuple[value.Int64](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+		return resolveNativeArrayTuple[value.UInt32](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int32)) {
+		return resolveNativeArrayTuple[value.Int32](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+		return resolveNativeArrayTuple[value.UInt16](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int16)) {
+		return resolveNativeArrayTuple[value.Int16](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+		return resolveNativeArrayTuple[value.UInt8](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Int8)) {
+		return resolveNativeArrayTuple[value.Int8](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float)) {
+		return resolveNativeArrayTuple[value.Float](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float64)) {
+		return resolveNativeArrayTuple[value.Float64](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Float32)) {
+		return resolveNativeArrayTuple[value.Float32](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Char)) {
+		return resolveNativeArrayTuple[value.Char](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Bool)) {
+		return resolveNativeArrayTuple[value.Bool](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Time)) {
+		return resolveNativeArrayTuple[value.Time](node, checker)
+	}
+	if checker.IsSubtype(elementType, checker.Std(symbol.Date)) {
+		return resolveNativeArrayTuple[value.Date](node, checker)
+	}
+
+	return resolveArrayTupleOfValue(node, checker)
+}
+
+func resolveArrayTupleOfValue(node *ast.ArrayTupleLiteralNode, checker types.Checker) value.Value {
+	newArrayTuple := make(value.ArrayTupleOfValue, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		switch e := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
-			key := resolve(e.Key)
+			key := resolve(e.Key, checker)
 			if key.IsUndefined() {
 				return value.Undefined
 			}
@@ -434,7 +1587,7 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
 				return value.Undefined
 			}
 
-			val := resolve(e.Value)
+			val := resolve(e.Value, checker)
 			if val.IsUndefined() {
 				return value.Undefined
 			}
@@ -445,7 +1598,7 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
 			}
 			newArrayTuple[index] = val
 		default:
-			element := resolve(elementNode)
+			element := resolve(elementNode, checker)
 			if element.IsUndefined() {
 				return value.Undefined
 			}
@@ -457,12 +1610,12 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
 	return value.Ref(&newArrayTuple)
 }
 
-func resolveLogicalExpression(node *ast.LogicalExpressionNode) value.Value {
-	left := resolve(node.Left)
+func resolveLogicalExpression(node *ast.LogicalExpressionNode, checker types.Checker) value.Value {
+	left := resolve(node.Left, checker)
 	if left.IsUndefined() {
 		return value.Undefined
 	}
-	right := resolve(node.Right)
+	right := resolve(node.Right, checker)
 	if right.IsUndefined() {
 		return value.Undefined
 	}
@@ -488,9 +1641,9 @@ func resolveLogicalExpression(node *ast.LogicalExpressionNode) value.Value {
 	return value.Undefined
 }
 
-func resolveNilSafeSubscript(node *ast.NilSafeSubscriptExpressionNode) value.Value {
-	receiver := resolve(node.Receiver)
-	key := resolve(node.Key)
+func resolveNilSafeSubscript(node *ast.NilSafeSubscriptExpressionNode, checker types.Checker) value.Value {
+	receiver := resolve(node.Receiver, checker)
+	key := resolve(node.Key, checker)
 
 	if receiver == value.Nil {
 		return value.Nil
@@ -504,9 +1657,9 @@ func resolveNilSafeSubscript(node *ast.NilSafeSubscriptExpressionNode) value.Val
 	return result
 }
 
-func resolveSubscript(node *ast.SubscriptExpressionNode) value.Value {
-	receiver := resolve(node.Receiver)
-	key := resolve(node.Key)
+func resolveSubscript(node *ast.SubscriptExpressionNode, checker types.Checker) value.Value {
+	receiver := resolve(node.Receiver, checker)
+	key := resolve(node.Key, checker)
 
 	result, err := value.SubscriptVal(receiver, key)
 	if !err.IsUndefined() {
@@ -516,8 +1669,8 @@ func resolveSubscript(node *ast.SubscriptExpressionNode) value.Value {
 	return result
 }
 
-func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
-	right := resolve(node.Right)
+func resolveUnaryExpression(node *ast.UnaryExpressionNode, checker types.Checker) value.Value {
+	right := resolve(node.Right, checker)
 	if right.IsUndefined() {
 		return value.Undefined
 	}
@@ -542,7 +1695,7 @@ func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
 		}
 		return result
 	case token.BANG:
-		return value.ToNotBool(right)
+		return value.ToNotBool(right).ToValue()
 	case token.AND:
 		singleton := right.SingletonClass()
 		if singleton == nil {
@@ -554,12 +1707,12 @@ func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
 	}
 }
 
-func resolveBinaryExpression(node *ast.BinaryExpressionNode) value.Value {
-	left := resolve(node.Left)
+func resolveBinaryExpression(node *ast.BinaryExpressionNode, checker types.Checker) value.Value {
+	left := resolve(node.Left, checker)
 	if left.IsUndefined() {
 		return value.Undefined
 	}
-	right := resolve(node.Right)
+	right := resolve(node.Right, checker)
 	if right.IsUndefined() {
 		return value.Undefined
 	}

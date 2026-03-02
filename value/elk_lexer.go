@@ -5,4 +5,5 @@ var ElkLexerClass *Class // ::Std::Elk::Lexer
 func initElkLexer() {
 	ElkLexerClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	ElkModule.AddConstantString("Lexer", Ref(ElkLexerClass))
+	RegisterNativeClass("Std::Elk::Lexer", "value.ElkLexerClass")
 }

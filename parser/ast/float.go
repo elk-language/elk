@@ -70,6 +70,10 @@ func (n *FloatLiteralNode) Inspect() string {
 	)
 }
 
+func (n *FloatLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *FloatLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -142,6 +146,10 @@ func (n *BigFloatLiteralNode) Inspect() string {
 		(*value.Location)(n.loc).Inspect(),
 		n.Value,
 	)
+}
+
+func (n *BigFloatLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *BigFloatLiteralNode) Error() string {
@@ -218,6 +226,10 @@ func (n *Float64LiteralNode) Inspect() string {
 	)
 }
 
+func (n *Float64LiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *Float64LiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -290,6 +302,10 @@ func (n *Float32LiteralNode) Inspect() string {
 		(*value.Location)(n.loc).Inspect(),
 		n.Value,
 	)
+}
+
+func (n *Float32LiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *Float32LiteralNode) Error() string {

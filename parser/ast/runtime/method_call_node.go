@@ -20,7 +20,7 @@ func initMethodCallNode() {
 
 			var argPositionalArguments []ast.ExpressionNode
 			if !args[4].IsUndefined() {
-				argPositionalArgumentsTuple := args[4].MustReference().(*value.ArrayTuple)
+				argPositionalArgumentsTuple := args[4].MustReference().(*value.ArrayTupleOfValue)
 				argPositionalArguments = make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
 				for i, el := range *argPositionalArgumentsTuple {
 					argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
@@ -29,7 +29,7 @@ func initMethodCallNode() {
 
 			var argNamedArguments []ast.NamedArgumentNode
 			if !args[5].IsUndefined() {
-				argNamedArgumentsTuple := args[5].MustReference().(*value.ArrayTuple)
+				argNamedArgumentsTuple := args[5].MustReference().(*value.ArrayTupleOfValue)
 				argNamedArguments = make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
 				for i, el := range *argNamedArgumentsTuple {
 					argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
@@ -96,7 +96,7 @@ func initMethodCallNode() {
 			self := args[0].MustReference().(*ast.MethodCallNode)
 
 			collection := self.PositionalArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -113,7 +113,7 @@ func initMethodCallNode() {
 			self := args[0].MustReference().(*ast.MethodCallNode)
 
 			collection := self.NamedArguments
-			arrayTuple := value.NewArrayTupleWithLength(len(collection))
+			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
 			for i, el := range collection {
 				arrayTuple.SetAt(i, value.Ref(el))
 			}
@@ -128,7 +128,7 @@ func initMethodCallNode() {
 		"tail_call",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodCallNode)
-			result := value.ToElkBool(self.TailCall)
+			result := value.BoolVal(self.TailCall)
 			return result, value.Undefined
 
 		},
@@ -151,7 +151,7 @@ func initMethodCallNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodCallNode)
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

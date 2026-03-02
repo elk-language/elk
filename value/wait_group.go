@@ -19,6 +19,10 @@ func (w *WaitGroup) Copy() Reference {
 	return &WaitGroup{}
 }
 
+func (w *WaitGroup) ToValue() Value {
+	return Ref(w)
+}
+
 func (*WaitGroup) Class() *Class {
 	return WaitGroupClass
 }
@@ -68,4 +72,5 @@ func (w *WaitGroup) Wait() {
 func initWaitGroup() {
 	WaitGroupClass = NewClassWithOptions(ClassWithConstructor(WaitGroupConstructor))
 	SyncModule.AddConstantString("WaitGroup", Ref(WaitGroupClass))
+	RegisterNativeClass("Std::Sync::WaitGroup", "value.WaitGroupClass")
 }

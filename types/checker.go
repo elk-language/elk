@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 )
 
@@ -15,6 +16,7 @@ type Checker interface {
 	CanBeFalsy(typ Type) bool
 	CanBeTruthy(typ Type) bool
 	IsTheSameType(a, b Type) bool
+	IsTheSameNamespace(a, b Namespace) bool
 	TypesIntersect(a, b Type) bool
 	NewNormalisedUnion(elements ...Type) Type
 	NewNormalisedIntersection(elements ...Type) Type
@@ -33,4 +35,6 @@ type Checker interface {
 	GetIteratorElementType(Type) (Type, Type)
 	GetIteratorType(Type) Type
 	SelfType() Type
+	GetMethod(typ Type, name value.Symbol, errSpan *position.Location) *Method
+	ResolveGenericParent(namespace Namespace, targetParent Namespace) *Generic
 }

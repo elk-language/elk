@@ -309,7 +309,7 @@ func NewUIntLiteral(value string) *UIntLiteral {
 }
 
 func (i *UIntLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.UInt64)
+	return env.StdSubtype(symbol.UInt)
 }
 
 func (*UIntLiteral) IsLiteral() bool {

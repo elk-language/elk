@@ -67,6 +67,10 @@ func (n *TrueLiteralNode) Inspect() string {
 	return fmt.Sprintf("Std::Elk::AST::TrueLiteralNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
+func (n *TrueLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *TrueLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -137,6 +141,10 @@ func (n *FalseLiteralNode) Inspect() string {
 	return fmt.Sprintf("Std::Elk::AST::FalseLiteralNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
+func (n *FalseLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *FalseLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -201,6 +209,10 @@ func (*SelfLiteralNode) DirectClass() *value.Class {
 
 func (n *SelfLiteralNode) Inspect() string {
 	return fmt.Sprintf("Std::Elk::AST::SelfLiteralNode{location: %s}", (*value.Location)(n.loc).Inspect())
+}
+
+func (n *SelfLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *SelfLiteralNode) Error() string {
@@ -275,6 +287,10 @@ func (n *NilLiteralNode) Inspect() string {
 	return fmt.Sprintf("Std::Elk::AST::NilLiteralNode{location: %s}", (*value.Location)(n.loc).Inspect())
 }
 
+func (n *NilLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *NilLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -339,6 +355,10 @@ func (*UndefinedLiteralNode) DirectClass() *value.Class {
 
 func (n *UndefinedLiteralNode) Inspect() string {
 	return fmt.Sprintf("Std::Elk::AST::UndefinedLiteralNode{location: %s}", (*value.Location)(n.loc).Inspect())
+}
+
+func (n *UndefinedLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *UndefinedLiteralNode) Error() string {

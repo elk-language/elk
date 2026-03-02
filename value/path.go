@@ -14,6 +14,7 @@ var PathClass *Class // ::Std::FS::Path
 func initPath() {
 	PathClass = NewClass()
 	FSModule.AddConstantString("Path", Ref(PathClass))
+	RegisterNativeClass("Std::FS::Path", "value.PathClass")
 }
 
 type Path struct {
@@ -48,6 +49,10 @@ func (*Path) SingletonClass() *Class {
 
 func (p *Path) Copy() Reference {
 	return p
+}
+
+func (p *Path) ToValue() Value {
+	return Ref(p)
 }
 
 func (p *Path) Inspect() string {

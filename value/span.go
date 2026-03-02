@@ -31,6 +31,10 @@ func (s *Span) Copy() Reference {
 	return s
 }
 
+func (s *Span) ToValue() Value {
+	return Ref(s)
+}
+
 func (*Span) InstanceVariables() *InstanceVariables {
 	return nil
 }
@@ -62,4 +66,5 @@ func (s *Span) Equal(other *Span) bool {
 func initSpan() {
 	SpanClass = NewClassWithOptions(ClassWithConstructor(SpanConstructor))
 	StringClass.AddConstantString("Span", Ref(SpanClass))
+	RegisterNativeClass("Std::String::Span", "value.SpanClass")
 }

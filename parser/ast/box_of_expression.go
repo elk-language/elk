@@ -104,6 +104,10 @@ func (n *BoxOfExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *BoxOfExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *BoxOfExpressionNode) Error() string {
 	return n.Inspect()
 }

@@ -65,6 +65,10 @@ func (r *Regex) Copy() Reference {
 	return r
 }
 
+func (r *Regex) ToValue() Value {
+	return Ref(r)
+}
+
 func (*Regex) SingletonClass() *Class {
 	return nil
 }
@@ -107,14 +111,14 @@ func (r *Regex) InstanceVariables() *InstanceVariables {
 // Check whether r is equal to other
 func (r *Regex) Equal(other Value) Value {
 	if !other.IsReference() {
-		return False
+		return False.ToValue()
 	}
 
 	switch o := other.AsReference().(type) {
 	case *Regex:
-		return ToElkBool(r.Flags == o.Flags && r.Source == o.Source)
+		return Bool(r.Flags == o.Flags && r.Source == o.Source).ToValue()
 	default:
-		return False
+		return False.ToValue()
 	}
 }
 
@@ -191,7 +195,7 @@ func (r *Regex) Matches(other Value) (Value, Value) {
 	}
 	switch o := other.AsReference().(type) {
 	case String:
-		return ToElkBool(r.Re.MatchString(string(o))), Undefined
+		return Bool(r.Re.MatchString(string(o))).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(r.Class(), other.Class()))
 	}
@@ -215,4 +219,5 @@ func NewRegexComparer(opts *cmp.Options) cmp.Option {
 func initRegex() {
 	RegexClass = NewClass()
 	StdModule.AddConstantString("Regex", Ref(RegexClass))
+	RegisterNativeClass("Std::Regex", "value.RegexClass")
 }

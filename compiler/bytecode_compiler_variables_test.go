@@ -9,8 +9,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestInstanceVariables(t *testing.T) {
-	tests := testTable{
+func TestBytecodeInstanceVariables(t *testing.T) {
+	tests := bytecodeTestTable{
 		"initialise when declared": {
 			input: `
 				class Foo
@@ -3496,13 +3496,13 @@ func TestInstanceVariables(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLocalVariables(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLocalVariables(t *testing.T) {
+	tests := bytecodeTestTable{
 		"declare": {
 			input: "var a: Int",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -3585,7 +3585,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 49),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
+					value.Ref(&value.ArrayListOfValue{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
 					value.Ref(value.ListMixin),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in variable declaration")),
@@ -3806,13 +3806,13 @@ func TestLocalVariables(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestUpvalues(t *testing.T) {
-	tests := testTable{
+func TestBytecodeUpvalues(t *testing.T) {
+	tests := bytecodeTestTable{
 		"create a pointer": {
 			input: `
 				a := 5
@@ -3945,9 +3945,7 @@ func TestUpvalues(t *testing.T) {
 					byte(bytecode.BOX_LOCAL8), 1,
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.CLOSURE),
-					2, 1,
-					0xff,
+					byte(bytecode.CLOSURE), 2, 1, 0xff,
 					byte(bytecode.SET_LOCAL_3),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.RETURN),
@@ -3965,21 +3963,19 @@ func TestUpvalues(t *testing.T) {
 						value.ToSymbol("<closure>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.UNDEFINED),
 							byte(bytecode.GET_UPVALUE_0),
-							byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 							byte(bytecode.CALL_METHOD_TCO8), 1,
 							byte(bytecode.RETURN),
 						},
 						L(P(33, 4, 10), P(44, 4, 21)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(4, 9),
+							bytecode.NewLineInfo(4, 6),
 						},
 						0,
 						0,
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
+							value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 						},
 						1,
 					)),
@@ -4009,24 +4005,22 @@ func TestUpvalues(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
-						functionSymbol,
+						value.ToSymbol("<closure>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.UNDEFINED),
 							byte(bytecode.GET_UPVALUE_0),
-							byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 							byte(bytecode.CALL_METHOD_TCO8), 1,
 							byte(bytecode.RETURN),
 						},
 						L(P(22, 3, 5), P(39, 3, 22)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 9),
+							bytecode.NewLineInfo(3, 6),
 						},
 						0,
 						0,
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
+							value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 						},
 						1,
 					)),
@@ -4063,21 +4057,19 @@ func TestUpvalues(t *testing.T) {
 						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.UNDEFINED),
 							byte(bytecode.GET_UPVALUE_0),
-							byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 							byte(bytecode.CALL_METHOD_TCO8), 1,
 							byte(bytecode.RETURN),
 						},
 						L(P(31, 4, 6), P(48, 4, 23)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(4, 9),
+							bytecode.NewLineInfo(4, 6),
 						},
 						0,
 						0,
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
+							value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 						},
 						1,
 					)),
@@ -4213,13 +4205,13 @@ func TestUpvalues(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLocalValues(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLocalValues(t *testing.T) {
+	tests := bytecodeTestTable{
 		"declare": {
 			input: "val a: Int",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -4302,7 +4294,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(1, 49),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
+					value.Ref(&value.ArrayListOfValue{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
 					value.Ref(value.ListMixin),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in value declaration")),
@@ -4462,7 +4454,7 @@ func TestLocalValues(t *testing.T) {
 							byte(bytecode.INT_1),
 							byte(bytecode.SET_LOCAL_4),
 						},
-						declareNVariables(253)...,
+						bytecodeDeclareNVariables(253)...,
 					),
 					byte(bytecode.INT_1),
 					byte(bytecode.SET_LOCAL8), 254,
@@ -4486,12 +4478,12 @@ func TestLocalValues(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func declareNVariables(n int) []byte {
+func bytecodeDeclareNVariables(n int) []byte {
 	b := make([]byte, 0, n*4)
 	for i := 5; i <= n; i++ {
 		b = append(

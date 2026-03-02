@@ -9,8 +9,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestGoExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeGoExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"with a single expression": {
 			input: "go println('foo')",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -40,9 +40,9 @@ func TestGoExpression(t *testing.T) {
 						},
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
+							value.Ref(value.String("foo")),
 							value.Ref(value.NewCallSiteInfo(
-								value.ToSymbol("println"),
+								value.ToSymbol("println@1"),
 								1,
 							)),
 						},
@@ -65,7 +65,7 @@ func TestGoExpression(t *testing.T) {
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.CLOSED_CLOSURE), 2, 1, 0xff,
+					byte(bytecode.CLOSED_CLOSURE), 0x02, 0x01, 0xff,
 					byte(bytecode.GO),
 					byte(bytecode.RETURN),
 				},
@@ -85,28 +85,26 @@ func TestGoExpression(t *testing.T) {
 							byte(bytecode.CALL_METHOD8), 2,
 							byte(bytecode.POP),
 							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.UNDEFINED),
 							byte(bytecode.GET_UPVALUE_0),
-							byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 							byte(bytecode.CALL_METHOD8), 3,
 							byte(bytecode.RETURN),
 						},
 						L(P(16, 3, 5), P(54, 5, 16)),
 						bytecode.LineInfoList{
 							bytecode.NewLineInfo(4, 6),
-							bytecode.NewLineInfo(5, 9),
+							bytecode.NewLineInfo(5, 6),
 						},
 						0,
 						0,
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
+							value.Ref(value.String("foo")),
 							value.Ref(value.NewCallSiteInfo(
-								value.ToSymbol("println"),
+								value.ToSymbol("println@1"),
 								1,
 							)),
 							value.Ref(value.NewCallSiteInfo(
-								value.ToSymbol("println"),
+								value.ToSymbol("println@1"),
 								1,
 							)),
 						},
@@ -119,13 +117,13 @@ func TestGoExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestForInExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeForInExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"int literal": {
 			input: `
 				for i in 20
@@ -141,17 +139,15 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.LOAD_INT_8), 20,
-					byte(bytecode.JUMP_UNLESS_ILT), 0, 15,
+					byte(bytecode.JUMP_UNLESS_ILT), 0, 12,
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 0,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.LOOP), 0, 21,
+					byte(bytecode.LOOP), 0, 18,
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
@@ -161,14 +157,14 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 9),
 					bytecode.NewLineInfo(4, 1),
-					bytecode.NewLineInfo(3, 8),
+					bytecode.NewLineInfo(3, 5),
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(4, 6),
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -194,17 +190,15 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.JUMP_UNLESS_ILT), 0, 15,
+					byte(bytecode.JUMP_UNLESS_ILT), 0, 12,
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 0,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_3),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_3),
-					byte(bytecode.LOOP), 0, 20,
+					byte(bytecode.LOOP), 0, 17,
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
@@ -215,7 +209,7 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 10),
 					bytecode.NewLineInfo(5, 1),
-					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(3, 1),
 					bytecode.NewLineInfo(5, 1),
 					bytecode.NewLineInfo(3, 1),
@@ -224,7 +218,7 @@ func TestForInExpression(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -245,17 +239,15 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.LOAD_INT_8), 20,
-					byte(bytecode.JUMP_UNLESS_ILE), 0, 15,
+					byte(bytecode.JUMP_UNLESS_ILE), 0, 12,
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 0,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 1,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.LOOP), 0, 21,
+					byte(bytecode.LOOP), 0, 18,
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
@@ -265,14 +257,14 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 9),
 					bytecode.NewLineInfo(4, 1),
-					bytecode.NewLineInfo(3, 8),
+					bytecode.NewLineInfo(3, 5),
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(4, 6),
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -302,17 +294,15 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.GET_LOCAL_3),
-					byte(bytecode.JUMP_UNLESS_ILE), 0, 15,
+					byte(bytecode.JUMP_UNLESS_ILE), 0, 12,
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 3,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_4),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_4),
-					byte(bytecode.LOOP), 0, 20,
+					byte(bytecode.LOOP), 0, 17,
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
@@ -323,7 +313,7 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 16),
 					bytecode.NewLineInfo(5, 1),
-					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(3, 1),
 					bytecode.NewLineInfo(5, 1),
 					bytecode.NewLineInfo(3, 1),
@@ -335,7 +325,7 @@ func TestForInExpression(t *testing.T) {
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("start"), 0)),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -356,15 +346,13 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.FOR_IN_BUILTIN), 0, 13,
+					byte(bytecode.FOR_IN_BUILTIN), 0, 10,
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.LOOP), 0, 17,
+					byte(bytecode.LOOP), 0, 14,
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
@@ -372,18 +360,18 @@ func TestForInExpression(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 9),
-					bytecode.NewLineInfo(3, 8),
+					bytecode.NewLineInfo(3, 5),
 					bytecode.NewLineInfo(4, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -403,7 +391,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.FOR_IN_BUILTIN), 0, 59,
+					byte(bytecode.FOR_IN_BUILTIN), 0, 56,
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.IS_A),
@@ -439,14 +427,12 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.THROW),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 4,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.ADD_INT),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 5,
 					byte(bytecode.POP),
-					byte(bytecode.LOOP), 0, 63,
+					byte(bytecode.LOOP), 0, 60,
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
@@ -456,20 +442,20 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(2, 50),
 					bytecode.NewLineInfo(4, 1),
 					bytecode.NewLineInfo(2, 1),
-					bytecode.NewLineInfo(3, 10),
+					bytecode.NewLineInfo(3, 7),
 					bytecode.NewLineInfo(4, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
-						value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(1).ToValue(),
 							value.SmallInt(2).ToValue(),
 						}),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(3).ToValue(),
 							value.SmallInt(4).ToValue(),
 						}),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(5).ToValue(),
 							value.SmallInt(6).ToValue(),
 						}),
@@ -482,7 +468,7 @@ func TestForInExpression(t *testing.T) {
 					)),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -504,12 +490,10 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.FOR_IN_BUILTIN), 0, 27,
+					byte(bytecode.FOR_IN_BUILTIN), 0, 24,
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL_2),
@@ -520,7 +504,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.LOOP), 0, 31,
+					byte(bytecode.LOOP), 0, 28,
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
@@ -528,12 +512,12 @@ func TestForInExpression(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 9),
-					bytecode.NewLineInfo(3, 9),
+					bytecode.NewLineInfo(3, 6),
 					bytecode.NewLineInfo(4, 13),
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -542,7 +526,7 @@ func TestForInExpression(t *testing.T) {
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -564,12 +548,10 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.FOR_IN_BUILTIN), 0, 27,
+					byte(bytecode.FOR_IN_BUILTIN), 0, 24,
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL_2),
@@ -580,7 +562,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.LOOP), 0, 31,
+					byte(bytecode.LOOP), 0, 28,
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
@@ -588,12 +570,12 @@ func TestForInExpression(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 9),
-					bytecode.NewLineInfo(3, 9),
+					bytecode.NewLineInfo(3, 6),
 					bytecode.NewLineInfo(4, 13),
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -602,7 +584,7 @@ func TestForInExpression(t *testing.T) {
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 					value.ToSymbol("foo").ToValue(),
@@ -625,12 +607,10 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.FOR_IN_BUILTIN), 0, 27,
+					byte(bytecode.FOR_IN_BUILTIN), 0, 24,
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL_2),
@@ -641,7 +621,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.LOOP), 0, 31,
+					byte(bytecode.LOOP), 0, 28,
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
@@ -649,12 +629,12 @@ func TestForInExpression(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 9),
-					bytecode.NewLineInfo(3, 9),
+					bytecode.NewLineInfo(3, 6),
 					bytecode.NewLineInfo(4, 13),
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -663,7 +643,7 @@ func TestForInExpression(t *testing.T) {
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -685,7 +665,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.FOR_IN_BUILTIN), 0, 22,
+					byte(bytecode.FOR_IN_BUILTIN), 0, 19,
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.INT_2),
@@ -693,12 +673,10 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.LOOP), 0, 13,
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.LOOP), 0, 26,
+					byte(bytecode.LOOP), 0, 23,
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
@@ -707,11 +685,11 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 9),
 					bytecode.NewLineInfo(3, 9),
-					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -720,7 +698,7 @@ func TestForInExpression(t *testing.T) {
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -742,7 +720,7 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.FOR_IN_BUILTIN), 0, 22,
+					byte(bytecode.FOR_IN_BUILTIN), 0, 19,
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.INT_2),
@@ -750,12 +728,10 @@ func TestForInExpression(t *testing.T) {
 					byte(bytecode.LOOP), 0, 13,
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.LOOP), 0, 26,
+					byte(bytecode.LOOP), 0, 23,
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
@@ -764,11 +740,11 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 9),
 					bytecode.NewLineInfo(3, 9),
-					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -777,7 +753,7 @@ func TestForInExpression(t *testing.T) {
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -841,13 +817,13 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Ref(value.String("a")),
-						value.Ref(value.String("b")),
-						value.Ref(value.String("c")),
-						value.Ref(value.String("d")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"a",
+						"b",
+						"c",
+						"d",
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -920,13 +896,13 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Ref(value.String("a")),
-						value.Ref(value.String("b")),
-						value.Ref(value.String("c")),
-						value.Ref(value.String("d")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"a",
+						"b",
+						"c",
+						"d",
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -998,13 +974,13 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Ref(value.String("a")),
-						value.Ref(value.String("b")),
-						value.Ref(value.String("c")),
-						value.Ref(value.String("d")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"a",
+						"b",
+						"c",
+						"d",
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1076,13 +1052,13 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Ref(value.String("a")),
-						value.Ref(value.String("b")),
-						value.Ref(value.String("c")),
-						value.Ref(value.String("d")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"a",
+						"b",
+						"c",
+						"d",
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1101,13 +1077,13 @@ func TestForInExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestReturnExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeReturnExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"return a value": {
 			input: "return 5",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1130,13 +1106,13 @@ func TestReturnExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestAwaitExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeAwaitExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"await in a synchronous context": {
 			input: "await timeout(2.seconds)",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1312,13 +1288,13 @@ func TestAwaitExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestModifierForIn(t *testing.T) {
-	tests := testTable{
+func TestBytecodeModifierForIn(t *testing.T) {
+	tests := bytecodeTestTable{
 		"iterate": {
 			input: `println(i) for i in [1, 2, 3]`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1330,31 +1306,29 @@ func TestModifierForIn(t *testing.T) {
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.FOR_IN_BUILTIN), 0, 13,
+					byte(bytecode.FOR_IN_BUILTIN), 0, 10,
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.LOOP), 0, 17,
+					byte(bytecode.LOOP), 0, 14,
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(28, 1, 29)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 25),
+					bytecode.NewLineInfo(1, 22),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -1370,7 +1344,7 @@ func TestModifierForIn(t *testing.T) {
 					byte(bytecode.GET_ITERATOR),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.FOR_IN_BUILTIN), 0, 59,
+					byte(bytecode.FOR_IN_BUILTIN), 0, 56,
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.IS_A),
@@ -1406,32 +1380,30 @@ func TestModifierForIn(t *testing.T) {
 					byte(bytecode.THROW),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 4,
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.ADD_INT),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_METHOD8), 5,
 					byte(bytecode.POP),
-					byte(bytecode.LOOP), 0, 63,
+					byte(bytecode.LOOP), 0, 60,
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(57, 1, 58)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 70),
+					bytecode.NewLineInfo(1, 67),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
-						value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(1).ToValue(),
 							value.SmallInt(2).ToValue(),
 						}),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(3).ToValue(),
 							value.SmallInt(4).ToValue(),
 						}),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(5).ToValue(),
 							value.SmallInt(6).ToValue(),
 						}),
@@ -1444,7 +1416,7 @@ func TestModifierForIn(t *testing.T) {
 					)),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -1454,13 +1426,13 @@ func TestModifierForIn(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestIfExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeIfExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static condition with empty then and else": {
 			input: `if false; end`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1699,13 +1671,13 @@ func TestIfExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestUnlessExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeUnlessExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static condition with empty then and else": {
 			input: "unless true; end",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1942,13 +1914,13 @@ func TestUnlessExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestBreak(t *testing.T) {
-	tests := testTable{
+func TestBytecodeBreak(t *testing.T) {
+	tests := bytecodeTestTable{
 		"in top level": {
 			input: "break",
 			err: diagnostic.DiagnosticList{
@@ -2001,13 +1973,13 @@ func TestBreak(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestContinue(t *testing.T) {
-	tests := testTable{
+func TestBytecodeContinue(t *testing.T) {
+	tests := bytecodeTestTable{
 		"in top level": {
 			input: "continue",
 			err: diagnostic.DiagnosticList{
@@ -2060,13 +2032,13 @@ func TestContinue(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLoopExpression(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLoopExpression(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty body": {
 			input: `
 				loop
@@ -2157,8 +2129,8 @@ func TestLoopExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
+					value.Ref(value.String("foo")),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -2204,8 +2176,8 @@ func TestLoopExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
+					value.Ref(value.String("foo")),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -2604,13 +2576,13 @@ func TestLoopExpression(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLogicalOrOperator(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLogicalOrOperator(t *testing.T) {
+	tests := bytecodeTestTable{
 		"simple": {
 			input: `
 				a := "foo"
@@ -2688,13 +2660,13 @@ func TestLogicalOrOperator(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLogicalAndOperator(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLogicalAndOperator(t *testing.T) {
+	tests := bytecodeTestTable{
 		"simple": {
 			input: `
 				a := "foo"
@@ -2771,13 +2743,13 @@ func TestLogicalAndOperator(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestNilCoalescingOperator(t *testing.T) {
-	tests := testTable{
+func TestBytecodeNilCoalescingOperator(t *testing.T) {
+	tests := bytecodeTestTable{
 		"simple": {
 			input: `
 				a := "foo"
@@ -2851,13 +2823,13 @@ func TestNilCoalescingOperator(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestNumericFor(t *testing.T) {
-	tests := testTable{
+func TestBytecodeNumericFor(t *testing.T) {
+	tests := bytecodeTestTable{
 		"for without initialiser, condition, increment and body": {
 			input: `
 				fornum ;;
@@ -3341,13 +3313,13 @@ func TestNumericFor(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestModifierWhile(t *testing.T) {
-	tests := testTable{
+func TestBytecodeModifierWhile(t *testing.T) {
+	tests := bytecodeTestTable{
 		"single line": {
 			input: `
 			  i := 0
@@ -3839,9 +3811,9 @@ func TestModifierWhile(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
+					value.Ref(value.String("foo")),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -3872,9 +3844,9 @@ func TestModifierWhile(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
+					value.Ref(value.String("foo")),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -3887,13 +3859,13 @@ func TestModifierWhile(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestWhile(t *testing.T) {
-	tests := testTable{
+func TestBytecodeWhile(t *testing.T) {
+	tests := bytecodeTestTable{
 		"with a body": {
 			input: `
 			  i := 0
@@ -4383,9 +4355,9 @@ func TestWhile(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
+					value.Ref(value.String("foo")),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -4423,13 +4395,13 @@ func TestWhile(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestModifierUntil(t *testing.T) {
-	tests := testTable{
+func TestBytecodeModifierUntil(t *testing.T) {
+	tests := bytecodeTestTable{
 		"single line": {
 			input: `
 			  i := 0
@@ -4920,9 +4892,9 @@ func TestModifierUntil(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
+					value.Ref(value.String("foo")),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -4953,9 +4925,9 @@ func TestModifierUntil(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
+					value.Ref(value.String("foo")),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -4968,13 +4940,13 @@ func TestModifierUntil(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestUntil(t *testing.T) {
-	tests := testTable{
+func TestBytecodeUntil(t *testing.T) {
+	tests := bytecodeTestTable{
 		"with a body": {
 			input: `
 			  i := 0
@@ -5462,9 +5434,9 @@ func TestUntil(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
+					value.Ref(value.String("foo")),
 					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
+						value.ToSymbol("println@1"),
 						1,
 					)),
 				},
@@ -5502,13 +5474,13 @@ func TestUntil(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestMust(t *testing.T) {
-	tests := testTable{
+func TestBytecodeMust(t *testing.T) {
+	tests := bytecodeTestTable{
 		"with a value": {
 			input: `
 				var a: Int? = nil
@@ -5536,13 +5508,13 @@ func TestMust(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestAs(t *testing.T) {
-	tests := testTable{
+func TestBytecodeAs(t *testing.T) {
+	tests := bytecodeTestTable{
 		"cast": {
 			input: `
 				var a: Int | Float = 1
@@ -5574,13 +5546,13 @@ func TestAs(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestThrow(t *testing.T) {
-	tests := testTable{
+func TestBytecodeThrow(t *testing.T) {
+	tests := bytecodeTestTable{
 		"with a value": {
 			input: `throw unchecked :foo`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -5609,13 +5581,13 @@ func TestThrow(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestCatch(t *testing.T) {
-	tests := testTable{
+func TestBytecodeCatch(t *testing.T) {
+	tests := bytecodeTestTable{
 		"simple catch": {
 			input: `
 				do
@@ -5761,7 +5733,7 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.JUMP), 0, 40,
+					byte(bytecode.JUMP), 0, 39,
 					byte(bytecode.TRUE),
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.FALSE),
@@ -5770,8 +5742,8 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_CONST8), 0,
-					byte(bytecode.LOAD_VALUE8), 5,
-					byte(bytecode.CALL_METHOD8), 6,
+					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.CALL_METHOD8), 5,
 					byte(bytecode.SWAP),
 					byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
 					byte(bytecode.POP_2),
@@ -5795,19 +5767,18 @@ func TestCatch(t *testing.T) {
 					bytecode.NewLineInfo(5, 6),
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(6, 13),
-					bytecode.NewLineInfo(5, 6),
+					bytecode.NewLineInfo(5, 5),
 					bytecode.NewLineInfo(6, 22),
 				},
 				0,
 				0,
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("bar"))}),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("bar"))}),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
+					value.Ref(value.String("foo")),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(value.String("bar")),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 				},
 				[]*vm.CatchEntry{
 					vm.NewCatchEntry(0, 5, 14, false),
@@ -5842,7 +5813,7 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.CALL_METHOD8), 4,
 					byte(bytecode.POP),
-					byte(bytecode.JUMP), 0, 56,
+					byte(bytecode.JUMP), 0, 55,
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 5,
 					byte(bytecode.EQUAL),
@@ -5859,8 +5830,8 @@ func TestCatch(t *testing.T) {
 					byte(bytecode.JUMP), 0, 1,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.LOAD_VALUE8), 8,
-					byte(bytecode.CALL_METHOD8), 9,
+					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.CALL_METHOD8), 8,
 					byte(bytecode.SWAP),
 					byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
 					byte(bytecode.POP_2),
@@ -5885,7 +5856,7 @@ func TestCatch(t *testing.T) {
 					bytecode.NewLineInfo(9, 7),
 					bytecode.NewLineInfo(10, 9),
 					bytecode.NewLineInfo(13, 13),
-					bytecode.NewLineInfo(12, 6),
+					bytecode.NewLineInfo(12, 5),
 					bytecode.NewLineInfo(13, 22),
 				},
 				0,
@@ -5927,8 +5898,8 @@ func TestCatch(t *testing.T) {
 									bytecode.NewLineInfo(5, 1),
 								},
 								[]value.Value{
-									value.Ref(&value.ArrayTuple{value.Ref(value.String("foo"))}),
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
+									value.Ref(value.String("foo")),
+									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 									value.ToSymbol("foo").ToValue(),
 								},
 							)),
@@ -5937,13 +5908,12 @@ func TestCatch(t *testing.T) {
 					)),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("baz"))}),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
+					value.Ref(value.String("baz")),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 					value.ToSymbol("foo").ToValue(),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("bar"))}),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
-					value.Ref(&value.ArrayTuple{value.Ref(value.String("baz"))}),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println"), 1)),
+					value.Ref(value.String("bar")),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 				},
 				[]*vm.CatchEntry{
 					vm.NewCatchEntry(3, 7, 16, false),
@@ -5955,7 +5925,7 @@ func TestCatch(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }

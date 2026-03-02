@@ -9,67 +9,26 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestArrayTupleContains(t *testing.T) {
-	tests := map[string]struct {
-		tuple    *value.ArrayTuple
-		val      value.Value
-		contains bool
-		err      value.Value
-	}{
-		"empty tuple": {
-			tuple:    &value.ArrayTuple{},
-			val:      value.SmallInt(5).ToValue(),
-			contains: false,
-		},
-		"coercible elements": {
-			tuple:    &value.ArrayTuple{value.Ref(value.String("foo")), value.Float(5).ToValue()},
-			val:      value.SmallInt(5).ToValue(),
-			contains: false,
-		},
-		"has the value": {
-			tuple:    &value.ArrayTuple{value.Ref(value.String("foo")), value.SmallInt(5).ToValue(), value.Float(9.3).ToValue()},
-			val:      value.SmallInt(5).ToValue(),
-			contains: true,
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			v := vm.New()
-			contains, err := vm.ArrayTupleContains(v, tc.tuple, tc.val)
-			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
-				t.Fatal(diff)
-			}
-			if !err.IsUndefined() {
-				return
-			}
-			if diff := cmp.Diff(tc.contains, contains, comparer.Options()); diff != "" {
-				t.Fatal(diff)
-			}
-		})
-	}
-}
-
 func TestArrayTupleEqual(t *testing.T) {
 	tests := map[string]struct {
-		tuple *value.ArrayTuple
-		other *value.ArrayTuple
+		tuple *value.ArrayTupleOfValue
+		other *value.ArrayTupleOfValue
 		equal bool
 		err   value.Value
 	}{
 		"two identical tuples": {
-			tuple: &value.ArrayTuple{value.Ref(value.String("foo")), value.Float(5).ToValue()},
-			other: &value.ArrayTuple{value.Ref(value.String("foo")), value.Float(5).ToValue()},
+			tuple: &value.ArrayTupleOfValue{value.Ref(value.String("foo")), value.Float(5).ToValue()},
+			other: &value.ArrayTupleOfValue{value.Ref(value.String("foo")), value.Float(5).ToValue()},
 			equal: true,
 		},
 		"different length": {
-			tuple: &value.ArrayTuple{value.Ref(value.String("foo")), value.Float(5).ToValue()},
-			other: &value.ArrayTuple{value.Ref(value.String("foo")), value.Float(5).ToValue(), value.Nil},
+			tuple: &value.ArrayTupleOfValue{value.Ref(value.String("foo")), value.Float(5).ToValue()},
+			other: &value.ArrayTupleOfValue{value.Ref(value.String("foo")), value.Float(5).ToValue(), value.Nil},
 			equal: false,
 		},
 		"the same values of different types": {
-			tuple: &value.ArrayTuple{value.Ref(value.String("foo")), value.SmallInt(5).ToValue()},
-			other: &value.ArrayTuple{value.Ref(value.String("foo")), value.Float(5).ToValue()},
+			tuple: &value.ArrayTupleOfValue{value.Ref(value.String("foo")), value.SmallInt(5).ToValue()},
+			other: &value.ArrayTupleOfValue{value.Ref(value.String("foo")), value.Float(5).ToValue()},
 			equal: false,
 		},
 	}

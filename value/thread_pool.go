@@ -5,4 +5,5 @@ var ThreadPoolClass *Class // ::Std::ThreadPool
 func initThreadPool() {
 	ThreadPoolClass = NewClass()
 	StdModule.AddConstantString("ThreadPool", Ref(ThreadPoolClass))
+	RegisterNativeClass("Std::ThreadPool", "value.ThreadPoolClass")
 }

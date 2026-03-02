@@ -132,6 +132,10 @@ func (n *WhileExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *WhileExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *WhileExpressionNode) Error() string {
 	return n.Inspect()
 }

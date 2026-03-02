@@ -21,6 +21,10 @@ func (r *EndlessOpenRange) Copy() Reference {
 	return r
 }
 
+func (r *EndlessOpenRange) ToValue() Value {
+	return Ref(r)
+}
+
 func (*EndlessOpenRange) Class() *Class {
 	return EndlessOpenRangeClass
 }
@@ -98,6 +102,10 @@ func (r *EndlessOpenRangeIterator) Copy() Reference {
 	}
 }
 
+func (i *EndlessOpenRangeIterator) ToValue() Value {
+	return Ref(i)
+}
+
 func (r *EndlessOpenRangeIterator) Error() string {
 	return r.Inspect()
 }
@@ -114,7 +122,9 @@ func initEndlessOpenRange() {
 	EndlessOpenRangeClass = NewClass()
 	EndlessOpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("EndlessOpenRange", Ref(EndlessOpenRangeClass))
+	RegisterNativeClass("Std::EndlessOpenRange", "value.EndlessOpenRangeClass")
 
 	EndlessOpenRangeIteratorClass = NewClass()
 	EndlessOpenRangeClass.AddConstantString("Iterator", Ref(EndlessOpenRangeIteratorClass))
+	RegisterNativeClass("Std::EndlessOpenRange::Iterator", "value.EndlessOpenRangeIteratorClass")
 }

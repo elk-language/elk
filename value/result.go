@@ -63,6 +63,10 @@ func (r *Result) Copy() Reference {
 	}
 }
 
+func (r *Result) ToValue() Value {
+	return Ref(r)
+}
+
 func (*Result) Class() *Class {
 	return ResultClass
 }
@@ -90,4 +94,5 @@ func (*Result) InstanceVariables() *InstanceVariables {
 func initResult() {
 	ResultClass = NewClass()
 	StdModule.AddConstantString("Result", Ref(ResultClass))
+	RegisterNativeClass("Std::Result", "value.ResultClass")
 }

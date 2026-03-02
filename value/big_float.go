@@ -427,6 +427,10 @@ func (f *BigFloat) Copy() Reference {
 	return f
 }
 
+func (f *BigFloat) ToValue() Value {
+	return Ref(f)
+}
+
 func (f *BigFloat) Error() string {
 	return f.Inspect()
 }
@@ -910,7 +914,7 @@ func (f *BigFloat) CompareVal(other Value) (Value, Value) {
 // if something went wrong.
 func (f *BigFloat) GreaterThanVal(other Value) (Value, Value) {
 	result, err := f.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether f is greater than other and return an error
@@ -960,7 +964,7 @@ func (f *BigFloat) GreaterThan(other Value) (bool, Value) {
 // if something went wrong.
 func (f *BigFloat) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := f.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether f is greater than or equal to other and return an error
@@ -1010,7 +1014,7 @@ func (f *BigFloat) GreaterThanEqual(other Value) (bool, Value) {
 // if something went wrong.
 func (f *BigFloat) LessThanVal(other Value) (Value, Value) {
 	result, err := f.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether f is less than other and return an error
@@ -1103,13 +1107,13 @@ func (f *BigFloat) LessThanEqual(other Value) (bool, Value) {
 // if something went wrong.
 func (f *BigFloat) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := f.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
 func (f *BigFloat) LaxEqualVal(other Value) Value {
-	return ToElkBool(f.LaxEqualBool(other))
+	return Bool(f.LaxEqualBool(other)).ToValue()
 }
 
 // Check whether f is equal to other and return an error
@@ -1252,7 +1256,7 @@ func (f *BigFloat) LaxEqualBool(other Value) bool {
 // Check whether f is equal to other and return an error
 // if something went wrong.
 func (f *BigFloat) EqualVal(other Value) Value {
-	return ToElkBool(f.Equal(other))
+	return Bool(f.Equal(other)).ToValue()
 }
 
 // Check whether f is equal to other and return an error
@@ -1279,8 +1283,16 @@ func (f *BigFloat) StrictEqualVal(other Value) Value {
 
 func initBigFloat() {
 	BigFloatClass = NewClass()
+
 	StdModule.AddConstantString("BigFloat", Ref(BigFloatClass))
+	RegisterNativeClass("Std::BigFloat", "value.BigFloatClass")
+
 	BigFloatClass.AddConstantString("NAN", Ref(BigFloatNaNVal))
+	RegisterNativeConstant("Std::BigFloat::NAN", "value.BigFloatNaNVal", "*value.BigFloat")
+
 	BigFloatClass.AddConstantString("INF", Ref(BigFloatInfVal))
+	RegisterNativeConstant("Std::BigFloat::INF", "value.BigFloatInfVal", "*value.BigFloat")
+
 	BigFloatClass.AddConstantString("NEG_INF", Ref(BigFloatNegInfVal))
+	RegisterNativeConstant("Std::BigFloat::NEG_INF", "value.BigFloatNegInfVal", "*value.BigFloat")
 }

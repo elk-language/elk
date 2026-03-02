@@ -170,7 +170,7 @@ func (f Float32) CompareVal(other Value) (Value, Value) {
 
 func (f Float32) GreaterThanVal(other Value) (Value, Value) {
 	result, err := f.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (f Float32) GreaterThan(other Value) (bool, Value) {
@@ -184,7 +184,7 @@ func (f Float32) GreaterThan(other Value) (bool, Value) {
 
 func (f Float32) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := f.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (f Float32) GreaterThanEqual(other Value) (bool, Value) {
@@ -198,7 +198,7 @@ func (f Float32) GreaterThanEqual(other Value) (bool, Value) {
 
 func (f Float32) LessThanVal(other Value) (Value, Value) {
 	result, err := f.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (f Float32) LessThan(other Value) (bool, Value) {
@@ -212,7 +212,7 @@ func (f Float32) LessThan(other Value) (bool, Value) {
 
 func (f Float32) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := f.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (f Float32) LessThanEqual(other Value) (bool, Value) {
@@ -225,7 +225,7 @@ func (f Float32) LessThanEqual(other Value) (bool, Value) {
 }
 
 func (f Float32) EqualVal(other Value) Value {
-	return ToElkBool(f.Equal(other))
+	return Bool(f.Equal(other)).ToValue()
 }
 
 func (f Float32) Equal(other Value) bool {
@@ -244,9 +244,16 @@ func (f Float32) StrictEqualVal(other Value) Value {
 func initFloat32() {
 	Float32Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
 	StdModule.AddConstantString("Float32", Ref(Float32Class))
+	RegisterNativeClass("Std::Float32", "value.Float32Class")
+
 	Float32Class.AddConstantString("NAN", Float32NaN().ToValue())
+	RegisterNativeConstant("Std::Float32::NAN", "value.Float32NaN()", "value.Float32")
+
 	Float32Class.AddConstantString("INF", Float32Inf().ToValue())
+	RegisterNativeConstant("Std::Float32::INF", "value.Float32Inf()", "value.Float32")
+
 	Float32Class.AddConstantString("NEG_INF", Float32NegInf().ToValue())
+	RegisterNativeConstant("Std::Float32::NEG_INF", "value.Float32NegInf()", "value.Float32")
 
 	Float32ConvertibleInterface = NewInterface()
 	Float32Class.AddConstantString("Convertible", Ref(Float32ConvertibleInterface))

@@ -123,6 +123,13 @@ func (i *BigInt) ToFloat32() Float32 {
 	return Float32(i.ToFloat())
 }
 
+func (i *BigInt) Normalize() Value {
+	if i.IsSmallInt() {
+		return i.ToSmallInt().ToValue()
+	}
+	return i.ToValue()
+}
+
 // Negate the number and return the result.
 func (i *BigInt) Negate() *BigInt {
 	return ToElkBigInt((&big.Int{}).Neg(i.ToGoBigInt()))
@@ -174,13 +181,9 @@ func (i *BigInt) CompareVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return SmallInt(i.Cmp(o)).ToValue(), Undefined
+			return i.CompareBigInt(o).ToValue(), Undefined
 		case *BigFloat:
-			if o.IsNaN() {
-				return Nil, Undefined
-			}
-			iBigFloat := (&BigFloat{}).SetBigInt(i)
-			return SmallInt(iBigFloat.Cmp(o)).ToValue(), Undefined
+			return i.CompareBigFloat(o), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
@@ -188,17 +191,43 @@ func (i *BigInt) CompareVal(other Value) (Value, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return SmallInt(i.Cmp(oBigInt)).ToValue(), Undefined
+		return i.CompareSmallInt(other.AsSmallInt()).ToValue(), Undefined
 	case FLOAT_FLAG:
-		o := other.AsFloat()
-		if o.IsNaN() {
-			return Nil, Undefined
-		}
-		return SmallInt(i.ToFloat().Cmp(o)).ToValue(), Undefined
+		return i.CompareFloat(other.AsFloat()), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i *BigInt) CompareInt(other Value) SmallInt {
+	if other.IsSmallInt() {
+		return i.CompareSmallInt(other.AsSmallInt())
+	}
+	return i.CompareBigInt((*BigInt)(other.Pointer()))
+}
+
+func (i *BigInt) CompareBigFloat(other *BigFloat) Value {
+	if other.IsNaN() {
+		return Nil
+	}
+	iBigFloat := (&BigFloat{}).SetBigInt(i)
+	return SmallInt(iBigFloat.Cmp(other)).ToValue()
+}
+
+func (i *BigInt) CompareBigInt(other *BigInt) SmallInt {
+	return SmallInt(i.Cmp(other))
+}
+
+func (i *BigInt) CompareSmallInt(other SmallInt) SmallInt {
+	oBigInt := NewBigInt(int64(other))
+	return SmallInt(i.Cmp(oBigInt))
+}
+
+func (i *BigInt) CompareFloat(other Float) Value {
+	if other.IsNaN() {
+		return Nil
+	}
+	return SmallInt(i.ToFloat().Cmp(other)).ToValue()
 }
 
 // AddVal another value and return an error
@@ -222,6 +251,13 @@ func (i *BigInt) AddVal(other Value) (Value, Value) {
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i *BigInt) AddInt(other Value) Value {
+	if other.IsSmallInt() {
+		return i.AddSmallInt(other.AsSmallInt())
+	}
+	return i.AddBigInt((*BigInt)(other.Pointer()))
 }
 
 func (i *BigInt) AddFloat(other Float) Float {
@@ -277,6 +313,13 @@ func (i *BigInt) SubtractVal(other Value) (Value, Value) {
 	}
 }
 
+func (i *BigInt) SubtractInt(other Value) Value {
+	if other.IsSmallInt() {
+		return i.SubtractSmallInt(other.AsSmallInt())
+	}
+	return i.SubtractBigInt((*BigInt)(other.Pointer()))
+}
+
 func (i *BigInt) SubtractFloat(other Float) Float {
 	return i.ToFloat() - other
 }
@@ -330,6 +373,13 @@ func (i *BigInt) MultiplyVal(other Value) (Value, Value) {
 	}
 }
 
+func (i *BigInt) MultiplyInt(other Value) Value {
+	if other.IsSmallInt() {
+		return i.MultiplySmallInt(other.AsSmallInt())
+	}
+	return i.MultiplyBigInt((*BigInt)(other.Pointer()))
+}
+
 func (i *BigInt) MultiplyBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), uint(i.BitSize()), 64)
 	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
@@ -380,6 +430,13 @@ func (i *BigInt) DivideVal(other Value) (Value, Value) {
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i *BigInt) DivideInt(other Value) (Value, Value) {
+	if other.IsSmallInt() {
+		return i.DivideSmallInt(other.AsSmallInt())
+	}
+	return i.DivideBigInt((*BigInt)(other.Pointer()))
 }
 
 func (i *BigInt) DivideBigInt(other *BigInt) (Value, Value) {
@@ -440,6 +497,13 @@ func (i *BigInt) ExponentiateVal(other Value) (Value, Value) {
 	}
 }
 
+func (i *BigInt) ExponentiateInt(other Value) Value {
+	if other.IsSmallInt() {
+		return i.ExponentiateSmallInt(other.AsSmallInt())
+	}
+	return i.ExponentiateBigInt((*BigInt)(other.Pointer()))
+}
+
 func (i *BigInt) ExponentiateBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), uint(i.BitSize()), 64)
 	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
@@ -495,6 +559,13 @@ func (i *BigInt) ModuloVal(other Value) (Value, Value) {
 	}
 }
 
+func (i *BigInt) ModuloInt(other Value) (Value, Value) {
+	if other.IsSmallInt() {
+		return i.ModuloSmallInt(other.AsSmallInt())
+	}
+	return i.ModuloBigInt((*BigInt)(other.Pointer()))
+}
+
 func (i *BigInt) ModuloFloat(other Float) Float {
 	iFloat, _ := i.ToGoBigInt().Float64()
 	return Float(math.Mod(iFloat, float64(other)))
@@ -539,7 +610,7 @@ func (i *BigInt) ModuloSmallInt(other SmallInt) (Value, Value) {
 // if something went wrong.
 func (i *BigInt) GreaterThanVal(other Value) (Value, Value) {
 	result, err := i.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether i is greater than other and return an error
@@ -548,33 +619,56 @@ func (i *BigInt) GreaterThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return i.Cmp(o) == 1, Undefined
+			return i.GreaterThanBigInt(o), Undefined
 		case *BigFloat:
-			if o.IsNaN() {
-				return false, Undefined
-			}
-			iBigFloat := (&BigFloat{}).SetBigInt(i)
-			return iBigFloat.Cmp(o) == 1, Undefined
+			return i.GreaterThanBigFloat(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return i.Cmp(oBigInt) == 1, Undefined
+		return i.GreaterThanSmallInt(other.AsSmallInt()), Undefined
 	case FLOAT_FLAG:
-		return i.ToFloat() > other.AsFloat(), Undefined
+		return i.GreaterThanFloat(other.AsFloat()), Undefined
 	default:
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i *BigInt) GreaterThanInt(other Value) bool {
+	if other.IsSmallInt() {
+		return i.GreaterThanSmallInt(other.AsSmallInt())
+	}
+	return i.GreaterThanBigInt((*BigInt)(other.Pointer()))
+}
+
+func (i *BigInt) GreaterThanSmallInt(other SmallInt) bool {
+	oBigInt := NewBigInt(int64(other))
+	return i.Cmp(oBigInt) == 1
+}
+
+func (i *BigInt) GreaterThanFloat(other Float) bool {
+	return i.ToFloat() > other
+}
+
+func (i *BigInt) GreaterThanBigInt(other *BigInt) bool {
+	return i.Cmp(other) == 1
+}
+
+func (i *BigInt) GreaterThanBigFloat(other *BigFloat) bool {
+	if other.IsNaN() {
+		return false
+	}
+	iBigFloat := (&BigFloat{}).SetBigInt(i)
+	return iBigFloat.Cmp(other) == 1
 }
 
 // Check whether i is greater than or equal to other and return an error
 // if something went wrong.
 func (i *BigInt) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := i.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether i is greater than or equal to other and return an error
@@ -583,13 +677,9 @@ func (i *BigInt) GreaterThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return i.Cmp(o) >= 0, Undefined
+			return i.GreaterThanEqualBigInt(o), Undefined
 		case *BigFloat:
-			if o.IsNaN() {
-				return false, Undefined
-			}
-			iBigFloat := (&BigFloat{}).SetBigInt(i)
-			return iBigFloat.Cmp(o) >= 0, Undefined
+			return i.GreaterThanEqualBigFloat(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
@@ -597,20 +687,47 @@ func (i *BigInt) GreaterThanEqual(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return i.Cmp(oBigInt) >= 0, Undefined
+		return i.GreaterThanEqualSmallInt(other.AsSmallInt()), Undefined
 	case FLOAT_FLAG:
-		return i.ToFloat() >= other.AsFloat(), Undefined
+		return i.GreaterThanEqualFloat(other.AsFloat()), Undefined
 	default:
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i *BigInt) GreaterThanEqualInt(other Value) bool {
+	if other.IsSmallInt() {
+		return i.GreaterThanEqualSmallInt(other.AsSmallInt())
+	}
+	return i.GreaterThanEqualBigInt((*BigInt)(other.Pointer()))
+}
+
+func (i *BigInt) GreaterThanEqualSmallInt(other SmallInt) bool {
+	oBigInt := NewBigInt(int64(other))
+	return i.Cmp(oBigInt) >= 0
+}
+
+func (i *BigInt) GreaterThanEqualFloat(other Float) bool {
+	return i.ToFloat() >= other
+}
+
+func (i *BigInt) GreaterThanEqualBigInt(other *BigInt) bool {
+	return i.Cmp(other) >= 0
+}
+
+func (i *BigInt) GreaterThanEqualBigFloat(other *BigFloat) bool {
+	if other.IsNaN() {
+		return false
+	}
+	iBigFloat := (&BigFloat{}).SetBigInt(i)
+	return iBigFloat.Cmp(other) >= 0
 }
 
 // Check whether i is less than other and return an error
 // if something went wrong.
 func (i *BigInt) LessThanVal(other Value) (Value, Value) {
 	result, err := i.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether i is less than other and return an error
@@ -619,13 +736,9 @@ func (i *BigInt) LessThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return i.Cmp(o) == -1, Undefined
+			return i.LessThanBigInt(o), Undefined
 		case *BigFloat:
-			if o.IsNaN() {
-				return false, Undefined
-			}
-			iBigFloat := (&BigFloat{}).SetBigInt(i)
-			return iBigFloat.Cmp(o) == -1, Undefined
+			return i.LessThanBigFloat(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
@@ -633,20 +746,47 @@ func (i *BigInt) LessThan(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return i.Cmp(oBigInt) == -1, Undefined
+		return i.LessThanSmallInt(other.AsSmallInt()), Undefined
 	case FLOAT_FLAG:
-		return i.ToFloat() < other.AsFloat(), Undefined
+		return i.LessThanFloat(other.AsFloat()), Undefined
 	default:
 		return false, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i *BigInt) LessThanInt(other Value) bool {
+	if other.IsSmallInt() {
+		return i.LessThanSmallInt(other.AsSmallInt())
+	}
+	return i.LessThanBigInt((*BigInt)(other.Pointer()))
+}
+
+func (i *BigInt) LessThanSmallInt(other SmallInt) bool {
+	oBigInt := NewBigInt(int64(other))
+	return i.Cmp(oBigInt) == -1
+}
+
+func (i *BigInt) LessThanFloat(other Float) bool {
+	return i.ToFloat() < other
+}
+
+func (i *BigInt) LessThanBigInt(other *BigInt) bool {
+	return i.Cmp(other) == -1
+}
+
+func (i *BigInt) LessThanBigFloat(other *BigFloat) bool {
+	if other.IsNaN() {
+		return false
+	}
+	iBigFloat := (&BigFloat{}).SetBigInt(i)
+	return iBigFloat.Cmp(other) == -1
 }
 
 // Check whether i is less than or equal to other and return an error
 // if something went wrong.
 func (i *BigInt) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := i.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 // Check whether i is less than or equal to other and return an error
@@ -678,75 +818,105 @@ func (i *BigInt) LessThanEqual(other Value) (bool, Value) {
 	}
 }
 
+func (i *BigInt) LessThanEqualInt(other Value) bool {
+	if other.IsSmallInt() {
+		return i.LessThanEqualSmallInt(other.AsSmallInt())
+	}
+	return i.LessThanEqualBigInt((*BigInt)(other.Pointer()))
+}
+
+func (i *BigInt) LessThanEqualSmallInt(other SmallInt) bool {
+	oBigInt := NewBigInt(int64(other))
+	return i.Cmp(oBigInt) <= 0
+}
+
+func (i *BigInt) LessThanEqualFloat(other Float) bool {
+	return i.ToFloat() <= other
+}
+
+func (i *BigInt) LessThanEqualBigInt(other *BigInt) bool {
+	return i.Cmp(other) <= 0
+}
+
+func (i *BigInt) LessThanEqualBigFloat(other *BigFloat) bool {
+	if other.IsNaN() {
+		return false
+	}
+	iBigFloat := (&BigFloat{}).SetBigInt(i)
+	return iBigFloat.Cmp(other) <= 0
+}
+
 // Check whether i is equal to other (with coercion)
 func (i *BigInt) LaxEqualVal(other Value) Value {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return ToElkBool(i.Cmp(o) == 0)
+			return Bool(i.Cmp(o) == 0).ToValue()
 		case *BigFloat:
 			if o.IsNaN() {
-				return False
+				return False.ToValue()
 			}
 			iBigFloat := (&BigFloat{}).SetBigInt(i)
-			return ToElkBool(iBigFloat.Cmp(o) == 0)
+			return Bool(iBigFloat.Cmp(o) == 0).ToValue()
 		case Int64:
 			oBigInt := NewBigInt(int64(o))
-			return ToElkBool(i.Cmp(oBigInt) == 0)
+			return Bool(i.Cmp(oBigInt) == 0).ToValue()
 		case UInt64:
 			oBigInt := NewBigInt(int64(o))
-			return ToElkBool(i.Cmp(oBigInt) == 0)
+			return Bool(i.Cmp(oBigInt) == 0).ToValue()
 		case Float64:
-			return ToElkBool(i.ToFloat() == Float(o))
+			return Bool(i.ToFloat() == Float(o)).ToValue()
 		default:
-			return False
+			return False.ToValue()
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return ToElkBool(i.Cmp(oBigInt) == 0)
+		return Bool(i.Cmp(oBigInt) == 0).ToValue()
 	case FLOAT_FLAG:
-		return ToElkBool(i.ToFloat() == other.AsFloat())
+		return Bool(i.ToFloat() == other.AsFloat()).ToValue()
 	case INT64_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInlineInt64()))
-		return ToElkBool(i.Cmp(oBigInt) == 0)
+		return Bool(i.Cmp(oBigInt) == 0).ToValue()
 	case INT32_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInt32()))
-		return ToElkBool(i.Cmp(oBigInt) == 0)
+		return Bool(i.Cmp(oBigInt) == 0).ToValue()
 	case INT16_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInt16()))
-		return ToElkBool(i.Cmp(oBigInt) == 0)
+		return Bool(i.Cmp(oBigInt) == 0).ToValue()
 	case INT8_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInt8()))
-		return ToElkBool(i.Cmp(oBigInt) == 0)
+		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+	case UINT_FLAG:
+		oBigInt := NewBigInt(int64(other.AsUInt()))
+		return Bool(i.Cmp(oBigInt) == 0).ToValue()
 	case UINT64_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInlineUInt64()))
-		return ToElkBool(i.Cmp(oBigInt) == 0)
+		return Bool(i.Cmp(oBigInt) == 0).ToValue()
 	case UINT32_FLAG:
 		oBigInt := NewBigInt(int64(other.AsUInt32()))
-		return ToElkBool(i.Cmp(oBigInt) == 0)
+		return Bool(i.Cmp(oBigInt) == 0).ToValue()
 	case UINT16_FLAG:
 		oBigInt := NewBigInt(int64(other.AsUInt16()))
-		return ToElkBool(i.Cmp(oBigInt) == 0)
+		return Bool(i.Cmp(oBigInt) == 0).ToValue()
 	case UINT8_FLAG:
 		oBigInt := NewBigInt(int64(other.AsUInt8()))
-		return ToElkBool(i.Cmp(oBigInt) == 0)
+		return Bool(i.Cmp(oBigInt) == 0).ToValue()
 	case FLOAT64_FLAG:
-		return ToElkBool(i.ToFloat() == Float(other.AsInlineFloat64()))
+		return Bool(i.ToFloat() == Float(other.AsInlineFloat64())).ToValue()
 	case FLOAT32_FLAG:
-		return ToElkBool(i.ToFloat() == Float(other.AsFloat32()))
+		return Bool(i.ToFloat() == Float(other.AsFloat32())).ToValue()
 	default:
-		return False
+		return False.ToValue()
 	}
 }
 
 // Check whether i is equal to other
 func (i *BigInt) Equal(other Value) bool {
 	if other.IsSmallInt() {
-		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return i.Cmp(oBigInt) == 0
+		return i.EqualSmallInt(other.AsSmallInt())
 	}
 	if !other.IsReference() {
 		return false
@@ -754,15 +924,31 @@ func (i *BigInt) Equal(other Value) bool {
 
 	switch o := other.AsReference().(type) {
 	case *BigInt:
-		return i.Cmp(o) == 0
+		return i.EqualBigInt(o)
 	default:
 		return false
 	}
 }
 
+func (i *BigInt) EqualInt(other Value) bool {
+	if other.IsSmallInt() {
+		return i.EqualSmallInt(other.AsSmallInt())
+	}
+	return i.EqualBigInt((*BigInt)(other.Pointer()))
+}
+
+func (i *BigInt) EqualSmallInt(other SmallInt) bool {
+	oBigInt := NewBigInt(int64(other))
+	return i.Cmp(oBigInt) == 0
+}
+
+func (i *BigInt) EqualBigInt(other *BigInt) bool {
+	return i.Cmp(other) == 0
+}
+
 // Check whether i is equal to other
 func (i *BigInt) EqualVal(other Value) Value {
-	return ToElkBool(i.Equal(other))
+	return Bool(i.Equal(other)).ToValue()
 }
 
 // Check whether i is strictly equal to other
@@ -788,21 +974,11 @@ func (i *BigInt) RightBitshiftVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case Int64:
-			if o < 0 {
-				return leftBitshiftBigInt(i, -o), Undefined
-			}
-			return rightBitshiftBigInt(i, o), Undefined
+			return i.RightBitshiftInt64(o), Undefined
 		case UInt64:
-			return rightBitshiftBigInt(i, o), Undefined
+			return i.RightBitshiftUInt64(o), Undefined
 		case *BigInt:
-			if o.IsSmallInt() {
-				oSmall := o.ToSmallInt()
-				if oSmall < 0 {
-					return leftBitshiftBigInt(i, -oSmall), Undefined
-				}
-				return rightBitshiftBigInt(i, oSmall), Undefined
-			}
-			return SmallInt(0).ToValue(), Undefined
+			return i.RightBitshiftBigInt(o), Undefined
 		default:
 			return Undefined, Ref(NewBitshiftOperandError(other))
 		}
@@ -810,50 +986,101 @@ func (i *BigInt) RightBitshiftVal(other Value) (Value, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		o := other.AsSmallInt()
-		if o < 0 {
-			return leftBitshiftBigInt(i, -o), Undefined
-		}
-		return rightBitshiftBigInt(i, o), Undefined
+		return i.RightBitshiftSmallInt(other.AsSmallInt()), Undefined
+	case UINT_FLAG:
+		return i.RightBitshiftUInt(other.AsUInt()), Undefined
 	case INT64_FLAG:
-		o := other.AsInlineInt64()
-		if o < 0 {
-			return leftBitshiftBigInt(i, -o), Undefined
-		}
-		return rightBitshiftBigInt(i, o), Undefined
+		return i.RightBitshiftInt64(other.AsInlineInt64()), Undefined
 	case INT32_FLAG:
-		o := other.AsInt32()
-		if o < 0 {
-			return leftBitshiftBigInt(i, -o), Undefined
-		}
-		return rightBitshiftBigInt(i, o), Undefined
+		return i.RightBitshiftInt32(other.AsInt32()), Undefined
 	case INT16_FLAG:
-		o := other.AsInt16()
-		if o < 0 {
-			return leftBitshiftBigInt(i, -o), Undefined
-		}
-		return rightBitshiftBigInt(i, o), Undefined
+		return i.RightBitshiftInt16(other.AsInt16()), Undefined
 	case INT8_FLAG:
-		o := other.AsInt8()
-		if o < 0 {
-			return leftBitshiftBigInt(i, -o), Undefined
-		}
-		return rightBitshiftBigInt(i, o), Undefined
+		return i.RightBitshiftInt8(other.AsInt8()), Undefined
 	case UINT64_FLAG:
-		o := other.AsInlineUInt64()
-		return rightBitshiftBigInt(i, o), Undefined
+		return i.RightBitshiftUInt64(other.AsInlineUInt64()), Undefined
 	case UINT32_FLAG:
-		o := other.AsUInt32()
-		return rightBitshiftBigInt(i, o), Undefined
+		return i.RightBitshiftUInt32(other.AsUInt32()), Undefined
 	case UINT16_FLAG:
-		o := other.AsUInt16()
-		return rightBitshiftBigInt(i, o), Undefined
+		return i.RightBitshiftUInt16(other.AsUInt16()), Undefined
 	case UINT8_FLAG:
-		o := other.AsUInt8()
-		return rightBitshiftBigInt(i, o), Undefined
+		return i.RightBitshiftUInt8(other.AsUInt8()), Undefined
 	default:
 		return Undefined, Ref(NewBitshiftOperandError(other))
 	}
+}
+
+func (i *BigInt) RightBitshiftInt(other Value) Value {
+	if other.IsSmallInt() {
+		return i.RightBitshiftSmallInt(other.AsSmallInt())
+	}
+	return i.RightBitshiftBigInt((*BigInt)(other.Pointer()))
+}
+
+func (i *BigInt) RightBitshiftBigInt(other *BigInt) Value {
+	if other.IsSmallInt() {
+		oSmall := other.ToSmallInt()
+		if oSmall < 0 {
+			return leftBitshiftBigInt(i, -oSmall)
+		}
+		return rightBitshiftBigInt(i, oSmall)
+	}
+	return SmallInt(0).ToValue()
+}
+
+func (i *BigInt) RightBitshiftSmallInt(other SmallInt) Value {
+	if other < 0 {
+		return leftBitshiftBigInt(i, -other)
+	}
+	return rightBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) RightBitshiftInt64(other Int64) Value {
+	if other < 0 {
+		return leftBitshiftBigInt(i, -other)
+	}
+	return rightBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) RightBitshiftInt32(other Int32) Value {
+	if other < 0 {
+		return leftBitshiftBigInt(i, -other)
+	}
+	return rightBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) RightBitshiftInt16(other Int16) Value {
+	if other < 0 {
+		return leftBitshiftBigInt(i, -other)
+	}
+	return rightBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) RightBitshiftInt8(other Int8) Value {
+	if other < 0 {
+		return leftBitshiftBigInt(i, -other)
+	}
+	return rightBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) RightBitshiftUInt(other UInt) Value {
+	return rightBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) RightBitshiftUInt64(other UInt64) Value {
+	return rightBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) RightBitshiftUInt32(other UInt32) Value {
+	return rightBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) RightBitshiftUInt16(other UInt16) Value {
+	return rightBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) RightBitshiftUInt8(other UInt8) Value {
+	return rightBitshiftBigInt(i, other)
 }
 
 func leftBitshiftBigInt[T SimpleInt](i *BigInt, other T) Value {
@@ -870,15 +1097,11 @@ func (i *BigInt) LeftBitshiftVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case Int64:
-			return leftBitshiftBigInt(i, o), Undefined
+			return i.LeftBitshiftInt64(o), Undefined
 		case UInt64:
-			return leftBitshiftBigInt(i, o), Undefined
+			return i.LeftBitshiftUInt64(o), Undefined
 		case *BigInt:
-			if o.IsSmallInt() {
-				oSmall := o.ToSmallInt()
-				return leftBitshiftBigInt(i, oSmall), Undefined
-			}
-			return SmallInt(0).ToValue(), Undefined
+			return i.LeftBitshiftBigInt(o), Undefined
 		default:
 			return Undefined, Ref(NewBitshiftOperandError(other))
 		}
@@ -886,34 +1109,92 @@ func (i *BigInt) LeftBitshiftVal(other Value) (Value, Value) {
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		o := other.AsSmallInt()
-		return leftBitshiftBigInt(i, o), Undefined
+		return i.LeftBitshiftSmallInt(o), Undefined
+	case UINT_FLAG:
+		o := other.AsUInt()
+		return i.LeftBitshiftUInt(o), Undefined
 	case INT64_FLAG:
 		o := other.AsInlineInt64()
-		return leftBitshiftBigInt(i, o), Undefined
+		return i.LeftBitshiftInt64(o), Undefined
 	case INT32_FLAG:
 		o := other.AsInt32()
-		return leftBitshiftBigInt(i, o), Undefined
+		return i.LeftBitshiftInt32(o), Undefined
 	case INT16_FLAG:
 		o := other.AsInt16()
-		return leftBitshiftBigInt(i, o), Undefined
+		return i.LeftBitshiftInt16(o), Undefined
 	case INT8_FLAG:
 		o := other.AsInt8()
-		return leftBitshiftBigInt(i, o), Undefined
+		return i.LeftBitshiftInt8(o), Undefined
 	case UINT64_FLAG:
 		o := other.AsInlineUInt64()
-		return leftBitshiftBigInt(i, o), Undefined
+		return i.LeftBitshiftUInt64(o), Undefined
 	case UINT32_FLAG:
 		o := other.AsUInt32()
-		return leftBitshiftBigInt(i, o), Undefined
+		return i.LeftBitshiftUInt32(o), Undefined
 	case UINT16_FLAG:
 		o := other.AsUInt16()
-		return leftBitshiftBigInt(i, o), Undefined
+		return i.LeftBitshiftUInt16(o), Undefined
 	case UINT8_FLAG:
 		o := other.AsUInt8()
-		return leftBitshiftBigInt(i, o), Undefined
+		return i.LeftBitshiftUInt8(o), Undefined
 	default:
 		return Undefined, Ref(NewBitshiftOperandError(other))
 	}
+}
+
+func (i *BigInt) LeftBitshiftInt(other Value) Value {
+	if other.IsSmallInt() {
+		return i.LeftBitshiftSmallInt(other.AsSmallInt())
+	}
+	return i.LeftBitshiftBigInt((*BigInt)(other.Pointer()))
+}
+
+func (i *BigInt) LeftBitshiftBigInt(other *BigInt) Value {
+	if other.IsSmallInt() {
+		oSmall := other.ToSmallInt()
+		return leftBitshiftBigInt(i, oSmall)
+	}
+	return SmallInt(0).ToValue()
+}
+
+func (i *BigInt) LeftBitshiftSmallInt(other SmallInt) Value {
+	return leftBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) LeftBitshiftInt64(other Int64) Value {
+	return leftBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) LeftBitshiftInt32(other Int32) Value {
+	return leftBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) LeftBitshiftInt16(other Int16) Value {
+	return leftBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) LeftBitshiftInt8(other Int8) Value {
+	return leftBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) LeftBitshiftUInt(other UInt) Value {
+	return leftBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) LeftBitshiftUInt64(other UInt64) Value {
+	return leftBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) LeftBitshiftUInt32(other UInt32) Value {
+	return leftBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) LeftBitshiftUInt16(other UInt16) Value {
+	return leftBitshiftBigInt(i, other)
+}
+
+func (i *BigInt) LeftBitshiftUInt8(other UInt8) Value {
+	return leftBitshiftBigInt(i, other)
 }
 
 // Perform bitwise AND with another value and return an error
@@ -922,27 +1203,42 @@ func (i *BigInt) BitwiseAndVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			result := ToElkBigInt((&big.Int{}).And(i.ToGoBigInt(), o.ToGoBigInt()))
-			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Undefined
-			}
-			return Ref(result), Undefined
+			return i.BitwiseAndBigInt(o), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		oBigInt := big.NewInt(int64(other.AsSmallInt()))
-		oBigInt.And(i.ToGoBigInt(), oBigInt)
-		result := ToElkBigInt(oBigInt)
-		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Undefined
-		}
-		return Ref(result), Undefined
+		return i.BitwiseAndSmallInt(other.AsSmallInt()), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i *BigInt) BitwiseAndInt(other Value) Value {
+	if other.IsSmallInt() {
+		return i.BitwiseAndSmallInt(other.AsSmallInt())
+	}
+	return i.BitwiseAndBigInt((*BigInt)(other.Pointer()))
+}
+
+func (i *BigInt) BitwiseAndSmallInt(other SmallInt) Value {
+	oBigInt := big.NewInt(int64(other))
+	oBigInt.And(i.ToGoBigInt(), oBigInt)
+	result := ToElkBigInt(oBigInt)
+	if result.IsSmallInt() {
+		return result.ToSmallInt().ToValue()
+	}
+	return Ref(result)
+}
+
+func (i *BigInt) BitwiseAndBigInt(other *BigInt) Value {
+	result := ToElkBigInt((&big.Int{}).And(i.ToGoBigInt(), other.ToGoBigInt()))
+	if result.IsSmallInt() {
+		return result.ToSmallInt().ToValue()
+	}
+	return Ref(result)
 }
 
 // Perform bitwise AND NOT with another value and return an error
@@ -974,6 +1270,31 @@ func (i *BigInt) BitwiseAndNotVal(other Value) (Value, Value) {
 	}
 }
 
+func (i *BigInt) BitwiseAndNotInt(other Value) Value {
+	if other.IsSmallInt() {
+		return i.BitwiseAndNotSmallInt(other.AsSmallInt())
+	}
+	return i.BitwiseAndNotBigInt((*BigInt)(other.Pointer()))
+}
+
+func (i *BigInt) BitwiseAndNotSmallInt(other SmallInt) Value {
+	oBigInt := big.NewInt(int64(other))
+	oBigInt.And(i.ToGoBigInt(), oBigInt)
+	result := ToElkBigInt(oBigInt)
+	if result.IsSmallInt() {
+		return result.ToSmallInt().ToValue()
+	}
+	return Ref(result)
+}
+
+func (i *BigInt) BitwiseAndNotBigInt(other *BigInt) Value {
+	result := ToElkBigInt((&big.Int{}).And(i.ToGoBigInt(), other.ToGoBigInt()))
+	if result.IsSmallInt() {
+		return result.ToSmallInt().ToValue()
+	}
+	return Ref(result)
+}
+
 // Perform bitwise OR with another value and return an error
 // if something went wrong.
 func (i *BigInt) BitwiseOrVal(other Value) (Value, Value) {
@@ -1001,6 +1322,31 @@ func (i *BigInt) BitwiseOrVal(other Value) (Value, Value) {
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i *BigInt) BitwiseOrInt(other Value) Value {
+	if other.IsSmallInt() {
+		return i.BitwiseOrSmallInt(other.AsSmallInt())
+	}
+	return i.BitwiseOrBigInt((*BigInt)(other.Pointer()))
+}
+
+func (i *BigInt) BitwiseOrSmallInt(other SmallInt) Value {
+	oBigInt := big.NewInt(int64(other))
+	oBigInt.And(i.ToGoBigInt(), oBigInt)
+	result := ToElkBigInt(oBigInt)
+	if result.IsSmallInt() {
+		return result.ToSmallInt().ToValue()
+	}
+	return Ref(result)
+}
+
+func (i *BigInt) BitwiseOrBigInt(other *BigInt) Value {
+	result := ToElkBigInt((&big.Int{}).And(i.ToGoBigInt(), other.ToGoBigInt()))
+	if result.IsSmallInt() {
+		return result.ToSmallInt().ToValue()
+	}
+	return Ref(result)
 }
 
 // Perform bitwise XOR with another value and return an error
@@ -1054,6 +1400,10 @@ func (i *BigInt) Error() string {
 
 func (i *BigInt) Copy() Reference {
 	return i
+}
+
+func (i *BigInt) ToValue() Value {
+	return Ref(i)
 }
 
 func (i *BigInt) InstanceVariables() *InstanceVariables {
@@ -1302,6 +1652,10 @@ func (l *BigIntIterator) Copy() Reference {
 		Int:     l.Int,
 		Counter: l.Counter,
 	}
+}
+
+func (i *BigIntIterator) ToValue() Value {
+	return Ref(i)
 }
 
 func (l *BigIntIterator) Inspect() string {

@@ -184,6 +184,10 @@ func (n *DoExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *DoExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *DoExpressionNode) Error() string {
 	return n.Inspect()
 }
@@ -352,6 +356,10 @@ func (n *CatchNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *CatchNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *CatchNode) Error() string {

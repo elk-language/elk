@@ -37,6 +37,10 @@ func (d *SyncDiagnosticList) Copy() Reference {
 	}
 }
 
+func (d *SyncDiagnosticList) ToValue() Value {
+	return Ref(d)
+}
+
 func (*SyncDiagnosticList) InstanceVariables() *InstanceVariables {
 	return nil
 }
@@ -171,13 +175,13 @@ func (dl *SyncDiagnosticList) SubscriptSet(key Value, val *Diagnostic) Value {
 
 // Concatenate another value with this list, creating a new list, and return the result.
 // If the operation is illegal an error will be returned.
-func (l *SyncDiagnosticList) Concat(other Value) (*ArrayList, Value) {
+func (l *SyncDiagnosticList) Concat(other Value) (*ArrayListOfValue, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
-		case *ArrayList:
+		case *ArrayListOfValue:
 			l.Mutex.Lock()
 
-			newList := make(ArrayList, 0, l.Length()+len(*o))
+			newList := make(ArrayListOfValue, 0, l.Length()+len(*o))
 			for _, element := range l.DiagnosticList {
 				newList = append(newList, Ref((*Diagnostic)(element)))
 			}
@@ -186,10 +190,10 @@ func (l *SyncDiagnosticList) Concat(other Value) (*ArrayList, Value) {
 
 			newList = append(newList, *o...)
 			return &newList, Undefined
-		case *ArrayTuple:
+		case *ArrayTupleOfValue:
 			l.Mutex.Lock()
 
-			newList := make(ArrayList, 0, l.Length()+len(*o))
+			newList := make(ArrayListOfValue, 0, l.Length()+len(*o))
 			for _, element := range l.DiagnosticList {
 				newList = append(newList, Ref((*Diagnostic)(element)))
 			}
@@ -203,7 +207,7 @@ func (l *SyncDiagnosticList) Concat(other Value) (*ArrayList, Value) {
 		case *DiagnosticList:
 			l.Mutex.Lock()
 
-			newList := make(ArrayList, 0, l.Length()+len(*o))
+			newList := make(ArrayListOfValue, 0, l.Length()+len(*o))
 			for _, element := range l.DiagnosticList {
 				newList = append(newList, Ref((*Diagnostic)(element)))
 			}
@@ -216,7 +220,7 @@ func (l *SyncDiagnosticList) Concat(other Value) (*ArrayList, Value) {
 			return &newList, Undefined
 		case *SyncDiagnosticList:
 			l.Mutex.Lock()
-			newList := make(ArrayList, 0, l.Length()+o.Length())
+			newList := make(ArrayListOfValue, 0, l.Length()+o.Length())
 			for _, element := range l.DiagnosticList {
 				newList = append(newList, Ref((*Diagnostic)(element)))
 			}
@@ -325,6 +329,10 @@ func (l *SyncDiagnosticListIterator) Copy() Reference {
 	}
 }
 
+func (i *SyncDiagnosticListIterator) ToValue() Value {
+	return Ref(i)
+}
+
 func (l *SyncDiagnosticListIterator) Inspect() string {
 	return fmt.Sprintf("Std::SyncDiagnosticList::Iterator{&: %p, list: %s, index: %d}", l, l.SyncDiagnosticList.Inspect(), l.Index)
 }
@@ -355,7 +363,9 @@ func initSyncDiagnosticList() {
 	SyncDiagnosticListClass = NewClassWithOptions(ClassWithConstructor(SyncDiagnosticListConstructor))
 	SyncDiagnosticListClass.IncludeMixin(ListMixin)
 	SyncModule.AddConstantString("DiagnosticList", Ref(SyncDiagnosticListClass))
+	RegisterNativeClass("Std::Sync::DiagnosticList", "value.SyncDiagnosticListClass")
 
 	SyncDiagnosticListIteratorClass = NewClass()
 	SyncDiagnosticListClass.AddConstantString("Iterator", Ref(SyncDiagnosticListIteratorClass))
+	RegisterNativeClass("Std::Sync::DiagnosticList::Iterator", "value.SyncDiagnosticListIteratorClass")
 }

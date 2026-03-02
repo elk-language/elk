@@ -160,6 +160,10 @@ func (n *BreakExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *BreakExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *BreakExpressionNode) Error() string {
 	return n.Inspect()
 }

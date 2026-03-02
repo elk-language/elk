@@ -23,6 +23,10 @@ func (r *LeftOpenRange) Copy() Reference {
 	return r
 }
 
+func (r *LeftOpenRange) ToValue() Value {
+	return Ref(r)
+}
+
 func (*LeftOpenRange) Class() *Class {
 	return LeftOpenRangeClass
 }
@@ -101,6 +105,10 @@ func (r *LeftOpenRangeIterator) Copy() Reference {
 	}
 }
 
+func (i *LeftOpenRangeIterator) ToValue() Value {
+	return Ref(i)
+}
+
 func (r *LeftOpenRangeIterator) Inspect() string {
 	return fmt.Sprintf("Std::LeftOpenRange::Iterator{range: %s, current_element: %s}", r.Range.Inspect(), r.CurrentElement.Inspect())
 }
@@ -117,7 +125,9 @@ func initLeftOpenRange() {
 	LeftOpenRangeClass = NewClass()
 	LeftOpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("LeftOpenRange", Ref(LeftOpenRangeClass))
+	RegisterNativeClass("Std::LeftOpenRange", "value.LeftOpenRangeClass")
 
 	LeftOpenRangeIteratorClass = NewClass()
 	LeftOpenRangeClass.AddConstantString("Iterator", Ref(LeftOpenRangeIteratorClass))
+	RegisterNativeClass("Std::LeftOpenRange::Iterator", "value.LeftOpenRangeIteratorClass")
 }

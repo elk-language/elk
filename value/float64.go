@@ -92,6 +92,14 @@ func (f Float64) IsInf(sign int) bool {
 }
 
 func (f Float64) Add(other Value) (Float64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Float64:
+		return f + o, Undefined
+	default:
+		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -102,15 +110,35 @@ func (f Float64) Add(other Value) (Float64, Value) {
 
 // ExponentiateVal by the right value.
 func (f Float64) ExponentiateVal(other Value) (Float64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Float64:
+		return f.ExponentiateFloat64(o), Undefined
+	default:
+		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsInlineFloat64()
-	return Float64(math.Pow(float64(f), float64(o))), Undefined
+	return f.ExponentiateFloat64(o), Undefined
+}
+
+func (f Float64) ExponentiateFloat64(other Float64) Float64 {
+	return Float64(math.Pow(float64(f), float64(other)))
 }
 
 func (f Float64) Subtract(other Value) (Float64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Float64:
+		return f - o, Undefined
+	default:
+		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -120,6 +148,14 @@ func (f Float64) Subtract(other Value) (Float64, Value) {
 }
 
 func (f Float64) Multiply(other Value) (Float64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Float64:
+		return f * o, Undefined
+	default:
+		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -129,15 +165,35 @@ func (f Float64) Multiply(other Value) (Float64, Value) {
 }
 
 func (f Float64) ModuloVal(other Value) (Float64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Float64:
+		return f.ModuloFloat64(o), Undefined
+	default:
+		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsInlineFloat64()
-	return Float64(math.Mod(float64(f), float64(o))), Undefined
+	return f.ModuloFloat64(o), Undefined
+}
+
+func (f Float64) ModuloFloat64(other Float64) Float64 {
+	return Float64(math.Mod(float64(f), float64(other)))
 }
 
 func (f Float64) Divide(other Value) (Float64, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Float64:
+		return f / o, Undefined
+	default:
+		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineFloat64() {
 		return 0, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -146,31 +202,51 @@ func (f Float64) Divide(other Value) (Float64, Value) {
 	return f / o, Undefined
 }
 
+func (f Float64) CompareFloat64(other Float64) Value {
+	if math.IsNaN(float64(f)) || math.IsNaN(float64(other)) {
+		return Nil
+	}
+
+	if f > other {
+		return SmallInt(1).ToValue()
+	}
+	if f < other {
+		return SmallInt(-1).ToValue()
+	}
+	return SmallInt(0).ToValue()
+}
+
 func (f Float64) CompareVal(other Value) (Value, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Float64:
+		return f.CompareFloat64(o), Undefined
+	default:
+		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineFloat64() {
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
 	o := other.AsInlineFloat64()
-	if math.IsNaN(float64(f)) || math.IsNaN(float64(o)) {
-		return Nil, Undefined
-	}
-
-	if f > o {
-		return SmallInt(1).ToValue(), Undefined
-	}
-	if f < o {
-		return SmallInt(-1).ToValue(), Undefined
-	}
-	return SmallInt(0).ToValue(), Undefined
+	return f.CompareFloat64(o), Undefined
 }
 
 func (f Float64) GreaterThanVal(other Value) (Value, Value) {
 	result, err := f.GreaterThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (f Float64) GreaterThan(other Value) (bool, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Float64:
+		return f > o, Undefined
+	default:
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineFloat64() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -181,10 +257,18 @@ func (f Float64) GreaterThan(other Value) (bool, Value) {
 
 func (f Float64) GreaterThanEqualVal(other Value) (Value, Value) {
 	result, err := f.GreaterThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (f Float64) GreaterThanEqual(other Value) (bool, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Float64:
+		return f >= o, Undefined
+	default:
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineFloat64() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -195,10 +279,18 @@ func (f Float64) GreaterThanEqual(other Value) (bool, Value) {
 
 func (f Float64) LessThanVal(other Value) (Value, Value) {
 	result, err := f.LessThan(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (f Float64) LessThan(other Value) (bool, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Float64:
+		return f < o, Undefined
+	default:
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineFloat64() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -209,10 +301,18 @@ func (f Float64) LessThan(other Value) (bool, Value) {
 
 func (f Float64) LessThanEqualVal(other Value) (Value, Value) {
 	result, err := f.LessThanEqual(other)
-	return ToElkBool(result), err
+	return Bool(result).ToValue(), err
 }
 
 func (f Float64) LessThanEqual(other Value) (bool, Value) {
+	switch o := other.SafeAsReference().(type) {
+	case Float64:
+		return f <= o, Undefined
+	default:
+		return false, Ref(NewCoerceError(f.Class(), other.Class()))
+	case nil:
+	}
+
 	if !other.IsInlineFloat64() {
 		return false, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
@@ -222,10 +322,18 @@ func (f Float64) LessThanEqual(other Value) (bool, Value) {
 }
 
 func (f Float64) EqualVal(other Value) Value {
-	return ToElkBool(f.Equal(other))
+	return Bool(f.Equal(other)).ToValue()
 }
 
 func (f Float64) Equal(other Value) bool {
+	switch o := other.SafeAsReference().(type) {
+	case Float64:
+		return f == o
+	default:
+		return false
+	case nil:
+	}
+
 	if !other.IsInlineFloat64() {
 		return false
 	}
@@ -240,10 +348,18 @@ func (f Float64) StrictEqualVal(other Value) Value {
 
 func initFloat64() {
 	Float64Class = NewClassWithOptions(ClassWithSuperclass(ValueClass))
+
 	StdModule.AddConstantString("Float64", Ref(Float64Class))
+	RegisterNativeClass("Std::Float64", "value.Float64Class")
+
 	Float64Class.AddConstantString("NAN", Float64NaN().ToValue())
+	RegisterNativeConstant("Std::Float64::NAN", "value.Float64NaN()", "value.Float64")
+
 	Float64Class.AddConstantString("INF", Float64Inf().ToValue())
+	RegisterNativeConstant("Std::Float64::INF", "value.Float64Inf()", "value.Float64")
+
 	Float64Class.AddConstantString("NEG_INF", Float64NegInf().ToValue())
+	RegisterNativeConstant("Std::Float64::NEG_INF", "value.Float64NegInf()", "value.Float64")
 
 	Float64ConvertibleInterface = NewInterface()
 	Float64Class.AddConstantString("Convertible", Ref(Float64ConvertibleInterface))

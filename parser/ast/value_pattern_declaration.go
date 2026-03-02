@@ -102,6 +102,10 @@ func (n *ValuePatternDeclarationNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *ValuePatternDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (v *ValuePatternDeclarationNode) Error() string {
 	return v.Inspect()
 }

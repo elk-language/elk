@@ -13,8 +13,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestClosureLiteral(t *testing.T) {
-	tests := testTable{
+func TestBytecodeClosureLiteral(t *testing.T) {
+	tests := bytecodeTestTable{
 		"recursive closure": {
 			input: `
 				var calc_fib: |n: Int|: Int = |n| ->
@@ -140,13 +140,13 @@ func TestClosureLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestStringLiteral(t *testing.T) {
-	tests := testTable{
+func TestBytecodeStringLiteral(t *testing.T) {
+	tests := bytecodeTestTable{
 		"static string": {
 			input: `"foo bar"`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -246,13 +246,13 @@ func TestStringLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestRangeLiteral(t *testing.T) {
-	tests := testTable{
+func TestBytecodeRangeLiteral(t *testing.T) {
+	tests := bytecodeTestTable{
 		"static closed range": {
 			input: `2...5`,
 			want: vm.NewBytecodeFunctionNoParams(
@@ -589,13 +589,13 @@ func TestRangeLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLiterals(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLiterals(t *testing.T) {
+	tests := bytecodeTestTable{
 		"put UInt8": {
 			input: "1u8",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -978,13 +978,13 @@ func TestLiterals(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestArrayTuples(t *testing.T) {
-	tests := testTable{
+func TestBytecodeArrayTuples(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty arrayTuple": {
 			input: "%[]",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -998,7 +998,7 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{}),
+					value.Ref(&value.ArrayTupleOfValue{}),
 				},
 			),
 		},
@@ -1015,7 +1015,7 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
 						value.SmallInt(5).ToValue(),
@@ -1037,7 +1037,7 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
 						value.Nil,
@@ -1062,13 +1062,11 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.Ref(value.String("bar")),
-							value.Ref(&value.ArrayTuple{
-								value.Float(7.2).ToValue(),
-							}),
+							value.Ref(&value.NativeArrayTuple[value.Float]{7.2}),
 						}),
 					}),
 				},
@@ -1083,8 +1081,8 @@ func TestArrayTuples(t *testing.T) {
 					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.LOAD_VALUE_2),
 					byte(bytecode.COPY),
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
+					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(20, 1, 21)),
@@ -1092,15 +1090,13 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 					}),
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.Ref(value.String("bar")),
 					}),
-					value.Ref(&value.ArrayList{
-						value.Float(7.2).ToValue(),
-					}),
+					value.Ref(&value.NativeArrayList[value.Float]{7.2}),
 				},
 			),
 		},
@@ -1120,7 +1116,7 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
 						value.Nil,
@@ -1154,14 +1150,14 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
 						value.SmallInt(5).ToValue(),
 					}),
 					value.ToSymbol("Std::Object").ToValue(),
-					value.Ref(&value.ArrayTuple{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -1185,8 +1181,8 @@ func TestArrayTuples(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Object").ToValue(),
-					value.Ref(&value.ArrayTuple{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -1222,11 +1218,11 @@ func TestArrayTuples(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Object").ToValue(),
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 					}),
-					value.Ref(&value.ArrayTuple{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -1261,11 +1257,11 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(3, 14),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 					}),
-					value.Ref(&value.ArrayTuple{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -1302,16 +1298,16 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(2, 21),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.Ref(&value.ArrayTuple{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -1352,8 +1348,8 @@ func TestArrayTuples(t *testing.T) {
 						value.ToSymbol("name"),
 						0,
 					)),
-					value.Ref(&value.ArrayTuple{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -1432,7 +1428,7 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1458,7 +1454,7 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1483,7 +1479,7 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1510,14 +1506,14 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
 						value.SmallInt(4).ToValue(),
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(6).ToValue(),
-						value.Ref(&value.ArrayTuple{
+						value.Ref(&value.ArrayTupleOfValue{
 							value.SmallInt(7).ToValue(),
 							value.SmallInt(8).ToValue(),
 						}),
@@ -1539,10 +1535,10 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
-						value.Ref(value.String("foo")),
-						value.Ref(value.String("bar")),
-						value.Ref(value.String("baz")),
+					value.Ref(&value.NativeArrayTuple[value.String]{
+						"foo",
+						"bar",
+						"baz",
 					}),
 				},
 			),
@@ -1560,15 +1556,15 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
-						value.ToSymbol("foo").ToValue(),
-						value.ToSymbol("bar").ToValue(),
-						value.ToSymbol("baz").ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.Symbol]{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+						value.ToSymbol("baz"),
 					}),
 				},
 			),
 		},
-		"hex arrayTuple": {
+		"hex arrayTuple uint8": {
 			input: `%x[ab cd 5f]`,
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
@@ -1581,8 +1577,92 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
-						value.SmallInt(0xab).ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.UInt8]{
+						0xab,
+						0xcd,
+						0x5f,
+					}),
+				},
+			),
+		},
+		"hex arrayTuple uint16": {
+			input: `%x[100 cd 5f]`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.Ref(&value.NativeArrayTuple[value.UInt16]{
+						0x100,
+						0xcd,
+						0x5f,
+					}),
+				},
+			),
+		},
+		"hex arrayTuple uint32": {
+			input: `%x[10000 cd 5f]`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.Ref(&value.NativeArrayTuple[value.UInt32]{
+						0x10000,
+						0xcd,
+						0x5f,
+					}),
+				},
+			),
+		},
+		"hex arrayTuple uint64": {
+			input: `%x[100000000 cd 5f]`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(18, 1, 19)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.Ref(&value.NativeArrayTuple[value.UInt64]{
+						0x100000000,
+						0xcd,
+						0x5f,
+					}),
+				},
+			),
+		},
+		"hex arrayTuple int": {
+			input: `%x[10000000000000000 cd 5f]`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(26, 1, 27)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.Ref(&value.ArrayTupleOfValue{
+						value.MustParseInt("0x10000000000000000", 0),
 						value.SmallInt(0xcd).ToValue(),
 						value.SmallInt(0x5f).ToValue(),
 					}),
@@ -1602,10 +1682,10 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTuple{
-						value.SmallInt(0b101).ToValue(),
-						value.SmallInt(0b11).ToValue(),
-						value.SmallInt(0b10).ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.UInt8]{
+						0b101,
+						0b11,
+						0b10,
 					}),
 				},
 			),
@@ -1614,13 +1694,13 @@ func TestArrayTuples(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestArrayLists(t *testing.T) {
-	tests := testTable{
+func TestBytecodeArrayLists(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty list": {
 			input: "[]",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1635,7 +1715,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{}),
+					value.Ref(&value.ArrayListOfValue{}),
 				},
 			),
 		},
@@ -1653,7 +1733,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
 						value.SmallInt(5).ToValue(),
@@ -1677,7 +1757,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
 						value.SmallInt(5).ToValue(),
@@ -1710,7 +1790,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
 						value.SmallInt(5).ToValue(),
@@ -1733,10 +1813,10 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Ref(value.String("foo")),
-						value.Ref(value.String("bar")),
-						value.Ref(value.String("baz")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						value.String("foo"),
+						value.String("bar"),
+						value.String("baz"),
 					}),
 				},
 			),
@@ -1756,10 +1836,10 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.Ref(value.String("foo")),
-						value.Ref(value.String("bar")),
-						value.Ref(value.String("baz")),
+					value.Ref(&value.NativeArrayList[value.String]{
+						"foo",
+						"bar",
+						"baz",
 					}),
 				},
 			),
@@ -1778,10 +1858,10 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.ToSymbol("foo").ToValue(),
-						value.ToSymbol("bar").ToValue(),
-						value.ToSymbol("baz").ToValue(),
+					value.Ref(&value.NativeArrayList[value.Symbol]{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+						value.ToSymbol("baz"),
 					}),
 				},
 			),
@@ -1802,10 +1882,10 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.ToSymbol("foo").ToValue(),
-						value.ToSymbol("bar").ToValue(),
-						value.ToSymbol("baz").ToValue(),
+					value.Ref(&value.NativeArrayList[value.Symbol]{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+						value.ToSymbol("baz"),
 					}),
 				},
 			),
@@ -1824,10 +1904,10 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.SmallInt(0xab).ToValue(),
-						value.SmallInt(0xcd).ToValue(),
-						value.SmallInt(0x5f).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						0xab,
+						0xcd,
+						0x5f,
 					}),
 				},
 			),
@@ -1847,10 +1927,10 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.SmallInt(0xab).ToValue(),
-						value.SmallInt(0xcd).ToValue(),
-						value.SmallInt(0x5f).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						0xab,
+						0xcd,
+						0x5f,
 					}),
 				},
 			),
@@ -1869,10 +1949,10 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.SmallInt(0b101).ToValue(),
-						value.SmallInt(0b11).ToValue(),
-						value.SmallInt(0b10).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						0b101,
+						0b11,
+						0b10,
 					}),
 				},
 			),
@@ -1892,10 +1972,10 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.SmallInt(0b101).ToValue(),
-						value.SmallInt(0b11).ToValue(),
-						value.SmallInt(0b10).ToValue(),
+					value.Ref(&value.NativeArrayList[value.UInt8]{
+						0b101,
+						0b11,
+						0b10,
 					}),
 				},
 			),
@@ -1915,7 +1995,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
 						value.Nil,
@@ -1942,7 +2022,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
 						value.Nil,
@@ -1968,7 +2048,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -1994,7 +2074,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -2026,7 +2106,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -2034,7 +2114,7 @@ func TestArrayLists(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 						value.SmallInt(6).ToValue(),
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(7).ToValue(),
 						value.SmallInt(8).ToValue(),
 					}),
@@ -2062,14 +2142,14 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.Ref(value.String("bar")),
 					}),
-					value.Ref(&value.ArrayList{
-						value.Float(7.2).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						value.Float(7.2),
 					}),
 				},
 			),
@@ -2098,7 +2178,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
 						value.Nil,
@@ -2133,7 +2213,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
 						value.Nil,
@@ -2170,13 +2250,13 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 8),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
 						value.SmallInt(5).ToValue(),
 					}),
-					value.Ref(&value.ArrayTuple{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -2208,8 +2288,8 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayList[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -2246,11 +2326,11 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 17),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 					}),
-					value.Ref(&value.ArrayList{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayList[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -2298,11 +2378,11 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 17),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 					}),
-					value.Ref(&value.ArrayList{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayList[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -2340,16 +2420,16 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(2, 23),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 					}),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
 					}),
-					value.Ref(&value.ArrayTuple{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -2388,8 +2468,8 @@ func TestArrayLists(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Object").ToValue(),
-					value.Ref(&value.ArrayList{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayList[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -2427,7 +2507,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 14),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{}),
+					value.Ref(&value.ArrayListOfValue{}),
 					value.Ref(value.String("foo")),
 					value.Float(5.6).ToValue(),
 				},
@@ -2465,7 +2545,7 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(3, 15),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{}),
+					value.Ref(&value.ArrayListOfValue{}),
 					value.Ref(value.String("foo")),
 					value.Float(5.6).ToValue(),
 				},
@@ -2506,13 +2586,13 @@ func TestArrayLists(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestHashSet(t *testing.T) {
-	tests := testTable{
+func TestBytecodeHashSet(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty list": {
 			input: "^[]",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -2527,7 +2607,7 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(&value.HashSet{}),
+					value.Ref(&vm.HashSetOfValue{}),
 				},
 			),
 		},
@@ -2545,7 +2625,7 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(1).ToValue(),
 						value.Ref(value.String("foo")),
@@ -2570,7 +2650,7 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 						nil,
 						4,
 						1,
@@ -2605,7 +2685,7 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElementsMaxLoad(
 						nil,
 						4,
 						1,
@@ -2632,11 +2712,10 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
-						nil,
-						value.Ref(value.String("foo")),
-						value.Ref(value.String("bar")),
-						value.Ref(value.String("baz")),
+					value.Ref(vm.NewNativeHashSetWithElements[value.String](
+						"foo",
+						"bar",
+						"baz",
 					)),
 				},
 			),
@@ -2656,11 +2735,10 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
-						nil,
-						value.Ref(value.String("foo")),
-						value.Ref(value.String("bar")),
-						value.Ref(value.String("baz")),
+					value.Ref(vm.NewNativeHashSetWithElements[value.String](
+						"foo",
+						"bar",
+						"baz",
 					)),
 				},
 			),
@@ -2679,11 +2757,10 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
-						nil,
-						value.ToSymbol("foo").ToValue(),
-						value.ToSymbol("bar").ToValue(),
-						value.ToSymbol("baz").ToValue(),
+					value.Ref(vm.NewNativeHashSetWithElements(
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+						value.ToSymbol("baz"),
 					)),
 				},
 			),
@@ -2703,11 +2780,10 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
-						nil,
-						value.ToSymbol("foo").ToValue(),
-						value.ToSymbol("bar").ToValue(),
-						value.ToSymbol("baz").ToValue(),
+					value.Ref(vm.NewNativeHashSetWithElements[value.Symbol](
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+						value.ToSymbol("baz"),
 					)),
 				},
 			),
@@ -2726,7 +2802,7 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(0xab).ToValue(),
 						value.SmallInt(0xcd).ToValue(),
@@ -2750,7 +2826,7 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(0xab).ToValue(),
 						value.SmallInt(0xcd).ToValue(),
@@ -2774,7 +2850,7 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(0b101).ToValue(),
 						value.SmallInt(0b11).ToValue(),
@@ -2798,7 +2874,7 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithElements(
+					value.Ref(vm.MustNewHashSetOfValueWithElements(
 						nil,
 						value.SmallInt(0b101).ToValue(),
 						value.SmallInt(0b11).ToValue(),
@@ -2832,7 +2908,7 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 						nil,
 						5,
 						value.Ref(value.String("foo")),
@@ -2854,7 +2930,7 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_5),
 					byte(bytecode.NEW_HASH_SET8), 2,
@@ -2866,12 +2942,7 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(3, 7),
 				},
-				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
-						nil,
-						2,
-					)),
-				},
+				[]value.Value{},
 			),
 		},
 		"with static elements and if modifiers": {
@@ -2902,7 +2973,7 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 14),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 						nil,
 						2,
 						value.SmallInt(1).ToValue(),
@@ -2950,7 +3021,7 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 14),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 						nil,
 						2,
 						value.SmallInt(1).ToValue(),
@@ -2991,12 +3062,12 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(2, 23),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+					value.Ref(vm.MustNewHashSetOfValueWithCapacityAndElements(
 						nil,
 						3,
 						value.SmallInt(1).ToValue(),
 					)),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -3017,8 +3088,8 @@ func TestHashSet(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.NEW_HASH_SET8), 1,
 					byte(bytecode.GET_LOCAL_1),
@@ -3035,10 +3106,6 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(3, 18),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
-						nil,
-						2,
-					)),
 					value.ToSymbol("Std::Object").ToValue(),
 				},
 			),
@@ -3047,13 +3114,13 @@ func TestHashSet(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestHashMap(t *testing.T) {
-	tests := testTable{
+func TestBytecodeHashMap(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty": {
 			input: "{}",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -3068,7 +3135,7 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashMap(0)),
+					value.Ref(vm.NewHashMapOfValue(0)),
 				},
 			),
 		},
@@ -3097,7 +3164,7 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashMap(0)),
+					value.Ref(vm.NewNativeKeyHashMap[value.Symbol](0)),
 					value.ToSymbol("foo").ToValue(),
 				},
 			),
@@ -3127,7 +3194,7 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashMap(0)),
+					value.Ref(vm.NewNativeKeyHashMap[value.Symbol](0)),
 					value.ToSymbol("_foo").ToValue(),
 				},
 			),
@@ -3146,20 +3213,20 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithElements(
+					value.Ref(vm.MustNewHashMapOfValueWithElements(
 						nil,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
-						value.Pair{
-							Key:   value.ToSymbol("foo").ToValue(),
-							Value: value.SmallInt(5).ToValue(),
-						},
-						value.Pair{
-							Key:   value.Ref(value.String("bar")),
-							Value: value.Float(5.6).ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
+						value.MakePairOfValue(
+							value.ToSymbol("foo").ToValue(),
+							value.SmallInt(5).ToValue(),
+						),
+						value.MakePairOfValue(
+							value.Ref(value.String("bar")),
+							value.Float(5.6).ToValue(),
+						),
 					)),
 				},
 			),
@@ -3196,15 +3263,15 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 27),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithCapacityAndElements(
+					value.Ref(vm.MustNewHashMapOfValueWithCapacityAndElements(
 						nil,
 						3,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
 					)),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -3228,20 +3295,20 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithElements(
+					value.Ref(vm.MustNewHashMapOfValueWithElements(
 						nil,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
-						value.Pair{
-							Key:   value.ToSymbol("foo").ToValue(),
-							Value: value.SmallInt(5).ToValue(),
-						},
-						value.Pair{
-							Key:   value.Ref(value.String("bar")),
-							Value: value.Float(5.6).ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
+						value.MakePairOfValue(
+							value.ToSymbol("foo").ToValue(),
+							value.SmallInt(5).ToValue(),
+						),
+						value.MakePairOfValue(
+							value.Ref(value.String("bar")),
+							value.Float(5.6).ToValue(),
+						),
 					)),
 				},
 			),
@@ -3269,20 +3336,20 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithElements(
+					value.Ref(vm.MustNewHashMapOfValueWithElements(
 						nil,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
-						value.Pair{
-							Key:   value.ToSymbol("foo").ToValue(),
-							Value: value.SmallInt(5).ToValue(),
-						},
-						value.Pair{
-							Key:   value.Ref(value.String("bar")),
-							Value: value.Float(5.6).ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
+						value.MakePairOfValue(
+							value.ToSymbol("foo").ToValue(),
+							value.SmallInt(5).ToValue(),
+						),
+						value.MakePairOfValue(
+							value.Ref(value.String("bar")),
+							value.Float(5.6).ToValue(),
+						),
 					)),
 				},
 			),
@@ -3309,11 +3376,11 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashMap(1)),
-					value.Ref(value.NewHashMap(1)),
+					value.Ref(vm.NewHashMapOfValue(1)),
+					value.Ref(vm.NewNativeKeyHashMap[value.String](1)),
 					value.Ref(value.String("bar")),
-					value.Ref(&value.ArrayList{
-						value.Float(7.2).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						value.Float(7.2),
 					}),
 				},
 			),
@@ -3345,16 +3412,16 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithCapacityAndElements(
+					value.Ref(vm.MustNewHashMapOfValueWithCapacityAndElements(
 						nil,
 						3,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
 					)),
-					value.Ref(&value.ArrayTuple{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -3392,17 +3459,17 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 19),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashMapWithCapacityAndElements(
+					value.Ref(vm.MustNewHashMapOfValueWithCapacityAndElements(
 						nil,
 						2,
-						value.Pair{
-							Key:   value.SmallInt(2).ToValue(),
-							Value: value.SmallInt(5).ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(2).ToValue(),
+							value.SmallInt(5).ToValue(),
+						),
 					)),
 					value.ToSymbol("a").ToValue(),
-					value.Ref(&value.ArrayList{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayList[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -3431,7 +3498,7 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.NEW_HASH_MAP8), 0,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_IF), 0, 6,
@@ -3440,7 +3507,7 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 0,
 					byte(bytecode.LOAD_INT_8), 9,
-					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.COPY),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.RETURN),
@@ -3452,9 +3519,8 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 20),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashMap(2)),
-					value.Ref(&value.ArrayList{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayList[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -3471,17 +3537,17 @@ func TestHashMap(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.NEW_HASH_MAP8), 0,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.JUMP_UNLESS), 0, 9,
-					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INSTANTIATE8), 0,
 					byte(bytecode.INT_5),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.JUMP), 0, 0,
 					byte(bytecode.INT_0),
-					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.COPY),
 					byte(bytecode.MAP_SET),
 					byte(bytecode.RETURN),
@@ -3493,10 +3559,9 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(3, 22),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashMap(2)),
 					value.ToSymbol("Std::Object").ToValue(),
-					value.Ref(&value.ArrayList{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayList[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -3505,13 +3570,13 @@ func TestHashMap(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestHashRecord(t *testing.T) {
-	tests := testTable{
+func TestBytecodeHashRecord(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty": {
 			input: "%{}",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -3525,7 +3590,7 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(value.NewHashRecord(0)),
+					value.Ref(vm.NewHashRecordOfValue(0)),
 				},
 			),
 		},
@@ -3540,8 +3605,8 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.INT_3),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NEW_HASH_RECORD8), 1,
 					byte(bytecode.RETURN),
@@ -3553,6 +3618,7 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
+					vm.MakeNativeKeyHashRecord[value.Symbol](0).ToValue(),
 					value.ToSymbol("foo").ToValue(),
 				},
 			),
@@ -3568,8 +3634,8 @@ func TestHashRecord(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.INT_3),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.UNDEFINED),
 					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.NEW_HASH_RECORD8), 1,
 					byte(bytecode.RETURN),
@@ -3581,6 +3647,7 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
+					vm.MakeNativeKeyHashRecord[value.Symbol](0).ToValue(),
 					value.ToSymbol("_foo").ToValue(),
 				},
 			),
@@ -3600,18 +3667,18 @@ func TestHashRecord(t *testing.T) {
 				[]value.Value{
 					value.Ref(vm.MustNewHashRecordWithElements(
 						nil,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
-						value.Pair{
-							Key:   value.ToSymbol("foo").ToValue(),
-							Value: value.SmallInt(5).ToValue(),
-						},
-						value.Pair{
-							Key:   value.Ref(value.String("bar")),
-							Value: value.Float(5.6).ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
+						value.MakePairOfValue(
+							value.ToSymbol("foo").ToValue(),
+							value.SmallInt(5).ToValue(),
+						),
+						value.MakePairOfValue(
+							value.Ref(value.String("bar")),
+							value.Float(5.6).ToValue(),
+						),
 					)),
 				},
 			),
@@ -3650,12 +3717,12 @@ func TestHashRecord(t *testing.T) {
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
 						nil,
 						3,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
 					)),
-					value.Ref(&value.ArrayList{
+					value.Ref(&value.ArrayListOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),
@@ -3687,12 +3754,12 @@ func TestHashRecord(t *testing.T) {
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
 						nil,
 						2,
-						value.Pair{Key: value.Ref(value.String("foo")), Value: value.SmallInt(9).ToValue()},
+						value.MakePairOfValue(value.Ref(value.String("foo")), value.SmallInt(9).ToValue()),
 					)),
-					value.Ref(value.NewHashRecord(1)),
+					value.Ref(vm.MakeNativeKeyHashRecord[value.String](1)),
 					value.Ref(value.String("bar")),
-					value.Ref(&value.ArrayList{
-						value.Float(7.2).ToValue(),
+					value.Ref(&value.NativeArrayList[value.Float]{
+						7.2,
 					}),
 				},
 			),
@@ -3726,13 +3793,13 @@ func TestHashRecord(t *testing.T) {
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
 						nil,
 						3,
-						value.Pair{
-							Key:   value.SmallInt(1).ToValue(),
-							Value: value.Ref(value.String("foo")),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(1).ToValue(),
+							value.Ref(value.String("foo")),
+						),
 					)),
-					value.Ref(&value.ArrayTuple{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayTuple[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -3772,14 +3839,14 @@ func TestHashRecord(t *testing.T) {
 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
 						nil,
 						3,
-						value.Pair{
-							Key:   value.SmallInt(2).ToValue(),
-							Value: value.SmallInt(5).ToValue(),
-						},
+						value.MakePairOfValue(
+							value.SmallInt(2).ToValue(),
+							value.SmallInt(5).ToValue(),
+						),
 					)),
 					value.ToSymbol("a").ToValue(),
-					value.Ref(&value.ArrayList{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayList[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -3816,8 +3883,8 @@ func TestHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(3, 19),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayList{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayList[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -3856,8 +3923,8 @@ func TestHashRecord(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Object").ToValue(),
-					value.Ref(&value.ArrayList{
-						value.ToSymbol("foo").ToValue(),
+					value.Ref(&value.NativeArrayList[value.Symbol]{
+						value.ToSymbol("foo"),
 					}),
 				},
 			),
@@ -3866,13 +3933,13 @@ func TestHashRecord(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestRegex(t *testing.T) {
-	tests := testTable{
+func TestBytecodeRegex(t *testing.T) {
+	tests := bytecodeTestTable{
 		"empty": {
 			input: "%//",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -3976,7 +4043,7 @@ func TestRegex(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }

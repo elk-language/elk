@@ -514,7 +514,7 @@ func initDateSpan() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
 			ok, err := self.GreaterThanEqual(args[1])
-			return value.ToElkBool(ok), err
+			return value.BoolVal(ok), err
 		},
 		DefWithParameters(1),
 	)
@@ -525,7 +525,7 @@ func initDateSpan() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
 			ok, err := self.GreaterThan(args[1])
-			return value.ToElkBool(ok), err
+			return value.BoolVal(ok), err
 		},
 		DefWithParameters(1),
 	)
@@ -536,7 +536,7 @@ func initDateSpan() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
 			ok, err := self.LessThanEqual(args[1])
-			return value.ToElkBool(ok), err
+			return value.BoolVal(ok), err
 		},
 		DefWithParameters(1),
 	)
@@ -547,7 +547,7 @@ func initDateSpan() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
 			ok, err := self.LessThan(args[1])
-			return value.ToElkBool(ok), err
+			return value.BoolVal(ok), err
 		},
 		DefWithParameters(1),
 	)
@@ -557,7 +557,7 @@ func initDateSpan() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsDateSpan()
 			other := args[1]
-			return value.ToElkBool(self.Equal(other)), value.Undefined
+			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)

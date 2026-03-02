@@ -82,6 +82,10 @@ func (n *UnhygienicNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *UnhygienicNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UnhygienicNode) Error() string {
 	return n.Inspect()
 }

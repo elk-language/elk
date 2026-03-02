@@ -1079,3 +1079,41 @@ func (c *Checker) finishCheckingTypeParameterNode(typ *types.TypeParameter, node
 	typ.UpperBound = upperType
 	typ.Default = def
 }
+
+func (c *Checker) ResolveGenericParent(namespace types.Namespace, targetParent types.Namespace) *types.Generic {
+	var generics []*types.Generic
+
+	for parent := range types.Parents(namespace) {
+		switch p := parent.(type) {
+		case *types.NamespacePlaceholder:
+			switch n := p.Namespace.(type) {
+			case *types.Module:
+				parent = n
+			default:
+				if n.Singleton() == nil {
+					continue
+				}
+				parent = n.Singleton()
+			}
+		case *types.Generic:
+			generics = append(generics, p)
+
+			if !c.IsTheSameNamespace(p.Namespace, targetParent) {
+				continue
+			}
+
+			if len(generics) < 1 {
+				return p
+			}
+
+			result := p
+			for i := len(generics) - 1; i >= 0; i-- {
+				generic := generics[i]
+				result = c.replaceTypeParametersInGeneric(result, generic.ArgumentMap, false)
+			}
+			return result
+		}
+	}
+
+	return nil
+}

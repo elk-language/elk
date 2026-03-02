@@ -114,6 +114,10 @@ func (p *Promise) Copy() value.Reference {
 	return p
 }
 
+func (p *Promise) ToValue() value.Value {
+	return value.Ref(p)
+}
+
 func (p *Promise) Inspect() string {
 	if p.IsResolved() {
 		if !p.err.IsUndefined() {
@@ -138,10 +142,19 @@ func (p *Promise) IsResolved() bool {
 	return p.ThreadPool == nil
 }
 
-// Wait for the result of the promise
+// Wait for the result of the promise.
 func (p *Promise) AwaitSync() (value.Value, *value.StackTrace, value.Value) {
 	p.wg.Wait()
 	return p.result, p.stackTrace, p.err
+}
+
+// Wait for the result of the promise. Panics on error.
+func (p *Promise) MustAwaitSync() value.Value {
+	p.wg.Wait()
+	if p.err.IsNotUndefined() {
+		panic(p.err)
+	}
+	return p.result
 }
 
 func (p *Promise) RegisterContinuation(continuation *Promise) {
@@ -259,7 +272,7 @@ func initPromise() {
 		"is_resolved",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*Promise)(args[0].Pointer())
-			return value.ToElkBool(self.IsResolved()), value.Undefined
+			return value.BoolVal(self.IsResolved()), value.Undefined
 		},
 	)
 }

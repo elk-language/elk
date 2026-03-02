@@ -42,6 +42,10 @@ func (t *Token) Copy() value.Reference {
 	return t
 }
 
+func (t *Token) ToValue() value.Value {
+	return value.Ref(t)
+}
+
 func (t *Token) InstanceVariables() *value.InstanceVariables {
 	return nil
 }

@@ -10,8 +10,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestLaxEqual(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLaxEqual(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static 25 =~ 25.0": {
 			input: "25 =~ 25.0",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -81,13 +81,13 @@ func TestLaxEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLaxNotEqual(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLaxNotEqual(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static 25 !~ 25.0": {
 			input: "25 !~ 25.0",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -157,13 +157,13 @@ func TestLaxNotEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestEqual(t *testing.T) {
-	tests := testTable{
+func TestBytecodeEqual(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static 25 == 25.0": {
 			input: "25 == 25.0",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -304,13 +304,13 @@ func TestEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestNotEqual(t *testing.T) {
-	tests := testTable{
+func TestBytecodeNotEqual(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static 25 != 25.0": {
 			input: "25 != 25.0",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -452,13 +452,13 @@ func TestNotEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestStrictEqual(t *testing.T) {
-	tests := testTable{
+func TestBytecodeStrictEqual(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static 25 === 25": {
 			input: "25 === 25",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -534,13 +534,13 @@ func TestStrictEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestStrictNotEqual(t *testing.T) {
-	tests := testTable{
+func TestBytecodeStrictNotEqual(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static 25 !== 25": {
 			input: "25 !== 25",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -616,13 +616,13 @@ func TestStrictNotEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestGreaterThan(t *testing.T) {
-	tests := testTable{
+func TestBytecodeGreaterThan(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static 3 > 3": {
 			input: "3 > 3",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -847,13 +847,13 @@ func TestGreaterThan(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestGreaterThanEqual(t *testing.T) {
-	tests := testTable{
+func TestBytecodeGreaterThanEqual(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static 3 >= 3": {
 			input: "3 >= 3",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1078,13 +1078,13 @@ func TestGreaterThanEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLessThan(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLessThan(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static 3 < 3": {
 			input: "3 < 3",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1309,13 +1309,13 @@ func TestLessThan(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }
 
-func TestLessThanEqual(t *testing.T) {
-	tests := testTable{
+func TestBytecodeLessThanEqual(t *testing.T) {
+	tests := bytecodeTestTable{
 		"resolve static 3 <= 3": {
 			input: "3 <= 3",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -1540,7 +1540,7 @@ func TestLessThanEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			compilerTest(tc, t)
+			bytecodeCompilerTest(tc, t)
 		})
 	}
 }

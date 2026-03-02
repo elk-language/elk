@@ -113,6 +113,10 @@ func (n *PublicIdentifierNode) Inspect() string {
 	)
 }
 
+func (n *PublicIdentifierNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *PublicIdentifierNode) Error() string {
 	return n.Inspect()
 }
@@ -187,6 +191,10 @@ func (n *PrivateIdentifierNode) Inspect() string {
 		(*value.Location)(n.loc).Inspect(),
 		n.Value,
 	)
+}
+
+func (n *PrivateIdentifierNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *PrivateIdentifierNode) Error() string {

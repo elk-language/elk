@@ -8,26 +8,26 @@ import (
 
 var WeakClass *Class // ::Std::Weak
 
-type Weak weak.Pointer[Box]
+type Weak weak.Pointer[BoxOfValue]
 
 type internalWeak struct {
 	ptr unsafe.Pointer
 }
 
 // Make a weak pointer
-func MakeWeak(box *Box) Weak {
+func MakeWeak(box *BoxOfValue) Weak {
 	ptr := weak.Make(box)
 	return Weak(ptr)
 }
 
 // Convert to a box (a strong pointer)
-func (w Weak) ToBox() *Box {
-	ptr := weak.Pointer[Box](w)
+func (w Weak) ToBox() *BoxOfValue {
+	ptr := weak.Pointer[BoxOfValue](w)
 	return ptr.Value()
 }
 
 // Convert to an immutable box (a strong pointer)
-func (w Weak) ToImmutableBox() *ImmutableBox {
+func (w Weak) ToImmutableBox() *ImmutableBoxOfValue {
 	return w.ToBox().ToImmutableBox()
 }
 
@@ -88,4 +88,5 @@ func (w Weak) Error() string {
 func initWeak() {
 	WeakClass = NewClass()
 	StdModule.AddConstantString("Weak", Ref(WeakClass))
+	RegisterNativeClass("Std::Weak", "value.WeakClass")
 }

@@ -8,82 +8,43 @@ import (
 )
 
 // Iterate over an iterable value
-func Iterate(vm *Thread, collectionValue value.Value) iter.Seq2[value.Value, value.Value] {
-	switch c := collectionValue.AsReference().(type) {
-	case *value.ArrayListIterator:
+func Iterate(vm *Thread, iterableVal value.Value) iter.Seq2[value.Value, value.Value] {
+	switch c := iterableVal.ToInterface().(type) {
+	case value.NativeIterator:
 		return value.IterateNativeIterator(c)
-	case *value.ArrayTupleIterator:
-		return value.IterateNativeIterator(c)
-	case *value.HashMapIterator:
-		return value.IterateNativeIterator(c)
-	case *value.HashRecordIterator:
-		return value.IterateNativeIterator(c)
-	case *value.HashSetIterator:
-		return value.IterateNativeIterator(c)
-	case *value.ArrayList:
-		return func(yield func(value.Value, value.Value) bool) {
-			for _, element := range *c {
-				if !yield(element, value.Undefined) {
-					return
-				}
-			}
-		}
-	case *value.ArrayTuple:
-		return func(yield func(value.Value, value.Value) bool) {
-			for _, element := range *c {
-				if !yield(element, value.Undefined) {
-					return
-				}
-			}
-		}
-	case *value.HashSet:
-		return func(yield func(value.Value, value.Value) bool) {
-			for _, element := range c.Table {
-				if element.IsUndefined() {
-					continue
-				}
-
-				if !yield(element, value.Undefined) {
-					return
-				}
-			}
-		}
-	case *value.HashMap:
-		return func(yield func(value.Value, value.Value) bool) {
-			for index, _ := range c.Table {
-				pair := &c.Table[index]
-				if pair.Key.IsUndefined() {
-					continue
-				}
-
-				if !yield(value.Ref(pair), value.Undefined) {
-					return
-				}
-			}
-		}
-	case *value.HashRecord:
-		return func(yield func(value.Value, value.Value) bool) {
-			for index, _ := range c.Table {
-				pair := &c.Table[index]
-				if pair.Key.IsUndefined() {
-					continue
-				}
-
-				if !yield(value.Ref(pair), value.Undefined) {
-					return
-				}
-			}
-		}
+	case value.NativeIterable:
+		return c.Iterate()
 	default:
 		return func(yield func(value.Value, value.Value) bool) {
-			iterator, err := vm.CallMethodByName(symbol.L_iter, collectionValue)
+			iterator, err := vm.CallMethodByName(symbol.L_iter, iterableVal)
 			if !err.IsUndefined() {
 				yield(value.Undefined, err)
 				return
 			}
 
+			for element, err := range IterateIterator(vm, iterator) {
+				if !err.IsUndefined() {
+					yield(value.Undefined, err)
+					return
+				}
+
+				if !yield(element, value.Undefined) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// Iterate over an iterator
+func IterateIterator(vm *Thread, iteratorVal value.Value) iter.Seq2[value.Value, value.Value] {
+	switch c := iteratorVal.ToInterface().(type) {
+	case value.NativeIterator:
+		return value.IterateNativeIterator(c)
+	default:
+		return func(yield func(value.Value, value.Value) bool) {
 			for {
-				element, err := vm.CallMethodByName(symbol.L_next, iterator)
+				element, err := vm.CallMethodByName(symbol.L_next, iteratorVal)
 				if err.IsUndefined() {
 					if !yield(element, value.Undefined) {
 						return

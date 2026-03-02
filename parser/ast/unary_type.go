@@ -110,6 +110,10 @@ func (n *UnaryTypeNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *UnaryTypeNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UnaryTypeNode) Error() string {
 	return n.Inspect()
 }

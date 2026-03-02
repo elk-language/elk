@@ -6,6 +6,8 @@ import (
 	"io"
 	"iter"
 	"maps"
+	"math"
+	"math/big"
 	"os"
 	"path"
 	"path/filepath"
@@ -1685,7 +1687,7 @@ func (c *Checker) checkBoxOfExpression(node *ast.BoxOfExpressionNode) ast.Expres
 			node.SetType(types.Untyped{})
 			return node
 		}
-		box := types.NewGenericWithTypeArgs(c.Std(symbol.LocalBox).(*types.Class), typ)
+		box := types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), typ)
 		node.SetType(box)
 		return node
 	case *ast.PublicInstanceVariableNode:
@@ -2336,11 +2338,72 @@ func checkSpecialCollectionLiteralNode[E ast.ExpressionNode](c *Checker, collect
 	return generic
 }
 
+func checkIntCollectionLiteralNode(c *Checker, collectionType types.Namespace, elements []ast.IntCollectionContentNode, capacity ast.ExpressionNode) types.Type {
+	for _, elementNode := range elements {
+		c.checkExpression(elementNode)
+	}
+
+	if capacity != nil {
+		capacity = c.checkExpression(capacity)
+		capacityType := c.TypeOf(capacity)
+		if !c.isSubtype(capacityType, c.StdAnyInt(), nil) {
+			c.addFailure(
+				fmt.Sprintf(
+					"capacity must be an integer, got `%s`",
+					types.InspectWithColor(capacityType),
+				),
+				capacity.Location(),
+			)
+		}
+	}
+
+	var largestElement *value.BigInt
+	for _, elementNode := range elements {
+		n, ok := elementNode.(*ast.IntLiteralNode)
+		if !ok {
+			continue
+		}
+
+		val, err := value.ParseBigInt(n.Value, 0)
+		if err.IsNotUndefined() {
+			c.addFailure(err.Error(), elementNode.Location())
+		}
+		if largestElement == nil || val.GreaterThanBigInt(largestElement) {
+			largestElement = val
+		}
+	}
+	if c.Errors.IsFailure() {
+		return types.Untyped{}
+	}
+
+	maxUInt64 := value.ToElkBigInt(big.NewInt(0).SetUint64(math.MaxUint64))
+	maxUInt32 := value.ToElkBigInt(big.NewInt(0).SetUint64(math.MaxUint32))
+	maxUInt16 := value.SmallInt(math.MaxUint16)
+	maxUInt8 := value.SmallInt(math.MaxUint8)
+
+	var elementType types.Type
+	if largestElement == nil {
+		elementType = c.Std(symbol.UInt8)
+	} else if largestElement.GreaterThanBigInt(maxUInt64) {
+		elementType = c.Std(symbol.Int)
+	} else if largestElement.GreaterThanBigInt(maxUInt32) {
+		elementType = c.Std(symbol.UInt64)
+	} else if largestElement.GreaterThanSmallInt(maxUInt16) {
+		elementType = c.Std(symbol.UInt32)
+	} else if largestElement.GreaterThanSmallInt(maxUInt8) {
+		elementType = c.Std(symbol.UInt16)
+	} else {
+		elementType = c.Std(symbol.UInt8)
+	}
+
+	generic := types.NewGenericWithTypeArgs(collectionType, elementType)
+	return generic
+}
+
 func (c *Checker) checkBinArrayListLiteralNode(node *ast.BinArrayListLiteralNode) ast.ExpressionNode {
-	typ := checkSpecialCollectionLiteralNode(
+	typ := checkIntCollectionLiteralNode(
 		c,
 		c.StdArrayList(),
-		c.Std(symbol.Int),
 		node.Elements,
 		node.Capacity,
 	)
@@ -2350,10 +2413,9 @@ func (c *Checker) checkBinArrayListLiteralNode(node *ast.BinArrayListLiteralNode
 }
 
 func (c *Checker) checkHexArrayListLiteralNode(node *ast.HexArrayListLiteralNode) ast.ExpressionNode {
-	typ := checkSpecialCollectionLiteralNode(
+	typ := checkIntCollectionLiteralNode(
 		c,
 		c.StdArrayList(),
-		c.Std(symbol.Int),
 		node.Elements,
 		node.Capacity,
 	)
@@ -2389,10 +2451,9 @@ func (c *Checker) checkWordArrayListLiteralNode(node *ast.WordArrayListLiteralNo
 }
 
 func (c *Checker) checkBinArrayTupleLiteralNode(node *ast.BinArrayTupleLiteralNode) ast.ExpressionNode {
-	typ := checkSpecialCollectionLiteralNode(
+	typ := checkIntCollectionLiteralNode(
 		c,
 		c.StdArrayTuple(),
-		c.Std(symbol.Int),
 		node.Elements,
 		nil,
 	)
@@ -2402,10 +2463,9 @@ func (c *Checker) checkBinArrayTupleLiteralNode(node *ast.BinArrayTupleLiteralNo
 }
 
 func (c *Checker) checkHexArrayTupleLiteralNode(node *ast.HexArrayTupleLiteralNode) ast.ExpressionNode {
-	typ := checkSpecialCollectionLiteralNode(
+	typ := checkIntCollectionLiteralNode(
 		c,
 		c.StdArrayTuple(),
-		c.Std(symbol.Int),
 		node.Elements,
 		nil,
 	)
@@ -2905,7 +2965,7 @@ func (c *Checker) GetIteratorType(typ types.Type) types.Type {
 }
 
 func (c *Checker) getIteratorType(typ types.Type, location *position.Location) types.Type {
-	iterMethod := c.getMethod(typ, symbol.L_iter, location)
+	iterMethod := c.GetMethod(typ, symbol.L_iter, location)
 	if iterMethod == nil {
 		return types.Untyped{}
 	}
@@ -2914,12 +2974,12 @@ func (c *Checker) getIteratorType(typ types.Type, location *position.Location) t
 }
 
 func (c *Checker) getIteratorElementType(typ types.Type, location *position.Location) (types.Type, types.Type) {
-	iterMethod := c.getMethod(typ, symbol.L_iter, location)
+	iterMethod := c.GetMethod(typ, symbol.L_iter, location)
 	if iterMethod == nil {
 		return types.Untyped{}, types.Untyped{}
 	}
 
-	nextMethod := c.getMethod(iterMethod.ReturnType, symbol.L_next, location)
+	nextMethod := c.GetMethod(iterMethod.ReturnType, symbol.L_next, location)
 	if nextMethod == nil {
 		return types.Untyped{}, types.Untyped{}
 	}
@@ -4360,7 +4420,7 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 }
 
 func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, locations []*position.Location) {
-	init := c.getMethod(class, symbol.S_init, nil)
+	init := c.GetMethod(class, symbol.S_init, nil)
 
 	if init == nil {
 		for name, ivar := range types.SortedInstanceVariables(class) {
@@ -4645,22 +4705,28 @@ func (c *Checker) instanceVariableToName(node ast.InstanceVariableNode) string {
 func (c *Checker) getReceiverlessMethodReceiver(methodName string, method *types.Method, methodNamespace types.Namespace, fromLocal bool, loc *position.Location) ast.ExpressionNode {
 	var receiver ast.ExpressionNode
 	if fromLocal {
-		receiver = ast.NewPublicIdentifierNode(loc, methodName)
+		ident := ast.NewPublicIdentifierNode(loc, methodName)
+		ident.SetType(c.checkIdentifier(ident.Value, nil))
+		receiver = ident
 	} else {
 		switch under := methodNamespace.(type) {
 		case *types.Module:
 			// from using
 			receiver = ast.NewPublicConstantNode(loc, under.Name())
+			receiver.SetType(under)
 		case *types.SingletonClass:
 			// from using
 			receiver = ast.NewPublicConstantNode(loc, under.AttachedObject.Name())
+			receiver.SetType(under)
 		case *types.UsingBufferNamespace:
 			return c.getReceiverlessMethodReceiver(methodName, method, method.DefinedUnder, false, loc)
 		case *types.NamespacePlaceholder:
 			receiver = ast.NewPublicConstantNode(loc, under.Name())
+			receiver.SetType(under)
 		case nil:
 			// from self
 			receiver = ast.NewSelfLiteralNode(loc)
+			receiver.SetType(types.Self{})
 			c.checkNonNilableInstanceVariablesForSelf(loc)
 		default:
 			panic(fmt.Sprintf("unexpected method namespace returned from getReceiverlessMethod: %T", under))
@@ -4763,6 +4829,10 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 			node.NamedArguments,
 			node.MethodName.Location(),
 		)
+	}
+
+	if method == nil {
+		return node
 	}
 
 	receiver := c.getReceiverlessMethodReceiver(methodName, method, methodNamespace, fromLocal, node.MethodName.Location())
@@ -4940,9 +5010,9 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 			class,
 			typeArgs,
 		)
-		method = c.getMethod(generic, symbol.S_init, nil)
+		method = c.GetMethod(generic, symbol.S_init, nil)
 	} else {
-		method = c.getMethod(class, symbol.S_init, nil)
+		method = c.GetMethod(class, symbol.S_init, nil)
 	}
 
 	if method == nil {
@@ -5027,7 +5097,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	}
 
 	generic := types.NewGeneric(class, typeArgs)
-	method := c.getMethod(generic, symbol.S_init, nil)
+	method := c.GetMethod(generic, symbol.S_init, nil)
 	if method == nil {
 		method = types.NewMethod(
 			"",
@@ -5102,7 +5172,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	}
 
 	if !class.IsGeneric() {
-		method := c.getMethod(class, symbol.S_init, nil)
+		method := c.GetMethod(class, symbol.S_init, nil)
 		if method == nil {
 			method = types.NewMethod(
 				"",
@@ -7050,30 +7120,27 @@ func (c *Checker) addUninitialisedLocalError(name string, loc *position.Location
 	)
 }
 
-func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
-	local, _ := c.resolveLocal(node.Value, node.Location())
+func (c *Checker) checkIdentifier(value string, loc *position.Location) types.Type {
+	local, _ := c.resolveLocal(value, loc)
 	if local == nil {
-		node.SetType(types.Untyped{})
-		return node
+		return types.Untyped{}
 	}
 
 	if !local.initialised {
-		c.addUninitialisedLocalError(node.Value, node.Location())
+		c.addUninitialisedLocalError(value, loc)
 	}
-	node.SetType(local.typ)
+	return local.typ
+}
+
+func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
+	typ := c.checkIdentifier(node.Value, node.Location())
+	node.SetType(typ)
 	return node
 }
 
 func (c *Checker) checkPrivateIdentifierNode(node *ast.PrivateIdentifierNode) *ast.PrivateIdentifierNode {
-	local, _ := c.resolveLocal(node.Value, node.Location())
-	if local == nil {
-		node.SetType(types.Untyped{})
-		return node
-	}
-	if !local.initialised {
-		c.addUninitialisedLocalError(node.Value, node.Location())
-	}
-	node.SetType(local.typ)
+	typ := c.checkIdentifier(node.Value, node.Location())
+	node.SetType(typ)
 	return node
 }
 

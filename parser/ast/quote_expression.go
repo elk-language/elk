@@ -165,6 +165,10 @@ func (n *QuoteExpressionNode) Inspect() string {
 	return buff.String()
 }
 
+func (n *QuoteExpressionNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *QuoteExpressionNode) Error() string {
 	return n.Inspect()
 }

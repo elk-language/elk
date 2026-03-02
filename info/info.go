@@ -6,6 +6,6 @@ var Version string
 
 func init() {
 	if Version == "" {
-		Version = "main"
+		Version = "dev"
 	}
 }

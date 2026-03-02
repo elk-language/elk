@@ -16,8 +16,23 @@ type CallFrame struct {
 	TailCallCounter int
 }
 
+// Make a call frame that signals the end of the call frame stack
+func MakeSentinelCallFrame() CallFrame {
+	return CallFrame{
+		TailCallCounter: -1,
+	}
+}
+
+func (c *CallFrame) IsSentinel() bool {
+	return c.TailCallCounter == -1
+}
+
 func (c *CallFrame) Copy() Reference {
 	return c
+}
+
+func (c *CallFrame) ToValue() Value {
+	return Ref(c)
 }
 
 func (*CallFrame) Class() *Class {
@@ -68,4 +83,5 @@ func (*CallFrame) InstanceVariables() *InstanceVariables {
 func initCallFrame() {
 	CallFrameClass = NewClassWithOptions()
 	StdModule.AddConstantString("CallFrame", Ref(CallFrameClass))
+	RegisterNativeClass("Std::CallFrame", "value.CallFrameClass")
 }

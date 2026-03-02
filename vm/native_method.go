@@ -19,6 +19,10 @@ type NativeMethod struct {
 	optionalParameterCount int
 }
 
+func MethodToFunc(method value.Method) NativeFunction {
+	return method.(*NativeMethod).Function
+}
+
 func NewNativeMethodComparer() cmp.Option {
 	return cmp.Comparer(func(x, y *NativeMethod) bool {
 		return x.name == y.name &&
@@ -53,6 +57,10 @@ func (*NativeMethod) SingletonClass() *value.Class {
 
 func (n *NativeMethod) Copy() value.Reference {
 	return n
+}
+
+func (n *NativeMethod) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *NativeMethod) Inspect() string {

@@ -32,7 +32,6 @@ var (
 	UInt32               = value.ToSymbol("UInt32")
 	UInt16               = value.ToSymbol("UInt16")
 	UInt8                = value.ToSymbol("UInt8")
-	LocalBox             = value.ToSymbol("LocalBox")
 	ImmutableBox         = value.ToSymbol("ImmutableBox")
 	Box                  = value.ToSymbol("Box")
 	Bool                 = value.ToSymbol("Bool")

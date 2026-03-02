@@ -16,7 +16,7 @@ func initImmutableCollection() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayTuple
+			var result value.ArrayTupleOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -43,7 +43,7 @@ func initImmutableCollection() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayTuple
+			var result value.ArrayTupleOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -72,7 +72,7 @@ func initImmutableCollection() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayTuple
+			var result value.ArrayTupleOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -110,7 +110,7 @@ func initImmutableCollection() {
 					),
 				)
 			}
-			var result value.ArrayTuple
+			var result value.ArrayTupleOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -137,7 +137,7 @@ func initImmutableCollection() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayTuple
+			var result value.ArrayTupleOfValue
 			var collect bool
 
 			for elem, err := range Iterate(vm, self) {
@@ -184,7 +184,7 @@ func initImmutableCollection() {
 					),
 				)
 			}
-			var result value.ArrayTuple
+			var result value.ArrayTupleOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {
@@ -212,7 +212,7 @@ func initImmutableCollection() {
 			self := args[0]
 			fn := args[1]
 
-			var result value.ArrayTuple
+			var result value.ArrayTupleOfValue
 
 			for elem, err := range Iterate(vm, self) {
 				if !err.IsUndefined() {

@@ -13,14 +13,14 @@ func TestVMSource_Match(t *testing.T) {
 				var a: Int | String = 5
 				a match Int()
 			`,
-			wantStackTop: value.True,
+			wantStackTop: value.True.ToValue(),
 		},
 		"return false when pattern does not match": {
 			source: `
 				var a: Int | String = 5
 				a match String()
 			`,
-			wantStackTop: value.False,
+			wantStackTop: value.False.ToValue(),
 		},
 	}
 
@@ -482,7 +482,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(9).ToValue(),
 			}),
@@ -682,7 +682,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(6).ToValue(),
 				value.SmallInt(9).ToValue(),
 			}),
@@ -832,7 +832,7 @@ func TestVMSource_Switch(t *testing.T) {
 				case 15 then :e
 				end
 			`,
-			wantStackTop: value.Ref(&value.ArrayList{
+			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.Ref(value.String("FOO BAR")),
 				value.SmallInt(7).ToValue(),
 			}),

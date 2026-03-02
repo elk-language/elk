@@ -70,7 +70,14 @@ func (*CallSiteInfo) InstanceVariables() *InstanceVariables {
 }
 
 func (c *CallSiteInfo) Copy() Reference {
-	return c
+	return &CallSiteInfo{
+		Name:          c.Name,
+		ArgumentCount: c.ArgumentCount,
+	}
+}
+
+func (c *CallSiteInfo) ToValue() Value {
+	return Ref(c)
 }
 
 func (c *CallSiteInfo) Inspect() string {

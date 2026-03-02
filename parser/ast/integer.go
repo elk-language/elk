@@ -69,6 +69,10 @@ func (n *IntLiteralNode) Inspect() string {
 	)
 }
 
+func (n *IntLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *IntLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -141,6 +145,10 @@ func (n *Int64LiteralNode) Inspect() string {
 		(*value.Location)(n.loc).Inspect(),
 		n.Value,
 	)
+}
+
+func (n *Int64LiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *Int64LiteralNode) Error() string {
@@ -217,6 +225,10 @@ func (n *UIntLiteralNode) Inspect() string {
 	)
 }
 
+func (n *UIntLiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UIntLiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -291,6 +303,10 @@ func (n *UInt64LiteralNode) Inspect() string {
 	)
 }
 
+func (n *UInt64LiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UInt64LiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -359,6 +375,10 @@ func (*Int32LiteralNode) DirectClass() *value.Class {
 
 func (n *Int32LiteralNode) Inspect() string {
 	return fmt.Sprintf("Std::Elk::AST::Int32LiteralNode{location: %s, value: %s}", (*value.Location)(n.loc).Inspect(), n.Value)
+}
+
+func (n *Int32LiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *Int32LiteralNode) Error() string {
@@ -435,6 +455,10 @@ func (n *UInt32LiteralNode) Inspect() string {
 	)
 }
 
+func (n *UInt32LiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UInt32LiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -507,6 +531,10 @@ func (n *Int16LiteralNode) Inspect() string {
 		(*value.Location)(n.loc).Inspect(),
 		n.Value,
 	)
+}
+
+func (n *Int16LiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *Int16LiteralNode) Error() string {
@@ -583,6 +611,10 @@ func (n *UInt16LiteralNode) Inspect() string {
 	)
 }
 
+func (n *UInt16LiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *UInt16LiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -657,6 +689,10 @@ func (n *Int8LiteralNode) Inspect() string {
 	)
 }
 
+func (n *Int8LiteralNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *Int8LiteralNode) Error() string {
 	return n.Inspect()
 }
@@ -729,6 +765,10 @@ func (n *UInt8LiteralNode) Inspect() string {
 		(*value.Location)(n.loc).Inspect(),
 		n.Value,
 	)
+}
+
+func (n *UInt8LiteralNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *UInt8LiteralNode) Error() string {

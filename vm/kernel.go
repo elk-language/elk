@@ -47,6 +47,23 @@ func initKernel() {
 	)
 	Def(
 		c,
+		"print@1",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			val := args[1]
+			result, err := vm.CallMethodByName(toStringSymbol, val)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
+			r := result.MustReference().(value.String).String()
+			fmt.Fprint(vm.Stdout, r)
+
+			return value.Nil, value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
 		"println",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			var iterated bool
@@ -73,7 +90,25 @@ func initKernel() {
 		},
 		DefWithParameters(1),
 	)
+	Def(
+		c,
+		"println@1",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			val := args[1]
+
+			result, err := vm.CallMethodByName(toStringSymbol, val)
+			if !err.IsUndefined() {
+				return value.Undefined, err
+			}
+			r := result.MustReference().(value.String).String()
+			fmt.Fprintln(vm.Stdout, r)
+
+			return value.Nil, value.Undefined
+		},
+		DefWithParameters(1),
+	)
 	Alias(c, "puts", "println")
+	Alias(c, "puts@1", "println@1")
 
 	Def(
 		c,

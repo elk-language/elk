@@ -147,6 +147,10 @@ func (n *PublicConstantNode) Inspect() string {
 	)
 }
 
+func (n *PublicConstantNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
 func (n *PublicConstantNode) Error() string {
 	return n.Inspect()
 }
@@ -221,6 +225,10 @@ func (n *PrivateConstantNode) Inspect() string {
 		(*value.Location)(n.loc).Inspect(),
 		n.Value,
 	)
+}
+
+func (n *PrivateConstantNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *PrivateConstantNode) Error() string {
@@ -311,6 +319,10 @@ func (n *PublicConstantAsNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *PublicConstantAsNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *PublicConstantAsNode) Error() string {
@@ -433,6 +445,10 @@ func (n *ConstantLookupNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *ConstantLookupNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *ConstantLookupNode) Error() string {
@@ -563,6 +579,10 @@ func (n *GenericConstantNode) Inspect() string {
 	buff.WriteString("\n}")
 
 	return buff.String()
+}
+
+func (n *GenericConstantNode) ToValue() value.Value {
+	return value.Ref(n)
 }
 
 func (n *GenericConstantNode) Error() string {

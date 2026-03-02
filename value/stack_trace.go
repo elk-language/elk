@@ -16,6 +16,10 @@ func (s *StackTrace) Copy() Reference {
 	return s
 }
 
+func (s *StackTrace) ToValue() Value {
+	return Ref(s)
+}
+
 func (*StackTrace) Class() *Class {
 	return StackTraceClass
 }
@@ -115,6 +119,10 @@ func (s *StackTraceIterator) Copy() Reference {
 	}
 }
 
+func (i *StackTraceIterator) ToValue() Value {
+	return Ref(i)
+}
+
 func (s *StackTraceIterator) Inspect() string {
 	return fmt.Sprintf("Std::StackTrace::Iterator{&: %p, stack_trace: %s, index: %d}", s, s.StackTrace.Inspect(), s.Index)
 }
@@ -144,7 +152,9 @@ func (s *StackTraceIterator) Reset() {
 func initStackTrace() {
 	StackTraceClass = NewClassWithOptions()
 	StdModule.AddConstantString("StackTrace", Ref(StackTraceClass))
+	RegisterNativeClass("Std::StackTrace", "value.StackTraceClass")
 
 	StackTraceIteratorClass = NewClassWithOptions()
 	StackTraceClass.AddConstantString("Iterator", Ref(StackTraceIteratorClass))
+	RegisterNativeClass("Std::StackTrace::Iterator", "value.StackTraceIteratorClass")
 }
