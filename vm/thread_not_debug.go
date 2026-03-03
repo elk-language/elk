@@ -1,4 +1,4 @@
-//go:build !native && !debug
+//go:build !debug
 
 package vm
 
