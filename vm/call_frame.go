@@ -25,12 +25,13 @@ const CallFrameSize = unsafe.Sizeof(CallFrame{})
 type CallFrame struct {
 	upvalues        []*Upvalue
 	bytecode        *BytecodeFunction
-	ip              uintptr // Instruction pointer - points to the next bytecode instruction for this frame
-	fp              uintptr // Frame pointer -- points to the offset on the value stack where the current frame start
-	localCount      int
+	ip              uintptr // Instruction pointer - points to the next bytecode instruction for this frame. In native frames stores the file name as a Symbol.
+	fp              uintptr // Frame pointer -- points to the offset on the value stack where the current frame start. In native frames stores the function name as a Symbol.
+	localCount      int     // Number of local variables. In native frames stores the line number.
 	tailCallCounter int
 	stopVM          bool
 	sentinel        bool
+	isNative        bool
 }
 
 func makeSentinelCallFrame() CallFrame {
@@ -39,15 +40,49 @@ func makeSentinelCallFrame() CallFrame {
 	}
 }
 
-func (c *CallFrame) Name() value.Symbol {
+func makeNativeCallFrame(fileName, funcName value.Symbol, lineNumber, tailCallCounter int) CallFrame {
+	return CallFrame{
+		ip:              uintptr(fileName),
+		fp:              uintptr(funcName),
+		localCount:      lineNumber,
+		tailCallCounter: tailCallCounter,
+		isNative:        true,
+	}
+}
+
+func (c *CallFrame) IsNative() bool {
+	return c.isNative
+}
+
+func (c *CallFrame) FuncName() value.Symbol {
+	if c.isNative {
+		return value.Symbol(c.fp)
+	}
+
 	return c.bytecode.Name()
+}
+
+func (c *CallFrame) LineNumber() int {
+	if c.isNative {
+		return c.localCount
+	}
+
+	return c.bytecode.GetLineNumber(c.ipIndex() - 1)
+}
+
+func (c *CallFrame) FileName() string {
+	if c.isNative {
+		return value.Symbol(c.ip).String()
+	}
+
+	return c.bytecode.FileName()
 }
 
 func (cf *CallFrame) ToCallFrameObject() value.CallFrame {
 	return value.CallFrame{
 		LineNumber:      cf.LineNumber(),
 		FileName:        cf.FileName(),
-		FuncName:        cf.Name().String(),
+		FuncName:        cf.FuncName().String(),
 		TailCallCounter: cf.tailCallCounter,
 	}
 }
@@ -57,14 +92,6 @@ func (c *CallFrame) ipIndex() int {
 		c.ip -
 			uintptr(unsafe.Pointer(&c.bytecode.Instructions[0])),
 	)
-}
-
-func (c *CallFrame) LineNumber() int {
-	return c.bytecode.GetLineNumber(c.ipIndex() - 1)
-}
-
-func (c *CallFrame) FileName() string {
-	return c.bytecode.FileName()
 }
 
 // Std::CallFrame

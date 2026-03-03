@@ -3407,15 +3407,19 @@ func (c *GoCompiler) emitCallCache() string {
 }
 
 func (c *GoCompiler) emitAddCallFrame(name string, loc *position.Location) {
+	funcNameSym := c.emitSymbol(name)
+	fileNameSym := c.emitSymbol(loc.FilePath)
+
 	c.emit(
-		"thread.AddCallFrame(value.CallFrame{FuncName: %q, FileName: %q, LineNumber: %d})\n",
-		name,
-		loc.FilePath,
+		"thread.AddNativeCallFrame(%s, %s, %d)\n",
+		funcNameSym,
+		fileNameSym,
 		loc.StartPos.Line,
 	)
 }
+
 func (c *GoCompiler) emitPopCallFrame() {
-	c.emit("thread.PopCallFrame()\n")
+	c.emit("thread.PopNativeCallFrame()\n")
 }
 
 func (c *GoCompiler) registerErr() {
