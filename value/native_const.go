@@ -3,13 +3,13 @@ package value
 type NativeConstant struct {
 	ElkName string
 	GoExpr  string
-	GoType  string
+	GoType  *GoType
 }
 
 var NativeConstantMap = map[string]*NativeConstant{}
 
 // Register a native Elk constant that lives in a Go global variable
-func RegisterNativeConstant(elkName string, goExpr string, goType string) {
+func RegisterNativeConstant(elkName string, goExpr string, goType *GoType) {
 	NativeConstantMap[elkName] = &NativeConstant{
 		ElkName: elkName,
 		GoExpr:  goExpr,
@@ -18,17 +18,17 @@ func RegisterNativeConstant(elkName string, goExpr string, goType string) {
 }
 
 func RegisterNativeClass(elkName, goName string) {
-	RegisterNativeConstant(elkName, goName, "*value.Class")
+	RegisterNativeConstant(elkName, goName, NewGoType("*value.Class"))
 }
 
 func RegisterNativeMixin(elkName, goName string) {
-	RegisterNativeConstant(elkName, goName, "*value.Mixin")
+	RegisterNativeConstant(elkName, goName, NewGoType("*value.Mixin"))
 }
 
 func RegisterNativeModule(elkName, goName string) {
-	RegisterNativeConstant(elkName, goName, "*value.Module")
+	RegisterNativeConstant(elkName, goName, NewGoType("*value.Module"))
 }
 
 func RegisterNativeInterface(elkName, goName string) {
-	RegisterNativeConstant(elkName, goName, "*value.Interface")
+	RegisterNativeConstant(elkName, goName, NewGoType("*value.Interface"))
 }

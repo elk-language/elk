@@ -14,5 +14,5 @@ func initElk() {
 	RegisterNativeModule("Std::Elk", "value.ElkModule")
 
 	ElkModule.AddConstantString("VERSION", Ref(ElkVersion()))
-	RegisterNativeConstant("Std::Elk::VERSION", "value.ElkVersion()", "value.String")
+	RegisterNativeConstant("Std::Elk::VERSION", "value.ElkVersion()", NewGoType("value.String"))
 }

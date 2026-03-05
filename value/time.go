@@ -1018,5 +1018,5 @@ func initTime() {
 	RegisterNativeClass("Std::Time", "value.TimeClass")
 
 	TimeClass.AddConstantString("DEFAULT_FORMAT", Ref(String(DefaultTimeFormat)))
-	RegisterNativeConstant("Std::Time::DEFAULT_FORMAT", "value.String(value.DefaultTimeFormat)", "value.String")
+	RegisterNativeConstant("Std::Time::DEFAULT_FORMAT", "value.String(value.DefaultTimeFormat)", NewGoType("value.String"))
 }

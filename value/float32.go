@@ -247,13 +247,13 @@ func initFloat32() {
 	RegisterNativeClass("Std::Float32", "value.Float32Class")
 
 	Float32Class.AddConstantString("NAN", Float32NaN().ToValue())
-	RegisterNativeConstant("Std::Float32::NAN", "value.Float32NaN()", "value.Float32")
+	RegisterNativeConstant("Std::Float32::NAN", "value.Float32NaN()", NewGoType("value.Float32"))
 
 	Float32Class.AddConstantString("INF", Float32Inf().ToValue())
-	RegisterNativeConstant("Std::Float32::INF", "value.Float32Inf()", "value.Float32")
+	RegisterNativeConstant("Std::Float32::INF", "value.Float32Inf()", NewGoType("value.Float32"))
 
 	Float32Class.AddConstantString("NEG_INF", Float32NegInf().ToValue())
-	RegisterNativeConstant("Std::Float32::NEG_INF", "value.Float32NegInf()", "value.Float32")
+	RegisterNativeConstant("Std::Float32::NEG_INF", "value.Float32NegInf()", NewGoType("value.Float32"))
 
 	Float32ConvertibleInterface = NewInterface()
 	Float32Class.AddConstantString("Convertible", Ref(Float32ConvertibleInterface))

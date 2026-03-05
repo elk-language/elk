@@ -956,13 +956,13 @@ func initFloat() {
 	RegisterNativeClass("Std::Float", "value.FloatClass")
 
 	FloatClass.AddConstantString("NAN", FloatNaN().ToValue())
-	RegisterNativeConstant("Std::Float::NAN", "value.FloatNaN()", "value.Float")
+	RegisterNativeConstant("Std::Float::NAN", "value.FloatNaN()", NewGoType("value.Float"))
 
 	FloatClass.AddConstantString("INF", FloatInf().ToValue())
-	RegisterNativeConstant("Std::Float::INF", "value.FloatInf()", "value.Float")
+	RegisterNativeConstant("Std::Float::INF", "value.FloatInf()", NewGoType("value.Float"))
 
 	FloatClass.AddConstantString("NEG_INF", FloatNegInf().ToValue())
-	RegisterNativeConstant("Std::Float::NEG_INF", "value.FloatNegInf()", "value.Float")
+	RegisterNativeConstant("Std::Float::NEG_INF", "value.FloatNegInf()", NewGoType("value.Float"))
 
 	FloatClass.AddConstantString("Convertible", Ref(NewInterface()))
 }

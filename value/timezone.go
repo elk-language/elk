@@ -461,8 +461,8 @@ func initTimezone() {
 	RegisterNativeClass("Std::Timezone", "value.TimezoneClass")
 
 	TimezoneClass.AddConstantString("UTC", Ref(UTCTimezone))
-	RegisterNativeConstant("Std::Timezone::UTC", "value.UTCTimezone", "*value.Timezone")
+	RegisterNativeConstant("Std::Timezone::UTC", "value.UTCTimezone", NewGoType("*value.Timezone"))
 
 	TimezoneClass.AddConstantString("LOCAL", Ref(LocalTimezone))
-	RegisterNativeConstant("Std::Timezone::LOCAL", "value.LocalTimezone", "*value.Timezone")
+	RegisterNativeConstant("Std::Timezone::LOCAL", "value.LocalTimezone", NewGoType("*value.Timezone"))
 }
