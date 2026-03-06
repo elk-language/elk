@@ -428,7 +428,7 @@ type globalData struct {
 	bigIntCache   *concurrent.Map[string, *nativeBigInt]
 	symbolCache   *concurrent.Map[string, *nativeSymbol]
 	valueCache    *concurrent.Map[string, *nativeValue]
-	methodCache   *concurrent.Map[string, *nativeMethod]
+	methodCache   *concurrent.OrderedMap[string, *nativeMethod]
 	constantCache *concurrent.Map[string, *nativeConstant]
 }
 
@@ -438,7 +438,7 @@ func newGlobalData() *globalData {
 		bigIntCache:   concurrent.NewMap[string, *nativeBigInt](),
 		symbolCache:   concurrent.NewMap[string, *nativeSymbol](),
 		valueCache:    concurrent.NewMap[string, *nativeValue](),
-		methodCache:   concurrent.NewMap[string, *nativeMethod](),
+		methodCache:   concurrent.NewOrderedMap[string, *nativeMethod](),
 		constantCache: concurrent.NewMap[string, *nativeConstant](),
 	}
 }
@@ -1395,7 +1395,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	var funcBuffer bytes.Buffer
 	if c.FuncName == "main" {
 		var methodVarsBuff bytes.Buffer
-		for _, nativeMethod := range c.globalData.methodCache.Map {
+		for _, nativeMethod := range c.globalData.methodCache.Map.All() {
 			if nativeMethod.init == "" {
 				continue
 			}
@@ -1550,9 +1550,9 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 	case *ast.NilLiteralNode:
 		return nilGoValue
 	case *ast.TrueLiteralNode:
-		return newInlineGoValue("true", types.Bool{}, value.NewGoType("bool"))
+		return newInlineGoValue("true", types.Bool{}, value.NewGoType("value.Bool"))
 	case *ast.FalseLiteralNode:
-		return newInlineGoValue("false", types.Bool{}, value.NewGoType("bool"))
+		return newInlineGoValue("false", types.Bool{}, value.NewGoType("value.Bool"))
 	case *ast.BinaryExpressionNode:
 		return c.compileBinaryExpressionNode(node, valueIsIgnored)
 	case *ast.ArrayTupleLiteralNode:
@@ -1763,14 +1763,33 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 	elementValues := make([]*goValue, 0, len(node.Elements))
 	var tmp *goLocal
 
+	typ := c.typeOf(node)
+	elementType, _ := c.checker.GetIteratorElementType(typ)
+	goElementType := c.elkTypeToGoType(elementType)
+	var goType *value.GoType
+	if goElementType.Name == "value.Value" {
+		goType = value.NewGoType("*value.ArrayTupleOfValue")
+	} else {
+		goType = value.NewGenericGoType(
+			"*value.NativeArrayTuple",
+			[]*value.GoType{
+				goElementType,
+			},
+		)
+	}
+
 	finalizeStaticElements := func() {
 		if tmp != nil {
 			return
 		}
 
-		tmp = c.defineTmpGoLocal(value.NewGoType("*value.ArrayTuple"))
+		tmp = c.defineTmpGoLocal(goType)
 		for _, elementValue := range elementValues {
-			buff.WriteString(c.convertToValue(elementValue))
+			if goElementType.Name == "value.Value" {
+				buff.WriteString(c.convertToValue(elementValue))
+			} else {
+				buff.WriteString(c.valueToNarrowerType(elementValue).value())
+			}
 			buff.WriteRune(',')
 			elementValue.markFree()
 		}
@@ -1780,7 +1799,12 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 		elementValues = nil
 	}
 
-	buff.WriteString("value.NewArrayTupleWithElements(0,")
+	if goType.Name == "*value.ArrayTupleOfValue" {
+		buff.WriteString("value.NewArrayTupleOfValueWithElements(0,")
+	} else {
+		fmt.Fprintf(&buff, "value.NewNativeArrayTupleWithElements[%s](0,", goElementType.String())
+	}
+
 	for i := 0; i < len(node.Elements); i++ {
 		elementNode := node.Elements[i]
 
@@ -1872,7 +1896,11 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 
 	if tmp == nil {
 		for _, elementValue := range elementValues {
-			buff.WriteString(c.convertToValue(elementValue))
+			if goElementType.Name == "value.Value" {
+				buff.WriteString(c.convertToValue(elementValue))
+			} else {
+				buff.WriteString(c.valueToNarrowerType(elementValue).value())
+			}
 			buff.WriteRune(',')
 			elementValue.markFree()
 		}
@@ -1881,7 +1909,7 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 		return newInlineGoValue(
 			buff.String(),
 			c.typeOf(node),
-			value.NewGoType("*value.ArrayTuple"),
+			goType,
 		)
 	}
 
@@ -2022,15 +2050,35 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 	elementValues := make([]*goValue, 0, len(node.Elements))
 	var tmp *goLocal
 
+	typ := c.typeOf(node)
+	elementType, _ := c.checker.GetIteratorElementType(typ)
+	goElementType := c.elkTypeToGoType(elementType)
+	var goType *value.GoType
+	if goElementType.Name == "value.Value" {
+		goType = value.NewGoType("*value.ArrayListOfValue")
+	} else {
+		goType = value.NewGenericGoType(
+			"*value.NativeArrayList",
+			[]*value.GoType{
+				goElementType,
+			},
+		)
+	}
+
 	finalizeStaticElements := func() {
 		if tmp != nil {
 			return
 		}
 
-		tmp = c.defineTmpGoLocal(value.NewGoType("*value.ArrayList"))
+		tmp = c.defineTmpGoLocal(goType)
 		for _, elementValue := range elementValues {
-			buff.WriteString(c.convertToValue(elementValue))
+			if goElementType.Name == "value.Value" {
+				buff.WriteString(c.convertToValue(elementValue))
+			} else {
+				buff.WriteString(c.valueToNarrowerType(elementValue).value())
+			}
 			buff.WriteRune(',')
+			elementValue.markFree()
 		}
 		buff.WriteString(")")
 		c.emit("%s = %s\n", tmp.name, buff.String())
@@ -2038,7 +2086,12 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 		elementValues = nil
 	}
 
-	fmt.Fprintf(&buff, "value.NewArrayListWithElements(%s,", c.convertToNativeInt(capacity))
+	if goType.Name == "*value.ArrayListOfValue" {
+		fmt.Fprintf(&buff, "value.NewArrayListOfValueWithElements(%s,", c.convertToNativeInt(capacity))
+	} else {
+		fmt.Fprintf(&buff, "value.NewNativeArrayListWithElements[%s](%s,", goElementType.String(), c.convertToNativeInt(capacity))
+	}
+
 	for _, elementNode := range node.Elements {
 		switch elementNode := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
@@ -2074,8 +2127,13 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 
 	if tmp == nil {
 		for _, elementValue := range elementValues {
-			buff.WriteString(c.convertToValue(elementValue))
+			if goElementType.Name == "value.Value" {
+				buff.WriteString(c.convertToValue(elementValue))
+			} else {
+				buff.WriteString(c.valueToNarrowerType(elementValue).value())
+			}
 			buff.WriteRune(',')
+			elementValue.markFree()
 		}
 		buff.WriteString(")")
 	}
@@ -2083,7 +2141,7 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 	return newInlineGoValue(
 		buff.String(),
 		c.typeOf(node),
-		value.NewGoType("*value.ArrayListOfValue"),
+		goType,
 	)
 }
 
@@ -7163,20 +7221,8 @@ func (c *GoCompiler) convertToValue(v *goValue) string {
 	switch v.goType().Name {
 	case "value.Value":
 		return v.value()
-	case "value.SmallInt":
-		return fmt.Sprintf("(%s).ToValue()", v.value())
-	case "*value.BigInt", "*value.Class", "*value.Module",
-		"*value.Mixin", "*value.Interface", "*value.Timezone":
-		return fmt.Sprintf("value.Ref(%s)", v.value())
 	case "bool":
 		return fmt.Sprintf("value.ToBoolVal(%s)", v.value())
-	}
-
-	if c.checker.IsSubtype(v.elkType, c.checker.StdInt()) {
-		return v.value()
-	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Object)) {
-		return fmt.Sprintf("value.Ref(%s)", v.value())
 	}
 
 	return fmt.Sprintf("(%s).ToValue()", v.value())

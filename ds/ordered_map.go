@@ -23,6 +23,13 @@ func NewOrderedMap[K comparable, V any]() *OrderedMap[K, V] {
 	}
 }
 
+func MakeOrderedMapWithCap[K comparable, V any](cap int) OrderedMap[K, V] {
+	return OrderedMap[K, V]{
+		data:  make(map[K]V, cap),
+		order: make([]K, 0, cap),
+	}
+}
+
 // NewOrderedMap instantiates a new ordered map with the given capacity
 func NewOrderedMapWithCap[K comparable, V any](cap int) *OrderedMap[K, V] {
 	return &OrderedMap[K, V]{
@@ -40,6 +47,10 @@ func NewOrderedMapWithPairs[K comparable, V any](pairs ...Pair[K, V]) *OrderedMa
 	}
 
 	return m
+}
+
+func (m *OrderedMap[K, V]) Len() int {
+	return len(m.data)
 }
 
 // Get return the value for the given key

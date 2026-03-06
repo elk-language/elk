@@ -184,7 +184,9 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var cc_main_1 = &value.CallCache{}
+var sym0 = value.ToSymbol("to_string")
+var Std_ns_Int_im_to_string vm.NativeFunction // Std::Int.:to_string
+var sym1 = value.ToSymbol("<main>")
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -202,12 +204,16 @@ func main() { // loc: <main>
 	_ = err
 	var t2 value.Value
 	_ = t2
-	var t3 value.String
+	var t3 []value.Value
 	_ = t3
+	var t4 value.String
+	_ = t4
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym0))
+
 	l0 = value.Float(15.200000)
 	l1 = value.String("bazzy")
 	l2 = (value.SmallInt(1)).ToValue()
@@ -215,14 +221,16 @@ func main() { // loc: <main>
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
-	t2, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_1, t1) // receiver: Std::Int, name: to_string
-	thread.PopCallFrame()
+	t3 = value.ResizeNativeArgs(t3, 2)
+	t3[0] = t1
+	thread.AddNativeCallFrame(sym0, sym1, 5)
+	t2, err = Std_ns_Int_im_to_string(thread, t3) // receiver: Std::Int, name: to_string
+	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t3 = (t2).AsString()
-	l3 = value.String("foo: ") + t3 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + l1
+	t4 = (t2).AsString()
+	l3 = value.String("foo: ") + t4 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + l1
 }
 `,
 		},
@@ -244,21 +252,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var sym0 = value.ToSymbol("Std::Time")
-var sym1 = value.ToSymbol("now")
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
-var cc_main_3 = &value.CallCache{}
+var sym0 = value.ToSymbol("now")
+var Std_ns_Time_ns_now vm.NativeFunction // Std::Time::now
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("to_string")
+var Std_ns_Int_im_to_string vm.NativeFunction  // Std::Int.:to_string
+var Std_ns_Time_im_to_string vm.NativeFunction // Std::Time.:to_string
 
 func main() { // loc: <main>
 	thread := vm.New()
 	var l0 value.Float // var bar: Std::Float
 	_ = l0
-	var l1 value.Value // var baz: Std::Time
+	var l1 value.Time // var baz: Std::Time
 	_ = l1
-	var t1 []value.Value
+	var t1 value.Value
 	_ = t1
-	var t2 value.Value
+	var t2 []value.Value
 	_ = t2
 	var err value.Value
 	_ = err
@@ -268,45 +277,56 @@ func main() { // loc: <main>
 	_ = l3
 	var t3 value.Value
 	_ = t3
-	var t4 value.String
+	var t4 []value.Value
 	_ = t4
 	var t5 value.String
 	_ = t5
+	var t6 []value.Value
+	_ = t6
+	var t7 value.String
+	_ = t7
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	Std_ns_Time_ns_now = vm.MethodToFunc(((value.TimeClass).SingletonClass()).LookupMethod(sym0))
+	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
+	Std_ns_Time_im_to_string = vm.MethodToFunc((value.TimeClass).LookupMethod(sym2))
+
 	l0 = value.Float(15.200000)
-	t1 = make([]value.Value, 1)
-	t1[0] = value.GetConstant(sym0)
-	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 3})
-	t2, err = thread.CallMethodByNameWithCache(sym1, &cc_main_1, t1...) // receiver: &Std::Time, name: now
-	thread.PopCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = (value.TimeClass).ToValue()
+	thread.AddNativeCallFrame(sym0, sym1, 3)
+	t1, err = Std_ns_Time_ns_now(thread, t2) // receiver: &Std::Time, name: now
+	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t1 = nil
-	l1 = t2
+	l1 = t1
 	l2 = (value.SmallInt(1)).ToValue()
-	t2, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
+	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
-	t3, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_2, t2) // receiver: Std::Int, name: to_string
-	thread.PopCallFrame()
-	if err.IsNotUndefined() {
-		thread.Panic(err)
-	}
-	t4 = (t3).AsString()
-	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
-	t3, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_3, l1) // receiver: Std::Time, name: to_string
-	thread.PopCallFrame()
+	t4 = value.ResizeNativeArgs(t4, 2)
+	t4[0] = t1
+	thread.AddNativeCallFrame(sym2, sym1, 5)
+	t3, err = Std_ns_Int_im_to_string(thread, t4) // receiver: Std::Int, name: to_string
+	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
 	t5 = (t3).AsString()
-	l3 = value.String("foo: ") + t4 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + t5
+	t6 = value.ResizeNativeArgs(t6, 2)
+	t6[0] = (l1).ToValue()
+	thread.AddNativeCallFrame(sym2, sym1, 5)
+	t1, err = Std_ns_Time_im_to_string(thread, t6) // receiver: Std::Time, name: to_string
+	thread.PopNativeCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t7 = (t1).AsString()
+	l3 = value.String("foo: ") + t5 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + t7
 }
 `,
 		},
@@ -328,7 +348,9 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var cc_main_1 = &value.CallCache{}
+var sym0 = value.ToSymbol("inspect")
+var Std_ns_Int_im_inspect vm.NativeFunction // Std::Int.:inspect
+var sym1 = value.ToSymbol("<main>")
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -346,12 +368,16 @@ func main() { // loc: <main>
 	_ = err
 	var t2 value.Value
 	_ = t2
-	var t3 value.String
+	var t3 []value.Value
 	_ = t3
+	var t4 value.String
+	_ = t4
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	Std_ns_Int_im_inspect = vm.MethodToFunc((value.IntClass).LookupMethod(sym0))
+
 	l0 = value.Float(15.200000)
 	l1 = (value.SmallInt(1)).ToValue()
 	l2 = value.String("bazzy")
@@ -359,14 +385,16 @@ func main() { // loc: <main>
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
-	t2, err = thread.CallMethodByNameWithCache(symbol.L_inspect, &cc_main_1, t1) // receiver: Std::Int, name: inspect
-	thread.PopCallFrame()
+	t3 = value.ResizeNativeArgs(t3, 2)
+	t3[0] = t1
+	thread.AddNativeCallFrame(sym0, sym1, 5)
+	t2, err = Std_ns_Int_im_inspect(thread, t3) // receiver: Std::Int, name: inspect
+	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t3 = (t2).AsString()
-	l3 = value.String("foo: ") + t3 + value.String(", bar: ") + (l0).Inspect() + value.String(", baz: ") + (l2).Inspect()
+	t4 = (t2).AsString()
+	l3 = value.String("foo: ") + t4 + value.String(", bar: ") + (l0).Inspect() + value.String(", baz: ") + (l2).Inspect()
 }
 `,
 		},
@@ -374,9 +402,9 @@ func main() { // loc: <main>
 
 	for name, tc := range tests {
 		noop(name, tc)
-		// t.Run(name, func(t *testing.T) {
-		// 	goCompilerTest(tc, t)
-		// })
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
 	}
 }
 
@@ -427,7 +455,9 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var cc_main_1 = &value.CallCache{}
+var sym0 = value.ToSymbol("to_string")
+var Std_ns_Int_im_to_string vm.NativeFunction // Std::Int.:to_string
+var sym1 = value.ToSymbol("<main>")
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -445,12 +475,16 @@ func main() { // loc: <main>
 	_ = err
 	var t2 value.Value
 	_ = t2
-	var t3 value.String
+	var t3 []value.Value
 	_ = t3
+	var t4 value.String
+	_ = t4
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym0))
+
 	l0 = value.Float(15.200000)
 	l1 = value.String("bazzy")
 	l2 = (value.SmallInt(1)).ToValue()
@@ -458,14 +492,16 @@ func main() { // loc: <main>
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
-	t2, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_1, t1) // receiver: Std::Int, name: to_string
-	thread.PopCallFrame()
+	t3 = value.ResizeNativeArgs(t3, 2)
+	t3[0] = t1
+	thread.AddNativeCallFrame(sym0, sym1, 5)
+	t2, err = Std_ns_Int_im_to_string(thread, t3) // receiver: Std::Int, name: to_string
+	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t3 = (t2).AsString()
-	l3 = (value.String("foo: ") + t3 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + l1).ToSymbol()
+	t4 = (t2).AsString()
+	l3 = (value.String("foo: ") + t4 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + l1).ToSymbol()
 }
 `,
 		},
@@ -487,21 +523,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var sym0 = value.ToSymbol("Std::Time")
-var sym1 = value.ToSymbol("now")
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
-var cc_main_3 = &value.CallCache{}
+var sym0 = value.ToSymbol("now")
+var Std_ns_Time_ns_now vm.NativeFunction // Std::Time::now
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("to_string")
+var Std_ns_Int_im_to_string vm.NativeFunction  // Std::Int.:to_string
+var Std_ns_Time_im_to_string vm.NativeFunction // Std::Time.:to_string
 
 func main() { // loc: <main>
 	thread := vm.New()
 	var l0 value.Float // var bar: Std::Float
 	_ = l0
-	var l1 value.Value // var baz: Std::Time
+	var l1 value.Time // var baz: Std::Time
 	_ = l1
-	var t1 []value.Value
+	var t1 value.Value
 	_ = t1
-	var t2 value.Value
+	var t2 []value.Value
 	_ = t2
 	var err value.Value
 	_ = err
@@ -511,45 +548,56 @@ func main() { // loc: <main>
 	_ = l3
 	var t3 value.Value
 	_ = t3
-	var t4 value.String
+	var t4 []value.Value
 	_ = t4
 	var t5 value.String
 	_ = t5
+	var t6 []value.Value
+	_ = t6
+	var t7 value.String
+	_ = t7
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	Std_ns_Time_ns_now = vm.MethodToFunc(((value.TimeClass).SingletonClass()).LookupMethod(sym0))
+	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
+	Std_ns_Time_im_to_string = vm.MethodToFunc((value.TimeClass).LookupMethod(sym2))
+
 	l0 = value.Float(15.200000)
-	t1 = make([]value.Value, 1)
-	t1[0] = value.GetConstant(sym0)
-	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 3})
-	t2, err = thread.CallMethodByNameWithCache(sym1, &cc_main_1, t1...) // receiver: &Std::Time, name: now
-	thread.PopCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = (value.TimeClass).ToValue()
+	thread.AddNativeCallFrame(sym0, sym1, 3)
+	t1, err = Std_ns_Time_ns_now(thread, t2) // receiver: &Std::Time, name: now
+	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t1 = nil
-	l1 = t2
+	l1 = t1
 	l2 = (value.SmallInt(1)).ToValue()
-	t2, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
+	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
-	t3, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_2, t2) // receiver: Std::Int, name: to_string
-	thread.PopCallFrame()
-	if err.IsNotUndefined() {
-		thread.Panic(err)
-	}
-	t4 = (t3).AsString()
-	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
-	t3, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_3, l1) // receiver: Std::Time, name: to_string
-	thread.PopCallFrame()
+	t4 = value.ResizeNativeArgs(t4, 2)
+	t4[0] = t1
+	thread.AddNativeCallFrame(sym2, sym1, 5)
+	t3, err = Std_ns_Int_im_to_string(thread, t4) // receiver: Std::Int, name: to_string
+	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
 	t5 = (t3).AsString()
-	l3 = (value.String("foo: ") + t4 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + t5).ToSymbol()
+	t6 = value.ResizeNativeArgs(t6, 2)
+	t6[0] = (l1).ToValue()
+	thread.AddNativeCallFrame(sym2, sym1, 5)
+	t1, err = Std_ns_Time_im_to_string(thread, t6) // receiver: Std::Time, name: to_string
+	thread.PopNativeCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t7 = (t1).AsString()
+	l3 = (value.String("foo: ") + t5 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + t7).ToSymbol()
 }
 `,
 		},
@@ -571,7 +619,9 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var cc_main_1 = &value.CallCache{}
+var sym0 = value.ToSymbol("inspect")
+var Std_ns_Int_im_inspect vm.NativeFunction // Std::Int.:inspect
+var sym1 = value.ToSymbol("<main>")
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -589,12 +639,16 @@ func main() { // loc: <main>
 	_ = err
 	var t2 value.Value
 	_ = t2
-	var t3 value.String
+	var t3 []value.Value
 	_ = t3
+	var t4 value.String
+	_ = t4
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	Std_ns_Int_im_inspect = vm.MethodToFunc((value.IntClass).LookupMethod(sym0))
+
 	l0 = value.Float(15.200000)
 	l1 = (value.SmallInt(1)).ToValue()
 	l2 = value.String("bazzy")
@@ -602,14 +656,16 @@ func main() { // loc: <main>
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 5})
-	t2, err = thread.CallMethodByNameWithCache(symbol.L_inspect, &cc_main_1, t1) // receiver: Std::Int, name: inspect
-	thread.PopCallFrame()
+	t3 = value.ResizeNativeArgs(t3, 2)
+	t3[0] = t1
+	thread.AddNativeCallFrame(sym0, sym1, 5)
+	t2, err = Std_ns_Int_im_inspect(thread, t3) // receiver: Std::Int, name: inspect
+	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t3 = (t2).AsString()
-	l3 = (value.String("foo: ") + t3 + value.String(", bar: ") + (l0).Inspect() + value.String(", baz: ") + (l2).Inspect()).ToSymbol()
+	t4 = (t2).AsString()
+	l3 = (value.String("foo: ") + t4 + value.String(", bar: ") + (l0).Inspect() + value.String(", baz: ") + (l2).Inspect()).ToSymbol()
 }
 `,
 		},
@@ -617,9 +673,9 @@ func main() { // loc: <main>
 
 	for name, tc := range tests {
 		noop(name, tc)
-		// t.Run(name, func(t *testing.T) {
-		// 	goCompilerTest(tc, t)
-		// })
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
 	}
 }
 
@@ -1093,9 +1149,9 @@ func main() { // loc: <main>
 
 	for name, tc := range tests {
 		noop(name, tc)
-		// t.Run(name, func(t *testing.T) {
-		// 	goCompilerTest(tc, t)
-		// })
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
 	}
 }
 
