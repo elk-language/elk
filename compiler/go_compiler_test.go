@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/comparer"
+	"github.com/elk-language/elk/compiler/colorize"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/vm"
@@ -47,7 +48,7 @@ func goCompilerTest(tc goTestCase, t *testing.T) {
 	}
 
 	if diff := cmp.Diff(tc.want, string(result), opts...); diff != "" {
-		t.Log(string(result))
+		t.Log(string(colorize.ColorizeWhen(result, true)))
 		t.Log(diff)
 		t.Fail()
 	}

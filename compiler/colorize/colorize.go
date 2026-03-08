@@ -10,6 +10,14 @@ import (
 
 // Colorize returns the Go source code with ANSI color escape codes
 func Colorize(srcBytes []byte) []byte {
+	return ColorizeWhen(srcBytes, !color.NoColor)
+}
+
+func ColorizeWhen(srcBytes []byte, useColor bool) []byte {
+	if !useColor {
+		return srcBytes
+	}
+
 	fset := token.NewFileSet()
 	file := fset.AddFile("", fset.Base(), len(srcBytes))
 
@@ -17,11 +25,22 @@ func Colorize(srcBytes []byte) []byte {
 	s.Init(file, srcBytes, nil, scanner.ScanComments)
 
 	kwColor := color.New(color.FgGreen)
+	kwColor.EnableColor()
+
 	opColor := color.New(color.FgHiMagenta)
+	opColor.EnableColor()
+
 	strColor := color.New(color.FgHiYellow)
+	strColor.EnableColor()
+
 	intColor := color.New(color.FgHiBlue)
+	intColor.EnableColor()
+
 	floatColor := color.New(color.FgHiMagenta)
+	floatColor.EnableColor()
+
 	comColor := color.New(color.FgHiBlack)
+	comColor.EnableColor()
 
 	var buf bytes.Buffer
 	currentOffset := 0

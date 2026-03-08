@@ -1864,6 +1864,7 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 			)
 		case *ast.ModifierForInNode:
 			finalizeStaticElements()
+			// TODO: compile for in
 		case *ast.ModifierIfElseNode:
 			finalizeStaticElements()
 
@@ -2093,15 +2094,28 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 		fmt.Fprintf(&buff, "value.NewNativeArrayListWithElements[%s](%s,", goElementType.String(), c.convertToNativeInt(capacity))
 	}
 
-	for _, elementNode := range node.Elements {
+	for i := 0; i < len(node.Elements); i++ {
+		elementNode := node.Elements[i]
+
 		switch elementNode := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
+			if tmp != nil {
+				key := c.compileExpression(elementNode.Key, false)
+				value := c.compileExpression(elementNode.Value, false)
+				key.markFree()
+				value.markFree()
+
+				c.emit("err = %s.AppendAt(%s, %s)\n", tmp.name, c.convertToValue(key), c.convertToValue(value))
+				c.emitErrorPropagation()
+				continue
+			}
 			index, ok := c.parseArrayIndex(elementNode.Key)
 			if !ok {
 				return errGoValue
 			}
 			if index == -1 {
 				finalizeStaticElements()
+				i--
 				continue
 			}
 
@@ -2114,10 +2128,48 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 			elementValues[index] = value
 		case *ast.ModifierNode:
 			finalizeStaticElements()
+
+			var condType conditionType
+			switch elementNode.Modifier.Type {
+			case token.IF:
+				condType = ifConditionType
+			case token.UNLESS:
+				condType = unlessConditionType
+			default:
+				panic(fmt.Sprintf("invalid collection modifier: %#v", elementNode.Modifier))
+			}
+
+			c.compileIfWithConditionExpression(
+				condType,
+				elementNode.Right,
+				func() *goValue {
+					c.compileArrayAppend(tmp, elementNode.Left)
+					return nilGoValue
+				},
+				nil,
+				c.typeOf(elementNode),
+				true,
+			)
 		case *ast.ModifierForInNode:
+			// TODO: compile for in
 			finalizeStaticElements()
 		case *ast.ModifierIfElseNode:
 			finalizeStaticElements()
+
+			c.compileIfWithConditionExpression(
+				ifConditionType,
+				elementNode.Condition,
+				func() *goValue {
+					c.compileArrayAppend(tmp, elementNode.ThenExpression)
+					return nilGoValue
+				},
+				func() *goValue {
+					c.compileArrayAppend(tmp, elementNode.ElseExpression)
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				true,
+			)
 		default:
 			element := c.compileExpression(elementNode, false)
 			elementValues = append(elementValues, element)
@@ -2139,10 +2191,9 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 		buff.WriteString(")")
 	}
 
-	return newInlineGoValue(
-		buff.String(),
+	return newTmpGoValue(
+		tmp,
 		c.typeOf(node),
-		goType,
 	)
 }
 
