@@ -497,6 +497,7 @@ func (c *GoCompiler) Method() value.Method {
 	return (*GoSourceMethod)(c)
 }
 
+// Write the accumulated source code to the main buffer.
 func (c *GoCompiler) Flush() {
 	c.flushPackage()
 	c.output.Write([]byte("\n"))
@@ -1384,7 +1385,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 
 	c.compileProgram(node)
 
-	if c.buff.Len() == 0 {
+	if c.buff.Len() == 0 && c.FuncName != "main" {
 		return
 	}
 
@@ -1409,7 +1410,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 
 		c.emitPrependBytes([]byte(initCode))
 		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.FuncName, c.loc.FilePath)
-		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n")
+		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n_ = thread\n")
 	} else {
 		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // loc: %s\n", c.FuncName, c.loc.FilePath)
 	}
@@ -7125,7 +7126,7 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 		)
 	case value.CHAR_FLAG:
 		return newInlineGoValue(
-			fmt.Sprintf("value.Char(%q)", val.AsChar()),
+			fmt.Sprintf("value.Char(%q)", rune(val.AsChar())),
 			c.checker.Std(symbol.Char),
 			value.NewGoType("value.Char"),
 		)
@@ -7198,7 +7199,7 @@ func (c *GoCompiler) arrayListToGoSource(v value.ArrayList, typ types.Type) *goV
 func (c *GoCompiler) arrayListOfValueToGoSource(v value.ArrayList) *goValue {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "value.NewArrayListWithElements(%d, ", v.LeftCapacity())
+	fmt.Fprintf(&buff, "value.NewArrayListOfValueWithElements(%d, ", v.LeftCapacity())
 
 	for _, element := range v.Elements() {
 		el := c.valueToGoSource(element, nil, true)
@@ -7805,7 +7806,7 @@ func (c *GoCompiler) rangeToGoSource(v value.Value, typ types.Type, mutable bool
 func (c *GoCompiler) arrayTupleOfValueToGoSource(v value.ArrayTuple, mutable bool) *goValue {
 	var buff strings.Builder
 
-	buff.WriteString("value.NewArrayTupleWithElements(0, ")
+	buff.WriteString("value.NewArrayTupleOfValueWithElements(0, ")
 
 	for _, element := range v.Elements() {
 		el := c.valueToGoSource(element, nil, mutable)

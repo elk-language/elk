@@ -31,13 +31,14 @@ func main() {
 	case "repl":
 		fs := pflag.NewFlagSet("repl", pflag.ExitOnError)
 		disassemble := fs.Bool("disassemble", false, "run the REPL in disassembler mode")
+		transpile := fs.Bool("transpile", false, "run the REPL in Go transpiler mode")
 		inspectStack := fs.Bool("inspect-stack", false, "print the stack after each iteration of the REPL")
 		parse := fs.Bool("parse", false, "run the REPL in parser mode")
 		lex := fs.Bool("lex", false, "run the REPL in lexer mode")
 		typecheck := fs.Bool("typecheck", false, "run the REPL in type checker mode")
 		expand := fs.Bool("expand", false, "run the REPL in macro expansion mode")
 		fs.Parse(os.Args[2:])
-		repl.Run(*disassemble, *inspectStack, *parse, *lex, *typecheck, *expand)
+		repl.Run(*disassemble, *transpile, *inspectStack, *parse, *lex, *typecheck, *expand)
 	case "run":
 		if len(os.Args) < 3 {
 			runMain()

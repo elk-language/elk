@@ -131,7 +131,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	pp.Default.SetColoringEnabled(false)
 
 	typechecker := checker.New()
-	chunk, gotCompileErr := typechecker.CheckSource(testFileName, tc.source)
+	chunk, gotCompileErr := typechecker.CheckSourceBytecode(testFileName, tc.source)
 	if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, comparer.Options()...); diff != "" {
 		t.Log(pp.Sprint(gotCompileErr))
 		t.Fatal(diff)
@@ -211,7 +211,7 @@ func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 	pp.Default.SetColoringEnabled(false)
 
 	typechecker := checker.New()
-	chunk, gotCompileErr := typechecker.CheckSource(testFileName, source)
+	chunk, gotCompileErr := typechecker.CheckSourceBytecode(testFileName, source)
 	if gotCompileErr.IsFailure() {
 		t.Fatalf("Compile Error: %s", gotCompileErr.Error())
 		return

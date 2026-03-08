@@ -34,6 +34,9 @@ typecheck: fmt
 disassemble: fmt
 	go run ./cmd/elk repl --disassemble
 
+transpile: fmt
+	go run ./cmd/elk repl --transpile
+
 lex: fmt
 	go run ./cmd/elk repl --lex
 

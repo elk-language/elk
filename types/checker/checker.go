@@ -226,9 +226,8 @@ func New() *Checker {
 	return newChecker("", nil, bitfield.BitField16{}, nil, vm.DefaultThreadPool)
 }
 
-// Instantiate a new Checker instance.
-func NewWithEnv(env *types.GlobalEnvironment) *Checker {
-	return newChecker("", env, bitfield.BitField16{}, nil, vm.DefaultThreadPool)
+func NewWithFlags(flags bitfield.BitField16) *Checker {
+	return newChecker("", nil, flags, nil, vm.DefaultThreadPool)
 }
 
 func (c *Checker) SelfType() types.Type {
@@ -320,7 +319,7 @@ func (c *Checker) setInferClosureThrowType(val bool) {
 }
 
 // Used in the REPL to typecheck and compile the input
-func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+func (c *Checker) CheckSource(sourceName string, source string) (compiler.Compiler, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -354,7 +353,28 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 	if compiler == nil {
 		return nil, c.Errors.DiagnosticList
 	}
-	return compiler.Bytecode(), c.Errors.DiagnosticList
+	return compiler, c.Errors.DiagnosticList
+}
+
+// Used in the REPL to typecheck and compile the input to bytecode
+func (c *Checker) CheckSourceBytecode(sourceName string, source string) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	cmp, err := c.CheckSource(sourceName, source)
+	if cmp == nil {
+		return nil, err
+	}
+
+	return cmp.Bytecode(), err
+}
+
+// Used in the REPL to typecheck and compile the input to Go source code
+func (c *Checker) CheckSourceNative(sourceName string, source string, output io.Writer) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+	c.output = output
+	cmp, err := c.CheckSource(sourceName, source)
+	if cmp == nil {
+		return nil, err
+	}
+
+	return cmp.(*compiler.GoCompiler), err
 }
 
 func (c *Checker) setGlobalEnv(newEnv *types.GlobalEnvironment) {

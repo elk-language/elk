@@ -1,10 +1,13 @@
 package repl
 
 import (
+	"bytes"
 	"fmt"
+	"go/format"
 	"os"
 	"unicode/utf8"
 
+	"github.com/elk-language/elk/compiler/colorize"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
@@ -70,7 +73,7 @@ func (e *evaluator) evaluate(input string) {
 		e.vm = vm.New()
 	}
 
-	fn, dl := e.typechecker.CheckSource(sourceName, input)
+	fn, dl := e.typechecker.CheckSourceBytecode(sourceName, input)
 
 	if dl != nil {
 		fmt.Println()
@@ -133,7 +136,7 @@ func (e *evaluator) disassemble(input string) {
 		e.typechecker = checker.New()
 		e.typechecker.SetIncremental(true)
 	}
-	fn, dl := e.typechecker.CheckSource(sourceName, input)
+	fn, dl := e.typechecker.CheckSourceBytecode(sourceName, input)
 
 	if dl != nil {
 		fmt.Println()
@@ -152,6 +155,42 @@ func (e *evaluator) disassemble(input string) {
 	}
 
 	fn.Disassemble(os.Stdout)
+}
+
+// compiles the input to Go source code and dumps it to the output
+func (e *evaluator) transpile(input string) {
+	sourceName := e.addSource(input)
+	defer e.deleteSource(sourceName)
+
+	var buff bytes.Buffer
+	cmp, dl := checker.CheckSourceNative(sourceName, input, nil, &buff, vm.DefaultThreadPool)
+
+	if dl != nil {
+		fmt.Println()
+
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(str)
+		if dl.IsFailure() {
+			return
+		}
+	}
+
+	cmp.Flush()
+	result, err := format.Source(buff.Bytes())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot format target go file: %s\n", err)
+		return
+	}
+
+	_, err = os.Stdout.Write(colorize.Colorize(result))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println()
 }
 
 // parsers, typechecks the input and prints it to the output
@@ -226,9 +265,9 @@ func (e *evaluator) lex(input string) {
 }
 
 // Start the REPL.
-func Run(disassemble, inspectStack, parse, lex, typecheck, expand bool) {
+func Run(disassemble, transpile, inspectStack, parse, lex, typecheck, expand bool) {
 	p := prompt.New(
-		executor(disassemble, inspectStack, parse, lex, typecheck, expand),
+		executor(disassemble, transpile, inspectStack, parse, lex, typecheck, expand),
 		prompt.WithLexer(&Lexer{}),
 		prompt.WithExecuteOnEnterCallback(executeOnEnter),
 		prompt.WithPrefix(">> "),
@@ -316,7 +355,7 @@ const (
 	sourceName = "REPL"
 )
 
-func executor(disassemble, inspectStack, parse, lex, typecheck, expand bool) prompt.Executor {
+func executor(disassemble, transpile, inspectStack, parse, lex, typecheck, expand bool) prompt.Executor {
 	eval := &evaluator{
 		inspectStack: inspectStack,
 		sourceMap:    make(map[string]string),
@@ -326,6 +365,9 @@ func executor(disassemble, inspectStack, parse, lex, typecheck, expand bool) pro
 	}
 	if disassemble {
 		return eval.disassemble
+	}
+	if transpile {
+		return eval.transpile
 	}
 	if parse {
 		return eval.parse

@@ -1445,6 +1445,7 @@ var _ = value.Truthy
 
 func main() { // loc: <main>
 	thread := vm.New()
+	_ = thread
 	var l0 value.Value // var a: nil
 	_ = l0
 	var self value.Value
@@ -1473,6 +1474,7 @@ var _ = value.Truthy
 
 func main() { // loc: <main>
 	thread := vm.New()
+	_ = thread
 	var l0 bool // var a: bool
 	_ = l0
 	var l1 value.Value // var b: nil
@@ -1512,6 +1514,7 @@ var _ = value.Truthy
 
 func main() { // loc: <main>
 	thread := vm.New()
+	_ = thread
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var self value.Value
@@ -1544,6 +1547,7 @@ var _ = value.Truthy
 
 func main() { // loc: <main>
 	thread := vm.New()
+	_ = thread
 	var l0 value.Value // var a: nil
 	_ = l0
 	var self value.Value
@@ -1579,6 +1583,7 @@ var _ = value.Truthy
 
 func main() { // loc: <main>
 	thread := vm.New()
+	_ = thread
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var self value.Value
@@ -1615,6 +1620,7 @@ var cc_main_1 = &value.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
+	_ = thread
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
 	var t1 value.Value
