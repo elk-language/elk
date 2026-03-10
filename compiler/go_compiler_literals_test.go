@@ -2520,75 +2520,234 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// TODO: special array tuples
-		// 		"word arrayTuple": {
-		// 			input: `a := %w[foo bar baz]`,
-		// 			want: `
-		// `,
-		// 		},
-		// "symbol arrayTuple": {
-		// 	input: `%s[foo bar baz]`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(14, 1, 15)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayTuple{
-		// 				value.ToSymbol("foo").ToValue(),
-		// 				value.ToSymbol("bar").ToValue(),
-		// 				value.ToSymbol("baz").ToValue(),
-		// 			}),
-		// 		},
-		// 	),
-		// },
-		// "hex arrayTuple": {
-		// 	input: `%x[ab cd 5f]`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(11, 1, 12)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayTuple{
-		// 				value.SmallInt(0xab).ToValue(),
-		// 				value.SmallInt(0xcd).ToValue(),
-		// 				value.SmallInt(0x5f).ToValue(),
-		// 			}),
-		// 		},
-		// 	),
-		// },
-		// "bin arrayTuple": {
-		// 	input: `%b[101 11 10]`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(12, 1, 13)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayTuple{
-		// 				value.SmallInt(0b101).ToValue(),
-		// 				value.SmallInt(0b11).ToValue(),
-		// 				value.SmallInt(0b10).ToValue(),
-		// 			}),
-		// 		},
-		// 	),
-		// },
+		"word arrayTuple": {
+			input: `a := %w[foo bar baz]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var arrtuple0 = value.NewNativeArrayTupleWithElements[value.String](0, value.String("foo"), value.String("bar"), value.String("baz"))
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayTuple[value.String] // var a: Std::ArrayTuple[Std::String]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = arrtuple0
+}
+`,
+		},
+		"symbol arrayTuple": {
+			input: `a := %s[foo bar baz]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+var sym1 = value.ToSymbol("bar")
+var sym2 = value.ToSymbol("baz")
+var arrtuple0 = value.NewNativeArrayTupleWithElements[value.Symbol](0, sym0, sym1, sym2)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayTuple[value.Symbol] // var a: Std::ArrayTuple[Std::Symbol]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = arrtuple0
+}
+`,
+		},
+		"hex arrayTuple uint8": {
+			input: `a := %x[ab cd 5f]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var arrtuple0 = value.NewNativeArrayTupleWithElements[value.UInt8](0, value.UInt8(171), value.UInt8(205), value.UInt8(95))
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayTuple[value.UInt8] // var a: Std::ArrayTuple[Std::UInt8]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = arrtuple0
+}
+`,
+		},
+		"hex arrayTuple uint16": {
+			input: `a := %x[ab_cd cd 5f]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var arrtuple0 = value.NewNativeArrayTupleWithElements[value.UInt16](0, value.UInt16(43981), value.UInt16(205), value.UInt16(95))
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayTuple[value.UInt16] // var a: Std::ArrayTuple[Std::UInt16]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = arrtuple0
+}
+`,
+		},
+		"hex arrayTuple uint32": {
+			input: `a := %x[ab_cd_ab_cd cd 5f]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var arrtuple0 = value.NewNativeArrayTupleWithElements[value.UInt32](0, value.UInt32(2882382797), value.UInt32(205), value.UInt32(95))
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayTuple[value.UInt32] // var a: Std::ArrayTuple[Std::UInt32]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = arrtuple0
+}
+`,
+		},
+		"hex arrayTuple uint64": {
+			input: `a := %x[ab_cd_ab_cd_ab_cd_ab_cd cd 5f]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var arrtuple0 = value.NewNativeArrayTupleWithElements[value.UInt64](0, value.UInt64(12379739850550389709), value.UInt64(205), value.UInt64(95))
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayTuple[value.UInt64] // var a: Std::ArrayTuple[Std::UInt64]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = arrtuple0
+}
+`,
+		},
+		"hex arrayTuple int": {
+			input: `a := %x[ab_cd_ab_cd_ab_cd_ab_cd_ab_cd_ab_cd_ab_cd_ab_cd cd 5f]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var bi0 = value.ParseBigIntPanic("228365892722206371581333312115001109453", 0)
+var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (bi0).ToValue(), (value.SmallInt(205)).ToValue(), (value.SmallInt(95)).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = arrtuple0
+}
+`,
+		},
+		"bin arrayTuple": {
+			input: `a := %b[101 11 10]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var arrtuple0 = value.NewNativeArrayTupleWithElements[value.UInt8](0, value.UInt8(5), value.UInt8(3), value.UInt8(2))
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayTuple[value.UInt8] // var a: Std::ArrayTuple[Std::UInt8]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = arrtuple0
+}
+`,
+		},
 	}
 
 	for name, tc := range tests {

@@ -1558,8 +1558,24 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileBinaryExpressionNode(node, valueIsIgnored)
 	case *ast.ArrayTupleLiteralNode:
 		return c.compileArrayTupleLiteralNode(node)
+	case *ast.WordArrayTupleLiteralNode:
+		return c.compileWordArrayTupleLiteralNode(node)
+	case *ast.SymbolArrayTupleLiteralNode:
+		return c.compileSymbolArrayTupleLiteralNode(node)
+	case *ast.BinArrayTupleLiteralNode:
+		return c.compileBinArrayTupleLiteralNode(node)
+	case *ast.HexArrayTupleLiteralNode:
+		return c.compileHexArrayTupleLiteralNode(node)
 	case *ast.ArrayListLiteralNode:
 		return c.compileArrayListLiteralNode(node)
+	case *ast.WordArrayListLiteralNode:
+		return c.compileWordArrayListLiteralNode(node)
+	case *ast.SymbolArrayListLiteralNode:
+		return c.compileSymbolArrayListLiteralNode(node)
+	case *ast.BinArrayListLiteralNode:
+		return c.compileBinArrayListLiteralNode(node)
+	case *ast.HexArrayListLiteralNode:
+		return c.compileHexArrayListLiteralNode(node)
 	case *ast.AssignmentExpressionNode:
 		return c.compileAssignmentExpressionNode(node)
 	case *ast.PublicIdentifierNode:
@@ -1752,6 +1768,78 @@ func (c *GoCompiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) *goValu
 	default:
 		panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
 	}
+}
+
+func (c *GoCompiler) compileWordArrayTupleLiteralNode(node *ast.WordArrayTupleLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	c.Errors.AddFailure("invalid word arrayTuple literal", node.Location())
+	return nilGoValue
+}
+
+func (c *GoCompiler) compileSymbolArrayTupleLiteralNode(node *ast.SymbolArrayTupleLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	c.Errors.AddFailure("invalid symbol arrayTuple literal", node.Location())
+	return nilGoValue
+}
+
+func (c *GoCompiler) compileBinArrayTupleLiteralNode(node *ast.BinArrayTupleLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	c.Errors.AddFailure("invalid binary arrayTuple literal", node.Location())
+	return nilGoValue
+}
+
+func (c *GoCompiler) compileHexArrayTupleLiteralNode(node *ast.HexArrayTupleLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	c.Errors.AddFailure("invalid hex arrayTuple literal", node.Location())
+	return nilGoValue
+}
+
+func (c *GoCompiler) compileWordArrayListLiteralNode(node *ast.WordArrayListLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	c.Errors.AddFailure("invalid word arrayList literal", node.Location())
+	return nilGoValue
+}
+
+func (c *GoCompiler) compileSymbolArrayListLiteralNode(node *ast.SymbolArrayListLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	c.Errors.AddFailure("invalid symbol arrayList literal", node.Location())
+	return nilGoValue
+}
+
+func (c *GoCompiler) compileBinArrayListLiteralNode(node *ast.BinArrayListLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	c.Errors.AddFailure("invalid binary arrayList literal", node.Location())
+	return nilGoValue
+}
+
+func (c *GoCompiler) compileHexArrayListLiteralNode(node *ast.HexArrayListLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	c.Errors.AddFailure("invalid hex arrayList literal", node.Location())
+	return nilGoValue
 }
 
 func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNode) *goValue {
