@@ -1971,12 +1971,10 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 				true,
 			)
 		default:
-			element := c.compileExpression(elementNode, false)
-
 			if tmp != nil {
-				c.emit("%s.Append(%s)\n", tmp.name, c.convertToValue(element))
-				element.markFree()
+				c.compileArrayAppend(tmp, elementNode)
 			} else {
+				element := c.compileExpression(elementNode, false)
 				elementValues = append(elementValues, element)
 			}
 		case *ast.SymbolKeyValueExpressionNode:
@@ -2126,6 +2124,8 @@ func (c *GoCompiler) expandValueSlice(slice *[]*goValue, newElements int) {
 	*slice = newCollection
 }
 
+const invalidCapacityErrMessage = "capacity cannot be specified in collection literals with conditional elements or loops"
+
 func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode) *goValue {
 	if resolved := c.resolve(node); resolved != nil {
 		return resolved
@@ -2215,6 +2215,14 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 
 			elementValues[index] = value
 		case *ast.ModifierNode:
+			if node.Capacity != nil {
+				c.Errors.AddFailure(
+					invalidCapacityErrMessage,
+					node.Capacity.Location(),
+				)
+				return nilGoValue
+			}
+
 			finalizeStaticElements()
 
 			var condType conditionType
@@ -2239,9 +2247,25 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 				true,
 			)
 		case *ast.ModifierForInNode:
+			if node.Capacity != nil {
+				c.Errors.AddFailure(
+					invalidCapacityErrMessage,
+					node.Capacity.Location(),
+				)
+				return nilGoValue
+			}
+
 			// TODO: compile for in
 			finalizeStaticElements()
 		case *ast.ModifierIfElseNode:
+			if node.Capacity != nil {
+				c.Errors.AddFailure(
+					invalidCapacityErrMessage,
+					node.Capacity.Location(),
+				)
+				return nilGoValue
+			}
+
 			finalizeStaticElements()
 
 			c.compileIfWithConditionExpression(
@@ -2259,8 +2283,12 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 				true,
 			)
 		default:
-			element := c.compileExpression(elementNode, false)
-			elementValues = append(elementValues, element)
+			if tmp != nil {
+				c.compileArrayAppend(tmp, elementNode)
+			} else {
+				element := c.compileExpression(elementNode, false)
+				elementValues = append(elementValues, element)
+			}
 		case *ast.SymbolKeyValueExpressionNode:
 			panic(fmt.Sprintf("invalid arraylist literal element node: %T", elementNode))
 		}
@@ -2277,6 +2305,12 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 			elementValue.markFree()
 		}
 		buff.WriteString(")")
+
+		return newInlineGoValue(
+			buff.String(),
+			c.typeOf(node),
+			goType,
+		)
 	}
 
 	return newTmpGoValue(
@@ -7311,7 +7345,7 @@ func (c *GoCompiler) arrayListToGoSource(v value.ArrayList, typ types.Type) *goV
 
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "value.NewNativeArrayListWithElements(%d, ", v.LeftCapacity())
+	fmt.Fprintf(&buff, "value.NewNativeArrayListWithElements[%s](%d, ", goElementType.String(), v.LeftCapacity())
 
 	for _, element := range v.Elements() {
 		el := c.valueToGoSource(element, elementType, true)
@@ -7374,8 +7408,6 @@ func (c *GoCompiler) convertToNativeInt(v *goValue) string {
 	}
 
 	switch v.goType().Name {
-	case "value.Value":
-		return v.value()
 	case "value.SmallInt", "value.Float",
 		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt", "value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":

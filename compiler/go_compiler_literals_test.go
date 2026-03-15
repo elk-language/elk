@@ -5,6 +5,8 @@ import (
 	"math"
 	"math/big"
 	"testing"
+
+	"github.com/elk-language/elk/position/diagnostic"
 )
 
 // func TestClosureLiteral(t *testing.T) {
@@ -2762,897 +2764,891 @@ func noop(args ...any) {
 
 }
 
-// func TestArrayLists(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"empty list": {
-// 			input: "[]",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(1, 1, 2)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{}),
-// 				},
-// 			),
-// 		},
-// 		"with static elements": {
-// 			input: "[1, 'foo', 5, 5.6]",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(17, 1, 18)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.Ref(value.String("foo")),
-// 						value.SmallInt(5).ToValue(),
-// 						value.Float(5.6).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"with static elements and static capacity": {
-// 			input: "[1, 'foo', 5, 5.6]:10",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT_8), 10,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(20, 1, 21)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.Ref(value.String("foo")),
-// 						value.SmallInt(5).ToValue(),
-// 						value.Float(5.6).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
+func TestArrayLists(t *testing.T) {
+	tests := goTestTable{
+		"empty list": {
+			input: "a := []",
+			want: `package main
 
-// 		"with static elements and dynamic capacity": {
-// 			input: `
-// 				cap := 2
-// 				[1, 'foo', 5, 5.6]:cap
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(40, 3, 27)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.Ref(value.String("foo")),
-// 						value.SmallInt(5).ToValue(),
-// 						value.Float(5.6).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"word list": {
-// 			input: `\w[foo bar baz]`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.Ref(value.String("foo")),
-// 						value.Ref(value.String("bar")),
-// 						value.Ref(value.String("baz")),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"word list with capacity": {
-// 			input: `\w[foo bar baz]:15`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT_8), 15,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(17, 1, 18)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.Ref(value.String("foo")),
-// 						value.Ref(value.String("bar")),
-// 						value.Ref(value.String("baz")),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"symbol list": {
-// 			input: `\s[foo bar baz]`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.ToSymbol("foo").ToValue(),
-// 						value.ToSymbol("bar").ToValue(),
-// 						value.ToSymbol("baz").ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
 
-// 		"symbol list with capacity": {
-// 			input: `\s[foo bar baz]:15`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT_8), 15,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(17, 1, 18)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.ToSymbol("foo").ToValue(),
-// 						value.ToSymbol("bar").ToValue(),
-// 						value.ToSymbol("baz").ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"hex list": {
-// 			input: `\x[ab cd 5f]`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(11, 1, 12)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(0xab).ToValue(),
-// 						value.SmallInt(0xcd).ToValue(),
-// 						value.SmallInt(0x5f).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"hex list with capacity": {
-// 			input: `\x[ab cd 5f]:2`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(0xab).ToValue(),
-// 						value.SmallInt(0xcd).ToValue(),
-// 						value.SmallInt(0x5f).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"bin list": {
-// 			input: `\b[101 11 10]`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(12, 1, 13)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(0b101).ToValue(),
-// 						value.SmallInt(0b11).ToValue(),
-// 						value.SmallInt(0b10).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"bin list with capacity": {
-// 			input: `\b[101 11 10]:3`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(0b101).ToValue(),
-// 						value.SmallInt(0b11).ToValue(),
-// 						value.SmallInt(0b10).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
+import "github.com/elk-language/elk/value/symbol"
 
-// 		"with static keyed elements": {
-// 			input: "[1, 'foo', 5 => 5,  3 => 5.6, :lol]",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(34, 1, 35)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.Ref(value.String("foo")),
-// 						value.Nil,
-// 						value.Float(5.6).ToValue(),
-// 						value.Nil,
-// 						value.SmallInt(5).ToValue(),
-// 						value.ToSymbol("lol").ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"with static keyed elements and static capacity": {
-// 			input: "[1, 'foo', 5 => 5,  3 => 5.6, :lol]:6",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT_8), 6,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(36, 1, 37)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.Ref(value.String("foo")),
-// 						value.Nil,
-// 						value.Float(5.6).ToValue(),
-// 						value.Nil,
-// 						value.SmallInt(5).ToValue(),
-// 						value.ToSymbol("lol").ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"with static concat": {
-// 			input: "[1, 2, 3] + [4, 5, 6] + [10]",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(27, 1, 28)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(4).ToValue(),
-// 						value.SmallInt(5).ToValue(),
-// 						value.SmallInt(6).ToValue(),
-// 						value.SmallInt(10).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"with static repeat": {
-// 			input: "[1, 2, 3] * 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(12, 1, 13)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"with static concat and nested lists": {
-// 			input: "[1, 2, 3] + [4, 5, 6, [7, 8]] + [10]",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.LOAD_INT_8), 10,
-// 					byte(bytecode.NEW_ARRAY_LIST8), 2,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(35, 1, 36)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 9),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(4).ToValue(),
-// 						value.SmallInt(5).ToValue(),
-// 						value.SmallInt(6).ToValue(),
-// 					}),
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(7).ToValue(),
-// 						value.SmallInt(8).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
 
-// 		"nested static lists": {
-// 			input: "[1, ['bar', [7.2]]]",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 1,
-// 					byte(bytecode.NEW_ARRAY_LIST8), 1,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(18, 1, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 11),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 					}),
-// 					value.Ref(&value.ArrayList{
-// 						value.Ref(value.String("bar")),
-// 					}),
-// 					value.Ref(&value.ArrayList{
-// 						value.Float(7.2).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"with static keyed and dynamic elements": {
-// 			input: `
-// 				a := 5
-// 				[1, 'foo', 5 => 5,  3 => 5.6, a]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 1,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(48, 3, 37)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.Ref(value.String("foo")),
-// 						value.Nil,
-// 						value.Float(5.6).ToValue(),
-// 						value.Nil,
-// 						value.SmallInt(5).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"with static keyed, dynamic elements and capacity": {
-// 			input: `
-// 				a := 5
-// 				[1, 'foo', 5 => 5,  3 => 5.6, a]:15
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.LOAD_INT_8), 15,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 1,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(51, 3, 40)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.Ref(value.String("foo")),
-// 						value.Nil,
-// 						value.Float(5.6).ToValue(),
-// 						value.Nil,
-// 						value.SmallInt(5).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"with static and dynamic elements": {
-// 			input: `
-// 				var a: Int? = 3
-// 				[1, 'foo', 5, a, 5, %[:foo]]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 3,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(53, 3, 33)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 8),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.Ref(value.String("foo")),
-// 						value.SmallInt(5).ToValue(),
-// 					}),
-// 					value.Ref(&value.ArrayTuple{
-// 						value.ToSymbol("foo").ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"with dynamic elements": {
-// 			input: `
-// 				a := 3
-// 				[a, 5, [:foo]]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 3,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(30, 3, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 9),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.ToSymbol("foo").ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[any]
+	_ = l0
+	var self value.Value
+	_ = self
 
-// 		"with static elements and if modifiers": {
-// 			input: `
-// 				var a: Int? = nil
-// 				[1, 5 if a, [:foo]]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_UNLESS), 0, 5,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.JUMP), 0, 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(46, 3, 24)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 17),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 					}),
-// 					value.Ref(&value.ArrayList{
-// 						value.ToSymbol("foo").ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"with static elements, if modifiers and capacity": {
-// 			input: `
-// 				var a: Int? = nil
-// 				[1, 5 if a, [:foo]]:45
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(
-// 					L(P(47, 3, 25), P(48, 3, 26)),
-// 					"capacity cannot be specified in collection literals with conditional elements or loops",
-// 				),
-// 			},
-// 		},
-// 		"with static elements and unless modifiers": {
-// 			input: `
-// 				var a: Int? = nil
-// 				[1, 5 unless a, [:foo]]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_IF), 0, 5,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.JUMP), 0, 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(50, 3, 28)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 17),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 					}),
-// 					value.Ref(&value.ArrayList{
-// 						value.ToSymbol("foo").ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"with static elements and for in loops": {
-// 			input: `
-// 				[1, i * 2 for i in [1, 2, 3], %[:foo]]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 8,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.MULTIPLY_INT),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.LOOP), 0, 12,
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(43, 2, 43)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 23),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 					}),
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 					}),
-// 					value.Ref(&value.ArrayTuple{
-// 						value.ToSymbol("foo").ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
-// 		"with dynamic elements and if modifiers": {
-// 			input: `
-// 				var a: Int? = nil
-// 				[Object(), 5 if a, [:foo]]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.INSTANTIATE8), 0,
-// 					byte(bytecode.NEW_ARRAY_LIST8), 1,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_UNLESS), 0, 5,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.JUMP), 0, 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(53, 3, 31)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 21),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Object").ToValue(),
-// 					value.Ref(&value.ArrayList{
-// 						value.ToSymbol("foo").ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewArrayListOfValueWithElements(0)
+}
+`,
+		},
+		"with static elements": {
+			input: "a := [1, 'foo', 5, 5.6]",
+			want: `package main
 
-// 		"with dynamic and keyed elements": {
-// 			input: `
-// 				var a: Int? = nil
-// 				[a, 1, 'foo', 5 => 5,  3 => 5.6]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 3,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.APPEND_AT),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.APPEND_AT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(59, 3, 37)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 14),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{}),
-// 					value.Ref(value.String("foo")),
-// 					value.Float(5.6).ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"with dynamic, keyed elements and capacity": {
-// 			input: `
-// 				a := 3
-// 				[a, 1, 'foo', 5 => 5,  3 => 5.6]:7
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.LOAD_INT_8), 7,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 3,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.APPEND_AT),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.APPEND_AT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(50, 3, 39)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 15),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{}),
-// 					value.Ref(value.String("foo")),
-// 					value.Float(5.6).ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"with keyed and if elements": {
-// 			input: `
-// 				var a: Int? = nil
-// 				[3 => 5 if a]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.NEW_ARRAY_LIST8), 0,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_UNLESS), 0, 6,
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.APPEND_AT),
-// 					byte(bytecode.JUMP), 0, 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(40, 3, 18)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 15),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 	}
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+}
+`,
+		},
+		"with static elements and static capacity": {
+			input: "a := [1, 'foo', 5, 5.6]:10",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewArrayListOfValueWithElements(int(value.SmallInt(10)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+}
+`,
+		},
+
+		"with static elements and dynamic capacity": {
+			input: `
+				cap := 2
+				a := [1, 'foo', 5, 5.6]:cap
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var cap: Std::Int
+	_ = l0
+	var l1 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(2)).ToValue()
+	l1 = value.NewArrayListOfValueWithElements((l0).AsAnyInt(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+}
+`,
+		},
+		"word list": {
+			input: `a := \w[foo bar baz]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayList[value.String] // var a: Std::ArrayList[Std::String]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewNativeArrayListWithElements[value.String](0, value.String("foo"), value.String("bar"), value.String("baz"))
+}
+`,
+		},
+		"word list with capacity": {
+			input: `a := \w[foo bar baz]:15`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayList[value.String] // var a: Std::ArrayList[Std::String]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewNativeArrayListWithElements[value.String](15, value.String("foo"), value.String("bar"), value.String("baz"))
+}
+`,
+		},
+		"symbol list": {
+			input: `a := \s[foo bar baz]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+var sym1 = value.ToSymbol("bar")
+var sym2 = value.ToSymbol("baz")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayList[value.Symbol] // var a: Std::ArrayList[Std::Symbol]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewNativeArrayListWithElements[value.Symbol](0, sym0, sym1, sym2)
+}
+`,
+		},
+
+		"symbol list with capacity": {
+			input: `a := \s[foo bar baz]:15`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+var sym1 = value.ToSymbol("bar")
+var sym2 = value.ToSymbol("baz")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayList[value.Symbol] // var a: Std::ArrayList[Std::Symbol]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewNativeArrayListWithElements[value.Symbol](15, sym0, sym1, sym2)
+}
+`,
+		},
+		"hex list": {
+			input: `a := \x[ab cd 5f]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayList[value.UInt8] // var a: Std::ArrayList[Std::UInt8]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewNativeArrayListWithElements[value.UInt8](0, value.UInt8(171), value.UInt8(205), value.UInt8(95))
+}
+`,
+		},
+		"hex list with capacity": {
+			input: `a := \x[ab cd 5f]:2`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayList[value.UInt8] // var a: Std::ArrayList[Std::UInt8]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewNativeArrayListWithElements[value.UInt8](2, value.UInt8(171), value.UInt8(205), value.UInt8(95))
+}
+`,
+		},
+		"bin list": {
+			input: `a := \b[101 11 10]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayList[value.UInt8] // var a: Std::ArrayList[Std::UInt8]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewNativeArrayListWithElements[value.UInt8](0, value.UInt8(5), value.UInt8(3), value.UInt8(2))
+}
+`,
+		},
+		"bin list with capacity": {
+			input: `a := \b[101 11 10]:3`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayList[value.UInt8] // var a: Std::ArrayList[Std::UInt8]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewNativeArrayListWithElements[value.UInt8](3, value.UInt8(5), value.UInt8(3), value.UInt8(2))
+}
+`,
+		},
+
+		"with static keyed elements": {
+			input: "a := [1, 'foo', 5 => 5,  3 => 5.6, :lol]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("lol")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::String | Std::Symbol | nil | Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewArrayListOfValueWithElements(2, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (sym0).ToValue())
+}
+`,
+		},
+		"with static keyed elements and static capacity": {
+			input: "a := [1, 'foo', 5 => 5,  3 => 5.6, :lol]:6",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("lol")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::String | Std::Symbol | nil | Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewArrayListOfValueWithElements(int(value.SmallInt(6)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (sym0).ToValue())
+}
+`,
+		},
+		"with static concat": {
+			input: "a := [1, 2, 3] + [4, 5, 6] + [10]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue(), (value.SmallInt(10)).ToValue())
+}
+`,
+		},
+		"with static repeat": {
+			input: "a := [1, 2, 3] * 3",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())
+}
+`,
+		},
+		"with static concat and nested lists": {
+			input: "a := [1, 2, 3] + [4, 5, 6, [7, 8]] + [10]",
+
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::ArrayList[Std::Int]]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue(), (value.NewArrayListOfValueWithElements(0, (value.SmallInt(7)).ToValue(), (value.SmallInt(8)).ToValue())).ToValue(), (value.SmallInt(10)).ToValue())
+}
+`,
+		},
+
+		"nested static lists": {
+			input: "a := [1, ['bar', [7.2]]]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::ArrayList[Std::String | Std::ArrayList[Std::Float]]]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.NewArrayListOfValueWithElements(0, (value.String("bar")).ToValue(), (value.NewArrayListOfValueWithElements(0, (value.Float(7.200000)).ToValue())).ToValue())).ToValue())
+}
+`,
+		},
+		"with static keyed and dynamic elements": {
+			input: `
+				a := 5
+				b := [1, 'foo', 5 => 5,  3 => 5.6, a]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(5)).ToValue()
+	l1 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), l0)
+}
+`,
+		},
+		"with static keyed, dynamic elements and capacity": {
+			input: `
+				a := 5
+				b := [1, 'foo', 5 => 5,  3 => 5.6, a]:15
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(5)).ToValue()
+	l1 = value.NewArrayListOfValueWithElements(int(value.SmallInt(15)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), l0)
+}
+`,
+		},
+		"with static and dynamic elements": {
+			input: `
+				var a: Int? = 3
+				b := [1, 'foo', 5, a, 5, %[:foo]]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+var arrtuple0 = value.NewNativeArrayTupleWithElements[value.Symbol](0, sym0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::String | Std::ArrayTuple[Std::Symbol] | nil]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(3)).ToValue()
+	l1 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), l0, (value.SmallInt(5)).ToValue(), (arrtuple0).ToValue())
+}
+`,
+		},
+		"with dynamic elements": {
+			input: `
+				a := 3
+				b := [a, 5, [:foo]]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::ArrayList[Std::Symbol]]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(3)).ToValue()
+	l1 = value.NewArrayListOfValueWithElements(0, l0, (value.SmallInt(5)).ToValue(), (value.NewNativeArrayListWithElements[value.Symbol](0, sym0)).ToValue())
+}
+`,
+		},
+
+		"with static elements and if modifiers": {
+			input: `
+				var a: Int? = nil
+				b := [1, 5 if a, [:foo]]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::ArrayList[Std::Symbol]]
+	_ = l1
+	var t1 *value.ArrayListOfValue
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+	t1 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue())
+	if value.Truthy(l0) {
+		t1.Append((value.SmallInt(5)).ToValue())
+	}
+	t1.Append((value.NewNativeArrayListWithElements[value.Symbol](0, sym0)).ToValue())
+	l1 = t1
+}
+`,
+		},
+		"with static elements, if modifiers and capacity": {
+			input: `
+				var a: Int? = nil
+				[1, 5 if a, [:foo]]:45
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
+					L(P(47, 3, 25), P(48, 3, 26)),
+					"capacity cannot be specified in collection literals with conditional elements or loops",
+				),
+			},
+		},
+		"with static elements and unless modifiers": {
+			input: `
+				var a: Int? = nil
+				b := [1, 5 unless a, [:foo]]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::ArrayList[Std::Symbol]]
+	_ = l1
+	var t1 *value.ArrayListOfValue
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+	t1 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue())
+	if value.Falsy(l0) {
+		t1.Append((value.SmallInt(5)).ToValue())
+	}
+	t1.Append((value.NewNativeArrayListWithElements[value.Symbol](0, sym0)).ToValue())
+	l1 = t1
+}
+`,
+		},
+		// TODO: for in
+		// 		"with static elements and for in loops": {
+		// 			input: `
+		// 				b := [1, i * 2 for i in [1, 2, 3], %[:foo]]
+		// 			`,
+		// 			want: `
+		// `,
+		// 		},
+
+		// TODO: Constructor
+		// "with dynamic elements and if modifiers": {
+		// 	input: `
+		// 		var a: Int? = nil
+		// 		[Object(), 5 if a, [:foo]]
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.UNDEFINED),
+		// 			byte(bytecode.UNDEFINED),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.INSTANTIATE8), 0,
+		// 			byte(bytecode.NEW_ARRAY_LIST8), 1,
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.APPEND),
+		// 			byte(bytecode.JUMP), 0, 0,
+		// 			byte(bytecode.LOAD_VALUE_1),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.APPEND),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(53, 3, 31)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(3, 21),
+		// 		},
+		// 		[]value.Value{
+		// 			value.ToSymbol("Std::Object").ToValue(),
+		// 			value.Ref(&value.ArrayList{
+		// 				value.ToSymbol("foo").ToValue(),
+		// 			}),
+		// 		},
+		// 	),
+		// },
+
+		"with dynamic and keyed elements": {
+			input: `
+				var a: Int? = nil
+				b := [a, 1, 'foo', 5 => 5,  3 => 5.6]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+	l1 = value.NewArrayListOfValueWithElements(0, l0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
+}
+`,
+		},
+		"with dynamic, keyed elements and capacity": {
+			input: `
+				a := 3
+				b := [a, 1, 'foo', 5 => 5,  3 => 5.6]:7
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(3)).ToValue()
+	l1 = value.NewArrayListOfValueWithElements(int(value.SmallInt(7)), l0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
+}
+`,
+		},
+		"with keyed and if elements": {
+			input: `
+				var a: Int? = nil
+				b := [3 => 5 if a]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | nil]
+	_ = l1
+	var t1 *value.ArrayListOfValue
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+	t1 = value.NewArrayListOfValueWithElements(0)
+	if value.Truthy(l0) {
+		err = t1.AppendAt((value.SmallInt(3)).ToValue(), (value.SmallInt(5)).ToValue())
+		if err.IsNotUndefined() {
+			thread.Panic(err)
+		}
+	}
+	l1 = t1
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestHashSet(t *testing.T) {
 // 	tests := bytecodeTestTable{

@@ -45,13 +45,13 @@ func resolve(node ast.Node, checker types.Checker) value.Value {
 	case *ast.ArrayListLiteralNode:
 		return resolveArrayListLiteral(n, checker)
 	case *ast.WordArrayListLiteralNode:
-		return resolveSpecialNativeArrayListLiteral[ast.WordCollectionContentNode, value.String](n.Elements, checker, n.IsStatic())
+		return resolveSpecialNativeArrayListLiteral[ast.WordCollectionContentNode, value.String](n.Elements, n.Capacity, checker, n.IsStatic())
 	case *ast.SymbolArrayListLiteralNode:
-		return resolveSpecialNativeArrayListLiteral[ast.SymbolCollectionContentNode, value.Symbol](n.Elements, checker, n.IsStatic())
+		return resolveSpecialNativeArrayListLiteral[ast.SymbolCollectionContentNode, value.Symbol](n.Elements, n.Capacity, checker, n.IsStatic())
 	case *ast.BinArrayListLiteralNode:
-		return resolveIntArrayListLiteral(n.Elements, n.Type(checker.Env()), checker, n.IsStatic())
+		return resolveIntArrayListLiteral(n.Elements, n.Capacity, n.Type(checker.Env()), checker, n.IsStatic())
 	case *ast.HexArrayListLiteralNode:
-		return resolveIntArrayListLiteral(n.Elements, n.Type(checker.Env()), checker, n.IsStatic())
+		return resolveIntArrayListLiteral(n.Elements, n.Capacity, n.Type(checker.Env()), checker, n.IsStatic())
 	case *ast.ArrayTupleLiteralNode:
 		return resolveArrayTupleLiteral(n, checker)
 	case *ast.WordArrayTupleLiteralNode:
@@ -1264,7 +1264,17 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode, checker types.Check
 }
 
 func resolveArrayListOfValue(node *ast.ArrayListLiteralNode, checker types.Checker) value.Value {
-	newList := make(value.ArrayListOfValue, 0, len(node.Elements))
+	var cap int
+	if node.Capacity != nil {
+		capVal := resolve(node.Capacity, checker)
+		if capVal.IsUndefined() {
+			return value.Undefined
+		}
+
+		cap = capVal.AsAnyInt()
+	}
+
+	newList := make(value.ArrayListOfValue, 0, len(node.Elements)+cap)
 	for _, elementNode := range node.Elements {
 		switch e := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
@@ -1302,7 +1312,17 @@ func resolveArrayListOfValue(node *ast.ArrayListLiteralNode, checker types.Check
 }
 
 func resolveNativeArrayList[T value.ValueInterface](node *ast.ArrayListLiteralNode, checker types.Checker) value.Value {
-	newList := value.NewNativeArrayList[T](len(node.Elements))
+	var cap int
+	if node.Capacity != nil {
+		capVal := resolve(node.Capacity, checker)
+		if capVal.IsUndefined() {
+			return value.Undefined
+		}
+
+		cap = capVal.AsAnyInt()
+	}
+
+	newList := value.NewNativeArrayList[T](len(node.Elements) + cap)
 	for _, elementNode := range node.Elements {
 		element := resolve(elementNode, checker)
 		if element.IsUndefined() {
@@ -1339,13 +1359,23 @@ func resolveNativeArrayTuple[T value.ValueInterface](node *ast.ArrayTupleLiteral
 	return newTuple.ToValue()
 }
 
-func resolveSpecialNativeArrayListLiteral[N ast.ExpressionNode, T value.ValueInterface](elements []N, checker types.Checker, static bool) value.Value {
+func resolveSpecialNativeArrayListLiteral[N ast.ExpressionNode, T value.ValueInterface](elements []N, capacity ast.ExpressionNode, checker types.Checker, static bool) value.Value {
 	if !static {
 		return value.Undefined
 	}
 	var t T
 
-	newList := value.NewNativeArrayList[T](len(elements))
+	var cap int
+	if capacity != nil {
+		capVal := resolve(capacity, checker)
+		if capVal.IsUndefined() {
+			return value.Undefined
+		}
+
+		cap = capVal.AsAnyInt()
+	}
+
+	newList := value.NewNativeArrayList[T](len(elements) + cap)
 	for _, elementNode := range elements {
 		element := resolve(elementNode, checker)
 		if element.IsUndefined() {
@@ -1383,12 +1413,22 @@ func resolveSpecialNativeArrayTupleLiteral[N ast.ExpressionNode, T value.ValueIn
 	return newTuple.ToValue()
 }
 
-func resolveIntArrayListLiteral(elements []ast.IntCollectionContentNode, typ types.Type, checker types.Checker, static bool) value.Value {
+func resolveIntArrayListLiteral(elements []ast.IntCollectionContentNode, capacity ast.ExpressionNode, typ types.Type, checker types.Checker, static bool) value.Value {
 	if !static {
 		return value.Undefined
 	}
 
-	tmpList := make([]*value.BigInt, 0, len(elements))
+	var cap int
+	if capacity != nil {
+		capVal := resolve(capacity, checker)
+		if capVal.IsUndefined() {
+			return value.Undefined
+		}
+
+		cap = capVal.AsAnyInt()
+	}
+
+	tmpList := make([]*value.BigInt, 0, len(elements)+cap)
 	for _, elementNode := range elements {
 		n, ok := elementNode.(*ast.IntLiteralNode)
 		if !ok {
@@ -1466,7 +1506,7 @@ func resolveIntArrayTupleLiteral(elements []ast.IntCollectionContentNode, typ ty
 }
 
 func resolveBigIntSliceToNativeArrayList[I value.StrictNumeric](elements []*value.BigInt) *value.NativeArrayList[I] {
-	newList := value.NewNativeArrayList[I](len(elements))
+	newList := value.NewNativeArrayList[I](cap(elements))
 	for _, element := range elements {
 		nativeVal := I(element.ToUInt64())
 		newList.Append(nativeVal)
@@ -1486,7 +1526,7 @@ func resolveBigIntSliceToNativeArrayTuple[I value.StrictNumeric](elements []*val
 }
 
 func resolveBigIntSliceToArrayListOfValue(elements []*value.BigInt) *value.ArrayListOfValue {
-	newList := value.NewArrayListOfValue(len(elements))
+	newList := value.NewArrayListOfValue(cap(elements))
 	for _, element := range elements {
 		newList.Append(element.Normalize())
 	}

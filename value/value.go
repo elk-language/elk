@@ -585,9 +585,9 @@ func (v Value) AsAnyInt() int {
 		case *BigInt:
 			return int(v.ToSmallInt())
 		case Int64:
-			return int(v.ToSmallInt())
+			return int(v)
 		case UInt64:
-			return int(v.ToSmallInt())
+			return int(v)
 		default:
 			panic(fmt.Sprintf("value `%s` is not an integer", v.Inspect()))
 		}

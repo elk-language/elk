@@ -5092,7 +5092,7 @@ func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNod
 			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
 				if node.Capacity != nil {
 					c.Errors.AddFailure(
-						"capacity cannot be specified in collection literals with conditional elements or loops",
+						invalidCapacityErrMessage,
 						node.Capacity.Location(),
 					)
 					return
@@ -5582,7 +5582,7 @@ func (c *BytecodeCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNod
 			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
 				if node.Capacity != nil {
 					c.Errors.AddFailure(
-						"capacity cannot be specified in collection literals with conditional elements or loops",
+						invalidCapacityErrMessage,
 						node.Capacity.Location(),
 					)
 					return
@@ -6406,7 +6406,7 @@ func (c *BytecodeCompiler) compileArrayListLiteralNode(node *ast.ArrayListLitera
 			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
 				if node.Capacity != nil {
 					c.Errors.AddFailure(
-						"capacity cannot be specified in collection literals with conditional elements or loops",
+						invalidCapacityErrMessage,
 						node.Capacity.Location(),
 					)
 					return
