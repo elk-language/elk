@@ -34,6 +34,12 @@ func NewArrayTupleOfValueWithElements(capacity int, elements ...Value) *ArrayTup
 	return &l
 }
 
+func NewArrayTupleOfValueWithElementsAndTotalCapacity(capacity int, elements ...Value) *ArrayTupleOfValue {
+	l := make(ArrayTupleOfValue, len(elements), capacity)
+	copy(l, elements)
+	return &l
+}
+
 func (t *ArrayTupleOfValue) IterNative() *ArrayTupleOfValueIterator {
 	return NewArrayTupleOfValueIterator(t)
 }

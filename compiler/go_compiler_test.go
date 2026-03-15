@@ -48,7 +48,7 @@ func goCompilerTest(tc goTestCase, t *testing.T) {
 	}
 
 	if diff := cmp.Diff(tc.want, string(result), opts...); diff != "" {
-		t.Log(string(colorize.ColorizeWhen(result, true)))
+		t.Log(string(colorize.Colorize(result)))
 		t.Log(diff)
 		t.Fail()
 	}

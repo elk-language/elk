@@ -73,7 +73,7 @@ func (p *PairOfValue) ToValue() Value {
 	return Ref(p)
 }
 
-func (p *PairOfValue) Inspect() string {
+func (p PairOfValue) Inspect() string {
 	return fmt.Sprintf("Std::Pair(%s, %s)", p.key.Inspect(), p.value.Inspect())
 }
 

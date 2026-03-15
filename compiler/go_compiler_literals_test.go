@@ -2082,9 +2082,9 @@ func main() { // loc: <main>
 		},
 		"with static keyed and dynamic elements": {
 			input: `
-						k := 10
-						a := %[1, 'foo', 5 => 5,  String.name, 3 => 5.6, k => 12, 8.2]
-					`,
+k := 10
+a := %[1, 'foo', 5 => 5,  String.name, 3 => 5.6, k => 12, 8.2]
+`,
 			want: `package main
 
 import "github.com/elk-language/elk/value"
@@ -2133,7 +2133,7 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	t3 = (t1).AsString()
-	t4 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (t3).ToValue())
+	t4 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(7, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (t3).ToValue())
 	err = t4.AppendAt(l0, (value.SmallInt(12)).ToValue())
 	if err.IsNotUndefined() {
 		thread.Panic(err)
@@ -2176,7 +2176,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.String("bar")).ToValue()
-	t1 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue())
+	t1 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(3, (value.SmallInt(1)).ToValue())
 	if value.Truthy(l0) {
 		t1.Append((value.SmallInt(5)).ToValue())
 	}
@@ -2218,7 +2218,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.String("bar")).ToValue()
-	t1 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue())
+	t1 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(3, (value.SmallInt(1)).ToValue())
 	if value.Truthy(l0) {
 		t1.Append((value.SmallInt(5)).ToValue())
 	} else {
@@ -2262,7 +2262,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = value.Nil
-	t1 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue())
+	t1 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(3, (value.SmallInt(1)).ToValue())
 	if value.Falsy(l0) {
 		t1.Append((value.SmallInt(5)).ToValue())
 	}
@@ -2355,7 +2355,7 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	t3 = (t1).AsString()
-	t4 = value.NewArrayTupleOfValueWithElements(0, (t3).ToValue())
+	t4 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(3, (t3).ToValue())
 	if value.Truthy(l0) {
 		t4.Append((value.SmallInt(5)).ToValue())
 	}
@@ -2400,7 +2400,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = value.Nil
-	t1 = value.NewArrayTupleOfValueWithElements(0)
+	t1 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(1)
 	if value.Truthy(l0) {
 		err = t1.AppendAt((value.SmallInt(3)).ToValue(), (value.SmallInt(5)).ToValue())
 		if err.IsNotUndefined() {
@@ -2840,7 +2840,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.NewArrayListOfValueWithElements(int(value.SmallInt(10)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	l0 = value.NewArrayListOfValueWithElementsAndTotalCapacity(4+int(value.SmallInt(10)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
 }
 `,
 		},
@@ -2873,7 +2873,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(2)).ToValue()
-	l1 = value.NewArrayListOfValueWithElements((l0).AsAnyInt(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(4+(l0).AsAnyInt(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
 }
 `,
 		},
@@ -3147,7 +3147,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.NewArrayListOfValueWithElements(int(value.SmallInt(6)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (sym0).ToValue())
+	l0 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+int(value.SmallInt(6)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (sym0).ToValue())
 }
 `,
 		},
@@ -3285,7 +3285,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(5)).ToValue()
-	l1 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), l0)
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), l0)
 }
 `,
 		},
@@ -3317,7 +3317,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(5)).ToValue()
-	l1 = value.NewArrayListOfValueWithElements(int(value.SmallInt(15)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), l0)
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+int(value.SmallInt(15)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), l0)
 }
 `,
 		},
@@ -3352,7 +3352,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(3)).ToValue()
-	l1 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), l0, (value.SmallInt(5)).ToValue(), (arrtuple0).ToValue())
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(6+0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), l0, (value.SmallInt(5)).ToValue(), (arrtuple0).ToValue())
 }
 `,
 		},
@@ -3386,7 +3386,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(3)).ToValue()
-	l1 = value.NewArrayListOfValueWithElements(0, l0, (value.SmallInt(5)).ToValue(), (value.NewNativeArrayListWithElements[value.Symbol](0, sym0)).ToValue())
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(3+0, l0, (value.SmallInt(5)).ToValue(), (value.NewNativeArrayListWithElements[value.Symbol](0, sym0)).ToValue())
 }
 `,
 		},
@@ -3423,7 +3423,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = value.Nil
-	t1 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue())
+	t1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(3+0, (value.SmallInt(1)).ToValue())
 	if value.Truthy(l0) {
 		t1.Append((value.SmallInt(5)).ToValue())
 	}
@@ -3476,7 +3476,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = value.Nil
-	t1 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue())
+	t1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(3+0, (value.SmallInt(1)).ToValue())
 	if value.Falsy(l0) {
 		t1.Append((value.SmallInt(5)).ToValue())
 	}
@@ -3564,7 +3564,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = value.Nil
-	l1 = value.NewArrayListOfValueWithElements(0, l0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+0, l0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
 }
 `,
 		},
@@ -3596,7 +3596,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(3)).ToValue()
-	l1 = value.NewArrayListOfValueWithElements(int(value.SmallInt(7)), l0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+int(value.SmallInt(7)), l0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
 }
 `,
 		},
@@ -3630,7 +3630,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = value.Nil
-	t1 = value.NewArrayListOfValueWithElements(0)
+	t1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(1 + 0)
 	if value.Truthy(l0) {
 		err = t1.AppendAt((value.SmallInt(3)).ToValue(), (value.SmallInt(5)).ToValue())
 		if err.IsNotUndefined() {
@@ -3650,546 +3650,600 @@ func main() { // loc: <main>
 	}
 }
 
-// func TestHashSet(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"empty list": {
-// 			input: "^[]",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(2, 1, 3)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.HashSet{}),
-// 				},
-// 			),
-// 		},
-// 		"with static elements": {
-// 			input: "^[1, 'foo', 5, 5.6]",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(18, 1, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithElements(
-// 						nil,
-// 						value.SmallInt(1).ToValue(),
-// 						value.Ref(value.String("foo")),
-// 						value.SmallInt(5).ToValue(),
-// 						value.Float(5.6).ToValue(),
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with static elements and static capacity": {
-// 			input: "^[1, 'foo', 5, 5.6]:10",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT_8), 10,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_HASH_SET8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(21, 1, 22)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
-// 						nil,
-// 						4,
-// 						1,
-// 						value.SmallInt(1).ToValue(),
-// 						value.Ref(value.String("foo")),
-// 						value.SmallInt(5).ToValue(),
-// 						value.Float(5.6).ToValue(),
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with static elements and dynamic capacity": {
-// 			input: `
-// 				cap := 2
-// 				^[1, 'foo', 5, 5.6]:cap
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_HASH_SET8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(41, 3, 28)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
-// 						nil,
-// 						4,
-// 						1,
-// 						value.SmallInt(1).ToValue(),
-// 						value.Ref(value.String("foo")),
-// 						value.SmallInt(5).ToValue(),
-// 						value.Float(5.6).ToValue(),
-// 					)),
-// 				},
-// 			),
-// 		},
+func TestHashSet(t *testing.T) {
+	tests := goTestTable{
+		"empty list": {
+			input: "a := ^[]",
+			want: `package main
 
-// 		"word set": {
-// 			input: `^w[foo bar baz]`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithElements(
-// 						nil,
-// 						value.Ref(value.String("foo")),
-// 						value.Ref(value.String("bar")),
-// 						value.Ref(value.String("baz")),
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"word set with capacity": {
-// 			input: `^w[foo bar baz]:15`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT_8), 15,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_HASH_SET8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(17, 1, 18)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithElements(
-// 						nil,
-// 						value.Ref(value.String("foo")),
-// 						value.Ref(value.String("bar")),
-// 						value.Ref(value.String("baz")),
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"symbol set": {
-// 			input: `^s[foo bar baz]`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithElements(
-// 						nil,
-// 						value.ToSymbol("foo").ToValue(),
-// 						value.ToSymbol("bar").ToValue(),
-// 						value.ToSymbol("baz").ToValue(),
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"symbol set with capacity": {
-// 			input: `^s[foo bar baz]:15`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT_8), 15,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_HASH_SET8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(17, 1, 18)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithElements(
-// 						nil,
-// 						value.ToSymbol("foo").ToValue(),
-// 						value.ToSymbol("bar").ToValue(),
-// 						value.ToSymbol("baz").ToValue(),
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"hex set": {
-// 			input: `^x[ab cd 5f]`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(11, 1, 12)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithElements(
-// 						nil,
-// 						value.SmallInt(0xab).ToValue(),
-// 						value.SmallInt(0xcd).ToValue(),
-// 						value.SmallInt(0x5f).ToValue(),
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"hex set with capacity": {
-// 			input: `^x[ab cd 5f]:2`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_HASH_SET8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithElements(
-// 						nil,
-// 						value.SmallInt(0xab).ToValue(),
-// 						value.SmallInt(0xcd).ToValue(),
-// 						value.SmallInt(0x5f).ToValue(),
-// 					)),
-// 				},
-// 			),
-// 		},
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
 
-// 		"bin set": {
-// 			input: `^b[101 11 10]`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(12, 1, 13)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithElements(
-// 						nil,
-// 						value.SmallInt(0b101).ToValue(),
-// 						value.SmallInt(0b11).ToValue(),
-// 						value.SmallInt(0b10).ToValue(),
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"bin set with capacity": {
-// 			input: `^b[101 11 10]:3`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_HASH_SET8), 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithElements(
-// 						nil,
-// 						value.SmallInt(0b101).ToValue(),
-// 						value.SmallInt(0b11).ToValue(),
-// 						value.SmallInt(0b10).ToValue(),
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with static and dynamic elements": {
-// 			input: `
-// 				var a: Int? = nil
-// 				^[1, 'foo', 5, a, 5]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.NEW_HASH_SET8), 2,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(47, 3, 25)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
-// 						nil,
-// 						5,
-// 						value.Ref(value.String("foo")),
-// 						value.SmallInt(5).ToValue(),
-// 						value.SmallInt(1).ToValue(),
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with dynamic elements": {
-// 			input: `
-// 				var a: Int? = nil
-// 				^[a, 5]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.NEW_HASH_SET8), 2,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(34, 3, 12)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
-// 						nil,
-// 						2,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with static elements and if modifiers": {
-// 			input: `
-// 				var a: Int? = nil
-// 				^[1, 5 if a]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_HASH_SET8), 0,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_UNLESS), 0, 5,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.JUMP), 0, 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(39, 3, 17)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 14),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
-// 						nil,
-// 						2,
-// 						value.SmallInt(1).ToValue(),
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with static elements, if modifiers and capacity": {
-// 			input: `
-// 				var a: Int? = nil
-// 				^[1, 5 if a]:45
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(
-// 					L(P(40, 3, 18), P(41, 3, 19)),
-// 					"capacity cannot be specified in collection literals with conditional elements or loops",
-// 				),
-// 			},
-// 		},
-// 		"with static elements and unless modifiers": {
-// 			input: `
-// 				var a: Int? = nil
-// 				^[1, 5 unless a]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_HASH_SET8), 0,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_IF), 0, 5,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.JUMP), 0, 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(43, 3, 21)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 14),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
-// 						nil,
-// 						2,
-// 						value.SmallInt(1).ToValue(),
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with static elements and for in loops": {
-// 			input: `
-// 				^[1, i * 2 for i in [1, 2, 3], 2]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.NEW_HASH_SET8), 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 8,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.MULTIPLY_INT),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.LOOP), 0, 12,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(38, 2, 38)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 23),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
-// 						nil,
-// 						3,
-// 						value.SmallInt(1).ToValue(),
-// 					)),
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 					}),
-// 				},
-// 			),
-// 		},
+import "github.com/elk-language/elk/value/symbol"
 
-// 		"with dynamic elements and if modifiers": {
-// 			input: `
-// 				var a: Int? = nil
-// 				^[Object(), 5 if a]
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.INSTANTIATE8), 0,
-// 					byte(bytecode.NEW_HASH_SET8), 1,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_UNLESS), 0, 5,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.APPEND),
-// 					byte(bytecode.JUMP), 0, 0,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(46, 3, 24)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 18),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.MustNewHashSetWithCapacityAndElements(
-// 						nil,
-// 						2,
-// 					)),
-// 					value.ToSymbol("Std::Object").ToValue(),
-// 				},
-// 			),
-// 		},
-// 	}
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *vm.HashSetOfValue // var a: Std::HashSet[any]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.MustNewHashSetWithCapacityAndElements(nil, 0)
+}
+`,
+		},
+		"with static elements": {
+			input: "a := ^[1, 'foo', 5, 5.6]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int | Std::String | Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.MustNewHashSetWithCapacityAndElements(nil, 0, (value.String("foo")).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+}
+`,
+		},
+		"with native static elements": {
+			input: "a := ^[1.2, 10.0, 5.6]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *vm.NativeHashSet[value.Float] // var a: Std::HashSet[Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.NewNativeHashSetWithElements[value.Float](value.Float(1.200000), value.Float(10.000000), value.Float(5.600000))
+}
+`,
+		},
+		"with static elements and static capacity": {
+			input: "a := ^[1, 'foo', 5, 5.6]:10",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int | Std::String | Std::Float]
+	_ = l0
+	var t1 *vm.HashSetOfValue
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 4+int(value.SmallInt(10)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	l0 = t1
+}
+`,
+		},
+		"with static elements and dynamic capacity": {
+			input: `
+				cap := 2
+				a := ^[1, 'foo', 5, 5.6]:cap
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var cap: Std::Int
+	_ = l0
+	var l1 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int | Std::String | Std::Float]
+	_ = l1
+	var t1 *vm.HashSetOfValue
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(2)).ToValue()
+	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 4+(l0).AsAnyInt(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+`,
+		},
+
+		"word set": {
+			input: `a := ^w[foo bar baz]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *vm.NativeHashSet[value.String] // var a: Std::HashSet[Std::String]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.NewNativeHashSetWithElements[value.String](value.String("bar"), value.String("baz"), value.String("foo"))
+}
+`,
+		},
+		"word set with capacity": {
+			input: `a := ^w[foo bar baz]:15`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *vm.NativeHashSet[value.String] // var a: Std::HashSet[Std::String]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.NewNativeHashSetWithElements[value.String](value.String("bar"), value.String("baz"), value.String("foo"))
+}
+`,
+		},
+		"symbol set": {
+			input: `a := ^s[foo bar baz]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("bar")
+var sym1 = value.ToSymbol("baz")
+var sym2 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *vm.NativeHashSet[value.Symbol] // var a: Std::HashSet[Std::Symbol]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.NewNativeHashSetWithElements[value.Symbol](sym0, sym1, sym2)
+}
+`,
+		},
+		"symbol set with capacity": {
+			input: `a := ^s[foo bar baz]:15`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("bar")
+var sym1 = value.ToSymbol("baz")
+var sym2 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *vm.NativeHashSet[value.Symbol] // var a: Std::HashSet[Std::Symbol]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.NewNativeHashSetWithElements[value.Symbol](sym0, sym1, sym2)
+}
+`,
+		},
+		"hex set": {
+			input: `a := ^x[ab cd 5f]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.MustNewHashSetWithCapacityAndElements(nil, 0, (value.SmallInt(171)).ToValue(), (value.SmallInt(205)).ToValue(), (value.SmallInt(95)).ToValue())
+}
+`,
+		},
+		"hex set with capacity": {
+			input: `a := ^x[ab cd 5f]:2`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.MustNewHashSetWithCapacityAndElements(nil, 0, (value.SmallInt(171)).ToValue(), (value.SmallInt(205)).ToValue(), (value.SmallInt(95)).ToValue())
+}
+`,
+		},
+
+		"bin set": {
+			input: `a := ^b[101 11 10]`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.MustNewHashSetWithCapacityAndElements(nil, 0, (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(5)).ToValue())
+}
+`,
+		},
+		"bin set with capacity": {
+			input: `a := ^b[101 11 10]:3`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.MustNewHashSetWithCapacityAndElements(nil, 0, (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(5)).ToValue())
+}
+`,
+		},
+		"with static and dynamic elements": {
+			input: `
+				var a: Int? = nil
+				b := ^[1, 'foo', 5, a, 5]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 *vm.HashSetOfValue // var b: Std::HashSet[Std::Int | Std::String | nil]
+	_ = l1
+	var t1 *vm.HashSetOfValue
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 5+0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), l0, (value.SmallInt(5)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+`,
+		},
+		"with dynamic elements": {
+			input: `
+				var a: Int? = nil
+				b := ^[a, 5]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 *vm.HashSetOfValue // var b: Std::HashSet[Std::Int | nil]
+	_ = l1
+	var t1 *vm.HashSetOfValue
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 2+0, l0, (value.SmallInt(5)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+`,
+		},
+		"with static elements and if modifiers": {
+			input: `
+				var a: Int? = nil
+				b := ^[1, 5 if a]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 *vm.HashSetOfValue // var b: Std::HashSet[Std::Int]
+	_ = l1
+	var t1 *vm.HashSetOfValue
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 2+0, (value.SmallInt(1)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	if value.Truthy(l0) {
+		t1.Append((value.SmallInt(5)).ToValue())
+	}
+	l1 = t1
+}
+`,
+		},
+		"with static elements, if modifiers and capacity": {
+			input: `
+				var a: Int? = nil
+				^[1, 5 if a]:45
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
+					L(P(40, 3, 18), P(41, 3, 19)),
+					"capacity cannot be specified in collection literals with conditional elements or loops",
+				),
+			},
+		},
+		"with static elements and unless modifiers": {
+			input: `
+				var a: Int? = nil
+				b := ^[1, 5 unless a]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 *vm.HashSetOfValue // var b: Std::HashSet[Std::Int]
+	_ = l1
+	var t1 *vm.HashSetOfValue
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 2+0, (value.SmallInt(1)).ToValue())
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	if value.Falsy(l0) {
+		t1.Append((value.SmallInt(5)).ToValue())
+	}
+	l1 = t1
+}
+`,
+		},
+		// TODO: For in loops
+		// 		"with static elements and for in loops": {
+		// 			input: `
+		// 				a := ^[1, i * 2 for i in [1, 2, 3], 2]
+		// 			`,
+		// 			want: `
+		// `,
+		// 		},
+
+		// TODO: constructors
+		// "with dynamic elements and if modifiers": {
+		// 	input: `
+		// 		var a: Int? = nil
+		// 		^[Object(), 5 if a]
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.UNDEFINED),
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.GET_CONST8), 1,
+		// 			byte(bytecode.INSTANTIATE8), 0,
+		// 			byte(bytecode.NEW_HASH_SET8), 1,
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.APPEND),
+		// 			byte(bytecode.JUMP), 0, 0,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(46, 3, 24)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(3, 18),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(vm.MustNewHashSetWithCapacityAndElements(
+		// 				nil,
+		// 				2,
+		// 			)),
+		// 			value.ToSymbol("Std::Object").ToValue(),
+		// 		},
+		// 	),
+		// },
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestHashMap(t *testing.T) {
 // 	tests := bytecodeTestTable{

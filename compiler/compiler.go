@@ -6,6 +6,8 @@ package compiler
 import (
 	"fmt"
 	"io"
+	"slices"
+	"strings"
 
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
@@ -54,4 +56,11 @@ func CreateCompiler(parent Compiler, checker types.Checker, loc *position.Locati
 	default:
 		panic(fmt.Sprintf("invalid parent compiler: %T", parent))
 	}
+}
+
+func inspectSort[V value.Inspectable](elements []V) []V {
+	slices.SortStableFunc(elements, func(a, b V) int {
+		return strings.Compare(a.Inspect(), b.Inspect())
+	})
+	return elements
 }

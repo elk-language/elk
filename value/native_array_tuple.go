@@ -59,6 +59,12 @@ func NewNativeArrayTupleWithElements[T ValueInterface](capacity int, elements ..
 	return &l
 }
 
+func NewNativeArrayTupleWithElementsAndTotalCapacity[T ValueInterface](capacity int, elements ...T) *NativeArrayTuple[T] {
+	l := make(NativeArrayTuple[T], len(elements), capacity)
+	copy(l, elements)
+	return &l
+}
+
 func (t *NativeArrayTuple[T]) NewArrayTuple(capacity int) ArrayTuple {
 	return NewNativeArrayTuple[T](capacity)
 }

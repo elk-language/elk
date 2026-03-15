@@ -59,6 +59,12 @@ func NewNativeArrayListWithElements[T ValueInterface](capacity int, elements ...
 	return &l
 }
 
+func NewNativeArrayListWithElementsAndTotalCapacity[T ValueInterface](capacity int, elements ...T) *NativeArrayList[T] {
+	l := make(NativeArrayList[T], len(elements), capacity)
+	copy(l, elements)
+	return &l
+}
+
 func (l *NativeArrayList[T]) NewArrayList(capacity int) ArrayList {
 	return NewNativeArrayList[T](capacity)
 }
