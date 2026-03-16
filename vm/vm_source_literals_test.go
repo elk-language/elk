@@ -416,11 +416,11 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 
 func TestVMSource_ArrayListLiteral(t *testing.T) {
 	tests := sourceTestTable{
-		"empty arrayTuple literal": {
+		"empty arrayList literal": {
 			source:       `[]`,
 			wantStackTop: value.Ref(&value.ArrayListOfValue{}),
 		},
-		"static arrayTuple literal": {
+		"static arrayList literal": {
 			source: `[1, 2.5, :foo]`,
 			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(1).ToValue(),
@@ -428,42 +428,42 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.ToSymbol("foo").ToValue(),
 			}),
 		},
-		"static arrayTuple literal with static capacity": {
+		"static arrayList literal with static capacity": {
 			source: `
 				print([1, 2.5, :foo]:20.inspect)
 			`,
 			wantStdout:   "[1, 2.5, :foo]:20",
 			wantStackTop: value.Nil,
 		},
-		"word arrayTuple literal with static capacity": {
+		"word arrayList literal with static capacity": {
 			source: `
 				print(\w[foo bar baz]:20.inspect)
 			`,
 			wantStdout:   `["foo", "bar", "baz"]:20`,
 			wantStackTop: value.Nil,
 		},
-		"symbol arrayTuple literal with static capacity": {
+		"symbol arrayList literal with static capacity": {
 			source: `
 				print(\s[foo bar baz]:20.inspect)
 			`,
 			wantStdout:   `[:foo, :bar, :baz]:20`,
 			wantStackTop: value.Nil,
 		},
-		"bin arrayTuple literal with static capacity": {
+		"bin arrayList literal with static capacity": {
 			source: `
 				print(\b[101 10 11]:20.inspect)
 			`,
 			wantStdout:   `[5u8, 2u8, 3u8]:20`,
 			wantStackTop: value.Nil,
 		},
-		"hex arrayTuple literal with static capacity": {
+		"hex arrayList literal with static capacity": {
 			source: `
 				print(\x[ff de4 5]:20.inspect)
 			`,
 			wantStdout:   `[255u16, 3556u16, 5u16]:20`,
 			wantStackTop: value.Nil,
 		},
-		"nested static arrayTuple literal": {
+		"nested static arrayList literal": {
 			source: `[1, 2.5, ["bar", []], [:foo]]`,
 			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(1).ToValue(),

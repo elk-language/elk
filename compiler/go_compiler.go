@@ -184,6 +184,16 @@ func newGoLocal(name string, goType *value.GoType, comment string) *goLocal {
 	}
 }
 
+type goValuePair struct {
+	key   *goValue
+	value *goValue
+}
+
+func (p goValuePair) markFree() {
+	p.key.markFree()
+	p.value.markFree()
+}
+
 type goValue struct {
 	tmpLocal     *goLocal
 	inline       string
@@ -1586,6 +1596,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileBinHashSetLiteralNode(node)
 	case *ast.HexHashSetLiteralNode:
 		return c.compileHexHashSetLiteralNode(node)
+	case *ast.HashMapLiteralNode:
+		return c.compileHashMapLiteralNode(node)
 	case *ast.AssignmentExpressionNode:
 		return c.compileAssignmentExpressionNode(node)
 	case *ast.PublicIdentifierNode:
@@ -2028,14 +2040,23 @@ func (c *GoCompiler) compileArrayAppend(tmp *goLocal, expr ast.ExpressionNode) {
 		c.emit("err = %s.AppendAt(%s, %s)\n", tmp.name, c.convertToValue(key), c.convertToValue(value))
 		c.emitErrorPropagation()
 	default:
-		c.compileCollectionAppend(tmp, expr)
+		c.compileCollectionAppendExpr(tmp, expr)
 	}
 }
 
-func (c *GoCompiler) compileCollectionAppend(tmp *goLocal, expr ast.ExpressionNode) {
-	thenVal := c.compileExpression(expr, false)
-	c.emit("%s.Append(%s)\n", tmp.name, c.convertToValue(thenVal))
-	thenVal.markFree()
+func (c *GoCompiler) compileCollectionAppendExpr(tmp *goLocal, expr ast.ExpressionNode) {
+	c.compileCollectionAppend(tmp, c.compileExpression(expr, false))
+}
+
+func (c *GoCompiler) compileCollectionAppend(tmp *goLocal, val *goValue) {
+	c.emit("%s.Append(%s)\n", tmp.name, c.convertToValue(val))
+	val.markFree()
+}
+
+func (c *GoCompiler) compileMapSet(tmp *goLocal, key, val *goValue) {
+	c.emit("%s.SetVal(%s, %s)\n", tmp.name, c.convertToValue(key), c.convertToValue(val))
+	key.markFree()
+	val.markFree()
 }
 
 func (c *GoCompiler) parseArrayIndex(node ast.ExpressionNode) (int, bool) {
@@ -2460,7 +2481,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 				condType,
 				elementNode.Right,
 				func() *goValue {
-					c.compileCollectionAppend(tmp, elementNode.Left)
+					c.compileCollectionAppendExpr(tmp, elementNode.Left)
 					return nilGoValue
 				},
 				nil,
@@ -2493,11 +2514,11 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 				ifConditionType,
 				elementNode.Condition,
 				func() *goValue {
-					c.compileCollectionAppend(tmp, elementNode.ThenExpression)
+					c.compileCollectionAppendExpr(tmp, elementNode.ThenExpression)
 					return nilGoValue
 				},
 				func() *goValue {
-					c.compileCollectionAppend(tmp, elementNode.ElseExpression)
+					c.compileCollectionAppendExpr(tmp, elementNode.ElseExpression)
 					return nilGoValue
 				},
 				c.typeOf(elementNode),
@@ -2505,7 +2526,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 			)
 		default:
 			if tmp != nil {
-				c.compileCollectionAppend(tmp, elementNode)
+				c.compileCollectionAppendExpr(tmp, elementNode)
 			} else {
 				element := c.compileExpression(elementNode, false)
 				elementValues = append(elementValues, element)
@@ -2536,6 +2557,264 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 		}
 
 		finalizeStaticElements()
+	}
+
+	return newTmpGoValue(
+		tmp,
+		c.typeOf(node),
+	)
+}
+
+func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	var buff bytes.Buffer
+	var capacity *goValue
+	if node.Capacity != nil {
+		capacity = c.compileExpression(node.Capacity, false)
+	}
+
+	pairValues := make([]goValuePair, 0, len(node.Elements))
+	var tmp *goLocal
+
+	var keyType, valType types.Type
+	var goKeyType, goValType *value.GoType
+
+	typ := c.typeOf(node)
+	elementType, _ := c.checker.GetIteratorElementType(typ)
+	if g, ok := elementType.(*types.Generic); ok {
+		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.Pair).(*types.Class)) {
+			keyType = types.Normalise(g.Get(0).Type)
+			goKeyType = c.elkTypeToGoKeyType(keyType)
+
+			valType = types.Normalise(g.Get(1).Type)
+			goValType = c.elkTypeToGoType(valType)
+		}
+	}
+	var goType *value.GoType
+	if goKeyType.Name == "value.Value" {
+		goType = value.NewGoType("*vm.HashMapOfValue")
+	} else if goValType.Name == "value.Value" {
+		goType = value.NewGenericGoType(
+			"*vm.NativeKeyHashMap",
+			[]*value.GoType{
+				goKeyType,
+			},
+		)
+	} else {
+		goType = value.NewGenericGoType(
+			"*vm.NativeHashMap",
+			[]*value.GoType{
+				goKeyType,
+				goValType,
+			},
+		)
+	}
+
+	finalizeStaticElements := func() {
+		if tmp != nil {
+			return
+		}
+
+		tmp = c.defineTmpGoLocal(goType)
+		for _, pairValue := range pairValues {
+			switch goType.Name {
+			case "*vm.HashMapOfValue":
+				fmt.Fprintf(&buff, "value.MakePairOfValue(%s, %s)", c.convertToValue(pairValue.key), c.convertToValue(pairValue.value))
+			case "*vm.NativeKeyHashMap":
+				fmt.Fprintf(&buff, "value.MakeNativePair(%s, %s)", c.valueToNarrowerType(pairValue.key).fetchValue(), c.convertToValue(pairValue.value))
+			case "*vm.NativeHashMap":
+				fmt.Fprintf(&buff, "value.MakeNativePair(%s, %s)", c.valueToNarrowerType(pairValue.key).fetchValue(), c.valueToNarrowerType(pairValue.value).fetchValue())
+			default:
+				panic(fmt.Sprintf("invalid hash map go type: %s", goType.String()))
+			}
+
+			buff.WriteRune(',')
+			pairValue.markFree()
+		}
+
+		buff.WriteString(")")
+		if goType.Name == "*vm.HashMapOfValue" {
+			c.emit("%s, err = %s\n", tmp.name, buff.String())
+			c.emitErrorPropagation()
+		} else {
+			c.emit("%s = %s\n", tmp.name, buff.String())
+		}
+		buff.Reset()
+		pairValues = nil
+	}
+
+	switch goType.Name {
+	case "*vm.HashMapOfValue":
+		fmt.Fprintf(&buff, "vm.NewHashMapOfValueWithCapacityAndElements(thread, %d + %s,", len(node.Elements), c.convertToNativeInt(capacity))
+	case "*vm.NativeKeyHashMap":
+		fmt.Fprintf(&buff, "vm.NewNativeKeyHashMapWithElementsAndTotalCapacity[%s](%d + %s,", goKeyType.String(), len(node.Elements), c.convertToNativeInt(capacity))
+	case "*vm.NativeHashMap":
+		fmt.Fprintf(&buff, "vm.NewNativeHashMapWithElementsAndTotalCapacity[%s, %s](%d + %s,", goKeyType.String(), goValType.String(), len(node.Elements), c.convertToNativeInt(capacity))
+	default:
+		panic(fmt.Sprintf("invalid hash map go type: %s", goType.String()))
+	}
+
+	for i := 0; i < len(node.Elements); i++ {
+		elementNode := node.Elements[i]
+
+		switch elementNode := elementNode.(type) {
+		case *ast.ModifierNode:
+			if node.Capacity != nil {
+				c.Errors.AddFailure(
+					invalidCapacityErrMessage,
+					node.Capacity.Location(),
+				)
+				return nilGoValue
+			}
+
+			finalizeStaticElements()
+
+			var condType conditionType
+			switch elementNode.Modifier.Type {
+			case token.IF:
+				condType = ifConditionType
+			case token.UNLESS:
+				condType = unlessConditionType
+			default:
+				panic(fmt.Sprintf("invalid collection modifier: %#v", elementNode.Modifier))
+			}
+
+			c.compileIfWithConditionExpression(
+				condType,
+				elementNode.Right,
+				func() *goValue {
+					switch then := elementNode.Left.(type) {
+					case *ast.KeyValueExpressionNode:
+						key := c.compileExpression(then.Key, false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val)
+					case *ast.SymbolKeyValueExpressionNode:
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val)
+					default:
+						panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
+					}
+
+					return nilGoValue
+				},
+				nil,
+				c.typeOf(elementNode),
+				true,
+			)
+		case *ast.ModifierForInNode:
+			if node.Capacity != nil {
+				c.Errors.AddFailure(
+					invalidCapacityErrMessage,
+					node.Capacity.Location(),
+				)
+				return nilGoValue
+			}
+
+			// TODO: compile for in
+			finalizeStaticElements()
+		case *ast.ModifierIfElseNode:
+			if node.Capacity != nil {
+				c.Errors.AddFailure(
+					invalidCapacityErrMessage,
+					node.Capacity.Location(),
+				)
+				return nilGoValue
+			}
+
+			finalizeStaticElements()
+
+			c.compileIfWithConditionExpression(
+				ifConditionType,
+				elementNode.Condition,
+				func() *goValue {
+					switch then := elementNode.ThenExpression.(type) {
+					case *ast.KeyValueExpressionNode:
+						key := c.compileExpression(then.Key, false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val)
+					case *ast.SymbolKeyValueExpressionNode:
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val)
+					default:
+						panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
+					}
+
+					return nilGoValue
+				},
+				func() *goValue {
+					switch then := elementNode.ElseExpression.(type) {
+					case *ast.KeyValueExpressionNode:
+						key := c.compileExpression(then.Key, false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val)
+					case *ast.SymbolKeyValueExpressionNode:
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val)
+					default:
+						panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
+					}
+
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				true,
+			)
+		case *ast.PublicIdentifierNode:
+			key := c.valueToGoSource(value.ToSymbol(elementNode.Value).ToValue(), c.checker.Std(symbol.Symbol), false)
+			val := c.compileLocalVariableAccess(elementNode.Value)
+			pairValues = append(pairValues, goValuePair{key: key, value: val})
+		case *ast.PrivateIdentifierNode:
+			key := c.valueToGoSource(value.ToSymbol(elementNode.Value).ToValue(), c.checker.Std(symbol.Symbol), false)
+			val := c.compileLocalVariableAccess(elementNode.Value)
+			pairValues = append(pairValues, goValuePair{key: key, value: val})
+		case *ast.KeyValueExpressionNode:
+			key := c.compileExpression(elementNode.Key, false)
+			val := c.compileExpression(elementNode.Value, false)
+			pairValues = append(pairValues, goValuePair{key: key, value: val})
+		case *ast.SymbolKeyValueExpressionNode:
+			key := c.valueToGoSource(value.ToSymbol(identifierToName(elementNode.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+			val := c.compileExpression(elementNode.Value, false)
+			pairValues = append(pairValues, goValuePair{key: key, value: val})
+		default:
+			panic(fmt.Sprintf("invalid element in hashmap literal: %#v", elementNode))
+		}
+	}
+
+	if tmp == nil {
+		switch goType.Name {
+		case "*vm.NativeKeyHashMap":
+			for _, pairValue := range pairValues {
+				fmt.Fprintf(&buff, "value.MakeNativePair(%s, %s),", c.valueToNarrowerType(pairValue.key).fetchValue(), c.convertToValue(pairValue.value))
+				pairValue.markFree()
+			}
+			buff.WriteString(")")
+
+			return newInlineGoValue(
+				buff.String(),
+				c.typeOf(node),
+				goType,
+			)
+		case "*vm.NativeHashMap":
+			for _, pairValue := range pairValues {
+				fmt.Fprintf(&buff, "value.MakeNativePair(%s, %s),", c.valueToNarrowerType(pairValue.key).fetchValue(), c.valueToNarrowerType(pairValue.value).fetchValue())
+				pairValue.markFree()
+			}
+			buff.WriteString(")")
+
+			return newInlineGoValue(
+				buff.String(),
+				c.typeOf(node),
+				goType,
+			)
+		default:
+			finalizeStaticElements()
+		}
 	}
 
 	return newTmpGoValue(
@@ -8562,7 +8841,7 @@ func (c *GoCompiler) valuePairToGoSource(p value.PairOfValue, allowMutable bool)
 	if k == nil {
 		return nil
 	}
-	v := c.valueToGoSource(p.Key(), nil, allowMutable)
+	v := c.valueToGoSource(p.Value(), nil, allowMutable)
 	if v == nil {
 		return nil
 	}

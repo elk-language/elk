@@ -2995,7 +2995,7 @@ func (vm *Thread) opNewArrayList(dynamicElements int) value.Value {
 		newArrayList = value.NewArrayListOfValue(dynamicElements + additionalCapacity)
 	} else {
 		l := baseList.AsReference().(value.ArrayList)
-		newArrayList = l.CloneArrayList(l.Capacity() + additionalCapacity)
+		newArrayList = l.CloneArrayList(l.Length() + additionalCapacity)
 	}
 
 	newArrayList.AppendVal(unsafe.Slice(firstElement, dynamicElements)...)

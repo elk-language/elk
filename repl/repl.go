@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/elk-language/elk/compiler/colorize"
+	"github.com/elk-language/elk/compiler/types"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
@@ -39,11 +40,12 @@ func (l *Lexer) Next() (prompt.Token, bool) {
 }
 
 type evaluator struct {
-	typechecker  *checker.Checker
-	vm           *vm.Thread
-	inspectStack bool
-	sourceMap    map[string]string
-	inputIndex   int
+	vm             *vm.Thread
+	inspectStack   bool
+	sourceMap      map[string]string
+	inputIndex     int
+	elkTypechecker *checker.Checker
+	goTypechecker  *types.GoTypechecker
 }
 
 func (e *evaluator) sourceName() string {
@@ -51,7 +53,7 @@ func (e *evaluator) sourceName() string {
 }
 
 func (e *evaluator) deleteSource(sourceName string) {
-	if e.typechecker != nil && !e.typechecker.DefinedMacros() {
+	if e.elkTypechecker != nil && !e.elkTypechecker.DefinedMacros() {
 		delete(e.sourceMap, sourceName)
 	}
 }
@@ -67,13 +69,13 @@ func (e *evaluator) evaluate(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
 
-	if e.typechecker == nil {
-		e.typechecker = checker.New()
-		e.typechecker.SetIncremental(true)
+	if e.elkTypechecker == nil {
+		e.elkTypechecker = checker.New()
+		e.elkTypechecker.SetIncremental(true)
 		e.vm = vm.New()
 	}
 
-	fn, dl := e.typechecker.CheckSourceBytecode(sourceName, input)
+	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input)
 
 	if dl != nil {
 		fmt.Println()
@@ -84,7 +86,7 @@ func (e *evaluator) evaluate(input string) {
 		}
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.typechecker.ClearErrors()
+		e.elkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
@@ -132,11 +134,11 @@ func (e *evaluator) disassemble(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
 
-	if e.typechecker == nil {
-		e.typechecker = checker.New()
-		e.typechecker.SetIncremental(true)
+	if e.elkTypechecker == nil {
+		e.elkTypechecker = checker.New()
+		e.elkTypechecker.SetIncremental(true)
 	}
-	fn, dl := e.typechecker.CheckSourceBytecode(sourceName, input)
+	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input)
 
 	if dl != nil {
 		fmt.Println()
@@ -148,7 +150,7 @@ func (e *evaluator) disassemble(input string) {
 
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.typechecker.ClearErrors()
+		e.elkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
@@ -186,11 +188,16 @@ func (e *evaluator) transpile(input string) {
 		return
 	}
 
-	_, err = os.Stdout.Write(colorize.Colorize(result))
+	_, err = os.Stdout.Write(colorize.ColorizeGo(result))
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println()
+
+	err = e.goTypechecker.CheckBytes(result)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // parsers, typechecks the input and prints it to the output
@@ -198,11 +205,11 @@ func (e *evaluator) typecheck(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
 
-	if e.typechecker == nil {
-		e.typechecker = checker.New()
-		e.typechecker.SetIncremental(true)
+	if e.elkTypechecker == nil {
+		e.elkTypechecker = checker.New()
+		e.elkTypechecker.SetIncremental(true)
 	}
-	_, dl := e.typechecker.CheckSource(sourceName, input)
+	_, dl := e.elkTypechecker.CheckSource(sourceName, input)
 
 	if dl != nil {
 		fmt.Println()
@@ -214,7 +221,7 @@ func (e *evaluator) typecheck(input string) {
 
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.typechecker.ClearErrors()
+		e.elkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
@@ -228,11 +235,11 @@ func (e *evaluator) expand(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
 
-	if e.typechecker == nil {
-		e.typechecker = checker.New()
-		e.typechecker.SetIncremental(true)
+	if e.elkTypechecker == nil {
+		e.elkTypechecker = checker.New()
+		e.elkTypechecker.SetIncremental(true)
 	}
-	_, dl := e.typechecker.CheckSource(sourceName, input)
+	_, dl := e.elkTypechecker.CheckSource(sourceName, input)
 
 	if dl != nil {
 		fmt.Println()
@@ -244,13 +251,13 @@ func (e *evaluator) expand(input string) {
 
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.typechecker.ClearErrors()
+		e.elkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
 	}
 
-	ast, ok := e.typechecker.ASTCache.GetUnsafe(sourceName)
+	ast, ok := e.elkTypechecker.ASTCache.GetUnsafe(sourceName)
 	if !ok {
 		panic(fmt.Sprintf("cannot get AST of %s in REPL", sourceName))
 	}
@@ -367,6 +374,12 @@ func executor(disassemble, transpile, inspectStack, parse, lex, typecheck, expan
 		return eval.disassemble
 	}
 	if transpile {
+		checker, err := types.NewGoTypechecker()
+		if err != nil {
+			panic(fmt.Sprintf("go typechecker error: %s\n", err))
+		}
+
+		eval.goTypechecker = checker
 		return eval.transpile
 	}
 	if parse {

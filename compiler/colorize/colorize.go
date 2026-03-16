@@ -8,12 +8,12 @@ import (
 	"github.com/fatih/color"
 )
 
-// Colorize returns the Go source code with ANSI color escape codes
-func Colorize(srcBytes []byte) []byte {
-	return ColorizeWhen(srcBytes, !color.NoColor)
+// ColorizeGo returns the Go source code with ANSI color escape codes
+func ColorizeGo(srcBytes []byte) []byte {
+	return ColorizeGoWhen(srcBytes, !color.NoColor)
 }
 
-func ColorizeWhen(srcBytes []byte, useColor bool) []byte {
+func ColorizeGoWhen(srcBytes []byte, useColor bool) []byte {
 	if !useColor {
 		return srcBytes
 	}

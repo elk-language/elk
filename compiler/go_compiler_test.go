@@ -3,10 +3,13 @@ package compiler_test
 import (
 	"bytes"
 	"go/format"
+	"path/filepath"
 	"testing"
 
 	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/compiler/colorize"
+	"github.com/elk-language/elk/compiler/types"
+	"github.com/elk-language/elk/env"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/vm"
@@ -23,6 +26,8 @@ type goTestCase struct {
 
 // Type of the compiler test table.
 type goTestTable map[string]goTestCase
+
+var goImporter = types.MustNewGoPackageImporterForDir(filepath.Dir(env.ELKPATH))
 
 func goCompilerTest(tc goTestCase, t *testing.T) {
 	t.Helper()
@@ -48,8 +53,14 @@ func goCompilerTest(tc goTestCase, t *testing.T) {
 	}
 
 	if diff := cmp.Diff(tc.want, string(result), opts...); diff != "" {
-		t.Log(string(colorize.Colorize(result)))
+		t.Log(string(colorize.ColorizeGo(result)))
 		t.Log(diff)
 		t.Fail()
+	}
+
+	goChecker := types.NewGoTypecheckerWithImporter(goImporter)
+	err = goChecker.CheckBytes(result)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
