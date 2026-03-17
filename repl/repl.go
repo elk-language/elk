@@ -184,6 +184,7 @@ func (e *evaluator) transpile(input string) {
 	cmp.Flush()
 	result, err := format.Source(buff.Bytes())
 	if err != nil {
+		fmt.Println(buff.String())
 		fmt.Fprintf(os.Stderr, "cannot format target go file: %s\n", err)
 		return
 	}

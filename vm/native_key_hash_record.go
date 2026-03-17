@@ -126,6 +126,10 @@ func (h NativeKeyHashRecord[K]) SetVal(thread *Thread, key, val value.Value) val
 	return value.Undefined
 }
 
+func (h NativeKeyHashRecord[K]) Set(key K, val value.Value) {
+	h[key] = val
+}
+
 func (h NativeKeyHashRecord[K]) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case NativeKeyHashRecord[K]:
