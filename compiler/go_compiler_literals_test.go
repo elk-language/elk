@@ -276,20 +276,22 @@ func main() { // loc: <main>
 	_ = t2
 	var err value.Value
 	_ = err
+	var t3 value.Time
+	_ = t3
 	var l2 value.Value // var foo: Std::Int
 	_ = l2
 	var l3 value.String // var a: Std::String
 	_ = l3
-	var t3 value.Value
-	_ = t3
-	var t4 []value.Value
+	var t4 value.Value
 	_ = t4
-	var t5 value.String
+	var t5 []value.Value
 	_ = t5
-	var t6 []value.Value
+	var t6 value.String
 	_ = t6
-	var t7 value.String
+	var t7 []value.Value
 	_ = t7
+	var t8 value.String
+	_ = t8
 	var self value.Value
 	_ = self
 
@@ -307,31 +309,32 @@ func main() { // loc: <main>
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	l1 = t1
+	t3 = (t1).AsTime()
+	l1 = t3
 	l2 = (value.SmallInt(1)).ToValue()
 	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t4 = value.ResizeNativeArgs(t4, 2)
-	t4[0] = t1
+	t5 = value.ResizeNativeArgs(t5, 2)
+	t5[0] = t1
 	thread.AddNativeCallFrame(sym2, sym1, 5)
-	t3, err = Std_ns_Int_im_to_string(thread, t4) // receiver: Std::Int, name: to_string
+	t4, err = Std_ns_Int_im_to_string(thread, t5) // receiver: Std::Int, name: to_string
 	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t5 = (t3).AsString()
-	t6 = value.ResizeNativeArgs(t6, 2)
-	t6[0] = (l1).ToValue()
+	t6 = (t4).AsString()
+	t7 = value.ResizeNativeArgs(t7, 2)
+	t7[0] = (l1).ToValue()
 	thread.AddNativeCallFrame(sym2, sym1, 5)
-	t1, err = Std_ns_Time_im_to_string(thread, t6) // receiver: Std::Time, name: to_string
+	t1, err = Std_ns_Time_im_to_string(thread, t7) // receiver: Std::Time, name: to_string
 	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t7 = (t1).AsString()
-	l3 = value.String("foo: ") + t5 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + t7
+	t8 = (t1).AsString()
+	l3 = value.String("foo: ") + t6 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + t8
 }
 `,
 		},
@@ -400,7 +403,7 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	t4 = (t2).AsString()
-	l3 = value.String("foo: ") + t4 + value.String(", bar: ") + (l0).Inspect() + value.String(", baz: ") + (l2).Inspect()
+	l3 = value.String("foo: ") + t4 + value.String(", bar: ") + value.String((l0).Inspect()) + value.String(", baz: ") + value.String((l2).Inspect())
 }
 `,
 		},
@@ -551,20 +554,22 @@ func main() { // loc: <main>
 	_ = t2
 	var err value.Value
 	_ = err
+	var t3 value.Time
+	_ = t3
 	var l2 value.Value // var foo: Std::Int
 	_ = l2
 	var l3 value.Symbol // var a: Std::Symbol
 	_ = l3
-	var t3 value.Value
-	_ = t3
-	var t4 []value.Value
+	var t4 value.Value
 	_ = t4
-	var t5 value.String
+	var t5 []value.Value
 	_ = t5
-	var t6 []value.Value
+	var t6 value.String
 	_ = t6
-	var t7 value.String
+	var t7 []value.Value
 	_ = t7
+	var t8 value.String
+	_ = t8
 	var self value.Value
 	_ = self
 
@@ -582,31 +587,32 @@ func main() { // loc: <main>
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	l1 = t1
+	t3 = (t1).AsTime()
+	l1 = t3
 	l2 = (value.SmallInt(1)).ToValue()
 	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t4 = value.ResizeNativeArgs(t4, 2)
-	t4[0] = t1
+	t5 = value.ResizeNativeArgs(t5, 2)
+	t5[0] = t1
 	thread.AddNativeCallFrame(sym2, sym1, 5)
-	t3, err = Std_ns_Int_im_to_string(thread, t4) // receiver: Std::Int, name: to_string
+	t4, err = Std_ns_Int_im_to_string(thread, t5) // receiver: Std::Int, name: to_string
 	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t5 = (t3).AsString()
-	t6 = value.ResizeNativeArgs(t6, 2)
-	t6[0] = (l1).ToValue()
+	t6 = (t4).AsString()
+	t7 = value.ResizeNativeArgs(t7, 2)
+	t7[0] = (l1).ToValue()
 	thread.AddNativeCallFrame(sym2, sym1, 5)
-	t1, err = Std_ns_Time_im_to_string(thread, t6) // receiver: Std::Time, name: to_string
+	t1, err = Std_ns_Time_im_to_string(thread, t7) // receiver: Std::Time, name: to_string
 	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t7 = (t1).AsString()
-	l3 = (value.String("foo: ") + t5 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + t7).ToSymbol()
+	t8 = (t1).AsString()
+	l3 = (value.String("foo: ") + t6 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + t8).ToSymbol()
 }
 `,
 		},
@@ -675,7 +681,7 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	t4 = (t2).AsString()
-	l3 = (value.String("foo: ") + t4 + value.String(", bar: ") + (l0).Inspect() + value.String(", baz: ") + (l2).Inspect()).ToSymbol()
+	l3 = (value.String("foo: ") + t4 + value.String(", bar: ") + value.String((l0).Inspect()) + value.String(", baz: ") + value.String((l2).Inspect())).ToSymbol()
 }
 `,
 		},
@@ -1795,7 +1801,7 @@ func main() { // loc: <main>
 	}
 }
 
-func TestArrayTuples(t *testing.T) {
+func TestGoArrayTuples(t *testing.T) {
 	tests := goTestTable{
 		"empty arrayTuple": {
 			input: "a := %[]",
@@ -1815,7 +1821,7 @@ var arrtuple0 = value.NewArrayTupleOfValueWithElements(0)
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[any]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[any]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -1843,7 +1849,7 @@ var arrtuple0 = value.NewNativeArrayTupleWithElements[value.Float](0)
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayTuple[value.Float] // var a: Std::ArrayTuple[Std::Float]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Float]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -1855,6 +1861,34 @@ func main() { // loc: <main>
 		},
 		"with static elements": {
 			input: "a := %[1, 'foo', 5, 5.6]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::String | Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = arrtuple0
+}
+`,
+		},
+		"with static elements in immutable local": {
+			input: "val a = %[1, 'foo', 5, 5.6]",
 			want: `package main
 
 import "github.com/elk-language/elk/value"
@@ -1883,6 +1917,34 @@ func main() { // loc: <main>
 		},
 		"with static native elements": {
 			input: "a := %[`b`, `c`, `d`]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var arrtuple0 = value.NewNativeArrayTupleWithElements[value.Char](0, value.Char('b'), value.Char('c'), value.Char('d'))
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Char]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = arrtuple0
+}
+`,
+		},
+		"with static native elements in immutable local": {
+			input: "val a = %[`b`, `c`, `d`]",
 			want: `package main
 
 import "github.com/elk-language/elk/value"
@@ -1928,7 +1990,7 @@ var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).To
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[Std::Int | Std::String | Std::Symbol | nil | Std::Float]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::String | Std::Symbol | nil | Std::Float]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -1956,7 +2018,7 @@ var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.Float(1.200000)
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[Std::Float | nil]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Float | nil]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -1986,7 +2048,7 @@ var arrtuple2 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).To
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::String | Std::ArrayTuple[Std::Float]]]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::String | Std::ArrayTuple[Std::Float]]]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2016,7 +2078,7 @@ var arrtuple2 = value.NewNativeArrayTupleWithElements[*value.NativeArrayTuple[va
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayTuple[*value.NativeArrayTuple[value.String]] // var a: Std::ArrayTuple[Std::ArrayTuple[Std::String]]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::ArrayTuple[Std::String]]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2042,7 +2104,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::String | Std::ArrayList[Std::Float]]]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::String | Std::ArrayList[Std::Float]]]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2070,7 +2132,7 @@ var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).To
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[Std::Int | Std::String | nil | Std::Float]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::String | nil | Std::Float]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2105,7 +2167,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var k: Std::Int
 	_ = l0
-	var l1 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[Std::Int | Std::String | Std::Float | nil]
+	var l1 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::String | Std::Float | nil]
 	_ = l1
 	var t1 value.Value
 	_ = t1
@@ -2167,7 +2229,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::String?
 	_ = l0
-	var l1 *value.ArrayTupleOfValue // var b: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::Symbol]]
+	var l1 value.ArrayTuple // var b: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::Symbol]]
 	_ = l1
 	var t1 *value.ArrayTupleOfValue
 	_ = t1
@@ -2209,7 +2271,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::String?
 	_ = l0
-	var l1 *value.ArrayTupleOfValue // var b: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::Symbol]]
+	var l1 value.ArrayTuple // var b: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::Symbol]]
 	_ = l1
 	var t1 *value.ArrayTupleOfValue
 	_ = t1
@@ -2253,7 +2315,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::String?
 	_ = l0
-	var l1 *value.ArrayTupleOfValue // var b: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::Symbol]]
+	var l1 value.ArrayTuple // var b: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::Symbol]]
 	_ = l1
 	var t1 *value.ArrayTupleOfValue
 	_ = t1
@@ -2327,7 +2389,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Object?
 	_ = l0
-	var l1 *value.ArrayTupleOfValue // var b: Std::ArrayTuple[Std::String | Std::Int | Std::ArrayTuple[Std::Symbol]]
+	var l1 value.ArrayTuple // var b: Std::ArrayTuple[Std::String | Std::Int | Std::ArrayTuple[Std::Symbol]]
 	_ = l1
 	var t1 value.Value
 	_ = t1
@@ -2391,10 +2453,12 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::String?
 	_ = l0
-	var l1 *value.ArrayTupleOfValue // var b: Std::ArrayTuple[Std::Int | nil]
+	var l1 value.ArrayTuple // var b: Std::ArrayTuple[Std::Int | nil]
 	_ = l1
 	var t1 *value.ArrayTupleOfValue
 	_ = t1
+	var err value.Value
+	_ = err
 	var self value.Value
 	_ = self
 
@@ -2429,7 +2493,7 @@ var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).To
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[Std::Int]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2455,7 +2519,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[Std::Int]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2483,7 +2547,7 @@ var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).To
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[Std::Int]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2512,7 +2576,7 @@ var arrtuple1 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).To
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::Int]]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::Int]]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2540,7 +2604,7 @@ var arrtuple0 = value.NewNativeArrayTupleWithElements[value.String](0, value.Str
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayTuple[value.String] // var a: Std::ArrayTuple[Std::String]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::String]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2571,7 +2635,7 @@ var arrtuple0 = value.NewNativeArrayTupleWithElements[value.Symbol](0, sym0, sym
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayTuple[value.Symbol] // var a: Std::ArrayTuple[Std::Symbol]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Symbol]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2599,7 +2663,7 @@ var arrtuple0 = value.NewNativeArrayTupleWithElements[value.UInt8](0, value.UInt
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayTuple[value.UInt8] // var a: Std::ArrayTuple[Std::UInt8]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::UInt8]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2627,7 +2691,7 @@ var arrtuple0 = value.NewNativeArrayTupleWithElements[value.UInt16](0, value.UIn
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayTuple[value.UInt16] // var a: Std::ArrayTuple[Std::UInt16]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::UInt16]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2655,7 +2719,7 @@ var arrtuple0 = value.NewNativeArrayTupleWithElements[value.UInt32](0, value.UIn
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayTuple[value.UInt32] // var a: Std::ArrayTuple[Std::UInt32]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::UInt32]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2683,7 +2747,7 @@ var arrtuple0 = value.NewNativeArrayTupleWithElements[value.UInt64](0, value.UIn
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayTuple[value.UInt64] // var a: Std::ArrayTuple[Std::UInt64]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::UInt64]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2712,7 +2776,7 @@ var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (bi0).ToValue(), (valu
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayTupleOfValue // var a: Std::ArrayTuple[Std::Int]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2740,7 +2804,7 @@ var arrtuple0 = value.NewNativeArrayTupleWithElements[value.UInt8](0, value.UInt
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayTuple[value.UInt8] // var a: Std::ArrayTuple[Std::UInt8]
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::UInt8]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2760,11 +2824,9 @@ func main() { // loc: <main>
 	}
 }
 
-func noop(args ...any) {
+func noop(args ...any) {}
 
-}
-
-func TestArrayLists(t *testing.T) {
+func TestGoArrayLists(t *testing.T) {
 	tests := goTestTable{
 		"empty list": {
 			input: "a := []",
@@ -2782,7 +2844,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[any]
+	var l0 value.ArrayList // var a: Std::ArrayList[any]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2808,6 +2870,32 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+}
+`,
+		},
+		"with static elements in immutable local": {
+			input: "val a = [1, 'foo', 5, 5.6]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
 	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
 	_ = l0
 	var self value.Value
@@ -2815,6 +2903,58 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+}
+`,
+		},
+		"with native static elements": {
+			input: "a := [1.2, 5.0, 10.6]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewNativeArrayListWithElements[value.Float](0, value.Float(1.200000), value.Float(5.000000), value.Float(10.600000))
+}
+`,
+		},
+		"with native static elements in immutable local": {
+			input: "val a = [1.2, 5.0, 10.6]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.NativeArrayList[value.Float] // var a: Std::ArrayList[Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.NewNativeArrayListWithElements[value.Float](0, value.Float(1.200000), value.Float(5.000000), value.Float(10.600000))
 }
 `,
 		},
@@ -2834,7 +2974,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2866,7 +3006,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var cap: Std::Int
 	_ = l0
-	var l1 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
+	var l1 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
 	_ = l1
 	var self value.Value
 	_ = self
@@ -2893,7 +3033,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayList[value.String] // var a: Std::ArrayList[Std::String]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::String]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2919,7 +3059,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayList[value.String] // var a: Std::ArrayList[Std::String]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::String]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2949,7 +3089,7 @@ var sym2 = value.ToSymbol("baz")
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayList[value.Symbol] // var a: Std::ArrayList[Std::Symbol]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::Symbol]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -2980,7 +3120,7 @@ var sym2 = value.ToSymbol("baz")
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayList[value.Symbol] // var a: Std::ArrayList[Std::Symbol]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::Symbol]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3006,7 +3146,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayList[value.UInt8] // var a: Std::ArrayList[Std::UInt8]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::UInt8]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3032,7 +3172,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayList[value.UInt8] // var a: Std::ArrayList[Std::UInt8]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::UInt8]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3058,7 +3198,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayList[value.UInt8] // var a: Std::ArrayList[Std::UInt8]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::UInt8]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3084,7 +3224,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.NativeArrayList[value.UInt8] // var a: Std::ArrayList[Std::UInt8]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::UInt8]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3113,7 +3253,7 @@ var sym0 = value.ToSymbol("lol")
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::String | Std::Symbol | nil | Std::Float]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::String | Std::Symbol | nil | Std::Float]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3141,7 +3281,7 @@ var sym0 = value.ToSymbol("lol")
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::String | Std::Symbol | nil | Std::Float]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::String | Std::Symbol | nil | Std::Float]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3167,7 +3307,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3193,7 +3333,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3220,7 +3360,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::ArrayList[Std::Int]]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::ArrayList[Std::Int]]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3247,7 +3387,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::ArrayList[Std::String | Std::ArrayList[Std::Float]]]
+	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::ArrayList[Std::String | Std::ArrayList[Std::Float]]]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3278,7 +3418,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int
 	_ = l0
-	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
+	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
 	_ = l1
 	var self value.Value
 	_ = self
@@ -3310,7 +3450,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int
 	_ = l0
-	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
+	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
 	_ = l1
 	var self value.Value
 	_ = self
@@ -3345,7 +3485,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
-	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::String | Std::ArrayTuple[Std::Symbol] | nil]
+	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::String | Std::ArrayTuple[Std::Symbol] | nil]
 	_ = l1
 	var self value.Value
 	_ = self
@@ -3379,7 +3519,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int
 	_ = l0
-	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::ArrayList[Std::Symbol]]
+	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::ArrayList[Std::Symbol]]
 	_ = l1
 	var self value.Value
 	_ = self
@@ -3414,7 +3554,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
-	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::ArrayList[Std::Symbol]]
+	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::ArrayList[Std::Symbol]]
 	_ = l1
 	var t1 *value.ArrayListOfValue
 	_ = t1
@@ -3467,7 +3607,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
-	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::ArrayList[Std::Symbol]]
+	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::ArrayList[Std::Symbol]]
 	_ = l1
 	var t1 *value.ArrayListOfValue
 	_ = t1
@@ -3557,7 +3697,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
-	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
+	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
 	_ = l1
 	var self value.Value
 	_ = self
@@ -3589,7 +3729,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int
 	_ = l0
-	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
+	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
 	_ = l1
 	var self value.Value
 	_ = self
@@ -3621,10 +3761,12 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
-	var l1 *value.ArrayListOfValue // var b: Std::ArrayList[Std::Int | nil]
+	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | nil]
 	_ = l1
 	var t1 *value.ArrayListOfValue
 	_ = t1
+	var err value.Value
+	_ = err
 	var self value.Value
 	_ = self
 
@@ -3650,7 +3792,7 @@ func main() { // loc: <main>
 	}
 }
 
-func TestHashSet(t *testing.T) {
+func TestGoHashSet(t *testing.T) {
 	tests := goTestTable{
 		"empty list": {
 			input: "a := ^[]",
@@ -3668,18 +3810,44 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *vm.HashSetOfValue // var a: Std::HashSet[any]
+	var l0 vm.HashSet // var a: Std::HashSet[any]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.MustNewHashSetWithCapacityAndElements(nil, 0)
+	l0 = vm.MustNewHashSetOfValueWithCapacityAndElements(nil, 0)
 }
 `,
 		},
 		"with static elements": {
 			input: "a := ^[1, 'foo', 5, 5.6]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 vm.HashSet // var a: Std::HashSet[Std::Int | Std::String | Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.MustNewHashSetOfValueWithCapacityAndElements(nil, 0, (value.String("foo")).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+}
+`,
+		},
+		"with static elements in immutable local": {
+			input: "val a = ^[1, 'foo', 5, 5.6]",
 			want: `package main
 
 import "github.com/elk-language/elk/value"
@@ -3700,12 +3868,38 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.MustNewHashSetWithCapacityAndElements(nil, 0, (value.String("foo")).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	l0 = vm.MustNewHashSetOfValueWithCapacityAndElements(nil, 0, (value.String("foo")).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
 }
 `,
 		},
 		"with native static elements": {
 			input: "a := ^[1.2, 10.0, 5.6]",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 vm.HashSet // var a: Std::HashSet[Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = vm.NewNativeHashSetWithElements[value.Float](value.Float(1.200000), value.Float(10.000000), value.Float(5.600000))
+}
+`,
+		},
+		"with native static elements in immutable local": {
+			input: "val a = ^[1.2, 10.0, 5.6]",
 			want: `package main
 
 import "github.com/elk-language/elk/value"
@@ -3746,10 +3940,12 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int | Std::String | Std::Float]
+	var l0 vm.HashSet // var a: Std::HashSet[Std::Int | Std::String | Std::Float]
 	_ = l0
 	var t1 *vm.HashSetOfValue
 	_ = t1
+	var err value.Value
+	_ = err
 	var self value.Value
 	_ = self
 
@@ -3783,10 +3979,12 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var cap: Std::Int
 	_ = l0
-	var l1 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int | Std::String | Std::Float]
+	var l1 vm.HashSet // var a: Std::HashSet[Std::Int | Std::String | Std::Float]
 	_ = l1
 	var t1 *vm.HashSetOfValue
 	_ = t1
+	var err value.Value
+	_ = err
 	var self value.Value
 	_ = self
 
@@ -3817,7 +4015,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *vm.NativeHashSet[value.String] // var a: Std::HashSet[Std::String]
+	var l0 vm.HashSet // var a: Std::HashSet[Std::String]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3843,7 +4041,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *vm.NativeHashSet[value.String] // var a: Std::HashSet[Std::String]
+	var l0 vm.HashSet // var a: Std::HashSet[Std::String]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3873,7 +4071,7 @@ var sym2 = value.ToSymbol("foo")
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *vm.NativeHashSet[value.Symbol] // var a: Std::HashSet[Std::Symbol]
+	var l0 vm.HashSet // var a: Std::HashSet[Std::Symbol]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3903,7 +4101,7 @@ var sym2 = value.ToSymbol("foo")
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *vm.NativeHashSet[value.Symbol] // var a: Std::HashSet[Std::Symbol]
+	var l0 vm.HashSet // var a: Std::HashSet[Std::Symbol]
 	_ = l0
 	var self value.Value
 	_ = self
@@ -3929,13 +4127,13 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int]
+	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.MustNewHashSetWithCapacityAndElements(nil, 0, (value.SmallInt(171)).ToValue(), (value.SmallInt(205)).ToValue(), (value.SmallInt(95)).ToValue())
+	l0 = vm.MustNewHashSetOfValueWithCapacityAndElements(nil, 0, (value.SmallInt(171)).ToValue(), (value.SmallInt(205)).ToValue(), (value.SmallInt(95)).ToValue())
 }
 `,
 		},
@@ -3955,13 +4153,13 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int]
+	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.MustNewHashSetWithCapacityAndElements(nil, 0, (value.SmallInt(171)).ToValue(), (value.SmallInt(205)).ToValue(), (value.SmallInt(95)).ToValue())
+	l0 = vm.MustNewHashSetOfValueWithCapacityAndElements(nil, 0, (value.SmallInt(171)).ToValue(), (value.SmallInt(205)).ToValue(), (value.SmallInt(95)).ToValue())
 }
 `,
 		},
@@ -3982,13 +4180,13 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int]
+	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.MustNewHashSetWithCapacityAndElements(nil, 0, (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(5)).ToValue())
+	l0 = vm.MustNewHashSetOfValueWithCapacityAndElements(nil, 0, (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(5)).ToValue())
 }
 `,
 		},
@@ -4008,13 +4206,13 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int]
+	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.MustNewHashSetWithCapacityAndElements(nil, 0, (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(5)).ToValue())
+	l0 = vm.MustNewHashSetOfValueWithCapacityAndElements(nil, 0, (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(5)).ToValue())
 }
 `,
 		},
@@ -4039,10 +4237,12 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
-	var l1 *vm.HashSetOfValue // var b: Std::HashSet[Std::Int | Std::String | nil]
+	var l1 vm.HashSet // var b: Std::HashSet[Std::Int | Std::String | nil]
 	_ = l1
 	var t1 *vm.HashSetOfValue
 	_ = t1
+	var err value.Value
+	_ = err
 	var self value.Value
 	_ = self
 
@@ -4077,10 +4277,12 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
-	var l1 *vm.HashSetOfValue // var b: Std::HashSet[Std::Int | nil]
+	var l1 vm.HashSet // var b: Std::HashSet[Std::Int | nil]
 	_ = l1
 	var t1 *vm.HashSetOfValue
 	_ = t1
+	var err value.Value
+	_ = err
 	var self value.Value
 	_ = self
 
@@ -4115,10 +4317,12 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
-	var l1 *vm.HashSetOfValue // var b: Std::HashSet[Std::Int]
+	var l1 vm.HashSet // var b: Std::HashSet[Std::Int]
 	_ = l1
 	var t1 *vm.HashSetOfValue
 	_ = t1
+	var err value.Value
+	_ = err
 	var self value.Value
 	_ = self
 
@@ -4129,7 +4333,48 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	if value.Truthy(l0) {
-		t1.Append((value.SmallInt(5)).ToValue())
+		_, err = t1.AppendVal(thread, (value.SmallInt(5)).ToValue())
+		if err.IsNotUndefined() {
+			thread.Panic(err)
+		}
+	}
+	l1 = t1
+}
+`,
+		},
+		"with native static elements and if modifiers": {
+			input: `
+				var a: Int? = nil
+				b := ^[1.2, 5.0 if a]
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 vm.HashSet // var b: Std::HashSet[Std::Float]
+	_ = l1
+	var t1 *vm.NativeHashSet[value.Float]
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+	t1 = vm.NewNativeHashSetWithElementsAndTotalCapacity[value.Float](2+0, value.Float(1.200000))
+	if value.Truthy(l0) {
+		t1.Append(value.Float(5.000000))
 	}
 	l1 = t1
 }
@@ -4168,10 +4413,12 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
-	var l1 *vm.HashSetOfValue // var b: Std::HashSet[Std::Int]
+	var l1 vm.HashSet // var b: Std::HashSet[Std::Int]
 	_ = l1
 	var t1 *vm.HashSetOfValue
 	_ = t1
+	var err value.Value
+	_ = err
 	var self value.Value
 	_ = self
 
@@ -4182,7 +4429,10 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	if value.Falsy(l0) {
-		t1.Append((value.SmallInt(5)).ToValue())
+		_, err = t1.AppendVal(thread, (value.SmallInt(5)).ToValue())
+		if err.IsNotUndefined() {
+			thread.Panic(err)
+		}
 	}
 	l1 = t1
 }
@@ -4263,13 +4513,13 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 *vm.HashMapOfValue // var a: Std::HashMap[any, any]
+	var l0 vm.HashMap // var a: Std::HashMap[any, any]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.MustNewHashMapWithCapacityAndElements(nil, 0)
+	l0 = vm.MustNewHashMapOfValueWithCapacityAndElements(nil, 0)
 }
 `,
 		},
@@ -4296,7 +4546,7 @@ func main() { // loc: <main>
 	_ = thread
 	var l0 value.Value // var foo: Std::Int
 	_ = l0
-	var l1 *vm.NativeKeyHashMap[value.Symbol] // var a: Std::HashMap[Std::Symbol, Std::Int]
+	var l1 vm.HashMap // var a: Std::HashMap[Std::Symbol, Std::Int]
 	_ = l1
 	var self value.Value
 	_ = self
@@ -4304,6 +4554,40 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(3)).ToValue()
 	l1 = vm.NewNativeKeyHashMapWithElementsAndTotalCapacity[value.Symbol](1+0, value.MakeNativePair(sym0, l0))
+}
+`,
+		},
+		"native map in immutable local": {
+			input: `
+				foo := 3.2
+				val a = { foo }
+			`,
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Float // var foo: Std::Float
+	_ = l0
+	var l1 *vm.NativeHashMap[value.Symbol, value.Float] // var a: Std::HashMap[Std::Symbol, Std::Float]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float(3.200000)
+	l1 = vm.NewNativeHashMapWithElementsAndTotalCapacity[value.Symbol, value.Float](1+0, value.MakeNativePair(sym0, l0))
 }
 `,
 		},

@@ -397,8 +397,7 @@ func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNod
 	constNameSymbol := c.emitSymbol(constName.String())
 	c.emitPackage("var %s %s\n", goIdent, goType)
 	c.emit("value.AddConstant(namespace, %s, %s)\n", constNameSymbol, c.convertToValue(init))
-	c.emit("%s = %s\n", goIdent, init.value())
-	init.markFree()
+	c.emit("%s = %s\n", goIdent, init.fetchValue())
 }
 
 func (c *GoCompiler) getFullConstName(namespaceName, constName string) string {
@@ -601,7 +600,7 @@ func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []as
 	returnVal := newInlineGoValue(
 		"result",
 		returnType,
-		c.elkTypeToGoType(returnType),
+		c.elkTypeToGoType(returnType, false),
 	)
 	c.emit("return %s, err", c.convertToValue(returnVal))
 
@@ -615,7 +614,7 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 	self := c.registerGoLocal("self", goValueType)
 	self.predefined = true
 
-	goReturnType := c.elkTypeToGoType(returnType)
+	goReturnType := c.elkTypeToGoType(returnType, false)
 	errVal := c.registerGoLocal("err", goValueType)
 	errVal.predefined = true
 
@@ -629,7 +628,7 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 		pName := identifierToName(p.Name)
 		paramType := c.typeOf(p).(*types.Parameter)
 		typ := paramType.Type
-		local := c.defineLocal(pName, typ, pSpan)
+		local := c.defineLocal(pName, typ, c.elkTypeToGoType(typ, false), pSpan)
 		if local == nil {
 			return
 		}
@@ -710,7 +709,7 @@ func (c *GoCompiler) compileMethodFuncLiteralBody(parameters []ast.ParameterNode
 		pName := identifierToName(p.Name)
 		paramType := c.typeOf(p).(*types.Parameter)
 		typ := paramType.Type
-		local := c.defineLocal(pName, typ, pSpan)
+		local := c.defineLocal(pName, typ, c.elkTypeToGoType(typ, false), pSpan)
 		if local == nil {
 			return
 		}
@@ -1502,6 +1501,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileInterfaceDeclarationNode(node)
 	case *ast.VariableDeclarationNode:
 		return c.compileVariableDeclarationNode(node)
+	case *ast.ValueDeclarationNode:
+		return c.compileValueDeclarationNode(node)
 	case *ast.MethodCallNode:
 		return c.compileMethodCallNode(node, valueIsIgnored)
 	case *ast.GenericMethodCallNode:
@@ -1876,7 +1877,7 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
-	goElementType := c.elkTypeToGoType(elementType)
+	goElementType := c.elkTypeToGoType(elementType, false)
 	var goType *value.GoType
 	if goElementType.Name == "value.Value" {
 		goType = value.NewGoType("*value.ArrayTupleOfValue")
@@ -1927,6 +1928,7 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 				key.markFree()
 				value.markFree()
 
+				c.registerErr()
 				c.emit("err = %s.AppendAt(%s, %s)\n", tmp.name, c.convertToValue(key), c.convertToValue(value))
 				c.emitErrorPropagation()
 				continue
@@ -2037,6 +2039,7 @@ func (c *GoCompiler) compileArrayAppend(tmp *goLocal, expr ast.ExpressionNode) {
 		key.markFree()
 		value.markFree()
 
+		c.registerErr()
 		c.emit("err = %s.AppendAt(%s, %s)\n", tmp.name, c.convertToValue(key), c.convertToValue(value))
 		c.emitErrorPropagation()
 	default:
@@ -2050,6 +2053,22 @@ func (c *GoCompiler) compileCollectionAppendExpr(tmp *goLocal, expr ast.Expressi
 
 func (c *GoCompiler) compileCollectionAppend(tmp *goLocal, val *goValue) {
 	c.emit("%s.Append(%s)\n", tmp.name, c.convertToValue(val))
+	val.markFree()
+}
+
+func (c *GoCompiler) compileHashSetAppendExpr(tmp *goLocal, expr ast.ExpressionNode) {
+	c.compileHashSetAppend(tmp, c.compileExpression(expr, false))
+}
+
+func (c *GoCompiler) compileHashSetAppend(tmp *goLocal, val *goValue) {
+	switch tmp.goType.Name {
+	case "*vm.HashSetOfValue", "vm.HashSet":
+		c.registerErr()
+		c.emit("_, err = %s.AppendVal(thread, %s)\n", tmp.name, c.convertToValue(val))
+		c.emitErrorPropagation()
+	default:
+		c.emit("%s.Append(%s)\n", tmp.name, c.valueToNarrowerType(val).fetchValue())
+	}
 	val.markFree()
 }
 
@@ -2177,7 +2196,7 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
-	goElementType := c.elkTypeToGoType(elementType)
+	goElementType := c.elkTypeToGoType(elementType, false)
 	var goType *value.GoType
 	if goElementType.Name == "value.Value" {
 		goType = value.NewGoType("*value.ArrayListOfValue")
@@ -2228,6 +2247,7 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 				key.markFree()
 				value.markFree()
 
+				c.registerErr()
 				c.emit("err = %s.AppendAt(%s, %s)\n", tmp.name, c.convertToValue(key), c.convertToValue(value))
 				c.emitErrorPropagation()
 				continue
@@ -2406,7 +2426,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
-	goElementType := c.elkTypeToGoType(elementType)
+	goElementType := c.elkTypeToGoType(elementType, false)
 	var goType *value.GoType
 	if goElementType.Name == "value.Value" {
 		goType = value.NewGoType("*vm.HashSetOfValue")
@@ -2437,6 +2457,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 
 		buff.WriteString(")")
 		if goType.Name == "*vm.HashSetOfValue" {
+			c.registerErr()
 			c.emit("%s, err = %s\n", tmp.name, buff.String())
 			c.emitErrorPropagation()
 		} else {
@@ -2481,7 +2502,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 				condType,
 				elementNode.Right,
 				func() *goValue {
-					c.compileCollectionAppendExpr(tmp, elementNode.Left)
+					c.compileHashSetAppendExpr(tmp, elementNode.Left)
 					return nilGoValue
 				},
 				nil,
@@ -2514,11 +2535,11 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 				ifConditionType,
 				elementNode.Condition,
 				func() *goValue {
-					c.compileCollectionAppendExpr(tmp, elementNode.ThenExpression)
+					c.compileHashSetAppendExpr(tmp, elementNode.ThenExpression)
 					return nilGoValue
 				},
 				func() *goValue {
-					c.compileCollectionAppendExpr(tmp, elementNode.ElseExpression)
+					c.compileHashSetAppendExpr(tmp, elementNode.ElseExpression)
 					return nilGoValue
 				},
 				c.typeOf(elementNode),
@@ -2526,7 +2547,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 			)
 		default:
 			if tmp != nil {
-				c.compileCollectionAppendExpr(tmp, elementNode)
+				c.compileHashSetAppendExpr(tmp, elementNode)
 			} else {
 				element := c.compileExpression(elementNode, false)
 				elementValues = append(elementValues, element)
@@ -2590,7 +2611,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 			goKeyType = c.elkTypeToGoKeyType(keyType)
 
 			valType = types.Normalise(g.Get(1).Type)
-			goValType = c.elkTypeToGoType(valType)
+			goValType = c.elkTypeToGoType(valType, false)
 		}
 	}
 	var goType *value.GoType
@@ -2637,6 +2658,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 
 		buff.WriteString(")")
 		if goType.Name == "*vm.HashMapOfValue" {
+			c.registerErr()
 			c.emit("%s, err = %s\n", tmp.name, buff.String())
 			c.emitErrorPropagation()
 		} else {
@@ -2865,7 +2887,7 @@ func (c *GoCompiler) compileStringInspectInterpolationNode(node *ast.StringInspe
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
 		"value.Symbol", "*value.BigInt", "*value.Regex":
 		return expr.newInlineGoValue(
-			fmt.Sprintf("(%s).Inspect()", expr.value()),
+			fmt.Sprintf("value.String((%s).Inspect())", expr.value()),
 			value.NewGoType("value.String"),
 		)
 	}
@@ -3127,9 +3149,18 @@ func (c *GoCompiler) compileFloat32LiteralNode(node *ast.Float32LiteralNode) *go
 func (c *GoCompiler) compileVariableDeclarationNode(node *ast.VariableDeclarationNode) *goValue {
 	initialised := node.Initialiser != nil
 
+	var elkType types.Type
+	if node.TypeNode != nil {
+		elkType = c.typeOf(node.TypeNode)
+	} else {
+		elkType = c.typeOf(node)
+	}
+
+	goType := c.elkTypeToGoType(elkType, false)
 	local := c.defineLocal(
 		identifierToName(node.Name),
-		c.typeOf(node.TypeNode),
+		elkType,
+		goType,
 		node.Location(),
 	)
 	if local == nil {
@@ -3144,6 +3175,44 @@ func (c *GoCompiler) compileVariableDeclarationNode(node *ast.VariableDeclaratio
 	return nilGoValue
 }
 
+func (c *GoCompiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode) *goValue {
+	initialised := node.Initialiser != nil
+
+	var elkType types.Type
+	if node.TypeNode != nil {
+		elkType = c.typeOf(node.TypeNode)
+	} else {
+		elkType = c.typeOf(node)
+	}
+
+	if initialised {
+		init := c.valueToNarrowerType(c.compileExpression(node.Initialiser, false))
+		local := c.defineLocal(
+			identifierToName(node.Name),
+			elkType,
+			init.goType(),
+			node.Location(),
+		)
+		if local == nil {
+			return errGoValue
+		}
+
+		return c.emitSetLocal(local.name, init)
+	}
+
+	local := c.defineLocal(
+		identifierToName(node.Name),
+		elkType,
+		c.elkTypeToGoType(elkType, false),
+		node.Location(),
+	)
+	if local == nil {
+		return errGoValue
+	}
+
+	return nilGoValue
+}
+
 func (c *GoCompiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode) *goValue {
 	var val string
 
@@ -3152,8 +3221,8 @@ func (c *GoCompiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode)
 		if c.method == nil {
 			val = c.convertToValue(expr)
 		} else {
-			goReturnType := c.elkTypeToGoType(c.method.ReturnType)
-			if goReturnType == goValueType {
+			goReturnType := c.elkTypeToGoType(c.method.ReturnType, false)
+			if goReturnType.Name == "value.Value" {
 				val = c.convertToValue(expr)
 			} else {
 				val = c.valueToNarrowerType(expr).value()
@@ -3423,7 +3492,7 @@ func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType 
 		if goMethodName.hasArgsSlice() {
 			tmp = c.defineTmpGoLocal(goValueType)
 		} else {
-			tmp = c.defineTmpGoLocal(c.elkTypeToGoType(method.ReturnType))
+			tmp = c.defineTmpGoLocal(c.elkTypeToGoType(method.ReturnType, false))
 		}
 		tmpName = tmp.name
 	}
@@ -3463,7 +3532,8 @@ func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType 
 
 		for i, arg := range args[1:] {
 			param := method.Params[i]
-			if goMethodName.hasArgsSlice() || param.IsOptional() || c.elkTypeToGoType(param.Type) == goValueType {
+			goParamType := c.elkTypeToGoType(param.Type, false)
+			if goMethodName.hasArgsSlice() || param.IsOptional() || goParamType.Name == "value.Value" {
 				c.emit(", %s", c.convertToValue(arg))
 				continue
 			}
@@ -3690,7 +3760,7 @@ func (c *GoCompiler) localVariableAssignment(name string, operator *token.Token,
 	case token.EQUAL_OP:
 		return c.setLocal(name, right)
 	case token.COLON_EQUAL:
-		c.defineLocal(name, typ, loc)
+		c.defineLocal(name, typ, c.elkTypeToGoType(typ, false), loc)
 		return c.setLocal(name, right)
 	default:
 		c.Errors.AddFailure(
@@ -3717,7 +3787,7 @@ func (c *GoCompiler) emitSetLocal(name string, val *goValue) *goValue {
 	}
 
 	ident := variable.goIdent()
-	if variable.goLocal.goType == goValueType {
+	if variable.goLocal.goType.Name == "value.Value" {
 		c.emit("%s = %s\n", ident, c.convertToValue(val))
 	} else {
 		c.emit("%s = %s\n", ident, c.valueToNarrowerType(val).value())
@@ -7842,7 +7912,7 @@ func (c *GoCompiler) arrayListToGoSource(v value.ArrayList, typ types.Type) *goV
 		return c.arrayListOfValueToGoSource(v)
 	}
 
-	goElementType := c.elkTypeToGoType(elementType)
+	goElementType := c.elkTypeToGoType(elementType, false)
 	if goElementType.Name == "value.Value" {
 		return c.arrayListOfValueToGoSource(v)
 	}
@@ -8132,11 +8202,23 @@ func (c *GoCompiler) valueToNarrowerType(v *goValue) *goValue {
 			value.NewGoType("*value.Interface"),
 		)
 	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Time)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(%s).AsTime()", v.value()),
+			value.NewGoType("value.Time"),
+		)
+	}
+	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Date)) {
+		return v.newInlineGoValue(
+			fmt.Sprintf("(%s).AsDate()", v.value()),
+			value.NewGoType("value.Date"),
+		)
+	}
 
 	return v
 }
 
-func (c *GoCompiler) elkTypeToGoType(elkType types.Type) *value.GoType {
+func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *value.GoType {
 	if c.checker.IsSubtype(elkType, types.Bool{}) {
 		return value.NewGoType("value.Bool")
 	}
@@ -8189,6 +8271,10 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type) *value.GoType {
 		return value.NewGoType("value.UInt8")
 	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ArrayList)) {
+		if !specialized {
+			return value.NewGoType("value.ArrayList")
+		}
+
 		elkType, ok := elkType.(*types.Generic)
 		if !ok {
 			return value.NewGoType("*value.ArrayListOfValue")
@@ -8196,7 +8282,7 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type) *value.GoType {
 
 		elementType := elkType.Get(0).Type
 
-		goElementType := c.elkTypeToGoType(elementType)
+		goElementType := c.elkTypeToGoType(elementType, true)
 		if goElementType.Equal(goValueType) {
 			return value.NewGoType("*value.ArrayListOfValue")
 		}
@@ -8209,6 +8295,10 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type) *value.GoType {
 		)
 	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ArrayTuple)) {
+		if !specialized {
+			return value.NewGoType("value.ArrayTuple")
+		}
+
 		elkType, ok := elkType.(*types.Generic)
 		if !ok {
 			return value.NewGoType("*value.ArrayTupleOfValue")
@@ -8216,7 +8306,7 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type) *value.GoType {
 
 		elementType := elkType.Get(0).Type
 
-		goElementType := c.elkTypeToGoType(elementType)
+		goElementType := c.elkTypeToGoType(elementType, true)
 		if goElementType.Equal(goValueType) {
 			return value.NewGoType("*value.ArrayTupleOfValue")
 		}
@@ -8229,6 +8319,10 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type) *value.GoType {
 		)
 	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashMap)) {
+		if !specialized {
+			return value.NewGoType("vm.HashMap")
+		}
+
 		elkType, ok := elkType.(*types.Generic)
 		if !ok {
 			return value.NewGoType("*vm.HashMapOfValue")
@@ -8241,7 +8335,7 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type) *value.GoType {
 		if nativeKeyType.Equal(goValueType) {
 			return value.NewGoType("*vm.HashMapOfValue")
 		}
-		nativeValType := c.elkTypeToGoType(valType)
+		nativeValType := c.elkTypeToGoType(valType, true)
 		if nativeValType.Equal(goValueType) {
 			return value.NewGenericGoType(
 				"*vm.NativeKeyHashMap",
@@ -8260,6 +8354,10 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type) *value.GoType {
 		)
 	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashRecord)) {
+		if !specialized {
+			return value.NewGoType("vm.HashRecord")
+		}
+
 		elkType, ok := elkType.(*types.Generic)
 		if !ok {
 			return value.NewGoType("vm.HashRecordOfValue")
@@ -8272,7 +8370,7 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type) *value.GoType {
 		if nativeKeyType.Equal(goValueType) {
 			return value.NewGoType("vm.HashRecordOfValue")
 		}
-		nativeValType := c.elkTypeToGoType(valType)
+		nativeValType := c.elkTypeToGoType(valType, true)
 		if nativeValType.Equal(goValueType) {
 			return value.NewGenericGoType(
 				"vm.NativeKeyHashRecord",
@@ -8291,6 +8389,10 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type) *value.GoType {
 		)
 	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashSet)) {
+		if !specialized {
+			return value.NewGoType("vm.HashSet")
+		}
+
 		elkType, ok := elkType.(*types.Generic)
 		if !ok {
 			return value.NewGoType("*vm.HashSetOfValue")
@@ -8506,7 +8608,7 @@ func (c *GoCompiler) arrayTupleToGoSource(v value.ArrayTuple, typ types.Type, mu
 		return c.arrayTupleOfValueToGoSource(v, mutable)
 	}
 
-	goElementType := c.elkTypeToGoType(elementType)
+	goElementType := c.elkTypeToGoType(elementType, true)
 	if goElementType.Name == "value.Value" {
 		return c.arrayTupleOfValueToGoSource(v, mutable)
 	}
@@ -8577,7 +8679,7 @@ func (c *GoCompiler) hashSetToGoSource(v vm.HashSet, typ types.Type) *goValue {
 func (c *GoCompiler) hashSetOfValueToGoSource(v vm.HashSet) *goValue {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "vm.MustNewHashSetWithCapacityAndElements(nil, 0, ")
+	fmt.Fprintf(&buff, "vm.MustNewHashSetOfValueWithCapacityAndElements(nil, 0, ")
 
 	for _, element := range inspectSort(slices.Collect(v.All())) {
 		el := c.valueToGoSource(element, nil, true)
@@ -8599,7 +8701,7 @@ func (c *GoCompiler) hashSetOfValueToGoSource(v vm.HashSet) *goValue {
 func (c *GoCompiler) hashMapOfValueToGoSource(v vm.HashMap) *goValue {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "vm.MustNewHashMapWithCapacityAndElements(nil, 0, ")
+	fmt.Fprintf(&buff, "vm.MustNewHashMapOfValueWithCapacityAndElements(nil, 0, ")
 
 	for _, pair := range inspectSort(slices.Collect(v.All())) {
 		p := c.valuePairToGoSource(pair, true)
@@ -8737,7 +8839,7 @@ func (c *GoCompiler) hashRecordToGoSource(v vm.HashRecord, typ types.Type, allow
 	if goKeyType.Name == "value.Value" {
 		return c.hashRecordOfValueToGoSource(v, allowMutable)
 	}
-	goValType := c.elkTypeToGoKeyType(valType)
+	goValType := c.elkTypeToGoType(valType, true)
 
 	if goValType.Name == "value.Value" {
 		var buff strings.Builder
@@ -8864,7 +8966,7 @@ func (c *GoCompiler) leaveScope() {
 }
 
 // Register a local variable.
-func (c *GoCompiler) defineLocal(name string, typ types.Type, location *position.Location) *nativeElkLocal {
+func (c *GoCompiler) defineLocal(name string, elkType types.Type, goType *value.GoType, location *position.Location) *nativeElkLocal {
 	varScope := c.scopes.last()
 	_, ok := varScope.localTable[name]
 	if ok {
@@ -8874,10 +8976,10 @@ func (c *GoCompiler) defineLocal(name string, typ types.Type, location *position
 		)
 		return nil
 	}
-	return c.defineVariableInScope(varScope, name, typ, location)
+	return c.defineVariableInScope(varScope, name, elkType, goType, location)
 }
 
-func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, typ types.Type, location *position.Location) *nativeElkLocal {
+func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, elkType types.Type, goType *value.GoType, location *position.Location) *nativeElkLocal {
 	if c.lastElkLocalIndex == math.MaxInt {
 		c.Errors.AddFailure(
 			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxInt, name),
@@ -8889,14 +8991,14 @@ func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, t
 	c.lastElkLocalIndex++
 	goLocal := c.registerGoLocalWithComment(
 		fmt.Sprintf("l%d", c.lastElkLocalIndex),
-		c.elkTypeToGoType(typ),
-		fmt.Sprintf("var %s: %s", name, types.Inspect(typ)),
+		goType,
+		fmt.Sprintf("var %s: %s", name, types.Inspect(elkType)),
 	)
 	goLocal.elkLocal = true
 
 	newVar := &nativeElkLocal{
 		name:    name,
-		elkType: typ,
+		elkType: elkType,
 		goLocal: goLocal,
 	}
 	scope.localTable[name] = newVar
