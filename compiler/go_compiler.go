@@ -3140,7 +3140,7 @@ func (c *GoCompiler) compileFloatLiteralNode(node *ast.FloatLiteralNode) *goValu
 		return errGoValue
 	}
 	return newInlineGoValue(
-		fmt.Sprintf("value.Float(%f)", f),
+		fmt.Sprintf("value.Float(%g)", f),
 		c.typeOf(node),
 		value.NewGoType("value.Float"),
 	)
@@ -3153,7 +3153,7 @@ func (c *GoCompiler) compileFloat64LiteralNode(node *ast.Float64LiteralNode) *go
 		return errGoValue
 	}
 	return newInlineGoValue(
-		fmt.Sprintf("value.Float64(%f)", f),
+		fmt.Sprintf("value.Float64(%g)", f),
 		c.typeOf(node),
 		value.NewGoType("value.Float64"),
 	)
@@ -3166,7 +3166,7 @@ func (c *GoCompiler) compileFloat32LiteralNode(node *ast.Float32LiteralNode) *go
 		return errGoValue
 	}
 	return newInlineGoValue(
-		fmt.Sprintf("value.Float32(%f)", f),
+		fmt.Sprintf("value.Float32(%g)", f),
 		c.typeOf(node),
 		value.NewGoType("value.Float32"),
 	)
@@ -7911,19 +7911,19 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 		)
 	case value.FLOAT_FLAG:
 		return newInlineGoValue(
-			fmt.Sprintf("value.Float(%f)", val.AsFloat()),
+			fmt.Sprintf("value.Float(%g)", val.AsFloat()),
 			c.checker.Std(symbol.Float),
 			value.NewGoType("value.Float"),
 		)
 	case value.FLOAT64_FLAG:
 		return newInlineGoValue(
-			fmt.Sprintf("value.Float64(%f)", val.AsFloat64()),
+			fmt.Sprintf("value.Float64(%g)", val.AsFloat64()),
 			c.checker.Std(symbol.Float64),
 			value.NewGoType("value.Float64"),
 		)
 	case value.FLOAT32_FLAG:
 		return newInlineGoValue(
-			fmt.Sprintf("value.Float32(%f)", val.AsFloat32()),
+			fmt.Sprintf("value.Float32(%g)", val.AsFloat32()),
 			c.checker.Std(symbol.Float32),
 			value.NewGoType("value.Float32"),
 		)

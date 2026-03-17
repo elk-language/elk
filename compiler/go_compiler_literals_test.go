@@ -218,7 +218,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym0))
 
-	l0 = value.Float(15.200000)
+	l0 = value.Float(15.2)
 	l1 = value.String("bazzy")
 	l2 = (value.SmallInt(1)).ToValue()
 	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
@@ -300,7 +300,7 @@ func main() { // loc: <main>
 	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
 	Std_ns_Time_im_to_string = vm.MethodToFunc((value.TimeClass).LookupMethod(sym2))
 
-	l0 = value.Float(15.200000)
+	l0 = value.Float(15.2)
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (value.TimeClass).ToValue()
 	thread.AddNativeCallFrame(sym0, sym1, 3)
@@ -387,7 +387,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	Std_ns_Int_im_inspect = vm.MethodToFunc((value.IntClass).LookupMethod(sym0))
 
-	l0 = value.Float(15.200000)
+	l0 = value.Float(15.2)
 	l1 = (value.SmallInt(1)).ToValue()
 	l2 = value.String("bazzy")
 	t1, err = value.AddVal(l1, (value.SmallInt(2)).ToValue())
@@ -496,7 +496,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym0))
 
-	l0 = value.Float(15.200000)
+	l0 = value.Float(15.2)
 	l1 = value.String("bazzy")
 	l2 = (value.SmallInt(1)).ToValue()
 	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
@@ -578,7 +578,7 @@ func main() { // loc: <main>
 	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
 	Std_ns_Time_im_to_string = vm.MethodToFunc((value.TimeClass).LookupMethod(sym2))
 
-	l0 = value.Float(15.200000)
+	l0 = value.Float(15.2)
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (value.TimeClass).ToValue()
 	thread.AddNativeCallFrame(sym0, sym1, 3)
@@ -665,7 +665,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	Std_ns_Int_im_inspect = vm.MethodToFunc((value.IntClass).LookupMethod(sym0))
 
-	l0 = value.Float(15.200000)
+	l0 = value.Float(15.2)
 	l1 = (value.SmallInt(1)).ToValue()
 	l2 = value.String("bazzy")
 	t1, err = value.AddVal(l1, (value.SmallInt(2)).ToValue())
@@ -1499,7 +1499,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.Float64(45.500000)
+	l0 = value.Float64(45.5)
 }
 `,
 		},
@@ -1525,7 +1525,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.Float32(45.500000)
+	l0 = value.Float32(45.5)
 }
 `,
 		},
@@ -1551,7 +1551,33 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.Float(45.500000)
+	l0 = value.Float(45.5)
+}
+`,
+		},
+		"put precise Float": {
+			input: "a := 0.5827489723984",
+			want: `package main
+
+import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/vm"
+
+import "github.com/elk-language/elk/value/symbol"
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float(0.5827489723984)
 }
 `,
 		},
@@ -1872,7 +1898,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1900,7 +1926,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1985,7 +2011,7 @@ var _ = vm.New
 var _ = value.Truthy
 
 var sym0 = value.ToSymbol("lol")
-var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (sym0).ToValue())
+var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (sym0).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2013,7 +2039,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.Float(1.200000)).ToValue(), (value.Float(2.400000)).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.Float(5.000000)).ToValue(), (value.Float(420.690000)).ToValue())
+var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.Float(1.2)).ToValue(), (value.Float(2.4)).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.Float(5)).ToValue(), (value.Float(420.69)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2041,7 +2067,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.Float(7.200000)).ToValue())
+var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.Float(7.2)).ToValue())
 var arrtuple1 = value.NewArrayTupleOfValueWithElements(0, (value.String("bar")).ToValue(), (arrtuple0).ToValue())
 var arrtuple2 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (arrtuple1).ToValue())
 
@@ -2110,7 +2136,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.NewArrayTupleOfValueWithElements(0, (value.String("bar")).ToValue(), (value.NewArrayListOfValueWithElements(0, (value.Float(7.200000)).ToValue())).ToValue())).ToValue())
+	l0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.NewArrayTupleOfValueWithElements(0, (value.String("bar")).ToValue(), (value.NewArrayListOfValueWithElements(0, (value.Float(7.2)).ToValue())).ToValue())).ToValue())
 }
 `,
 		},
@@ -2127,7 +2153,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
+var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2195,12 +2221,12 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	t3 = (t1).AsString()
-	t4 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(7, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (t3).ToValue())
+	t4 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(7, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (t3).ToValue())
 	err = t4.AppendAt(l0, (value.SmallInt(12)).ToValue())
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
-	t4.Append((value.Float(8.200000)).ToValue())
+	t4.Append((value.Float(8.2)).ToValue())
 	l1 = t4
 }
 `,
@@ -2876,7 +2902,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
 }
 `,
 		},
@@ -2902,7 +2928,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
 }
 `,
 		},
@@ -2928,7 +2954,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.NewNativeArrayListWithElements[value.Float](0, value.Float(1.200000), value.Float(5.000000), value.Float(10.600000))
+	l0 = value.NewNativeArrayListWithElements[value.Float](0, value.Float(1.2), value.Float(5), value.Float(10.6))
 }
 `,
 		},
@@ -2954,7 +2980,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.NewNativeArrayListWithElements[value.Float](0, value.Float(1.200000), value.Float(5.000000), value.Float(10.600000))
+	l0 = value.NewNativeArrayListWithElements[value.Float](0, value.Float(1.2), value.Float(5), value.Float(10.6))
 }
 `,
 		},
@@ -2980,7 +3006,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.NewArrayListOfValueWithElementsAndTotalCapacity(4+int(value.SmallInt(10)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	l0 = value.NewArrayListOfValueWithElementsAndTotalCapacity(4+int(value.SmallInt(10)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
 }
 `,
 		},
@@ -3013,7 +3039,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(2)).ToValue()
-	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(4+(l0).AsAnyInt(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(4+(l0).AsAnyInt(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
 }
 `,
 		},
@@ -3259,7 +3285,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.NewArrayListOfValueWithElements(2, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (sym0).ToValue())
+	l0 = value.NewArrayListOfValueWithElements(2, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (sym0).ToValue())
 }
 `,
 		},
@@ -3287,7 +3313,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+int(value.SmallInt(6)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (sym0).ToValue())
+	l0 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+int(value.SmallInt(6)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (sym0).ToValue())
 }
 `,
 		},
@@ -3393,7 +3419,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.NewArrayListOfValueWithElements(0, (value.String("bar")).ToValue(), (value.NewArrayListOfValueWithElements(0, (value.Float(7.200000)).ToValue())).ToValue())).ToValue())
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.NewArrayListOfValueWithElements(0, (value.String("bar")).ToValue(), (value.NewArrayListOfValueWithElements(0, (value.Float(7.2)).ToValue())).ToValue())).ToValue())
 }
 `,
 		},
@@ -3425,7 +3451,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(5)).ToValue()
-	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), l0)
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), l0)
 }
 `,
 		},
@@ -3457,7 +3483,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(5)).ToValue()
-	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+int(value.SmallInt(15)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), l0)
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+int(value.SmallInt(15)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), l0)
 }
 `,
 		},
@@ -3704,7 +3730,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = value.Nil
-	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+0, l0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+0, l0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
 }
 `,
 		},
@@ -3736,7 +3762,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(3)).ToValue()
-	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+int(value.SmallInt(7)), l0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.Float(5.600000)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(5+int(value.SmallInt(7)), l0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
 }
 `,
 		},
@@ -3842,7 +3868,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.MustNewHashSetOfValueWithCapacityAndElements(nil, 0, (value.String("foo")).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	l0 = vm.MustNewHashSetOfValueWithCapacityAndElements(nil, 0, (value.String("foo")).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
 }
 `,
 		},
@@ -3868,7 +3894,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.MustNewHashSetOfValueWithCapacityAndElements(nil, 0, (value.String("foo")).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	l0 = vm.MustNewHashSetOfValueWithCapacityAndElements(nil, 0, (value.String("foo")).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
 }
 `,
 		},
@@ -3894,7 +3920,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.NewNativeHashSetWithElements[value.Float](value.Float(1.200000), value.Float(10.000000), value.Float(5.600000))
+	l0 = vm.NewNativeHashSetWithElements[value.Float](value.Float(1.2), value.Float(10), value.Float(5.6))
 }
 `,
 		},
@@ -3920,7 +3946,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.NewNativeHashSetWithElements[value.Float](value.Float(1.200000), value.Float(10.000000), value.Float(5.600000))
+	l0 = vm.NewNativeHashSetWithElements[value.Float](value.Float(1.2), value.Float(10), value.Float(5.6))
 }
 `,
 		},
@@ -3950,7 +3976,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 4+int(value.SmallInt(10)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 4+int(value.SmallInt(10)), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
@@ -3990,7 +4016,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(2)).ToValue()
-	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 4+(l0).AsAnyInt(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.600000)).ToValue())
+	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 4+(l0).AsAnyInt(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
@@ -4372,9 +4398,9 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = value.Nil
-	t1 = vm.NewNativeHashSetWithElementsAndTotalCapacity[value.Float](2+0, value.Float(1.200000))
+	t1 = vm.NewNativeHashSetWithElementsAndTotalCapacity[value.Float](2+0, value.Float(1.2))
 	if value.Truthy(l0) {
-		t1.Append(value.Float(5.000000))
+		t1.Append(value.Float(5))
 	}
 	l1 = t1
 }
@@ -4586,7 +4612,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = value.Float(3.200000)
+	l0 = value.Float(3.2)
 	l1 = vm.NewNativeHashMapWithElementsAndTotalCapacity[value.Symbol, value.Float](1+0, value.MakeNativePair(sym0, l0))
 }
 `,
@@ -4649,7 +4675,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.MustNewHashMapOfValueWithCapacityAndElements(nil, 0, value.MakePairOfValue((value.String("bar")).ToValue(), (value.Float(5.600000)).ToValue()), value.MakePairOfValue((value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue()), value.MakePairOfValue((sym0).ToValue(), (value.SmallInt(5)).ToValue()))
+	l0 = vm.MustNewHashMapOfValueWithCapacityAndElements(nil, 0, value.MakePairOfValue((value.String("bar")).ToValue(), (value.Float(5.6)).ToValue()), value.MakePairOfValue((value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue()), value.MakePairOfValue((sym0).ToValue(), (value.SmallInt(5)).ToValue()))
 }
 `,
 		},
@@ -4731,7 +4757,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	t1, err = vm.NewHashMapOfValueWithCapacityAndElements(thread, 3+int(value.SmallInt(10)), value.MakePairOfValue((value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue()), value.MakePairOfValue((sym0).ToValue(), (value.SmallInt(5)).ToValue()), value.MakePairOfValue((value.String("bar")).ToValue(), (value.Float(5.600000)).ToValue()))
+	t1, err = vm.NewHashMapOfValueWithCapacityAndElements(thread, 3+int(value.SmallInt(10)), value.MakePairOfValue((value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue()), value.MakePairOfValue((sym0).ToValue(), (value.SmallInt(5)).ToValue()), value.MakePairOfValue((value.String("bar")).ToValue(), (value.Float(5.6)).ToValue()))
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
@@ -4773,7 +4799,7 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(2)).ToValue()
-	t1, err = vm.NewHashMapOfValueWithCapacityAndElements(thread, 3+(l0).AsAnyInt(), value.MakePairOfValue((value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue()), value.MakePairOfValue((sym0).ToValue(), (value.SmallInt(5)).ToValue()), value.MakePairOfValue((value.String("bar")).ToValue(), (value.Float(5.600000)).ToValue()))
+	t1, err = vm.NewHashMapOfValueWithCapacityAndElements(thread, 3+(l0).AsAnyInt(), value.MakePairOfValue((value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue()), value.MakePairOfValue((sym0).ToValue(), (value.SmallInt(5)).ToValue()), value.MakePairOfValue((value.String("bar")).ToValue(), (value.Float(5.6)).ToValue()))
 	if err.IsNotUndefined() {
 		thread.Panic(err)
 	}
@@ -4803,7 +4829,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = vm.MustNewHashMapOfValueWithCapacityAndElements(nil, 0, value.MakePairOfValue((value.SmallInt(1)).ToValue(), (vm.MustNewHashMapOfValueWithCapacityAndElements(nil, 0, value.MakePairOfValue((value.String("bar")).ToValue(), (value.NewArrayListOfValueWithElements(0, (value.Float(7.200000)).ToValue())).ToValue()))).ToValue()))
+	l0 = vm.MustNewHashMapOfValueWithCapacityAndElements(nil, 0, value.MakePairOfValue((value.SmallInt(1)).ToValue(), (vm.MustNewHashMapOfValueWithCapacityAndElements(nil, 0, value.MakePairOfValue((value.String("bar")).ToValue(), (value.NewArrayListOfValueWithElements(0, (value.Float(7.2)).ToValue())).ToValue()))).ToValue()))
 }
 `,
 		},
@@ -4986,11 +5012,11 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = value.Nil
-	t1 = vm.NewNativeHashMapWithElementsAndTotalCapacity[value.String, value.Float](3+0, value.MakeNativePair(value.String("foo"), value.Float(5.200000)))
+	t1 = vm.NewNativeHashMapWithElementsAndTotalCapacity[value.String, value.Float](3+0, value.MakeNativePair(value.String("foo"), value.Float(5.2)))
 	if value.Truthy(l0) {
-		t1.Set(value.String("bar"), value.Float(124.990000))
+		t1.Set(value.String("bar"), value.Float(124.99))
 	}
-	t1.Set(value.String("baz"), value.Float(0.010000))
+	t1.Set(value.String("baz"), value.Float(0.01))
 	l1 = t1
 }
 `,
@@ -5025,11 +5051,11 @@ func main() { // loc: <main>
 
 	self = value.Ref(value.GlobalObject)
 	l0 = value.Nil
-	t1 = vm.NewNativeHashMapWithElementsAndTotalCapacity[value.String, value.Float](3+0, value.MakeNativePair(value.String("foo"), value.Float(5.200000)))
+	t1 = vm.NewNativeHashMapWithElementsAndTotalCapacity[value.String, value.Float](3+0, value.MakeNativePair(value.String("foo"), value.Float(5.2)))
 	if value.Truthy(l0) {
-		t1.Set(value.String("bar"), value.Float(124.990000))
+		t1.Set(value.String("bar"), value.Float(124.99))
 	}
-	t1.Set(value.String("baz"), value.Float(0.010000))
+	t1.Set(value.String("baz"), value.Float(0.01))
 	l1 = t1
 }
 `,
