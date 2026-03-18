@@ -1477,7 +1477,7 @@ var _ = value.Truthy
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
-	var l0 bool // var a: bool
+	var l0 value.Bool // var a: bool
 	_ = l0
 	var l1 value.Value // var b: nil
 	_ = l1
@@ -1622,8 +1622,6 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var cc_main_1 = &value.CallCache{}
-
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
@@ -1631,6 +1629,8 @@ func main() { // loc: <main>
 	_ = l0
 	var t1 value.Value
 	_ = t1
+	var t2 value.Value
+	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -1639,106 +1639,213 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Truthy(l0) {
-		thread.AddCallFrame(value.CallFrame{FuncName: "main", FileName: "<main>", LineNumber: 4})
-		t1, err = thread.CallMethodByNameWithCache(symbol.OpMultiply, &cc_main_1, l0, (value.SmallInt(2)).ToValue()) // receiver: Std::Int?, name: *
-		thread.PopCallFrame()
+		t2, err = value.MultiplyVal(l0, (value.SmallInt(2)).ToValue())
 		if err.IsNotUndefined() {
 			thread.Panic(err)
 		}
-		l0 = t1
+		l0 = t2
+		t1 = l0
+	} else {
+		t1 = value.Nil
 	}
 }
 `,
 		},
-		// "with then and else branches": {
-		// 	input: `
-		// 		var a: Int? = 5
-		// 		if a
-		// 			a = a * 2
-		// 		else
-		// 			a = 30
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.INT_5),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 8,
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.MULTIPLY_INT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.LOAD_INT_8), 30,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(73, 7, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 2),
-		// 			bytecode.NewLineInfo(3, 4),
-		// 			bytecode.NewLineInfo(4, 5),
-		// 			bytecode.NewLineInfo(3, 3),
-		// 			bytecode.NewLineInfo(6, 4),
-		// 			bytecode.NewLineInfo(7, 1),
-		// 		},
-		// 		[]value.Value{},
-		// 	),
-		// },
-		// "is an expression": {
-		// 	input: `
-		// 		var a: Int? = 5
-		// 		b := if a
-		// 			"foo"
-		// 		else
-		// 			5
-		// 		end
-		// 		b
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.INT_5),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 4,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.INT_5),
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(75, 8, 6)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 2),
-		// 			bytecode.NewLineInfo(3, 4),
-		// 			bytecode.NewLineInfo(4, 1),
-		// 			bytecode.NewLineInfo(3, 3),
-		// 			bytecode.NewLineInfo(6, 1),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(8, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(value.String("foo")),
-		// 		},
-		// 	),
-		// },
+		"with then and else branches": {
+			input: `
+				var a: Int? = 5
+				if a
+					a = a * 2
+				else
+					a = 30
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(5)).ToValue()
+	if value.Truthy(l0) {
+		t2, err = value.MultiplyVal(l0, (value.SmallInt(2)).ToValue())
+		if err.IsNotUndefined() {
+			thread.Panic(err)
+		}
+		l0 = t2
+		t1 = l0
+	} else {
+		l0 = (value.SmallInt(30)).ToValue()
+		t1 = l0
+	}
+}
+`,
+		},
+		"with native type narrowing": {
+			input: `
+				var a: Float? = 10.5
+				if a
+					a = a * 2.0
+				else
+					a = 69.420
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Float?
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.Float(10.5)).ToValue()
+	if value.Truthy(l0) {
+		l0 = (((l0).AsFloat()).MultiplyFloat(value.Float(2))).ToValue()
+		t1 = l0
+	} else {
+		l0 = (value.Float(69.42)).ToValue()
+		t1 = l0
+	}
+}
+`,
+		},
+		"is an expression": {
+			input: `
+				var a: Int? = 5
+				b := if a
+					"foo"
+				else
+					5
+				end
+				b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 value.Value // var b: Std::String | Std::Int
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(5)).ToValue()
+	if value.Truthy(l0) {
+		t1 = (value.String("foo")).ToValue()
+	} else {
+		t1 = (value.SmallInt(5)).ToValue()
+	}
+	l1 = t1
+}
+`,
+		},
+		"can be chained": {
+			input: `
+				a := 5.6
+				if a <= 2.0
+					"foo"
+				else if a <= 12.9
+					"bar"
+				else
+				  "baz"
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float(5.6)
+	if (l0).LessThanEqualFloat(value.Float(2)) {
+		t1 = (value.String("foo")).ToValue()
+	} else {
+		if (l0).LessThanEqualFloat(value.Float(12.9)) {
+			t2 = (value.String("bar")).ToValue()
+		} else {
+			t2 = (value.String("baz")).ToValue()
+		}
+		t1 = t2
+	}
+}
+`,
+		},
 	}
 
 	for name, tc := range tests {
-		noop(name, tc)
-		// t.Run(name, func(t *testing.T) {
-		// 	goCompilerTest(tc, t)
-		// })
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
 	}
 }
 
