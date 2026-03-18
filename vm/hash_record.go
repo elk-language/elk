@@ -268,13 +268,13 @@ func initHashRecordIterator() {
 }
 
 // Create a new hash record with the given entries.
-func NewHashRecordWithElements(vm *Thread, elements ...value.PairOfValue) (*HashRecordOfValue, value.Value) {
-	return NewHashRecordWithCapacityAndElements(vm, len(elements), elements...)
+func NewHashRecordOfValueWithElements(vm *Thread, elements ...value.PairOfValue) (*HashRecordOfValue, value.Value) {
+	return NewHashRecordOfValueWithCapacityAndElements(vm, len(elements), elements...)
 }
 
 // Create a new hash record with the given entries.
-func MustNewHashRecordWithElements(vm *Thread, elements ...value.PairOfValue) *HashRecordOfValue {
-	hrec, err := NewHashRecordWithElements(vm, elements...)
+func MustNewHashRecordOfValueWithElements(vm *Thread, elements ...value.PairOfValue) *HashRecordOfValue {
+	hrec, err := NewHashRecordOfValueWithElements(vm, elements...)
 	if !err.IsUndefined() {
 		panic(err)
 	}
@@ -282,7 +282,7 @@ func MustNewHashRecordWithElements(vm *Thread, elements ...value.PairOfValue) *H
 	return hrec
 }
 
-func NewHashRecordWithCapacityAndElements(vm *Thread, capacity int, elements ...value.PairOfValue) (*HashRecordOfValue, value.Value) {
+func NewHashRecordOfValueWithCapacityAndElements(vm *Thread, capacity int, elements ...value.PairOfValue) (*HashRecordOfValue, value.Value) {
 	h := NewHashRecordOfValue(capacity)
 	for _, element := range elements {
 		err := HashRecordOfValueSet(vm, h, element.Key(), element.Value())
@@ -295,7 +295,7 @@ func NewHashRecordWithCapacityAndElements(vm *Thread, capacity int, elements ...
 }
 
 func MustNewHashRecordWithCapacityAndElements(vm *Thread, capacity int, elements ...value.PairOfValue) *HashRecordOfValue {
-	hrec, err := NewHashRecordWithCapacityAndElements(vm, capacity, elements...)
+	hrec, err := NewHashRecordOfValueWithCapacityAndElements(vm, capacity, elements...)
 	if !err.IsUndefined() {
 		panic(err)
 	}

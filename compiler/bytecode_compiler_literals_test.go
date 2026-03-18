@@ -3665,7 +3665,7 @@ func TestBytecodeHashRecord(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashRecordWithElements(
+					value.Ref(vm.MustNewHashRecordOfValueWithElements(
 						nil,
 						value.MakePairOfValue(
 							value.SmallInt(1).ToValue(),

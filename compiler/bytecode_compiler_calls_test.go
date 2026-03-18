@@ -5455,7 +5455,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						},
 					)),
 					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.MustNewHashRecordWithElements(
+					value.Ref(vm.MustNewHashRecordOfValueWithElements(
 						nil,
 						value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(1).ToValue()),
 						value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
@@ -5849,7 +5849,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						},
 					).ToValue(),
 					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.MustNewHashRecordWithElements(
+					value.Ref(vm.MustNewHashRecordOfValueWithElements(
 						nil,
 						value.MakePairOfValue(value.ToSymbol("elo").ToValue(), value.SmallInt(5).ToValue()),
 					)),

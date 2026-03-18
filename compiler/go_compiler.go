@@ -1599,6 +1599,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileHexHashSetLiteralNode(node)
 	case *ast.HashMapLiteralNode:
 		return c.compileHashMapLiteralNode(node)
+	case *ast.HashRecordLiteralNode:
+		return c.compileHashRecordLiteralNode(node)
 	case *ast.AssignmentExpressionNode:
 		return c.compileAssignmentExpressionNode(node)
 	case *ast.PublicIdentifierNode:
@@ -2854,6 +2856,259 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 				pairValue.markFree()
 			}
 			buff.WriteString(")")
+
+			return newInlineGoValue(
+				buff.String(),
+				c.typeOf(node),
+				goType,
+			)
+		default:
+			finalizeStaticElements()
+		}
+	}
+
+	return newTmpGoValue(
+		tmp,
+		c.typeOf(node),
+	)
+}
+
+func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	var buff bytes.Buffer
+
+	pairValues := make([]goValuePair, 0, len(node.Elements))
+	var tmp *goLocal
+
+	var keyType, valType types.Type
+	var goKeyType, goValType *value.GoType
+
+	typ := c.typeOf(node)
+	elementType, _ := c.checker.GetIteratorElementType(typ)
+	if g, ok := elementType.(*types.Generic); ok {
+		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.Pair).(*types.Class)) {
+			keyType = types.Normalise(g.Get(0).Type)
+			goKeyType = c.elkTypeToGoKeyType(keyType)
+
+			valType = types.Normalise(g.Get(1).Type)
+			goValType = c.elkTypeToGoType(valType, false)
+		}
+	}
+	var goType *value.GoType
+	if goKeyType.Name == "value.Value" {
+		goType = value.NewGoType("*vm.HashRecordOfValue")
+	} else if goValType.Name == "value.Value" {
+		goType = value.NewGenericGoType(
+			"vm.NativeKeyHashRecord",
+			[]*value.GoType{
+				goKeyType,
+			},
+		)
+	} else {
+		goType = value.NewGenericGoType(
+			"vm.NativeHashRecord",
+			[]*value.GoType{
+				goKeyType,
+				goValType,
+			},
+		)
+	}
+
+	finalizeStaticElements := func() {
+		if tmp != nil {
+			return
+		}
+
+		tmp = c.defineTmpGoLocal(goType)
+		switch goType.Name {
+		case "*vm.HashRecordOfValue":
+			for _, pairValue := range pairValues {
+				fmt.Fprintf(&buff, "value.MakePairOfValue(%s, %s),", c.convertToValue(pairValue.key), c.convertToValue(pairValue.value))
+				pairValue.markFree()
+			}
+			buff.WriteString(")")
+		case "vm.NativeKeyHashRecord":
+			for _, pairValue := range pairValues {
+				fmt.Fprintf(&buff, "%s: %s,", c.valueToNarrowerType(pairValue.key).fetchValue(), c.convertToValue(pairValue.value))
+				pairValue.markFree()
+			}
+			buff.WriteString("})")
+		case "vm.NativeHashRecord":
+			for _, pairValue := range pairValues {
+				fmt.Fprintf(&buff, "%s: %s,", c.valueToNarrowerType(pairValue.key).fetchValue(), c.valueToNarrowerType(pairValue.value).fetchValue())
+				pairValue.markFree()
+			}
+			buff.WriteString("})")
+		default:
+			panic(fmt.Sprintf("invalid hash record go type: %s", goType.String()))
+		}
+
+		if goType.Name == "*vm.HashRecordOfValue" {
+			c.registerErr()
+			c.emit("%s, err = %s\n", tmp.name, buff.String())
+			c.emitErrorPropagation()
+		} else {
+			c.emit("%s = %s\n", tmp.name, buff.String())
+		}
+		buff.Reset()
+		pairValues = nil
+	}
+
+	switch goType.Name {
+	case "*vm.HashRecordOfValue":
+		buff.WriteString("vm.NewHashRecordOfValueWithElements(thread,")
+	case "vm.NativeKeyHashRecord":
+		fmt.Fprintf(&buff, "vm.MakeNativeKeyHashRecordFromMap(map[%s]value.Value{", goKeyType.String())
+	case "vm.NativeHashRecord":
+		fmt.Fprintf(&buff, "vm.MakeNativeHashRecordFromMap(map[%s]%s{", goKeyType.String(), goValType.String())
+	default:
+		panic(fmt.Sprintf("invalid hash record go type: %s", goType.String()))
+	}
+
+	for i := 0; i < len(node.Elements); i++ {
+		elementNode := node.Elements[i]
+
+		switch elementNode := elementNode.(type) {
+		case *ast.ModifierNode:
+			finalizeStaticElements()
+
+			var condType conditionType
+			switch elementNode.Modifier.Type {
+			case token.IF:
+				condType = ifConditionType
+			case token.UNLESS:
+				condType = unlessConditionType
+			default:
+				panic(fmt.Sprintf("invalid collection modifier: %#v", elementNode.Modifier))
+			}
+
+			c.compileIfWithConditionExpression(
+				condType,
+				elementNode.Right,
+				func() *goValue {
+					switch then := elementNode.Left.(type) {
+					case *ast.KeyValueExpressionNode:
+						key := c.compileExpression(then.Key, false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val)
+					case *ast.SymbolKeyValueExpressionNode:
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val)
+					default:
+						panic(fmt.Sprintf("invalid hash record element: %#v", elementNode))
+					}
+
+					return nilGoValue
+				},
+				nil,
+				c.typeOf(elementNode),
+				true,
+			)
+		case *ast.ModifierForInNode:
+			// TODO: compile for in
+			finalizeStaticElements()
+		case *ast.ModifierIfElseNode:
+			finalizeStaticElements()
+
+			c.compileIfWithConditionExpression(
+				ifConditionType,
+				elementNode.Condition,
+				func() *goValue {
+					switch then := elementNode.ThenExpression.(type) {
+					case *ast.KeyValueExpressionNode:
+						key := c.compileExpression(then.Key, false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val)
+					case *ast.SymbolKeyValueExpressionNode:
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val)
+					default:
+						panic(fmt.Sprintf("invalid hash record element: %#v", elementNode))
+					}
+
+					return nilGoValue
+				},
+				func() *goValue {
+					switch then := elementNode.ElseExpression.(type) {
+					case *ast.KeyValueExpressionNode:
+						key := c.compileExpression(then.Key, false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val)
+					case *ast.SymbolKeyValueExpressionNode:
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val)
+					default:
+						panic(fmt.Sprintf("invalid hash record element: %#v", elementNode))
+					}
+
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				true,
+			)
+		case *ast.PublicIdentifierNode:
+			key := c.valueToGoSource(value.ToSymbol(elementNode.Value).ToValue(), c.checker.Std(symbol.Symbol), false)
+			val := c.compileLocalVariableAccess(elementNode.Value)
+			if tmp != nil {
+				c.compileMapSet(tmp, key, val)
+			} else {
+				pairValues = append(pairValues, goValuePair{key: key, value: val})
+			}
+		case *ast.PrivateIdentifierNode:
+			key := c.valueToGoSource(value.ToSymbol(elementNode.Value).ToValue(), c.checker.Std(symbol.Symbol), false)
+			val := c.compileLocalVariableAccess(elementNode.Value)
+			if tmp != nil {
+				c.compileMapSet(tmp, key, val)
+			} else {
+				pairValues = append(pairValues, goValuePair{key: key, value: val})
+			}
+		case *ast.KeyValueExpressionNode:
+			key := c.compileExpression(elementNode.Key, false)
+			val := c.compileExpression(elementNode.Value, false)
+			if tmp != nil {
+				c.compileMapSet(tmp, key, val)
+			} else {
+				pairValues = append(pairValues, goValuePair{key: key, value: val})
+			}
+		case *ast.SymbolKeyValueExpressionNode:
+			key := c.valueToGoSource(value.ToSymbol(identifierToName(elementNode.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+			val := c.compileExpression(elementNode.Value, false)
+			if tmp != nil {
+				c.compileMapSet(tmp, key, val)
+			} else {
+				pairValues = append(pairValues, goValuePair{key: key, value: val})
+			}
+		default:
+			panic(fmt.Sprintf("invalid element in hashrecord literal: %#v", elementNode))
+		}
+	}
+
+	if tmp == nil {
+		switch goType.Name {
+		case "vm.NativeKeyHashRecord":
+			for _, pairValue := range pairValues {
+				fmt.Fprintf(&buff, "%s: %s,", c.valueToNarrowerType(pairValue.key).fetchValue(), c.convertToValue(pairValue.value))
+				pairValue.markFree()
+			}
+			buff.WriteString("})")
+
+			return newInlineGoValue(
+				buff.String(),
+				c.typeOf(node),
+				goType,
+			)
+		case "vm.NativeHashRecord":
+			for _, pairValue := range pairValues {
+				fmt.Fprintf(&buff, "%s: %s,", c.valueToNarrowerType(pairValue.key).fetchValue(), c.valueToNarrowerType(pairValue.value).fetchValue())
+				pairValue.markFree()
+			}
+			buff.WriteString("})")
 
 			return newInlineGoValue(
 				buff.String(),
@@ -4196,6 +4451,47 @@ func (c *GoCompiler) emitCachedArrayTuple(tuple value.ArrayTuple, typ types.Type
 	ident := nativeVal.goIdent()
 
 	c.emitPackage("var %s = %s\n", ident, tupleSource.value())
+
+	return newInlineGoValue(
+		ident,
+		typ,
+		nativeVal.goType,
+	)
+}
+
+func (c *GoCompiler) emitCachedHashRecord(record vm.HashRecord, typ types.Type) *goValue {
+	recordSource := c.hashRecordToGoSource(record, typ, false)
+	if recordSource == nil {
+		return nil
+	}
+
+	c.globalData.valueCache.Lock()
+	defer c.globalData.valueCache.Unlock()
+
+	inspect := record.Inspect()
+	nativeVal, ok := c.globalData.valueCache.GetUnsafe(inspect)
+	if ok {
+		return newInlineGoValue(
+			nativeVal.goIdent(),
+			nativeVal.elkType,
+			nativeVal.goType,
+		)
+	}
+
+	if typ == nil {
+		typ = c.checker.Std(symbol.ArrayTuple)
+	}
+	nativeVal = &nativeValue{
+		ident:   fmt.Sprintf("hshrec%d", c.globalData.valueCache.Len()),
+		val:     record.ToValue(),
+		goType:  recordSource.goType(),
+		elkType: typ,
+	}
+	c.globalData.valueCache.SetUnsafe(inspect, nativeVal)
+
+	ident := nativeVal.goIdent()
+
+	c.emitPackage("var %s = %s\n", ident, recordSource.value())
 
 	return newInlineGoValue(
 		ident,
@@ -7785,6 +8081,13 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 			}
 			return c.hashMapToGoSource(v, typ)
 		case vm.HashRecord:
+			cached := c.emitCachedHashRecord(v, typ)
+			if cached != nil {
+				return cached
+			}
+			if !allowMutable {
+				return nil
+			}
 			return c.hashRecordToGoSource(v, typ, allowMutable)
 		case value.String:
 			return newInlineGoValue(
@@ -8945,7 +9248,7 @@ func (c *GoCompiler) hashRecordToGoSource(v vm.HashRecord, typ types.Type, allow
 func (c *GoCompiler) hashRecordOfValueToGoSource(v vm.HashRecord, allowMutable bool) *goValue {
 	var buff strings.Builder
 
-	buff.WriteString("vm.MustNewHashRecordWithElements(nil, ")
+	buff.WriteString("vm.MustNewHashRecordOfValueWithElements(nil, ")
 
 	for _, pair := range inspectSort(slices.Collect(v.All())) {
 		p := c.valuePairToGoSource(pair, allowMutable)

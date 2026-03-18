@@ -1388,7 +1388,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 		},
 		"static literal": {
 			source: `%{ 1 => 2.5, "bar" => :foo }`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordOfValueWithElements(
 				nil,
 				value.MakePairOfValue(
 					value.Ref(value.String("bar")),
@@ -1402,7 +1402,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 		},
 		"static elements with for loops": {
 			source: `%{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3, 4], 2 => 5.6 }`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordOfValueWithElements(
 				nil,
 				value.MakePairOfValue(
 					value.SmallInt(1).ToValue(),
@@ -1427,7 +1427,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 				a := { 1 => 1, 2 => 4, 3 => 9, 4 => 16 }
 				%{ 1 => 'foo', **a, 2 => 5.6 }
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordOfValueWithElements(
 				nil,
 				value.MakePairOfValue(
 					value.SmallInt(1).ToValue(),
@@ -1459,7 +1459,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 
 				%{ 1 => 'foo', **gen(), 2 => 5.6 }
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordOfValueWithElements(
 				nil,
 				value.MakePairOfValue(
 					value.SmallInt(1).ToValue(),
@@ -1500,7 +1500,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 				f := Foo()
 				%{ 1 => 'foo', **f, 2 => 5.6 }
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordOfValueWithElements(
 				nil,
 				value.MakePairOfValue(
 					value.SmallInt(1).ToValue(),
@@ -1594,7 +1594,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 				foo := "foo var"
 				%{ foo => 1, 2.5 => :bar }
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordOfValueWithElements(
 				nil,
 				value.MakePairOfValue(
 					value.Ref(value.String("foo var")),
