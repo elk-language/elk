@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // ::Std::ArrayList
@@ -257,7 +258,7 @@ func initArrayList() {
 			// callable is another value
 			for i := range self.Length() {
 				element := self.AtVal(i)
-				result, err := vm.CallMethodByName(callSymbol, callable, element)
+				result, err := vm.CallMethodByName(symbol.L_call, callable, element)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -295,7 +296,7 @@ func initArrayList() {
 			// callable is another value
 			for i := range self.Length() {
 				element := self.AtVal(i)
-				result, err := vm.CallMethodByName(callSymbol, callable, element)
+				result, err := vm.CallMethodByName(symbol.L_call, callable, element)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}

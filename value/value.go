@@ -545,6 +545,11 @@ type ToValuer interface {
 	ToValue() Value
 }
 
+type ToStringer interface {
+	Value
+	ToString() String
+}
+
 func ToValueErr[T ToValuer](t T, err Value) (Value, Value) {
 	if !err.IsUndefined() {
 		return Undefined, err
@@ -1978,6 +1983,51 @@ func IncrementVal(operand Value) Value {
 		return (o + 1).ToValue()
 	default:
 		return Undefined
+	}
+}
+
+func ToString(v Value) (String, bool) {
+	switch v := v.ToInterface().(type) {
+	case String:
+		return v, true
+	case Symbol:
+		return v.ToString(), true
+	case Char:
+		return v.ToString(), true
+	case *Regex:
+		return v.ToString(), true
+	case Float64:
+		return v.ToString(), true
+	case Float32:
+		return v.ToString(), true
+	case Float:
+		return v.ToString(), true
+	case *BigFloat:
+		return v.ToString(), true
+	case SmallInt:
+		return v.ToString(), true
+	case *BigInt:
+		return v.ToString(), true
+	case Int64:
+		return v.ToString(), true
+	case UInt64:
+		return v.ToString(), true
+	case Int32:
+		return v.ToString(), true
+	case UInt32:
+		return v.ToString(), true
+	case Int16:
+		return v.ToString(), true
+	case UInt16:
+		return v.ToString(), true
+	case Int8:
+		return v.ToString(), true
+	case UInt8:
+		return v.ToString(), true
+	case NilType:
+		return "", true
+	default:
+		return "", false
 	}
 }
 

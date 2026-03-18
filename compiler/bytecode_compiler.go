@@ -7000,38 +7000,7 @@ func (c *BytecodeCompiler) compileUninterpolatedRegexLiteralNode(node *ast.Unint
 	}
 
 	re, err := value.CompileRegex(node.Content, node.Flags)
-	if errList, ok := err.(diagnostic.DiagnosticList); ok {
-		regexStartPos := node.Location().StartPos
-		for _, err := range errList {
-			errStartPos := err.Span.StartPos
-			errEndPos := err.Span.EndPos
-
-			columnDifference := regexStartPos.Column - 1 + 2 // add 2 to account for `%/`
-			byteDifference := regexStartPos.ByteOffset + 2   // add 2 to account for `%/`
-			lineDifference := regexStartPos.Line - 1
-
-			if errStartPos.Line == 1 {
-				errStartPos.Column += columnDifference
-			}
-			errStartPos.Line += lineDifference
-			errStartPos.ByteOffset += byteDifference
-
-			if errEndPos != errStartPos {
-				if errEndPos.Line == 1 {
-					errEndPos.Column += columnDifference
-				}
-				errEndPos.Line += lineDifference
-				errEndPos.ByteOffset += byteDifference
-			}
-			err.Location.FilePath = c.bytecode.Location.FilePath
-
-			c.Errors.Append(err)
-		}
-		return
-	}
-
-	if err != nil {
-		c.Errors.AddFailure(err.Error(), node.Location())
+	if mergeRegexDiagnostics(c.Errors, err, node.Location()) {
 		return
 	}
 

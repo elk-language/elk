@@ -58,9 +58,51 @@ func CreateCompiler(parent Compiler, checker types.Checker, loc *position.Locati
 	}
 }
 
+// sort elements by their `inspect` string
 func inspectSort[V value.Inspectable](elements []V) []V {
 	slices.SortStableFunc(elements, func(a, b V) int {
 		return strings.Compare(a.Inspect(), b.Inspect())
 	})
 	return elements
+}
+
+func mergeRegexDiagnostics(target *diagnostic.SyncDiagnosticList, src error, loc *position.Location) bool {
+	if src == nil {
+		return false
+	}
+
+	errList, ok := src.(diagnostic.DiagnosticList)
+	if !ok {
+		target.AddFailure(src.Error(), loc)
+		return true
+	}
+
+	regexStartPos := loc.StartPos
+	for _, err := range errList {
+		errStartPos := err.Span.StartPos
+		errEndPos := err.Span.EndPos
+
+		columnDifference := regexStartPos.Column - 1 + 2 // add 2 to account for `%/`
+		byteDifference := regexStartPos.ByteOffset + 2   // add 2 to account for `%/`
+		lineDifference := regexStartPos.Line - 1
+
+		if errStartPos.Line == 1 {
+			errStartPos.Column += columnDifference
+		}
+		errStartPos.Line += lineDifference
+		errStartPos.ByteOffset += byteDifference
+
+		if errEndPos != errStartPos {
+			if errEndPos.Line == 1 {
+				errEndPos.Column += columnDifference
+			}
+			errEndPos.Line += lineDifference
+			errEndPos.ByteOffset += byteDifference
+		}
+		err.Location.FilePath = loc.FilePath
+
+		target.Append(err)
+	}
+
+	return true
 }

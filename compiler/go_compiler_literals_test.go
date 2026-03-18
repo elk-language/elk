@@ -147,10 +147,11 @@ func TestGoStringLiteral(t *testing.T) {
 			input: `a := "foo bar"`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -178,10 +179,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -247,10 +249,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -347,10 +350,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -423,10 +427,11 @@ func TestGoSymbolLiteral(t *testing.T) {
 			input: `a := :foo`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -456,10 +461,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -525,10 +531,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -625,10 +632,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -701,10 +709,11 @@ func TestGoRangeLiteral(t *testing.T) {
 			input: `a := 2...5`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -729,10 +738,11 @@ func main() { // loc: <main>
 			input: `a := 2<.<5`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -757,10 +767,11 @@ func main() { // loc: <main>
 			input: `a := 2<..5`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -785,10 +796,11 @@ func main() { // loc: <main>
 			input: `a := 2..<5`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -813,10 +825,11 @@ func main() { // loc: <main>
 			input: `a := ...5`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -841,10 +854,11 @@ func main() { // loc: <main>
 			input: `a := ..<5`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -869,10 +883,11 @@ func main() { // loc: <main>
 			input: `a := 2...`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -897,10 +912,11 @@ func main() { // loc: <main>
 			input: `a := 2<..`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -928,10 +944,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -960,10 +977,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -992,10 +1010,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1024,10 +1043,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1056,10 +1076,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1088,10 +1109,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1120,10 +1142,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1152,10 +1175,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1193,10 +1217,11 @@ func TestGoSimpleLiterals(t *testing.T) {
 			input: "a := 1u8",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1219,10 +1244,11 @@ func main() { // loc: <main>
 			input: "a := 25u16",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1245,10 +1271,11 @@ func main() { // loc: <main>
 			input: "a := 450_200u32",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1271,10 +1298,11 @@ func main() { // loc: <main>
 			input: "a := 450_200u64",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1297,10 +1325,11 @@ func main() { // loc: <main>
 			input: "a := 450_200u",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1323,10 +1352,11 @@ func main() { // loc: <main>
 			input: "a := 1i8",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1349,10 +1379,11 @@ func main() { // loc: <main>
 			input: "a := 25i16",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1375,10 +1406,11 @@ func main() { // loc: <main>
 			input: "a := 450_200i32",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1401,10 +1433,11 @@ func main() { // loc: <main>
 			input: "a := 450_200i64",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1427,10 +1460,11 @@ func main() { // loc: <main>
 			input: "a := 450_200",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1453,10 +1487,11 @@ func main() { // loc: <main>
 			input: fmt.Sprintf("a := %s", (&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String()),
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1481,10 +1516,11 @@ func main() { // loc: <main>
 			input: "a := 45.5f64",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1507,10 +1543,11 @@ func main() { // loc: <main>
 			input: "a := 45.5f32",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1533,10 +1570,11 @@ func main() { // loc: <main>
 			input: "a := 45.5",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1559,10 +1597,11 @@ func main() { // loc: <main>
 			input: "a := 0.5827489723984",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1585,10 +1624,11 @@ func main() { // loc: <main>
 			input: `a := 'foo\n'`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1611,10 +1651,11 @@ func main() { // loc: <main>
 			input: `a := "foo\n"`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1637,10 +1678,11 @@ func main() { // loc: <main>
 			input: "a := `I`",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1663,10 +1705,11 @@ func main() { // loc: <main>
 			input: "a := `\\n`",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1689,10 +1732,11 @@ func main() { // loc: <main>
 			input: `a :=nil`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1715,10 +1759,11 @@ func main() { // loc: <main>
 			input: `a := true`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1741,10 +1786,11 @@ func main() { // loc: <main>
 			input: `a := false`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1767,10 +1813,11 @@ func main() { // loc: <main>
 			input: `a := :foo`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1795,10 +1842,11 @@ func main() { // loc: <main>
 			input: `a := self`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1833,10 +1881,11 @@ func TestGoArrayTuples(t *testing.T) {
 			input: "a := %[]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1861,10 +1910,11 @@ func main() { // loc: <main>
 			input: "var a: ArrayTuple[Float] = %[]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1889,10 +1939,11 @@ func main() { // loc: <main>
 			input: "a := %[1, 'foo', 5, 5.6]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1917,10 +1968,11 @@ func main() { // loc: <main>
 			input: "val a = %[1, 'foo', 5, 5.6]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1945,10 +1997,11 @@ func main() { // loc: <main>
 			input: "a := %[`b`, `c`, `d`]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1973,10 +2026,11 @@ func main() { // loc: <main>
 			input: "val a = %[`b`, `c`, `d`]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2001,10 +2055,11 @@ func main() { // loc: <main>
 			input: "a := %[1, 'foo', 5 => 5,  3 => 5.6, :lol]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2030,10 +2085,11 @@ func main() { // loc: <main>
 			input: "a := %[1.2, 2.4, 5 => 5.0,  3 => 5.6, 420.69]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2058,10 +2114,11 @@ func main() { // loc: <main>
 			input: "a := %[1, %['bar', %[7.2]]]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2088,10 +2145,11 @@ func main() { // loc: <main>
 			input: "a := %[%['foo', 'bar'], %['baz', 'buzz']]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2118,10 +2176,11 @@ func main() { // loc: <main>
 			input: "a := %[1, %['bar', [7.2]]]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2144,10 +2203,11 @@ func main() { // loc: <main>
 			input: "a := %[1, 'foo', 5i64 => 5,  3 => 5.6]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2175,10 +2235,11 @@ a := %[1, 'foo', 5 => 5,  String.name, 3 => 5.6, k => 12, 8.2]
 `,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2238,10 +2299,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2280,10 +2342,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2324,10 +2387,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2395,10 +2459,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2465,10 +2530,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2505,10 +2571,11 @@ func main() { // loc: <main>
 			input: "a := %[1, 2, 3] + %[4, 5, 6] + %[10]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2533,10 +2600,11 @@ func main() { // loc: <main>
 			input: "a := %[1, 2, 3] + [4, 5, 6] + %[10]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2559,10 +2627,11 @@ func main() { // loc: <main>
 			input: "a := %[1, 2, 3] * 3",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2587,10 +2656,11 @@ func main() { // loc: <main>
 			input: "a := %[1, 2, 3] + %[4, 5, 6, %[7, 8]] + %[10]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2616,10 +2686,11 @@ func main() { // loc: <main>
 			input: `a := %w[foo bar baz]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2644,10 +2715,11 @@ func main() { // loc: <main>
 			input: `a := %s[foo bar baz]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2675,10 +2747,11 @@ func main() { // loc: <main>
 			input: `a := %x[ab cd 5f]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2703,10 +2776,11 @@ func main() { // loc: <main>
 			input: `a := %x[ab_cd cd 5f]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2731,10 +2805,11 @@ func main() { // loc: <main>
 			input: `a := %x[ab_cd_ab_cd cd 5f]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2759,10 +2834,11 @@ func main() { // loc: <main>
 			input: `a := %x[ab_cd_ab_cd_ab_cd_ab_cd cd 5f]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2787,10 +2863,11 @@ func main() { // loc: <main>
 			input: `a := %x[ab_cd_ab_cd_ab_cd_ab_cd_ab_cd_ab_cd_ab_cd_ab_cd cd 5f]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2816,10 +2893,11 @@ func main() { // loc: <main>
 			input: `a := %b[101 11 10]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2858,10 +2936,11 @@ func TestGoArrayLists(t *testing.T) {
 			input: "a := []",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2884,10 +2963,11 @@ func main() { // loc: <main>
 			input: "a := [1, 'foo', 5, 5.6]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2910,10 +2990,11 @@ func main() { // loc: <main>
 			input: "val a = [1, 'foo', 5, 5.6]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2936,10 +3017,11 @@ func main() { // loc: <main>
 			input: "a := [1.2, 5.0, 10.6]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2962,10 +3044,11 @@ func main() { // loc: <main>
 			input: "val a = [1.2, 5.0, 10.6]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -2988,10 +3071,11 @@ func main() { // loc: <main>
 			input: "a := [1, 'foo', 5, 5.6]:10",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3018,10 +3102,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3047,10 +3132,11 @@ func main() { // loc: <main>
 			input: `a := \w[foo bar baz]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3073,10 +3159,11 @@ func main() { // loc: <main>
 			input: `a := \w[foo bar baz]:15`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3099,10 +3186,11 @@ func main() { // loc: <main>
 			input: `a := \s[foo bar baz]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3130,10 +3218,11 @@ func main() { // loc: <main>
 			input: `a := \s[foo bar baz]:15`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3160,10 +3249,11 @@ func main() { // loc: <main>
 			input: `a := \x[ab cd 5f]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3186,10 +3276,11 @@ func main() { // loc: <main>
 			input: `a := \x[ab cd 5f]:2`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3212,10 +3303,11 @@ func main() { // loc: <main>
 			input: `a := \b[101 11 10]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3238,10 +3330,11 @@ func main() { // loc: <main>
 			input: `a := \b[101 11 10]:3`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3265,10 +3358,11 @@ func main() { // loc: <main>
 			input: "a := [1, 'foo', 5 => 5,  3 => 5.6, :lol]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3293,10 +3387,11 @@ func main() { // loc: <main>
 			input: "a := [1, 'foo', 5 => 5,  3 => 5.6, :lol]:6",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3321,10 +3416,11 @@ func main() { // loc: <main>
 			input: "a := [1, 2, 3] + [4, 5, 6] + [10]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3347,10 +3443,11 @@ func main() { // loc: <main>
 			input: "a := [1, 2, 3] * 3",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3374,10 +3471,11 @@ func main() { // loc: <main>
 
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3401,10 +3499,11 @@ func main() { // loc: <main>
 			input: "a := [1, ['bar', [7.2]]]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3430,10 +3529,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3462,10 +3562,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3494,10 +3595,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3529,10 +3631,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3564,10 +3667,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3617,10 +3721,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3709,10 +3814,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3741,10 +3847,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3773,10 +3880,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3824,10 +3932,11 @@ func TestGoHashSet(t *testing.T) {
 			input: "a := ^[]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3850,10 +3959,11 @@ func main() { // loc: <main>
 			input: "a := ^[1, 'foo', 5, 5.6]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3876,10 +3986,11 @@ func main() { // loc: <main>
 			input: "val a = ^[1, 'foo', 5, 5.6]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3902,10 +4013,11 @@ func main() { // loc: <main>
 			input: "a := ^[1.2, 10.0, 5.6]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3928,10 +4040,11 @@ func main() { // loc: <main>
 			input: "val a = ^[1.2, 10.0, 5.6]",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3954,10 +4067,11 @@ func main() { // loc: <main>
 			input: "a := ^[1, 'foo', 5, 5.6]:10",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -3991,10 +4105,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4029,10 +4144,11 @@ func main() { // loc: <main>
 			input: `a := ^w[foo bar baz]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4055,10 +4171,11 @@ func main() { // loc: <main>
 			input: `a := ^w[foo bar baz]:15`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4081,10 +4198,11 @@ func main() { // loc: <main>
 			input: `a := ^s[foo bar baz]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4111,10 +4229,11 @@ func main() { // loc: <main>
 			input: `a := ^s[foo bar baz]:15`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4141,10 +4260,11 @@ func main() { // loc: <main>
 			input: `a := ^x[ab cd 5f]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4167,10 +4287,11 @@ func main() { // loc: <main>
 			input: `a := ^x[ab cd 5f]:2`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4194,10 +4315,11 @@ func main() { // loc: <main>
 			input: `a := ^b[101 11 10]`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4220,10 +4342,11 @@ func main() { // loc: <main>
 			input: `a := ^b[101 11 10]:3`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4249,10 +4372,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4289,10 +4413,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4329,10 +4454,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4375,10 +4501,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4425,10 +4552,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4521,16 +4649,17 @@ func main() { // loc: <main>
 	}
 }
 
-func TestHashMap(t *testing.T) {
+func TestGoHashMap(t *testing.T) {
 	tests := goTestTable{
 		"empty": {
 			input: "a := {}",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4556,10 +4685,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4590,10 +4720,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4624,10 +4755,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4655,10 +4787,11 @@ func main() { // loc: <main>
 			input: `a := { 1 => 'foo', foo: 5, "bar" => 5.6 }`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4733,10 +4866,11 @@ func main() { // loc: <main>
 			input: `a := { 1 => 'foo', foo: 5, "bar" => 5.6 }:10`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4772,10 +4906,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4811,10 +4946,11 @@ func main() { // loc: <main>
 			input: "a := { 1 => { 'bar' => [7.2] } }",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4840,10 +4976,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4883,10 +5020,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4936,10 +5074,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -4989,10 +5128,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5028,10 +5168,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5079,10 +5220,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5176,16 +5318,17 @@ func main() { // loc: <main>
 	}
 }
 
-func TestHashRecord(t *testing.T) {
+func TestGoHashRecord(t *testing.T) {
 	tests := goTestTable{
 		"empty": {
 			input: "a := %{}",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5213,10 +5356,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5247,10 +5391,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5278,10 +5423,11 @@ func main() { // loc: <main>
 			input: `a := %{ 1 => 'foo', foo: 5, "bar" => 5.6 }`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5307,10 +5453,11 @@ func main() { // loc: <main>
 			input: `a := %{ foo: 5u8, bar: 120u8, baz: 62u8 }`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5338,10 +5485,11 @@ func main() { // loc: <main>
 			input: `a := %{ 'foo' => 5, 'bar' => 120.7, 'baz' => 'lol' }`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5415,10 +5563,11 @@ func main() { // loc: <main>
 			input: "a := %{ 'foo' => 9, 1 => %{ 'bar' => [7.2] } }",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5444,10 +5593,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5487,10 +5637,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5540,10 +5691,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5579,10 +5731,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5618,10 +5771,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -5713,112 +5867,317 @@ func main() { // loc: <main>
 	}
 }
 
-// func TestRegex(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"empty": {
-// 			input: "%//",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(2, 1, 3)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.MustCompileRegex("", bitfield.BitField8FromBitFlag(0))),
-// 				},
-// 			),
-// 		},
-// 		"empty with flags": {
-// 			input: "%//imx",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(5, 1, 6)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.MustCompileRegex("", bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag|flag.MultilineFlag|flag.ExtendedFlag))),
-// 				},
-// 			),
-// 		},
-// 		"with content": {
-// 			input: `%/foo \w+ bar/i`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.MustCompileRegex(`foo \w+ bar`, bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag))),
-// 				},
-// 			),
-// 		},
-// 		"with interpolation": {
-// 			input: `
-// 				a := "baz"
-// 				%/foo \w+ ${a} bar/i
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.NEW_REGEX8), byte(flag.CaseInsensitiveFlag), 3,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(40, 3, 25)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.String("baz")),
-// 					value.Ref(value.String("foo \\w+ ")),
-// 					value.Ref(value.String(" bar")),
-// 				},
-// 			),
-// 		},
-// 		"with compile error": {
-// 			input: `%/foo\y/i`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(
-// 					L(P(5, 1, 6), P(6, 1, 7)),
-// 					`invalid escape sequence: \y`,
-// 				),
-// 			},
-// 		},
-// 		"with compile error from Go": {
-// 			input: ` %/foo{1000000}/i`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(
-// 					L(P(1, 1, 2), P(16, 1, 17)),
-// 					"error parsing regexp: invalid repeat count: `{1000000}`",
-// 				),
-// 			},
-// 		},
-// 	}
+func TestGoRegex(t *testing.T) {
+	tests := goTestTable{
+		"empty": {
+			input: "a := %//",
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var regex0 = value.MustCompileRegex("", bitfield.BitField8FromBitFlag(0))
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.Regex // var a: Std::Regex
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = regex0
+}
+`,
+		},
+		"empty with flags": {
+			input: "a := %//imx",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/bitfield"
+	reflag "github.com/elk-language/elk/regex/flag"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var regex0 = value.MustCompileRegex("", bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag|reflag.MultilineFlag|reflag.ExtendedFlag))
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.Regex // var a: Std::Regex
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = regex0
+}
+`,
+		},
+		"with content": {
+			input: `a := %/foo \w+ bar/i`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/bitfield"
+	reflag "github.com/elk-language/elk/regex/flag"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var regex0 = value.MustCompileRegex("foo \\w+ bar", bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag))
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.Regex // var a: Std::Regex
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = regex0
+}
+`,
+		},
+		"reuse the same regex": {
+			input: `
+				a := %/foo \w+ bar/i
+				b := %/foo \w+ bar/i
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/bitfield"
+	reflag "github.com/elk-language/elk/regex/flag"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var regex0 = value.MustCompileRegex("foo \\w+ bar", bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag))
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 *value.Regex // var a: Std::Regex
+	_ = l0
+	var l1 *value.Regex // var b: Std::Regex
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = regex0
+	l1 = regex0
+}
+`,
+		},
+		"with interpolation": {
+			input: `
+				a := "baz"
+				b := %/foo \w+ ${a} bar/i
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/bitfield"
+	reflag "github.com/elk-language/elk/regex/flag"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.String // var a: Std::String
+	_ = l0
+	var l1 *value.Regex // var b: Std::Regex
+	_ = l1
+	var t1 *value.Regex
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.String("baz")
+	t1, err = value.CompileRegexVal(value.String("foo \\w+ ")+l0+value.String(" bar"), bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag))
+	l1 = t1
+}
+`,
+		},
+		"with primitive interpolation": {
+			input: `
+				a := 2.5
+				b := %/foo \w+ ${a} bar/i
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/bitfield"
+	reflag "github.com/elk-language/elk/regex/flag"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var l1 *value.Regex // var b: Std::Regex
+	_ = l1
+	var t1 *value.Regex
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Float(2.5)
+	t1, err = value.CompileRegexVal(value.String("foo \\w+ ")+(l0).ToString()+value.String(" bar"), bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag))
+	l1 = t1
+}
+`,
+		},
+		"with complex interpolation": {
+			input: `
+				a := Time.now
+				b := %/foo \w+ ${a} bar/i
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/bitfield"
+	reflag "github.com/elk-language/elk/regex/flag"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("now")
+var Std_ns_Time_ns_now vm.NativeFunction // Std::Time::now
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("to_string")
+var Std_ns_Time_im_to_string vm.NativeFunction // Std::Time.:to_string
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Time // var a: Std::Time
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.Time
+	_ = t3
+	var l1 *value.Regex // var b: Std::Regex
+	_ = l1
+	var t4 *value.Regex
+	_ = t4
+	var t5 []value.Value
+	_ = t5
+	var t6 value.String
+	_ = t6
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	Std_ns_Time_ns_now = vm.MethodToFunc(((value.TimeClass).SingletonClass()).LookupMethod(sym0))
+	Std_ns_Time_im_to_string = vm.MethodToFunc((value.TimeClass).LookupMethod(sym2))
+
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = (value.TimeClass).ToValue()
+	thread.AddNativeCallFrame(sym0, sym1, 2)
+	t1, err = Std_ns_Time_ns_now(thread, t2) // receiver: &Std::Time, name: now
+	thread.PopNativeCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t3 = (t1).AsTime()
+	l0 = t3
+	t5 = value.ResizeNativeArgs(t5, 2)
+	t5[0] = (l0).ToValue()
+	thread.AddNativeCallFrame(sym2, sym1, 3)
+	t1, err = Std_ns_Time_im_to_string(thread, t5) // receiver: Std::Time, name: to_string
+	thread.PopNativeCallFrame()
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	t6 = (t1).AsString()
+	t4, err = value.CompileRegexVal(value.String("foo \\w+ ")+t6+value.String(" bar"), bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag))
+	l1 = t4
+}
+`,
+		},
+		"with compile error": {
+			input: `%/foo\y/i`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
+					L(P(5, 1, 6), P(6, 1, 7)),
+					`invalid escape sequence: \y`,
+				),
+			},
+		},
+		"with compile error from Go": {
+			input: ` %/foo{1000000}/i`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
+					L(P(1, 1, 2), P(16, 1, 17)),
+					"error parsing regexp: invalid repeat count: `{1000000}`",
+				),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}

@@ -249,7 +249,7 @@ func (vm *Thread) CallCallable(args ...value.Value) (value.Value, value.Value) {
 	case *Closure:
 		return vm.CallClosure(f, args[1:]...)
 	default:
-		return vm.CallMethodByName(callSymbol, args...)
+		return vm.CallMethodByName(symbol.L_call, args...)
 	}
 }
 
@@ -2509,89 +2509,15 @@ func (vm *Thread) opNewString(dynamicElements int) value.Value {
 		elementVal := *elementPtr
 		*elementPtr = value.Undefined
 
-		if elementVal.IsReference() {
-			switch element := elementVal.AsReference().(type) {
-			case value.String:
-				buffer.WriteString(string(element))
-			case value.Float64:
-				buffer.WriteString(string(element.ToString()))
-			case *value.BigInt:
-				buffer.WriteString(string(element.ToString()))
-			case value.Int64:
-				buffer.WriteString(string(element.ToString()))
-			case value.UInt64:
-				buffer.WriteString(string(element.ToString()))
-			case *value.Regex:
-				buffer.WriteString(string(element.ToString()))
-			default:
-				strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-				if !err.IsUndefined() {
-					return err
-				}
-				str, ok := strVal.SafeAsReference().(value.String)
-				if !ok {
-					return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
-				}
-				buffer.WriteString(string(str))
-			}
-			continue
+		strVal, err := ToString(vm, elementVal)
+		if err.IsNotUndefined() {
+			return err
 		}
-
-		switch elementVal.ValueFlag() {
-		case value.CHAR_FLAG:
-			element := elementVal.AsChar()
-			buffer.WriteRune(rune(element))
-		case value.FLOAT64_FLAG:
-			element := elementVal.AsInlineFloat64()
-			buffer.WriteString(string(element.ToString()))
-		case value.FLOAT32_FLAG:
-			element := elementVal.AsFloat32()
-			buffer.WriteString(string(element.ToString()))
-		case value.FLOAT_FLAG:
-			element := elementVal.AsFloat()
-			buffer.WriteString(string(element.ToString()))
-		case value.SMALL_INT_FLAG:
-			element := elementVal.AsSmallInt()
-			buffer.WriteString(string(element.ToString()))
-		case value.INT64_FLAG:
-			element := elementVal.AsInlineInt64()
-			buffer.WriteString(string(element.ToString()))
-		case value.INT32_FLAG:
-			element := elementVal.AsInt32()
-			buffer.WriteString(string(element.ToString()))
-		case value.INT16_FLAG:
-			element := elementVal.AsInt16()
-			buffer.WriteString(string(element.ToString()))
-		case value.INT8_FLAG:
-			element := elementVal.AsInt8()
-			buffer.WriteString(string(element.ToString()))
-		case value.UINT64_FLAG:
-			element := elementVal.AsInlineUInt64()
-			buffer.WriteString(string(element.ToString()))
-		case value.UINT32_FLAG:
-			element := elementVal.AsInt32()
-			buffer.WriteString(string(element.ToString()))
-		case value.UINT16_FLAG:
-			element := elementVal.AsInt16()
-			buffer.WriteString(string(element.ToString()))
-		case value.UINT8_FLAG:
-			element := elementVal.AsUInt8()
-			buffer.WriteString(string(element.ToString()))
-		case value.NIL_FLAG:
-		case value.SYMBOL_FLAG:
-			element := elementVal.AsInlineSymbol()
-			buffer.WriteString(string(element.ToString()))
-		default:
-			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-			if !err.IsUndefined() {
-				return err
-			}
-			str, ok := strVal.SafeAsReference().(value.String)
-			if !ok {
-				return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
-			}
-			buffer.WriteString(string(str))
+		str, ok := strVal.SafeAsReference().(value.String)
+		if !ok {
+			return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
 		}
+		buffer.WriteString(string(str))
 	}
 
 	vm.spDecrementBy(uintptr(dynamicElements))
@@ -2610,89 +2536,15 @@ func (vm *Thread) opNewSymbol(dynamicElements int) value.Value {
 		elementVal := *elementPtr
 		*elementPtr = value.Undefined
 
-		if elementVal.IsReference() {
-			switch element := elementVal.AsReference().(type) {
-			case value.String:
-				buffer.WriteString(string(element))
-			case value.Float64:
-				buffer.WriteString(string(element.ToString()))
-			case *value.BigInt:
-				buffer.WriteString(string(element.ToString()))
-			case value.Int64:
-				buffer.WriteString(string(element.ToString()))
-			case value.UInt64:
-				buffer.WriteString(string(element.ToString()))
-			case *value.Regex:
-				buffer.WriteString(string(element.ToString()))
-			default:
-				strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-				if !err.IsUndefined() {
-					return err
-				}
-				str, ok := strVal.SafeAsReference().(value.String)
-				if !ok {
-					return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
-				}
-				buffer.WriteString(string(str))
-			}
-			continue
+		strVal, err := ToString(vm, elementVal)
+		if err.IsNotUndefined() {
+			return err
 		}
-
-		switch elementVal.ValueFlag() {
-		case value.CHAR_FLAG:
-			element := elementVal.AsChar()
-			buffer.WriteRune(rune(element))
-		case value.FLOAT64_FLAG:
-			element := elementVal.AsInlineFloat64()
-			buffer.WriteString(string(element.ToString()))
-		case value.FLOAT32_FLAG:
-			element := elementVal.AsFloat32()
-			buffer.WriteString(string(element.ToString()))
-		case value.FLOAT_FLAG:
-			element := elementVal.AsFloat()
-			buffer.WriteString(string(element.ToString()))
-		case value.SMALL_INT_FLAG:
-			element := elementVal.AsSmallInt()
-			buffer.WriteString(string(element.ToString()))
-		case value.INT64_FLAG:
-			element := elementVal.AsInlineInt64()
-			buffer.WriteString(string(element.ToString()))
-		case value.INT32_FLAG:
-			element := elementVal.AsInt32()
-			buffer.WriteString(string(element.ToString()))
-		case value.INT16_FLAG:
-			element := elementVal.AsInt16()
-			buffer.WriteString(string(element.ToString()))
-		case value.INT8_FLAG:
-			element := elementVal.AsInt8()
-			buffer.WriteString(string(element.ToString()))
-		case value.UINT64_FLAG:
-			element := elementVal.AsInlineUInt64()
-			buffer.WriteString(string(element.ToString()))
-		case value.UINT32_FLAG:
-			element := elementVal.AsUInt32()
-			buffer.WriteString(string(element.ToString()))
-		case value.UINT16_FLAG:
-			element := elementVal.AsUInt16()
-			buffer.WriteString(string(element.ToString()))
-		case value.UINT8_FLAG:
-			element := elementVal.AsUInt8()
-			buffer.WriteString(string(element.ToString()))
-		case value.NIL_FLAG:
-		case value.SYMBOL_FLAG:
-			element := elementVal.AsInlineSymbol()
-			buffer.WriteString(string(element.ToString()))
-		default:
-			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-			if !err.IsUndefined() {
-				return err
-			}
-			str, ok := strVal.SafeAsReference().(value.String)
-			if !ok {
-				return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
-			}
-			buffer.WriteString(string(str))
+		str, ok := strVal.SafeAsReference().(value.String)
+		if !ok {
+			return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
 		}
+		buffer.WriteString(string(str))
 	}
 
 	vm.spDecrementBy(uintptr(dynamicElements))
@@ -2712,94 +2564,26 @@ func (vm *Thread) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 		elementVal := *elementPtr
 		*elementPtr = value.Undefined
 
-		if elementVal.IsReference() {
-			switch element := elementVal.AsReference().(type) {
-			case value.String:
-				buffer.WriteString(string(element))
-			case value.Float64:
-				buffer.WriteString(string(element.ToString()))
-			case *value.BigInt:
-				buffer.WriteString(string(element.ToString()))
-			case value.Int64:
-				buffer.WriteString(string(element.ToString()))
-			case value.UInt64:
-				buffer.WriteString(string(element.ToString()))
-			case *value.Regex:
-				buffer.WriteString(string(element.ToStringWithFlags()))
-			default:
-				strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-				if !err.IsUndefined() {
-					return err
-				}
-				str, ok := strVal.SafeAsReference().(value.String)
-				if !ok {
-					return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
-				}
-				buffer.WriteString(string(str))
-			}
-			continue
+		if re, ok := elementVal.SafeAsReference().(*value.Regex); ok {
+			buffer.WriteString(string(re.ToStringWithFlags()))
+			return value.Undefined
 		}
 
-		switch elementVal.ValueFlag() {
-		case value.CHAR_FLAG:
-			element := elementVal.AsChar()
-			buffer.WriteRune(rune(element))
-		case value.FLOAT64_FLAG:
-			element := elementVal.AsInlineFloat64()
-			buffer.WriteString(string(element.ToString()))
-		case value.FLOAT32_FLAG:
-			element := elementVal.AsFloat32()
-			buffer.WriteString(string(element.ToString()))
-		case value.FLOAT_FLAG:
-			element := elementVal.AsFloat()
-			buffer.WriteString(string(element.ToString()))
-		case value.SMALL_INT_FLAG:
-			element := elementVal.AsSmallInt()
-			buffer.WriteString(string(element.ToString()))
-		case value.INT64_FLAG:
-			element := elementVal.AsInlineInt64()
-			buffer.WriteString(string(element.ToString()))
-		case value.INT32_FLAG:
-			element := elementVal.AsInt32()
-			buffer.WriteString(string(element.ToString()))
-		case value.INT16_FLAG:
-			element := elementVal.AsInt16()
-			buffer.WriteString(string(element.ToString()))
-		case value.INT8_FLAG:
-			element := elementVal.AsInt8()
-			buffer.WriteString(string(element.ToString()))
-		case value.UINT64_FLAG:
-			element := elementVal.AsInlineUInt64()
-			buffer.WriteString(string(element.ToString()))
-		case value.UINT32_FLAG:
-			element := elementVal.AsUInt32()
-			buffer.WriteString(string(element.ToString()))
-		case value.UINT16_FLAG:
-			element := elementVal.AsUInt16()
-			buffer.WriteString(string(element.ToString()))
-		case value.UINT8_FLAG:
-			element := elementVal.AsUInt8()
-			buffer.WriteString(string(element.ToString()))
-		case value.NIL_FLAG:
-		case value.SYMBOL_FLAG:
-			element := elementVal.AsInlineSymbol()
-			buffer.WriteString(string(element.ToString()))
-		default:
-			strVal, err := vm.CallMethodByName(toStringSymbol, elementVal)
-			if !err.IsUndefined() {
-				return err
-			}
-			str, ok := strVal.SafeAsReference().(value.String)
-			if !ok {
-				return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
-			}
-			buffer.WriteString(string(str))
+		strVal, err := ToString(vm, elementVal)
+		if err.IsNotUndefined() {
+			return err
 		}
+		str, ok := strVal.SafeAsReference().(value.String)
+		if !ok {
+			return value.Ref(value.NewCoerceError(value.StringClass, strVal.Class()))
+		}
+		buffer.WriteString(string(str))
 	}
+
 	vm.spDecrementBy(uintptr(dynamicElements))
-	re, err := value.CompileRegex(buffer.String(), flags)
-	if err != nil {
-		return value.Ref(value.NewError(value.RegexCompileErrorClass, err.Error()))
+	re, err := value.CompileRegexVal(value.String(buffer.String()), flags)
+	if err.IsNotUndefined() {
+		return err
 	}
 
 	vm.push(value.Ref(re))

@@ -133,6 +133,3 @@ func (vm *Thread) populateMissingParameters(args []value.Value, paramCount, argu
 
 	return args
 }
-
-var callSymbol = value.ToSymbol("call")
-var toStringSymbol = value.ToSymbol("to_string")

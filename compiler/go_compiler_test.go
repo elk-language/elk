@@ -49,7 +49,8 @@ func goCompilerTest(tc goTestCase, t *testing.T) {
 	compiler.Flush()
 	result, err := format.Source(buff.Bytes())
 	if err != nil {
-		t.Fatal(err)
+		t.Log(string(colorize.ColorizeGo(buff.Bytes())))
+		t.Fatalf("cannot format go source: %s", err)
 	}
 
 	if diff := cmp.Diff(tc.want, string(result), opts...); diff != "" {

@@ -1434,10 +1434,11 @@ func TestGoIfExpression(t *testing.T) {
 			input: `a := if false; end`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1463,10 +1464,11 @@ func main() { // loc: <main>
 			input: "a := true; b := if a; end",
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1503,10 +1505,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1536,10 +1539,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1572,10 +1576,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New
@@ -1607,10 +1612,11 @@ func main() { // loc: <main>
 			`,
 			want: `package main
 
-import "github.com/elk-language/elk/value"
-import "github.com/elk-language/elk/vm"
-
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
 var _ = symbol.Value
 var _ = vm.New

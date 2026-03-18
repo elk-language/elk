@@ -208,6 +208,23 @@ func Equal(vm *Thread, left, right value.Value) (value.Value, value.Value) {
 	return result, value.Undefined
 }
 
+func ToString(vm *Thread, val value.Value) (value.Value, value.Value) {
+	str, ok := value.ToString(val)
+
+	if ok {
+		return str.ToValue(), value.Undefined
+	}
+	if vm == nil {
+		return value.Undefined, value.Nil
+	}
+
+	result, err := vm.CallMethodByName(symbol.L_to_string, val)
+	if !err.IsUndefined() {
+		return value.Undefined, err
+	}
+	return result, value.Undefined
+}
+
 // Check whether two values are equal (lax)
 func LaxEqual(vm *Thread, left, right value.Value) (value.Value, value.Value) {
 	result := value.LaxEqualVal(left, right)

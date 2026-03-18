@@ -45,6 +45,10 @@ func (c Char) Rune() rune {
 	return rune(c)
 }
 
+func (c Char) ToString() String {
+	return String(c)
+}
+
 func (c Char) Inspect() string {
 	var buff strings.Builder
 	buff.WriteRune('`')

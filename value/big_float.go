@@ -448,6 +448,19 @@ func (f *BigFloat) Inspect() string {
 	return fmt.Sprintf("%sbf", f.AsGoBigFloat().Text('g', -1))
 }
 
+func (f *BigFloat) ToString() String {
+	if f.IsNaN() {
+		return "NaN"
+	}
+	if f.IsInf(1) {
+		return "Inf"
+	}
+	if f.IsInf(-1) {
+		return "-Inf"
+	}
+	return String(fmt.Sprintf("%s", f.AsGoBigFloat().Text('g', -1)))
+}
+
 func (f *BigFloat) InstanceVariables() *InstanceVariables {
 	return nil
 }

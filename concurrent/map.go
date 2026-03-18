@@ -19,6 +19,16 @@ func NewMapWithValues[K comparable, V any](m map[K]V) *Map[K, V] {
 	}
 }
 
+func (m *Map[K, V]) Clear() {
+	m.Lock()
+	m.ClearUnsafe()
+	m.Unlock()
+}
+
+func (m *Map[K, V]) ClearUnsafe() {
+	m.Map = make(map[K]V)
+}
+
 func (m *Map[K, V]) Lock() {
 	m.mu.Lock()
 }

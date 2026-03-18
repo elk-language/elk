@@ -4,6 +4,7 @@ import (
 	"iter"
 
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -178,7 +179,7 @@ func initHashRecord() {
 
 			// callable is another value
 			for pair := range self.All() {
-				result, err := vm.CallMethodByName(callSymbol, callable, pair.ToValue())
+				result, err := vm.CallMethodByName(symbol.L_call, callable, pair.ToValue())
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -221,7 +222,7 @@ func initHashRecord() {
 
 			// callable is another value
 			for pair := range self.All() {
-				result, err := vm.CallMethodByName(callSymbol, callable, pair.Value())
+				result, err := vm.CallMethodByName(symbol.L_call, callable, pair.Value())
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}

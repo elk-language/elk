@@ -10,11 +10,13 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
+	reflag "github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
@@ -263,6 +265,18 @@ func newTmpGoValue(goLocal *goLocal, typ types.Type) *goValue {
 var errGoValue = newInlineGoValue("ERR", types.Untyped{}, goValueType)
 var nilGoValue = newInlineGoValue("value.Nil", types.Nil{}, goValueType)
 
+type goImportEntry struct {
+	path string
+	name string
+}
+
+func newGoImportEntry(path, name string) *goImportEntry {
+	return &goImportEntry{
+		path: path,
+		name: name,
+	}
+}
+
 func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) *GoCompiler {
 	compiler := NewGoCompiler("main", topLevelGoCompilerMode, loc, checker, newGlobalData(), output)
 	compiler.Errors = errors
@@ -279,10 +293,11 @@ func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Loc
 }
 
 func (c *GoCompiler) InitMainCompiler() {
-	c.emitPackage("package main\n\n")
-	c.emitPackage("import \"github.com/elk-language/elk/value\"\n")
-	c.emitPackage("import \"github.com/elk-language/elk/vm\"\n\n")
-	c.emitPackage("import \"github.com/elk-language/elk/value/symbol\"\n\n")
+	c.registerGoPackageClause("main")
+
+	c.registerGoImport("github.com/elk-language/elk/value", "")
+	c.registerGoImport("github.com/elk-language/elk/vm", "")
+	c.registerGoImport("github.com/elk-language/elk/value/symbol", "")
 
 	// noops to stop Go from complaining about unused imports
 	c.emitPackage("var _ = symbol.Value\n")
@@ -439,6 +454,7 @@ type globalData struct {
 	valueCache    *concurrent.Map[string, *nativeValue]
 	methodCache   *concurrent.OrderedMap[string, *nativeMethod]
 	constantCache *concurrent.Map[string, *nativeConstant]
+	goImports     *concurrent.OrderedMap[string, *goImportEntry]
 }
 
 func newGlobalData() *globalData {
@@ -449,6 +465,7 @@ func newGlobalData() *globalData {
 		valueCache:    concurrent.NewMap[string, *nativeValue](),
 		methodCache:   concurrent.NewOrderedMap[string, *nativeMethod](),
 		constantCache: concurrent.NewMap[string, *nativeConstant](),
+		goImports:     concurrent.NewOrderedMap[string, *goImportEntry](),
 	}
 }
 
@@ -508,9 +525,38 @@ func (c *GoCompiler) Method() value.Method {
 
 // Write the accumulated source code to the main buffer.
 func (c *GoCompiler) Flush() {
+	c.flushImport()
+	c.output.Write([]byte("\n"))
 	c.flushPackage()
 	c.output.Write([]byte("\n"))
 	c.flushInner()
+}
+
+func (c *GoCompiler) flushImport() {
+	imports := c.globalData.goImports
+	if imports.Len() == 0 {
+		return
+	}
+
+	if packageEntry, ok := imports.GetUnsafe(""); ok {
+		// special case, package name
+		fmt.Fprintf(c.output, "package %s\n\n", packageEntry.name)
+	}
+
+	fmt.Fprint(c.output, "import (")
+	for _, importEntry := range imports.Map.All() {
+		if importEntry.path == "" {
+			continue
+		}
+
+		if importEntry.name != "" {
+			fmt.Fprintf(c.output, "%s ", importEntry.name)
+		}
+		fmt.Fprintf(c.output, "%q\n", importEntry.path)
+	}
+	fmt.Fprint(c.output, ")\n")
+
+	imports.ClearUnsafe()
 }
 
 func (c *GoCompiler) flushPackage() {
@@ -1176,6 +1222,24 @@ func (c *GoCompiler) emitPackageBytes(byt []byte) {
 	}
 }
 
+// Emit go package clause line
+func (c *GoCompiler) registerGoPackageClause(name string) {
+	c.registerGoImport("", name)
+}
+
+// Emit import level code
+func (c *GoCompiler) registerGoImport(path, name string) {
+	imports := c.globalData.goImports
+	imports.Lock()
+	defer imports.Unlock()
+
+	if _, ok := imports.GetUnsafe(path); ok {
+		return
+	}
+
+	imports.SetUnsafe(path, newGoImportEntry(path, name))
+}
+
 func (c *GoCompiler) typeOf(node ast.Node) types.Type {
 	return node.Type(c.checker.Env())
 }
@@ -1553,6 +1617,10 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileInterpolatedStringLiteralNode(node)
 	case *ast.InterpolatedSymbolLiteralNode:
 		return c.compileInterpolatedSymbolLiteralNode(node)
+	case *ast.UninterpolatedRegexLiteralNode:
+		return c.compileUninterpolatedRegexLiteralNode(node)
+	case *ast.InterpolatedRegexLiteralNode:
+		return c.compileInterpolatedRegexLiteralNode(node)
 	case *ast.RawCharLiteralNode:
 		return c.compileRawCharLiteralNode(node)
 	case *ast.CharLiteralNode:
@@ -3127,31 +3195,39 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 }
 
 func (c *GoCompiler) compileStringInterpolationNode(node *ast.StringInterpolationNode) *goValue {
-	expr := c.compileExpression(node.Expression, false)
-	expr = c.valueToNarrowerType(expr)
+	return c.compileInterpolationNode(node.Expression, node.Location())
+}
 
-	typ := expr.goType()
+func (c *GoCompiler) compileRegexInterpolationNode(node *ast.RegexInterpolationNode) *goValue {
+	return c.compileInterpolationNode(node.Expression, node.Location())
+}
+
+func (c *GoCompiler) compileInterpolationNode(expr ast.ExpressionNode, loc *position.Location) *goValue {
+	exprVal := c.compileExpression(expr, false)
+	exprVal = c.valueToNarrowerType(exprVal)
+
+	typ := exprVal.goType()
 	switch typ.Name {
 	case "value.String":
-		return expr
+		return exprVal
 	case "value.Char", "value.Float64", "value.Float32",
 		"value.Float", "value.SmallInt",
 		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
 		"value.Symbol", "*value.BigInt", "*value.Regex":
-		return expr.newInlineGoValue(
-			fmt.Sprintf("(%s).ToString()", expr.value()),
+		return exprVal.newInlineGoValue(
+			fmt.Sprintf("(%s).ToString()", exprVal.value()),
 			value.NewGoType("value.String"),
 		)
 	}
 
 	return c.compileMethodCallWithLiteralArgValuesAndName(
-		expr.elkType,
+		exprVal.elkType,
 		c.checker.StdString(),
 		"symbol.L_to_string",
 		"to_string",
-		[]*goValue{expr},
-		node.Location(),
+		[]*goValue{exprVal},
+		loc,
 		false,
 	)
 }
@@ -3199,6 +3275,67 @@ func (c *GoCompiler) compileStringLiteralContentNode(node ast.StringLiteralConte
 	default:
 		panic(fmt.Sprintf("invalid string content node: %T", node))
 	}
+}
+
+func (c *GoCompiler) compileRegexLiteralContentNode(node ast.RegexLiteralContentNode) *goValue {
+	switch node := node.(type) {
+	case *ast.RegexLiteralContentSectionNode:
+		return newInlineGoValue(
+			fmt.Sprintf("value.String(%q)", node.Value),
+			c.checker.StdString(),
+			value.NewGoType("value.String"),
+		)
+	case *ast.RegexInterpolationNode:
+		return c.compileRegexInterpolationNode(node)
+	default:
+		panic(fmt.Sprintf("invalid regex content node: %T", node))
+	}
+}
+
+func (c *GoCompiler) compileUninterpolatedRegexLiteralNode(node *ast.UninterpolatedRegexLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	re, err := value.CompileRegex(node.Content, node.Flags)
+	if mergeRegexDiagnostics(c.Errors, err, node.Location()) {
+		return nilGoValue
+	}
+
+	return c.valueToGoSource(re.ToValue(), c.typeOf(node), false)
+}
+
+func (c *GoCompiler) compileInterpolatedRegexLiteralNode(node *ast.InterpolatedRegexLiteralNode) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	elkType := c.typeOf(node)
+	goType := c.elkTypeToGoType(elkType, false)
+	resultVar := c.defineTmpGoLocal(goType)
+	c.registerErr()
+
+	var buff bytes.Buffer
+	fmt.Fprintf(&buff, "%s, err = value.CompileRegexVal(", resultVar.name)
+
+	for i, element := range node.Content {
+		if i != 0 {
+			buff.WriteString(" + ")
+		}
+		section := c.compileRegexLiteralContentNode(element)
+		buff.WriteString(section.value())
+	}
+
+	buff.WriteByte(',')
+	c.compileRegexFlags(&buff, node.Flags)
+
+	buff.WriteString(")\n")
+	c.emitBytes(buff.Bytes())
+
+	return newTmpGoValue(
+		resultVar,
+		elkType,
+	)
 }
 
 func (c *GoCompiler) compileInterpolatedStringLiteralNode(node *ast.InterpolatedStringLiteralNode) *goValue {
@@ -4379,7 +4516,11 @@ func (c *GoCompiler) emitSymbol(val string) string {
 
 func (c *GoCompiler) emitCachedRange(val value.Value, typ types.Type) *goValue {
 	rangeSource := c.rangeToGoSource(val, typ, false)
-	if rangeSource == nil {
+	return c.emitCachedValue("range", val, rangeSource, typ)
+}
+
+func (c *GoCompiler) emitCachedValue(prefix string, val value.Value, goValue *goValue, elkType types.Type) *goValue {
+	if goValue == nil {
 		return nil
 	}
 
@@ -4387,117 +4528,49 @@ func (c *GoCompiler) emitCachedRange(val value.Value, typ types.Type) *goValue {
 	defer c.globalData.valueCache.Unlock()
 
 	inspect := val.Inspect()
-	rng, ok := c.globalData.valueCache.GetUnsafe(inspect)
-	if ok {
+	if nativeVal, ok := c.globalData.valueCache.GetUnsafe(inspect); ok {
 		return newInlineGoValue(
-			rng.goIdent(),
-			rng.elkType,
-			rng.goType,
+			nativeVal.goIdent(),
+			nativeVal.elkType,
+			nativeVal.goType,
 		)
 	}
 
-	rng = &nativeValue{
-		ident: fmt.Sprintf("range%d", c.globalData.valueCache.Len()),
+	nativeVal := &nativeValue{
+		ident: fmt.Sprintf("%s%d", prefix, c.globalData.valueCache.Len()),
 		val:   val,
 	}
-	c.globalData.valueCache.SetUnsafe(inspect, rng)
-	ident := rng.goIdent()
+	c.globalData.valueCache.SetUnsafe(inspect, nativeVal)
+	ident := nativeVal.goIdent()
 
-	c.emitPackage("var %s = %s\n", ident, rangeSource.value())
+	c.emitPackage("var %s = %s\n", ident, goValue.value())
 
-	rng.goType = rangeSource.goType()
-	if typ == nil {
-		typ = rng.elkType
+	nativeVal.goType = goValue.goType()
+	if elkType == nil {
+		elkType = nativeVal.elkType
 	}
-	rng.elkType = typ
+	nativeVal.elkType = elkType
 
 	return newInlineGoValue(
 		ident,
-		typ,
-		rng.goType,
+		elkType,
+		nativeVal.goType,
 	)
+}
+
+func (c *GoCompiler) emitCachedRegex(val *value.Regex, typ types.Type) *goValue {
+	source := c.regexToGoSource(val, typ)
+	return c.emitCachedValue("regex", val.ToValue(), source, typ)
 }
 
 func (c *GoCompiler) emitCachedArrayTuple(tuple value.ArrayTuple, typ types.Type) *goValue {
 	tupleSource := c.arrayTupleToGoSource(tuple, typ, false)
-	if tupleSource == nil {
-		return nil
-	}
-
-	c.globalData.valueCache.Lock()
-	defer c.globalData.valueCache.Unlock()
-
-	inspect := tuple.Inspect()
-	nativeVal, ok := c.globalData.valueCache.GetUnsafe(inspect)
-	if ok {
-		return newInlineGoValue(
-			nativeVal.goIdent(),
-			nativeVal.elkType,
-			nativeVal.goType,
-		)
-	}
-
-	if typ == nil {
-		typ = c.checker.Std(symbol.ArrayTuple)
-	}
-	nativeVal = &nativeValue{
-		ident:   fmt.Sprintf("arrtuple%d", c.globalData.valueCache.Len()),
-		val:     tuple.ToValue(),
-		goType:  tupleSource.goType(),
-		elkType: typ,
-	}
-	c.globalData.valueCache.SetUnsafe(inspect, nativeVal)
-
-	ident := nativeVal.goIdent()
-
-	c.emitPackage("var %s = %s\n", ident, tupleSource.value())
-
-	return newInlineGoValue(
-		ident,
-		typ,
-		nativeVal.goType,
-	)
+	return c.emitCachedValue("arrtuple", tuple.ToValue(), tupleSource, typ)
 }
 
 func (c *GoCompiler) emitCachedHashRecord(record vm.HashRecord, typ types.Type) *goValue {
 	recordSource := c.hashRecordToGoSource(record, typ, false)
-	if recordSource == nil {
-		return nil
-	}
-
-	c.globalData.valueCache.Lock()
-	defer c.globalData.valueCache.Unlock()
-
-	inspect := record.Inspect()
-	nativeVal, ok := c.globalData.valueCache.GetUnsafe(inspect)
-	if ok {
-		return newInlineGoValue(
-			nativeVal.goIdent(),
-			nativeVal.elkType,
-			nativeVal.goType,
-		)
-	}
-
-	if typ == nil {
-		typ = c.checker.Std(symbol.ArrayTuple)
-	}
-	nativeVal = &nativeValue{
-		ident:   fmt.Sprintf("hshrec%d", c.globalData.valueCache.Len()),
-		val:     record.ToValue(),
-		goType:  recordSource.goType(),
-		elkType: typ,
-	}
-	c.globalData.valueCache.SetUnsafe(inspect, nativeVal)
-
-	ident := nativeVal.goIdent()
-
-	c.emitPackage("var %s = %s\n", ident, recordSource.value())
-
-	return newInlineGoValue(
-		ident,
-		typ,
-		nativeVal.goType,
-	)
+	return c.emitCachedValue("hshrec", record.ToValue(), recordSource, typ)
 }
 
 func (c *GoCompiler) getTmpIdent() string {
@@ -8118,8 +8191,10 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 			*value.ClosedRange, *value.OpenRange,
 			*value.LeftOpenRange, *value.RightOpenRange:
 			return c.emitCachedRange(value.Ref(v), typ)
+		case *value.Regex:
+			return c.emitCachedRegex(v, typ)
 		default:
-			return nil
+			panic(fmt.Sprintf("cannot convert elk value to Go source: %T, %s", val, val.Inspect()))
 		}
 	}
 
@@ -8232,7 +8307,7 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 		)
 	}
 
-	return nil
+	panic(fmt.Sprintf("cannot convert elk value to Go source: %T, %s", val, val.Inspect()))
 }
 
 func (c *GoCompiler) arrayListToGoSource(v value.ArrayList, typ types.Type) *goValue {
@@ -8559,6 +8634,9 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Char)) {
 		return value.NewGoType("value.Char")
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Regex)) {
+		return value.NewGoType("*value.Regex")
 	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float)) {
 		return value.NewGoType("value.Float")
@@ -8928,6 +9006,60 @@ func (c *GoCompiler) arrayTupleOfValueToGoSource(v value.ArrayTuple, mutable boo
 		buff.String(),
 		c.checker.Std(symbol.ArrayTuple),
 		value.NewGoType("*value.ArrayTupleOfValue"),
+	)
+}
+
+func (c *GoCompiler) compileRegexFlags(buff io.Writer, flags bitfield.BitField8) {
+	c.registerGoImport("github.com/elk-language/elk/bitfield", "")
+
+	if !flags.IsAnyFlagSet() {
+		fmt.Fprint(buff, "bitfield.BitField8FromBitFlag(0)")
+		return
+	}
+
+	c.registerGoImport("github.com/elk-language/elk/regex/flag", "reflag")
+
+	fmt.Fprint(buff, "bitfield.BitField8FromBitFlag(")
+	var i int
+	for _, flag := range flags.AllSetFlags() {
+		if i != 0 {
+			fmt.Fprint(buff, " | ")
+		}
+
+		switch flag {
+		case reflag.CaseInsensitiveFlag:
+			fmt.Fprint(buff, "reflag.CaseInsensitiveFlag")
+		case reflag.MultilineFlag:
+			fmt.Fprint(buff, "reflag.MultilineFlag")
+		case reflag.DotAllFlag:
+			fmt.Fprint(buff, "reflag.DotAllFlag")
+		case reflag.UngreedyFlag:
+			fmt.Fprint(buff, "reflag.UngreedyFlag")
+		case reflag.ExtendedFlag:
+			fmt.Fprint(buff, "reflag.ExtendedFlag")
+		case reflag.ASCIIFlag:
+			fmt.Fprint(buff, "reflag.ASCIIFlag")
+		default:
+			panic(fmt.Sprintf("invalid regex flag: %d", flag))
+		}
+
+		i++
+	}
+
+	fmt.Fprint(buff, ")")
+}
+
+func (c *GoCompiler) regexToGoSource(v *value.Regex, typ types.Type) *goValue {
+	var buff bytes.Buffer
+
+	fmt.Fprintf(&buff, "value.MustCompileRegex(%q,", v.Source)
+	c.compileRegexFlags(&buff, v.Flags)
+	buff.WriteString(")")
+
+	return newInlineGoValue(
+		buff.String(),
+		c.checker.Std(symbol.Regex),
+		value.NewGoType("*value.Regex"),
 	)
 }
 

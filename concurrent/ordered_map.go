@@ -42,6 +42,16 @@ func (m *OrderedMap[K, V]) Len() int {
 	return m.Map.Len()
 }
 
+func (m *OrderedMap[K, V]) Clear() {
+	m.Lock()
+	m.ClearUnsafe()
+	m.Unlock()
+}
+
+func (m *OrderedMap[K, V]) ClearUnsafe() {
+	m.Map = ds.MakeOrderedMap[K, V]()
+}
+
 func (m *OrderedMap[K, V]) Get(key K) (val V, ok bool) {
 	m.mu.RLock()
 	val, ok = m.Map.GetOk(key)

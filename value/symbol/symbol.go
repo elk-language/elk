@@ -97,6 +97,7 @@ var (
 
 // lowercase symbols
 var (
+	L_to_string                = value.ToSymbol("to_string")
 	L_at                       = value.ToSymbol("at")
 	L_call                     = value.ToSymbol("call")
 	L_self                     = value.ToSymbol("self")
