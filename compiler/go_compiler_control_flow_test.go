@@ -1702,6 +1702,61 @@ func main() { // loc: <main>
 }
 `,
 		},
+		"with native bool condition": {
+			input: `
+				a := 5
+				b := false
+				if b
+					a = a * 2
+				else
+					a = 30
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Bool // var b: bool
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(5)).ToValue()
+	l1 = false
+	if l1 {
+		t2, err = value.MultiplyVal(l0, (value.SmallInt(2)).ToValue())
+		if err.IsNotUndefined() {
+			thread.Panic(err)
+		}
+		l0 = t2
+		t1 = l0
+	} else {
+		l0 = (value.SmallInt(30)).ToValue()
+		t1 = l0
+	}
+}
+`,
+		},
 		"with native type narrowing": {
 			input: `
 				var a: Float? = 10.5
@@ -1849,248 +1904,377 @@ func main() { // loc: <main>
 	}
 }
 
-// func TestBytecodeUnlessExpression(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"resolve static condition with empty then and else": {
-// 			input: "unless true; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(15, 1, 16)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(7, 1, 8), P(10, 1, 11)), "this condition will always have the same result since type `true` is truthy"),
-// 			},
-// 		},
-// 		"empty then and else": {
-// 			input: "a := true; unless a; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_IF), 0, 4,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(23, 1, 24)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 14),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"resolve static condition with then branch": {
-// 			input: `
-// 				unless false
-// 					10
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT_8), 10,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(33, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 0),
-// 					bytecode.NewLineInfo(3, 2),
-// 					bytecode.NewLineInfo(4, 1),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(12, 2, 12), P(16, 2, 16)), "this condition will always have the same result since type `false` is falsy"),
-// 			},
-// 		},
-// 		"resolve static condition with then branch to nil": {
-// 			input: `
-// 				unless true
-// 					10
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(32, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 0),
-// 					bytecode.NewLineInfo(2, 1),
-// 					bytecode.NewLineInfo(4, 1),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(12, 2, 12), P(15, 2, 15)), "this condition will always have the same result since type `true` is truthy"),
-// 				diagnostic.NewWarning(L(P(22, 3, 6), P(24, 3, 8)), "unreachable code"),
-// 			},
-// 		},
-// 		"resolve static condition with then and else branches": {
-// 			input: `
-// 				unless true
-// 					10
-// 				else
-// 					5
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(48, 6, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 0),
-// 					bytecode.NewLineInfo(5, 1),
-// 					bytecode.NewLineInfo(6, 1),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(12, 2, 12), P(15, 2, 15)), "this condition will always have the same result since type `true` is truthy"),
-// 				diagnostic.NewWarning(L(P(22, 3, 6), P(24, 3, 8)), "unreachable code"),
-// 			},
-// 		},
-// 		"with then branch": {
-// 			input: `
-// 				var a: Int? = 5
-// 				unless a
-// 					a = 30
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_IF), 0, 7,
-// 					byte(bytecode.LOAD_INT_8), 30,
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(53, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(5, 1),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"with then and else branches": {
-// 			input: `
-// 				var a: Int? = 5
-// 				unless a
-// 					a = 30
-// 				else
-// 					a = a * 2
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_IF), 0, 7,
-// 					byte(bytecode.LOAD_INT_8), 30,
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.JUMP), 0, 5,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.MULTIPLY_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(77, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(3, 3),
-// 					bytecode.NewLineInfo(6, 5),
-// 					bytecode.NewLineInfo(7, 1),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"is an expression": {
-// 			input: `
-// 				var a: Int? = 5
-// 				b := unless a
-// 					"foo"
-// 				else
-// 					5
-// 				end
-// 				b
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_IF), 0, 4,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(79, 8, 6)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(4, 1),
-// 					bytecode.NewLineInfo(3, 3),
-// 					bytecode.NewLineInfo(6, 1),
-// 					bytecode.NewLineInfo(3, 1),
-// 					bytecode.NewLineInfo(8, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.String("foo")),
-// 				},
-// 			),
-// 		},
-// 	}
+func TestGoUnlessExpression(t *testing.T) {
+	tests := goTestTable{
+		"resolve static condition with empty then and else": {
+			input: "a := unless true; end",
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: nil
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(12, 1, 13), P(15, 1, 16)), "this condition will always have the same result since type `true` is truthy"),
+			},
+		},
+		"empty then and else": {
+			input: "a := true; unless a; end",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Bool // var a: bool
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = true
+	if !l0 {
+		t1 = value.Nil
+	} else {
+		t1 = value.Nil
+	}
+}
+`,
+		},
+		"resolve static condition with then branch": {
+			input: `
+				a := unless false
+					10
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(10)).ToValue()
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(17, 2, 17), P(21, 2, 21)), "this condition will always have the same result since type `false` is falsy"),
+			},
+		},
+		"resolve static condition with then branch to nil": {
+			input: `
+				a := unless true
+					10
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: nil
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(17, 2, 17), P(20, 2, 20)), "this condition will always have the same result since type `true` is truthy"),
+				diagnostic.NewWarning(L(P(27, 3, 6), P(29, 3, 8)), "unreachable code"),
+			},
+		},
+		"resolve static condition with then and else branches": {
+			input: `
+				a := unless true
+					10
+				else
+					5
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(5)).ToValue()
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(17, 2, 17), P(20, 2, 20)), "this condition will always have the same result since type `true` is truthy"),
+				diagnostic.NewWarning(L(P(27, 3, 6), P(29, 3, 8)), "unreachable code"),
+			},
+		},
+		"with then branch": {
+			input: `
+				var a: Int? = 5
+				unless a
+					a = 30
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(5)).ToValue()
+	if value.Falsy(l0) {
+		l0 = (value.SmallInt(30)).ToValue()
+		t1 = l0
+	} else {
+		t1 = value.Nil
+	}
+}
+`,
+		},
+		"with then and else branches": {
+			input: `
+				var a: Int? = 5
+				unless a
+					a = 30
+				else
+					a = a * 2
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(5)).ToValue()
+	if value.Falsy(l0) {
+		l0 = (value.SmallInt(30)).ToValue()
+		t1 = l0
+	} else {
+		t2, err = value.MultiplyVal(l0, (value.SmallInt(2)).ToValue())
+		if err.IsNotUndefined() {
+			thread.Panic(err)
+		}
+		l0 = t2
+		t1 = l0
+	}
+}
+`,
+		},
+		"with native bool condition": {
+			input: `
+				a := 5
+				b := false
+				unless b
+					a = 30
+				else
+					a = a * 2
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Bool // var b: bool
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(5)).ToValue()
+	l1 = false
+	if !l1 {
+		l0 = (value.SmallInt(30)).ToValue()
+		t1 = l0
+	} else {
+		t2, err = value.MultiplyVal(l0, (value.SmallInt(2)).ToValue())
+		if err.IsNotUndefined() {
+			thread.Panic(err)
+		}
+		l0 = t2
+		t1 = l0
+	}
+}
+`,
+		},
+		"is an expression": {
+			input: `
+				var a: Int? = 5
+				b := unless a
+					"foo"
+				else
+					5
+				end
+				b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 value.Value // var b: Std::String | Std::Int
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(5)).ToValue()
+	if value.Falsy(l0) {
+		t1 = (value.String("foo")).ToValue()
+	} else {
+		t1 = (value.SmallInt(5)).ToValue()
+	}
+	l1 = t1
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestBytecodeBreak(t *testing.T) {
 // 	tests := bytecodeTestTable{
