@@ -1679,6 +1679,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileLocalVariableAccess(node.Value, c.typeOf(node))
 	case *ast.RangeLiteralNode:
 		return c.compileRangeLiteralNode(node)
+	case *ast.AsExpressionNode:
+		return c.compileAsExpressionNode(node, valueIsIgnored)
 	case *ast.IfExpressionNode:
 		return c.compileIfExpression(
 			ifConditionType,
@@ -1863,6 +1865,37 @@ func (c *GoCompiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) *goValu
 	default:
 		panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
 	}
+}
+
+func (c *GoCompiler) compileAsExpressionNode(node *ast.AsExpressionNode, valueIsIgnored bool) *goValue {
+	val := c.compileExpression(node.Value, false)
+	class := c.compileExpression(node.RuntimeType, false)
+	defer val.markFree()
+	defer class.markFree()
+
+	narrowVal := c.valueToNarrowerType(val)
+	narrowClass := c.valueToNarrowerType(class)
+
+	var result *goValue
+
+	if valueIsIgnored {
+		result = val
+	} else {
+		tmpVar := c.defineTmpGoLocal(narrowVal.goType())
+		result = newTmpGoValue(tmpVar, narrowVal.elkType)
+		c.emit("%s = %s\n", tmpVar.name, narrowVal.value())
+	}
+
+	c.registerErr()
+	switch narrowClass.goType().Name {
+	case "*value.Class", "*value.Mixin":
+		c.emit("err = value.As(%s, %s)\n", c.convertToValue(result), narrowClass.value())
+	default:
+		c.emit("err = value.AsUnsafe(%s, %s)\n", c.convertToValue(result), c.convertToValue(class))
+	}
+	c.emitErrorPropagation()
+
+	return result
 }
 
 func (c *GoCompiler) compileWordArrayTupleLiteralNode(node *ast.WordArrayTupleLiteralNode) *goValue {

@@ -1376,6 +1376,25 @@ func IsA(val Value, class *Class) bool {
 	return classIsA(val, class)
 }
 
+// Asserts that the given value is an instance of the given
+// type. Returns and error if it is not.
+func As(val Value, class *Class) Value {
+	if IsA(val, class) {
+		return Undefined
+	}
+
+	return Errorf(
+		TypeErrorClass,
+		"failed type cast, `%s` is not an instance of `%s`",
+		val.Inspect(),
+		class.Name,
+	).ToValue()
+}
+
+func AsUnsafe(val Value, class Value) Value {
+	return As(val, (*Class)(class.Pointer()))
+}
+
 // Check if the given value is an instance of the given class or its subclasses.
 func classIsA(val Value, class *Class) bool {
 	currentClass := val.Class()

@@ -3683,17 +3683,12 @@ func (vm *Thread) opMust() {
 
 // Throw an error when the second value on the stack is not an instance of the class/mixin on top of the stack
 func (vm *Thread) opAs() {
-	class := vm.popGet().AsReference().(*value.Class)
+	class := vm.popGet()
 	val := vm.peek()
-	if !value.IsA(val, class) {
-		vm.throw(
-			value.Ref(value.Errorf(
-				value.TypeErrorClass,
-				"failed type cast, `%s` is not an instance of `%s`",
-				val.Inspect(),
-				class.Name,
-			)),
-		)
+
+	err := value.AsUnsafe(val, class)
+	if err.IsNotUndefined() {
+		vm.throw(err)
 	}
 }
 

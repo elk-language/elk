@@ -2316,7 +2316,7 @@ func main() { // loc: <main>
 // 				$foo: loop
 // 					println("foo")
 // 				end
-
+//
 // 				loop
 // 					break[foo]
 // 				end
@@ -2327,7 +2327,7 @@ func main() { // loc: <main>
 // 			},
 // 		},
 // 	}
-
+//
 // 	for name, tc := range tests {
 // 		t.Run(name, func(t *testing.T) {
 // 			bytecodeCompilerTest(tc, t)
@@ -2375,7 +2375,7 @@ func main() { // loc: <main>
 // 				$foo: loop
 // 					println("foo")
 // 				end
-
+//
 // 				loop
 // 					continue[foo]
 // 				end
@@ -2386,7 +2386,7 @@ func main() { // loc: <main>
 // 			},
 // 		},
 // 	}
-
+//
 // 	for name, tc := range tests {
 // 		t.Run(name, func(t *testing.T) {
 // 			bytecodeCompilerTest(tc, t)
@@ -5870,43 +5870,95 @@ func main() { // loc: <main>
 // 	}
 // }
 
-// func TestBytecodeAs(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"cast": {
-// 			input: `
-// 				var a: Int | Float = 1
-// 				a as ::Std::Int
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.AS),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(47, 3, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 5),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Int").ToValue(),
-// 				},
-// 			),
-// 		},
-// 	}
+func TestGoAs(t *testing.T) {
+	tests := goTestTable{
+		"assert": {
+			input: `
+				var a: Int | Float = 1
+				a as ::Std::Int
+				nil
+			`,
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int | Std::Float
+	_ = l0
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(1)).ToValue()
+	err = value.As(l0, value.IntClass)
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+}
+`,
+		},
+		"cast": {
+			input: `
+				var a: Int | Float = 1
+				b := a as ::Std::Int
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int | Std::Float
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = (value.SmallInt(1)).ToValue()
+	t1 = l0
+	err = value.As(t1, value.IntClass)
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestBytecodeThrow(t *testing.T) {
 // 	tests := bytecodeTestTable{
