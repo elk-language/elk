@@ -5836,39 +5836,95 @@ func main() { // loc: <main>
 // 	}
 // }
 
-// func TestBytecodeMust(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"with a value": {
-// 			input: `
-// 				var a: Int? = nil
-// 				must a`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.MUST),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(32, 3, 10)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 3),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 	}
+func TestGoMust(t *testing.T) {
+	tests := goTestTable{
+		"assert": {
+			input: `
+				var a: Int? = nil
+				must a
+				nil
+			`,
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+	err = value.Must(l0)
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+}
+`,
+		},
+		"cast": {
+			input: `
+				var a: Int? = nil
+				b := must a
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	l0 = value.Nil
+	t1 = l0
+	err = value.Must(t1)
+	if err.IsNotUndefined() {
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 func TestGoAs(t *testing.T) {
 	tests := goTestTable{

@@ -3676,8 +3676,9 @@ func (vm *Thread) opExponentiate() (err value.Value) {
 // Throw an error when the value on top of the stack is `nil`
 func (vm *Thread) opMust() {
 	val := vm.peek()
-	if value.IsNil(val) {
-		vm.throw(value.Ref(value.NewUnexpectedNilError()))
+	err := value.Must(val)
+	if err.IsNotUndefined() {
+		vm.throw(err)
 	}
 }
 

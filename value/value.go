@@ -1331,6 +1331,15 @@ func IsNil(val Value) bool {
 	return val.IsNil()
 }
 
+// Checks whether the given value is nil and returns and error if it is.
+func Must(val Value) Value {
+	if !val.IsNil() {
+		return Undefined
+	}
+
+	return NewUnexpectedNilError().ToValue()
+}
+
 // Returns true when the Elk value is truthy (works like true in boolean logic)
 // otherwise returns false.
 func Truthy(val Value) bool {

@@ -1681,6 +1681,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileRangeLiteralNode(node)
 	case *ast.AsExpressionNode:
 		return c.compileAsExpressionNode(node, valueIsIgnored)
+	case *ast.MustExpressionNode:
+		return c.compileMustExpressionNode(node, valueIsIgnored)
 	case *ast.IfExpressionNode:
 		return c.compileIfExpression(
 			ifConditionType,
@@ -1865,6 +1867,29 @@ func (c *GoCompiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) *goValu
 	default:
 		panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
 	}
+}
+
+func (c *GoCompiler) compileMustExpressionNode(node *ast.MustExpressionNode, valueIsIgnored bool) *goValue {
+	val := c.compileExpression(node.Value, false)
+	defer val.markFree()
+
+	narrowVal := c.valueToNarrowerType(val)
+
+	var result *goValue
+
+	if valueIsIgnored {
+		result = val
+	} else {
+		tmpVar := c.defineTmpGoLocal(narrowVal.goType())
+		result = newTmpGoValue(tmpVar, narrowVal.elkType)
+		c.emit("%s = %s\n", tmpVar.name, narrowVal.value())
+	}
+
+	c.registerErr()
+	c.emit("err = value.Must(%s)\n", c.convertToValue(result))
+	c.emitErrorPropagation()
+
+	return result
 }
 
 func (c *GoCompiler) compileAsExpressionNode(node *ast.AsExpressionNode, valueIsIgnored bool) *goValue {
