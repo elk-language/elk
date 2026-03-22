@@ -37,6 +37,9 @@ disassemble: fmt
 transpile: fmt
 	go run ./cmd/elk repl --transpile
 
+native: fmt
+	go run ./cmd/elk repl --native
+
 lex: fmt
 	go run ./cmd/elk repl --lex
 

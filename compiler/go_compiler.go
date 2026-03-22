@@ -159,6 +159,13 @@ func (s nativeElkScopes) last() *nativeElkScope {
 	return s[len(s)-1]
 }
 
+type goLoopInfo struct {
+	label                         string
+	labelIsUsed                   bool
+	resultVar                     *goLocal
+	returnsValueFromLastIteration bool
+}
+
 var goValueType = value.NewGoType("value.Value")
 
 type goLocal struct {
@@ -484,6 +491,8 @@ type GoCompiler struct {
 	mode              goMode
 	children          concurrent.Slice[*GoCompiler]
 	goLocals          ds.OrderedMap[string, *goLocal]
+	loopInfo          []*goLoopInfo
+	loopCounter       int // increments when a loop is entered, does not decrement ever
 	tmpLocalCounter   int
 	lastElkLocalIndex int
 	callCacheCounter  int
@@ -587,6 +596,51 @@ func (c *GoCompiler) SetParent(parent Compiler) {
 	p := parent.(*GoCompiler)
 	c.parent = p
 	p.children.Append(c)
+}
+
+func (c *GoCompiler) addLoopInfo(label string, resultVar *goLocal, returnsValFromLastIteration bool) *goLoopInfo {
+	info := &goLoopInfo{
+		label:                         label,
+		resultVar:                     resultVar,
+		returnsValueFromLastIteration: returnsValFromLastIteration,
+	}
+	c.loopInfo = append(
+		c.loopInfo,
+		info,
+	)
+
+	return info
+}
+
+func (c *GoCompiler) findLoopInfo(label string, location *position.Location) *goLoopInfo {
+	if len(c.loopInfo) < 1 {
+		c.Errors.AddFailure(
+			"cannot jump with `break` or `continue` outside of a loop",
+			location,
+		)
+		return nil
+	}
+
+	if label == "" {
+		// if there is no label, choose the closest enclosing loop
+		return c.loopInfo[len(c.loopInfo)-1]
+	}
+
+	for _, currentJumpSet := range c.loopInfo {
+		if currentJumpSet.label == label {
+			return currentJumpSet
+		}
+	}
+
+	c.Errors.AddFailure(
+		fmt.Sprintf("label $%s does not exist or is not attached to an enclosing loop", label),
+		location,
+	)
+	return nil
+}
+
+func (c *GoCompiler) popLoopInfo() {
+	c.loopInfo = c.loopInfo[:len(c.loopInfo)-1]
 }
 
 func (c *GoCompiler) registerGoLocal(name string, goType *value.GoType) *goLocal {
@@ -1683,6 +1737,10 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileAsExpressionNode(node, valueIsIgnored)
 	case *ast.MustExpressionNode:
 		return c.compileMustExpressionNode(node, valueIsIgnored)
+	case *ast.WhileExpressionNode:
+		return c.compileWhileExpressionNode("", node, valueIsIgnored)
+	case *ast.LoopExpressionNode:
+		return c.compileLoopExpressionNode("", node, valueIsIgnored)
 	case *ast.IfExpressionNode:
 		return c.compileIfExpression(
 			ifConditionType,
@@ -1867,6 +1925,122 @@ func (c *GoCompiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) *goValu
 	default:
 		panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
 	}
+}
+
+func (c *GoCompiler) compileLoopExpressionNode(label string, node *ast.LoopExpressionNode, valueIsIgnored bool) *goValue {
+	return c.compileLoop(label, node.ThenBody, c.typeOf(node), valueIsIgnored)
+}
+
+func (c *GoCompiler) compileLoop(label string, body []ast.StatementNode, elkType types.Type, valueIsIgnored bool) *goValue {
+	var result *goValue
+
+	if valueIsIgnored {
+		result = nilGoValue
+	} else {
+		goType := c.elkTypeToGoType(elkType, false)
+		tmpVar := c.defineTmpGoLocal(goType)
+		result = newTmpGoValue(tmpVar, elkType)
+
+		if c.checker.IsSubtype(types.Nil{}, elkType) {
+			c.emit("%s = value.Nil\n", tmpVar.name)
+		}
+	}
+
+	c.enterScope(label, loopNativeElkScopeType)
+	loopInfo := c.addLoopInfo(label, result.tmpLocal, false)
+	c.loopCounter++
+
+	prevBuff := c.switchBuffer(bytes.Buffer{})
+	c.emit("for {\n")
+	then := c.compileStatements(body)
+	if !valueIsIgnored {
+		c.emit("%s = %s\n", result.tmpLocal.name, then.fetchValue())
+	}
+
+	c.emit("}\n")
+
+	newBuff := c.switchBuffer(prevBuff)
+	if loopInfo.labelIsUsed {
+		c.emit("%s: ", label)
+	}
+	c.emitBytes(newBuff.Bytes())
+
+	c.leaveScope()
+	c.popLoopInfo()
+	return result
+}
+
+// Switch to a new buffer and return the previous one
+func (c *GoCompiler) switchBuffer(buff bytes.Buffer) bytes.Buffer {
+	prevBuff := c.buff
+	c.buff = buff
+	return prevBuff
+}
+
+func (c *GoCompiler) compileWhileExpressionNode(label string, node *ast.WhileExpressionNode, valueIsIgnored bool) *goValue {
+	if resolved := resolve(node.Condition, c.checker); resolved.IsNotUndefined() {
+		if value.Falsy(resolved) {
+			// the loop won't run at all
+			// it can be optimised into a simple NIL operation
+			return nilGoValue
+		}
+
+		// the loop is endless
+		return c.compileLoop(label, node.ThenBody, c.typeOf(node), valueIsIgnored)
+	}
+
+	var result *goValue
+
+	if valueIsIgnored {
+		result = nilGoValue
+	} else {
+		elkType := c.typeOf(node)
+		goType := c.elkTypeToGoType(elkType, false)
+		tmpVar := c.defineTmpGoLocal(goType)
+		result = newTmpGoValue(tmpVar, elkType)
+
+		if c.checker.IsSubtype(types.Nil{}, elkType) {
+			c.emit("%s = value.Nil\n", tmpVar.name)
+		}
+	}
+
+	c.enterScope(label, loopNativeElkScopeType)
+	loopInfo := c.addLoopInfo(label, result.tmpLocal, true)
+	c.loopCounter++
+
+	prevBuff := c.switchBuffer(bytes.Buffer{})
+	// loop start
+	c.emit("for {\n")
+
+	// loop condition eg. `i < 5`
+	cond := c.valueToNarrowerType(c.compileExpression(node.Condition, false))
+
+	switch cond.goType().Name {
+	case "value.Bool", "bool":
+		c.emit("if !%s { break }\n", cond.fetchValue())
+	default:
+		c.emit("if value.Falsy(%s) { break }\n", cond.fetchValue())
+	}
+
+	// loop body
+	then := c.valueToNarrowerType(c.compileStatements(node.ThenBody))
+	if !valueIsIgnored {
+		c.emit("%s = %s\n", result.tmpLocal.name, then.fetchValue())
+	}
+
+	// after loop
+	c.emit("}\n")
+
+	newBuff := c.switchBuffer(prevBuff)
+	if loopInfo.labelIsUsed {
+		c.emit("%s: ", label)
+	}
+	c.emitBytes(newBuff.Bytes())
+
+	c.leaveScope()
+	c.popLoopInfo()
+
+	return result
 }
 
 func (c *GoCompiler) compileMustExpressionNode(node *ast.MustExpressionNode, valueIsIgnored bool) *goValue {

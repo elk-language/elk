@@ -1,22 +1,17 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"go/format"
 	"os"
-	"os/exec"
 	"path"
-	"runtime"
-	"strings"
 
 	"path/filepath"
 
+	"github.com/elk-language/elk"
 	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/ext"
 	"github.com/elk-language/elk/ext/std/test"
-	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/repl"
 	"github.com/elk-language/elk/types/checker"
@@ -32,13 +27,14 @@ func main() {
 		fs := pflag.NewFlagSet("repl", pflag.ExitOnError)
 		disassemble := fs.Bool("disassemble", false, "run the REPL in disassembler mode")
 		transpile := fs.Bool("transpile", false, "run the REPL in Go transpiler mode")
+		native := fs.Bool("native", false, "run the REPL in native Go mode")
 		inspectStack := fs.Bool("inspect-stack", false, "print the stack after each iteration of the REPL")
 		parse := fs.Bool("parse", false, "run the REPL in parser mode")
 		lex := fs.Bool("lex", false, "run the REPL in lexer mode")
 		typecheck := fs.Bool("typecheck", false, "run the REPL in type checker mode")
 		expand := fs.Bool("expand", false, "run the REPL in macro expansion mode")
 		fs.Parse(os.Args[2:])
-		repl.Run(*disassemble, *transpile, *inspectStack, *parse, *lex, *typecheck, *expand)
+		repl.Run(*disassemble, *transpile, *native, *inspectStack, *parse, *lex, *typecheck, *expand)
 	case "run":
 		if len(os.Args) < 3 {
 			runMain()
@@ -112,118 +108,11 @@ func runMain() {
 
 // Attempt to compile the given file.
 func compileFile(fileName string) {
-	absFileName, err := filepath.Abs(fileName)
+	_, err := elk.CompileFile(fileName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not find file `%s`\n", fileName)
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
-	_, err = os.Stat(absFileName)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not find file `%s`\n", absFileName)
-		os.Exit(1)
-	}
-
-	var buffer bytes.Buffer
-	goCompiler, diagnostics := checker.CheckFileNative(fileName, nil, &buffer, nil)
-	if diagnostics != nil {
-		fmt.Println()
-
-		diagnosticString, err := diagnostics.HumanString(true, lexer.Colorizer{})
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(diagnosticString)
-		if diagnostics.IsFailure() {
-			os.Exit(1)
-		}
-	}
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	outPath := path.Join(cwd, "out")
-	err = os.RemoveAll(outPath)
-	if err != nil {
-		panic(err)
-	}
-
-	err = os.MkdirAll(outPath, 0755)
-	if err != nil {
-		panic(err)
-	}
-	targetPath := path.Join(outPath, "main.go")
-
-	var failed bool
-	goCompiler.Flush()
-	result, err := format.Source(buffer.Bytes())
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot format target go file: %s\n", err)
-		fmt.Fprintf(os.Stderr, "inspect: %s\n", targetPath)
-		result = buffer.Bytes()
-		failed = true
-	}
-
-	targetFile, err := os.Create(targetPath)
-	if err != nil {
-		panic(err)
-	}
-
-	targetFile.Write(result)
-	if failed {
-		os.Exit(1)
-	}
-
-	var goModBuff bytes.Buffer
-	fmt.Fprintf(&goModBuff, "module main\n\n")
-
-	goVersion := strings.TrimPrefix(runtime.Version(), "go")
-	fmt.Fprintf(&goModBuff, "go %s\n\n", goVersion)
-
-	goModPath := path.Join(outPath, "go.mod")
-	goModFile, err := os.Create(goModPath)
-	if err != nil {
-		panic(err)
-	}
-	goModFile.Write(goModBuff.Bytes())
-
-	if info.Version == "dev" {
-		var goWorkBuff bytes.Buffer
-		fmt.Fprintf(&goWorkBuff, "go %s\n\n", goVersion)
-		fmt.Fprintf(&goWorkBuff, "use .\n")
-		fmt.Fprintf(&goWorkBuff, "use ..\n")
-
-		goWorkPath := path.Join(outPath, "go.work")
-		goWorkFile, err := os.Create(goWorkPath)
-		if err != nil {
-			panic(err)
-		}
-		goWorkFile.Write(goWorkBuff.Bytes())
-	} else {
-		sh("go", "-C", outPath, "get", fmt.Sprintf("github.com/elk-language/elk@%s", info.Version))
-	}
-
-	sh("go", "-C", outPath, "mod", "tidy")
-	sh("go", "-C", outPath, "build", "-tags", "native", "-ldflags", fmt.Sprintf("-X 'github.com/elk-language/elk/info.Version=%s'", info.Version))
-}
-
-func sh(name string, args ...string) {
-	cmd := exec.Command(name, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err == nil {
-		return
-	}
-
-	var buff strings.Builder
-	buff.WriteString(name)
-	for _, arg := range args {
-		buff.WriteByte(' ')
-		buff.WriteString(arg)
-	}
-	panic(fmt.Sprintf("error executing command: `%s`", buff.String()))
 }
 
 // Attempt to compile the main file in the current working directory

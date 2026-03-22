@@ -7,6 +7,7 @@ import (
 	"os"
 	"unicode/utf8"
 
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/compiler/colorize"
 	"github.com/elk-language/elk/compiler/types"
 	"github.com/elk-language/elk/ds"
@@ -201,6 +202,18 @@ func (e *evaluator) transpile(input string) {
 	}
 }
 
+// compiles the input to Go source code and executes it
+func (e *evaluator) native(input string) {
+	sourceName := e.addSource(input)
+	defer e.deleteSource(sourceName)
+
+	err := elk.CompileRunSource(sourceName, input)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+
 // parsers, typechecks the input and prints it to the output
 func (e *evaluator) typecheck(input string) {
 	sourceName := e.addSource(input)
@@ -273,9 +286,9 @@ func (e *evaluator) lex(input string) {
 }
 
 // Start the REPL.
-func Run(disassemble, transpile, inspectStack, parse, lex, typecheck, expand bool) {
+func Run(disassemble, transpile, native, inspectStack, parse, lex, typecheck, expand bool) {
 	p := prompt.New(
-		executor(disassemble, transpile, inspectStack, parse, lex, typecheck, expand),
+		executor(disassemble, transpile, native, inspectStack, parse, lex, typecheck, expand),
 		prompt.WithLexer(&Lexer{}),
 		prompt.WithExecuteOnEnterCallback(executeOnEnter),
 		prompt.WithPrefix(">> "),
@@ -363,7 +376,7 @@ const (
 	sourceName = "REPL"
 )
 
-func executor(disassemble, transpile, inspectStack, parse, lex, typecheck, expand bool) prompt.Executor {
+func executor(disassemble, transpile, native, inspectStack, parse, lex, typecheck, expand bool) prompt.Executor {
 	eval := &evaluator{
 		inspectStack: inspectStack,
 		sourceMap:    make(map[string]string),
@@ -382,6 +395,9 @@ func executor(disassemble, transpile, inspectStack, parse, lex, typecheck, expan
 
 		eval.goTypechecker = checker
 		return eval.transpile
+	}
+	if native {
+		return eval.native
 	}
 	if parse {
 		return eval.parse
