@@ -361,25 +361,29 @@ func (c Char) LessThanEqualChar(other Char) bool {
 
 // Check whether c is equal to other
 func (c Char) LaxEqualVal(other Value) Value {
+	return BoolVal(c.LaxEqual(other))
+}
+
+func (c Char) LaxEqual(other Value) bool {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
 			ch, ok := o.ToChar()
 			if !ok {
-				return False.ToValue()
+				return false
 			}
 
-			return Bool(c == ch).ToValue()
+			return c == ch
 		default:
-			return False.ToValue()
+			return false
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return Bool(c == other.AsChar()).ToValue()
+		return c == other.AsChar()
 	default:
-		return False.ToValue()
+		return false
 	}
 }
 

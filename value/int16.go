@@ -207,10 +207,14 @@ func (i Int16) ModuloVal(other Value) (Int16, Value) {
 	}
 
 	o := other.AsInt16()
-	if o == 0 {
+	return i.ModuloInt16(o)
+}
+
+func (i Int16) ModuloInt16(other Int16) (Int16, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i % o, Undefined
+	return i % other, Undefined
 }
 
 func (i Int16) Divide(other Value) (Int16, Value) {

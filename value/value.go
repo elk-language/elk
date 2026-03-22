@@ -3028,11 +3028,11 @@ func LaxEqualVal(left, right Value) Value {
 		case *Regex:
 			return l.LaxEqualVal(right)
 		case Float64:
-			return StrictFloatLaxEqual(l, right)
+			return StrictFloatLaxEqualVal(l, right)
 		case Int64:
-			return StrictSignedIntLaxEqual(l, right)
+			return StrictSignedIntLaxEqualVal(l, right)
 		case UInt64:
-			return StrictUnsignedIntLaxEqual(l, right)
+			return StrictUnsignedIntLaxEqualVal(l, right)
 		default:
 			return Undefined
 		}
@@ -3053,37 +3053,37 @@ func LaxEqualVal(left, right Value) Value {
 		return l.LaxEqualVal(right)
 	case FLOAT64_FLAG:
 		l := left.AsInlineFloat64()
-		return StrictFloatLaxEqual(l, right)
+		return StrictFloatLaxEqualVal(l, right)
 	case FLOAT32_FLAG:
 		l := left.AsFloat32()
-		return StrictFloatLaxEqual(l, right)
+		return StrictFloatLaxEqualVal(l, right)
 	case INT64_FLAG:
 		l := left.AsInlineInt64()
-		return StrictSignedIntLaxEqual(l, right)
+		return StrictSignedIntLaxEqualVal(l, right)
 	case INT32_FLAG:
 		l := left.AsInt32()
-		return StrictSignedIntLaxEqual(l, right)
+		return StrictSignedIntLaxEqualVal(l, right)
 	case INT16_FLAG:
 		l := left.AsInt16()
-		return StrictSignedIntLaxEqual(l, right)
+		return StrictSignedIntLaxEqualVal(l, right)
 	case INT8_FLAG:
 		l := left.AsInt8()
-		return StrictSignedIntLaxEqual(l, right)
+		return StrictSignedIntLaxEqualVal(l, right)
 	case UINT_FLAG:
 		l := left.AsUInt()
-		return StrictUnsignedIntLaxEqual(l, right)
+		return StrictUnsignedIntLaxEqualVal(l, right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
-		return StrictUnsignedIntLaxEqual(l, right)
+		return StrictUnsignedIntLaxEqualVal(l, right)
 	case UINT32_FLAG:
 		l := left.AsUInt32()
-		return StrictUnsignedIntLaxEqual(l, right)
+		return StrictUnsignedIntLaxEqualVal(l, right)
 	case UINT16_FLAG:
 		l := left.AsUInt16()
-		return StrictUnsignedIntLaxEqual(l, right)
+		return StrictUnsignedIntLaxEqualVal(l, right)
 	case UINT8_FLAG:
 		l := left.AsUInt8()
-		return StrictUnsignedIntLaxEqual(l, right)
+		return StrictUnsignedIntLaxEqualVal(l, right)
 	default:
 		return Undefined
 	}
@@ -3099,6 +3099,11 @@ func LaxNotEqualVal(left, right Value) Value {
 	}
 
 	return ToNotBool(val).ToValue()
+}
+
+func LaxNotEqual(left, right Value) bool {
+	val := LaxEqualVal(left, right)
+	return bool(ToNotBool(val))
 }
 
 // Check whether left is equal to right.

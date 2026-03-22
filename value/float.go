@@ -788,54 +788,58 @@ func (f Float) LessThanEqualBigInt(other *BigInt) bool {
 
 // Check whether f is equal to other
 func (f Float) LaxEqualVal(other Value) Value {
+	return BoolVal(f.LaxEqual(other))
+}
+
+func (f Float) LaxEqual(other Value) bool {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return Bool(f == o.ToFloat()).ToValue()
+			return f == o.ToFloat()
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False.ToValue()
+				return false
 			}
 			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return Bool(fBigFloat.Cmp(o) == 0).ToValue()
+			return fBigFloat.Cmp(o) == 0
 		case Int64:
-			return Bool(f == Float(o)).ToValue()
+			return f == Float(o)
 		case UInt64:
-			return Bool(f == Float(o)).ToValue()
+			return f == Float(o)
 		case Float64:
-			return Bool(float64(f) == float64(o)).ToValue()
+			return float64(f) == float64(o)
 		default:
-			return False.ToValue()
+			return false
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return Bool(f == Float(other.AsSmallInt())).ToValue()
+		return f == Float(other.AsSmallInt())
 	case FLOAT_FLAG:
-		return Bool(f == other.AsFloat()).ToValue()
+		return f == other.AsFloat()
 	case INT64_FLAG:
-		return Bool(f == Float(other.AsInlineInt64())).ToValue()
+		return f == Float(other.AsInlineInt64())
 	case INT32_FLAG:
-		return Bool(f == Float(other.AsInt32())).ToValue()
+		return f == Float(other.AsInt32())
 	case INT16_FLAG:
-		return Bool(f == Float(other.AsInt16())).ToValue()
+		return f == Float(other.AsInt16())
 	case INT8_FLAG:
-		return Bool(f == Float(other.AsInt8())).ToValue()
+		return f == Float(other.AsInt8())
 	case UINT64_FLAG:
-		return Bool(f == Float(other.AsInlineUInt64())).ToValue()
+		return f == Float(other.AsInlineUInt64())
 	case UINT32_FLAG:
-		return Bool(f == Float(other.AsUInt32())).ToValue()
+		return f == Float(other.AsUInt32())
 	case UINT16_FLAG:
-		return Bool(f == Float(other.AsUInt16())).ToValue()
+		return f == Float(other.AsUInt16())
 	case UINT8_FLAG:
-		return Bool(f == Float(other.AsUInt8())).ToValue()
+		return f == Float(other.AsUInt8())
 	case FLOAT64_FLAG:
-		return Bool(float64(f) == float64(other.AsInlineFloat64())).ToValue()
+		return float64(f) == float64(other.AsInlineFloat64())
 	case FLOAT32_FLAG:
-		return Bool(Float(f) == Float(other.AsFloat32())).ToValue()
+		return Float(f) == Float(other.AsFloat32())
 	default:
-		return False.ToValue()
+		return false
 	}
 }
 

@@ -136,7 +136,7 @@ func initInt8() {
 		"=~",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsInt8()
-			return value.StrictSignedIntLaxEqual(self, args[1]), value.Undefined
+			return value.StrictSignedIntLaxEqualVal(self, args[1]), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -235,7 +235,7 @@ func initInt8() {
 			self := args[0].AsInt8()
 			other := args[1].AsInt8()
 
-			return (self % other).ToValue(), value.Undefined
+			return value.ToValueErr(self.ModuloInt8(other))
 		},
 		DefWithParameters(1),
 	)

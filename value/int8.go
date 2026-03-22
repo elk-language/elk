@@ -204,10 +204,14 @@ func (i Int8) ModuloVal(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
-	if o == 0 {
+	return i.ModuloInt8(o)
+}
+
+func (i Int8) ModuloInt8(other Int8) (Int8, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i % o, Undefined
+	return i % other, Undefined
 }
 
 func (i Int8) Divide(other Value) (Int8, Value) {

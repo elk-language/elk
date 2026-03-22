@@ -116,6 +116,10 @@ func (r *Regex) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
+func (r *Regex) LaxEqual(other Value) Value {
+	return r.Equal(other)
+}
+
 // Check whether r is equal to other
 func (r *Regex) Equal(other Value) Value {
 	if !other.IsReference() {

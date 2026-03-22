@@ -136,7 +136,7 @@ func initInt32() {
 		"=~",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsInt32()
-			return value.StrictSignedIntLaxEqual(self, args[1]), value.Undefined
+			return value.StrictSignedIntLaxEqualVal(self, args[1]), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -235,7 +235,7 @@ func initInt32() {
 			self := args[0].AsInt32()
 			other := args[1].AsInt32()
 
-			return (self % other).ToValue(), value.Undefined
+			return value.ToValueErr(self.ModuloInt32(other))
 		},
 		DefWithParameters(1),
 	)

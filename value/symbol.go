@@ -152,6 +152,10 @@ func (s Symbol) Equal(other Value) bool {
 	return false
 }
 
+func (s Symbol) LaxEqual(other Value) bool {
+	return s.Equal(other)
+}
+
 // Check whether s is equal to other
 func (s Symbol) StrictEqualVal(other Value) Value {
 	return s.EqualVal(other)

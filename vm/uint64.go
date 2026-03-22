@@ -136,7 +136,7 @@ func initUInt64() {
 		"=~",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsUInt64()
-			return value.StrictUnsignedIntLaxEqual(self, args[1]), value.Undefined
+			return value.StrictUnsignedIntLaxEqualVal(self, args[1]), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -219,7 +219,7 @@ func initUInt64() {
 			self := args[0].AsUInt64()
 			other := args[1].AsUInt64()
 
-			return (self % other).ToValue(), value.Undefined
+			return value.ToValueErr(self.ModuloUInt64(other))
 		},
 		DefWithParameters(1),
 	)

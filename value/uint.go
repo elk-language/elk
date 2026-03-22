@@ -204,10 +204,14 @@ func (i UInt) ModuloVal(other Value) (UInt, Value) {
 	}
 
 	o := other.AsUInt()
-	if o == 0 {
+	return i.ModuloUInt(o)
+}
+
+func (i UInt) ModuloUInt(other UInt) (UInt, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i % o, Undefined
+	return i % other, Undefined
 }
 
 func (i UInt) Divide(other Value) (UInt, Value) {

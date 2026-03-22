@@ -488,7 +488,7 @@ func TestStrictFloat_LaxEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := value.StrictFloatLaxEqual(tc.a, tc.b)
+			got := value.StrictFloatLaxEqualVal(tc.a, tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -828,7 +828,7 @@ func TestStrictSignedInt_LaxEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := value.StrictSignedIntLaxEqual(tc.a, tc.b)
+			got := value.StrictSignedIntLaxEqualVal(tc.a, tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -1108,7 +1108,7 @@ func TestStrictUnsignedInt_LaxEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := value.StrictUnsignedIntLaxEqual(tc.a, tc.b)
+			got := value.StrictUnsignedIntLaxEqualVal(tc.a, tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())

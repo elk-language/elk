@@ -467,11 +467,11 @@ func (s String) LessThanEqual(other Value) (bool, Value) {
 
 // Check whether s is equal to other
 func (s String) LaxEqualVal(other Value) Value {
-	return BoolVal(s.LaxEqualBool(other))
+	return BoolVal(s.LaxEqual(other))
 }
 
 // Check whether s is equal to other
-func (s String) LaxEqualBool(other Value) bool {
+func (s String) LaxEqual(other Value) bool {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:

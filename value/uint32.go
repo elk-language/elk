@@ -213,6 +213,13 @@ func (i UInt32) ModuloVal(other Value) (UInt32, Value) {
 	return i % o, Undefined
 }
 
+func (i UInt32) ModuloUInt32(other UInt32) (UInt32, Value) {
+	if other == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	return i % other, Undefined
+}
+
 func (i UInt32) Divide(other Value) (UInt32, Value) {
 	if !other.IsUInt32() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))

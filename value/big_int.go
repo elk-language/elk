@@ -848,68 +848,72 @@ func (i *BigInt) LessThanEqualBigFloat(other *BigFloat) bool {
 
 // Check whether i is equal to other (with coercion)
 func (i *BigInt) LaxEqualVal(other Value) Value {
+	return BoolVal(i.LaxEqual(other))
+}
+
+func (i *BigInt) LaxEqual(other Value) bool {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return Bool(i.Cmp(o) == 0).ToValue()
+			return i.Cmp(o) == 0
 		case *BigFloat:
 			if o.IsNaN() {
-				return False.ToValue()
+				return false
 			}
 			iBigFloat := (&BigFloat{}).SetBigInt(i)
-			return Bool(iBigFloat.Cmp(o) == 0).ToValue()
+			return iBigFloat.Cmp(o) == 0
 		case Int64:
 			oBigInt := NewBigInt(int64(o))
-			return Bool(i.Cmp(oBigInt) == 0).ToValue()
+			return i.Cmp(oBigInt) == 0
 		case UInt64:
 			oBigInt := NewBigInt(int64(o))
-			return Bool(i.Cmp(oBigInt) == 0).ToValue()
+			return i.Cmp(oBigInt) == 0
 		case Float64:
-			return Bool(i.ToFloat() == Float(o)).ToValue()
+			return i.ToFloat() == Float(o)
 		default:
-			return False.ToValue()
+			return false
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case FLOAT_FLAG:
-		return Bool(i.ToFloat() == other.AsFloat()).ToValue()
+		return i.ToFloat() == other.AsFloat()
 	case INT64_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInlineInt64()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case INT32_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInt32()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case INT16_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInt16()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case INT8_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInt8()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case UINT_FLAG:
 		oBigInt := NewBigInt(int64(other.AsUInt()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case UINT64_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInlineUInt64()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case UINT32_FLAG:
 		oBigInt := NewBigInt(int64(other.AsUInt32()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case UINT16_FLAG:
 		oBigInt := NewBigInt(int64(other.AsUInt16()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case UINT8_FLAG:
 		oBigInt := NewBigInt(int64(other.AsUInt8()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case FLOAT64_FLAG:
-		return Bool(i.ToFloat() == Float(other.AsInlineFloat64())).ToValue()
+		return i.ToFloat() == Float(other.AsInlineFloat64())
 	case FLOAT32_FLAG:
-		return Bool(i.ToFloat() == Float(other.AsFloat32())).ToValue()
+		return i.ToFloat() == Float(other.AsFloat32())
 	default:
-		return False.ToValue()
+		return false
 	}
 }
 

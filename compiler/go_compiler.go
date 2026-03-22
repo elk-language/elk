@@ -4887,98 +4887,22 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode,
 		return c.compileRightBitshift(node, valueIsIgnored)
 	case token.RTRIPLE_BITSHIFT:
 		return c.compileLogicalRightBitshift(node, valueIsIgnored)
-	// case token.AND:
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
-	// 		tmp := c.defineTmpGoLocal(goValueType)
-	// 		c.registerErr()
-	// 		c.emit("%s, err = value.BitwiseAndVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
-	// 		c.emitPopCallFrame()
-	// 		c.emitErrorPropagation()
-
-	// 		return newTmpGoValue(
-	// 			tmp,
-	// 			c.checker.Std(symbol.Value),
-	// 		)
-	// 	}
-
-	// 	callCache := c.emitCallCache()
-	// 	tmp := c.defineTmpGoLocal(goValueType)
-	// 	c.registerErr()
-	// 	c.emitAddCallFrame(node.Location())
-	// 	c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpAnd, &%s, %s, %s)", tmp.name, callCache, c.convertToValue(left), c.convertToValue(right))
-	// 	c.emitPopCallFrame()
-	// 	c.emitErrorPropagation()
-	// 	return newTmpGoValue(
-	// 		tmp,
-	// 		c.checker.Std(symbol.Value),
-	// 	)
-	// case token.AND_TILDE:
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
-	// 		c.emit(line, bytecode.BITWISE_AND_NOT)
-	// 		return
-	// 	}
-	// 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpAndNot, 1), location, false)
-	// case token.OR:
-	// 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-	// 		c.emit(line, bytecode.BITWISE_OR_INT)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
-	// 		c.emit(line, bytecode.BITWISE_OR)
-	// 		return
-	// 	}
-	// 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpOr, 1), location, false)
-	// case token.XOR:
-	// 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-	// 		c.emit(line, bytecode.BITWISE_XOR_INT)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinInt)) {
-	// 		c.emit(line, bytecode.BITWISE_XOR)
-	// 		return
-	// 	}
-	// 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpXor, 1), location, false)
-	// case token.PERCENT:
-	// 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-	// 		c.emit(line, bytecode.MODULO_INT)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
-	// 		c.emit(line, bytecode.MODULO_FLOAT)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinNumeric)) {
-	// 		c.emit(line, bytecode.MODULO)
-	// 		return
-	// 	}
-	// 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpModulo, 1), location, false)
-	// case token.LAX_EQUAL:
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
-	// 		c.emit(line, bytecode.LAX_EQUAL)
-	// 		return
-	// 	}
-	// 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), location, false)
-	// case token.LAX_NOT_EQUAL:
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
-	// 		c.emit(line, bytecode.LAX_NOT_EQUAL)
-	// 		return
-	// 	}
-	// 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLaxEqual, 1), location, false)
-	// 	c.emit(line, bytecode.NOT)
-	// case token.EQUAL_EQUAL:
-	// 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-	// 		c.emit(line, bytecode.EQUAL_INT)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
-	// 		c.emit(line, bytecode.EQUAL_INT)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
-	// 		c.emit(line, bytecode.EQUAL)
-	// 		return
-	// 	}
-	// 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), location, false)
+	case token.AND:
+		return c.compileBitwiseAnd(node, valueIsIgnored)
+	case token.OR:
+		return c.compileBitwiseOr(node, valueIsIgnored)
+	case token.AND_TILDE:
+		return c.compileBitwiseAndNot(node, valueIsIgnored)
+	case token.XOR:
+		return c.compileBitwiseXor(node, valueIsIgnored)
+	case token.PERCENT:
+		return c.compileModulo(node, valueIsIgnored)
+	case token.LAX_EQUAL:
+		return c.compileLaxEqual(node, valueIsIgnored)
+	case token.LAX_NOT_EQUAL:
+		return c.compileLaxNotEqual(node, valueIsIgnored)
+	case token.EQUAL_EQUAL:
+		return c.compileEqual(node, valueIsIgnored)
 	// case token.NOT_EQUAL:
 	// 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
 	// 		c.emit(line, bytecode.NOT_EQUAL_INT)
@@ -5223,7 +5147,7 @@ func (c *GoCompiler) compileLessEqualStrictNumeric(left, right *goValue) *goValu
 	}()
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s <= %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) <= (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		types.Bool{},
 		value.NewGoType("bool"),
 	)
@@ -5231,8 +5155,13 @@ func (c *GoCompiler) compileLessEqualStrictNumeric(left, right *goValue) *goValu
 
 func (c *GoCompiler) compileDivide(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
 	left := c.compileExpression(node.Left, false)
+	defer left.markFree()
+
 	narrowLeft := c.valueToNarrowerType(left)
+
 	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
 	typ := c.typeOf(node)
 
 	switch narrowLeft.goType().Name {
@@ -5527,7 +5456,7 @@ func (c *GoCompiler) compileDivideBigFloat(left, right *goValue, typ types.Type,
 
 func (c *GoCompiler) compileDivideFloat64(left, right *goValue) *goValue {
 	return newInlineGoValue(
-		fmt.Sprintf("(%s / %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) / (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Float64"),
 	)
@@ -5535,7 +5464,7 @@ func (c *GoCompiler) compileDivideFloat64(left, right *goValue) *goValue {
 
 func (c *GoCompiler) compileDivideFloat32(left, right *goValue) *goValue {
 	return newInlineGoValue(
-		fmt.Sprintf("(%s / %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) / (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Float32"),
 	)
@@ -5639,8 +5568,13 @@ func (c *GoCompiler) compileDivideUInt8(left, right *goValue) *goValue {
 
 func (c *GoCompiler) compileExponentiate(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
 	left := c.compileExpression(node.Left, false)
+	defer left.markFree()
+
 	narrowLeft := c.valueToNarrowerType(left)
+
 	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
 	typ := c.typeOf(node)
 
 	switch narrowLeft.goType().Name {
@@ -5952,10 +5886,219 @@ func (c *GoCompiler) compileExponentiateUInt8(left, right *goValue) *goValue {
 	)
 }
 
+func (c *GoCompiler) compileBitwiseAnd(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.compileExpression(node.Left, false)
+	defer left.markFree()
+
+	narrowLeft := c.valueToNarrowerType(left)
+
+	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType().Name {
+	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s) & (%s)", narrowLeft.fetchValue(), c.valueToNarrowerType(right).fetchValue()),
+			typ,
+			narrowLeft.goType(),
+		)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinInt)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = value.BitwiseAndVal(%s, %s)\n", tmp.name, c.convertToValue(left), c.convertToValue(right))
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		left.elkType,
+		typ,
+		"symbol.OpAnd",
+		"&",
+		[]*goValue{
+			left,
+			right,
+		},
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileBitwiseAndNot(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.compileExpression(node.Left, false)
+	defer left.markFree()
+
+	narrowLeft := c.valueToNarrowerType(left)
+
+	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType().Name {
+	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s) &^ (%s)", narrowLeft.fetchValue(), c.valueToNarrowerType(right).fetchValue()),
+			typ,
+			narrowLeft.goType(),
+		)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinInt)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = value.BitwiseAndNotVal(%s, %s)\n", tmp.name, c.convertToValue(left), c.convertToValue(right))
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		left.elkType,
+		typ,
+		"symbol.OpAndNot",
+		"&~",
+		[]*goValue{
+			left,
+			right,
+		},
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileBitwiseOr(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.compileExpression(node.Left, false)
+	defer left.markFree()
+
+	narrowLeft := c.valueToNarrowerType(left)
+
+	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType().Name {
+	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s) | (%s)", narrowLeft.fetchValue(), c.valueToNarrowerType(right).fetchValue()),
+			typ,
+			narrowLeft.goType(),
+		)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinInt)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = value.BitwiseOrVal(%s, %s)\n", tmp.name, c.convertToValue(left), c.convertToValue(right))
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		left.elkType,
+		typ,
+		"symbol.OpOr",
+		"|",
+		[]*goValue{
+			left,
+			right,
+		},
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileBitwiseXor(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.compileExpression(node.Left, false)
+	defer left.markFree()
+
+	narrowLeft := c.valueToNarrowerType(left)
+
+	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType().Name {
+	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s) ^ (%s)", narrowLeft.fetchValue(), c.valueToNarrowerType(right).fetchValue()),
+			typ,
+			narrowLeft.goType(),
+		)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinInt)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = value.BitwiseXorVal(%s, %s)\n", tmp.name, c.convertToValue(left), c.convertToValue(right))
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		left.elkType,
+		typ,
+		"symbol.OpXor",
+		"^",
+		[]*goValue{
+			left,
+			right,
+		},
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
 func (c *GoCompiler) compileLeftBitshift(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
 	left := c.compileExpression(node.Left, false)
+	defer left.markFree()
+
 	narrowLeft := c.valueToNarrowerType(left)
+
 	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
 	typ := c.typeOf(node)
 
 	switch narrowLeft.goType().Name {
@@ -6013,8 +6156,13 @@ func (c *GoCompiler) compileLeftBitshift(node *ast.BinaryExpressionNode, valueIs
 
 func (c *GoCompiler) compileLogicalLeftBitshift(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
 	left := c.compileExpression(node.Left, false)
+	defer left.markFree()
+
 	narrowLeft := c.valueToNarrowerType(left)
+
 	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
 	typ := c.typeOf(node)
 
 	switch narrowLeft.goType().Name {
@@ -6064,8 +6212,13 @@ func (c *GoCompiler) compileLogicalLeftBitshift(node *ast.BinaryExpressionNode, 
 
 func (c *GoCompiler) compileRightBitshift(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
 	left := c.compileExpression(node.Left, false)
+	defer left.markFree()
+
 	narrowLeft := c.valueToNarrowerType(left)
+
 	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
 	typ := c.typeOf(node)
 
 	switch narrowLeft.goType().Name {
@@ -6123,8 +6276,13 @@ func (c *GoCompiler) compileRightBitshift(node *ast.BinaryExpressionNode, valueI
 
 func (c *GoCompiler) compileLogicalRightBitshift(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
 	left := c.compileExpression(node.Left, false)
+	defer left.markFree()
+
 	narrowLeft := c.valueToNarrowerType(left)
+
 	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
 	typ := c.typeOf(node)
 
 	switch narrowLeft.goType().Name {
@@ -6769,8 +6927,13 @@ func (c *GoCompiler) compileRightBitshiftUInt8(left, right *goValue, typ types.T
 
 func (c *GoCompiler) compileMultiply(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
 	left := c.compileExpression(node.Left, false)
+	defer left.markFree()
+
 	narrowLeft := c.valueToNarrowerType(left)
+
 	right := c.valueToNarrowerType(c.compileExpression(node.Right, false))
+	defer right.markFree()
+
 	typ := c.typeOf(node)
 
 	switch narrowLeft.goType().Name {
@@ -7088,7 +7251,7 @@ func (c *GoCompiler) compileMultiplyFloat64(left, right *goValue, valueIsIgnored
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s * %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) * (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Float64"),
 	)
@@ -7100,7 +7263,7 @@ func (c *GoCompiler) compileMultiplyFloat32(left, right *goValue, valueIsIgnored
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s * %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) * (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Float32"),
 	)
@@ -7112,7 +7275,7 @@ func (c *GoCompiler) compileMultiplyInt64(left, right *goValue, valueIsIgnored b
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s * %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) * (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Int64"),
 	)
@@ -7124,7 +7287,7 @@ func (c *GoCompiler) compileMultiplyInt32(left, right *goValue, valueIsIgnored b
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s * %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) * (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Int32"),
 	)
@@ -7136,7 +7299,7 @@ func (c *GoCompiler) compileMultiplyInt16(left, right *goValue, valueIsIgnored b
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s * %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) * (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Int16"),
 	)
@@ -7148,7 +7311,7 @@ func (c *GoCompiler) compileMultiplyInt8(left, right *goValue, valueIsIgnored bo
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s * %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) * (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Int8"),
 	)
@@ -7160,7 +7323,7 @@ func (c *GoCompiler) compileMultiplyUInt64(left, right *goValue, valueIsIgnored 
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s * %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) * (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.UInt64"),
 	)
@@ -7172,7 +7335,7 @@ func (c *GoCompiler) compileMultiplyUInt32(left, right *goValue, valueIsIgnored 
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s * %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) * (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.UInt32"),
 	)
@@ -7184,7 +7347,7 @@ func (c *GoCompiler) compileMultiplyUInt16(left, right *goValue, valueIsIgnored 
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s * %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) * (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.UInt16"),
 	)
@@ -7196,7 +7359,7 @@ func (c *GoCompiler) compileMultiplyUInt8(left, right *goValue, valueIsIgnored b
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s * %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) * (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.UInt8"),
 	)
@@ -7204,8 +7367,13 @@ func (c *GoCompiler) compileMultiplyUInt8(left, right *goValue, valueIsIgnored b
 
 func (c *GoCompiler) compileSubtract(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
 	left := c.compileExpression(node.Left, false)
+	defer left.markFree()
+
 	narrowLeft := c.valueToNarrowerType(left)
+
 	right := c.valueToNarrowerType(c.compileExpression(node.Right, false))
+	defer right.markFree()
+
 	typ := c.typeOf(node)
 
 	switch narrowLeft.goType().Name {
@@ -7459,7 +7627,7 @@ func (c *GoCompiler) compileSubtractFloat64(left, right *goValue, valueIsIgnored
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s - %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) - (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Float64"),
 	)
@@ -7471,7 +7639,7 @@ func (c *GoCompiler) compileSubtractFloat32(left, right *goValue, valueIsIgnored
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s - %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) - (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Float32"),
 	)
@@ -7483,7 +7651,7 @@ func (c *GoCompiler) compileSubtractInt64(left, right *goValue, valueIsIgnored b
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s - %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) - (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Int64"),
 	)
@@ -7495,7 +7663,7 @@ func (c *GoCompiler) compileSubtractInt32(left, right *goValue, valueIsIgnored b
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s - %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) - (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Int32"),
 	)
@@ -7507,7 +7675,7 @@ func (c *GoCompiler) compileSubtractInt16(left, right *goValue, valueIsIgnored b
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s - %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) - (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Int16"),
 	)
@@ -7519,7 +7687,7 @@ func (c *GoCompiler) compileSubtractInt8(left, right *goValue, valueIsIgnored bo
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s - %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) - (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Int8"),
 	)
@@ -7531,7 +7699,7 @@ func (c *GoCompiler) compileSubtractUInt64(left, right *goValue, valueIsIgnored 
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s - %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) - (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.UInt64"),
 	)
@@ -7543,7 +7711,7 @@ func (c *GoCompiler) compileSubtractUInt32(left, right *goValue, valueIsIgnored 
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s - %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) - (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.UInt32"),
 	)
@@ -7555,7 +7723,7 @@ func (c *GoCompiler) compileSubtractUInt16(left, right *goValue, valueIsIgnored 
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s - %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) - (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.UInt16"),
 	)
@@ -7567,16 +7735,1093 @@ func (c *GoCompiler) compileSubtractUInt8(left, right *goValue, valueIsIgnored b
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s - %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) - (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.UInt8"),
 	)
 }
 
+func (c *GoCompiler) compileLaxEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.valueToNarrowerType(c.compileExpression(node.Left, false))
+	defer left.markFree()
+
+	narrowLeft := c.valueToNarrowerType(left)
+
+	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType().Name {
+	case "value.String", "*value.Regex", "value.Symbol", "value.Char",
+		"value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
+		return newInlineGoValue(
+			fmt.Sprintf("value.Bool((%s).LaxEqual(%s))", narrowLeft.fetchValue(), c.convertToValue(right)),
+			typ,
+			value.NewGoType("value.Bool"),
+		)
+	case "value.Int64", "value.Int32", "value.Int16", "value.Int8":
+		return c.compileLaxEqualStrictSignedInt(narrowLeft, right)
+	case "value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
+		return c.compileLaxEqualStrictUnsignedInt(narrowLeft, right)
+	case "value.Float64", "value.Float32":
+		return c.compileLaxEqualStrictFloat(narrowLeft, right)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinEquatable)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = value.LaxEqualVal(%s, %s)\n", tmp.name, c.convertToValue(left), c.convertToValue(right))
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		left.elkType,
+		typ,
+		"symbol.OpLaxEqual",
+		"=~",
+		[]*goValue{
+			left,
+			right,
+		},
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileLaxNotEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.valueToNarrowerType(c.compileExpression(node.Left, false))
+	defer left.markFree()
+
+	narrowLeft := c.valueToNarrowerType(left)
+
+	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType().Name {
+	case "value.String", "*value.Regex", "value.Symbol", "value.Char",
+		"value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
+		return newInlineGoValue(
+			fmt.Sprintf("!value.Bool((%s).LaxEqual(%s))", narrowLeft.fetchValue(), c.convertToValue(right)),
+			typ,
+			value.NewGoType("value.Bool"),
+		)
+	case "value.Int64", "value.Int32", "value.Int16", "value.Int8":
+		return c.compileLaxNotEqualStrictSignedInt(narrowLeft, right)
+	case "value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
+		return c.compileLaxNotEqualStrictUnsignedInt(narrowLeft, right)
+	case "value.Float64", "value.Float32":
+		return c.compileLaxNotEqualStrictFloat(narrowLeft, right)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinEquatable)) {
+		return newInlineGoValue(
+			fmt.Sprintf("value.ToNotBool(value.LaxEqual(%s, %s))", c.convertToValue(left), c.convertToValue(right)),
+			typ,
+			value.NewGoType("value.Bool"),
+		)
+	}
+
+	result := c.compileMethodCallWithLiteralArgValuesAndName(
+		left.elkType,
+		typ,
+		"symbol.OpLaxEqual",
+		"=~",
+		[]*goValue{
+			left,
+			right,
+		},
+		node.Location(),
+		valueIsIgnored,
+	)
+
+	return result.newInlineGoValue(
+		fmt.Sprintf("value.ToNotBool(%s)", result.value()),
+		value.NewGoType("value.Bool"),
+	)
+}
+
+func (c *GoCompiler) compileLaxEqualStrictSignedInt(left, right *goValue) *goValue {
+	defer left.markFree()
+	defer right.markFree()
+
+	return newInlineGoValue(
+		fmt.Sprintf("value.Bool(value.StrictSignedIntLaxEqual(%s, %s))", left.value(), c.valueToNarrowerType(right).value()),
+		types.Bool{},
+		value.NewGoType("value.Bool"),
+	)
+}
+
+func (c *GoCompiler) compileLaxNotEqualStrictSignedInt(left, right *goValue) *goValue {
+	defer left.markFree()
+	defer right.markFree()
+
+	return newInlineGoValue(
+		fmt.Sprintf("!value.Bool(value.StrictSignedIntLaxEqual(%s, %s))", left.value(), c.valueToNarrowerType(right).value()),
+		types.Bool{},
+		value.NewGoType("value.Bool"),
+	)
+}
+
+func (c *GoCompiler) compileLaxEqualStrictUnsignedInt(left, right *goValue) *goValue {
+	defer left.markFree()
+	defer right.markFree()
+
+	return newInlineGoValue(
+		fmt.Sprintf("value.Bool(value.StrictUnsignedIntLaxEqual(%s, %s))", left.value(), c.valueToNarrowerType(right).value()),
+		types.Bool{},
+		value.NewGoType("value.Bool"),
+	)
+}
+
+func (c *GoCompiler) compileLaxNotEqualStrictUnsignedInt(left, right *goValue) *goValue {
+	defer left.markFree()
+	defer right.markFree()
+
+	return newInlineGoValue(
+		fmt.Sprintf("!value.Bool(value.StrictUnsignedIntLaxEqual(%s, %s))", left.value(), c.valueToNarrowerType(right).value()),
+		types.Bool{},
+		value.NewGoType("value.Bool"),
+	)
+}
+
+func (c *GoCompiler) compileLaxEqualStrictFloat(left, right *goValue) *goValue {
+	defer left.markFree()
+	defer right.markFree()
+
+	return newInlineGoValue(
+		fmt.Sprintf("value.Bool(value.StrictFloatLaxEqual(%s, %s))", left.value(), c.valueToNarrowerType(right).value()),
+		types.Bool{},
+		value.NewGoType("value.Bool"),
+	)
+}
+
+func (c *GoCompiler) compileLaxNotEqualStrictFloat(left, right *goValue) *goValue {
+	defer left.markFree()
+	defer right.markFree()
+
+	return newInlineGoValue(
+		fmt.Sprintf("!value.Bool(value.StrictFloatLaxEqual(%s, %s))", left.value(), c.valueToNarrowerType(right).value()),
+		types.Bool{},
+		value.NewGoType("value.Bool"),
+	)
+}
+
+func (c *GoCompiler) compileEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.valueToNarrowerType(c.compileExpression(node.Left, false))
+	defer left.markFree()
+
+	narrowLeft := c.valueToNarrowerType(left)
+
+	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType().Name {
+	case "value.SmallInt":
+		return c.compileEqualSmallInt(narrowLeft, right, typ, valueIsIgnored)
+	case "*value.BigInt":
+		return c.compileEqualBigInt(narrowLeft, right, typ, valueIsIgnored)
+	case "value.Int64":
+		return c.compileAddInt64(narrowLeft, right, valueIsIgnored)
+	case "value.Int32":
+		return c.compileAddInt32(narrowLeft, right, valueIsIgnored)
+	case "value.Int16":
+		return c.compileAddInt16(narrowLeft, right, valueIsIgnored)
+	case "value.Int8":
+		return c.compileAddInt8(narrowLeft, right, valueIsIgnored)
+	case "value.UInt64":
+		return c.compileAddUInt64(narrowLeft, right, valueIsIgnored)
+	case "value.UInt32":
+		return c.compileAddUInt32(narrowLeft, right, valueIsIgnored)
+	case "value.UInt16":
+		return c.compileAddUInt16(narrowLeft, right, valueIsIgnored)
+	case "value.UInt8":
+		return c.compileAddUInt8(narrowLeft, right, valueIsIgnored)
+	case "value.Float":
+		return c.compileAddFloat(narrowLeft, right, typ, valueIsIgnored)
+	case "value.Float64":
+		return c.compileAddFloat64(narrowLeft, right, valueIsIgnored)
+	case "value.Float32":
+		return c.compileAddFloat32(narrowLeft, right, valueIsIgnored)
+	case "*value.BigFloat":
+		return c.compileAddBigFloat(narrowLeft, right, typ, valueIsIgnored)
+	case "value.String":
+		return c.compileAddString(narrowLeft, right, valueIsIgnored)
+	case "value.Char":
+		return c.compileAddChar(narrowLeft, right, valueIsIgnored)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinAddable)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = value.EqualVal(%s, %s)\n", tmp.name, c.convertToValue(left), c.convertToValue(right))
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		left.elkType,
+		typ,
+		"symbol.OpEqual",
+		"==",
+		[]*goValue{
+			left,
+			right,
+		},
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileEqualBigInt(left, right *goValue, typ types.Type, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType().Name {
+	case "value.SmallInt":
+		return newInlineGoValue(
+			fmt.Sprintf("value.Bool((%s).EqualSmallInt(%s))", left.value(), narrowRight.value()),
+			typ,
+			value.NewGoType("value.Bool"),
+		)
+	case "*value.BigInt":
+		return newInlineGoValue(
+			fmt.Sprintf("value.Bool((%s).EqualBigInt(%s))", left.value(), narrowRight.value()),
+			left.elkType,
+			goValueType,
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
+		return newInlineGoValue(
+			fmt.Sprintf("value.Bool((%s).EqualInt(%s))", left.value(), c.convertToValue(right)),
+			left.elkType,
+			goValueType,
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(goValueType)
+	c.registerErr()
+	c.emit("%s, err = (%s).EqualVal(%s)\n", tmp.name, left.value(), c.convertToValue(right))
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileEqualSmallInt(left, right *goValue, typ types.Type, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType().Name {
+	case "value.SmallInt":
+		return newInlineGoValue(
+			fmt.Sprintf("value.Bool((%s).EqualSmallInt(%s))", left.value(), narrowRight.value()),
+			typ,
+			goValueType,
+		)
+	case "*value.BigInt":
+		return newInlineGoValue(
+			fmt.Sprintf("value.Bool((%s).EqualBigInt(%s))", left.value(), narrowRight.value()),
+			typ,
+			value.NewGoType("value.Bool"),
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).EqualInt(%s)", left.value(), c.convertToValue(right)),
+			typ,
+			value.NewGoType("value.Bool"),
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(goValueType)
+	c.registerErr()
+	c.emit("%s, err = (%s).EqualVal(%s)\n", tmp.name, left.value(), c.convertToValue(right))
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		typ,
+	)
+}
+
+// func (c *GoCompiler) compileAddFloat(left, right *goValue, typ types.Type, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	switch right.goType().Name {
+// 	case "value.SmallInt":
+// 		return newInlineGoValue(
+// 			fmt.Sprintf("(%s).AddSmallInt(%s)", left.value(), right.value()),
+// 			left.elkType,
+// 			value.NewGoType("value.Float"),
+// 		)
+// 	case "value.Float":
+// 		return newInlineGoValue(
+// 			fmt.Sprintf("(%s).AddFloat(%s)", left.value(), right.value()),
+// 			right.elkType,
+// 			value.NewGoType("value.Float"),
+// 		)
+// 	case "*value.BigFloat":
+// 		return newInlineGoValue(
+// 			fmt.Sprintf("(%s).AddBigFloat(%s)", left.value(), right.value()),
+// 			right.elkType,
+// 			value.NewGoType("*value.BigFloat"),
+// 		)
+// 	}
+
+// 	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
+// 		return newInlineGoValue(
+// 			fmt.Sprintf("(%s).AddInt(%s)", left.value(), c.convertToValue(right)),
+// 			left.elkType,
+// 			value.NewGoType("value.Float"),
+// 		)
+// 	}
+
+// 	tmp := c.defineTmpGoLocal(goValueType)
+// 	c.registerErr()
+// 	c.emit("%s, err = (%s).AddVal(%s)\n", tmp.name, left.value(), c.convertToValue(right))
+// 	c.emitErrorPropagation()
+
+// 	return newTmpGoValue(
+// 		tmp,
+// 		typ,
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddBigFloat(left, right *goValue, typ types.Type, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	narrowRight := c.valueToNarrowerType(right)
+// 	switch narrowRight.goType().Name {
+// 	case "value.SmallInt":
+// 		return newInlineGoValue(
+// 			fmt.Sprintf("(%s).AddSmallInt(%s)", left.value(), narrowRight.value()),
+// 			left.elkType,
+// 			value.NewGoType("*value.BigFloat"),
+// 		)
+// 	case "value.Float":
+// 		return newInlineGoValue(
+// 			fmt.Sprintf("(%s).AddFloat(%s)", left.value(), narrowRight.value()),
+// 			left.elkType,
+// 			value.NewGoType("*value.BigFloat"),
+// 		)
+// 	case "*value.BigFloat":
+// 		return newInlineGoValue(
+// 			fmt.Sprintf("(%s).AddBigFloat(%s)", left.value(), narrowRight.value()),
+// 			left.elkType,
+// 			value.NewGoType("*value.BigFloat"),
+// 		)
+// 	}
+
+// 	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
+// 		return newInlineGoValue(
+// 			fmt.Sprintf("(%s).AddInt(%s)", left.value(), c.convertToValue(right)),
+// 			left.elkType,
+// 			value.NewGoType("*value.BigFloat"),
+// 		)
+// 	}
+
+// 	tmp := c.defineTmpGoLocal(goValueType)
+// 	c.registerErr()
+// 	c.emit("%s, err = (%s).AddVal(%s)\n", tmp.name, left.value(), c.convertToValue(right))
+// 	c.emitErrorPropagation()
+
+// 	return newTmpGoValue(
+// 		tmp,
+// 		typ,
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddString(left, right *goValue, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	narrowRight := c.valueToNarrowerType(right)
+// 	switch narrowRight.goType().Name {
+// 	case "value.String":
+// 		return newInlineGoValue(
+// 			fmt.Sprintf("%s.ConcatString(%s)", left.value(), narrowRight.value()),
+// 			left.elkType,
+// 			value.NewGoType("value.String"),
+// 		)
+// 	case "value.Char":
+// 		return newInlineGoValue(
+// 			fmt.Sprintf("%s.ConcatChar(%s)", left.value(), narrowRight.value()),
+// 			left.elkType,
+// 			value.NewGoType("value.String"),
+// 		)
+// 	}
+
+// 	tmp := c.defineTmpGoLocal(value.NewGoType("value.String"))
+// 	c.registerErr()
+// 	c.emit("%s, err = %s.Concat(%s)\n", tmp.name, left.value(), c.convertToValue(right))
+// 	c.emitErrorPropagation()
+
+// 	return newTmpGoValue(
+// 		tmp,
+// 		left.elkType,
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddChar(left, right *goValue, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	narrowRight := c.valueToNarrowerType(right)
+// 	switch narrowRight.goType().Name {
+// 	case "value.String":
+// 		return newInlineGoValue(
+// 			fmt.Sprintf("%s.ConcatString(%s)", left.value(), narrowRight.value()),
+// 			right.elkType,
+// 			value.NewGoType("value.String"),
+// 		)
+// 	case "value.Char":
+// 		return newInlineGoValue(
+// 			fmt.Sprintf("%s.ConcatChar(%s)", left.value(), narrowRight.value()),
+// 			c.checker.Std(symbol.String),
+// 			value.NewGoType("value.String"),
+// 		)
+// 	}
+
+// 	tmp := c.defineTmpGoLocal(value.NewGoType("value.String"))
+// 	c.registerErr()
+// 	c.emit("%s, err = %s.Concat(%s)\n", tmp.name, left.value(), c.convertToValue(right))
+// 	c.emitErrorPropagation()
+
+// 	return newTmpGoValue(
+// 		tmp,
+// 		c.checker.Std(symbol.String),
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddFloat64(left, right *goValue, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	return newInlineGoValue(
+// 		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
+// 		left.elkType,
+// 		value.NewGoType("value.Float64"),
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddFloat32(left, right *goValue, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	return newInlineGoValue(
+// 		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
+// 		left.elkType,
+// 		value.NewGoType("value.Float32"),
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddInt64(left, right *goValue, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	narrowRight := c.valueToNarrowerType(right)
+// 	return newInlineGoValue(
+// 		fmt.Sprintf("(%s) + (%s)", left.value(), narrowRight.value()),
+// 		left.elkType,
+// 		value.NewGoType("value.Int64"),
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddInt32(left, right *goValue, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	narrowRight := c.valueToNarrowerType(right)
+// 	return newInlineGoValue(
+// 		fmt.Sprintf("(%s) + (%s)", left.value(), narrowRight.value()),
+// 		left.elkType,
+// 		value.NewGoType("value.Int32"),
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddInt16(left, right *goValue, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	return newInlineGoValue(
+// 		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
+// 		left.elkType,
+// 		value.NewGoType("value.Int16"),
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddInt8(left, right *goValue, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	return newInlineGoValue(
+// 		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
+// 		left.elkType,
+// 		value.NewGoType("value.Int8"),
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddUInt64(left, right *goValue, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	return newInlineGoValue(
+// 		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
+// 		left.elkType,
+// 		value.NewGoType("value.UInt64"),
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddUInt32(left, right *goValue, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	return newInlineGoValue(
+// 		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
+// 		left.elkType,
+// 		value.NewGoType("value.UInt32"),
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddUInt16(left, right *goValue, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	return newInlineGoValue(
+// 		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
+// 		left.elkType,
+// 		value.NewGoType("value.UInt16"),
+// 	)
+// }
+
+// func (c *GoCompiler) compileAddUInt8(left, right *goValue, valueIsIgnored bool) *goValue {
+// 	if valueIsIgnored {
+// 		return nilGoValue
+// 	}
+
+// 	return newInlineGoValue(
+// 		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
+// 		left.elkType,
+// 		value.NewGoType("value.UInt8"),
+// 	)
+// }
+
+func (c *GoCompiler) compileModulo(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.valueToNarrowerType(c.compileExpression(node.Left, false))
+	defer left.markFree()
+
+	narrowLeft := c.valueToNarrowerType(left)
+
+	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType().Name {
+	case "value.SmallInt":
+		return c.compileModuloSmallInt(narrowLeft, right, typ, valueIsIgnored)
+	case "*value.BigInt":
+		return c.compileModuloBigInt(narrowLeft, right, typ, valueIsIgnored)
+	case "value.Int64":
+		return c.compileModuloInt64(narrowLeft, right, valueIsIgnored)
+	case "value.Int32":
+		return c.compileModuloInt32(narrowLeft, right, valueIsIgnored)
+	case "value.Int16":
+		return c.compileModuloInt16(narrowLeft, right, valueIsIgnored)
+	case "value.Int8":
+		return c.compileModuloInt8(narrowLeft, right, valueIsIgnored)
+	case "value.UInt":
+		return c.compileModuloUInt(narrowLeft, right, valueIsIgnored)
+	case "value.UInt64":
+		return c.compileModuloUInt64(narrowLeft, right, valueIsIgnored)
+	case "value.UInt32":
+		return c.compileModuloUInt32(narrowLeft, right, valueIsIgnored)
+	case "value.UInt16":
+		return c.compileModuloUInt16(narrowLeft, right, valueIsIgnored)
+	case "value.UInt8":
+		return c.compileModuloUInt8(narrowLeft, right, valueIsIgnored)
+	case "value.Float":
+		return c.compileModuloFloat(narrowLeft, right, typ, valueIsIgnored)
+	case "value.Float64":
+		return c.compileModuloFloat64(narrowLeft, right, valueIsIgnored)
+	case "value.Float32":
+		return c.compileModuloFloat32(narrowLeft, right, valueIsIgnored)
+	case "*value.BigFloat":
+		return c.compileModuloBigFloat(narrowLeft, right, typ, valueIsIgnored)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = value.ModuloVal(%s, %s)\n", tmp.name, c.convertToValue(left), c.convertToValue(right))
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		left.elkType,
+		typ,
+		"symbol.OpModulo",
+		"%",
+		[]*goValue{
+			left,
+			right,
+		},
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileModuloFloat(left, right *goValue, typ types.Type, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType().Name {
+	case "value.SmallInt":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).ModuloSmallInt(%s)", left.value(), narrowRight.value()),
+			left.elkType,
+			value.NewGoType("value.Float"),
+		)
+	case "value.Float":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).ModuloFloat(%s)", left.value(), narrowRight.value()),
+			left.elkType,
+			value.NewGoType("value.Float"),
+		)
+	case "*value.BigFloat":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).ModuloBigFloat(%s)", left.value(), narrowRight.value()),
+			narrowRight.elkType,
+			value.NewGoType("*value.BigFloat"),
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).ModuloInt(%s)", left.value(), c.convertToValue(right)),
+			left.elkType,
+			goValueType,
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(goValueType)
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloVal(%s)\n", tmp.name, left.value(), c.convertToValue(right))
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileModuloBigFloat(left, right *goValue, typ types.Type, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType().Name {
+	case "value.SmallInt":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).ModuloSmallInt(%s)", left.value(), narrowRight.value()),
+			left.elkType,
+			value.NewGoType("*value.BigFloat"),
+		)
+	case "value.Float":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).ModuloFloat(%s)", left.value(), narrowRight.value()),
+			left.elkType,
+			value.NewGoType("*value.BigFloat"),
+		)
+	case "*value.BigFloat":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).ModuloBigFloat(%s)", left.value(), narrowRight.value()),
+			left.elkType,
+			value.NewGoType("*value.BigFloat"),
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).ModuloInt(%s)", left.value(), c.convertToValue(right)),
+			left.elkType,
+			value.NewGoType("*value.BigFloat"),
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(goValueType)
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloVal(%s)\n", tmp.name, left.value(), c.convertToValue(right))
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType().Name {
+	case "value.SmallInt":
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = (%s).ModuloSmallInt(%s)\n", tmp.name, left.value(), narrowRight.value())
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	case "*value.BigInt":
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = (%s).ModuloBigInt(%s)\n", tmp.name, left.value(), narrowRight.value())
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	case "value.Float":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).ModuloFloat(%s)", left.value(), narrowRight.value()),
+			narrowRight.elkType,
+			value.NewGoType("value.Float"),
+		)
+	case "*value.BigFloat":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).ModuloBigFloat(%s)", left.value(), narrowRight.value()),
+			narrowRight.elkType,
+			value.NewGoType("*value.BigFloat"),
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = (%s).ModuloInt(%s)\n", tmp.name, left.value(), c.convertToValue(right))
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(goValueType)
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloVal(%s)\n", tmp.name, left.value(), c.convertToValue(right))
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType().Name {
+	case "value.SmallInt":
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = (%s).ModuloSmallInt(%s)\n", tmp.name, left.value(), narrowRight.value())
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	case "value.Float":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).ModuloFloat(%s)", left.value(), narrowRight.value()),
+			narrowRight.elkType,
+			value.NewGoType("value.Float"),
+		)
+	case "*value.BigFloat":
+		return newInlineGoValue(
+			fmt.Sprintf("(%s).ModuloBigFloat(%s)", left.value(), narrowRight.value()),
+			narrowRight.elkType,
+			value.NewGoType("*value.BigFloat"),
+		)
+	case "*value.BigInt":
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = (%s).ModuloBigInt(%s)\n", tmp.name, left.value(), narrowRight.value())
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emit("%s, err = (%s).ModuloInt(%s)\n", tmp.name, left.value(), c.convertToValue(right))
+		c.emitErrorPropagation()
+
+		return newTmpGoValue(
+			tmp,
+			typ,
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(goValueType)
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloVal(%s)\n", tmp.name, left.value(), c.convertToValue(right))
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileModuloInt64(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(left.goType())
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloInt64(%s)\n", tmp.name, left.value(), c.valueToNarrowerType(right).value())
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		left.elkType,
+	)
+}
+
+func (c *GoCompiler) compileModuloInt32(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(left.goType())
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloInt32(%s)\n", tmp.name, left.value(), c.valueToNarrowerType(right).value())
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		left.elkType,
+	)
+}
+
+func (c *GoCompiler) compileModuloInt16(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(left.goType())
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloInt16(%s)\n", tmp.name, left.value(), c.valueToNarrowerType(right).value())
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		left.elkType,
+	)
+}
+
+func (c *GoCompiler) compileModuloInt8(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(left.goType())
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloInt8(%s)\n", tmp.name, left.value(), c.valueToNarrowerType(right).value())
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		left.elkType,
+	)
+}
+
+func (c *GoCompiler) compileModuloUInt64(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(left.goType())
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloUInt64(%s)\n", tmp.name, left.value(), c.valueToNarrowerType(right).value())
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		left.elkType,
+	)
+}
+
+func (c *GoCompiler) compileModuloUInt(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(left.goType())
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloUInt(%s)\n", tmp.name, left.value(), c.valueToNarrowerType(right).value())
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		left.elkType,
+	)
+}
+
+func (c *GoCompiler) compileModuloUInt32(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(left.goType())
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloUInt32(%s)\n", tmp.name, left.value(), c.valueToNarrowerType(right).value())
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		left.elkType,
+	)
+}
+
+func (c *GoCompiler) compileModuloUInt16(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(left.goType())
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloUInt16(%s)\n", tmp.name, left.value(), c.valueToNarrowerType(right).value())
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		left.elkType,
+	)
+}
+
+func (c *GoCompiler) compileModuloUInt8(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(left.goType())
+	c.registerErr()
+	c.emit("%s, err = (%s).ModuloUInt8(%s)\n", tmp.name, left.value(), c.valueToNarrowerType(right).value())
+	c.emitErrorPropagation()
+
+	return newTmpGoValue(
+		tmp,
+		left.elkType,
+	)
+}
+
+func (c *GoCompiler) compileModuloFloat64(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	return newInlineGoValue(
+		fmt.Sprintf("(%s).ModuloFloat64(%s)", left.value(), c.valueToNarrowerType(right).value()),
+		left.elkType,
+		value.NewGoType("value.Float64"),
+	)
+}
+
+func (c *GoCompiler) compileModuloFloat32(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	return newInlineGoValue(
+		fmt.Sprintf("(%s).ModuloFloat32(%s)", left.value(), c.valueToNarrowerType(right).value()),
+		left.elkType,
+		value.NewGoType("value.Float32"),
+	)
+}
+
 func (c *GoCompiler) compileAdd(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
 	left := c.valueToNarrowerType(c.compileExpression(node.Left, false))
+	defer left.markFree()
+
 	narrowLeft := c.valueToNarrowerType(left)
+
 	right := c.compileExpression(node.Right, false)
+	defer right.markFree()
+
 	typ := c.typeOf(node)
 
 	switch narrowLeft.goType().Name {
@@ -7896,17 +9141,8 @@ func (c *GoCompiler) compileAddFloat64(left, right *goValue, valueIsIgnored bool
 		return nilGoValue
 	}
 
-	switch right.goType().Name {
-	case "value.Float64":
-		return newInlineGoValue(
-			fmt.Sprintf("(%s + %s)", left.value(), right.value()),
-			left.elkType,
-			value.NewGoType("value.Float64"),
-		)
-	}
-
 	return newInlineGoValue(
-		fmt.Sprintf("(%s + %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Float64"),
 	)
@@ -7917,17 +9153,8 @@ func (c *GoCompiler) compileAddFloat32(left, right *goValue, valueIsIgnored bool
 		return nilGoValue
 	}
 
-	switch right.goType().Name {
-	case "value.Float32":
-		return newInlineGoValue(
-			fmt.Sprintf("(%s + %s)", left.value(), right.value()),
-			left.elkType,
-			value.NewGoType("value.Float32"),
-		)
-	}
-
 	return newInlineGoValue(
-		fmt.Sprintf("(%s + %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Float32"),
 	)
@@ -7940,7 +9167,7 @@ func (c *GoCompiler) compileAddInt64(left, right *goValue, valueIsIgnored bool) 
 
 	narrowRight := c.valueToNarrowerType(right)
 	return newInlineGoValue(
-		fmt.Sprintf("(%s + %s)", left.value(), narrowRight.value()),
+		fmt.Sprintf("(%s) + (%s)", left.value(), narrowRight.value()),
 		left.elkType,
 		value.NewGoType("value.Int64"),
 	)
@@ -7953,7 +9180,7 @@ func (c *GoCompiler) compileAddInt32(left, right *goValue, valueIsIgnored bool) 
 
 	narrowRight := c.valueToNarrowerType(right)
 	return newInlineGoValue(
-		fmt.Sprintf("(%s + %s)", left.value(), narrowRight.value()),
+		fmt.Sprintf("(%s) + (%s)", left.value(), narrowRight.value()),
 		left.elkType,
 		value.NewGoType("value.Int32"),
 	)
@@ -7965,7 +9192,7 @@ func (c *GoCompiler) compileAddInt16(left, right *goValue, valueIsIgnored bool) 
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s + %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Int16"),
 	)
@@ -7977,7 +9204,7 @@ func (c *GoCompiler) compileAddInt8(left, right *goValue, valueIsIgnored bool) *
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s + %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.Int8"),
 	)
@@ -7989,7 +9216,7 @@ func (c *GoCompiler) compileAddUInt64(left, right *goValue, valueIsIgnored bool)
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s + %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.UInt64"),
 	)
@@ -8001,7 +9228,7 @@ func (c *GoCompiler) compileAddUInt32(left, right *goValue, valueIsIgnored bool)
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s + %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.UInt32"),
 	)
@@ -8013,7 +9240,7 @@ func (c *GoCompiler) compileAddUInt16(left, right *goValue, valueIsIgnored bool)
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s + %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.UInt16"),
 	)
@@ -8025,7 +9252,7 @@ func (c *GoCompiler) compileAddUInt8(left, right *goValue, valueIsIgnored bool) 
 	}
 
 	return newInlineGoValue(
-		fmt.Sprintf("(%s + %s)", left.value(), c.valueToNarrowerType(right).value()),
+		fmt.Sprintf("(%s) + (%s)", left.value(), c.valueToNarrowerType(right).value()),
 		left.elkType,
 		value.NewGoType("value.UInt8"),
 	)

@@ -812,70 +812,74 @@ func (i SmallInt) LessThanEqualBigFloat(other *BigFloat) bool {
 
 // Check whether i is equal to other (with coercion)
 func (i SmallInt) LaxEqualVal(other Value) Value {
+	return BoolVal(i.LaxEqual(other))
+}
+
+func (i SmallInt) LaxEqual(other Value) bool {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
 			iBigInt := NewBigInt(int64(i))
-			return Bool(iBigInt.Cmp(o) == 0).ToValue()
+			return iBigInt.Cmp(o) == 0
 		case *BigFloat:
 			if o.IsNaN() {
-				return False.ToValue()
+				return false
 			}
 			iBigFloat := (&BigFloat{}).SetSmallInt(i)
-			return Bool(iBigFloat.Cmp(o) == 0).ToValue()
+			return iBigFloat.Cmp(o) == 0
 		case Int64:
-			return Bool(i == SmallInt(o)).ToValue()
+			return i == SmallInt(o)
 		case UInt64:
 			if o > MaxSmallInt {
-				return False.ToValue()
+				return false
 			}
-			return Bool(i == SmallInt(o)).ToValue()
+			return i == SmallInt(o)
 		default:
-			return False.ToValue()
+			return false
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return Bool(i == other.AsSmallInt()).ToValue()
+		return i == other.AsSmallInt()
 	case FLOAT_FLAG:
-		return Bool(Float(i) == other.AsFloat()).ToValue()
+		return Float(i) == other.AsFloat()
 	case INT64_FLAG:
 		o := other.AsInlineInt64()
 		if o > MaxSmallInt {
-			return False.ToValue()
+			return false
 		}
-		return Bool(i == SmallInt(o)).ToValue()
+		return i == SmallInt(o)
 	case INT32_FLAG:
-		return Bool(i == SmallInt(other.AsInt32())).ToValue()
+		return i == SmallInt(other.AsInt32())
 	case INT16_FLAG:
-		return Bool(i == SmallInt(other.AsInt16())).ToValue()
+		return i == SmallInt(other.AsInt16())
 	case INT8_FLAG:
-		return Bool(i == SmallInt(other.AsInt8())).ToValue()
+		return i == SmallInt(other.AsInt8())
 	case UINT_FLAG:
 		o := other.AsUInt()
 		if o > MaxSmallInt {
-			return False.ToValue()
+			return false
 		}
-		return Bool(i == SmallInt(o)).ToValue()
+		return i == SmallInt(o)
 	case UINT64_FLAG:
 		o := other.AsInlineUInt64()
 		if o > MaxSmallInt {
-			return False.ToValue()
+			return false
 		}
-		return Bool(i == SmallInt(o)).ToValue()
+		return i == SmallInt(o)
 	case UINT32_FLAG:
-		return Bool(i == SmallInt(other.AsUInt32())).ToValue()
+		return i == SmallInt(other.AsUInt32())
 	case UINT16_FLAG:
-		return Bool(i == SmallInt(other.AsUInt16())).ToValue()
+		return i == SmallInt(other.AsUInt16())
 	case UINT8_FLAG:
-		return Bool(i == SmallInt(other.AsUInt8())).ToValue()
+		return i == SmallInt(other.AsUInt8())
 	case FLOAT64_FLAG:
-		return Bool(Float64(i) == other.AsInlineFloat64()).ToValue()
+		return Float64(i) == other.AsInlineFloat64()
 	case FLOAT32_FLAG:
-		return Bool(Float32(i) == other.AsFloat32()).ToValue()
+		return Float32(i) == other.AsFloat32()
 	default:
-		return False.ToValue()
+		return false
 	}
 }
 
@@ -1388,7 +1392,7 @@ func (i SmallInt) ModuloVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return i.ModuloBigInt(o), Undefined
+			return i.ModuloBigInt(o)
 		case *BigFloat:
 			return Ref(i.ModuloBigFloat(o)), Undefined
 		default:
@@ -1398,7 +1402,7 @@ func (i SmallInt) ModuloVal(other Value) (Value, Value) {
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return i.ModuloSmallInt(other.AsSmallInt()).ToValue(), Undefined
+		return i.ModuloSmallInt(other.AsSmallInt())
 	case FLOAT_FLAG:
 		return i.ModuloFloat(other.AsFloat()).ToValue(), Undefined
 	default:
@@ -1406,27 +1410,35 @@ func (i SmallInt) ModuloVal(other Value) (Value, Value) {
 	}
 }
 
-func (i SmallInt) ModuloInt(other Value) Value {
+func (i SmallInt) ModuloInt(other Value) (Value, Value) {
 	if other.IsSmallInt() {
-		return i.ModuloSmallInt(other.AsSmallInt()).ToValue()
+		return i.ModuloSmallInt(other.AsSmallInt())
 	}
 	return i.ModuloBigInt((*BigInt)(other.Pointer()))
 }
 
-func (i SmallInt) ModuloSmallInt(other SmallInt) SmallInt {
-	return i % other
+func (i SmallInt) ModuloSmallInt(other SmallInt) (Value, Value) {
+	if other == 0 {
+		return Undefined, Ref(NewZeroDivisionError())
+	}
+	return (i % other).ToValue(), Undefined
 }
 
 func (i SmallInt) ModuloFloat(other Float) Float {
 	return Float(math.Mod(float64(i), float64(other)))
 }
 
-func (i SmallInt) ModuloBigInt(other *BigInt) Value {
+func (i SmallInt) ModuloBigInt(other *BigInt) (Value, Value) {
+	if other.IsZero() {
+		return Undefined, Ref(NewZeroDivisionError())
+	}
+
 	if other.IsSmallInt() {
 		oSmall := other.ToSmallInt()
-		return (i % oSmall).ToValue()
+		return (i % oSmall).ToValue(), Undefined
 	}
-	return i.ToValue()
+
+	return i.ToValue(), Undefined
 }
 
 func (i SmallInt) ModuloBigFloat(other *BigFloat) *BigFloat {
