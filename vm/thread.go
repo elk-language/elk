@@ -1449,7 +1449,9 @@ func (vm *Thread) BuildStackTrace() *value.StackTrace {
 		}
 		stackTraceSlice = append(stackTraceSlice, element.ToCallFrameObject())
 	}
-	stackTraceSlice = append(stackTraceSlice, vm.makeCallFrameObject())
+	if vm.bytecode != nil {
+		stackTraceSlice = append(stackTraceSlice, vm.makeCallFrameObject())
+	}
 
 	return (*value.StackTrace)(&stackTraceSlice)
 }
@@ -1464,7 +1466,9 @@ func (vm *Thread) BuildStackTracePrepend(base *value.StackTrace) *value.StackTra
 		}
 		stackTraceSlice = append(stackTraceSlice, element.ToCallFrameObject())
 	}
-	stackTraceSlice = append(stackTraceSlice, vm.makeCallFrameObject())
+	if vm.bytecode != nil {
+		stackTraceSlice = append(stackTraceSlice, vm.makeCallFrameObject())
+	}
 	stackTraceSlice = append(stackTraceSlice, (*base)...)
 
 	return (*value.StackTrace)(&stackTraceSlice)
@@ -3774,4 +3778,35 @@ func (vm *Thread) findFinallyCatchEntry() *CatchEntry {
 	}
 
 	return nil
+}
+
+// Get the stored error stack trace.
+func (vm *Thread) ErrStackTrace() *value.StackTrace {
+	if vm.state == errorState {
+		return vm.errStackTrace
+	}
+
+	return nil
+}
+
+func (vm *Thread) populateMissingParameters(args []value.Value, paramCount, argumentCount int) []value.Value {
+	// populate missing optional arguments with undefined
+	missingParams := uintptr(paramCount - argumentCount)
+	if missingParams > 0 {
+		newArgs := make([]value.Value, paramCount)
+		copy(newArgs, args)
+		return newArgs
+	}
+
+	return args
+}
+
+func (vm *Thread) PrintErrorValue(err value.Value) {
+	PrintError(vm.Stderr, vm.GetStackTrace(), err)
+}
+
+func (vm *Thread) Panic(err value.Value) {
+	vm.state = errorState
+	vm.PrintErrorValue(err)
+	os.Exit(1)
 }

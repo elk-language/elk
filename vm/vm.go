@@ -6,7 +6,6 @@ package vm
 import (
 	"fmt"
 	"io"
-	"os"
 	"sync/atomic"
 
 	"github.com/elk-language/elk/config"
@@ -66,15 +65,6 @@ func WithStdin(stdin io.Reader) Option {
 	}
 }
 
-func (vm *Thread) PrintErrorValue(err value.Value) {
-	PrintError(vm.Stderr, vm.ErrStackTrace(), err)
-}
-
-func (vm *Thread) Panic(err value.Value) {
-	vm.PrintErrorValue(err)
-	os.Exit(1)
-}
-
 // Assign the given io.Writer as the Stdout of the VM.
 func WithStdout(stdout io.Writer) Option {
 	return func(vm *Thread) {
@@ -111,25 +101,4 @@ func PrintError(stderr io.Writer, stackTrace *value.StackTrace, err value.Value)
 	}
 
 	fmt.Fprintln(stderr)
-}
-
-// Get the stored error stack trace.
-func (vm *Thread) ErrStackTrace() *value.StackTrace {
-	if vm.state == errorState {
-		return vm.errStackTrace
-	}
-
-	return nil
-}
-
-func (vm *Thread) populateMissingParameters(args []value.Value, paramCount, argumentCount int) []value.Value {
-	// populate missing optional arguments with undefined
-	missingParams := uintptr(paramCount - argumentCount)
-	if missingParams > 0 {
-		newArgs := make([]value.Value, paramCount)
-		copy(newArgs, args)
-		return newArgs
-	}
-
-	return args
 }

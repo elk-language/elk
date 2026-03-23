@@ -1126,12 +1126,12 @@ func (f *BigFloat) LessThanEqualVal(other Value) (Value, Value) {
 // Check whether f is equal to other and return an error
 // if something went wrong.
 func (f *BigFloat) LaxEqualVal(other Value) Value {
-	return Bool(f.LaxEqualBool(other)).ToValue()
+	return Bool(f.LaxEqual(other)).ToValue()
 }
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) LaxEqualBool(other Value) bool {
+func (f *BigFloat) LaxEqual(other Value) bool {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
