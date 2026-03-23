@@ -1439,6 +1439,7 @@ func (vm *Thread) makeCallFrameObject() value.CallFrame {
 	}
 }
 
+// Build a new stack trace
 func (vm *Thread) BuildStackTrace() *value.StackTrace {
 	callStack := vm.callStack()
 
@@ -2308,16 +2309,18 @@ func (vm *Thread) opDefSetter() {
 	}
 }
 
-func (vm *Thread) AddNativeCallFrame(fileName, funcName value.Symbol, lineNumber int) {
+func (vm *Thread) AddNativeCallFrame(fileName, funcName value.Symbol, lineNumber int) *CallFrame {
 	cf := makeNativeCallFrame(
 		fileName,
 		funcName,
 		lineNumber,
 		vm.tailCallCounter,
 	)
-	*vm.cfpGet() = cf
+	ptr := vm.cfpGet()
+	*ptr = cf
 	vm.cfpIncrement()
 	vm.tailCallCounter = 0
+	return ptr
 }
 
 func (vm *Thread) addCallFrame(cf CallFrame) {
@@ -3787,6 +3790,13 @@ func (vm *Thread) ErrStackTrace() *value.StackTrace {
 	}
 
 	return nil
+}
+
+// Create a new stack trace and save it in the VM
+func (vm *Thread) CaptureStackTrace() *value.StackTrace {
+	vm.state = errorState
+	vm.errStackTrace = vm.BuildStackTrace()
+	return vm.errStackTrace
 }
 
 func (vm *Thread) populateMissingParameters(args []value.Value, paramCount, argumentCount int) []value.Value {
