@@ -2,6 +2,7 @@ package repl
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/format"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/vm"
@@ -209,7 +211,19 @@ func (e *evaluator) native(input string) {
 
 	err := elk.CompileRunSource(sourceName, input)
 	if err != nil {
-		fmt.Println(err.Error())
+		var dl diagnostic.DiagnosticList
+		if errors.As(err, &dl) {
+			fmt.Println()
+
+			str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Println(str)
+		} else {
+			fmt.Println(err.Error())
+		}
 		return
 	}
 }

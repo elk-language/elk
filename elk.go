@@ -2,7 +2,6 @@ package elk
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"go/format"
 	"os"
@@ -37,17 +36,8 @@ func InitGlobalEnvironment() {
 }
 
 func compileResult(buffer *bytes.Buffer, goCompiler *compiler.GoCompiler, diagnostics diagnostic.DiagnosticList) (binPath string, err error) {
-	if diagnostics != nil {
-		fmt.Println()
-
-		diagnosticString, err := diagnostics.HumanString(true, lexer.Colorizer{})
-		if err != nil {
-			return "", err
-		}
-		fmt.Println(diagnosticString)
-		if diagnostics.IsFailure() {
-			return "", errors.New("fatal typechecking error")
-		}
+	if diagnostics != nil && diagnostics.IsFailure() {
+		return "", diagnostics
 	}
 
 	cwd, err := os.Getwd()
