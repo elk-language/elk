@@ -1746,5 +1746,5 @@ func initDateTime() {
 	RegisterNativeClass("Std::DateTime", "value.DateTimeClass")
 
 	DateTimeClass.AddConstantString("DEFAULT_FORMAT", Ref(String(DefaultDateTimeFormat)))
-	RegisterNativeConstant("Std::DateTime::DEFAULT_FORMAT", "value.String(value.DefaultDateTimeFormat)", NewGoType("value.String"))
+	RegisterNativeConstant("Std::DateTime::DEFAULT_FORMAT", "value.String(value.DefaultDateTimeFormat)", FetchGoType("value.String"))
 }

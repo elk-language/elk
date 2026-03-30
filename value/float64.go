@@ -353,13 +353,13 @@ func initFloat64() {
 	RegisterNativeClass("Std::Float64", "value.Float64Class")
 
 	Float64Class.AddConstantString("NAN", Float64NaN().ToValue())
-	RegisterNativeConstant("Std::Float64::NAN", "value.Float64NaN()", NewGoType("value.Float64"))
+	RegisterNativeConstant("Std::Float64::NAN", "value.Float64NaN()", FetchGoType("value.Float64"))
 
 	Float64Class.AddConstantString("INF", Float64Inf().ToValue())
-	RegisterNativeConstant("Std::Float64::INF", "value.Float64Inf()", NewGoType("value.Float64"))
+	RegisterNativeConstant("Std::Float64::INF", "value.Float64Inf()", FetchGoType("value.Float64"))
 
 	Float64Class.AddConstantString("NEG_INF", Float64NegInf().ToValue())
-	RegisterNativeConstant("Std::Float64::NEG_INF", "value.Float64NegInf()", NewGoType("value.Float64"))
+	RegisterNativeConstant("Std::Float64::NEG_INF", "value.Float64NegInf()", FetchGoType("value.Float64"))
 
 	Float64ConvertibleInterface = NewInterface()
 	Float64Class.AddConstantString("Convertible", Ref(Float64ConvertibleInterface))

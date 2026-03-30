@@ -70,12 +70,12 @@ func initDiagnostic() {
 	RegisterNativeInterface("Std::Diagnostic", "value.DiagnosticClass")
 
 	DiagnosticClass.AddConstantString("INFO", DiagnosticInfo().ToValue())
-	RegisterNativeConstant("Std::Diagnostic", "value.DiagnosticInfo()", NewGoType("value.UInt8"))
+	RegisterNativeConstant("Std::Diagnostic", "value.DiagnosticInfo()", FetchGoType("value.UInt8"))
 
 	DiagnosticClass.AddConstantString("WARN", DiagnosticWarn().ToValue())
-	RegisterNativeConstant("Std::Diagnostic", "value.DiagnosticWarn()", NewGoType("value.UInt8"))
+	RegisterNativeConstant("Std::Diagnostic", "value.DiagnosticWarn()", FetchGoType("value.UInt8"))
 
 	DiagnosticClass.AddConstantString("FAIL", DiagnosticFail().ToValue())
-	RegisterNativeConstant("Std::Diagnostic", "value.DiagnosticFail()", NewGoType("value.UInt8"))
+	RegisterNativeConstant("Std::Diagnostic", "value.DiagnosticFail()", FetchGoType("value.UInt8"))
 
 }

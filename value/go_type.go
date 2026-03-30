@@ -1,6 +1,10 @@
 package value
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/elk-language/elk/concurrent"
+)
 
 // Represents a native Go type
 type GoType struct {
@@ -29,10 +33,26 @@ func (g *GoType) Equal(other *GoType) bool {
 	return true
 }
 
+var goTypeMap *concurrent.Map[string, *GoType]
+
 func NewGoType(name string) *GoType {
 	return &GoType{
 		Name: name,
 	}
+}
+
+func FetchGoType(name string) *GoType {
+	goTypeMap.Lock()
+	defer goTypeMap.Unlock()
+
+	typ, ok := goTypeMap.GetUnsafe(name)
+	if ok {
+		return typ
+	}
+
+	gt := NewGoType(name)
+	goTypeMap.SetUnsafe(name, gt)
+	return gt
 }
 
 func NewGenericGoType(name string, typeArgs []*GoType) *GoType {
@@ -42,20 +62,42 @@ func NewGenericGoType(name string, typeArgs []*GoType) *GoType {
 	}
 }
 
+func FetchGenericGoType(name string, typeArgs []*GoType) *GoType {
+	goTypeMap.Lock()
+	defer goTypeMap.Unlock()
+
+	key := GoTypeKey(
+		name,
+		typeArgs,
+	)
+	typ, ok := goTypeMap.GetUnsafe(key)
+	if ok {
+		return typ
+	}
+
+	gt := NewGenericGoType(name, typeArgs)
+	goTypeMap.SetUnsafe(name, gt)
+	return gt
+}
+
 func (g *GoType) IsGeneric() bool {
 	return len(g.TypeArgs) != 0
 }
 
 func (g *GoType) String() string {
-	if len(g.TypeArgs) == 0 {
-		return g.Name
+	return GoTypeKey(g.Name, g.TypeArgs)
+}
+
+func GoTypeKey(name string, typeArgs []*GoType) string {
+	if len(typeArgs) == 0 {
+		return name
 	}
 
 	var b strings.Builder
 
-	b.WriteString(g.Name)
+	b.WriteString(name)
 	b.WriteRune('[')
-	for i, typeArg := range g.TypeArgs {
+	for i, typeArg := range typeArgs {
 		if i != 0 {
 			b.WriteString(", ")
 		}

@@ -1301,11 +1301,11 @@ func initBigFloat() {
 	RegisterNativeClass("Std::BigFloat", "value.BigFloatClass")
 
 	BigFloatClass.AddConstantString("NAN", Ref(BigFloatNaNVal))
-	RegisterNativeConstant("Std::BigFloat::NAN", "value.BigFloatNaNVal", NewGoType("*value.BigFloat"))
+	RegisterNativeConstant("Std::BigFloat::NAN", "value.BigFloatNaNVal", FetchGoType("*value.BigFloat"))
 
 	BigFloatClass.AddConstantString("INF", Ref(BigFloatInfVal))
-	RegisterNativeConstant("Std::BigFloat::INF", "value.BigFloatInfVal", NewGoType("*value.BigFloat"))
+	RegisterNativeConstant("Std::BigFloat::INF", "value.BigFloatInfVal", FetchGoType("*value.BigFloat"))
 
 	BigFloatClass.AddConstantString("NEG_INF", Ref(BigFloatNegInfVal))
-	RegisterNativeConstant("Std::BigFloat::NEG_INF", "value.BigFloatNegInfVal", NewGoType("*value.BigFloat"))
+	RegisterNativeConstant("Std::BigFloat::NEG_INF", "value.BigFloatNegInfVal", FetchGoType("*value.BigFloat"))
 }

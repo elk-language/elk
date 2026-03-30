@@ -18,17 +18,17 @@ func RegisterNativeConstant(elkName string, goExpr string, goType *GoType) {
 }
 
 func RegisterNativeClass(elkName, goName string) {
-	RegisterNativeConstant(elkName, goName, NewGoType("*value.Class"))
+	RegisterNativeConstant(elkName, goName, FetchGoType("*value.Class"))
 }
 
 func RegisterNativeMixin(elkName, goName string) {
-	RegisterNativeConstant(elkName, goName, NewGoType("*value.Mixin"))
+	RegisterNativeConstant(elkName, goName, FetchGoType("*value.Mixin"))
 }
 
 func RegisterNativeModule(elkName, goName string) {
-	RegisterNativeConstant(elkName, goName, NewGoType("*value.Module"))
+	RegisterNativeConstant(elkName, goName, FetchGoType("*value.Module"))
 }
 
 func RegisterNativeInterface(elkName, goName string) {
-	RegisterNativeConstant(elkName, goName, NewGoType("*value.Interface"))
+	RegisterNativeConstant(elkName, goName, FetchGoType("*value.Interface"))
 }
