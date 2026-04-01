@@ -33,7 +33,7 @@ func (g *GoType) Equal(other *GoType) bool {
 	return true
 }
 
-var goTypeMap *concurrent.Map[string, *GoType]
+var goTypeMap = concurrent.NewMap[string, *GoType]()
 
 func NewGoType(name string) *GoType {
 	return &GoType{

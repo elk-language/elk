@@ -157,15 +157,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.String // var a: Std::String
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.String("foo bar")
 }
 `,
@@ -189,13 +196,16 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var sym0 = value.ToSymbol("to_string")
-var Std_ns_Int_im_to_string vm.NativeFunction // Std::Int.:to_string
+var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("to_string")
+var Std_ns_Int_im_to_string vm.NativeFunction // Std::Int.:to_string
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Float // var bar: Std::Float
 	_ = l0
 	var l1 value.String // var baz: Std::String
@@ -218,21 +228,24 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym0))
+	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
 
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Float(15.2)
 	l1 = value.String("bazzy")
 	l2 = (value.SmallInt(1)).ToValue()
+	callFrame.SetNativeLineNumber(5)
 	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t3 = value.ResizeNativeArgs(t3, 2)
 	t3[0] = t1
-	thread.AddNativeCallFrame(sym0, sym1, 5)
 	t2, err = Std_ns_Int_im_to_string(thread, t3) // receiver: Std::Int, name: to_string
-	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t4 = (t2).AsString()
@@ -259,16 +272,19 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var sym0 = value.ToSymbol("now")
-var Std_ns_Time_ns_now vm.NativeFunction // Std::Time::now
+var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("to_string")
+var sym2 = value.ToSymbol("now")
+var Std_ns_Time_ns_now vm.NativeFunction // Std::Time::now
+var sym3 = value.ToSymbol("to_string")
 var Std_ns_Int_im_to_string vm.NativeFunction  // Std::Int.:to_string
 var Std_ns_Time_im_to_string vm.NativeFunction // Std::Time.:to_string
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Float // var bar: Std::Float
 	_ = l0
 	var l1 value.Time // var baz: Std::Time
@@ -299,41 +315,43 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Time_ns_now = vm.MethodToFunc(((value.TimeClass).SingletonClass()).LookupMethod(sym0))
-	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
-	Std_ns_Time_im_to_string = vm.MethodToFunc((value.TimeClass).LookupMethod(sym2))
+	Std_ns_Time_ns_now = vm.MethodToFunc(((value.TimeClass).SingletonClass()).LookupMethod(sym2))
+	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym3))
+	Std_ns_Time_im_to_string = vm.MethodToFunc((value.TimeClass).LookupMethod(sym3))
 
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Float(15.2)
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (value.TimeClass).ToValue()
-	thread.AddNativeCallFrame(sym0, sym1, 3)
+	callFrame.SetNativeLineNumber(3)
 	t1, err = Std_ns_Time_ns_now(thread, t2) // receiver: &Std::Time, name: now
-	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t3 = (t1).AsTime()
 	l1 = t3
 	l2 = (value.SmallInt(1)).ToValue()
+	callFrame.SetNativeLineNumber(5)
 	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t5 = value.ResizeNativeArgs(t5, 2)
 	t5[0] = t1
-	thread.AddNativeCallFrame(sym2, sym1, 5)
 	t4, err = Std_ns_Int_im_to_string(thread, t5) // receiver: Std::Int, name: to_string
-	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t6 = (t4).AsString()
 	t7 = value.ResizeNativeArgs(t7, 2)
 	t7[0] = (l1).ToValue()
-	thread.AddNativeCallFrame(sym2, sym1, 5)
 	t1, err = Std_ns_Time_im_to_string(thread, t7) // receiver: Std::Time, name: to_string
-	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t8 = (t1).AsString()
@@ -360,13 +378,16 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var sym0 = value.ToSymbol("inspect")
-var Std_ns_Int_im_inspect vm.NativeFunction // Std::Int.:inspect
+var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("inspect")
+var Std_ns_Int_im_inspect vm.NativeFunction // Std::Int.:inspect
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Float // var bar: Std::Float
 	_ = l0
 	var l1 value.Value // var foo: Std::Int
@@ -389,21 +410,24 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Int_im_inspect = vm.MethodToFunc((value.IntClass).LookupMethod(sym0))
+	Std_ns_Int_im_inspect = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
 
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Float(15.2)
 	l1 = (value.SmallInt(1)).ToValue()
 	l2 = value.String("bazzy")
+	callFrame.SetNativeLineNumber(5)
 	t1, err = value.AddVal(l1, (value.SmallInt(2)).ToValue())
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t3 = value.ResizeNativeArgs(t3, 2)
 	t3[0] = t1
-	thread.AddNativeCallFrame(sym0, sym1, 5)
 	t2, err = Std_ns_Int_im_inspect(thread, t3) // receiver: Std::Int, name: inspect
-	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t4 = (t2).AsString()
@@ -437,18 +461,24 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var sym0 = value.ToSymbol("foo")
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("foo")
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Symbol // var a: Std::Symbol
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = sym0
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = sym2
 }
 `,
 		},
@@ -471,13 +501,16 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var sym0 = value.ToSymbol("to_string")
-var Std_ns_Int_im_to_string vm.NativeFunction // Std::Int.:to_string
+var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("to_string")
+var Std_ns_Int_im_to_string vm.NativeFunction // Std::Int.:to_string
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Float // var bar: Std::Float
 	_ = l0
 	var l1 value.String // var baz: Std::String
@@ -500,21 +533,24 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym0))
+	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
 
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Float(15.2)
 	l1 = value.String("bazzy")
 	l2 = (value.SmallInt(1)).ToValue()
+	callFrame.SetNativeLineNumber(5)
 	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t3 = value.ResizeNativeArgs(t3, 2)
 	t3[0] = t1
-	thread.AddNativeCallFrame(sym0, sym1, 5)
 	t2, err = Std_ns_Int_im_to_string(thread, t3) // receiver: Std::Int, name: to_string
-	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t4 = (t2).AsString()
@@ -541,16 +577,19 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var sym0 = value.ToSymbol("now")
-var Std_ns_Time_ns_now vm.NativeFunction // Std::Time::now
+var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("to_string")
+var sym2 = value.ToSymbol("now")
+var Std_ns_Time_ns_now vm.NativeFunction // Std::Time::now
+var sym3 = value.ToSymbol("to_string")
 var Std_ns_Int_im_to_string vm.NativeFunction  // Std::Int.:to_string
 var Std_ns_Time_im_to_string vm.NativeFunction // Std::Time.:to_string
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Float // var bar: Std::Float
 	_ = l0
 	var l1 value.Time // var baz: Std::Time
@@ -581,41 +620,43 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Time_ns_now = vm.MethodToFunc(((value.TimeClass).SingletonClass()).LookupMethod(sym0))
-	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
-	Std_ns_Time_im_to_string = vm.MethodToFunc((value.TimeClass).LookupMethod(sym2))
+	Std_ns_Time_ns_now = vm.MethodToFunc(((value.TimeClass).SingletonClass()).LookupMethod(sym2))
+	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym3))
+	Std_ns_Time_im_to_string = vm.MethodToFunc((value.TimeClass).LookupMethod(sym3))
 
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Float(15.2)
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (value.TimeClass).ToValue()
-	thread.AddNativeCallFrame(sym0, sym1, 3)
+	callFrame.SetNativeLineNumber(3)
 	t1, err = Std_ns_Time_ns_now(thread, t2) // receiver: &Std::Time, name: now
-	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t3 = (t1).AsTime()
 	l1 = t3
 	l2 = (value.SmallInt(1)).ToValue()
+	callFrame.SetNativeLineNumber(5)
 	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t5 = value.ResizeNativeArgs(t5, 2)
 	t5[0] = t1
-	thread.AddNativeCallFrame(sym2, sym1, 5)
 	t4, err = Std_ns_Int_im_to_string(thread, t5) // receiver: Std::Int, name: to_string
-	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t6 = (t4).AsString()
 	t7 = value.ResizeNativeArgs(t7, 2)
 	t7[0] = (l1).ToValue()
-	thread.AddNativeCallFrame(sym2, sym1, 5)
 	t1, err = Std_ns_Time_im_to_string(thread, t7) // receiver: Std::Time, name: to_string
-	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t8 = (t1).AsString()
@@ -642,13 +683,16 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var sym0 = value.ToSymbol("inspect")
-var Std_ns_Int_im_inspect vm.NativeFunction // Std::Int.:inspect
+var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("inspect")
+var Std_ns_Int_im_inspect vm.NativeFunction // Std::Int.:inspect
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Float // var bar: Std::Float
 	_ = l0
 	var l1 value.Value // var foo: Std::Int
@@ -671,21 +715,24 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Int_im_inspect = vm.MethodToFunc((value.IntClass).LookupMethod(sym0))
+	Std_ns_Int_im_inspect = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
 
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Float(15.2)
 	l1 = (value.SmallInt(1)).ToValue()
 	l2 = value.String("bazzy")
+	callFrame.SetNativeLineNumber(5)
 	t1, err = value.AddVal(l1, (value.SmallInt(2)).ToValue())
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t3 = value.ResizeNativeArgs(t3, 2)
 	t3[0] = t1
-	thread.AddNativeCallFrame(sym0, sym1, 5)
 	t2, err = Std_ns_Int_im_inspect(thread, t3) // receiver: Std::Int, name: inspect
-	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t4 = (t2).AsString()
@@ -719,17 +766,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var range0 = value.NewClosedRange((value.SmallInt(2)).ToValue(), (value.SmallInt(5)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 *value.ClosedRange // var a: Std::ClosedRange[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = range0
 }
 `,
@@ -748,17 +801,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var range0 = value.NewOpenRange((value.SmallInt(2)).ToValue(), (value.SmallInt(5)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 *value.OpenRange // var a: Std::OpenRange[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = range0
 }
 `,
@@ -777,17 +836,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var range0 = value.NewLeftOpenRange((value.SmallInt(2)).ToValue(), (value.SmallInt(5)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 *value.LeftOpenRange // var a: Std::LeftOpenRange[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = range0
 }
 `,
@@ -806,17 +871,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var range0 = value.NewRightOpenRange((value.SmallInt(2)).ToValue(), (value.SmallInt(5)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 *value.RightOpenRange // var a: Std::RightOpenRange[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = range0
 }
 `,
@@ -835,17 +906,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var range0 = value.NewBeginlessClosedRange((value.SmallInt(5)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 *value.BeginlessClosedRange // var a: Std::BeginlessClosedRange[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = range0
 }
 `,
@@ -864,17 +941,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var range0 = value.NewBeginlessOpenRange((value.SmallInt(5)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 *value.BeginlessOpenRange // var a: Std::BeginlessOpenRange[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = range0
 }
 `,
@@ -893,17 +976,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var range0 = value.NewEndlessClosedRange((value.SmallInt(2)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 *value.EndlessClosedRange // var a: Std::EndlessClosedRange[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = range0
 }
 `,
@@ -922,17 +1011,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var range0 = value.NewEndlessOpenRange((value.SmallInt(2)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 *value.EndlessOpenRange // var a: Std::EndlessOpenRange[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = range0
 }
 `,
@@ -954,9 +1049,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var l1 *value.ClosedRange // var b: Std::ClosedRange[Std::Int]
@@ -965,6 +1065,8 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
 	l1 = value.NewClosedRange(l0, (value.SmallInt(5)).ToValue())
 }
@@ -987,9 +1089,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var l1 *value.OpenRange // var b: Std::OpenRange[Std::Int]
@@ -998,6 +1105,8 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
 	l1 = value.NewOpenRange(l0, (value.SmallInt(5)).ToValue())
 }
@@ -1020,9 +1129,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var l1 *value.LeftOpenRange // var b: Std::LeftOpenRange[Std::Int]
@@ -1031,6 +1145,8 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
 	l1 = value.NewLeftOpenRange(l0, (value.SmallInt(5)).ToValue())
 }
@@ -1053,9 +1169,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var l1 *value.RightOpenRange // var b: Std::RightOpenRange[Std::Int]
@@ -1064,6 +1185,8 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
 	l1 = value.NewRightOpenRange(l0, (value.SmallInt(5)).ToValue())
 }
@@ -1086,9 +1209,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var l1 *value.BeginlessClosedRange // var b: Std::BeginlessClosedRange[Std::Int]
@@ -1097,6 +1225,8 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
 	l1 = value.NewBeginlessClosedRange(l0)
 }
@@ -1119,9 +1249,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var l1 *value.BeginlessOpenRange // var b: Std::BeginlessOpenRange[Std::Int]
@@ -1130,6 +1265,8 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
 	l1 = value.NewBeginlessOpenRange(l0)
 }
@@ -1152,9 +1289,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var l1 *value.EndlessClosedRange // var b: Std::EndlessClosedRange[Std::Int]
@@ -1163,6 +1305,8 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
 	l1 = value.NewEndlessClosedRange(l0)
 }
@@ -1185,9 +1329,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var l1 *value.EndlessOpenRange // var b: Std::EndlessOpenRange[Std::Int]
@@ -1196,6 +1345,8 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
 	l1 = value.NewEndlessOpenRange(l0)
 }
@@ -1227,15 +1378,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.UInt8 // var a: Std::UInt8
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.UInt8(1)
 }
 `,
@@ -1254,15 +1412,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.UInt16 // var a: Std::UInt16
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.UInt16(25)
 }
 `,
@@ -1281,15 +1446,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.UInt32 // var a: Std::UInt32
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.UInt32(450200)
 }
 `,
@@ -1308,15 +1480,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.UInt64 // var a: Std::UInt64
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.UInt64(450200)
 }
 `,
@@ -1335,15 +1514,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.UInt // var a: Std::UInt
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.UInt(450200)
 }
 `,
@@ -1362,15 +1548,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Int8 // var a: Std::Int8
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Int8(1)
 }
 `,
@@ -1389,15 +1582,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Int16 // var a: Std::Int16
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Int16(25)
 }
 `,
@@ -1416,15 +1616,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Int32 // var a: Std::Int32
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Int32(450200)
 }
 `,
@@ -1443,15 +1650,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Int64 // var a: Std::Int64
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Int64(450200)
 }
 `,
@@ -1470,15 +1684,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(450200)).ToValue()
 }
 `,
@@ -1497,17 +1718,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var bi0 = value.ParseBigIntPanic("9223372036854775812", 0)
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = (bi0).ToValue()
 }
 `,
@@ -1526,15 +1753,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Float64 // var a: Std::Float64
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Float64(45.5)
 }
 `,
@@ -1553,15 +1787,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Float32 // var a: Std::Float32
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Float32(45.5)
 }
 `,
@@ -1580,15 +1821,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Float // var a: Std::Float
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Float(45.5)
 }
 `,
@@ -1607,15 +1855,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Float // var a: Std::Float
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Float(0.5827489723984)
 }
 `,
@@ -1634,15 +1889,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.String // var a: Std::String
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.String("foo\\n")
 }
 `,
@@ -1661,15 +1923,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.String // var a: Std::String
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.String("foo\n")
 }
 `,
@@ -1688,15 +1957,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Char // var a: Std::Char
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Char('I')
 }
 `,
@@ -1715,15 +1991,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Char // var a: Std::Char
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Char('\n')
 }
 `,
@@ -1742,15 +2025,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: nil
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Nil
 }
 `,
@@ -1769,16 +2059,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Bool // var a: bool
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = true
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.True
 }
 `,
 		},
@@ -1796,16 +2093,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Bool // var a: bool
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = false
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.False
 }
 `,
 		},
@@ -1823,18 +2127,24 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var sym0 = value.ToSymbol("foo")
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("foo")
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Symbol // var a: Std::Symbol
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	l0 = sym0
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = sym2
 }
 `,
 		},
@@ -1852,15 +2162,22 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Object
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = self
 }
 `,
@@ -1920,17 +2237,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var arrtuple0 = value.NewNativeArrayTupleWithElements[value.Float](0)
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Float]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = arrtuple0
 }
 `,
@@ -2065,18 +2388,24 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var sym0 = value.ToSymbol("lol")
-var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (sym0).ToValue())
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("lol")
+var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (sym2).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::String | Std::Symbol | nil | Std::Float]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = arrtuple0
 }
 `,
@@ -2186,9 +2515,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::String | Std::ArrayList[Std::Float]]]
 	_ = l0
 	var self value.Value
@@ -2213,17 +2547,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::String | nil | Std::Float]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = arrtuple0
 }
 `,
@@ -2469,15 +2809,18 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-var sym0 = value.ToSymbol("name")
-var Std_ns_Class_im_name vm.NativeFunction // Std::Class.:name
+var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("foo")
-var arrtuple0 = value.NewNativeArrayTupleWithElements[value.Symbol](0, sym2)
+var sym2 = value.ToSymbol("name")
+var Std_ns_Class_im_name vm.NativeFunction // Std::Class.:name
+var sym3 = value.ToSymbol("foo")
+var arrtuple0 = value.NewNativeArrayTupleWithElements[value.Symbol](0, sym3)
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Object?
 	_ = l0
 	var l1 value.ArrayTuple // var b: Std::ArrayTuple[Std::String | Std::Int | Std::ArrayTuple[Std::Symbol]]
@@ -2496,15 +2839,17 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Class_im_name = vm.MethodToFunc((value.ClassClass).LookupMethod(sym0))
+	Std_ns_Class_im_name = vm.MethodToFunc((value.ClassClass).LookupMethod(sym2))
 
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Nil
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (value.StringClass).ToValue()
-	thread.AddNativeCallFrame(sym0, sym1, 3)
+	callFrame.SetNativeLineNumber(3)
 	t1, err = Std_ns_Class_im_name(thread, t2) // receiver: &Std::String, name: name
-	thread.PopNativeCallFrame()
 	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t3 = (t1).AsString()
@@ -2540,9 +2885,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::String?
 	_ = l0
 	var l1 value.ArrayTuple // var b: Std::ArrayTuple[Std::Int | nil]
@@ -2555,11 +2905,15 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = value.Nil
 	t1 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(1)
 	if value.Truthy(l0) {
-		err = t1.AppendAt((value.SmallInt(3)).ToValue(), (value.SmallInt(5)).ToValue())
+		callFrame.SetNativeLineNumber(3)
+		err = t1.AppendAt(value.SmallInt(3), (value.SmallInt(5)).ToValue())
 		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
 			thread.Panic(err)
 		}
 	}
@@ -2610,9 +2964,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int]
 	_ = l0
 	var self value.Value
@@ -2637,17 +2996,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = arrtuple0
 }
 `,
@@ -2757,17 +3122,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var arrtuple0 = value.NewNativeArrayTupleWithElements[value.UInt8](0, value.UInt8(171), value.UInt8(205), value.UInt8(95))
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::UInt8]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = arrtuple0
 }
 `,
@@ -2844,17 +3215,23 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 var arrtuple0 = value.NewNativeArrayTupleWithElements[value.UInt64](0, value.UInt64(12379739850550389709), value.UInt64(205), value.UInt64(95))
 
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::UInt64]
 	_ = l0
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
 	l0 = arrtuple0
 }
 `,
@@ -2946,9 +3323,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[any]
 	_ = l0
 	var self value.Value
@@ -2973,9 +3355,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
 	_ = l0
 	var self value.Value
@@ -3000,9 +3387,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
 	_ = l0
 	var self value.Value
@@ -3027,9 +3419,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Float]
 	_ = l0
 	var self value.Value
@@ -3054,9 +3451,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 *value.NativeArrayList[value.Float] // var a: Std::ArrayList[Std::Float]
 	_ = l0
 	var self value.Value
@@ -3081,9 +3483,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
 	_ = l0
 	var self value.Value
@@ -3112,9 +3519,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var cap: Std::Int
 	_ = l0
 	var l1 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::String | Std::Float]
@@ -3142,9 +3554,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::String]
 	_ = l0
 	var self value.Value
@@ -3169,9 +3586,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::String]
 	_ = l0
 	var self value.Value
@@ -3259,9 +3681,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::UInt8]
 	_ = l0
 	var self value.Value
@@ -3286,9 +3713,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::UInt8]
 	_ = l0
 	var self value.Value
@@ -3313,9 +3745,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::UInt8]
 	_ = l0
 	var self value.Value
@@ -3340,9 +3777,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::UInt8]
 	_ = l0
 	var self value.Value
@@ -3426,9 +3868,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int]
 	_ = l0
 	var self value.Value
@@ -3453,9 +3900,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int]
 	_ = l0
 	var self value.Value
@@ -3481,9 +3933,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::ArrayList[Std::Int]]
 	_ = l0
 	var self value.Value
@@ -3509,9 +3966,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::ArrayList[Std::String | Std::ArrayList[Std::Float]]]
 	_ = l0
 	var self value.Value
@@ -3539,9 +4001,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
@@ -3572,9 +4039,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
@@ -3824,9 +4296,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
 	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
@@ -3857,9 +4334,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::String | nil | Std::Float]
@@ -3890,9 +4372,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
 	var l1 value.ArrayList // var b: Std::ArrayList[Std::Int | nil]
@@ -3942,9 +4429,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[any]
 	_ = l0
 	var self value.Value
@@ -3969,9 +4461,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::Int | Std::String | Std::Float]
 	_ = l0
 	var self value.Value
@@ -3996,9 +4493,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 *vm.HashSetOfValue // var a: Std::HashSet[Std::Int | Std::String | Std::Float]
 	_ = l0
 	var self value.Value
@@ -4023,9 +4525,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::Float]
 	_ = l0
 	var self value.Value
@@ -4050,9 +4557,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 *vm.NativeHashSet[value.Float] // var a: Std::HashSet[Std::Float]
 	_ = l0
 	var self value.Value
@@ -4077,9 +4589,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::Int | Std::String | Std::Float]
 	_ = l0
 	var t1 *vm.HashSetOfValue
@@ -4115,9 +4632,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var cap: Std::Int
 	_ = l0
 	var l1 vm.HashSet // var a: Std::HashSet[Std::Int | Std::String | Std::Float]
@@ -4154,9 +4676,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::String]
 	_ = l0
 	var self value.Value
@@ -4181,9 +4708,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::String]
 	_ = l0
 	var self value.Value
@@ -4270,9 +4802,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
 	_ = l0
 	var self value.Value
@@ -4297,9 +4834,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
 	_ = l0
 	var self value.Value
@@ -4325,9 +4867,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
 	_ = l0
 	var self value.Value
@@ -4352,9 +4899,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
 	_ = l0
 	var self value.Value
@@ -4382,9 +4934,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
 	var l1 vm.HashSet // var b: Std::HashSet[Std::Int | Std::String | nil]
@@ -4423,9 +4980,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
 	var l1 vm.HashSet // var b: Std::HashSet[Std::Int | nil]
@@ -4464,9 +5026,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
 	var l1 vm.HashSet // var b: Std::HashSet[Std::Int]
@@ -4511,9 +5078,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
 	var l1 vm.HashSet // var b: Std::HashSet[Std::Float]
@@ -4562,9 +5134,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
 	var l1 vm.HashSet // var b: Std::HashSet[Std::Int]
@@ -4665,9 +5242,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashMap // var a: Std::HashMap[any, any]
 	_ = l0
 	var self value.Value
@@ -4956,9 +5538,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashMap // var a: Std::HashMap[Std::Int, Std::HashMap[Std::String, Std::ArrayList[Std::Float]]]
 	_ = l0
 	var self value.Value
@@ -5138,9 +5725,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
 	var l1 vm.HashMap // var b: Std::HashMap[Std::String, Std::Float]
@@ -5178,9 +5770,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
 	var t1 *vm.NativeHashMap[value.String, value.Float]
@@ -5573,9 +6170,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 vm.HashRecord // var a: Std::HashRecord[Std::String | Std::Int, Std::Int | Std::HashRecord[Std::String, Std::ArrayList[Std::Float]]]
 	_ = l0
 	var self value.Value
@@ -5701,9 +6303,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
 	var l1 vm.HashRecord // var b: Std::HashRecord[Std::Float, Std::String]
@@ -5741,9 +6348,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Value // var a: Std::Int?
 	_ = l0
 	var l1 vm.HashRecord // var b: Std::HashRecord[Std::Float, Std::String | Std::Int | nil]
@@ -5884,6 +6496,9 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 var regex0 = value.MustCompileRegex("", bitfield.BitField8FromBitFlag(0))
 
 func main() { // loc: <main>
@@ -5915,6 +6530,9 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 var regex0 = value.MustCompileRegex("", bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag|reflag.MultilineFlag|reflag.ExtendedFlag))
 
 func main() { // loc: <main>
@@ -5945,6 +6563,9 @@ import (
 var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 
 var regex0 = value.MustCompileRegex("foo \\w+ bar", bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag))
 
@@ -5979,6 +6600,9 @@ import (
 var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 
 var regex0 = value.MustCompileRegex("foo \\w+ bar", bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag))
 
@@ -6017,9 +6641,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.String // var a: Std::String
 	_ = l0
 	var l1 *value.Regex // var b: Std::Regex
@@ -6057,9 +6686,14 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
 	var l0 value.Float // var a: Std::Float
 	_ = l0
 	var l1 *value.Regex // var b: Std::Regex

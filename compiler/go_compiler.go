@@ -178,6 +178,10 @@ type goLocal struct {
 }
 
 func (l *goLocal) markFree() {
+	if l.elkLocal {
+		return
+	}
+
 	l.free = true
 }
 
@@ -271,6 +275,7 @@ func newGoValueWithLocals(v string, typ types.Type, goType *value.GoType, locals
 // Create a new go value based on a Go local.
 func newGoValueWithLocal(local *goLocal, typ types.Type) *goValue {
 	return &goValue{
+		value:   local.name,
 		elkType: typ,
 		goType:  local.goType,
 		locals:  []*goLocal{local},
@@ -504,6 +509,7 @@ type GoCompiler struct {
 	tmpLocalCounter   int
 	lastElkLocalIndex int
 	callCacheCounter  int
+	currentLineNumber int
 	globalData        *globalData
 	isGenerator       bool
 	isAsync           bool
@@ -2375,7 +2381,7 @@ func (c *GoCompiler) compileArrayAppend(tmp *goLocal, expr ast.ExpressionNode) {
 
 		c.registerErr()
 		c.emitSetCallFrameLineNumber(expr.Location())
-		c.emit("err = %s.AppendAt(%s, %s)\n", tmp.name, key.fetchValue(), c.convertToValue(value).fetchValue())
+		c.emit("err = %s.AppendAt(%s, %s)\n", tmp.name, c.convertToNativeInt(key).fetchValue(), c.convertToValue(value).fetchValue())
 		c.emitErrorPropagation()
 	default:
 		c.compileCollectionAppendExpr(tmp, expr)
@@ -2531,6 +2537,12 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 	var capacity *goValue
 	if node.Capacity != nil {
 		capacity = c.compileExpression(node.Capacity, false)
+	} else {
+		capacity = newGoValue(
+			"0",
+			c.checker.Std(symbol.Int),
+			value.FetchGoType("int"),
+		)
 	}
 
 	elementValues := make([]*goValue, 0, len(node.Elements))
@@ -2766,6 +2778,12 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 	var capacity *goValue
 	if node.Capacity != nil {
 		capacity = c.compileExpression(node.Capacity, false)
+	} else {
+		capacity = newGoValue(
+			"0",
+			c.checker.Std(symbol.Int),
+			value.FetchGoType("int"),
+		)
 	}
 
 	elementValues := make([]*goValue, 0, len(node.Elements))
@@ -2955,6 +2973,12 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 	var capacity *goValue
 	if node.Capacity != nil {
 		capacity = c.compileExpression(node.Capacity, false)
+	} else {
+		capacity = newGoValue(
+			"0",
+			c.checker.Std(symbol.Int),
+			value.FetchGoType("int"),
+		)
 	}
 
 	pairValues := make([]goValuePair, 0, len(node.Elements))
@@ -4951,7 +4975,7 @@ func (c *GoCompiler) getTmpIdent() string {
 
 func (c *GoCompiler) defineTmpGoLocal(goType *value.GoType) *goLocal {
 	for local := range c.goLocals.Values() {
-		if local.free && local.goType.Equal(goType) {
+		if !local.elkLocal && local.free && local.goType.Equal(goType) {
 			local.markReserved()
 			return local
 		}
@@ -4996,20 +5020,29 @@ func (c *GoCompiler) emitCallCache() string {
 func (c *GoCompiler) emitAddCallFrame(loc *position.Location) {
 	funcNameSym := c.emitSymbol(c.FuncName)
 	fileNameSym := c.emitSymbol(loc.FilePath)
+	lineNumber := loc.StartPos.Line
 
+	c.currentLineNumber = lineNumber
+	c.registerGoLocal("callFrame", value.FetchGoType("*vm.CallFrame"))
 	c.emit(
-		"callFrame := thread.AddNativeCallFrame(%s, %s, %d)\n",
+		"callFrame = thread.AddNativeCallFrame(%s, %s, %d)\n",
 		funcNameSym,
 		fileNameSym,
-		loc.StartPos.Line,
+		lineNumber,
 	)
 	c.emit("defer thread.PopNativeCallFrame()\n")
 }
 
 func (c *GoCompiler) emitSetCallFrameLineNumber(loc *position.Location) {
+	newLineNumber := loc.StartPos.Line
+	if c.currentLineNumber == newLineNumber {
+		return
+	}
+
+	c.currentLineNumber = newLineNumber
 	c.emit(
 		"callFrame.SetNativeLineNumber(%d)\n",
-		loc.StartPos.Line,
+		newLineNumber,
 	)
 }
 
