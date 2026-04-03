@@ -2263,13 +2263,7 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 		switch elementNode := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
 			if tmp != nil {
-				key := c.compileExpression(elementNode.Key, false)
-				value := c.compileExpression(elementNode.Value, false)
-
-				c.registerErr()
-				c.emitSetCallFrameLineNumber(elementNode.Location())
-				c.emit("err = %s.AppendAt(%s, %s)\n", tmp.name, c.convertToValue(key).fetchValue(), c.convertToValue(value).fetchValue())
-				c.emitErrorPropagation()
+				c.compileArrayAppend(tmp, elementNode)
 				continue
 			}
 			index, ok := c.parseArrayIndex(elementNode.Key)
@@ -2381,7 +2375,24 @@ func (c *GoCompiler) compileArrayAppend(tmp *goLocal, expr ast.ExpressionNode) {
 
 		c.registerErr()
 		c.emitSetCallFrameLineNumber(expr.Location())
-		c.emit("err = %s.AppendAt(%s, %s)\n", tmp.name, c.convertToNativeInt(key).fetchValue(), c.convertToValue(value).fetchValue())
+
+		switch key.goType.Name {
+		case "value.SmallInt", "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+			"value.UInt", "value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
+			c.emit(
+				"err = %s.AppendAtInt(%s, %s)\n",
+				tmp.name,
+				c.convertToNativeInt(key).fetchValue(),
+				c.convertToValue(value).fetchValue(),
+			)
+		default:
+			c.emit(
+				"err = %s.AppendAt(%s, %s)\n",
+				tmp.name,
+				c.convertToValue(key).fetchValue(),
+				c.convertToValue(value).fetchValue(),
+			)
+		}
 		c.emitErrorPropagation()
 	default:
 		c.compileCollectionAppendExpr(tmp, expr)
@@ -2597,13 +2608,7 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 		switch elementNode := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
 			if tmp != nil {
-				key := c.compileExpression(elementNode.Key, false)
-				value := c.compileExpression(elementNode.Value, false)
-
-				c.registerErr()
-				c.emitSetCallFrameLineNumber(elementNode.Location())
-				c.emit("err = %s.AppendAt(%s, %s)\n", tmp.name, c.convertToValue(key).fetchValue(), c.convertToValue(value).fetchValue())
-				c.emitErrorPropagation()
+				c.compileArrayAppend(tmp, elementNode)
 				continue
 			}
 			index, ok := c.parseArrayIndex(elementNode.Key)
@@ -9797,7 +9802,7 @@ func (c *GoCompiler) convertToValue(v *goValue) *goValue {
 
 func (c *GoCompiler) convertToNativeInt(v *goValue) *goValue {
 	if v == nil {
-		newGoValue(
+		return newGoValue(
 			"0",
 			types.Any{},
 			value.FetchGoType("int"),
@@ -9805,27 +9810,29 @@ func (c *GoCompiler) convertToNativeInt(v *goValue) *goValue {
 	}
 
 	switch v.goType.Name {
+	case "int":
+		return v
 	case "value.SmallInt", "value.Float",
 		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt", "value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
-		v.newGoValue(
+		return v.newGoValue(
 			fmt.Sprintf("int(%s)", v.value),
 			v.elkType,
 			value.FetchGoType("int"),
 		)
 	case "*value.BigInt":
-		v.newGoValue(
+		return v.newGoValue(
 			fmt.Sprintf("int((%s).ToSmallInt())", v.value),
 			v.elkType,
 			value.FetchGoType("int"),
 		)
+	default:
+		return v.newGoValue(
+			fmt.Sprintf("(%s).AsAnyInt()", c.convertToValue(v).value),
+			v.elkType,
+			value.FetchGoType("int"),
+		)
 	}
-
-	return v.newGoValue(
-		fmt.Sprintf("(%s).AsAnyInt()", c.convertToValue(v).value),
-		v.elkType,
-		value.FetchGoType("int"),
-	)
 }
 
 func (c *GoCompiler) valueToNarrowerType(v *goValue) *goValue {
