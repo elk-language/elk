@@ -561,7 +561,7 @@ func (c *Checker) checkSignatureOfMethodSignatureDefinition(node *ast.MethodSign
 }
 
 func (c *Checker) newMethodChecker(
-	filename string,
+	funcName string,
 	constScopes []constantScope,
 	methodScopes []methodScope,
 	selfType,
@@ -573,7 +573,7 @@ func (c *Checker) newMethodChecker(
 ) *Checker {
 	checker := &Checker{
 		env:            c.env,
-		Filename:       filename,
+		Filename:       loc.FilePath,
 		mode:           mode,
 		phase:          methodCheckPhase,
 		selfType:       selfType,
@@ -590,7 +590,7 @@ func (c *Checker) newMethodChecker(
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		threadPool:           threadPool,
 	}
-	checker.compiler = compiler.CreateCompiler(c.compiler, checker, loc, c.Errors)
+	checker.compiler = compiler.CreateCompiler(funcName, c.compiler, checker, loc, c.Errors)
 
 	return checker
 }
@@ -652,9 +652,10 @@ func (c *Checker) checkMethodBodies() {
 			} else {
 				mode = methodMode
 			}
+			elkName := method.NamespacedName()
 
 			methodChecker := c.newMethodChecker(
-				node.Location().FilePath,
+				elkName,
 				methodCheck.constantScopes,
 				methodCheck.methodScopes,
 				method.DefinedUnder,
@@ -2261,7 +2262,7 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *
 	c.methodCache.Slice = nil
 
 	if c.shouldCompile() && method.IsCompilable() {
-		method.Body = c.compiler.CompileMethodBody(node, method.Name).Method()
+		method.Body = c.compiler.CompileMethodBody(node, value.ToSymbol(method.NamespacedName())).Method()
 	}
 }
 

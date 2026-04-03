@@ -1020,7 +1020,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("BoxString").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("BoxString.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -1168,7 +1168,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("bar"),
+								value.ToSymbol("Foo.:bar"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),

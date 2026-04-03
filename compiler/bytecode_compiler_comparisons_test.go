@@ -819,7 +819,7 @@ func TestBytecodeGreaterThan(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpGreaterThan,
+										value.ToSymbol("Foo::>"),
 										[]byte{
 											byte(bytecode.TRUE),
 											byte(bytecode.RETURN),
@@ -1050,7 +1050,7 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpGreaterThanEqual,
+										value.ToSymbol("Foo::>="),
 										[]byte{
 											byte(bytecode.TRUE),
 											byte(bytecode.RETURN),
@@ -1281,7 +1281,7 @@ func TestBytecodeLessThan(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpLessThan,
+										value.ToSymbol("Foo::<"),
 										[]byte{
 											byte(bytecode.TRUE),
 											byte(bytecode.RETURN),
@@ -1512,7 +1512,7 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpLessThanEqual,
+										value.ToSymbol("Foo::<="),
 										[]byte{
 											byte(bytecode.TRUE),
 											byte(bytecode.RETURN),

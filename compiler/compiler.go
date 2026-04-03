@@ -41,18 +41,19 @@ type Compiler interface {
 	Flush() // Outputs the compiled code to an output file
 }
 
-func CreateCompiler(parent Compiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) Compiler {
+func CreateCompiler(funcName string, parent Compiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) Compiler {
 	switch parent := parent.(type) {
 	case *BytecodeCompiler, nil:
-		compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker)
-		compiler.Errors = errors
-		compiler.SetParent(parent)
-		return compiler
+		cmp := NewBytecodeCompiler(funcName, topLevelBytecodeCompilerMode, loc, checker)
+		cmp.Errors = errors
+		cmp.SetParent(parent)
+		return cmp
 	case *GoCompiler:
-		compiler := NewGoCompiler(loc.FilePath, topLevelGoCompilerMode, loc, checker, parent.globalData, parent.output)
-		compiler.Errors = errors
-		compiler.SetParent(parent)
-		return compiler
+		goName := MangleGoIdentifier(funcName)
+		cmp := NewGoCompiler(funcName, goName, topLevelGoCompilerMode, loc, checker, parent.globalData, parent.output)
+		cmp.Errors = errors
+		cmp.SetParent(parent)
+		return cmp
 	default:
 		panic(fmt.Sprintf("invalid parent compiler: %T", parent))
 	}

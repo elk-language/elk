@@ -180,7 +180,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										value.ToSymbol("[]"),
+										value.ToSymbol("Foo::[]"),
 										[]byte{
 											byte(bytecode.GET_LOCAL_1),
 											byte(bytecode.RETURN),
@@ -197,7 +197,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("[]").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										value.ToSymbol("[]@1"),
+										value.ToSymbol("Foo::[]@1"),
 										[]byte{
 											byte(bytecode.GET_LOCAL_1),
 											byte(bytecode.CALL_METHOD8), 0,
@@ -378,7 +378,7 @@ func TestBytecodeSubscript(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("[]="),
+								value.ToSymbol("Foo::[]="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -393,7 +393,7 @@ func TestBytecodeSubscript(t *testing.T) {
 							)),
 							value.ToSymbol("[]=").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("[]=@1"),
+								value.ToSymbol("Foo::[]=@1"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -570,7 +570,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpIncrement,
+										value.ToSymbol("Foo::++"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -747,7 +747,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpDecrement,
+										value.ToSymbol("Foo::--"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -967,7 +967,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpAdd,
+										value.ToSymbol("Foo::+"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -1091,7 +1091,7 @@ func TestBytecodeSubscript(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("[]"),
+								value.ToSymbol("Foo::[]"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.RETURN),
@@ -1107,7 +1107,7 @@ func TestBytecodeSubscript(t *testing.T) {
 							)),
 							value.ToSymbol("[]").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("[]@1"),
+								value.ToSymbol("Foo::[]@1"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.RETURN),
@@ -1123,7 +1123,7 @@ func TestBytecodeSubscript(t *testing.T) {
 							)),
 							value.ToSymbol("[]@1").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("[]="),
+								value.ToSymbol("Foo::[]="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -1138,7 +1138,7 @@ func TestBytecodeSubscript(t *testing.T) {
 							)),
 							value.ToSymbol("[]=").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("[]=@1"),
+								value.ToSymbol("Foo::[]=@1"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -1360,7 +1360,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpSubtract,
+										value.ToSymbol("Foo::-"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -1580,7 +1580,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpMultiply,
+										value.ToSymbol("Foo::*"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -1800,7 +1800,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpDivide,
+										value.ToSymbol("Foo::/"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -1983,7 +1983,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpExponentiate,
+										value.ToSymbol("Foo::**"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -2203,7 +2203,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpModulo,
+										value.ToSymbol("Foo::%"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -2386,7 +2386,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpAnd,
+										value.ToSymbol("Foo::&"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -2568,7 +2568,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpOr,
+										value.ToSymbol("Foo::|"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -2750,7 +2750,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpXor,
+										value.ToSymbol("Foo::^"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -2932,7 +2932,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpLeftBitshift,
+										value.ToSymbol("Foo::<<"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -3114,7 +3114,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpRightBitshift,
+										value.ToSymbol("Foo::>>"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -3297,7 +3297,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpLogicalLeftBitshift,
+										value.ToSymbol("Foo::<<<"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -3479,7 +3479,7 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpLogicalRightBitshift,
+										value.ToSymbol("Foo::>>>"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -3812,7 +3812,7 @@ func TestBytecodeInstantiate(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -3904,7 +3904,7 @@ func TestBytecodeInstantiate(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -4032,7 +4032,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -4047,7 +4047,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo@1"),
+								value.ToSymbol("Foo::foo@1"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -4151,7 +4151,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("call"),
+								value.ToSymbol("Foo::call"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -4166,7 +4166,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 							)),
 							value.ToSymbol("call").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("call@1"),
+								value.ToSymbol("Foo::call@1"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -4254,7 +4254,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -4338,7 +4338,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("call"),
+								value.ToSymbol("Foo::call"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -4422,7 +4422,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("call"),
+								value.ToSymbol("Foo::call"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -4506,7 +4506,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("call"),
+								value.ToSymbol("Foo::call"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -4592,7 +4592,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -4684,7 +4684,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -4773,7 +4773,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -4857,7 +4857,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Foo::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -4946,7 +4946,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -5034,7 +5034,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -5132,7 +5132,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -5237,7 +5237,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -5342,7 +5342,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -5438,7 +5438,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -5537,7 +5537,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -5686,7 +5686,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -5825,7 +5825,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -5936,7 +5936,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -6029,7 +6029,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -6123,7 +6123,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -6242,7 +6242,7 @@ func TestBytecodeCallFunction(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -6327,7 +6327,7 @@ func TestBytecodeCallFunction(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -6416,7 +6416,7 @@ func TestBytecodeCallFunction(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("call"),
+								value.ToSymbol("Bar::call"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -6512,7 +6512,7 @@ func TestBytecodeCallFunction(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("call"),
+								value.ToSymbol("Bar::call"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -6526,7 +6526,7 @@ func TestBytecodeCallFunction(t *testing.T) {
 							value.ToSymbol("call").ToValue(),
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("a"),
+								value.ToSymbol("Std::Kernel::a"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -6611,7 +6611,7 @@ func TestBytecodeCallFunction(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -6702,7 +6702,7 @@ func TestBytecodeCallFunction(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -6762,7 +6762,7 @@ func TestBytecodeCallFunction(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -6824,7 +6824,7 @@ func TestBytecodeCallFunction(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -6889,7 +6889,7 @@ func TestBytecodeCallFunction(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -7005,7 +7005,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -7103,7 +7103,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -7118,7 +7118,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -7218,7 +7218,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -7233,7 +7233,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -7335,7 +7335,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -7350,7 +7350,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -7451,7 +7451,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -7466,7 +7466,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -7567,7 +7567,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -7582,7 +7582,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -7683,7 +7683,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -7698,7 +7698,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -7799,7 +7799,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -7814,7 +7814,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -7915,7 +7915,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -7930,7 +7930,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -8031,7 +8031,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -8046,7 +8046,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -8147,7 +8147,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.LOAD_INT64_8), 3,
 									byte(bytecode.RETURN),
@@ -8162,7 +8162,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -8263,7 +8263,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -8278,7 +8278,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -8379,7 +8379,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.LOAD_INT64_8), 3,
 									byte(bytecode.RETURN),
@@ -8394,7 +8394,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -8495,7 +8495,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -8510,7 +8510,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -8611,7 +8611,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -8626,7 +8626,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -8727,7 +8727,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -8742,7 +8742,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -8844,7 +8844,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -8859,7 +8859,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -8961,7 +8961,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -8976,7 +8976,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -9078,7 +9078,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Bar::foo"),
 								[]byte{
 									byte(bytecode.INT_3),
 									byte(bytecode.RETURN),
@@ -9093,7 +9093,7 @@ func TestBytecodeCallSetter(t *testing.T) {
 							)),
 							value.ToSymbol("foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo="),
+								value.ToSymbol("Bar::foo="),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),

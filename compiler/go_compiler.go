@@ -26,7 +26,7 @@ import (
 
 type GoSourceMethod GoCompiler
 
-func (c *GoSourceMethod) Name() value.Symbol                        { return value.ToSymbol(c.FuncName) }
+func (c *GoSourceMethod) Name() value.Symbol                        { return value.ToSymbol(c.goName) }
 func (*GoSourceMethod) Class() *value.Class                         { return nil }
 func (*GoSourceMethod) Copy() value.Reference                       { return nil }
 func (*GoSourceMethod) DirectClass() *value.Class                   { return nil }
@@ -298,7 +298,8 @@ func newGoImportEntry(path, name string) *goImportEntry {
 }
 
 func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) *GoCompiler {
-	compiler := NewGoCompiler("main", topLevelGoCompilerMode, loc, checker, newGlobalData(), output)
+	name := "main"
+	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, newGlobalData(), output)
 	compiler.Errors = errors
 	if parent != nil {
 		compiler.SetParent(parent)
@@ -307,7 +308,8 @@ func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.L
 }
 
 func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) Compiler {
-	compiler := NewGoCompiler("main", topLevelGoCompilerMode, loc, checker, newGlobalData(), output)
+	name := "main"
+	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, newGlobalData(), output)
 	compiler.Errors = errors
 	return compiler
 }
@@ -326,7 +328,8 @@ func (c *GoCompiler) InitMainCompiler() {
 }
 
 func (c *GoCompiler) InitGlobalEnv() Compiler {
-	envCompiler := NewGoCompiler("initGlobalEnv", topLevelGoCompilerMode, c.loc, c.checker, c.globalData, c.output)
+	name := "initGlobalEnv"
+	envCompiler := NewGoCompiler(name, name, topLevelGoCompilerMode, c.loc, c.checker, c.globalData, c.output)
 	envCompiler.SetParent(c)
 	envCompiler.Errors = c.Errors
 	envCompiler.compileGlobalEnv()
@@ -349,7 +352,8 @@ func (c *GoCompiler) FinishGlobalEnvCompiler() {
 }
 
 func (c *GoCompiler) InitMethodCompiler(location *position.Location) (Compiler, int) {
-	methodCompiler := NewGoCompiler("methodDefinitions", topLevelGoCompilerMode, c.loc, c.checker, c.globalData, c.output)
+	name := "methodDefinitions"
+	methodCompiler := NewGoCompiler(name, name, topLevelGoCompilerMode, c.loc, c.checker, c.globalData, c.output)
 	methodCompiler.Errors = c.Errors
 	methodCompiler.SetParent(c)
 
@@ -374,7 +378,8 @@ func (c *GoCompiler) CompileMethods(location *position.Location, execOffset int)
 }
 
 func (c *GoCompiler) InitIvarIndicesCompiler(location *position.Location) (Compiler, int) {
-	ivarCompiler := NewGoCompiler("ivarIndices", topLevelGoCompilerMode, c.loc, c.checker, c.globalData, c.output)
+	name := "ivarIndices"
+	ivarCompiler := NewGoCompiler(name, name, topLevelGoCompilerMode, c.loc, c.checker, c.globalData, c.output)
 	ivarCompiler.Errors = c.Errors
 	ivarCompiler.SetParent(c)
 
@@ -419,7 +424,7 @@ func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNod
 	fullConstName := c.getFullConstName(namespace.Name(), constName.String())
 	elkType := c.typeOf(node)
 	goType := init.goType
-	goIdent := mangleGoIdentifier(fullConstName)
+	goIdent := MangleGoIdentifier(fullConstName)
 	c.globalData.constantCache.SetUnsafe(
 		fullConstName,
 		&nativeConstant{
@@ -455,9 +460,10 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 
 	method := c.typeOf(node).(*types.Method)
 
-	goName := c.registerElkMethodName(method.NamespacedName())
+	elkName := method.NamespacedName()
+	goName := c.registerElkMethodName(elkName)
 
-	methodCompiler := NewGoCompiler(goName, mode, node.Location(), c.checker, c.globalData, c.output)
+	methodCompiler := NewGoCompiler(elkName, goName, mode, node.Location(), c.checker, c.globalData, c.output)
 	methodCompiler.isGenerator = node.IsGenerator()
 	methodCompiler.isAsync = node.IsAsync()
 	methodCompiler.Errors = c.Errors
@@ -492,7 +498,8 @@ func newGlobalData() *globalData {
 // Compiles Elk source code to Go source code.
 type GoCompiler struct {
 	Errors            *diagnostic.SyncDiagnosticList
-	FuncName          string
+	elkName           string
+	goName            string
 	method            *types.Method
 	scopes            nativeElkScopes
 	output            io.Writer
@@ -516,9 +523,10 @@ type GoCompiler struct {
 	unhygienic        bool
 }
 
-func NewGoCompiler(name string, mode goMode, loc *position.Location, checker types.Checker, globalData *globalData, output io.Writer) *GoCompiler {
+func NewGoCompiler(elkName string, goName string, mode goMode, loc *position.Location, checker types.Checker, globalData *globalData, output io.Writer) *GoCompiler {
 	return &GoCompiler{
-		FuncName:          name,
+		elkName:           elkName,
+		goName:            goName,
 		mode:              mode,
 		Errors:            diagnostic.NewSyncDiagnosticList(),
 		scopes:            nativeElkScopes{newNativeElkScope("", defaultNativeElkScopeType)}, // start with an empty set for the 0th scope
@@ -690,7 +698,7 @@ func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []as
 
 	c.emit("func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {\n")
 
-	c.emit("result, err := %s(thread, args[0]", c.FuncName)
+	c.emit("result, err := %s(thread, args[0]", c.goName)
 
 	for i, param := range parameters {
 		p := param.(*ast.MethodParameterNode)
@@ -723,7 +731,7 @@ func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []as
 
 func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast.ParameterNode, body []ast.StatementNode, returnType types.Type, loc *position.Location) {
 	var funcBuffer bytes.Buffer
-	fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread, self value.Value", c.FuncName)
+	fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread, self value.Value", c.goName)
 
 	self := c.registerGoLocal("self", goValueType)
 	self.predefined = true
@@ -1185,7 +1193,7 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 			c.emit("parentNamespace = %s\n", c.convertToValue(namespaceVal).fetchValue())
 		}
 
-		goIdent := mangleGoIdentifier(constName.String())
+		goIdent := MangleGoIdentifier(constName.String())
 		var elkType types.Type
 		var goType *value.GoType
 
@@ -1349,7 +1357,7 @@ func (c *GoCompiler) emitGetConst(fullName value.Symbol, elkType types.Type) *go
 	}
 
 	val := c.emitDynamicGetConst(fullName, elkType)
-	goIdent := mangleGoIdentifier(fullNameString)
+	goIdent := MangleGoIdentifier(fullNameString)
 	c.emitPackage("var %s %s // %s\n", goIdent, val.goType, fullNameString)
 	c.globalData.constantCache.SetUnsafe(
 		fullNameString,
@@ -1478,7 +1486,7 @@ var goMangleMap = []goMangleMapping{
 	{"%", "_mod_"},
 }
 
-func mangleGoIdentifier(name string) string {
+func MangleGoIdentifier(name string) string {
 	for _, mapping := range goMangleMap {
 		name = strings.ReplaceAll(name, mapping.from, mapping.to)
 	}
@@ -1504,12 +1512,12 @@ func mangleGoIdentifier(name string) string {
 }
 
 func mangleFileName(name string) string {
-	return fmt.Sprintf("__file_%s", mangleGoIdentifier(name))
+	return fmt.Sprintf("__file_%s", MangleGoIdentifier(name))
 }
 
 func (c *GoCompiler) InitExpressionCompiler(location *position.Location) Compiler {
 	name := mangleFileName(location.FilePath)
-	exprCompiler := NewGoCompiler(name, topLevelGoCompilerMode, location, c.checker, c.globalData, c.output)
+	exprCompiler := NewGoCompiler(location.FilePath, name, topLevelGoCompilerMode, location, c.checker, c.globalData, c.output)
 	exprCompiler.SetParent(c)
 	exprCompiler.Errors = c.Errors
 
@@ -1518,7 +1526,7 @@ func (c *GoCompiler) InitExpressionCompiler(location *position.Location) Compile
 
 func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	var initCode string
-	if c.FuncName == "main" {
+	if c.goName == "main" {
 		initCode = c.buff.String()
 		c.buff.Reset()
 	}
@@ -1526,16 +1534,16 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	c.emitAddCallFrame(node.Location())
 	c.compileProgram(node)
 
-	if c.buff.Len() == 0 && c.FuncName != "main" {
+	if c.buff.Len() == 0 && c.goName != "main" {
 		return
 	}
 
 	if c.parent != nil {
-		c.parent.emit("%s(thread)\n", c.FuncName)
+		c.parent.emit("%s(thread)\n", c.goName)
 	}
 
 	var funcBuffer bytes.Buffer
-	if c.FuncName == "main" {
+	if c.goName == "main" {
 		var methodVarsBuff bytes.Buffer
 		for _, nativeMethod := range c.globalData.methodCache.Map.All() {
 			if nativeMethod.init == "" {
@@ -1550,10 +1558,10 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 		}
 
 		c.emitPrependBytes([]byte(initCode))
-		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.FuncName, c.loc.FilePath)
+		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.goName, c.loc.FilePath)
 		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n_ = thread\n")
 	} else {
-		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // loc: %s\n", c.FuncName, c.loc.FilePath)
+		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // loc: %s\n", c.goName, c.loc.FilePath)
 	}
 	c.registerGoLocal("self", goValueType)
 	c.compileLocalsTo(&funcBuffer)
@@ -4188,7 +4196,7 @@ func (c *GoCompiler) registerElkMethodName(methodName string) string {
 	if entry, ok := c.globalData.methodCache.GetUnsafe(methodName); ok {
 		goName = entry.ident
 	} else {
-		goName = mangleGoIdentifier(methodName)
+		goName = MangleGoIdentifier(methodName)
 		c.globalData.methodCache.SetUnsafe(
 			methodName,
 			&nativeMethod{
@@ -4283,7 +4291,7 @@ func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType 
 	namespacedMethodName := method.NamespacedName()
 	goMethodName, ok := c.globalData.methodCache.GetUnsafe(namespacedMethodName)
 	if !ok {
-		goIdent := mangleGoIdentifier(namespacedMethodName)
+		goIdent := MangleGoIdentifier(namespacedMethodName)
 		nameSym := c.emitSymbol(name)
 		goMethodName = &nativeMethod{
 			ident: goIdent,
@@ -4453,30 +4461,42 @@ func (c *GoCompiler) narrowDownValue(val *goValue) *goValue {
 
 func (c *GoCompiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode) *goValue {
 	typ := c.typeOf(node).(*types.Module)
-	return c.compileNamespaceDeclarationNode(fmt.Sprintf("module_%s", mangleGoIdentifier(typ.Name())), node.Body, typ, node.Location())
+	elkName := fmt.Sprintf("<module: %s>", typ.Name())
+	goName := fmt.Sprintf("module_%s", MangleGoIdentifier(typ.Name()))
+
+	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
 }
 
 func (c *GoCompiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarationNode) *goValue {
 	typ := c.typeOf(node).(*types.Interface)
-	return c.compileNamespaceDeclarationNode(fmt.Sprintf("interface_%s", mangleGoIdentifier(typ.Name())), node.Body, typ, node.Location())
+	elkName := fmt.Sprintf("<interface: %s>", typ.Name())
+	goName := fmt.Sprintf("interface_%s", MangleGoIdentifier(typ.Name()))
+
+	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
 }
 
 func (c *GoCompiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) *goValue {
 	typ := c.typeOf(node).(*types.Mixin)
-	return c.compileNamespaceDeclarationNode(fmt.Sprintf("mixin_%s", mangleGoIdentifier(typ.Name())), node.Body, typ, node.Location())
+	elkName := fmt.Sprintf("<mixin: %s>", typ.Name())
+	goName := fmt.Sprintf("mixin_%s", MangleGoIdentifier(typ.Name()))
+
+	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
 }
 
 func (c *GoCompiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) *goValue {
 	typ := c.typeOf(node).(*types.Class)
-	return c.compileNamespaceDeclarationNode(fmt.Sprintf("class_%s", mangleGoIdentifier(typ.Name())), node.Body, typ, node.Location())
+	elkName := fmt.Sprintf("<class: %s>", typ.Name())
+	goName := fmt.Sprintf("class_%s", MangleGoIdentifier(typ.Name()))
+
+	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
 }
 
-func (c *GoCompiler) compileNamespaceDeclarationNode(name string, body []ast.StatementNode, typ types.Namespace, loc *position.Location) *goValue {
+func (c *GoCompiler) compileNamespaceDeclarationNode(elkName, goName string, body []ast.StatementNode, typ types.Namespace, loc *position.Location) *goValue {
 	if len(body) <= 0 {
 		return nilGoValue
 	}
 
-	classCompiler := NewGoCompiler(name, topLevelGoCompilerMode, loc, c.checker, c.globalData, c.output)
+	classCompiler := NewGoCompiler(elkName, goName, topLevelGoCompilerMode, loc, c.checker, c.globalData, c.output)
 	classCompiler.SetParent(c)
 	classCompiler.Errors = c.Errors
 
@@ -4492,10 +4512,10 @@ func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Na
 		return
 	}
 
-	c.parent.emit("%s(thread)\n", c.FuncName)
+	c.parent.emit("%s(thread)\n", c.goName)
 
 	var funcBuffer bytes.Buffer
-	fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // namespace: %s, loc: %s\n", c.FuncName, typ.Name(), c.loc.String())
+	fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // namespace: %s, loc: %s\n", c.goName, typ.Name(), c.loc.String())
 	c.compileLocalsTo(&funcBuffer)
 
 	switch typ := typ.(type) {
@@ -5016,14 +5036,14 @@ func (c *GoCompiler) emitCaptureStackTrace() {
 
 func (c *GoCompiler) emitCallCache() string {
 	c.callCacheCounter++
-	callCacheName := fmt.Sprintf("cc_%s_%d", c.FuncName, c.callCacheCounter)
+	callCacheName := fmt.Sprintf("cc_%s_%d", c.goName, c.callCacheCounter)
 	c.emitPackage("var %s = &value.CallCache{}\n", callCacheName)
 
 	return callCacheName
 }
 
 func (c *GoCompiler) emitAddCallFrame(loc *position.Location) {
-	funcNameSym := c.emitSymbol(c.FuncName)
+	funcNameSym := c.emitSymbol(c.elkName)
 	fileNameSym := c.emitSymbol(loc.FilePath)
 	lineNumber := loc.StartPos.Line
 

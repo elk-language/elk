@@ -298,7 +298,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -428,7 +428,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -561,7 +561,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -686,7 +686,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -772,7 +772,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -886,7 +886,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -1004,7 +1004,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -1118,7 +1118,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -1232,7 +1232,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -1717,7 +1717,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_0),
 									byte(bytecode.CALL_METHOD8), 0,
@@ -1851,7 +1851,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_0),
 									byte(bytecode.CALL_METHOD8), 0,
@@ -1980,7 +1980,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_0),
 									byte(bytecode.CALL_METHOD8), 0,
@@ -2070,7 +2070,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.LOAD_VALUE_0),
 									byte(bytecode.CALL_METHOD8), 1,
@@ -2190,7 +2190,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -2318,7 +2318,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -2449,7 +2449,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.MUST),
@@ -2576,7 +2576,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -2660,7 +2660,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_NAME16), 0, 0,
 									byte(bytecode.RETURN),
@@ -2772,7 +2772,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -2888,7 +2888,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -3000,7 +3000,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -3112,7 +3112,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),

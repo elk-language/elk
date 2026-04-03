@@ -1178,7 +1178,7 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.PROMISE),
@@ -1252,7 +1252,7 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.PROMISE),
@@ -5882,7 +5882,7 @@ func TestBytecodeCatch(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.LOAD_VALUE_0),
 									byte(bytecode.CALL_SELF8), 1,
