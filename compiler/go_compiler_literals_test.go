@@ -222,8 +222,6 @@ func main() { // loc: <main>
 	_ = t2
 	var t3 []value.Value
 	_ = t3
-	var t4 value.String
-	_ = t4
 	var self value.Value
 	_ = self
 
@@ -248,8 +246,7 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t2).AsString()
-	l3 = value.String("foo: ") + t4 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + l1
+	l3 = value.String("foo: ") + (t2).AsString() + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + l1
 }
 `,
 		},
@@ -295,22 +292,16 @@ func main() { // loc: <main>
 	_ = t2
 	var err value.Value
 	_ = err
-	var t3 value.Time
-	_ = t3
 	var l2 value.Value // var foo: Std::Int
 	_ = l2
 	var l3 value.String // var a: Std::String
 	_ = l3
-	var t4 value.Value
+	var t3 value.Value
+	_ = t3
+	var t4 []value.Value
 	_ = t4
 	var t5 []value.Value
 	_ = t5
-	var t6 value.String
-	_ = t6
-	var t7 []value.Value
-	_ = t7
-	var t8 value.String
-	_ = t8
 	var self value.Value
 	_ = self
 
@@ -330,8 +321,7 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t3 = (t1).AsTime()
-	l1 = t3
+	l1 = (t1).AsTime()
 	l2 = (value.SmallInt(1)).ToValue()
 	callFrame.SetNativeLineNumber(5)
 	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
@@ -339,23 +329,21 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
+	t4 = value.ResizeNativeArgs(t4, 2)
+	t4[0] = t1
+	t3, err = Std_ns_Int_im_to_string(thread, t4) // receiver: Std::Int, name: to_string
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
 	t5 = value.ResizeNativeArgs(t5, 2)
-	t5[0] = t1
-	t4, err = Std_ns_Int_im_to_string(thread, t5) // receiver: Std::Int, name: to_string
+	t5[0] = (l1).ToValue()
+	t1, err = Std_ns_Time_im_to_string(thread, t5) // receiver: Std::Time, name: to_string
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t6 = (t4).AsString()
-	t7 = value.ResizeNativeArgs(t7, 2)
-	t7[0] = (l1).ToValue()
-	t1, err = Std_ns_Time_im_to_string(thread, t7) // receiver: Std::Time, name: to_string
-	if err.IsNotUndefined() {
-		thread.CaptureStackTrace()
-		thread.Panic(err)
-	}
-	t8 = (t1).AsString()
-	l3 = value.String("foo: ") + t6 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + t8
+	l3 = value.String("foo: ") + (t3).AsString() + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + (t1).AsString()
 }
 `,
 		},
@@ -404,8 +392,6 @@ func main() { // loc: <main>
 	_ = t2
 	var t3 []value.Value
 	_ = t3
-	var t4 value.String
-	_ = t4
 	var self value.Value
 	_ = self
 
@@ -430,8 +416,7 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t2).AsString()
-	l3 = value.String("foo: ") + t4 + value.String(", bar: ") + value.String((l0).Inspect()) + value.String(", baz: ") + value.String((l2).Inspect())
+	l3 = value.String("foo: ") + (t2).AsString() + value.String(", bar: ") + value.String((l0).Inspect()) + value.String(", baz: ") + value.String((l2).Inspect())
 }
 `,
 		},
@@ -527,8 +512,6 @@ func main() { // loc: <main>
 	_ = t2
 	var t3 []value.Value
 	_ = t3
-	var t4 value.String
-	_ = t4
 	var self value.Value
 	_ = self
 
@@ -553,8 +536,7 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t2).AsString()
-	l3 = (value.String("foo: ") + t4 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + l1).ToSymbol()
+	l3 = (value.String("foo: ") + (t2).AsString() + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + l1).ToSymbol()
 }
 `,
 		},
@@ -600,22 +582,16 @@ func main() { // loc: <main>
 	_ = t2
 	var err value.Value
 	_ = err
-	var t3 value.Time
-	_ = t3
 	var l2 value.Value // var foo: Std::Int
 	_ = l2
 	var l3 value.Symbol // var a: Std::Symbol
 	_ = l3
-	var t4 value.Value
+	var t3 value.Value
+	_ = t3
+	var t4 []value.Value
 	_ = t4
 	var t5 []value.Value
 	_ = t5
-	var t6 value.String
-	_ = t6
-	var t7 []value.Value
-	_ = t7
-	var t8 value.String
-	_ = t8
 	var self value.Value
 	_ = self
 
@@ -635,8 +611,7 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t3 = (t1).AsTime()
-	l1 = t3
+	l1 = (t1).AsTime()
 	l2 = (value.SmallInt(1)).ToValue()
 	callFrame.SetNativeLineNumber(5)
 	t1, err = value.AddVal(l2, (value.SmallInt(2)).ToValue())
@@ -644,23 +619,21 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
+	t4 = value.ResizeNativeArgs(t4, 2)
+	t4[0] = t1
+	t3, err = Std_ns_Int_im_to_string(thread, t4) // receiver: Std::Int, name: to_string
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
 	t5 = value.ResizeNativeArgs(t5, 2)
-	t5[0] = t1
-	t4, err = Std_ns_Int_im_to_string(thread, t5) // receiver: Std::Int, name: to_string
+	t5[0] = (l1).ToValue()
+	t1, err = Std_ns_Time_im_to_string(thread, t5) // receiver: Std::Time, name: to_string
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t6 = (t4).AsString()
-	t7 = value.ResizeNativeArgs(t7, 2)
-	t7[0] = (l1).ToValue()
-	t1, err = Std_ns_Time_im_to_string(thread, t7) // receiver: Std::Time, name: to_string
-	if err.IsNotUndefined() {
-		thread.CaptureStackTrace()
-		thread.Panic(err)
-	}
-	t8 = (t1).AsString()
-	l3 = (value.String("foo: ") + t6 + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + t8).ToSymbol()
+	l3 = (value.String("foo: ") + (t3).AsString() + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + (t1).AsString()).ToSymbol()
 }
 `,
 		},
@@ -709,8 +682,6 @@ func main() { // loc: <main>
 	_ = t2
 	var t3 []value.Value
 	_ = t3
-	var t4 value.String
-	_ = t4
 	var self value.Value
 	_ = self
 
@@ -735,8 +706,7 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t2).AsString()
-	l3 = (value.String("foo: ") + t4 + value.String(", bar: ") + value.String((l0).Inspect()) + value.String(", baz: ") + value.String((l2).Inspect())).ToSymbol()
+	l3 = (value.String("foo: ") + (t2).AsString() + value.String(", bar: ") + value.String((l0).Inspect()) + value.String(", baz: ") + value.String((l2).Inspect())).ToSymbol()
 }
 `,
 		},
@@ -2655,10 +2625,8 @@ func main() { // loc: <main>
 	_ = t2
 	var err value.Value
 	_ = err
-	var t3 value.String
+	var t3 *value.ArrayTupleOfValue
 	_ = t3
-	var t4 *value.ArrayTupleOfValue
-	_ = t4
 	var self value.Value
 	_ = self
 
@@ -2676,15 +2644,14 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t3 = (t1).AsString()
-	t4 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(7, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), (t3).ToValue())
-	err = t4.AppendAt(l0, (value.SmallInt(12)).ToValue())
+	t3 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(7, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), ((t1).AsString()).ToValue())
+	err = t3.AppendAt(l0, (value.SmallInt(12)).ToValue())
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4.Append((value.Float(8.2)).ToValue())
-	l1 = t4
+	t3.Append((value.Float(8.2)).ToValue())
+	l1 = t3
 }
 `,
 		},
@@ -2905,10 +2872,8 @@ func main() { // loc: <main>
 	_ = t2
 	var err value.Value
 	_ = err
-	var t3 value.String
+	var t3 *value.ArrayTupleOfValue
 	_ = t3
-	var t4 *value.ArrayTupleOfValue
-	_ = t4
 	var self value.Value
 	_ = self
 
@@ -2926,13 +2891,12 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t3 = (t1).AsString()
-	t4 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(3, (t3).ToValue())
+	t3 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(3, ((t1).AsString()).ToValue())
 	if value.Truthy(l0) {
-		t4.Append((value.SmallInt(5)).ToValue())
+		t3.Append((value.SmallInt(5)).ToValue())
 	}
-	t4.Append((arrtuple0).ToValue())
-	l1 = t4
+	t3.Append((arrtuple0).ToValue())
+	l1 = t3
 }
 `,
 		},
@@ -7110,6 +7074,10 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = value.String("baz")
 	t1, err = value.CompileRegexVal(value.String("foo \\w+ ")+l0+value.String(" bar"), bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
 	l1 = t1
 }
 `,
@@ -7157,6 +7125,10 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = value.Float(2.5)
 	t1, err = value.CompileRegexVal(value.String("foo \\w+ ")+(l0).ToString()+value.String(" bar"), bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
 	l1 = t1
 }
 `,
@@ -7200,16 +7172,12 @@ func main() { // loc: <main>
 	_ = t2
 	var err value.Value
 	_ = err
-	var t3 value.Time
-	_ = t3
 	var l1 *value.Regex // var b: Std::Regex
 	_ = l1
-	var t4 *value.Regex
+	var t3 *value.Regex
+	_ = t3
+	var t4 []value.Value
 	_ = t4
-	var t5 []value.Value
-	_ = t5
-	var t6 value.String
-	_ = t6
 	var self value.Value
 	_ = self
 
@@ -7227,19 +7195,21 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t3 = (t1).AsTime()
-	l0 = t3
-	t5 = value.ResizeNativeArgs(t5, 2)
-	t5[0] = (l0).ToValue()
+	l0 = (t1).AsTime()
+	t4 = value.ResizeNativeArgs(t4, 2)
+	t4[0] = (l0).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	t1, err = Std_ns_Time_im_to_string(thread, t5) // receiver: Std::Time, name: to_string
+	t1, err = Std_ns_Time_im_to_string(thread, t4) // receiver: Std::Time, name: to_string
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t6 = (t1).AsString()
-	t4, err = value.CompileRegexVal(value.String("foo \\w+ ")+t6+value.String(" bar"), bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag))
-	l1 = t4
+	t3, err = value.CompileRegexVal(value.String("foo \\w+ ")+(t1).AsString()+value.String(" bar"), bitfield.BitField8FromBitFlag(reflag.CaseInsensitiveFlag))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t3
 }
 `,
 		},

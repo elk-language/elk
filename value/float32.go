@@ -149,23 +149,26 @@ func (f Float32) Divide(other Value) (Float32, Value) {
 	return f / o, Undefined
 }
 
+func (f Float32) CompareFloat32(other Float32) Value {
+	if math.IsNaN(float64(f)) || math.IsNaN(float64(other)) {
+		return Nil
+	}
+
+	if f > other {
+		return SmallInt(1).ToValue()
+	}
+	if f < other {
+		return SmallInt(-1).ToValue()
+	}
+	return SmallInt(0).ToValue()
+}
+
 func (f Float32) CompareVal(other Value) (Value, Value) {
 	if !other.IsFloat32() {
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat32()
-	if math.IsNaN(float64(f)) || math.IsNaN(float64(o)) {
-		return Nil, Undefined
-	}
-
-	if f > o {
-		return SmallInt(1).ToValue(), Undefined
-	}
-	if f < o {
-		return SmallInt(-1).ToValue(), Undefined
-	}
-	return SmallInt(0).ToValue(), Undefined
+	return f.CompareFloat32(other.AsFloat32()), Undefined
 }
 
 func (f Float32) GreaterThanVal(other Value) (Value, Value) {

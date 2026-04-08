@@ -1079,34 +1079,69 @@ import (
 // 	}
 // }
 
-// func TestBytecodeReturnExpression(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"return a value": {
-// 			input: "return 5",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(7, 1, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(7, 1, 8), P(7, 1, 8)), "values returned in void context will be ignored"),
-// 			},
-// 		},
-// 	}
+func TestGoReturnExpression(t *testing.T) {
+	tests := goTestTable{
+		"return a value in main": {
+			input: "return 5.to_string",
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("to_string")
+var Std_ns_Int_im_to_string vm.NativeFunction // Std::Int.:to_string
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = (value.SmallInt(5)).ToValue()
+	t1, err = Std_ns_Int_im_to_string(thread, t2) // receiver: Std::Int, name: to_string
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	return
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(7, 1, 8), P(17, 1, 18)), "values returned in void context will be ignored"),
+			},
+		},
+		// TODO: return in methods, in namespace bodies
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestBytecodeAwaitExpression(t *testing.T) {
 // 	tests := bytecodeTestTable{
@@ -2426,64 +2461,64 @@ func main() { // loc: <main>
 	}
 }
 
-// func TestBytecodeBreak(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"in top level": {
-// 			input: "break",
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(0, 1, 1), P(4, 1, 5)), "cannot jump with `break` or `continue` outside of a loop"),
-// 			},
-// 		},
-// 		"in top level with a label": {
-// 			input: "break[foo]",
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "cannot jump with `break` or `continue` outside of a loop"),
-// 			},
-// 		},
-// 		"nonexistent label": {
-// 			input: `
-// 				loop
-// 					break[foo]
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(15, 3, 6), P(23, 3, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
-// 			},
-// 		},
-// 		"label attached to an expression": {
-// 			input: `
-// 				loop
-// 					$foo: 1 + 2
-// 					break[foo]
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(32, 4, 6), P(40, 4, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
-// 			},
-// 		},
-// 		"label attached to a different loop": {
-// 			input: `
-// 				$foo: loop
-// 					println("foo")
-// 				end
-//
-// 				loop
-// 					break[foo]
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(59, 7, 6), P(67, 7, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
-// 				diagnostic.NewWarning(L(P(49, 6, 5), P(76, 8, 7)), "unreachable code"),
-// 			},
-// 		},
-// 	}
-//
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+func TestGoBreak(t *testing.T) {
+	tests := goTestTable{
+		"in top level": {
+			input: "break",
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(4, 1, 5)), "cannot jump with `break` or `continue` outside of a loop"),
+			},
+		},
+		"in top level with a label": {
+			input: "break[foo]",
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(8, 1, 9)), "cannot jump with `break` or `continue` outside of a loop"),
+			},
+		},
+		"nonexistent label": {
+			input: `
+				loop
+					break[foo]
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(15, 3, 6), P(23, 3, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
+			},
+		},
+		"label attached to an expression": {
+			input: `
+				loop
+					$foo: 1 + 2
+					break[foo]
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(32, 4, 6), P(40, 4, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
+			},
+		},
+		"label attached to a different loop": {
+			input: `
+				$foo: loop
+					println("foo")
+				end
+
+				loop
+					break[foo]
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(59, 7, 6), P(67, 7, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
+				diagnostic.NewWarning(L(P(49, 6, 5), P(76, 8, 7)), "unreachable code"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestBytecodeContinue(t *testing.T) {
 // 	tests := bytecodeTestTable{
@@ -4371,541 +4406,514 @@ func main() { // loc: <main>
 // 	}
 // }
 
-// func TestBytecodeWhile(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"with a body": {
-// 			input: `
-// 			  i := 0
-// 				while i < 5
-// 					i += 1
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 9,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.LOOP), 0, 14,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(48, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 					bytecode.NewLineInfo(4, 5),
-// 					bytecode.NewLineInfo(5, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"with break": {
-// 			input: `
-// 			  i := 0
-// 				while true
-// 					i += 1
-// 					break if i < 5
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 7,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(67, 6, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 13),
-// 					bytecode.NewLineInfo(6, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(23, 3, 11), P(26, 3, 14)), "this condition will always have the same result since type `true` is truthy"),
-// 			},
-// 		},
-// 		"with labeled break": {
-// 			input: `
-// 			  i := 0
-// 				$foo: while true
-// 					i += 1
-// 					break[foo] if i < 5
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 7,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(78, 6, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 13),
-// 					bytecode.NewLineInfo(6, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(29, 3, 17), P(32, 3, 20)), "this condition will always have the same result since type `true` is truthy"),
-// 			},
-// 		},
-// 		"with break with value": {
-// 			input: `
-// 			  i := 0
-// 				while true
-// 					i += 1
-// 					break true if i < 5
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 7,
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(72, 6, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 13),
-// 					bytecode.NewLineInfo(6, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(23, 3, 11), P(26, 3, 14)), "this condition will always have the same result since type `true` is truthy"),
-// 			},
-// 		},
+func TestGoWhile(t *testing.T) {
+	tests := goTestTable{
+		"with a body": {
+			input: `
+			  i := 0
+				while i < 5
+					i += 1
+				end
+			`,
+			want: `
+`,
+		},
+		// "with break": {
+		// 	input: `
+		// 	  i := 0
+		// 		while true
+		// 			i += 1
+		// 			break if i < 5
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 7,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 8,
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 21,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(67, 6, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(4, 4),
+		// 			bytecode.NewLineInfo(5, 13),
+		// 			bytecode.NewLineInfo(6, 5),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// 	err: diagnostic.DiagnosticList{
+		// 		diagnostic.NewWarning(L(P(23, 3, 11), P(26, 3, 14)), "this condition will always have the same result since type `true` is truthy"),
+		// 	},
+		// },
+		// "with labeled break": {
+		// 	input: `
+		// 	  i := 0
+		// 		$foo: while true
+		// 			i += 1
+		// 			break[foo] if i < 5
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 7,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 8,
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 21,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(78, 6, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(4, 4),
+		// 			bytecode.NewLineInfo(5, 13),
+		// 			bytecode.NewLineInfo(6, 5),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// 	err: diagnostic.DiagnosticList{
+		// 		diagnostic.NewWarning(L(P(29, 3, 17), P(32, 3, 20)), "this condition will always have the same result since type `true` is truthy"),
+		// 	},
+		// },
+		// "with break with value": {
+		// 	input: `
+		// 	  i := 0
+		// 		while true
+		// 			i += 1
+		// 			break true if i < 5
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 7,
+		// 			byte(bytecode.TRUE),
+		// 			byte(bytecode.JUMP), 0, 8,
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 21,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(72, 6, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(4, 4),
+		// 			bytecode.NewLineInfo(5, 13),
+		// 			bytecode.NewLineInfo(6, 5),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// 	err: diagnostic.DiagnosticList{
+		// 		diagnostic.NewWarning(L(P(23, 3, 11), P(26, 3, 14)), "this condition will always have the same result since type `true` is truthy"),
+		// 	},
+		// },
 
-// 		"continue in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				while j < 5
-// 					j += 1
-// 					i := 0
-// 					while i < 5
-// 						continue if i + j > 8
-// 						i += 1
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 38,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 22,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.LOOP), 0, 18,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.LOOP), 0, 43,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(127, 10, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(6, 7),
-// 					bytecode.NewLineInfo(7, 13),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 3),
-// 					bytecode.NewLineInfo(10, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"labeled continue in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				$foo: while j < 5
-// 					j += 1
-// 					i := 0
-// 					while i < 5
-// 						continue[foo] if i + j > 8
-// 						i += 1
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 38,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 22,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.LOOP), 0, 31,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.LOOP), 0, 43,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(138, 10, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(6, 7),
-// 					bytecode.NewLineInfo(7, 13),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 3),
-// 					bytecode.NewLineInfo(10, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"break in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				while j < 5
-// 					j += 1
-// 					i := 0
-// 					while i < 5
-// 						break if i + j > 8
-// 						i += 1
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 38,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 22,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 9,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.LOOP), 0, 43,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(124, 10, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(6, 7),
-// 					bytecode.NewLineInfo(7, 13),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 3),
-// 					bytecode.NewLineInfo(10, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
+		// "continue in a nested loop": {
+		// 	input: `
+		// 	 	j := 0
+		// 		while j < 5
+		// 			j += 1
+		// 			i := 0
+		// 			while i < 5
+		// 				continue if i + j > 8
+		// 				i += 1
+		// 			end
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 2,
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 38,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 22,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.LOAD_INT_8), 8,
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.LOOP), 0, 18,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.LOOP), 0, 27,
+		// 			byte(bytecode.LOOP), 0, 43,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(127, 10, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(3, 7),
+		// 			bytecode.NewLineInfo(4, 4),
+		// 			bytecode.NewLineInfo(5, 2),
+		// 			bytecode.NewLineInfo(6, 7),
+		// 			bytecode.NewLineInfo(7, 13),
+		// 			bytecode.NewLineInfo(8, 5),
+		// 			bytecode.NewLineInfo(9, 3),
+		// 			bytecode.NewLineInfo(10, 4),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "labeled continue in a nested loop": {
+		// 	input: `
+		// 	 	j := 0
+		// 		$foo: while j < 5
+		// 			j += 1
+		// 			i := 0
+		// 			while i < 5
+		// 				continue[foo] if i + j > 8
+		// 				i += 1
+		// 			end
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 2,
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 38,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 22,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.LOAD_INT_8), 8,
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.LOOP), 0, 31,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.LOOP), 0, 27,
+		// 			byte(bytecode.LOOP), 0, 43,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(138, 10, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(3, 7),
+		// 			bytecode.NewLineInfo(4, 4),
+		// 			bytecode.NewLineInfo(5, 2),
+		// 			bytecode.NewLineInfo(6, 7),
+		// 			bytecode.NewLineInfo(7, 13),
+		// 			bytecode.NewLineInfo(8, 5),
+		// 			bytecode.NewLineInfo(9, 3),
+		// 			bytecode.NewLineInfo(10, 4),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "break in a nested loop": {
+		// 	input: `
+		// 	 	j := 0
+		// 		while j < 5
+		// 			j += 1
+		// 			i := 0
+		// 			while i < 5
+		// 				break if i + j > 8
+		// 				i += 1
+		// 			end
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 2,
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 38,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 22,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.LOAD_INT_8), 8,
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 9,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.LOOP), 0, 27,
+		// 			byte(bytecode.LOOP), 0, 43,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(124, 10, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(3, 7),
+		// 			bytecode.NewLineInfo(4, 4),
+		// 			bytecode.NewLineInfo(5, 2),
+		// 			bytecode.NewLineInfo(6, 7),
+		// 			bytecode.NewLineInfo(7, 13),
+		// 			bytecode.NewLineInfo(8, 5),
+		// 			bytecode.NewLineInfo(9, 3),
+		// 			bytecode.NewLineInfo(10, 4),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
 
-// 		"labeled break in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				$foo: while j < 5
-// 					j += 1
-// 					i := 0
-// 					while i < 5
-// 						break[foo] if i + j > 8
-// 						i += 1
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 38,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 22,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 12,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.LOOP), 0, 43,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(135, 10, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(6, 7),
-// 					bytecode.NewLineInfo(7, 13),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 3),
-// 					bytecode.NewLineInfo(10, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"without a body": {
-// 			input: `
-// 				i := 0
-// 				while i < 5; end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 5,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.LOOP), 0, 10,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(32, 3, 21)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 12),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"static infinite": {
-// 			input: `
-// 				while true
-// 					println("foo")
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 9,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(43, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 0),
-// 					bytecode.NewLineInfo(3, 5),
-// 					bytecode.NewLineInfo(4, 5),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.String("foo")),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(11, 2, 11), P(14, 2, 14)), "this condition will always have the same result since type `true` is truthy"),
-// 			},
-// 		},
-// 		"static impossible": {
-// 			input: `
-// 				while false
-// 					println("foo")
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(44, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 0),
-// 					bytecode.NewLineInfo(2, 1),
-// 					bytecode.NewLineInfo(4, 1),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(11, 2, 11), P(15, 2, 15)), "this loop will never execute since type `false` is falsy"),
-// 				diagnostic.NewWarning(L(P(22, 3, 6), P(36, 3, 20)), "unreachable code"),
-// 			},
-// 		},
-// 	}
+		// "labeled break in a nested loop": {
+		// 	input: `
+		// 	 	j := 0
+		// 		$foo: while j < 5
+		// 			j += 1
+		// 			i := 0
+		// 			while i < 5
+		// 				break[foo] if i + j > 8
+		// 				i += 1
+		// 			end
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 2,
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 38,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 22,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.LOAD_INT_8), 8,
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 12,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.LOOP), 0, 27,
+		// 			byte(bytecode.LOOP), 0, 43,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(135, 10, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(3, 7),
+		// 			bytecode.NewLineInfo(4, 4),
+		// 			bytecode.NewLineInfo(5, 2),
+		// 			bytecode.NewLineInfo(6, 7),
+		// 			bytecode.NewLineInfo(7, 13),
+		// 			bytecode.NewLineInfo(8, 5),
+		// 			bytecode.NewLineInfo(9, 3),
+		// 			bytecode.NewLineInfo(10, 4),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "without a body": {
+		// 	input: `
+		// 		i := 0
+		// 		while i < 5; end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 5,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.LOOP), 0, 10,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(32, 3, 21)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(3, 12),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "static infinite": {
+		// 	input: `
+		// 		while true
+		// 			println("foo")
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE_1),
+		// 			byte(bytecode.CALL_METHOD8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 9,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(43, 4, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 0),
+		// 			bytecode.NewLineInfo(3, 5),
+		// 			bytecode.NewLineInfo(4, 5),
+		// 		},
+		// 		[]value.Value{
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.String("foo")),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println@1"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// 	err: diagnostic.DiagnosticList{
+		// 		diagnostic.NewWarning(L(P(11, 2, 11), P(14, 2, 14)), "this condition will always have the same result since type `true` is truthy"),
+		// 	},
+		// },
+		// "static impossible": {
+		// 	input: `
+		// 		while false
+		// 			println("foo")
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(44, 4, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 0),
+		// 			bytecode.NewLineInfo(2, 1),
+		// 			bytecode.NewLineInfo(4, 1),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// 	err: diagnostic.DiagnosticList{
+		// 		diagnostic.NewWarning(L(P(11, 2, 11), P(15, 2, 15)), "this loop will never execute since type `false` is falsy"),
+		// 		diagnostic.NewWarning(L(P(22, 3, 6), P(36, 3, 20)), "unreachable code"),
+		// 	},
+		// },
+	}
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestBytecodeModifierUntil(t *testing.T) {
 // 	tests := bytecodeTestTable{

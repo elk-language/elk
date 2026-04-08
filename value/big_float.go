@@ -1274,15 +1274,19 @@ func (f *BigFloat) EqualVal(other Value) Value {
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) Equal(other Value) bool {
-	if other.IsFloat() {
-		o := other.AsFloat()
-		if f.IsNaN() || o.IsNaN() {
-			return false
-		}
+func (f *BigFloat) EqualBigFloat(other *BigFloat) bool {
+	if f.IsNaN() || other.IsNaN() {
+		return false
+	}
 
-		oBigFloat := (&BigFloat{}).SetFloat(o)
-		return f.Cmp(oBigFloat) == 0
+	return f.Cmp(other) == 0
+}
+
+// Check whether f is equal to other and return an error
+// if something went wrong.
+func (f *BigFloat) Equal(other Value) bool {
+	if o, ok := other.SafeAsReference().(*BigFloat); ok {
+		return f.EqualBigFloat(o)
 	}
 
 	return false

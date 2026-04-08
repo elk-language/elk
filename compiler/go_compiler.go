@@ -161,9 +161,20 @@ func (s nativeElkScopes) last() *nativeElkScope {
 
 type goLoopInfo struct {
 	label                         string
-	labelIsUsed                   bool
 	resultVar                     *goLocal
+	loopDepth                     int
+	labelIsUsed                   bool
 	returnsValueFromLastIteration bool
+}
+
+func (l *goLoopInfo) createLabel() {
+	l.labelIsUsed = true
+
+	if l.label != "" {
+		return
+	}
+
+	l.label = fmt.Sprintf("loop%d", l.loopDepth)
 }
 
 var goValueType = value.FetchGoType("value.Value")
@@ -625,6 +636,7 @@ func (c *GoCompiler) addLoopInfo(label string, resultVar *goLocal, returnsValFro
 		label:                         label,
 		resultVar:                     resultVar,
 		returnsValueFromLastIteration: returnsValFromLastIteration,
+		loopDepth:                     c.loopCounter,
 	}
 	c.loopInfo = append(
 		c.loopInfo,
@@ -905,7 +917,13 @@ func (c *GoCompiler) emitReturn(val string) {
 	// 	return
 	// }
 
+	if c.goName == "main" {
+		c.emit("return\n")
+		return
+	}
+
 	switch c.mode {
+	case topLevelGoCompilerMode:
 	case setterMethodGoCompilerMode:
 		// TODO: implement finally
 		// if c.isNestedInFinally() {
@@ -1763,6 +1781,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileWhileExpressionNode("", node, valueIsIgnored)
 	case *ast.LoopExpressionNode:
 		return c.compileLoopExpressionNode("", node, valueIsIgnored)
+	case *ast.BreakExpressionNode:
+		return c.compileBreakExpressionNode(node)
 	case *ast.IfExpressionNode:
 		return c.compileIfExpression(
 			ifConditionType,
@@ -1967,6 +1987,52 @@ func (c *GoCompiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) *goValu
 	default:
 		panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
 	}
+}
+
+func (c *GoCompiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) *goValue {
+	var value *goValue
+	if node.Value == nil {
+		value = nilGoValue
+	} else {
+		value = c.compileExpression(node.Value, false)
+	}
+
+	labelName := identifierToName(node.Label)
+	loopInfo := c.findLoopInfo(labelName, node.Location())
+	if loopInfo == nil {
+		return nilGoValue
+	}
+
+	loopInfo.createLabel()
+	labelName = loopInfo.label
+
+	if loopInfo.resultVar != nil {
+		if loopInfo.resultVar.goType.Name == "value.Value" {
+			c.emit("%s = %s\n", loopInfo.resultVar.name, c.convertToValue(value).fetchValue())
+		} else {
+			c.emit("%s = %s\n", loopInfo.resultVar.name, c.valueToNarrowerType(value).fetchValue())
+		}
+	}
+
+	c.emit("break %s\n", labelName)
+	return nilGoValue
+
+	// TODO: compile finally
+	// finallyCount := c.countFinallyInLoop(labelName)
+	// if finallyCount <= 0 {
+	// 	c.leaveScopeOnBreak(location.StartPos.Line, labelName)
+
+	// 	breakJumpOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP)
+	// 	c.addLoopJump(labelName, bytecodeBreakLoopJump, breakJumpOffset, location)
+	// 	return
+	// }
+
+	// jumpOffsetId := c.emitLoadValue(value.Undefined, location)
+	// c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
+	// c.addLoopJump(labelName, bytecodeBreakFinallyLoopJump, jumpOffsetId, location)
+
+	// c.emitValue(value.SmallInt(finallyCount).ToValue(), location)
+	// c.emit(location.StartPos.Line, bytecode.JUMP_TO_FINALLY)
 }
 
 func (c *GoCompiler) compileLoopExpressionNode(label string, node *ast.LoopExpressionNode, valueIsIgnored bool) *goValue {
@@ -3741,6 +3807,8 @@ func (c *GoCompiler) compileInterpolatedRegexLiteralNode(node *ast.InterpolatedR
 	buff.WriteString(")\n")
 	c.emitBytes(buff.Bytes())
 
+	c.emitErrorPropagation()
+
 	return newGoValueWithLocal(
 		resultVar,
 		elkType,
@@ -4066,6 +4134,7 @@ func (c *GoCompiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode)
 	}
 
 	c.emitReturn(val)
+
 	return newGoValue(
 		"value.Nil",
 		types.Never{},
@@ -4216,6 +4285,7 @@ func (c *GoCompiler) RegisterMethod(node *ast.MethodDefinitionNode) {
 }
 
 func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args []*goValue, name string, loc *position.Location, valueIsIgnored bool) *goValue {
+	receiverType = receiverType.ToNonLiteral(c.checker.Env())
 	switch receiverType := receiverType.(type) {
 	case types.Self:
 		return c.compileOptimizedNativeMethodCall(
@@ -4228,7 +4298,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType t
 		)
 	case *types.SingletonClass:
 		if receiverType.Children.Len() != 0 {
-			break
+			return nil
 		}
 
 		// class has no children so method lookup can be static
@@ -4242,7 +4312,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType t
 		)
 	case *types.Class:
 		if receiverType.Children.Len() != 0 {
-			break
+			return nil
 		}
 
 		// class has no children so method lookup can be static
@@ -4263,9 +4333,27 @@ func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType t
 			loc,
 			valueIsIgnored,
 		)
-	}
+	case *types.Generic:
+		switch n := receiverType.Namespace.(type) {
+		case *types.Class:
+			if n.Children.Len() != 0 {
+				return nil
+			}
 
-	return nil
+			return c._compileOptimizedNativeMethodCall(
+				receiverType,
+				returnType,
+				args,
+				name,
+				loc,
+				valueIsIgnored,
+			)
+		}
+
+		return nil
+	default:
+		return nil
+	}
 }
 
 func (c *GoCompiler) generateGetNamespace(typ types.Namespace) string {
@@ -4385,7 +4473,7 @@ func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType 
 		tmp,
 		returnType,
 	)
-	return c.narrowDownValue(result)
+	return c.valueToNarrowerType(result)
 }
 
 func (c *GoCompiler) compileMethodCallWithLiteralArgValuesAndName(receiverType, returnType types.Type, nameSym, name string, args []*goValue, loc *position.Location, valueIsIgnored bool) *goValue {
@@ -4440,23 +4528,7 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgValuesAndName(receiverType, 
 		tmp,
 		returnType,
 	)
-	return c.narrowDownValue(result)
-}
-
-func (c *GoCompiler) narrowDownValue(val *goValue) *goValue {
-	if val.goType.Name != "value.Value" {
-		return val
-	}
-
-	result := c.valueToNarrowerType(val)
-	if result.goType.Name == "value.Value" {
-		return result
-	}
-
-	narrowTmp := c.defineTmpGoLocal(result.goType)
-	c.emit("%s = %s\n", narrowTmp.name, result.fetchValue())
-	val.markFree()
-	return newGoValueWithLocal(narrowTmp, result.elkType)
+	return c.valueToNarrowerType(result)
 }
 
 func (c *GoCompiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode) *goValue {
@@ -5115,126 +5187,22 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode,
 		return c.compileLaxNotEqual(node, valueIsIgnored)
 	case token.EQUAL_EQUAL:
 		return c.compileEqual(node, valueIsIgnored)
-	// case token.NOT_EQUAL:
-	// 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-	// 		c.emit(line, bytecode.NOT_EQUAL_INT)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-	// 		c.emit(line, bytecode.NOT_EQUAL_FLOAT)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinEquatable)) {
-	// 		c.emit(line, bytecode.NOT_EQUAL)
-	// 		return
-	// 	}
-	// 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpEqual, 1), location, false)
-	// 	c.emit(line, bytecode.NOT)
-	// case token.STRICT_EQUAL:
-	// 	c.emit(line, bytecode.STRICT_EQUAL)
-	// case token.STRICT_NOT_EQUAL:
-	// 	c.emit(line, bytecode.STRICT_NOT_EQUAL)
-	// case token.GREATER:
-	// 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-	// 		c.emit(line, bytecode.GREATER_INT)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
-	// 		c.emit(line, bytecode.GREATER_FLOAT)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinNumeric)) {
-	// 		c.emit(line, bytecode.GREATER)
-	// 		return
-	// 	}
-	// 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpGreaterThan, 1), location, false)
-	// case token.GREATER_EQUAL:
-	// 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-	// 		c.emit(line, bytecode.GREATER_EQUAL_I)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
-	// 		c.emit(line, bytecode.GREATER_EQUAL_F)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinNumeric)) {
-	// 		c.emit(line, bytecode.GREATER_EQUAL)
-	// 		return
-	// 	}
-	// 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpGreaterThanEqual, 1), location, false)
-	// case token.LESS:
-	// 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-	// 		c.emit(line, bytecode.LESS_INT)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
-	// 		c.emit(line, bytecode.LESS_FLOAT)
-	// 		return
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinNumeric)) {
-	// 		c.emit(line, bytecode.LESS)
-	// 		return
-	// 	}
-	// 	c.emitCallMethod(value.NewCallSiteInfo(symbol.OpLessThan, 1), location, false)
+	case token.NOT_EQUAL:
+		return c.compileNegate(c.compileEqual(node, valueIsIgnored))
+	case token.STRICT_EQUAL:
+		return c.compileStrictEqual(node, valueIsIgnored)
+	case token.STRICT_NOT_EQUAL:
+		return c.compileNegate(c.compileStrictEqual(node, valueIsIgnored))
+	case token.GREATER:
+		return c.compileGreater(node, valueIsIgnored)
+	case token.GREATER_EQUAL:
+		return c.compileGreaterEqual(node, valueIsIgnored)
+	case token.LESS:
+		return c.compileLess(node, valueIsIgnored)
 	case token.LESS_EQUAL:
 		return c.compileLessEqual(node, valueIsIgnored)
-	// 	if c.checker.IsSubtype(typ, c.checker.StdInt()) {
-	// 		tmp := c.defineTmpGoLocal(goValueType)
-	// 		c.registerErr()
-	// 		c.emit("%s, err = value.LessThanEqualValInt(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
-	// 		c.emitErrorPropagation()
-
-	// 		return newTmpGoValue(
-	// 			tmp,
-	// 			c.checker.Std(symbol.Value),
-	// 		)
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.StdFloat()) {
-	// 		tmp := c.defineTmpGoLocal(goValueType)
-	// 		c.registerErr()
-	// 		c.emit("%s, err = %s.LessThanEqualVal(%s)\n", tmp, c.goValueAs(left, "AsFloat"), c.convertToValue(right))
-	// 		c.emitErrorPropagation()
-
-	// 		return newTmpGoValue(
-	// 			tmp,
-	// 			c.checker.Std(symbol.Value),
-	// 		)
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.StdBigFloat()) {
-	// 		tmp := c.defineTmpGoLocal(goValueType)
-	// 		c.registerErr()
-	// 		c.emit("%s, err = %s.LessThanEqualVal(%s)\n", tmp, c.goValueCast(left, "*value.BigFloat"), c.convertToValue(right))
-	// 		c.emitErrorPropagation()
-
-	// 		return newTmpGoValue(
-	// 			tmp,
-	// 			c.checker.Std(symbol.Value),
-	// 		)
-	// 	}
-	// 	if c.checker.IsSubtype(typ, c.checker.Std(symbol.S_BuiltinAddable)) {
-	// 		tmp := c.defineTmpGoLocal(goValueType)
-	// 		c.registerErr()
-	// 		c.emit("%s, err = value.LessThanEqualVal(%s, %s)\n", tmp, c.convertToValue(left), c.convertToValue(right))
-	// 		c.emitErrorPropagation()
-
-	// 		return newTmpGoValue(
-	// 			tmp,
-	// 			c.checker.Std(symbol.Value),
-	// 		)
-	// 	}
-
-	// 	callCache := c.emitCallCache()
-	// 	tmp := c.defineTmpGoLocal(goValueType)
-	// 	c.registerErr()
-	//  c.emitSetCallFrameLineNumber(node.Location())
-	// 	c.emit("%s, err = thread.CallMethodByNameWithCache(symbol.OpLessThanEqual, &%s, %s, %s)", tmp.name, callCache, c.convertToValue(left), c.convertToValue(right))
-	// 	c.emitErrorPropagation()
-	// 	return newTmpGoValue(
-	// 		tmp,
-	// 		c.checker.Std(symbol.Value),
-	// 	)
-	// case token.SPACESHIP_OP:
-	// 	c.emit(line, bytecode.COMPARE)
+	case token.SPACESHIP_OP:
+		return c.compileCompare(node, valueIsIgnored)
 	// case token.INSTANCE_OF_OP:
 	// 	c.emit(line, bytecode.INSTANCE_OF)
 	// case token.REVERSE_INSTANCE_OF_OP:
@@ -5249,6 +5217,375 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode,
 		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
 		return errGoValue
 	}
+}
+
+func (c *GoCompiler) compileGreaterEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.compileExpression(node.Left, false)
+	narrowLeft := c.valueToNarrowerType(left)
+	right := c.compileExpression(node.Right, false)
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType.Name {
+	case "value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
+		return c.compileGreaterEqualCoercibleNumeric(narrowLeft, right, node.Location())
+	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
+		"value.Float64", "value.Float32":
+		return c.compileGreaterEqualStrictNumeric(narrowLeft, right)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
+		if valueIsIgnored {
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(node.Location())
+			c.emit(
+				"_, err = value.GreaterThanEqual(%s, %s)\n",
+				c.convertToValue(left).fetchValue(),
+				c.convertToValue(right).fetchValue(),
+			)
+			c.emitErrorPropagation()
+
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit(
+			"%s, err = value.GreaterThanEqual(%s, %s)\n",
+			tmp.name,
+			c.convertToValue(left).fetchValue(),
+			c.convertToValue(right).fetchValue(),
+		)
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		left.elkType,
+		typ,
+		"symbol.OpGreaterThanEqual",
+		">=",
+		[]*goValue{
+			left,
+			right,
+		},
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileGreaterEqualCoercibleNumeric(left, right *goValue, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.SmallInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).GreaterThanEqualSmallInt(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	case "value.Float":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).GreaterThanEqualFloat(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	case "*value.BigFloat":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).GreaterThanEqualBigFloat(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).GreaterThanEqualInt(%s))", left.value, c.convertToValue(right).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			right,
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+	c.registerErr()
+	c.emitSetCallFrameLineNumber(loc)
+	c.emit("%s, err = (%s).GreaterThanEqual(%s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
+	c.emitErrorPropagation()
+
+	return newGoValueWithLocals(
+		fmt.Sprintf("value.Bool(%s)", tmp.name),
+		types.Bool{},
+		value.FetchGoType("value.Bool"),
+		tmp,
+	)
+}
+
+func (c *GoCompiler) compileGreaterEqualStrictNumeric(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("value.Bool((%s) >= (%s))", left.value, c.valueToNarrowerType(right).value),
+		types.Bool{},
+		value.FetchGoType("bool"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileGreater(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.compileExpression(node.Left, false)
+	narrowLeft := c.valueToNarrowerType(left)
+	right := c.compileExpression(node.Right, false)
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType.Name {
+	case "value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
+		return c.compileGreaterCoercibleNumeric(narrowLeft, right, node.Location())
+	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
+		"value.Float64", "value.Float32":
+		return c.compileGreaterStrictNumeric(narrowLeft, right)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
+		if valueIsIgnored {
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(node.Location())
+			c.emit(
+				"_, err = value.GreaterThan(%s, %s)\n",
+				c.convertToValue(left).fetchValue(),
+				c.convertToValue(right).fetchValue(),
+			)
+			c.emitErrorPropagation()
+
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit(
+			"%s, err = value.GreaterThan(%s, %s)\n",
+			tmp.name,
+			c.convertToValue(left).fetchValue(),
+			c.convertToValue(right).fetchValue(),
+		)
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		left.elkType,
+		typ,
+		"symbol.OpGreaterThan",
+		">",
+		[]*goValue{
+			left,
+			right,
+		},
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileGreaterCoercibleNumeric(left, right *goValue, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.SmallInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).GreaterThanSmallInt(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	case "value.Float":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).GreaterThanFloat(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	case "*value.BigFloat":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).GreaterThanBigFloat(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).GreaterThanInt(%s))", left.value, c.convertToValue(right).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			right,
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+	c.registerErr()
+	c.emitSetCallFrameLineNumber(loc)
+	c.emit("%s, err = (%s).GreaterThan(%s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
+	c.emitErrorPropagation()
+
+	return newGoValueWithLocals(
+		fmt.Sprintf("value.Bool(%s)", tmp.name),
+		types.Bool{},
+		value.FetchGoType("value.Bool"),
+		tmp,
+	)
+}
+
+func (c *GoCompiler) compileGreaterStrictNumeric(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("value.Bool((%s) > (%s))", left.value, c.valueToNarrowerType(right).value),
+		types.Bool{},
+		value.FetchGoType("bool"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileLess(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.compileExpression(node.Left, false)
+	narrowLeft := c.valueToNarrowerType(left)
+	right := c.compileExpression(node.Right, false)
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType.Name {
+	case "value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
+		return c.compileLessCoercibleNumeric(narrowLeft, right, node.Location())
+	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
+		"value.Float64", "value.Float32":
+		return c.compileLessStrictNumeric(narrowLeft, right)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
+		if valueIsIgnored {
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(node.Location())
+			c.emit(
+				"_, err = value.LessThan(%s, %s)\n",
+				c.convertToValue(left).fetchValue(),
+				c.convertToValue(right).fetchValue(),
+			)
+			c.emitErrorPropagation()
+
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit(
+			"%s, err = value.LessThan(%s, %s)\n",
+			tmp.name,
+			c.convertToValue(left).fetchValue(),
+			c.convertToValue(right).fetchValue(),
+		)
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		left.elkType,
+		typ,
+		"symbol.OpLessThan",
+		">",
+		[]*goValue{
+			left,
+			right,
+		},
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileLessCoercibleNumeric(left, right *goValue, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.SmallInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).LessThanSmallInt(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	case "value.Float":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).LessThanFloat(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	case "*value.BigFloat":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).LessThanBigFloat(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).LessThanInt(%s))", left.value, c.convertToValue(right).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			right,
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+	c.registerErr()
+	c.emitSetCallFrameLineNumber(loc)
+	c.emit("%s, err = (%s).LessThan(%s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
+	c.emitErrorPropagation()
+
+	return newGoValueWithLocals(
+		fmt.Sprintf("value.Bool(%s)", tmp.name),
+		types.Bool{},
+		value.FetchGoType("value.Bool"),
+		tmp,
+	)
+}
+
+func (c *GoCompiler) compileLessStrictNumeric(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("value.Bool((%s) < (%s))", left.value, c.valueToNarrowerType(right).value),
+		types.Bool{},
+		value.FetchGoType("bool"),
+		left,
+		right,
+	)
 }
 
 func (c *GoCompiler) compileLessEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
@@ -5276,8 +5613,6 @@ func (c *GoCompiler) compileLessEqual(node *ast.BinaryExpressionNode, valueIsIgn
 				c.convertToValue(right).fetchValue(),
 			)
 			c.emitErrorPropagation()
-			left.markFree()
-			right.markFree()
 
 			return nilGoValue
 		}
@@ -5292,8 +5627,6 @@ func (c *GoCompiler) compileLessEqual(node *ast.BinaryExpressionNode, valueIsIgn
 			c.convertToValue(right).fetchValue(),
 		)
 		c.emitErrorPropagation()
-		left.markFree()
-		right.markFree()
 
 		return newGoValueWithLocal(
 			tmp,
@@ -5373,6 +5706,228 @@ func (c *GoCompiler) compileLessEqualStrictNumeric(left, right *goValue) *goValu
 		fmt.Sprintf("value.Bool((%s) <= (%s))", left.value, c.valueToNarrowerType(right).value),
 		types.Bool{},
 		value.FetchGoType("bool"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileCompare(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.compileExpression(node.Left, false)
+	narrowLeft := c.valueToNarrowerType(left)
+	right := c.compileExpression(node.Right, false)
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType.Name {
+	case "value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
+		return c.compileCompareCoercibleNumeric(narrowLeft, right, node.Location())
+	case "value.Int64":
+		return c.compileCompareInt64(narrowLeft, right)
+	case "value.Int32":
+		return c.compileCompareInt32(narrowLeft, right)
+	case "value.Int16":
+		return c.compileCompareInt16(narrowLeft, right)
+	case "value.Int8":
+		return c.compileCompareInt8(narrowLeft, right)
+	case "value.UInt64":
+		return c.compileCompareUInt64(narrowLeft, right)
+	case "value.UInt32":
+		return c.compileCompareUInt32(narrowLeft, right)
+	case "value.UInt16":
+		return c.compileCompareUInt16(narrowLeft, right)
+	case "value.UInt8":
+		return c.compileCompareUInt8(narrowLeft, right)
+	case "value.Float64":
+		return c.compileCompareFloat64(narrowLeft, right)
+	case "value.Float32":
+		return c.compileCompareFloat32(narrowLeft, right)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
+		if valueIsIgnored {
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(node.Location())
+			c.emit(
+				"_, err = value.CompareVal(%s, %s)\n",
+				c.convertToValue(left).fetchValue(),
+				c.convertToValue(right).fetchValue(),
+			)
+			c.emitErrorPropagation()
+
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit(
+			"%s, err = value.CompareVal(%s, %s)\n",
+			tmp.name,
+			c.convertToValue(left).fetchValue(),
+			c.convertToValue(right).fetchValue(),
+		)
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		left.elkType,
+		typ,
+		"symbol.OpSpaceship",
+		"<=>",
+		[]*goValue{
+			left,
+			right,
+		},
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileCompareCoercibleNumeric(left, right *goValue, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.SmallInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).CompareSmallInt(%s))", left.value, narrowRight.value),
+			c.checker.Std(symbol.Int),
+			value.FetchGoType("value.SmallInt"),
+			left,
+			narrowRight,
+		)
+	case "value.Float":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).CompareFloat(%s))", left.value, narrowRight.value),
+			c.checker.Std(symbol.Int),
+			goValueType,
+			left,
+			narrowRight,
+		)
+	case "*value.BigFloat":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).CompareBigFloat(%s))", left.value, narrowRight.value),
+			c.checker.Std(symbol.Int),
+			goValueType,
+			left,
+			narrowRight,
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(goValueType)
+	c.registerErr()
+	c.emitSetCallFrameLineNumber(loc)
+	c.emit(
+		"%s, err = value.CompareVal(%s, %s)\n",
+		tmp.name,
+		c.convertToValue(left).fetchValue(),
+		c.convertToValue(right).fetchValue(),
+	)
+	c.emitErrorPropagation()
+
+	return newGoValueWithLocal(
+		tmp,
+		c.checker.Std(symbol.Int),
+	)
+}
+
+func (c *GoCompiler) compileCompareInt64(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s).CompareInt64(%s)", left.value, c.valueToNarrowerType(right).value),
+		c.checker.Std(symbol.Int),
+		value.FetchGoType("value.SmallInt"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileCompareInt32(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s).CompareInt32(%s)", left.value, c.valueToNarrowerType(right).value),
+		c.checker.Std(symbol.Int),
+		value.FetchGoType("value.SmallInt"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileCompareInt16(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s).CompareInt16(%s)", left.value, c.valueToNarrowerType(right).value),
+		c.checker.Std(symbol.Int),
+		value.FetchGoType("value.SmallInt"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileCompareInt8(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s).CompareInt8(%s)", left.value, c.valueToNarrowerType(right).value),
+		c.checker.Std(symbol.Int),
+		value.FetchGoType("value.SmallInt"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileCompareUInt64(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s).CompareUInt64(%s)", left.value, c.valueToNarrowerType(right).value),
+		c.checker.Std(symbol.Int),
+		value.FetchGoType("value.SmallInt"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileCompareUInt32(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s).CompareUInt32(%s)", left.value, c.valueToNarrowerType(right).value),
+		c.checker.Std(symbol.Int),
+		value.FetchGoType("value.SmallInt"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileCompareUInt16(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s).CompareUInt16(%s)", left.value, c.valueToNarrowerType(right).value),
+		c.checker.Std(symbol.Int),
+		value.FetchGoType("value.SmallInt"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileCompareUInt8(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s).CompareUInt8(%s)", left.value, c.valueToNarrowerType(right).value),
+		c.checker.Std(symbol.Int),
+		value.FetchGoType("value.SmallInt"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileCompareFloat64(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s).CompareFloat64(%s)", left.value, c.valueToNarrowerType(right).value),
+		c.checker.Std(symbol.Int),
+		goValueType,
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileCompareFloat32(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s).CompareFloat32(%s)", left.value, c.valueToNarrowerType(right).value),
+		c.checker.Std(symbol.Int),
+		goValueType,
 		left,
 		right,
 	)
@@ -8403,8 +8958,8 @@ func (c *GoCompiler) compileLaxNotEqualStrictFloat(left, right *goValue) *goValu
 	)
 }
 
-func (c *GoCompiler) compileEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.valueToNarrowerType(c.compileExpression(node.Left, false))
+func (c *GoCompiler) compileStrictEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.compileExpression(node.Left, false)
 	narrowLeft := c.valueToNarrowerType(left)
 	right := c.compileExpression(node.Right, false)
 	typ := c.typeOf(node)
@@ -8415,49 +8970,127 @@ func (c *GoCompiler) compileEqual(node *ast.BinaryExpressionNode, valueIsIgnored
 	case "*value.BigInt":
 		return c.compileEqualBigInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
 	case "value.Int64":
-		return c.compileAddInt64(narrowLeft, right, valueIsIgnored)
+		return c.compileEqualPrimitive("value.Int64", narrowLeft, right, valueIsIgnored)
 	case "value.Int32":
-		return c.compileAddInt32(narrowLeft, right, valueIsIgnored)
+		return c.compileEqualPrimitive("value.Int32", narrowLeft, right, valueIsIgnored)
 	case "value.Int16":
-		return c.compileAddInt16(narrowLeft, right, valueIsIgnored)
+		return c.compileEqualPrimitive("value.Int16", narrowLeft, right, valueIsIgnored)
 	case "value.Int8":
-		return c.compileAddInt8(narrowLeft, right, valueIsIgnored)
+		return c.compileEqualPrimitive("value.Int8", narrowLeft, right, valueIsIgnored)
 	case "value.UInt64":
-		return c.compileAddUInt64(narrowLeft, right, valueIsIgnored)
+		return c.compileEqualPrimitive("value.UInt64", narrowLeft, right, valueIsIgnored)
 	case "value.UInt32":
-		return c.compileAddUInt32(narrowLeft, right, valueIsIgnored)
+		return c.compileEqualPrimitive("value.UInt32", narrowLeft, right, valueIsIgnored)
 	case "value.UInt16":
-		return c.compileAddUInt16(narrowLeft, right, valueIsIgnored)
+		return c.compileEqualPrimitive("value.UInt16", narrowLeft, right, valueIsIgnored)
 	case "value.UInt8":
-		return c.compileAddUInt8(narrowLeft, right, valueIsIgnored)
+		return c.compileEqualPrimitive("value.UInt8", narrowLeft, right, valueIsIgnored)
 	case "value.Float":
-		return c.compileAddFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileEqualPrimitive("value.Float", narrowLeft, right, valueIsIgnored)
 	case "value.Float64":
-		return c.compileAddFloat64(narrowLeft, right, valueIsIgnored)
+		return c.compileEqualPrimitive("value.Float64", narrowLeft, right, valueIsIgnored)
 	case "value.Float32":
-		return c.compileAddFloat32(narrowLeft, right, valueIsIgnored)
-	case "*value.BigFloat":
-		return c.compileAddBigFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileEqualPrimitive("value.Float32", narrowLeft, right, valueIsIgnored)
 	case "value.String":
-		return c.compileAddString(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileEqualPrimitive("value.String", narrowLeft, right, valueIsIgnored)
 	case "value.Char":
-		return c.compileAddChar(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileEqualPrimitive("value.Char", narrowLeft, right, valueIsIgnored)
+	case "*value.BigFloat":
+		return c.compileEqualBigFloat(narrowLeft, right, valueIsIgnored)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinAddable)) {
+	return newGoValueWithDependencies(
+		fmt.Sprintf(
+			"value.Bool(value.StrictEqual(%s, %s))",
+			c.convertToValue(left).value,
+			c.convertToValue(right).value,
+		),
+		types.Bool{},
+		value.FetchGoType("value.Bool"),
+		left, right,
+	)
+}
+
+func (c *GoCompiler) compileNegate(val *goValue) *goValue {
+	narrowVal := c.valueToNarrowerType(val)
+
+	switch narrowVal.goType.Name {
+	case "value.Bool":
+		return val.newGoValue(
+			fmt.Sprintf("!(%s)", narrowVal.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+		)
+	case "bool":
+		return val.newGoValue(
+			fmt.Sprintf("!value.Bool(%s)", narrowVal.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+		)
+	default:
+		return val.newGoValue(
+			fmt.Sprintf("value.ToNotBool(%s)", c.convertToValue(val).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+		)
+	}
+}
+
+func (c *GoCompiler) compileEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
+	left := c.compileExpression(node.Left, false)
+	narrowLeft := c.valueToNarrowerType(left)
+	right := c.compileExpression(node.Right, false)
+	typ := c.typeOf(node)
+
+	switch narrowLeft.goType.Name {
+	case "value.SmallInt":
+		return c.compileEqualSmallInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+	case "*value.BigInt":
+		return c.compileEqualBigInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+	case "value.Int64":
+		return c.compileEqualPrimitive("value.Int64", narrowLeft, right, valueIsIgnored)
+	case "value.Int32":
+		return c.compileEqualPrimitive("value.Int32", narrowLeft, right, valueIsIgnored)
+	case "value.Int16":
+		return c.compileEqualPrimitive("value.Int16", narrowLeft, right, valueIsIgnored)
+	case "value.Int8":
+		return c.compileEqualPrimitive("value.Int8", narrowLeft, right, valueIsIgnored)
+	case "value.UInt64":
+		return c.compileEqualPrimitive("value.UInt64", narrowLeft, right, valueIsIgnored)
+	case "value.UInt32":
+		return c.compileEqualPrimitive("value.UInt32", narrowLeft, right, valueIsIgnored)
+	case "value.UInt16":
+		return c.compileEqualPrimitive("value.UInt16", narrowLeft, right, valueIsIgnored)
+	case "value.UInt8":
+		return c.compileEqualPrimitive("value.UInt8", narrowLeft, right, valueIsIgnored)
+	case "value.Float":
+		return c.compileEqualPrimitive("value.Float", narrowLeft, right, valueIsIgnored)
+	case "value.Float64":
+		return c.compileEqualPrimitive("value.Float64", narrowLeft, right, valueIsIgnored)
+	case "value.Float32":
+		return c.compileEqualPrimitive("value.Float32", narrowLeft, right, valueIsIgnored)
+	case "value.String":
+		return c.compileEqualPrimitive("value.String", narrowLeft, right, valueIsIgnored)
+	case "value.Char":
+		return c.compileEqualPrimitive("value.Char", narrowLeft, right, valueIsIgnored)
+	case "*value.BigFloat":
+		return c.compileEqualBigFloat(narrowLeft, right, valueIsIgnored)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinEquatable)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
-		c.emit("%s, err = value.EqualVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
-		c.emitErrorPropagation()
-
-		return newGoValueWithLocal(
-			tmp,
-			typ,
+		return newGoValueWithDependencies(
+			fmt.Sprintf(
+				"value.Bool(value.Equal(%s, %s))",
+				c.convertToValue(left).value,
+				c.convertToValue(right).value,
+			),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, right,
 		)
 	}
 
@@ -8473,6 +9106,30 @@ func (c *GoCompiler) compileEqual(node *ast.BinaryExpressionNode, valueIsIgnored
 		node.Location(),
 		valueIsIgnored,
 	)
+}
+
+func (c *GoCompiler) compileEqualBigFloat(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "*value.BigFloat":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).EqualBigFloat(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, narrowRight,
+		)
+	default:
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).Equal(%s))", left.value, c.convertToValue(right).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, right,
+		)
+	}
 }
 
 func (c *GoCompiler) compileEqualBigInt(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
@@ -8561,6 +9218,30 @@ func (c *GoCompiler) compileEqualSmallInt(left, right *goValue, typ types.Type, 
 		tmp,
 		typ,
 	)
+}
+
+func (c *GoCompiler) compileEqualPrimitive(typeName string, left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case typeName:
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s) == (%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, narrowRight,
+		)
+	default:
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).Equal(%s))", left.value, c.convertToValue(right).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, right,
+		)
+	}
 }
 
 func (c *GoCompiler) compileModulo(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {

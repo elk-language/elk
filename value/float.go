@@ -843,14 +843,12 @@ func (f Float) LaxEqual(other Value) bool {
 	}
 }
 
-// Check whether f is equal to other and return an error
-// if something went wrong.
+// Check whether f is equal to other.
 func (f Float) EqualVal(other Value) Value {
 	return Bool(f.Equal(other)).ToValue()
 }
 
-// Check whether f is equal to other and return an error
-// if something went wrong.
+// Check whether f is equal to other.
 func (f Float) Equal(other Value) bool {
 	if other.IsFloat() {
 		return f == other.AsFloat()
@@ -863,8 +861,7 @@ func (f Float) EqualFloat(other Float) bool {
 	return f == other
 }
 
-// Check whether f is strictly equal to other and return an error
-// if something went wrong.
+// Check whether f is strictly equal to other
 func (f Float) StrictEqualVal(other Value) Value {
 	return f.EqualVal(other)
 }
