@@ -2566,6 +2566,7 @@ func (vm *Thread) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 	firstElement := vm.spAdd(-dynamicElements)
 
 	var buffer strings.Builder
+elementLoop:
 	for i := range dynamicElements {
 		elementPtr := vm.stackAdd(firstElement, i)
 		elementVal := *elementPtr
@@ -2573,7 +2574,7 @@ func (vm *Thread) opNewRegex(flagByte byte, dynamicElements int) value.Value {
 
 		if re, ok := elementVal.SafeAsReference().(*value.Regex); ok {
 			buffer.WriteString(string(re.ToStringWithFlags()))
-			return value.Undefined
+			continue elementLoop
 		}
 
 		strVal, err := ToString(vm, elementVal)

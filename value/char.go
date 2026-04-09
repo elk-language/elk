@@ -206,17 +206,25 @@ func (c Char) CompareVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return SmallInt(String(c).Cmp(o)).ToValue(), Undefined
+			return c.CompareString(o).ToValue(), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return SmallInt(c.Cmp(other.AsChar())).ToValue(), Undefined
+		return c.CompareChar(other.AsChar()).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
+}
+
+func (c Char) CompareString(other String) SmallInt {
+	return SmallInt(String(c).Cmp(other))
+}
+
+func (c Char) CompareChar(other Char) SmallInt {
+	return SmallInt(c.Cmp(other))
 }
 
 // Check whether c is greater than other and return an error

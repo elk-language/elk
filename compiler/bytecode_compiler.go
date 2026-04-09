@@ -7433,13 +7433,13 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 	case token.INSTANCE_OF_OP:
 		c.emit(line, bytecode.INSTANCE_OF)
 	case token.REVERSE_INSTANCE_OF_OP:
+		c.emit(line, bytecode.SWAP)
 		c.emit(line, bytecode.INSTANCE_OF)
-		c.emit(line, bytecode.NOT)
 	case token.ISA_OP:
 		c.emit(line, bytecode.IS_A)
 	case token.REVERSE_ISA_OP:
+		c.emit(line, bytecode.SWAP)
 		c.emit(line, bytecode.IS_A)
-		c.emit(line, bytecode.NOT)
 	default:
 		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", opToken.String()), location)
 	}

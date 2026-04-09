@@ -1377,12 +1377,30 @@ func InstanceOf(val Value, class *Class) bool {
 	return class == val.Class()
 }
 
+func InstanceOfVal(val Value, class Value) (bool, Value) {
+	c, ok := class.SafeAsReference().(*Class)
+	if !ok {
+		return false, NewIsNotClassError(class.Inspect()).ToValue()
+	}
+
+	return InstanceOf(val, c), Undefined
+}
+
 func IsA(val Value, class *Class) bool {
 	if class.IsMixin() {
 		return mixinIsA(val, class)
 	}
 
 	return classIsA(val, class)
+}
+
+func IsAVal(val Value, class Value) (bool, Value) {
+	c, ok := class.SafeAsReference().(*Class)
+	if !ok {
+		return false, NewIsNotClassOrMixinError(class.Inspect()).ToValue()
+	}
+
+	return IsA(val, c), Undefined
 }
 
 // Asserts that the given value is an instance of the given

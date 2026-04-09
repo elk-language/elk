@@ -461,10 +461,10 @@ func TestVMSource_Async(t *testing.T) {
 			wantRuntimeErr: value.SmallInt(5).ToValue(),
 			wantStackTrace: &value.StackTrace{
 				{FuncName: "sourceName", FileName: "sourceName", LineNumber: 15},
-				{FuncName: "baz", FileName: "sourceName", LineNumber: 12},
-				{FuncName: "bar", FileName: "sourceName", LineNumber: 9},
-				{FuncName: "foo", FileName: "sourceName", LineNumber: 6},
-				{FuncName: "lol", FileName: "sourceName", LineNumber: 3},
+				{FuncName: "Std::Kernel::baz", FileName: "sourceName", LineNumber: 12},
+				{FuncName: "Std::Kernel::bar", FileName: "sourceName", LineNumber: 9},
+				{FuncName: "Std::Kernel::foo", FileName: "sourceName", LineNumber: 6},
+				{FuncName: "Std::Kernel::lol", FileName: "sourceName", LineNumber: 3},
 			},
 		},
 	}
