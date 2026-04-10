@@ -7273,6 +7273,32 @@ func (c *GoCompiler) compileBitwiseAnd(node *ast.BinaryExpressionNode, valueIsIg
 		)
 	}
 
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.BitwiseAndInts(%s, %s)", c.convertToValue(left).value, c.convertToValue(right).value),
+				left.elkType,
+				goValueType,
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.BitwiseAndInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	}
+
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinInt)) {
 		if valueIsIgnored {
 			return nilGoValue
@@ -7319,6 +7345,32 @@ func (c *GoCompiler) compileBitwiseAndNot(node *ast.BinaryExpressionNode, valueI
 			narrowLeft.goType,
 			left,
 			right,
+		)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.BitwiseAndNotInts(%s, %s)", c.convertToValue(left).value, c.convertToValue(right).value),
+				left.elkType,
+				goValueType,
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.BitwiseAndNotInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
 		)
 	}
 
@@ -7371,6 +7423,32 @@ func (c *GoCompiler) compileBitwiseOr(node *ast.BinaryExpressionNode, valueIsIgn
 		)
 	}
 
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.BitwiseOrInts(%s, %s)", c.convertToValue(left).value, c.convertToValue(right).value),
+				left.elkType,
+				goValueType,
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.BitwiseOrInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	}
+
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinInt)) {
 		if valueIsIgnored {
 			return nilGoValue
@@ -7417,6 +7495,32 @@ func (c *GoCompiler) compileBitwiseXor(node *ast.BinaryExpressionNode, valueIsIg
 			narrowLeft.goType,
 			left,
 			right,
+		)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.BitwiseXorInts(%s, %s)", c.convertToValue(left).value, c.convertToValue(right).value),
+				left.elkType,
+				goValueType,
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.BitwiseXorInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
 		)
 	}
 
@@ -7480,6 +7584,32 @@ func (c *GoCompiler) compileLeftBitshift(node *ast.BinaryExpressionNode, valueIs
 		return c.compileLeftBitshiftUInt8(narrowLeft, right, typ, node.Location(), valueIsIgnored)
 	}
 
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.LeftBitshiftInts(%s, %s)", c.convertToValue(left).value, c.convertToValue(right).value),
+				left.elkType,
+				goValueType,
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.LeftBitshiftInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	}
+
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
 		if valueIsIgnored {
 			return nilGoValue
@@ -7519,13 +7649,13 @@ func (c *GoCompiler) compileLogicalLeftBitshift(node *ast.BinaryExpressionNode, 
 
 	switch narrowLeft.goType.Name {
 	case "value.Int64":
-		return c.compileLeftBitshiftInt64(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLogicalLeftBitshiftInt64(narrowLeft, right, typ, node.Location(), valueIsIgnored)
 	case "value.Int32":
-		return c.compileLeftBitshiftInt32(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLogicalLeftBitshiftInt32(narrowLeft, right, typ, node.Location(), valueIsIgnored)
 	case "value.Int16":
-		return c.compileLeftBitshiftInt16(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLogicalLeftBitshiftInt16(narrowLeft, right, typ, node.Location(), valueIsIgnored)
 	case "value.Int8":
-		return c.compileLeftBitshiftInt8(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLogicalLeftBitshiftInt8(narrowLeft, right, typ, node.Location(), valueIsIgnored)
 	case "value.UInt64":
 		return c.compileLeftBitshiftUInt64(narrowLeft, right, typ, node.Location(), valueIsIgnored)
 	case "value.UInt32":
@@ -7594,6 +7724,32 @@ func (c *GoCompiler) compileRightBitshift(node *ast.BinaryExpressionNode, valueI
 		return c.compileRightBitshiftUInt16(narrowLeft, right, typ, node.Location())
 	case "value.UInt8":
 		return c.compileRightBitshiftUInt8(narrowLeft, right, typ, node.Location())
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.RightBitshiftInts(%s, %s)", c.convertToValue(left).value, c.convertToValue(right).value),
+				left.elkType,
+				goValueType,
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.RightBitshiftInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
@@ -7978,6 +8134,74 @@ func (c *GoCompiler) compileLeftBitshiftBigInt(left, right *goValue, typ types.T
 	c.registerErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).LeftBitshiftVal(%s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
+	c.emitErrorPropagation()
+
+	return newGoValueWithLocal(
+		tmp,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileLogicalLeftBitshiftInt64(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int64"))
+	c.registerErr()
+	c.emitSetCallFrameLineNumber(loc)
+	c.emit("%s, err = value.StrictIntLogicalLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
+	c.emitErrorPropagation()
+
+	return newGoValueWithLocal(
+		tmp,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileLogicalLeftBitshiftInt32(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int32"))
+	c.registerErr()
+	c.emitSetCallFrameLineNumber(loc)
+	c.emit("%s, err = value.StrictIntLogicalLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
+	c.emitErrorPropagation()
+
+	return newGoValueWithLocal(
+		tmp,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileLogicalLeftBitshiftInt16(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int16"))
+	c.registerErr()
+	c.emitSetCallFrameLineNumber(loc)
+	c.emit("%s, err = value.StrictIntLogicalLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
+	c.emitErrorPropagation()
+
+	return newGoValueWithLocal(
+		tmp,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileLogicalLeftBitshiftInt8(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int8"))
+	c.registerErr()
+	c.emitSetCallFrameLineNumber(loc)
+	c.emit("%s, err = value.StrictIntLogicalLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
 	c.emitErrorPropagation()
 
 	return newGoValueWithLocal(

@@ -3640,6 +3640,26 @@ func RightBitshiftVal(left, right Value) (result, err Value) {
 	}
 }
 
+func RightBitshiftInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.RightBitshiftVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.RightBitshiftVal(right)
+}
+
+func RightBitshiftInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.RightBitshiftInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.RightBitshiftInt(right)
+}
+
 // Execute a logical right bit shift >>>.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -3768,6 +3788,26 @@ func LeftBitshiftVal(left, right Value) (result, err Value) {
 	}
 }
 
+func LeftBitshiftInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LeftBitshiftVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LeftBitshiftVal(right)
+}
+
+func LeftBitshiftInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LeftBitshiftInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LeftBitshiftInt(right)
+}
+
 // Execute a logical left bit shift <<<.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -3893,6 +3933,26 @@ func BitwiseAndVal(left, right Value) (result, err Value) {
 	}
 }
 
+func BitwiseAndInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseAndVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseAndVal(right)
+}
+
+func BitwiseAndInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseAndInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseAndInt(right)
+}
+
 // Execute a bitwise AND NOT &^.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -3958,6 +4018,26 @@ func BitwiseAndNotVal(left, right Value) (result, err Value) {
 	}
 }
 
+func BitwiseAndNotInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseAndNotVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseAndNotVal(right)
+}
+
+func BitwiseAndNotInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseAndNotInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseAndNotInt(right)
+}
+
 // Execute a bitwise OR |.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -4021,6 +4101,26 @@ func BitwiseOrVal(left, right Value) (result, err Value) {
 	default:
 		return Undefined, Undefined
 	}
+}
+
+func BitwiseOrInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseOrVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseOrVal(right)
+}
+
+func BitwiseOrInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseOrInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseOrInt(right)
 }
 
 // Execute a bitwise XOR ^.
