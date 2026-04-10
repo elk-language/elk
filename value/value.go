@@ -2661,6 +2661,26 @@ func GreaterThan(left, right Value) (result bool, err Value) {
 	}
 }
 
+func GreaterThanInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.GreaterThanVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.GreaterThanVal(right)
+}
+
+func GreaterThanInts(left, right Value) bool {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.GreaterThanInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.GreaterThanInt(right)
+}
+
 // Check whether left is greater than or equal to right.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -2799,6 +2819,26 @@ func GreaterThanEqual(left, right Value) (result bool, err Value) {
 	default:
 		return false, Undefined
 	}
+}
+
+func GreaterThanEqualInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.GreaterThanEqualVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.GreaterThanEqualVal(right)
+}
+
+func GreaterThanEqualInts(left, right Value) bool {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.GreaterThanEqualInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.GreaterThanEqualInt(right)
 }
 
 // Check whether left is less than right.
@@ -2941,6 +2981,26 @@ func LessThan(left, right Value) (result bool, err Value) {
 	}
 }
 
+func LessThanInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LessThanVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LessThanVal(right)
+}
+
+func LessThanInts(left, right Value) bool {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LessThanInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LessThanInt(right)
+}
+
 // Check whether left is less than or equal to right.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -3013,26 +3073,6 @@ func LessThanEqualVal(left, right Value) (result, err Value) {
 	}
 }
 
-func LessThanEqualValInt(left, right Value) (Value, Value) {
-	if left.IsReference() {
-		l := (*BigInt)(left.Pointer())
-		return l.LessThanEqualVal(right)
-	}
-
-	l := left.AsSmallInt()
-	return l.LessThanEqualVal(right)
-}
-
-func LessThanEqualInt(left, right Value) (bool, Value) {
-	if left.IsReference() {
-		l := (*BigInt)(left.Pointer())
-		return l.LessThanEqual(right)
-	}
-
-	l := left.AsSmallInt()
-	return l.LessThanEqual(right)
-}
-
 func LessThanEqual(left, right Value) (result bool, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -3099,6 +3139,26 @@ func LessThanEqual(left, right Value) (result bool, err Value) {
 	default:
 		return false, Undefined
 	}
+}
+
+func LessThanEqualInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LessThanEqualVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LessThanEqualVal(right)
+}
+
+func LessThanEqualInts(left, right Value) bool {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LessThanEqualInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LessThanEqualInt(right)
 }
 
 // Check whether left is equal to right.

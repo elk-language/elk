@@ -4389,10 +4389,6 @@ func main() { // loc: <main>
 	_ = l0
 	var t1 value.Value
 	_ = t1
-	var t2 bool
-	_ = t2
-	var err value.Value
-	_ = err
 	var self value.Value
 	_ = self
 
@@ -4402,13 +4398,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 	for {
-		callFrame.SetNativeLineNumber(3)
-		t2, err = value.LessThan(l0, (value.SmallInt(5)).ToValue())
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
-		}
-		if !(value.Bool(t2)) {
+		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())

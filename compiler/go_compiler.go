@@ -5326,6 +5326,34 @@ func (c *GoCompiler) compileGreaterEqual(node *ast.BinaryExpressionNode, valueIs
 		return c.compileGreaterEqualStrictNumeric(narrowLeft, right)
 	}
 
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.Bool(value.GreaterThanEqualInts(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
+				types.Bool{},
+				value.FetchGoType("value.Bool"),
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.GreaterThanEqualInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocals(
+			fmt.Sprintf("value.ToBool(%s)", tmp.name),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			tmp,
+		)
+	}
+
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
 		if valueIsIgnored {
 			c.registerErr()
@@ -5486,6 +5514,34 @@ func (c *GoCompiler) compileGreater(node *ast.BinaryExpressionNode, valueIsIgnor
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
 		"value.Float64", "value.Float32":
 		return c.compileGreaterStrictNumeric(narrowLeft, right)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.Bool(value.GreaterThanInts(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
+				types.Bool{},
+				value.FetchGoType("value.Bool"),
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.GreaterThanInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocals(
+			fmt.Sprintf("value.ToBool(%s)", tmp.name),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			tmp,
+		)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
@@ -5650,6 +5706,34 @@ func (c *GoCompiler) compileLess(node *ast.BinaryExpressionNode, valueIsIgnored 
 		return c.compileLessStrictNumeric(narrowLeft, right)
 	}
 
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.Bool(value.LessThanInts(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
+				types.Bool{},
+				value.FetchGoType("value.Bool"),
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.LessThanInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocals(
+			fmt.Sprintf("value.ToBool(%s)", tmp.name),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			tmp,
+		)
+	}
+
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
 		if valueIsIgnored {
 			c.registerErr()
@@ -5810,6 +5894,34 @@ func (c *GoCompiler) compileLessEqual(node *ast.BinaryExpressionNode, valueIsIgn
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
 		"value.Float64", "value.Float32":
 		return c.compileLessEqualStrictNumeric(narrowLeft, right)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.Bool(value.LessThanEqualInts(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
+				types.Bool{},
+				value.FetchGoType("value.Bool"),
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.LessThanEqualInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocals(
+			fmt.Sprintf("value.ToBool(%s)", tmp.name),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			tmp,
+		)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
@@ -5988,6 +6100,32 @@ func (c *GoCompiler) compileCompare(node *ast.BinaryExpressionNode, valueIsIgnor
 		return c.compileCompareFloat64(narrowLeft, right)
 	case "value.Float32":
 		return c.compileCompareFloat32(narrowLeft, right)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.CompareInts(%s, %s)", c.convertToValue(left).value, c.convertToValue(right).value),
+				c.checker.Std(symbol.Int),
+				value.FetchGoType("value.SmallInt"),
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.CompareInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
