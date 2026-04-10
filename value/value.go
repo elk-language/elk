@@ -1578,6 +1578,16 @@ func AddInt(left, right Value) (Value, Value) {
 	return l.AddVal(right)
 }
 
+func AddInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.AddInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.AddInt(right)
+}
+
 // AddVal two values.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -1735,6 +1745,16 @@ func SubtractInt(left, right Value) (Value, Value) {
 	return l.SubtractVal(right)
 }
 
+func SubtractInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.SubtractInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.SubtractInt(right)
+}
+
 // MultiplyVal two values
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -1823,6 +1843,16 @@ func MultiplyInt(left, right Value) (Value, Value) {
 	return l.MultiplyVal(right)
 }
 
+func MultiplyInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.MultiplyInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.MultiplyInt(right)
+}
+
 // DivideVal two values
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -1898,6 +1928,16 @@ func DivideInt(left, right Value) (Value, Value) {
 
 	l := left.AsSmallInt()
 	return l.DivideVal(right)
+}
+
+func DivideInts(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.DivideInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.DivideInt(right)
 }
 
 // NegateVal a value
@@ -2281,11 +2321,21 @@ func ExponentiateVal(left, right Value) (result, err Value) {
 func ExponentiateInt(left, right Value) (Value, Value) {
 	if left.IsReference() {
 		l := (*BigInt)(left.Pointer())
-		return l.DivideVal(right)
+		return l.ExponentiateVal(right)
 	}
 
 	l := left.AsSmallInt()
-	return l.DivideVal(right)
+	return l.ExponentiateVal(right)
+}
+
+func ExponentiateInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.ExponentiateInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.ExponentiateInt(right)
 }
 
 // Perform modulo on two values
@@ -2363,6 +2413,16 @@ func ModuloInt(left, right Value) (Value, Value) {
 
 	l := left.AsSmallInt()
 	return l.ModuloVal(right)
+}
+
+func ModuloInts(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.ModuloInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.ModuloInt(right)
 }
 
 // CompareVal two values.
@@ -2449,6 +2509,16 @@ func CompareInt(left, right Value) (Value, Value) {
 
 	l := left.AsSmallInt()
 	return l.CompareVal(right)
+}
+
+func CompareInts(left, right Value) SmallInt {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.CompareInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.CompareInt(right)
 }
 
 // Check whether left is greater than right.

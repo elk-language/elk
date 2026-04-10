@@ -1704,10 +1704,6 @@ func main() { // loc: <main>
 	_ = l0
 	var t1 value.Value
 	_ = t1
-	var t2 value.Value
-	_ = t2
-	var err value.Value
-	_ = err
 	var self value.Value
 	_ = self
 
@@ -1716,13 +1712,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Truthy(l0) {
-		callFrame.SetNativeLineNumber(4)
-		t2, err = value.MultiplyVal(l0, (value.SmallInt(2)).ToValue())
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
-		}
-		l0 = t2
+		l0 = value.MultiplyInts(l0, (value.SmallInt(2)).ToValue())
 		t1 = l0
 	} else {
 		t1 = value.Nil
@@ -1763,10 +1753,6 @@ func main() { // loc: <main>
 	_ = l0
 	var t1 value.Value
 	_ = t1
-	var t2 value.Value
-	_ = t2
-	var err value.Value
-	_ = err
 	var self value.Value
 	_ = self
 
@@ -1775,13 +1761,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Truthy(l0) {
-		callFrame.SetNativeLineNumber(4)
-		t2, err = value.MultiplyVal(l0, (value.SmallInt(2)).ToValue())
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
-		}
-		l0 = t2
+		l0 = value.MultiplyInts(l0, (value.SmallInt(2)).ToValue())
 		t1 = l0
 	} else {
 		l0 = (value.SmallInt(30)).ToValue()
@@ -1826,10 +1806,6 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var t2 value.Value
-	_ = t2
-	var err value.Value
-	_ = err
 	var self value.Value
 	_ = self
 
@@ -1839,13 +1815,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = value.False
 	if l1 {
-		callFrame.SetNativeLineNumber(5)
-		t2, err = value.MultiplyVal(l0, (value.SmallInt(2)).ToValue())
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
-		}
-		l0 = t2
+		l0 = value.MultiplyInts(l0, (value.SmallInt(2)).ToValue())
 		t1 = l0
 	} else {
 		l0 = (value.SmallInt(30)).ToValue()
@@ -2309,10 +2279,6 @@ func main() { // loc: <main>
 	_ = l0
 	var t1 value.Value
 	_ = t1
-	var t2 value.Value
-	_ = t2
-	var err value.Value
-	_ = err
 	var self value.Value
 	_ = self
 
@@ -2324,13 +2290,7 @@ func main() { // loc: <main>
 		l0 = (value.SmallInt(30)).ToValue()
 		t1 = l0
 	} else {
-		callFrame.SetNativeLineNumber(6)
-		t2, err = value.MultiplyVal(l0, (value.SmallInt(2)).ToValue())
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
-		}
-		l0 = t2
+		l0 = value.MultiplyInts(l0, (value.SmallInt(2)).ToValue())
 		t1 = l0
 	}
 }
@@ -2372,10 +2332,6 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var t2 value.Value
-	_ = t2
-	var err value.Value
-	_ = err
 	var self value.Value
 	_ = self
 
@@ -2388,13 +2344,7 @@ func main() { // loc: <main>
 		l0 = (value.SmallInt(30)).ToValue()
 		t1 = l0
 	} else {
-		callFrame.SetNativeLineNumber(7)
-		t2, err = value.MultiplyVal(l0, (value.SmallInt(2)).ToValue())
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
-		}
-		l0 = t2
+		l0 = value.MultiplyInts(l0, (value.SmallInt(2)).ToValue())
 		t1 = l0
 	}
 }
@@ -4415,7 +4365,56 @@ func TestGoWhile(t *testing.T) {
 					i += 1
 				end
 			`,
-			want: `
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 bool
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	t1 = value.Nil
+	for {
+		callFrame.SetNativeLineNumber(3)
+		t2, err = value.LessThan(l0, (value.SmallInt(5)).ToValue())
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		if !(value.Bool(t2)) {
+			break
+		}
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		t1 = l0
+	}
+}
 `,
 		},
 		// "with break": {

@@ -5992,15 +5992,6 @@ func (c *GoCompiler) compileCompare(node *ast.BinaryExpressionNode, valueIsIgnor
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
 		if valueIsIgnored {
-			c.registerErr()
-			c.emitSetCallFrameLineNumber(node.Location())
-			c.emit(
-				"_, err = value.CompareVal(%s, %s)\n",
-				c.convertToValue(left).fetchValue(),
-				c.convertToValue(right).fetchValue(),
-			)
-			c.emitErrorPropagation()
-
 			return nilGoValue
 		}
 
@@ -6254,6 +6245,36 @@ func (c *GoCompiler) compileDivide(node *ast.BinaryExpressionNode, valueIsIgnore
 		return c.compileDivideFloat64(narrowLeft, right)
 	case "value.Float32":
 		return c.compileDivideFloat32(narrowLeft, right)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			tmp := c.defineTmpGoLocal(goValueType)
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(node.Location())
+			c.emit("%s, err = value.DivideInts(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+			c.emitErrorPropagation()
+
+			return newGoValueWithLocal(
+				tmp,
+				typ,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.DivideInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinDividable)) {
@@ -6714,6 +6735,54 @@ func (c *GoCompiler) compileExponentiate(node *ast.BinaryExpressionNode, valueIs
 		return c.compileExponentiateFloat64(narrowLeft, right)
 	case "value.Float32":
 		return c.compileExponentiateFloat32(narrowLeft, right)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.ExponentiateInts(%s, %s)", c.convertToValue(left).value, c.convertToValue(right).value),
+				left.elkType,
+				goValueType,
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.ExponentiateInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinMultipliable)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit(
+			"%s, err = value.ExponentiateVal(%s, %s)\n",
+			tmp.name,
+			c.convertToValue(left).fetchValue(),
+			c.convertToValue(right).fetchValue(),
+		)
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
 	}
 
 	return c.compileMethodCallWithLiteralArgValuesAndName(
@@ -8213,6 +8282,32 @@ func (c *GoCompiler) compileMultiply(node *ast.BinaryExpressionNode, valueIsIgno
 		return c.compileMultiplyChar(narrowLeft, right, typ, node.Location(), valueIsIgnored)
 	}
 
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.MultiplyInts(%s, %s)", c.convertToValue(left).value, c.convertToValue(right).value),
+				left.elkType,
+				goValueType,
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.MultiplyInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	}
+
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinMultipliable)) {
 		if valueIsIgnored {
 			return nilGoValue
@@ -8698,6 +8793,32 @@ func (c *GoCompiler) compileSubtract(node *ast.BinaryExpressionNode, valueIsIgno
 		return c.compileSubtractFloat32(narrowLeft, right, valueIsIgnored)
 	case "*value.BigFloat":
 		return c.compileSubtractBigFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.SubtractInts(%s, %s)", c.convertToValue(left).value, c.convertToValue(right).value),
+				left.elkType,
+				goValueType,
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.SubtractInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinSubtractable)) {
@@ -9569,6 +9690,36 @@ func (c *GoCompiler) compileModulo(node *ast.BinaryExpressionNode, valueIsIgnore
 		return c.compileModuloBigFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
 	}
 
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			tmp := c.defineTmpGoLocal(goValueType)
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(node.Location())
+			c.emit("%s, err = value.ModuloInts(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+			c.emitErrorPropagation()
+
+			return newGoValueWithLocal(
+				tmp,
+				typ,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.ModuloInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	}
+
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
 		if valueIsIgnored {
 			return nilGoValue
@@ -10068,6 +10219,32 @@ func (c *GoCompiler) compileAdd(node *ast.BinaryExpressionNode, valueIsIgnored b
 		return c.compileAddString(narrowLeft, right, node.Location(), valueIsIgnored)
 	case "value.Char":
 		return c.compileAddChar(narrowLeft, right, node.Location(), valueIsIgnored)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.AddInts(%s, %s)", c.convertToValue(left).value, c.convertToValue(right).value),
+				left.elkType,
+				goValueType,
+				left, right,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = value.AddInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinAddable)) {
