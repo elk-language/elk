@@ -1556,7 +1556,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	}
 
 	c.emitAddCallFrame(node.Location())
-	c.compileProgram(node)
+	c.compileProgram(node, true)
 
 	if c.buff.Len() == 0 && c.goName != "main" {
 		return
@@ -1615,8 +1615,8 @@ func (c *GoCompiler) compileLocals() {
 }
 
 // Entry point to the compilation process
-func (c *GoCompiler) compileProgram(node *ast.ProgramNode) *goValue {
-	return c.compileStatements(node.Body, false)
+func (c *GoCompiler) compileProgram(node *ast.ProgramNode, valueIsIgnored bool) *goValue {
+	return c.compileStatements(node.Body, valueIsIgnored)
 }
 
 func (c *GoCompiler) compileStatements(nodes []ast.StatementNode, valueIsIgnored bool) *goValue {
@@ -1787,8 +1787,12 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileLabeledExpressionNode(node, valueIsIgnored)
 	case *ast.WhileExpressionNode:
 		return c.compileWhileExpressionNode("", node, valueIsIgnored)
+	case *ast.UntilExpressionNode:
+		return c.compileUntilExpressionNode("", node, valueIsIgnored)
 	case *ast.LoopExpressionNode:
 		return c.compileLoopExpressionNode("", node, valueIsIgnored)
+	case *ast.NumericForExpressionNode:
+		return c.compileNumericForExpressionNode("", node, valueIsIgnored)
 	case *ast.BreakExpressionNode:
 		return c.compileBreakExpressionNode(node)
 	case *ast.ContinueExpressionNode:
@@ -2103,6 +2107,96 @@ func (c *GoCompiler) emitAssignGoLocalInValue(local *goValue, val *goValue) {
 	c.emitAssignGoLocalByName(local.value, local.goType, val)
 }
 
+// Compile a numeric for loop eg. `for i := 0; i < 5; i += 1 then println(i)`
+func (c *GoCompiler) compileNumericForExpressionNode(label string, node *ast.NumericForExpressionNode, valueIsIgnored bool) *goValue {
+	location := node.Location()
+
+	if node.Initialiser == nil && node.Condition == nil && node.Increment == nil {
+		// the loop is endless
+		return c.compileLoop(label, node.ThenBody, c.typeOf(node), valueIsIgnored)
+	}
+
+	return c.compileNumericFor(
+		label,
+		node.Initialiser,
+		node.Condition,
+		node.Increment,
+		func() *goValue {
+			return c.compileStatements(node.ThenBody, valueIsIgnored)
+		},
+		c.typeOf(node),
+		location,
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileNumericFor(label string, init, cond, increment ast.ExpressionNode, then func() *goValue, typ types.Type, location *position.Location, valueIsIgnored bool) *goValue {
+	var result *goValue
+	var tmpVar *goLocal
+
+	if valueIsIgnored {
+		result = nilGoValue
+	} else {
+		goType := c.elkTypeToGoType(typ, false)
+		tmpVar = c.defineTmpGoLocal(goType)
+		result = newGoValueWithLocal(tmpVar, typ)
+
+		if c.checker.IsSubtype(types.Nil{}, typ) {
+			c.emit("%s = value.Nil\n", tmpVar.name)
+		}
+	}
+
+	c.enterScope(label, loopNativeElkScopeType)
+	loopInfo := c.addLoopInfo(label, tmpVar, true)
+	c.loopCounter++
+
+	// loop initialiser eg. `i := 0`
+	if init != nil {
+		c.compileExpression(init, true)
+	}
+
+	prevBuff := c.switchBuffer(bytes.Buffer{})
+	// loop start
+	c.emit("for {\n")
+
+	// loop condition eg. `i < 5`
+	if cond != nil {
+		condVal := c.valueToNarrowerType(c.compileExpression(cond, false))
+		switch condVal.goType.Name {
+		case "value.Bool", "bool":
+			c.emit("if !(%s) { break }\n", condVal.fetchValue())
+		default:
+			c.emit("if value.Falsy(%s) { break }\n", condVal.fetchValue())
+		}
+	}
+
+	// loop body
+	thenVal := then()
+
+	if !valueIsIgnored {
+		c.emitAssignGoLocal(tmpVar, thenVal)
+	}
+
+	if increment != nil {
+		// increment step eg. `i += 1`
+		c.compileExpression(increment, true)
+	}
+
+	// after loop
+	c.emit("}\n")
+
+	newBuff := c.switchBuffer(prevBuff)
+	if loopInfo.labelIsUsed {
+		c.emit("%s: ", loopInfo.goLabel)
+	}
+	c.emitBytes(newBuff.Bytes())
+
+	c.leaveScope()
+	c.popLoopInfo()
+
+	return result
+}
+
 func (c *GoCompiler) compileLoopExpressionNode(label string, node *ast.LoopExpressionNode, valueIsIgnored bool) *goValue {
 	return c.compileLoop(label, node.ThenBody, c.typeOf(node), valueIsIgnored)
 }
@@ -2155,13 +2249,12 @@ func (c *GoCompiler) compileLabeledExpressionNode(node *ast.LabeledExpressionNod
 	switch expr := node.Expression.(type) {
 	case *ast.WhileExpressionNode:
 		return c.compileWhileExpressionNode(node.Label, expr, valueIsIgnored)
-	// TODO: implement loops
-	// case *ast.UntilExpressionNode:
-	// 	return c.compileUntilExpressionNode(node.Label, expr, valueIsIgnored)
+	case *ast.UntilExpressionNode:
+		return c.compileUntilExpressionNode(node.Label, expr, valueIsIgnored)
 	case *ast.LoopExpressionNode:
 		return c.compileLoopExpressionNode(node.Label, expr, valueIsIgnored)
-	// case *ast.NumericForExpressionNode:
-	// 	return c.compileNumericForExpressionNode(node.Label, expr, valueIsIgnored)
+	case *ast.NumericForExpressionNode:
+		return c.compileNumericForExpressionNode(node.Label, expr, valueIsIgnored)
 	// case *ast.ForInExpressionNode:
 	// 	return c.compileForInExpressionNode(node.Label, expr, valueIsIgnored)
 	// case *ast.ModifierForInNode:
@@ -2219,6 +2312,73 @@ func (c *GoCompiler) compileWhileExpressionNode(label string, node *ast.WhileExp
 		c.emit("if !(%s) { break }\n", cond.fetchValue())
 	default:
 		c.emit("if value.Falsy(%s) { break }\n", cond.fetchValue())
+	}
+
+	// loop body
+	then := c.valueToNarrowerType(c.compileStatements(node.ThenBody, valueIsIgnored))
+	if !valueIsIgnored {
+		c.emitAssignGoLocal(tmpVar, then)
+	}
+
+	// after loop
+	c.emit("}\n")
+
+	newBuff := c.switchBuffer(prevBuff)
+	if loopInfo.labelIsUsed {
+		c.emit("%s: ", loopInfo.goLabel)
+	}
+	c.emitBytes(newBuff.Bytes())
+
+	c.leaveScope()
+	c.popLoopInfo()
+
+	return result
+}
+
+func (c *GoCompiler) compileUntilExpressionNode(label string, node *ast.UntilExpressionNode, valueIsIgnored bool) *goValue {
+	if resolved := resolve(node.Condition, c.checker); resolved.IsNotUndefined() {
+		if value.Truthy(resolved) {
+			// the loop won't run at all
+			// it can be optimised into a simple NIL operation
+			return nilGoValue
+		}
+
+		// the loop is endless
+		return c.compileLoop(label, node.ThenBody, c.typeOf(node), valueIsIgnored)
+	}
+
+	var result *goValue
+	var tmpVar *goLocal
+
+	if valueIsIgnored {
+		result = nilGoValue
+	} else {
+		elkType := c.typeOf(node)
+		goType := c.elkTypeToGoType(elkType, false)
+		tmpVar = c.defineTmpGoLocal(goType)
+		result = newGoValueWithLocal(tmpVar, elkType)
+
+		if c.checker.IsSubtype(types.Nil{}, elkType) {
+			c.emit("%s = value.Nil\n", tmpVar.name)
+		}
+	}
+
+	c.enterScope(label, loopNativeElkScopeType)
+	loopInfo := c.addLoopInfo(label, tmpVar, true)
+	c.loopCounter++
+
+	prevBuff := c.switchBuffer(bytes.Buffer{})
+	// loop start
+	c.emit("for {\n")
+
+	// loop condition eg. `i < 5`
+	cond := c.valueToNarrowerType(c.compileExpression(node.Condition, false))
+
+	switch cond.goType.Name {
+	case "value.Bool", "bool":
+		c.emit("if %s { break }\n", cond.fetchValue())
+	default:
+		c.emit("if value.Truthy(%s) { break }\n", cond.fetchValue())
 	}
 
 	// loop body
@@ -11406,7 +11566,7 @@ func (c *GoCompiler) convertToValue(v *goValue) *goValue {
 }
 
 func (c *GoCompiler) convertToNativeInt(v *goValue) *goValue {
-	if v == nil {
+	if v == nil || types.IsNever(v.elkType) {
 		return newGoValue(
 			"0",
 			types.Any{},
@@ -11441,259 +11601,260 @@ func (c *GoCompiler) convertToNativeInt(v *goValue) *goValue {
 }
 
 func (c *GoCompiler) valueToNarrowerType(v *goValue) *goValue {
-	if v.goType.Name != "value.Value" {
+	if v.goType.Name != "value.Value" || types.IsNever(v.elkType) {
 		return v
 	}
 
-	if c.checker.IsSubtype(v.elkType, types.Bool{}) {
+	elkType := types.Normalise(v.elkType)
+	if c.checker.IsSubtype(elkType, types.Bool{}) {
 		return v.newGoValue(
 			fmt.Sprintf("value.ToBool(%s)", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.Bool"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Symbol)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Symbol)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsSymbol()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.Symbol"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.String)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsString()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.String"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Char)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Char)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsChar()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.Char"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Float)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsFloat()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.Float"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Float64)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float64)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsFloat64()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.Float64"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Float32)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float32)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsFloat32()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.Float32"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.BigFloat)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.BigFloat)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.BigFloat)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.BigFloat"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int64)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int64)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsInt64()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.Int64"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int32)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int32)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsInt32()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.Int32"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int16)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int16)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsInt16()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.Int16"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int8)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int8)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsInt8()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.Int8"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsUInt()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.UInt"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt64)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt64)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsUInt64()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.UInt64"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt32)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt32)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsUInt32()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.UInt32"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt16)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt16)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsUInt16()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.UInt16"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.UInt8)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt8)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsUInt8()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.UInt8"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.ArrayList)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ArrayList)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsReference().(value.ArrayList)", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.ArrayList"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.ArrayTuple)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ArrayTuple)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsReference().(value.ArrayTuple)", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.ArrayTuple"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.HashMap)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashMap)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsReference().(vm.HashMap)", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("vm.HashMap"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.HashRecord)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashRecord)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsReference().(vm.HashRecord)", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("vm.HashRecord"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.HashSet)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashSet)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsReference().(vm.HashSet)", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("vm.HashSet"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.BeginlessClosedRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.BeginlessClosedRange)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.BeginlessClosedRange)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.BeginlessClosedRange"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.BeginlessOpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.BeginlessOpenRange)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.BeginlessOpenRange)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.BeginlessOpenRange"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.EndlessClosedRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.EndlessClosedRange)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.EndlessClosedRange)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.EndlessClosedRange"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.EndlessOpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.EndlessOpenRange)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.EndlessOpenRange)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.EndlessOpenRange"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.ClosedRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ClosedRange)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.ClosedRange)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.ClosedRange"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.OpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.OpenRange)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.OpenRange)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.OpenRange"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.LeftOpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.LeftOpenRange)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.LeftOpenRange)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.LeftOpenRange"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.RightOpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.RightOpenRange)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.RightOpenRange)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.RightOpenRange"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Class)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Class)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.Class)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.Class"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Module)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Module)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.Module)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.Module"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Mixin)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Mixin)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.Mixin)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.Mixin"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Interface)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Interface)) {
 		return v.newGoValue(
 			fmt.Sprintf("(*value.Interface)((%s).Pointer())", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("*value.Interface"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Time)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Time)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsTime()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.Time"),
 		)
 	}
-	if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Date)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Date)) {
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsDate()", v.value),
-			v.elkType,
+			elkType,
 			value.FetchGoType("value.Date"),
 		)
 	}
@@ -11702,6 +11863,10 @@ func (c *GoCompiler) valueToNarrowerType(v *goValue) *goValue {
 }
 
 func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *value.GoType {
+	elkType = types.Normalise(elkType)
+	if types.IsNever(elkType) {
+		return value.FetchGoType("value.Value")
+	}
 	if c.checker.IsSubtype(elkType, types.Bool{}) {
 		return value.FetchGoType("value.Bool")
 	}
