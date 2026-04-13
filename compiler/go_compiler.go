@@ -1783,8 +1783,12 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileAsExpressionNode(node, valueIsIgnored)
 	case *ast.MustExpressionNode:
 		return c.compileMustExpressionNode(node, valueIsIgnored)
+	case *ast.DoExpressionNode:
+		return c.compileDoExpressionNode(node, valueIsIgnored)
 	case *ast.LabeledExpressionNode:
 		return c.compileLabeledExpressionNode(node, valueIsIgnored)
+	case *ast.ModifierNode:
+		return c.compileModifierNode("", node, valueIsIgnored)
 	case *ast.WhileExpressionNode:
 		return c.compileWhileExpressionNode("", node, valueIsIgnored)
 	case *ast.UntilExpressionNode:
@@ -2006,7 +2010,7 @@ func (c *GoCompiler) compileRangeLiteralNode(node *ast.RangeLiteralNode) *goValu
 func (c *GoCompiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) *goValue {
 	var value *goValue
 	if node.Value == nil {
-		value = neverGoValue
+		value = nilGoValue
 	} else {
 		value = c.compileExpression(node.Value, false)
 	}
@@ -2048,7 +2052,7 @@ func (c *GoCompiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) *
 func (c *GoCompiler) compileContinueExpressionNode(node *ast.ContinueExpressionNode) *goValue {
 	var value *goValue
 	if node.Value == nil {
-		value = neverGoValue
+		value = nilGoValue
 	} else {
 		value = c.compileExpression(node.Value, false)
 	}
@@ -2244,6 +2248,143 @@ func (c *GoCompiler) switchBuffer(buff bytes.Buffer) bytes.Buffer {
 	return prevBuff
 }
 
+func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIsIgnored bool) *goValue {
+	var scopeType nativeElkScopeType
+	if len(node.Finally) > 0 {
+		scopeType = doFinallyNativeElkScopeType
+	} else {
+		scopeType = defaultNativeElkScopeType
+	}
+
+	c.enterScope("", scopeType)
+	then := c.compileStatements(node.Body, valueIsIgnored)
+	c.leaveScope()
+
+	return then
+	// TODO: implement catch and finally
+	// doEndOffset := c.nextInstructionOffset()
+
+	// if len(node.Finally) > 0 {
+	// 	c.enterScope("", defaultBytecodeScopeType)
+	// 	// pop the return value of finally leaving the return value of do
+	// 	c.compileStatementsWithoutResult(node.Finally)
+	// 	c.leaveScope(location.EndPos.Line)
+	// }
+
+	// if len(node.Catches) <= 0 && len(node.Finally) <= 0 {
+	// 	return
+	// }
+
+	// jumpOverCatchOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP)
+
+	// var jumpsToEndOfCatch []int
+	// catchStartOffset := c.nextInstructionOffset()
+
+	// c.registerCatch(doStartOffset, doEndOffset, catchStartOffset, false)
+
+	// c.enterScope("", defaultBytecodeScopeType)
+
+	// for _, catchNode := range node.Catches {
+	// 	location := catchNode.Location()
+
+	// 	if catchNode.StackTraceVar != nil {
+	// 		c.emit(location.EndPos.Line, bytecode.DUP_SECOND)
+
+	// 		var stackTraceVarName string
+	// 		switch s := catchNode.StackTraceVar.(type) {
+	// 		case *ast.PublicIdentifierNode:
+	// 			stackTraceVarName = s.Value
+	// 		case *ast.PrivateIdentifierNode:
+	// 			stackTraceVarName = s.Value
+	// 		default:
+	// 			panic(fmt.Sprintf("invalid stack trace variable name in catch: %T", catchNode.StackTraceVar))
+	// 		}
+
+	// 		stackTraceVar := c.defineLocal(stackTraceVarName, location)
+	// 		if stackTraceVar != nil {
+	// 			c.emitSetLocalPop(location.StartPos.Line, stackTraceVar.index)
+	// 		}
+	// 	}
+
+	// 	c.pattern(catchNode.Pattern)
+	// 	jumpOverCatchBody := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS)
+
+	// 	c.compileStatementsWithResult(catchNode.Body, catchNode.Location())
+
+	// 	if len(node.Finally) < 1 {
+	// 		// pop the thrown value and the stack trace, leaving the return value of the catch
+	// 		c.emit(location.EndPos.Line, bytecode.POP_2_SKIP_ONE)
+	// 	}
+	// 	jump := c.emitJump(location.EndPos.Line, bytecode.JUMP)
+	// 	jumpsToEndOfCatch = append(jumpsToEndOfCatch, jump)
+
+	// 	c.patchJump(jumpOverCatchBody, location)
+	// }
+
+	// if len(node.Finally) > 0 {
+	// 	c.emit(location.EndPos.Line, bytecode.TRUE)
+	// } else {
+	// 	c.emit(location.EndPos.Line, bytecode.RETHROW)
+	// }
+
+	// var jumpOverFalseOffset int
+	// if len(node.Finally) > 0 {
+
+	// 	jumpOverFalseOffset = c.emitJump(location.EndPos.Line, bytecode.JUMP)
+	// }
+	// for _, jump := range jumpsToEndOfCatch {
+	// 	c.patchJump(jump, location)
+	// }
+	// if len(node.Finally) > 0 {
+	// 	c.emit(location.EndPos.Line, bytecode.FALSE)
+	// 	c.patchJump(jumpOverFalseOffset, location)
+
+	// 	jumpOverReturnBreakOrContinueEntryOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
+	// 	finallyEntryOffset := c.nextInstructionOffset()
+	// 	c.registerCatch(doStartOffset, doEndOffset, finallyEntryOffset, true)
+	// 	// entry point for return when executing finally
+	// 	c.emit(location.EndPos.Line, bytecode.NIL)
+
+	// 	jumpOverBreakOrContinueEntryOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
+	// 	// entry point for break or continue when executing finally
+	// 	c.emit(location.EndPos.Line, bytecode.UNDEFINED)
+
+	// 	c.patchJump(jumpOverBreakOrContinueEntryOffset, location)
+	// 	c.patchJump(jumpOverReturnBreakOrContinueEntryOffset, location)
+
+	// 	c.compileStatementsWithResult(node.Finally, location)
+
+	// 	c.emit(location.EndPos.Line, bytecode.SWAP)
+	// 	jumpOverFinallyBreakOrContinueOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_UNLESS_UNP)
+	// 	c.emit(location.EndPos.Line, bytecode.POP_2)
+	// 	c.emit(location.EndPos.Line, bytecode.JUMP_TO_FINALLY)
+	// 	c.patchJump(jumpOverFinallyBreakOrContinueOffset, location)
+
+	// 	jumpToRethrowOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_IF_NP)
+	// 	jumpToFinallyReturnOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_IF_NIL_NP)
+	// 	// FALSE
+	// 	c.emit(location.EndPos.Line, bytecode.POP_2)          // pop the flag and return value of finally
+	// 	c.emit(location.EndPos.Line, bytecode.POP_2_SKIP_ONE) // pop the thrown value and the stack trace leaving the return value of catch
+	// 	jumpToEndOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
+
+	// 	c.patchJump(jumpToFinallyReturnOffset, location)
+	// 	// return with finally
+	// 	c.emit(location.EndPos.Line, bytecode.POP_2) // pop the flag and return value of finally
+	// 	c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
+
+	// 	c.patchJump(jumpToRethrowOffset, location)
+	// 	// pop the flag and the return value of finally
+	// 	c.emit(location.EndPos.Line, bytecode.POP_2)
+	// 	c.emit(location.EndPos.Line, bytecode.RETHROW)
+
+	// 	c.patchJump(jumpToEndOffset, location)
+	// }
+
+	// c.leaveScope(location.EndPos.Line)
+
+	// c.patchJump(jumpOverCatchOffset, location)
+}
+
 // Compile a labeled expression eg. `$foo: println("bar")`
 func (c *GoCompiler) compileLabeledExpressionNode(node *ast.LabeledExpressionNode, valueIsIgnored bool) *goValue {
 	switch expr := node.Expression.(type) {
@@ -2259,13 +2400,182 @@ func (c *GoCompiler) compileLabeledExpressionNode(node *ast.LabeledExpressionNod
 	// 	return c.compileForInExpressionNode(node.Label, expr, valueIsIgnored)
 	// case *ast.ModifierForInNode:
 	// 	return c.compileModifierForInNode(node.Label, expr, valueIsIgnored)
-	// case *ast.ModifierNode:
-	// 	return c.compileModifierExpressionNode(node.Label, expr, valueIsIgnored)
+	case *ast.ModifierNode:
+		return c.compileModifierNode(node.Label, expr, valueIsIgnored)
 	default:
 		return c.compileExpression(node.Expression, valueIsIgnored)
 	}
+}
 
-	return nilGoValue
+func (c *GoCompiler) compileModifierNode(label string, node *ast.ModifierNode, valueIsIgnored bool) *goValue {
+	switch node.Modifier.Type {
+	case token.IF:
+		return c.compileModifierIfExpression(ifConditionType, node.Right, node.Left, nil, c.typeOf(node), valueIsIgnored)
+	case token.UNLESS:
+		return c.compileModifierIfExpression(unlessConditionType, node.Right, node.Left, nil, c.typeOf(node), valueIsIgnored)
+	case token.WHILE:
+		return c.compileModifierWhileExpressionNode(label, node, valueIsIgnored)
+	case token.UNTIL:
+		return c.compileModifierUntilExpressionNode(label, node, valueIsIgnored)
+	default:
+		c.Errors.AddFailure(
+			fmt.Sprintf("illegal modifier: %s", node.Modifier.FetchValue()),
+			node.Location(),
+		)
+		return nilGoValue
+	}
+}
+
+func (c *GoCompiler) compileModifierWhileExpressionNode(label string, node *ast.ModifierNode, valueIsIgnored bool) *goValue {
+	body := node.Left
+	condition := node.Right
+
+	var conditionIsStaticFalsy bool
+
+	if result := resolve(condition, c.checker); result.IsNotUndefined() {
+		if value.Truthy(result) {
+			// the loop is endless
+			return c.compileLoop(label, ast.ExpressionToStatements(body), c.typeOf(node), valueIsIgnored)
+		}
+
+		// the loop will only iterate once
+		conditionIsStaticFalsy = true
+	}
+
+	var result *goValue
+	var tmpVar *goLocal
+
+	if valueIsIgnored {
+		result = nilGoValue
+	} else {
+		elkType := c.typeOf(node)
+		goType := c.elkTypeToGoType(elkType, false)
+		tmpVar = c.defineTmpGoLocal(goType)
+		result = newGoValueWithLocal(tmpVar, elkType)
+
+		if c.checker.IsSubtype(types.Nil{}, elkType) {
+			c.emit("%s = value.Nil\n", tmpVar.name)
+		}
+	}
+
+	c.enterScope(label, loopNativeElkScopeType)
+	loopInfo := c.addLoopInfo(label, tmpVar, true)
+	c.loopCounter++
+
+	prevBuff := c.switchBuffer(bytes.Buffer{})
+	// loop start
+	c.emit("for {\n")
+
+	// loop body
+	then := c.valueToNarrowerType(c.compileExpression(body, valueIsIgnored))
+	if !valueIsIgnored {
+		c.emitAssignGoLocal(tmpVar, then)
+	}
+
+	if conditionIsStaticFalsy {
+		// after loop
+		c.emit("break\n")
+	} else {
+		// loop condition eg. `i < 5`
+		cond := c.valueToNarrowerType(c.compileExpression(condition, false))
+
+		switch cond.goType.Name {
+		case "value.Bool", "bool":
+			c.emit("if !(%s) { break }\n", cond.fetchValue())
+		default:
+			c.emit("if value.Falsy(%s) { break }\n", cond.fetchValue())
+		}
+	}
+
+	// after loop
+	c.emit("}\n")
+
+	newBuff := c.switchBuffer(prevBuff)
+	if loopInfo.labelIsUsed {
+		c.emit("%s: ", loopInfo.goLabel)
+	}
+	c.emitBytes(newBuff.Bytes())
+
+	c.leaveScope()
+	c.popLoopInfo()
+
+	return result
+}
+
+func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.ModifierNode, valueIsIgnored bool) *goValue {
+	body := node.Left
+	condition := node.Right
+
+	var conditionIsStaticFalsy bool
+
+	if result := resolve(condition, c.checker); result.IsNotUndefined() {
+		if value.Falsy(result) {
+			// the loop is endless
+			return c.compileLoop(label, ast.ExpressionToStatements(body), c.typeOf(node), valueIsIgnored)
+		}
+
+		// the loop will only iterate once
+		conditionIsStaticFalsy = true
+	}
+
+	var result *goValue
+	var tmpVar *goLocal
+
+	if valueIsIgnored {
+		result = nilGoValue
+	} else {
+		elkType := c.typeOf(node)
+		goType := c.elkTypeToGoType(elkType, false)
+		tmpVar = c.defineTmpGoLocal(goType)
+		result = newGoValueWithLocal(tmpVar, elkType)
+
+		if c.checker.IsSubtype(types.Nil{}, elkType) {
+			c.emit("%s = value.Nil\n", tmpVar.name)
+		}
+	}
+
+	c.enterScope(label, loopNativeElkScopeType)
+	loopInfo := c.addLoopInfo(label, tmpVar, true)
+	c.loopCounter++
+
+	prevBuff := c.switchBuffer(bytes.Buffer{})
+	// loop start
+	c.emit("for {\n")
+
+	// loop body
+	then := c.valueToNarrowerType(c.compileExpression(body, valueIsIgnored))
+	if !valueIsIgnored {
+		c.emitAssignGoLocal(tmpVar, then)
+	}
+
+	if conditionIsStaticFalsy {
+		// after loop
+		c.emit("break\n")
+	} else {
+		// loop condition eg. `i < 5`
+		cond := c.valueToNarrowerType(c.compileExpression(condition, false))
+
+		switch cond.goType.Name {
+		case "value.Bool", "bool":
+			c.emit("if %s { break }\n", cond.fetchValue())
+		default:
+			c.emit("if value.Truthy(%s) { break }\n", cond.fetchValue())
+		}
+	}
+
+	// after loop
+	c.emit("}\n")
+
+	newBuff := c.switchBuffer(prevBuff)
+	if loopInfo.labelIsUsed {
+		c.emit("%s: ", loopInfo.goLabel)
+	}
+	c.emitBytes(newBuff.Bytes())
+
+	c.leaveScope()
+	c.popLoopInfo()
+
+	return result
 }
 
 func (c *GoCompiler) compileWhileExpressionNode(label string, node *ast.WhileExpressionNode, valueIsIgnored bool) *goValue {
@@ -5065,7 +5375,7 @@ func (c *GoCompiler) compileIf(condType conditionType, condition, then, els func
 		}
 
 		thenVal := then()
-		if !valueIsIgnored && !types.IsNever(thenVal.elkType) {
+		if !valueIsIgnored {
 			c.emitAssignGoLocal(ifResultVar, thenVal)
 		}
 		c.emit("}")
@@ -5085,7 +5395,7 @@ func (c *GoCompiler) compileIf(condType conditionType, condition, then, els func
 		c.emit("if %s(%s) {\n", condFunc, c.convertToValue(condVal).fetchValue())
 
 		thenVal := then()
-		if !valueIsIgnored && !types.IsNever(thenVal.elkType) {
+		if !valueIsIgnored {
 			c.emitAssignGoLocal(ifResultVar, thenVal)
 		}
 		thenVal.markFree()
@@ -5098,7 +5408,7 @@ func (c *GoCompiler) compileIf(condType conditionType, condition, then, els func
 	if els != nil {
 		c.emit(" else {\n")
 		elseVal := els()
-		if !valueIsIgnored && !types.IsNever(elseVal.elkType) {
+		if !valueIsIgnored {
 			c.emitAssignGoLocal(ifResultVar, elseVal)
 		}
 		elseVal.markFree()

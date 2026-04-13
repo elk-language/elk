@@ -3816,6 +3816,7 @@ loop0:
 	for {
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
+			t1 = value.Nil
 			break loop0
 		}
 	}
@@ -4363,551 +4364,761 @@ func main() { // loc: <main>
 	}
 }
 
-// func TestBytecodeModifierWhile(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"single line": {
-// 			input: `
-// 			  i := 0
-// 				i += 1 while i < 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 14,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(35, 3, 23)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 15),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"multiline": {
-// 			input: `
-// 			  i := 0
-// 				do
-// 					i += 1
-// 				end while i < 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 14,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(51, 5, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 5),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(5, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"with break": {
-// 			input: `
-// 			  i := 0
-// 				do
-// 					i += 1
-// 					break if i < 5
-// 				end while true
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 7,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(70, 6, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 13),
-// 					bytecode.NewLineInfo(6, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(66, 6, 15), P(69, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
-// 			},
-// 		},
-// 		"with labeled break": {
-// 			input: `
-// 				i := 0
-// 				$foo: do
-// 					i += 1
-// 					break[foo] if i < 5
-// 				end while true
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 7,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(80, 6, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 13),
-// 					bytecode.NewLineInfo(6, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(76, 6, 15), P(79, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
-// 			},
-// 		},
+func TestGoModifierWhile(t *testing.T) {
+	tests := goTestTable{
+		"single line": {
+			input: `
+			  i := 0
+				i += 1 while i < 5
+			`,
+			want: `package main
 
-// 		"with break with value": {
-// 			input: `
-// 				i := 0
-// 				do
-// 					i += 1
-// 					break true if i < 5
-// 				end while true
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 7,
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(74, 6, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 13),
-// 					bytecode.NewLineInfo(6, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(70, 6, 15), P(73, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
-// 			},
-// 		},
-// 		"continue in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				do
-// 					j += 1
-// 					i := 0
-// 					do
-// 						continue if i + j > 8
-// 						i += 1
-// 					end while i < 5
-// 				end while j < 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 6,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 42,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(133, 10, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(7, 13),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 2),
-// 					bytecode.NewLineInfo(6, 4),
-// 					bytecode.NewLineInfo(9, 3),
-// 					bytecode.NewLineInfo(10, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(10, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"labeled continue in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				$foo: do
-// 					j += 1
-// 					i := 0
-// 					do
-// 						continue[foo] if i + j > 8
-// 						i += 1
-// 					end while i < 5
-// 				end while j < 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 15,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 42,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(144, 10, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(7, 13),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 2),
-// 					bytecode.NewLineInfo(6, 4),
-// 					bytecode.NewLineInfo(9, 3),
-// 					bytecode.NewLineInfo(10, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(10, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"break in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				do
-// 					j += 1
-// 					i := 0
-// 					do
-// 						break if i + j > 8
-// 						i += 1
-// 					end while i < 5
-// 				end while j < 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 15,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 42,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(130, 10, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(7, 13),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 2),
-// 					bytecode.NewLineInfo(6, 4),
-// 					bytecode.NewLineInfo(9, 3),
-// 					bytecode.NewLineInfo(10, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(10, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"labeled break in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				$foo: do
-// 					j += 1
-// 					i := 0
-// 					do
-// 						break[foo] if i + j > 8
-// 						i += 1
-// 					end while i < 5
-// 				end while j < 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 24,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 42,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(141, 10, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(7, 13),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 2),
-// 					bytecode.NewLineInfo(6, 4),
-// 					bytecode.NewLineInfo(9, 3),
-// 					bytecode.NewLineInfo(10, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(10, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"static infinite": {
-// 			input: `
-// 				do
-// 					println("foo")
-// 				end while true
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 9,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(46, 4, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 0),
-// 					bytecode.NewLineInfo(3, 5),
-// 					bytecode.NewLineInfo(4, 5),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.String("foo")),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(42, 4, 15), P(45, 4, 18)), "this condition will always have the same result since type `true` is truthy"),
-// 			},
-// 		},
-// 		"static one iteration": {
-// 			input: `
-// 				do
-// 					println("foo")
-// 				end while false
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(47, 4, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 0),
-// 					bytecode.NewLineInfo(3, 5),
-// 					bytecode.NewLineInfo(4, 1),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.String("foo")),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(42, 4, 15), P(46, 4, 19)), "this condition will always have the same result since type `false` is falsy"),
-// 			},
-// 		},
-// 	}
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
+			break
+		}
+	}
+}
+`,
+		},
+		"multiline": {
+			input: `
+			  i := 0
+				do
+					i += 1
+				end while i < 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
+			break
+		}
+	}
+}
+`,
+		},
+		"with break": {
+			input: `
+			  i := 0
+				do
+					i += 1
+					break if i < 5
+				end while true
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			break loop0
+		}
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(66, 6, 15), P(69, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
+			},
+		},
+		"with break with result value": {
+			input: `
+			  i := 0
+				result := (do
+					i += 1
+					break if i < 5
+				end while true)
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var l1 value.Value // var result: nil
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	t1 = value.Nil
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			t1 = value.Nil
+			break loop0
+		}
+	}
+	l1 = t1
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(77, 6, 15), P(80, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
+			},
+		},
+		"with labeled break": {
+			input: `
+				i := 0
+				$foo: do
+					i += 1
+					break[foo] if i < 5
+				end while true
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			break loop0
+		}
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(76, 6, 15), P(79, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
+			},
+		},
+
+		"with break with value": {
+			input: `
+				i := 0
+				result := (do
+					i += 1
+					break true if i < 5
+				end while true)
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var l1 value.Bool // var result: bool
+	_ = l1
+	var t1 value.Bool
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			t1 = value.True
+			break loop0
+		}
+	}
+	l1 = t1
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(81, 6, 15), P(84, 6, 18)), "this condition will always have the same result since type `true` is truthy"),
+			},
+		},
+		"continue in a nested loop": {
+			input: `
+			 	j := 0
+				do
+					j += 1
+					i := 0
+					do
+						continue if i + j > 8
+						i += 1
+					end while i < 5
+				end while j < 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l1 = (value.SmallInt(0)).ToValue()
+	loop1:
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
+				continue loop1
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+		}
+		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
+			break
+		}
+	}
+}
+`,
+		},
+		"labeled continue in a nested loop": {
+			input: `
+			 	j := 0
+				$foo: do
+					j += 1
+					i := 0
+					do
+						continue[foo] if i + j > 8
+						i += 1
+					end while i < 5
+				end while j < 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l1 = (value.SmallInt(0)).ToValue()
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
+				continue loop0
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+		}
+		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
+			break
+		}
+	}
+}
+`,
+		},
+		"break in a nested loop": {
+			input: `
+			 	j := 0
+				do
+					j += 1
+					i := 0
+					do
+						break if i + j > 8
+						i += 1
+					end while i < 5
+				end while j < 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l1 = (value.SmallInt(0)).ToValue()
+	loop1:
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
+				break loop1
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+		}
+		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
+			break
+		}
+	}
+}
+`,
+		},
+		"labeled break in a nested loop": {
+			input: `
+			 	j := 0
+				$foo: do
+					j += 1
+					i := 0
+					do
+						break[foo] if i + j > 8
+						i += 1
+					end while i < 5
+				end while j < 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l1 = (value.SmallInt(0)).ToValue()
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
+				break loop0
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+		}
+		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
+			break
+		}
+	}
+}
+`,
+		},
+		"labeled break with value in a nested loop": {
+			input: `
+			 	j := 0
+				result := ($foo: do
+					j += 1
+					i := 0
+					do
+						break[foo](:bar) if i + j > 8
+						i += 1
+					end while i < 5
+				end while j < 5)
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("bar")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var result: Std::Symbol | Std::Int | nil
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var l2 value.Value // var i: Std::Int
+	_ = l2
+	var t2 value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	t1 = value.Nil
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l2 = (value.SmallInt(0)).ToValue()
+		t2 = value.Nil
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l2, l0), (value.SmallInt(8)).ToValue())) {
+				t1 = (sym2).ToValue()
+				break loop0
+			}
+			l2 = value.AddInts(l2, (value.SmallInt(1)).ToValue())
+			t2 = l2
+			if !(value.Bool(value.LessThanInts(l2, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+		}
+		t1 = t2
+		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
+			break
+		}
+	}
+	l1 = t1
+}
+`,
+		},
+		"static infinite": {
+			input: `
+				do
+					println("foo")
+				end while true
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var Std_ns_Kernel_ns_println_at_1 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 []value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	Std_ns_Kernel_ns_println_at_1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	for {
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("foo")).ToValue()
+		callFrame.SetNativeLineNumber(3)
+		_, err = Std_ns_Kernel_ns_println_at_1(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(42, 4, 15), P(45, 4, 18)), "this condition will always have the same result since type `true` is truthy"),
+			},
+		},
+		"static one iteration": {
+			input: `
+				do
+					println("foo")
+				end while false
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var Std_ns_Kernel_ns_println_at_1 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 []value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	Std_ns_Kernel_ns_println_at_1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	for {
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("foo")).ToValue()
+		callFrame.SetNativeLineNumber(3)
+		_, err = Std_ns_Kernel_ns_println_at_1(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		break
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(42, 4, 15), P(46, 4, 19)), "this condition will always have the same result since type `false` is falsy"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 func TestGoWhile(t *testing.T) {
 	tests := goTestTable{
@@ -5104,6 +5315,7 @@ loop0:
 	for {
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			t1 = value.Nil
 			break loop0
 		}
 	}
@@ -5823,550 +6035,886 @@ func main() { // loc: <main>
 	}
 }
 
-// func TestBytecodeModifierUntil(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"single line": {
-// 			input: `
-// 			  i := 0
-// 				i += 1 until i >= 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 14,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(36, 3, 24)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 15),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"multiline": {
-// 			input: `
-// 			  i := 0
-// 				do
-// 					i += 1
-// 				end until i >= 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 14,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(52, 5, 21)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 5),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(5, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"with break": {
-// 			input: `
-// 			  i := 0
-// 				do
-// 					i += 1
-// 					break if i < 5
-// 				end until false
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 7,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(71, 6, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 13),
-// 					bytecode.NewLineInfo(6, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(66, 6, 15), P(70, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
-// 			},
-// 		},
-// 		"with labeled break": {
-// 			input: `
-// 			  i := 0
-// 				$foo: do
-// 					i += 1
-// 					break[foo] if i < 5
-// 				end until false
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 7,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(82, 6, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 13),
-// 					bytecode.NewLineInfo(6, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(77, 6, 15), P(81, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
-// 			},
-// 		},
-// 		"with break with value": {
-// 			input: `
-// 			  i := 0
-// 				do
-// 					i += 1
-// 					break true if i < 5
-// 				end until false
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 7,
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(76, 6, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 13),
-// 					bytecode.NewLineInfo(6, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(71, 6, 15), P(75, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
-// 			},
-// 		},
-// 		"continue in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				do
-// 					j += 1
-// 					i := 0
-// 					do
-// 						continue if i + j > 8
-// 						i += 1
-// 					end until i >= 5
-// 				end until j >= 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 6,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 42,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(135, 10, 21)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(7, 13),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 2),
-// 					bytecode.NewLineInfo(6, 4),
-// 					bytecode.NewLineInfo(9, 3),
-// 					bytecode.NewLineInfo(10, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(10, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"labeled continue in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				$foo: do
-// 					j += 1
-// 					i := 0
-// 					do
-// 						continue[foo] if i + j > 8
-// 						i += 1
-// 					end until i >= 5
-// 				end until j >= 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 15,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 42,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(146, 10, 21)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(7, 13),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 2),
-// 					bytecode.NewLineInfo(6, 4),
-// 					bytecode.NewLineInfo(9, 3),
-// 					bytecode.NewLineInfo(10, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(10, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"break in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				do
-// 					j += 1
-// 					i := 0
-// 					do
-// 						break if i + j > 8
-// 						i += 1
-// 					end until i >= 5
-// 				end until j >= 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 15,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 42,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(132, 10, 21)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(7, 13),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 2),
-// 					bytecode.NewLineInfo(6, 4),
-// 					bytecode.NewLineInfo(9, 3),
-// 					bytecode.NewLineInfo(10, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(10, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"labeled break in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				$foo: do
-// 					j += 1
-// 					i := 0
-// 					do
-// 						break[foo] if i + j > 8
-// 						i += 1
-// 					end until i >= 5
-// 				end until j >= 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 24,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 42,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(143, 10, 21)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(7, 13),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 2),
-// 					bytecode.NewLineInfo(6, 4),
-// 					bytecode.NewLineInfo(9, 3),
-// 					bytecode.NewLineInfo(10, 2),
-// 					bytecode.NewLineInfo(3, 4),
-// 					bytecode.NewLineInfo(10, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"static infinite": {
-// 			input: `
-// 				do
-// 					println("foo")
-// 				end until false
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 9,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(47, 4, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 0),
-// 					bytecode.NewLineInfo(3, 5),
-// 					bytecode.NewLineInfo(4, 5),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.String("foo")),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(42, 4, 15), P(46, 4, 19)), "this condition will always have the same result since type `false` is falsy"),
-// 			},
-// 		},
-// 		"static one iteration": {
-// 			input: `
-// 				do
-// 					println("foo")
-// 				end until true
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(46, 4, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 0),
-// 					bytecode.NewLineInfo(3, 5),
-// 					bytecode.NewLineInfo(4, 1),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.String("foo")),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(42, 4, 15), P(45, 4, 18)), "this condition will always have the same result since type `true` is truthy"),
-// 			},
-// 		},
-// 	}
+func TestGoModifierUntil(t *testing.T) {
+	tests := goTestTable{
+		"single line": {
+			input: `
+			  i := 0
+				i += 1 until i >= 5
+			`,
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			break
+		}
+	}
+}
+`,
+		},
+		"single line with result value": {
+			input: `
+			  i := 0
+				result := (i += 1 until i >= 5)
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var l1 value.Value // var result: Std::Int?
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	t1 = value.Nil
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		t1 = l0
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			break
+		}
+	}
+	l1 = t1
+}
+`,
+		},
+		"multiline": {
+			input: `
+			  i := 0
+				do
+					i += 1
+				end until i >= 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			break
+		}
+	}
+}
+`,
+		},
+		"with break": {
+			input: `
+			  i := 0
+				do
+					i += 1
+					break if i < 5
+				end until false
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			break loop0
+		}
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(66, 6, 15), P(70, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
+			},
+		},
+		"with break with result value": {
+			input: `
+			  i := 0
+				result := (do
+					i += 1
+					break if i < 5
+				end until false)
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var l1 value.Value // var result: nil
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	t1 = value.Nil
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			t1 = value.Nil
+			break loop0
+		}
+	}
+	l1 = t1
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(77, 6, 15), P(81, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
+			},
+		},
+		"with labeled break": {
+			input: `
+			  i := 0
+				$foo: do
+					i += 1
+					break[foo] if i < 5
+				end until false
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			break loop0
+		}
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(77, 6, 15), P(81, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
+			},
+		},
+		"with break with value": {
+			input: `
+			  i := 0
+				result := (do
+					i += 1
+					break true if i < 5
+				end until false)
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var l1 value.Bool // var result: bool
+	_ = l1
+	var t1 value.Bool
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			t1 = value.True
+			break loop0
+		}
+	}
+	l1 = t1
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(82, 6, 15), P(86, 6, 19)), "this condition will always have the same result since type `false` is falsy"),
+			},
+		},
+		"continue in a nested loop": {
+			input: `
+			 	j := 0
+				do
+					j += 1
+					i := 0
+					do
+						continue if i + j > 8
+						i += 1
+					end until i >= 5
+				end until j >= 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l1 = (value.SmallInt(0)).ToValue()
+	loop1:
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
+				continue loop1
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
+				break
+			}
+		}
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			break
+		}
+	}
+}
+`,
+		},
+		"labeled continue in a nested loop": {
+			input: `
+			 	j := 0
+				$foo: do
+					j += 1
+					i := 0
+					do
+						continue[foo] if i + j > 8
+						i += 1
+					end until i >= 5
+				end until j >= 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l1 = (value.SmallInt(0)).ToValue()
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
+				continue loop0
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
+				break
+			}
+		}
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			break
+		}
+	}
+}
+`,
+		},
+		"labeled continue with value in a nested loop": {
+			input: `
+			 	j := 0
+				result := ($foo: do
+					j += 1
+					i := 0
+					do
+						continue[foo](:bar) if i + j > 8
+						i += 1
+					end until i >= 5
+				end until j >= 5)
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("bar")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var result: Std::Symbol | Std::Int | nil
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var l2 value.Value // var i: Std::Int
+	_ = l2
+	var t2 value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	t1 = value.Nil
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l2 = (value.SmallInt(0)).ToValue()
+		t2 = value.Nil
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l2, l0), (value.SmallInt(8)).ToValue())) {
+				t1 = (sym2).ToValue()
+				continue loop0
+			}
+			l2 = value.AddInts(l2, (value.SmallInt(1)).ToValue())
+			t2 = l2
+			if value.Bool(value.GreaterThanEqualInts(l2, (value.SmallInt(5)).ToValue())) {
+				break
+			}
+		}
+		t1 = t2
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			break
+		}
+	}
+	l1 = t1
+}
+`,
+		},
+		"break in a nested loop": {
+			input: `
+			 	j := 0
+				do
+					j += 1
+					i := 0
+					do
+						break if i + j > 8
+						i += 1
+					end until i >= 5
+				end until j >= 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l1 = (value.SmallInt(0)).ToValue()
+	loop1:
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
+				break loop1
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
+				break
+			}
+		}
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			break
+		}
+	}
+}
+`,
+		},
+		"labeled break in a nested loop": {
+			input: `
+			 	j := 0
+				$foo: do
+					j += 1
+					i := 0
+					do
+						break[foo] if i + j > 8
+						i += 1
+					end until i >= 5
+				end until j >= 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l1 = (value.SmallInt(0)).ToValue()
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
+				break loop0
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
+				break
+			}
+		}
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			break
+		}
+	}
+}
+`,
+		},
+		"labeled break with value in a nested loop": {
+			input: `
+			 	j := 0
+				result := ($foo: do
+					j += 1
+					i := 0
+					do
+						break[foo](:bar) if i + j > 8
+						i += 1
+					end until i >= 5
+				end until j >= 5)
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("bar")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var result: Std::Symbol | Std::Int | nil
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var l2 value.Value // var i: Std::Int
+	_ = l2
+	var t2 value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	t1 = value.Nil
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l2 = (value.SmallInt(0)).ToValue()
+		t2 = value.Nil
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l2, l0), (value.SmallInt(8)).ToValue())) {
+				t1 = (sym2).ToValue()
+				break loop0
+			}
+			l2 = value.AddInts(l2, (value.SmallInt(1)).ToValue())
+			t2 = l2
+			if value.Bool(value.GreaterThanEqualInts(l2, (value.SmallInt(5)).ToValue())) {
+				break
+			}
+		}
+		t1 = t2
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			break
+		}
+	}
+	l1 = t1
+}
+`,
+		},
+		"static infinite": {
+			input: `
+				do
+					println("foo")
+				end until false
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var Std_ns_Kernel_ns_println_at_1 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 []value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	Std_ns_Kernel_ns_println_at_1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	for {
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("foo")).ToValue()
+		callFrame.SetNativeLineNumber(3)
+		_, err = Std_ns_Kernel_ns_println_at_1(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(42, 4, 15), P(46, 4, 19)), "this condition will always have the same result since type `false` is falsy"),
+			},
+		},
+		"static one iteration": {
+			input: `
+				do
+					println("foo")
+				end until true
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var Std_ns_Kernel_ns_println_at_1 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 []value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	Std_ns_Kernel_ns_println_at_1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	for {
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("foo")).ToValue()
+		callFrame.SetNativeLineNumber(3)
+		_, err = Std_ns_Kernel_ns_println_at_1(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		break
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(42, 4, 15), P(45, 4, 18)), "this condition will always have the same result since type `true` is truthy"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 func TestGoUntil(t *testing.T) {
 	tests := goTestTable{
@@ -6511,6 +7059,7 @@ loop0:
 	for {
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			t1 = value.Nil
 			break loop0
 		}
 	}
