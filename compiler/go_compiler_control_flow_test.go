@@ -2766,549 +2766,739 @@ func TestGoBreak(t *testing.T) {
 // 	}
 // }
 
-// func TestBytecodeLoopExpression(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"empty body": {
-// 			input: `
-// 				loop
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOOP), 0, 3,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(17, 3, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 0),
-// 					bytecode.NewLineInfo(3, 4),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"with a body": {
-// 			input: `
-// 				a := 0
-// 				loop
-// 					a = a + 1
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 9,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(43, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 5),
-// 					bytecode.NewLineInfo(5, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"with continue": {
-// 			input: `
-// 				a := 0
-// 				loop
-// 					a = a + 1
-// 					continue
-// 					println("foo")
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.LOOP), 0, 7,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 17,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(77, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 4),
-// 					bytecode.NewLineInfo(6, 5),
-// 					bytecode.NewLineInfo(7, 5),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.String("foo")),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(55, 6, 6), P(68, 6, 19)), "unreachable code"),
-// 			},
-// 		},
-// 		"with labeled continue": {
-// 			input: `
-// 				a := 0
-// 				$foo: loop
-// 					a = a + 1
-// 					continue[foo]
-// 					println("foo")
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.LOOP), 0, 7,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 17,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(88, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 4),
-// 					bytecode.NewLineInfo(6, 5),
-// 					bytecode.NewLineInfo(7, 5),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.String("foo")),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(66, 6, 6), P(79, 6, 19)), "unreachable code"),
-// 			},
-// 		},
-// 		"continue in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				loop
-// 					j += 1
-// 					i := 0
-// 					loop
-// 						continue if i >= 5
-// 						i += 1
-// 					end
-// 					continue if j >= 5
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_IGE), 0, 4,
-// 					byte(bytecode.LOOP), 0, 8,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 18,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_IGE), 0, 6,
-// 					byte(bytecode.LOOP), 0, 33,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 41,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(134, 11, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(7, 9),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 5),
-// 					bytecode.NewLineInfo(10, 12),
-// 					bytecode.NewLineInfo(11, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(108, 10, 6), P(125, 10, 23)), "unreachable code"),
-// 			},
-// 		},
+func TestGoLoopExpression(t *testing.T) {
+	tests := goTestTable{
+		"empty body": {
+			input: `
+				loop
+				end
+			`,
+			want: `package main
 
-// 		"labeled continue in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				$foo: loop
-// 					j += 1
-// 					i := 0
-// 					loop
-// 						continue[foo] if i + j > 8
-// 						i += 1
-// 					end
-// 					continue if j >= 5
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.LOAD_INT_8), 8,
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
-// 					byte(bytecode.LOOP), 0, 17,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_IGE), 0, 6,
-// 					byte(bytecode.LOOP), 0, 36,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 44,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(148, 11, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(7, 12),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 5),
-// 					bytecode.NewLineInfo(10, 12),
-// 					bytecode.NewLineInfo(11, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(122, 10, 6), P(139, 10, 23)), "unreachable code"),
-// 			},
-// 		},
-// 		"with break": {
-// 			input: `
-// 				a := 0
-// 				loop
-// 					a = a + 1
-// 					break if a > 5
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 7,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(63, 6, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 13),
-// 					bytecode.NewLineInfo(6, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"with a labeled break": {
-// 			input: `
-// 				a := 0
-// 				$foo: loop
-// 					a = a + 1
-// 					break[foo] if a > 5
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 7,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(74, 6, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 13),
-// 					bytecode.NewLineInfo(6, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"break in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				loop
-// 					j += 1
-// 					i := 0
-// 					loop
-// 						break if i >= 5
-// 						i += 1
-// 					end
-// 					break if j >= 5
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_IGE), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 10,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 19,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_IGE), 0, 7,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 43,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(128, 11, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(7, 10),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 5),
-// 					bytecode.NewLineInfo(10, 13),
-// 					bytecode.NewLineInfo(11, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"labeled break in a nested loop": {
-// 			input: `
-// 			 	j := 0
-// 				$outer: loop
-// 					j += 1
-// 					i := 0
-// 					loop
-// 						break[outer] if i >= 5
-// 						i += 1
-// 					end
-// 					break if j >= 5
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_IGE), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 28,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 19,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_IGE), 0, 7,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 43,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(143, 11, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 2),
-// 					bytecode.NewLineInfo(7, 10),
-// 					bytecode.NewLineInfo(8, 5),
-// 					bytecode.NewLineInfo(9, 5),
-// 					bytecode.NewLineInfo(10, 13),
-// 					bytecode.NewLineInfo(11, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(120, 10, 6), P(134, 10, 20)), "unreachable code"),
-// 			},
-// 		},
-// 		"break with value": {
-// 			input: `
-// 				a := 0
-// 				loop
-// 					a = a + 1
-// 					break true if a > 5
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 7,
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.JUMP), 0, 8,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 21,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(68, 6, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(4, 4),
-// 					bytecode.NewLineInfo(5, 13),
-// 					bytecode.NewLineInfo(6, 5),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 	}
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	for {
+	}
+}
+`,
+		},
+		"with a body": {
+			input: `
+				a := 0
+				loop
+					a = a + 1
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+	}
+}
+`,
+		},
+		"with continue": {
+			input: `
+				a := 0
+				loop
+					a = a + 1
+					continue
+					println("foo")
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		continue loop0
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(55, 6, 6), P(68, 6, 19)), "unreachable code"),
+			},
+		},
+		"with labeled continue": {
+			input: `
+				a := 0
+				$foo: loop
+					a = a + 1
+					continue[foo]
+					println("foo")
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		continue loop0
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(66, 6, 6), P(79, 6, 19)), "unreachable code"),
+			},
+		},
+		"continue in a nested loop": {
+			input: `
+			 	j := 0
+				loop
+					j += 1
+					i := 0
+					loop
+						continue if i >= 5
+						i += 1
+					end
+					continue if j >= 5
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l1 = (value.SmallInt(0)).ToValue()
+	loop1:
+		for {
+			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
+				continue loop1
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+		}
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			continue loop0
+		}
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(108, 10, 6), P(125, 10, 23)), "unreachable code"),
+			},
+		},
+
+		"labeled continue in a nested loop": {
+			input: `
+			 	j := 0
+				$foo: loop
+					j += 1
+					i := 0
+					loop
+						continue[foo] if i + j > 8
+						i += 1
+					end
+					continue if j >= 5
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l1 = (value.SmallInt(0)).ToValue()
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
+				continue loop0
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+		}
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			continue loop0
+		}
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(122, 10, 6), P(139, 10, 23)), "unreachable code"),
+			},
+		},
+		"labeled continue with value in a nested loop": {
+			input: `
+			 	j := 0
+				result := $foo: loop
+					j += 1
+					i := 0
+					loop
+						continue[foo](:bar) if i + j > 8
+						i += 1
+					end
+					continue if j >= 5
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("bar")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var result: never
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var l2 value.Value // var i: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l2 = (value.SmallInt(0)).ToValue()
+		for {
+			if value.Bool(value.GreaterThanInts(value.AddInts(l2, l0), (value.SmallInt(8)).ToValue())) {
+				t1 = (sym2).ToValue()
+				continue loop0
+			}
+			l2 = value.AddInts(l2, (value.SmallInt(1)).ToValue())
+		}
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			t1 = value.Nil
+			continue loop0
+		}
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(138, 10, 6), P(155, 10, 23)), "unreachable code"),
+			},
+		},
+		"with break": {
+			input: `
+				a := 0
+				loop
+					a = a + 1
+					break if a > 5
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			break loop0
+		}
+	}
+}
+`,
+		},
+		"with a labeled break": {
+			input: `
+				a := 0
+				$foo: loop
+					a = a + 1
+					break[foo] if a > 5
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			break loop0
+		}
+	}
+}
+`,
+		},
+		"break in a nested loop": {
+			input: `
+			 	j := 0
+				loop
+					j += 1
+					i := 0
+					loop
+						break if i >= 5
+						i += 1
+					end
+					break if j >= 5
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l1 = (value.SmallInt(0)).ToValue()
+	loop1:
+		for {
+			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
+				break loop1
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+		}
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			break loop0
+		}
+	}
+}
+`,
+		},
+		"labeled break in a nested loop": {
+			input: `
+			 	j := 0
+				$outer: loop
+					j += 1
+					i := 0
+					loop
+						break[outer] if i >= 5
+						i += 1
+					end
+					break if j >= 5
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l1 = (value.SmallInt(0)).ToValue()
+		for {
+			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
+				break loop0
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+		}
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			break loop0
+		}
+	}
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(120, 10, 6), P(134, 10, 20)), "unreachable code"),
+			},
+		},
+		"labeled break with value in a nested loop": {
+			input: `
+			 	j := 0
+				result := ($outer: loop
+					j += 1
+					i := 0
+					loop
+						break[outer](:bar) if i >= 5
+						i += 1
+					end
+					break if j >= 5
+				end)
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("bar")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var result: Std::Symbol | nil
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var l2 value.Value // var i: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+	t1 = value.Nil
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		l2 = (value.SmallInt(0)).ToValue()
+		for {
+			if value.Bool(value.GreaterThanEqualInts(l2, (value.SmallInt(5)).ToValue())) {
+				t1 = (sym2).ToValue()
+				break loop0
+			}
+			l2 = value.AddInts(l2, (value.SmallInt(1)).ToValue())
+		}
+		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
+			t1 = value.Nil
+			break loop0
+		}
+	}
+	l1 = t1
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(137, 10, 6), P(151, 10, 20)), "unreachable code"),
+			},
+		},
+		"break with value": {
+			input: `
+				a := 0
+				result := loop
+					a = a + 1
+					break true if a > 5
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Bool // var result: bool
+	_ = l1
+	var t1 value.Bool
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(0)).ToValue()
+loop0:
+	for {
+		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(5)).ToValue())) {
+			t1 = value.True
+			break loop0
+		}
+	}
+	l1 = t1
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestBytecodeLogicalOrOperator(t *testing.T) {
 // 	tests := bytecodeTestTable{
