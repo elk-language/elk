@@ -93,6 +93,7 @@ var (
 	Date                 = value.ToSymbol("Date")
 	DateTime             = value.ToSymbol("DateTime")
 	Span                 = value.ToSymbol("Span")
+	Closure              = value.ToSymbol("Closure")
 )
 
 // lowercase symbols

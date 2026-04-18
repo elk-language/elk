@@ -1,0 +1,9 @@
+##[
+	Represents an anonymous function.
+]##
+sealed noinit primitive class ::Std::Closure < Value
+	##[
+		Returns the location where the closure was defined.
+	]##
+	sealed def location: FS::Location; end
+end
