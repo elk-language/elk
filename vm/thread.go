@@ -246,14 +246,16 @@ func (vm *Thread) CallGeneratorNext(generator *Generator) (value.Value, value.Va
 func (vm *Thread) CallCallable(args ...value.Value) (value.Value, value.Value) {
 	function := args[0]
 	switch f := function.SafeAsReference().(type) {
-	case *Closure:
-		return vm.CallClosure(f, args[1:]...)
+	case *BytecodeClosure:
+		return vm.CallBytecodeClosure(f, args[1:]...)
+	case *NativeClosure:
+		return vm.CallNativeClosure(f, args[1:]...)
 	default:
 		return vm.CallMethodByName(symbol.L_call, args...)
 	}
 }
 
-func (vm *Thread) callGo(closure *Closure) {
+func (vm *Thread) callGo(closure *BytecodeClosure) {
 	vm.bytecode = closure.Bytecode
 	vm.fp = vm.sp
 	vm.ipSet(&closure.Bytecode.Instructions[0])
@@ -278,7 +280,19 @@ func (vm *Thread) callGo(closure *Closure) {
 }
 
 // Call an Elk closure from Go code, preserving the state of the VM.
-func (vm *Thread) CallClosure(closure *Closure, args ...value.Value) (value.Value, value.Value) {
+func (vm *Thread) CallClosure(closure Closure, args ...value.Value) (value.Value, value.Value) {
+	switch closure := closure.(type) {
+	case *BytecodeClosure:
+		return vm.CallBytecodeClosure(closure, args...)
+	case *NativeClosure:
+		return vm.CallNativeClosure(closure, args...)
+	default:
+		panic(fmt.Sprintf("invalid closure type: %T", closure))
+	}
+}
+
+// Call a bytecode closure from Go code, preserving the state of the VM.
+func (vm *Thread) CallBytecodeClosure(closure *BytecodeClosure, args ...value.Value) (value.Value, value.Value) {
 	if closure.VMID != vm.ID && closure.HasOpenUpvalues() {
 		return value.Undefined, value.Ref(value.NewOpenClosureError(
 			closure.VMID,
@@ -286,11 +300,11 @@ func (vm *Thread) CallClosure(closure *Closure, args ...value.Value) (value.Valu
 			closure.Inspect(),
 		))
 	}
-	if closure.Bytecode.ParameterCount() != len(args) {
+	if closure.ParameterCount() != len(args) {
 		return value.Undefined, value.Ref(value.NewWrongArgumentCountError(
 			closure.Bytecode.Name().String(),
 			len(args),
-			closure.Bytecode.ParameterCount(),
+			closure.ParameterCount(),
 		))
 	}
 
@@ -313,6 +327,24 @@ func (vm *Thread) CallClosure(closure *Closure, args ...value.Value) (value.Valu
 		return value.Undefined, vm.popGet()
 	}
 	return vm.popGet(), value.Undefined
+}
+
+// Call a native closure from Go code, preserving the state of the VM.
+func (vm *Thread) CallNativeClosure(closure *NativeClosure, args ...value.Value) (value.Value, value.Value) {
+	if closure.ParameterCount() != len(args) {
+		return value.Undefined, value.Ref(value.NewWrongArgumentCountError(
+			closure.Inspect(),
+			len(args),
+			closure.ParameterCount(),
+		))
+	}
+
+	initialState := vm.state
+
+	result, err := closure.Function(vm, args)
+
+	vm.state = initialState
+	return result, err
 }
 
 // Call an Elk method from Go code, preserving the state of the VM.
@@ -1285,10 +1317,10 @@ func (vm *Thread) run() {
 // Creates a new VM instance.
 // Spins up a new goroutine and executes the closure on top of the stack in it.
 func (vm *Thread) opGo() {
-	closure := (*Closure)(vm.peek().Pointer())
+	closure := (*BytecodeClosure)(vm.peek().Pointer())
 	thread := New(WithStdin(vm.Stdin), WithStdout(vm.Stdout), WithStderr(vm.Stderr))
 
-	go func(closure *Closure, thread *Thread) {
+	go func(closure *BytecodeClosure, thread *Thread) {
 		thread.state = runningState
 		thread.callGo(closure)
 		if thread.state != errorState {
@@ -1304,7 +1336,7 @@ func (vm *Thread) opGo() {
 
 func (vm *Thread) opClosedClosure() {
 	function := vm.peek().AsReference().(*BytecodeFunction)
-	closure := NewClosure(vm.ID, function, vm.selfValue())
+	closure := NewBytecodeClosure(vm.ID, function, vm.selfValue())
 	vm.replace(value.Ref(closure))
 
 	for i := 0; ; i++ {
@@ -1331,7 +1363,7 @@ func (vm *Thread) opClosedClosure() {
 
 func (vm *Thread) opClosure() {
 	function := vm.peek().AsReference().(*BytecodeFunction)
-	closure := NewClosure(vm.ID, function, vm.selfValue())
+	closure := NewBytecodeClosure(vm.ID, function, vm.selfValue())
 	vm.replace(value.Ref(closure))
 
 	for i := 0; ; i++ {
@@ -2036,16 +2068,35 @@ func (vm *Thread) opInstantiate(args int) (err value.Value) {
 func (vm *Thread) opCall(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
 
-	self, isClosure := vm.spAdd(-callInfo.ArgumentCount - 1).SafeAsReference().(*Closure)
-	if !isClosure {
+	self := vm.spAdd(-callInfo.ArgumentCount - 1).SafeAsReference()
+	switch self := self.(type) {
+	case *BytecodeClosure:
+		return vm.callBytecodeClosure(self, callInfo)
+	case *NativeClosure:
+		return vm.callNativeClosure(self, callInfo)
+	default:
 		return vm.opCallMethod(callInfoIndex)
 	}
-
-	return vm.callClosure(self, callInfo)
 }
 
-// set up the vm to execute a closure
-func (vm *Thread) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err value.Value) {
+// set up the vm to execute a native closure
+func (vm *Thread) callNativeClosure(closure *NativeClosure, callInfo *value.CallSiteInfo) (err value.Value) {
+	paramCount := closure.ParameterCount()
+	vm.populateMissingParametersOnStack(paramCount, callInfo.ArgumentCount)
+
+	args := unsafe.Slice(vm.spAdd(-paramCount), paramCount)
+	returnVal, nativeErr := closure.Function(vm, args)
+	vm.popN(paramCount + 1)
+	if !nativeErr.IsUndefined() {
+		return nativeErr
+	}
+
+	vm.push(returnVal)
+	return value.Undefined
+}
+
+// set up the vm to execute a bytecode closure
+func (vm *Thread) callBytecodeClosure(closure *BytecodeClosure, callInfo *value.CallSiteInfo) (err value.Value) {
 	if closure.VMID != vm.ID && closure.HasOpenUpvalues() {
 		return value.Ref(value.NewOpenClosureError(
 			closure.VMID,

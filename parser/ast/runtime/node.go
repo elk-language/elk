@@ -29,7 +29,7 @@ func initNode() {
 			fn := args[1]
 
 			switch f := fn.SafeAsReference().(type) {
-			case *vm.Closure:
+			case vm.Closure:
 				for node := range ast.Iter(self) {
 					ok, err := v.CallClosure(f, value.Ref(node))
 					if !err.IsUndefined() {

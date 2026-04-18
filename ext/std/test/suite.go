@@ -23,10 +23,10 @@ type Suite struct {
 	Parent     *Suite
 	SubSuites  []*Suite
 	Cases      []*Case
-	BeforeEach []*vm.Closure
-	AfterEach  []*vm.Closure
-	BeforeAll  []*vm.Closure
-	AfterAll   []*vm.Closure
+	BeforeEach []vm.Closure
+	AfterEach  []vm.Closure
+	BeforeAll  []vm.Closure
+	AfterAll   []vm.Closure
 	FullMatch  bool
 	caseCount  int
 }
@@ -97,7 +97,7 @@ func (s *Suite) RegisterSubSuite(subSuite *Suite) {
 	s.SubSuites = append(s.SubSuites, subSuite)
 }
 
-func (s *Suite) NewCase(name string, fn *vm.Closure) *Case {
+func (s *Suite) NewCase(name string, fn vm.Closure) *Case {
 	return NewCase(name, fn, s)
 }
 
@@ -129,19 +129,19 @@ func (s *Suite) FullNameWithSeparator() string {
 	return fmt.Sprintf("%s > %s", parentFullName, s.Name)
 }
 
-func (s *Suite) RegisterBeforeEach(fn *vm.Closure) {
+func (s *Suite) RegisterBeforeEach(fn vm.Closure) {
 	s.BeforeEach = append(s.BeforeEach, fn)
 }
 
-func (s *Suite) RegisterBeforeAll(fn *vm.Closure) {
+func (s *Suite) RegisterBeforeAll(fn vm.Closure) {
 	s.BeforeAll = append(s.BeforeAll, fn)
 }
 
-func (s *Suite) RegisterAfterEach(fn *vm.Closure) {
+func (s *Suite) RegisterAfterEach(fn vm.Closure) {
 	s.AfterEach = append(s.AfterEach, fn)
 }
 
-func (s *Suite) RegisterAfterAll(fn *vm.Closure) {
+func (s *Suite) RegisterAfterAll(fn vm.Closure) {
 	s.AfterAll = append(s.AfterAll, fn)
 }
 

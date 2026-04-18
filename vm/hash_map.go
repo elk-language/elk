@@ -163,7 +163,7 @@ func initHashMap() {
 			newMap := NewHashMapOfValue(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for pair := range self.All() {
 					result, err := vm.CallClosure(function, pair.ToValue())
 					if !err.IsUndefined() {
@@ -210,7 +210,7 @@ func initHashMap() {
 			newMap := NewHashMapOfValue(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for pair := range self.All() {
 					if pair.Key().IsUndefined() {
 						continue
@@ -254,7 +254,7 @@ func initHashMap() {
 			callable := args[1]
 
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for pair := range self.All() {
 					if pair.Key().IsUndefined() {
 						continue

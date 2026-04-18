@@ -159,7 +159,7 @@ func initHashRecord() {
 			newRecord := NewHashRecordOfValue(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for pair := range self.All() {
 					result, err := vm.CallClosure(function, pair.ToValue())
 					if !err.IsUndefined() {
@@ -206,7 +206,7 @@ func initHashRecord() {
 			newRecord := NewHashRecordOfValue(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for pair := range self.All() {
 					result, err := vm.CallClosure(function, pair.Value())
 					if !err.IsUndefined() {

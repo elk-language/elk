@@ -240,7 +240,7 @@ func initArrayList() {
 			self := args[0].AsReference().(value.ArrayList)
 			callable := args[1]
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for i := range self.Length() {
 					element := self.AtVal(i)
 					result, err := vm.CallClosure(function, element)
@@ -281,7 +281,7 @@ func initArrayList() {
 			newList := value.NewArrayListOfValueWithLength(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for i := range self.Length() {
 					element := self.AtVal(i)
 					result, err := vm.CallClosure(function, element)

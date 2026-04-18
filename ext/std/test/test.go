@@ -70,9 +70,9 @@ func initTest() *value.Module {
 		"describe",
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argName := args[1].AsReference().(value.String).String()
-			argFn := args[2].AsReference().(*vm.Closure)
+			argFn := args[2].AsReference().(vm.Closure)
 
-			loc := argFn.Bytecode.Location
+			loc := argFn.Location()
 			subSuite := CurrentSuite.NewSubSuite(argName, loc)
 			suiteMatch := SuiteMatchesFilters(subSuite)
 			switch suiteMatch {
@@ -103,7 +103,7 @@ func initTest() *value.Module {
 		"test",
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argName := args[1].AsReference().(value.String)
-			argFn := args[2].AsReference().(*vm.Closure)
+			argFn := args[2].AsReference().(vm.Closure)
 
 			testCase := CurrentSuite.NewCase(string(argName), argFn)
 			if !CaseMatchesFilters(testCase) {
@@ -120,7 +120,7 @@ func initTest() *value.Module {
 		"it",
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argName := args[1].AsReference().(value.String)
-			argFn := args[2].AsReference().(*vm.Closure)
+			argFn := args[2].AsReference().(vm.Closure)
 
 			testCase := CurrentSuite.NewCase(fmt.Sprintf("it %s", string(argName)), argFn)
 
@@ -138,7 +138,7 @@ func initTest() *value.Module {
 		"should",
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			argName := args[1].AsReference().(value.String)
-			argFn := args[2].AsReference().(*vm.Closure)
+			argFn := args[2].AsReference().(vm.Closure)
 
 			testCase := CurrentSuite.NewCase(fmt.Sprintf("should %s", string(argName)), argFn)
 
@@ -155,7 +155,7 @@ func initTest() *value.Module {
 		c,
 		"before_each",
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
-			argFn := args[1].AsReference().(*vm.Closure)
+			argFn := args[1].AsReference().(vm.Closure)
 			CurrentSuite.RegisterBeforeEach(argFn)
 			return value.Nil, value.Undefined
 		},
@@ -165,7 +165,7 @@ func initTest() *value.Module {
 		c,
 		"before_all",
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
-			argFn := args[1].AsReference().(*vm.Closure)
+			argFn := args[1].AsReference().(vm.Closure)
 			CurrentSuite.RegisterBeforeAll(argFn)
 			return value.Nil, value.Undefined
 		},
@@ -175,7 +175,7 @@ func initTest() *value.Module {
 		c,
 		"after_each",
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
-			argFn := args[1].AsReference().(*vm.Closure)
+			argFn := args[1].AsReference().(vm.Closure)
 			CurrentSuite.RegisterAfterEach(argFn)
 			return value.Nil, value.Undefined
 		},
@@ -185,7 +185,7 @@ func initTest() *value.Module {
 		c,
 		"after_all",
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
-			argFn := args[1].AsReference().(*vm.Closure)
+			argFn := args[1].AsReference().(vm.Closure)
 			CurrentSuite.RegisterAfterAll(argFn)
 			return value.Nil, value.Undefined
 		},

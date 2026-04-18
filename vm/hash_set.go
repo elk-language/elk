@@ -173,7 +173,7 @@ func initHashSet() {
 			newSet := NewHashSetOfValue(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for val := range self.All() {
 					result, err := vm.CallClosure(function, val)
 					if !err.IsUndefined() {
