@@ -2707,64 +2707,64 @@ func TestGoBreak(t *testing.T) {
 	}
 }
 
-// func TestBytecodeContinue(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"in top level": {
-// 			input: "continue",
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "cannot jump with `break` or `continue` outside of a loop"),
-// 			},
-// 		},
-// 		"in top level with a label": {
-// 			input: "continue[foo]",
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(0, 1, 1), P(11, 1, 12)), "cannot jump with `break` or `continue` outside of a loop"),
-// 			},
-// 		},
-// 		"nonexistent label": {
-// 			input: `
-// 				loop
-// 					continue[foo]
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(15, 3, 6), P(26, 3, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
-// 			},
-// 		},
-// 		"label attached to an expression": {
-// 			input: `
-// 				loop
-// 					$foo: 1 + 2
-// 					continue[foo]
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(32, 4, 6), P(43, 4, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
-// 			},
-// 		},
-// 		"label attached to a different loop": {
-// 			input: `
-// 				$foo: loop
-// 					println("foo")
-// 				end
-//
-// 				loop
-// 					continue[foo]
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(59, 7, 6), P(70, 7, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
-// 				diagnostic.NewWarning(L(P(49, 6, 5), P(79, 8, 7)), "unreachable code"),
-// 			},
-// 		},
-// 	}
-//
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+func TestGoContinue(t *testing.T) {
+	tests := goTestTable{
+		"in top level": {
+			input: "continue",
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(7, 1, 8)), "cannot jump with `break` or `continue` outside of a loop"),
+			},
+		},
+		"in top level with a label": {
+			input: "continue[foo]",
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(11, 1, 12)), "cannot jump with `break` or `continue` outside of a loop"),
+			},
+		},
+		"nonexistent label": {
+			input: `
+				loop
+					continue[foo]
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(15, 3, 6), P(26, 3, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
+			},
+		},
+		"label attached to an expression": {
+			input: `
+				loop
+					$foo: 1 + 2
+					continue[foo]
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(32, 4, 6), P(43, 4, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
+			},
+		},
+		"label attached to a different loop": {
+			input: `
+				$foo: loop
+					println("foo")
+				end
+
+				loop
+					continue[foo]
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(59, 7, 6), P(70, 7, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
+				diagnostic.NewWarning(L(P(49, 6, 5), P(79, 8, 7)), "unreachable code"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 func TestGoLoopExpression(t *testing.T) {
 	tests := goTestTable{
@@ -3500,252 +3500,651 @@ loop0:
 	}
 }
 
-// func TestBytecodeLogicalOrOperator(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"simple": {
-// 			input: `
-// 				a := "foo"
-// 				a || true
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_IF_NP), 0, 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(29, 3, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.String("foo")),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(20, 3, 5), P(20, 3, 5)), "this condition will always have the same result since type `Std::String` is truthy"),
-// 				diagnostic.NewWarning(L(P(25, 3, 10), P(28, 3, 13)), "unreachable code"),
-// 			},
-// 		},
-// 		"nested": {
-// 			input: `
-// 				a := "foo"
-// 				a || true || 3
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_IF_NP), 0, 2,
-// 					// falsy 1
-// 					byte(bytecode.POP),
-// 					byte(bytecode.TRUE),
-// 					// truthy 1
-// 					byte(bytecode.JUMP_IF_NP), 0, 2,
-// 					// falsy 2
-// 					byte(bytecode.POP),
-// 					byte(bytecode.INT_3),
-// 					// truthy 2
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(34, 3, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 12),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.String("foo")),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(20, 3, 5), P(20, 3, 5)), "this condition will always have the same result since type `Std::String` is truthy"),
-// 				diagnostic.NewWarning(L(P(25, 3, 10), P(28, 3, 13)), "unreachable code"),
-// 				diagnostic.NewWarning(L(P(20, 3, 5), P(28, 3, 13)), "this condition will always have the same result since type `Std::String` is truthy"),
-// 				diagnostic.NewWarning(L(P(33, 3, 18), P(33, 3, 18)), "unreachable code"),
-// 			},
-// 		},
-// 	}
+func TestGoLogicalOrOperator(t *testing.T) {
+	tests := goTestTable{
+		"simple static left truthy": {
+			input: `
+				a := "foo"
+				b := a || true
+			`,
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
-// func TestBytecodeLogicalAndOperator(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"simple": {
-// 			input: `
-// 				a := "foo"
-// 				a && true
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-// 					// truthy
-// 					byte(bytecode.POP),
-// 					byte(bytecode.TRUE),
-// 					// falsy
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(29, 3, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.String("foo")),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(20, 3, 5), P(20, 3, 5)), "this condition will always have the same result since type `Std::String` is truthy"),
-// 			},
-// 		},
-// 		"nested": {
-// 			input: `
-// 				a := "foo"
-// 				a && true && 3
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-// 					// truthy 1
-// 					byte(bytecode.POP),
-// 					byte(bytecode.TRUE),
-// 					// falsy 1
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-// 					// truthy 2
-// 					byte(bytecode.POP),
-// 					byte(bytecode.INT_3),
-// 					// falsy 2
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(34, 3, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 12),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.String("foo")),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(20, 3, 5), P(20, 3, 5)), "this condition will always have the same result since type `Std::String` is truthy"),
-// 				diagnostic.NewWarning(L(P(20, 3, 5), P(28, 3, 13)), "this condition will always have the same result since type `true` is truthy"),
-// 			},
-// 		},
-// 	}
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 
-// func TestBytecodeNilCoalescingOperator(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"simple": {
-// 			input: `
-// 				a := "foo"
-// 				a ?? true
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(29, 3, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.String("foo")),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(20, 3, 5), P(20, 3, 5)), "this condition will always have the same result since type `Std::String` can never be nil"),
-// 				diagnostic.NewWarning(L(P(25, 3, 10), P(28, 3, 13)), "unreachable code"),
-// 			},
-// 		},
-// 		"nested": {
-// 			input: `
-// 				a := "foo"
-// 				a ?? true ?? 3
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(34, 3, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 12),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.String("foo")),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(20, 3, 5), P(20, 3, 5)), "this condition will always have the same result since type `Std::String` can never be nil"),
-// 				diagnostic.NewWarning(L(P(25, 3, 10), P(28, 3, 13)), "unreachable code"),
-// 				diagnostic.NewWarning(L(P(20, 3, 5), P(28, 3, 13)), "this condition will always have the same result since type `Std::String` can never be nil"),
-// 				diagnostic.NewWarning(L(P(33, 3, 18), P(33, 3, 18)), "unreachable code"),
-// 			},
-// 		},
-// 	}
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.String // var a: Std::String
+	_ = l0
+	var l1 value.String // var b: Std::String
+	_ = l1
+	var self value.Value
+	_ = self
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.String("foo")
+	l1 = l0
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(25, 3, 10), P(25, 3, 10)), "this condition will always have the same result since type `Std::String` is truthy"),
+				diagnostic.NewWarning(L(P(30, 3, 15), P(33, 3, 18)), "unreachable code"),
+			},
+		},
+		"simple static left falsy": {
+			input: `
+				a := nil
+				b := a || true
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: nil
+	_ = l0
+	var l1 value.Bool // var b: bool
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Nil
+	l1 = value.True
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(23, 3, 10), P(23, 3, 10)), "this condition will always have the same result since type `nil` is falsy"),
+			},
+		},
+		"simple dynamic": {
+			input: `
+				var a: String? = "foo"
+				b := a || true
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::String?
+	_ = l0
+	var l1 value.Value // var b: Std::String | bool
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.String("foo")).ToValue()
+	t1 = l0
+	if value.Falsy(t1) {
+		t1 = (value.True).ToValue()
+	}
+	l1 = t1
+}
+`,
+		},
+		"nested static": {
+			input: `
+				a := "foo"
+				b := a || true || 3
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.String // var a: Std::String
+	_ = l0
+	var l1 value.String // var b: Std::String
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.String("foo")
+	l1 = l0
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(25, 3, 10), P(25, 3, 10)), "this condition will always have the same result since type `Std::String` is truthy"),
+				diagnostic.NewWarning(L(P(30, 3, 15), P(33, 3, 18)), "unreachable code"),
+				diagnostic.NewWarning(L(P(25, 3, 10), P(33, 3, 18)), "this condition will always have the same result since type `Std::String` is truthy"),
+				diagnostic.NewWarning(L(P(38, 3, 23), P(38, 3, 23)), "unreachable code"),
+			},
+		},
+		"nested dynamic": {
+			input: `
+				var a: String? = "foo"
+				var b: Int? = 5
+				c := a || b || 3
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::String?
+	_ = l0
+	var l1 value.Value // var b: Std::Int?
+	_ = l1
+	var l2 value.Value // var c: Std::Int | Std::String
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.String("foo")).ToValue()
+	l1 = (value.SmallInt(5)).ToValue()
+	t1 = l0
+	if value.Falsy(t1) {
+		t1 = l1
+	}
+	t2 = t1
+	if value.Falsy(t2) {
+		t2 = (value.SmallInt(3)).ToValue()
+	}
+	l2 = t2
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoLogicalAndOperator(t *testing.T) {
+	tests := goTestTable{
+		"simple static left truthy": {
+			input: `
+				a := "foo"
+				b := a && true
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.String // var a: Std::String
+	_ = l0
+	var l1 value.Bool // var b: bool
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.String("foo")
+	l1 = value.True
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(25, 3, 10), P(25, 3, 10)), "this condition will always have the same result since type `Std::String` is truthy"),
+			},
+		},
+		"simple static left falsy": {
+			input: `
+				a := nil
+				b := a && true
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: nil
+	_ = l0
+	var l1 value.Value // var b: nil
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Nil
+	l1 = l0
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(23, 3, 10), P(23, 3, 10)), "this condition will always have the same result since type `nil` is falsy"),
+				diagnostic.NewWarning(L(P(28, 3, 15), P(31, 3, 18)), "unreachable code"),
+			},
+		},
+		"simple dynamic": {
+			input: `
+				var a: String? = "foo"
+				b := a && true
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::String?
+	_ = l0
+	var l1 value.Value // var b: nil | bool
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.String("foo")).ToValue()
+	t1 = l0
+	if value.Truthy(t1) {
+		t1 = (value.True).ToValue()
+	}
+	l1 = t1
+}
+`,
+		},
+		"nested": {
+			input: `
+				var a: String? = "foo"
+				var b: Int? = 5
+				c := a && b && 3
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::String?
+	_ = l0
+	var l1 value.Value // var b: Std::Int?
+	_ = l1
+	var l2 value.Value // var c: nil | Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.String("foo")).ToValue()
+	l1 = (value.SmallInt(5)).ToValue()
+	t1 = l0
+	if value.Truthy(t1) {
+		t1 = l1
+	}
+	t2 = t1
+	if value.Truthy(t2) {
+		t2 = (value.SmallInt(3)).ToValue()
+	}
+	l2 = t2
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoNilCoalescingOperator(t *testing.T) {
+	tests := goTestTable{
+		"simple static left non-nilable": {
+			input: `
+				a := "foo"
+				b := a ?? true
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.String // var a: Std::String
+	_ = l0
+	var l1 value.String // var b: Std::String
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.String("foo")
+	l1 = l0
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(25, 3, 10), P(25, 3, 10)), "this condition will always have the same result since type `Std::String` can never be nil"),
+				diagnostic.NewWarning(L(P(30, 3, 15), P(33, 3, 18)), "unreachable code"),
+			},
+		},
+		"simple static left nil": {
+			input: `
+				a := nil
+				b := a ?? true
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: nil
+	_ = l0
+	var l1 value.Bool // var b: bool
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Nil
+	l1 = value.True
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(23, 3, 10), P(23, 3, 10)), "this condition will always have the same result"),
+			},
+		},
+		"nested static": {
+			input: `
+				a := "foo"
+				b := a ?? true ?? 3
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.String // var a: Std::String
+	_ = l0
+	var l1 value.String // var b: Std::String
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.String("foo")
+	l1 = l0
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(25, 3, 10), P(25, 3, 10)), "this condition will always have the same result since type `Std::String` can never be nil"),
+				diagnostic.NewWarning(L(P(30, 3, 15), P(33, 3, 18)), "unreachable code"),
+				diagnostic.NewWarning(L(P(25, 3, 10), P(33, 3, 18)), "this condition will always have the same result since type `Std::String` can never be nil"),
+				diagnostic.NewWarning(L(P(38, 3, 23), P(38, 3, 23)), "unreachable code"),
+			},
+		},
+		"nested dynamic": {
+			input: `
+				var a: String? = "foo"
+				var b: Int? = 5
+				c := a ?? b ?? 35
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::String?
+	_ = l0
+	var l1 value.Value // var b: Std::Int?
+	_ = l1
+	var l2 value.Value // var c: Std::Int | Std::String
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.String("foo")).ToValue()
+	l1 = (value.SmallInt(5)).ToValue()
+	t1 = l0
+	if value.IsNil(t1) {
+		t1 = l1
+	}
+	t2 = t1
+	if value.IsNil(t2) {
+		t2 = (value.SmallInt(35)).ToValue()
+	}
+	l2 = t2
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 func TestGoNumericFor(t *testing.T) {
 	tests := goTestTable{

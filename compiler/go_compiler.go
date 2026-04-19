@@ -120,6 +120,15 @@ type nativeElkLocal struct {
 	goLocal *goLocal
 }
 
+func (l *nativeElkLocal) toUpvalue() *nativeElkLocal {
+	goLocal := l.goLocal.toUpvalue()
+	return &nativeElkLocal{
+		name:    l.name,
+		elkType: l.elkType,
+		goLocal: goLocal,
+	}
+}
+
 func (n *nativeElkLocal) goIdent() string {
 	return n.goLocal.name
 }
@@ -159,6 +168,11 @@ func (s nativeElkScopes) last() *nativeElkScope {
 	return s[len(s)-1]
 }
 
+// Get the last local variable scope.
+func (s nativeElkScopes) first() *nativeElkScope {
+	return s[0]
+}
+
 type goLoopInfo struct {
 	elkLabel                      string
 	goLabel                       string
@@ -187,6 +201,17 @@ type goLocal struct {
 	predefined bool
 	free       bool
 	elkLocal   bool
+}
+
+func (l *goLocal) toUpvalue() *goLocal {
+	return &goLocal{
+		name:       l.name,
+		goType:     l.goType,
+		comment:    l.comment,
+		elkLocal:   l.elkLocal,
+		free:       l.free,
+		predefined: true,
+	}
 }
 
 func (l *goLocal) markFree() {
@@ -534,6 +559,7 @@ type GoCompiler struct {
 	lastElkLocalIndex int
 	callCacheCounter  int
 	currentLineNumber int
+	closureLevel      int // nesting level of the closure
 	globalData        *globalData
 	isGenerator       bool
 	isAsync           bool
@@ -844,6 +870,7 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 	}
 
 	closureCompiler := NewGoCompiler("<closure>", "<closure>", closureGoCompilerMode, node.Location(), c.checker, c.globalData, c.output)
+	closureCompiler.closureLevel = c.closureLevel + 1
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
 	closureCompiler.compileClosureFuncLiteralBody(node.Parameters, node.Body, node.Location())
@@ -860,8 +887,9 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 }
 
 func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode, loc *position.Location) {
-	c.emit("vm.NewNativeClosure(\n")
-	c.emit("func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {\n")
+	var funcBuffer bytes.Buffer
+	fmt.Fprintf(&funcBuffer, "vm.NewNativeClosure(\n")
+	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {\n")
 	selfLocal := c.registerGoLocal("self", goValueType)
 	selfLocal.predefined = true
 
@@ -906,6 +934,9 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 	c.emitReturn(c.convertToValue(val).fetchValue())
 
 	c.registerGoImport("github.com/elk-language/elk/position", "")
+
+	c.compileLocalsTo(&funcBuffer)
+	c.emitPrependBytes(funcBuffer.Bytes())
 
 	c.emit("}, \n")
 	c.emit("%d, \n", len(parameters))
@@ -1817,6 +1848,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return newGoValue("value.False", types.Bool{}, value.FetchGoType("value.Bool"))
 	case *ast.BinaryExpressionNode:
 		return c.compileBinaryExpressionNode(node, valueIsIgnored)
+	case *ast.LogicalExpressionNode:
+		return c.compileLogicalExpressionNode(node, valueIsIgnored)
 	case *ast.ArrayTupleLiteralNode:
 		return c.compileArrayTupleLiteralNode(node)
 	case *ast.WordArrayTupleLiteralNode:
@@ -4728,13 +4761,28 @@ func (c *GoCompiler) compileValueDeclarationNode(node *ast.ValueDeclarationNode)
 	}
 
 	if initialised {
-		init := c.valueToNarrowerType(c.compileExpression(node.Initialiser, false))
-		local := c.defineLocal(
-			identifierToName(node.Name),
-			elkType,
-			init.goType,
-			node.Location(),
-		)
+		var local *nativeElkLocal
+		var init *goValue
+
+		if initNode, ok := node.Initialiser.(*ast.ClosureLiteralNode); ok {
+			// make recursion in closure literals work
+			local = c.defineLocal(
+				identifierToName(node.Name),
+				elkType,
+				c.elkTypeToGoType(elkType, false),
+				node.Location(),
+			)
+			init = c.valueToNarrowerType(c.compileClosureLiteralNode(initNode, false))
+		} else {
+			init = c.valueToNarrowerType(c.compileExpression(node.Initialiser, false))
+			local = c.defineLocal(
+				identifierToName(node.Name),
+				elkType,
+				init.goType,
+				node.Location(),
+			)
+		}
+
 		if local == nil {
 			return errGoValue
 		}
@@ -4820,6 +4868,7 @@ func (c *GoCompiler) compileCall(receiver *goValue, returnType types.Type, args 
 		c.emit("%s,", c.convertToValue(argValue).fetchValue())
 	}
 	c.emit(")\n")
+	c.emitErrorPropagation()
 
 	return c.valueToNarrowerType(newGoValueWithLocal(
 		tmp,
@@ -4844,6 +4893,7 @@ func (c *GoCompiler) compileNativeClosureCall(receiver *goValue, returnType type
 		c.emit("%s,", c.convertToValue(argValue).fetchValue())
 	}
 	c.emit(")\n")
+	c.emitErrorPropagation()
 
 	return c.valueToNarrowerType(newGoValueWithLocal(
 		tmp,
@@ -5632,11 +5682,13 @@ func (c *GoCompiler) resolveUpvalue(name string) (*nativeElkLocal, bool) {
 	}
 	local, ok := parent.resolveLocal(name)
 	if ok {
+		c.registerUpvalue(local)
 		return local, true
 	}
 
 	local, ok = parent.resolveUpvalue(name)
 	if ok {
+		c.registerUpvalue(local)
 		return local, true
 	}
 
@@ -5839,6 +5891,106 @@ func (c *GoCompiler) emitSetCallFrameLineNumber(loc *position.Location) {
 
 func (c *GoCompiler) registerErr() {
 	c.registerGoLocal("err", goValueType)
+}
+
+func (c *GoCompiler) compileLogicalExpressionNode(node *ast.LogicalExpressionNode, valueIsIgnored bool) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	switch node.Op.Type {
+	case token.AND_AND:
+		return c.compileLogicalAnd(node, valueIsIgnored)
+	case token.OR_OR:
+		return c.compileLogicalOr(node, valueIsIgnored)
+	case token.QUESTION_QUESTION:
+		return c.compileNilCoalescing(node, valueIsIgnored)
+	default:
+		c.Errors.AddFailure(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), node.Location())
+		return errGoValue
+	}
+}
+
+func (c *GoCompiler) compileLogicalAnd(node *ast.LogicalExpressionNode, valueIsIgnored bool) *goValue {
+	typ := c.typeOf(node)
+
+	leftType := c.typeOf(node.Left)
+	if c.checker.IsFalsy(leftType) {
+		return c.compileExpression(node.Left, valueIsIgnored)
+	}
+	if c.checker.IsTruthy(leftType) {
+		c.compileExpression(node.Left, true)
+		return c.compileExpression(node.Right, valueIsIgnored)
+	}
+
+	left := c.compileExpression(node.Left, false)
+	tmp := c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
+	c.emitAssignGoLocal(tmp, left)
+
+	result := newGoValueWithLocal(tmp, typ)
+	switch result.goType.Name {
+	case "value.Bool", "bool":
+		c.emit("if %s {\n", result.value)
+	default:
+		c.emit("if value.Truthy(%s) {\n", c.convertToValue(result).value)
+	}
+	c.emitAssignGoLocal(tmp, c.compileExpression(node.Right, valueIsIgnored))
+	c.emit("}\n")
+
+	return result
+}
+
+func (c *GoCompiler) compileLogicalOr(node *ast.LogicalExpressionNode, valueIsIgnored bool) *goValue {
+	typ := c.typeOf(node)
+
+	leftType := c.typeOf(node.Left)
+	if c.checker.IsTruthy(leftType) {
+		return c.compileExpression(node.Left, valueIsIgnored)
+	}
+	if c.checker.IsFalsy(leftType) {
+		c.compileExpression(node.Left, true)
+		return c.compileExpression(node.Right, valueIsIgnored)
+	}
+
+	left := c.compileExpression(node.Left, false)
+	tmp := c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
+	c.emitAssignGoLocal(tmp, left)
+
+	result := newGoValueWithLocal(tmp, typ)
+	switch result.goType.Name {
+	case "value.Bool", "bool":
+		c.emit("if !(%s) {\n", result.value)
+	default:
+		c.emit("if value.Falsy(%s) {\n", c.convertToValue(result).value)
+	}
+	c.emitAssignGoLocal(tmp, c.compileExpression(node.Right, valueIsIgnored))
+	c.emit("}\n")
+
+	return result
+}
+
+func (c *GoCompiler) compileNilCoalescing(node *ast.LogicalExpressionNode, valueIsIgnored bool) *goValue {
+	typ := c.typeOf(node)
+
+	leftType := c.typeOf(node.Left)
+	if c.checker.IsNotNilable(leftType) {
+		return c.compileExpression(node.Left, valueIsIgnored)
+	}
+	if c.checker.IsNil(leftType) {
+		c.compileExpression(node.Left, true)
+		return c.compileExpression(node.Right, valueIsIgnored)
+	}
+
+	left := c.compileExpression(node.Left, false)
+	tmp := c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
+	c.emitAssignGoLocal(tmp, left)
+
+	result := newGoValueWithLocal(tmp, typ)
+	c.emit("if value.IsNil(%s) {\n", c.convertToValue(result).value)
+	c.emitAssignGoLocal(tmp, c.compileExpression(node.Right, valueIsIgnored))
+	c.emit("}\n")
+
+	return result
 }
 
 func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
@@ -13219,6 +13371,17 @@ func (c *GoCompiler) defineLocal(name string, elkType types.Type, goType *value.
 	return c.defineVariableInScope(varScope, name, elkType, goType, location)
 }
 
+func (c *GoCompiler) registerUpvalue(local *nativeElkLocal) {
+	varScope := c.scopes.first()
+	if _, ok := varScope.localTable[local.name]; ok {
+		return
+	}
+
+	upvalue := local.toUpvalue()
+	varScope.localTable[upvalue.name] = upvalue
+	c.goLocals.Set(upvalue.goLocal.name, upvalue.goLocal)
+}
+
 func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, elkType types.Type, goType *value.GoType, location *position.Location) *nativeElkLocal {
 	if c.lastElkLocalIndex == math.MaxInt {
 		c.Errors.AddFailure(
@@ -13229,8 +13392,15 @@ func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, e
 	}
 
 	c.lastElkLocalIndex++
+	var goName string
+	if c.closureLevel > 0 {
+		goName = fmt.Sprintf("lc%d_%d", c.closureLevel, c.lastElkLocalIndex)
+	} else {
+		goName = fmt.Sprintf("l%d", c.lastElkLocalIndex)
+	}
+
 	goLocal := c.registerGoLocalWithComment(
-		fmt.Sprintf("l%d", c.lastElkLocalIndex),
+		goName,
 		goType,
 		fmt.Sprintf("var %s: %s", name, types.Inspect(elkType)),
 	)

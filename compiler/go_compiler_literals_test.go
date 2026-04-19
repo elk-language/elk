@@ -9,137 +9,256 @@ import (
 	"github.com/elk-language/elk/position/diagnostic"
 )
 
-// func TestClosureLiteral(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"recursive closure": {
-// 			input: `
-// 				var calc_fib: |n: Int|: Int = |n| ->
-// 					return 1 if n < 3
+func TestGoClosureLiteral(t *testing.T) {
+	tests := goTestTable{
+		"recursive closure": {
+			input: `
+				var calc_fib: |n: Int|: Int = |n| ->
+					return 1 if n < 3
 
-// 					calc_fib(n - 2) + calc_fib(n - 1)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.CLOSURE), 2, 1, 0xff,
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(112, 6, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 7),
-// 					bytecode.NewLineInfo(6, 1),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
-// 						functionSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_LOCAL_1),
-// 							byte(bytecode.INT_3),
-// 							byte(bytecode.JUMP_UNLESS_ILT), 0, 2,
-// 							byte(bytecode.INT_1),
-// 							byte(bytecode.RETURN),
-// 							byte(bytecode.GET_UPVALUE_0),
-// 							byte(bytecode.GET_LOCAL_1),
-// 							byte(bytecode.INT_2),
-// 							byte(bytecode.SUBTRACT_INT),
-// 							byte(bytecode.CALL8), 0,
-// 							byte(bytecode.GET_UPVALUE_0),
-// 							byte(bytecode.GET_LOCAL_1),
-// 							byte(bytecode.INT_1),
-// 							byte(bytecode.SUBTRACT_INT),
-// 							byte(bytecode.CALL8), 1,
-// 							byte(bytecode.ADD_INT),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(35, 2, 35), P(111, 6, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 7),
-// 							bytecode.NewLineInfo(5, 13),
-// 							bytecode.NewLineInfo(6, 1),
-// 						},
-// 						1,
-// 						0,
-// 						[]value.Value{
-// 							value.Ref(value.NewCallSiteInfo(value.ToSymbol("call"), 1)),
-// 							value.Ref(value.NewCallSiteInfo(value.ToSymbol("call"), 1)),
-// 						},
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"lambda": {
-// 			input: `
-// 				a := 5
-// 				calc := |n: Int|: Int ~>
-// 					return 1 if n < 3
+					calc_fib(n - 2) + calc_fib(n - 1)
+				end
 
-// 					n * a
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.CLOSED_CLOSURE),
-// 					2, 1,
-// 					0xff,
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(83, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 7),
-// 					bytecode.NewLineInfo(7, 1),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
-// 						functionSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_LOCAL_1),
-// 							byte(bytecode.INT_3),
-// 							byte(bytecode.JUMP_UNLESS_ILT), 0, 2,
-// 							byte(bytecode.INT_1),
-// 							byte(bytecode.RETURN),
-// 							byte(bytecode.GET_LOCAL_1),
-// 							byte(bytecode.GET_UPVALUE_0),
-// 							byte(bytecode.MULTIPLY_INT),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(24, 3, 13), P(82, 7, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(4, 7),
-// 							bytecode.NewLineInfo(6, 3),
-// 							bytecode.NewLineInfo(7, 1),
-// 						},
-// 						1,
-// 						0,
-// 						nil,
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 	}
+				calc_fib(10)
+			`,
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var calc_fib: |n: Std::Int|: Std::Int
+	_ = l0
+	var t1 *vm.NativeClosure
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t1 = vm.NewNativeClosure(
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			var lc1_0 value.Value // var n: Std::Int
+			_ = lc1_0
+			var t1 value.Value
+			_ = t1
+			var err value.Value
+			_ = err
+			var t2 value.Value
+			_ = t2
+
+			lc1_0 = args[0]
+			if value.Bool(value.LessThanInts(lc1_0, (value.SmallInt(3)).ToValue())) {
+				return (value.SmallInt(1)).ToValue(), value.Undefined
+			}
+			t1, err = thread.CallCallable(l0, value.SubtractInts(lc1_0, (value.SmallInt(2)).ToValue()))
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				return value.Undefined, err
+			}
+			t2, err = thread.CallCallable(l0, value.SubtractInts(lc1_0, (value.SmallInt(1)).ToValue()))
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				return value.Undefined, err
+			}
+			return value.AddInts(t1, t2), value.Undefined
+		},
+		1,
+		position.NewLocation("<main>", position.NewSpan(position.New(35, 2, 35), position.New(35, 2, 35))),
+	)
+	l0 = (t1).ToValue()
+	t2, err = thread.CallCallable(l0, (value.SmallInt(10)).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+		"recursive closure in non mutable local": {
+			input: `
+				val calc_fib: |n: Int|: Int = |n| ->
+					return 1 if n < 3
+
+					calc_fib(n - 2) + calc_fib(n - 1)
+				end
+
+				calc_fib(10)
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var calc_fib: |n: Std::Int|: Std::Int
+	_ = l0
+	var t1 *vm.NativeClosure
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t1 = vm.NewNativeClosure(
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			var lc1_0 value.Value // var n: Std::Int
+			_ = lc1_0
+			var t1 value.Value
+			_ = t1
+			var err value.Value
+			_ = err
+			var t2 value.Value
+			_ = t2
+
+			lc1_0 = args[0]
+			if value.Bool(value.LessThanInts(lc1_0, (value.SmallInt(3)).ToValue())) {
+				return (value.SmallInt(1)).ToValue(), value.Undefined
+			}
+			t1, err = thread.CallCallable(l0, value.SubtractInts(lc1_0, (value.SmallInt(2)).ToValue()))
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				return value.Undefined, err
+			}
+			t2, err = thread.CallCallable(l0, value.SubtractInts(lc1_0, (value.SmallInt(1)).ToValue()))
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				return value.Undefined, err
+			}
+			return value.AddInts(t1, t2), value.Undefined
+		},
+		1,
+		position.NewLocation("<main>", position.NewSpan(position.New(35, 2, 35), position.New(35, 2, 35))),
+	)
+	l0 = (t1).ToValue()
+	t2, err = thread.CallCallable(l0, (value.SmallInt(10)).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+		"lambda": {
+			input: `
+				a := 5
+				calc := |n: Int|: Int ~>
+					return 1 if n < 3
+
+					n * a
+				end
+
+				calc.call(5)
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 vm.Closure // var calc: %|n: Std::Int|: Std::Int
+	_ = l1
+	var t1 *vm.NativeClosure
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(5)).ToValue()
+	t1 = vm.NewNativeClosure(
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			var lc1_0 value.Value // var n: Std::Int
+			_ = lc1_0
+
+			lc1_0 = args[0]
+			if value.Bool(value.LessThanInts(lc1_0, (value.SmallInt(3)).ToValue())) {
+				return (value.SmallInt(1)).ToValue(), value.Undefined
+			}
+			return value.MultiplyInts(lc1_0, l0), value.Undefined
+		},
+		1,
+		position.NewLocation("<main>", position.NewSpan(position.New(24, 3, 13), position.New(24, 3, 13))),
+	)
+	l1 = t1
+	t2, err = thread.CallCallable((l1).ToValue(), (value.SmallInt(5)).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 func TestGoStringLiteral(t *testing.T) {
 	tests := goTestTable{
