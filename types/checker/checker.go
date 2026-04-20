@@ -1698,18 +1698,31 @@ func (c *Checker) checkArithmeticBinaryOperator(
 	)
 }
 
+func (c *Checker) checkBoxOfLocal(node *ast.BoxOfExpressionNode, name string) ast.ExpressionNode {
+	local, typ := c.checkIdentifier(name, node.Location())
+	node.Expression.SetType(typ)
+
+	if types.IsUntyped(typ) {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	var box *types.Generic
+	if local.singleAssignment {
+		box = types.NewGenericWithTypeArgs(c.Std(symbol.ImmutableBox).(*types.Class), typ)
+	} else {
+		box = types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), typ)
+	}
+	node.SetType(box)
+	return node
+}
+
 func (c *Checker) checkBoxOfExpression(node *ast.BoxOfExpressionNode) ast.ExpressionNode {
 	switch expr := node.Expression.(type) {
-	case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
-		node.Expression = c.checkExpression(node.Expression)
-		typ := c.typeOfGuardVoid(node.Expression)
-		if types.IsUntyped(typ) {
-			node.SetType(types.Untyped{})
-			return node
-		}
-		box := types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), typ)
-		node.SetType(box)
-		return node
+	case *ast.PublicIdentifierNode:
+		return c.checkBoxOfLocal(node, expr.Value)
+	case *ast.PrivateIdentifierNode:
+		return c.checkBoxOfLocal(node, expr.Value)
 	case *ast.PublicInstanceVariableNode:
 		c.checkNonNilableInstanceVariablesForSelf(expr.Location())
 		typ := c.checkInstanceVariable(expr.Value, expr.Location())
@@ -4726,7 +4739,8 @@ func (c *Checker) getReceiverlessMethodReceiver(methodName string, method *types
 	var receiver ast.ExpressionNode
 	if fromLocal {
 		ident := ast.NewPublicIdentifierNode(loc, methodName)
-		ident.SetType(c.checkIdentifier(ident.Value, nil))
+		_, typ := c.checkIdentifier(ident.Value, nil)
+		ident.SetType(typ)
 		receiver = ident
 	} else {
 		switch under := methodNamespace.(type) {
@@ -7140,26 +7154,26 @@ func (c *Checker) addUninitialisedLocalError(name string, loc *position.Location
 	)
 }
 
-func (c *Checker) checkIdentifier(value string, loc *position.Location) types.Type {
+func (c *Checker) checkIdentifier(value string, loc *position.Location) (*local, types.Type) {
 	local, _ := c.resolveLocal(value, loc)
 	if local == nil {
-		return types.Untyped{}
+		return nil, types.Untyped{}
 	}
 
 	if !local.initialised {
 		c.addUninitialisedLocalError(value, loc)
 	}
-	return local.typ
+	return local, local.typ
 }
 
 func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
-	typ := c.checkIdentifier(node.Value, node.Location())
+	_, typ := c.checkIdentifier(node.Value, node.Location())
 	node.SetType(typ)
 	return node
 }
 
 func (c *Checker) checkPrivateIdentifierNode(node *ast.PrivateIdentifierNode) *ast.PrivateIdentifierNode {
-	typ := c.checkIdentifier(node.Value, node.Location())
+	_, typ := c.checkIdentifier(node.Value, node.Location())
 	node.SetType(typ)
 	return node
 }

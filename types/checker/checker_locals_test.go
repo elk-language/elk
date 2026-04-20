@@ -695,6 +695,15 @@ func TestLocalAccess(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(29, 3, 18), P(30, 3, 19)), "type `Std::Box[Std::Int]` cannot be assigned to type `nil`"),
 			},
 		},
+		"create a box to an immutable local": {
+			input: `
+				val a = 5
+				var b: nil = &a
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 3, 18), P(33, 3, 19)), "type `Std::ImmutableBox[5]` cannot be assigned to type `nil`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

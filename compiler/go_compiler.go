@@ -1794,6 +1794,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return newGoValue("self", c.checker.SelfType(), goValueType)
 	case *ast.ReturnExpressionNode:
 		return c.compileReturnExpressionNode(node)
+	case *ast.BoxOfExpressionNode:
+		return c.compileBoxOfExpressionNode(node)
 	case *ast.IntLiteralNode:
 		return c.compileIntLiteralNode(node)
 	case *ast.Int8LiteralNode:
@@ -4533,6 +4535,94 @@ func (c *GoCompiler) compileRawStringLiteralNode(node *ast.RawStringLiteralNode)
 		c.typeOf(node),
 		value.FetchGoType("value.String"),
 	)
+}
+
+func (c *GoCompiler) compileBoxOfLocal(node ast.ExpressionNode, typ types.Type) *goValue {
+	val := c.compileExpression(node, false)
+
+	generic := typ.(*types.Generic)
+	var immutable bool
+	if generic.Namespace.Name() == "Std::ImmutableBox" {
+		immutable = true
+	}
+
+	if val.goType.Name == "value.Value" {
+		if immutable {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("(*value.ImmutableBoxOfValue)(&%s)", val.value),
+				typ,
+				value.FetchGoType("*value.ImmutableBoxOfValue"),
+				val,
+			)
+		} else {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("(*value.BoxOfValue)(&%s)", val.value),
+				typ,
+				value.FetchGoType("*value.BoxOfValue"),
+				val,
+			)
+		}
+	}
+
+	if immutable {
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.NewImmutableNativeBox(&%s)", val.value),
+			typ,
+			value.FetchGenericGoType(
+				"*value.ImmutableNativeBox",
+				[]*value.GoType{
+					val.goType,
+				},
+			),
+			val,
+		)
+	} else {
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.NewNativeBox(&%s)", val.value),
+			typ,
+			value.FetchGenericGoType(
+				"*value.NativeBox",
+				[]*value.GoType{
+					val.goType,
+				},
+			),
+			val,
+		)
+	}
+}
+
+func (c *GoCompiler) compileBoxOfExpressionNode(node *ast.BoxOfExpressionNode) *goValue {
+	switch n := node.Expression.(type) {
+	case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
+		return c.compileBoxOfLocal(n, c.typeOf(node))
+		// TODO: instance variables
+	// case *ast.PublicInstanceVariableNode:
+	// 	location := n.Location()
+	// 	ivarName := value.ToSymbol(n.Value)
+	// 	self := c.checker.SelfType()
+
+	// 	switch self := self.(type) {
+	// 	case types.NamespaceWithIvarIndices:
+	// 		ivarIndices := self.IvarIndices()
+	// 		index := ivarIndices.GetIndex(ivarName)
+	// 		c.emitSmallInt(value.SmallInt(index), location)
+	// 		callInfo := value.NewCallSiteInfo(
+	// 			value.ToSymbol("#box_of_ivar_index"),
+	// 			1,
+	// 		)
+	// 		c.emitCallMethod(callInfo, location, false)
+	// 	default:
+	// 		c.emitValue(ivarName.ToValue(), location)
+	// 		callInfo := value.NewCallSiteInfo(
+	// 			value.ToSymbol("#box_of_ivar_name"),
+	// 			1,
+	// 		)
+	// 		c.emitCallMethod(callInfo, location, false)
+	// 	}
+	default:
+		c.Errors.AddFailure(fmt.Sprintf("cannot take the address of: `%s`", node.Expression.Inspect()), node.Location())
+		return nilGoValue
+	}
 }
 
 func (c *GoCompiler) compileIntLiteralNode(node *ast.IntLiteralNode) *goValue {
@@ -12678,6 +12768,12 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 				goElementType,
 			},
 		)
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Box)) {
+		return value.FetchGoType("value.Box")
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ImmutableBox)) {
+		return value.FetchGoType("value.ImmutableBox")
 	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.BeginlessClosedRange)) {
 		return value.FetchGoType("*value.BeginlessClosedRange")

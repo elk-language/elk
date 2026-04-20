@@ -7768,26 +7768,38 @@ listLoop:
 	c.emitNewArrayTuple(len(rest), location)
 }
 
+func (c *BytecodeCompiler) compileBoxOfLocal(name string, typ types.Type, loc *position.Location) {
+	local, ok := c.resolveLocal(name)
+	if !ok {
+		return
+	}
+
+	if !local.hasUpvalue {
+		upvalue := &bytecodeUpvalue{
+			index:   uint16(len(c.upvalues)),
+			upIndex: local.index,
+			local:   local,
+			kind:    upvalueOwnLocal,
+		}
+		c.upvalues = append(c.upvalues, upvalue)
+		local.hasUpvalue = true
+	}
+
+	generic := typ.(*types.Generic)
+	var immutable bool
+	if generic.Namespace.Name() == "Std::ImmutableBox" {
+		immutable = true
+	}
+
+	c.emitBoxLocal(loc.StartPos.Line, local.index, immutable)
+}
+
 func (c *BytecodeCompiler) compileBoxOfExpressionNode(node *ast.BoxOfExpressionNode) {
 	switch n := node.Expression.(type) {
 	case *ast.PublicIdentifierNode:
-		local, ok := c.resolveLocal(n.Value)
-		if !ok {
-			return
-		}
-
-		if !local.hasUpvalue {
-			upvalue := &bytecodeUpvalue{
-				index:   uint16(len(c.upvalues)),
-				upIndex: local.index,
-				local:   local,
-				kind:    upvalueOwnLocal,
-			}
-			c.upvalues = append(c.upvalues, upvalue)
-			local.hasUpvalue = true
-		}
-
-		c.emitBoxLocal(node.Location().StartPos.Line, local.index)
+		c.compileBoxOfLocal(n.Value, c.typeOf(node), node.Location())
+	case *ast.PrivateIdentifierNode:
+		c.compileBoxOfLocal(n.Value, c.typeOf(node), node.Location())
 	case *ast.PublicInstanceVariableNode:
 		location := n.Location()
 		ivarName := value.ToSymbol(n.Value)
@@ -8043,14 +8055,24 @@ func (c *BytecodeCompiler) emitSetLocalPop(line int, index uint16) {
 }
 
 // Emit an instruction that creates a box for a local variable/value.
-func (c *BytecodeCompiler) emitBoxLocal(line int, index uint16) {
+func (c *BytecodeCompiler) emitBoxLocal(line int, index uint16, immutable bool) {
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.BOX_LOCAL16)
 		c.emitUint16(index)
+		if immutable {
+			c.emitByte(1)
+		} else {
+			c.emitByte(0)
+		}
 		return
 	}
 
 	c.emit(line, bytecode.BOX_LOCAL8, byte(index))
+	if immutable {
+		c.emitByte(1)
+	} else {
+		c.emitByte(0)
+	}
 }
 
 // Emit an instruction that gets the value of a local.

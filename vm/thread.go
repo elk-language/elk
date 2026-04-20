@@ -832,9 +832,9 @@ func (vm *Thread) run() {
 		case bytecode.GET_LOCAL16:
 			vm.opGetLocal(int(vm.readUint16()))
 		case bytecode.BOX_LOCAL8:
-			vm.opBoxLocal(int(vm.readByte()))
+			vm.opBoxLocal(int(vm.readByte()), vm.readByte())
 		case bytecode.BOX_LOCAL16:
-			vm.opBoxLocal(int(vm.readUint16()))
+			vm.opBoxLocal(int(vm.readUint16()), vm.readByte())
 		case bytecode.SET_LOCAL_1:
 			vm.opSetLocal(1)
 		case bytecode.SET_LOCAL_2:
@@ -2434,10 +2434,15 @@ func (vm *Thread) opGetLocal(index int) {
 }
 
 // Create a box that points to a local
-func (vm *Thread) opBoxLocal(localIndex int) {
+func (vm *Thread) opBoxLocal(localIndex int, immutable byte) {
 	upvalue := vm.captureUpvalue(vm.fpAdd(localIndex))
-	box := (*UpvalueBox)(upvalue)
-	vm.push(value.Ref(box))
+	if immutable == 1 {
+		box := (*ImmutableUpvalueBox)(upvalue)
+		vm.push(value.Ref(box))
+	} else {
+		box := (*UpvalueBox)(upvalue)
+		vm.push(value.Ref(box))
+	}
 }
 
 // Read a local variable or value.
