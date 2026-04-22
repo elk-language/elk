@@ -52,28 +52,57 @@ sealed noinit primitive class ::Std::Int < Value
 	##[
 		Add `other` to this integer.
 	]##
-	sealed def +(other: Int): Int; end
+	sealed overload def +(other: CoercibleNumeric): CoercibleNumeric; end
+	sealed overload def +(other: Int): Int; end
+	sealed overload def +(other: Float): Float; end
+	sealed overload def +(other: BigFloat): BigFloat; end
 
 	##[
 		Subtract `other` from this integer.
 	]##
-	sealed def -(other: Int): Int; end
+	sealed overload def -(other: CoercibleNumeric): CoercibleNumeric; end
+	sealed overload def -(other: Int): Int; end
+	sealed overload def -(other: Float): Float; end
+	sealed overload def -(other: BigFloat): BigFloat; end
 
 	##[
 		Multiply this integer by `other`.
 	]##
-	sealed def *(other: Int): Int; end
+	sealed overload def *(other: CoercibleNumeric): CoercibleNumeric; end
+	sealed overload def *(other: Int): Int; end
+	sealed overload def *(other: Float): Float; end
+	sealed overload def *(other: BigFloat): BigFloat; end
 
 	##[
 		Divide this integer by another integer.
 		Throws an unchecked runtime error when dividing by `0`.
 	]##
-	sealed def /(other: Int): Int; end
+	sealed overload def /(other: CoercibleNumeric): CoercibleNumeric; end
+	sealed overload def /(other: Int): Int; end
+	sealed overload def /(other: Float): Float; end
+	sealed overload def /(other: BigFloat): BigFloat; end
 
 	##[
 		Exponentiate this integer, raise it to the power of `other`.
 	]##
-	sealed def **(other: Int): Int; end
+	sealed overload def **(other: CoercibleNumeric): CoercibleNumeric; end
+	sealed overload def **(other: Int): Int; end
+	sealed overload def **(other: Float): Float; end
+	sealed overload def **(other: BigFloat): BigFloat; end
+
+	##[
+		Returns the remainder of dividing by `other`.
+
+		```
+			var a = 10
+			var b = 3
+			a % b #=> 1
+		```
+	]##
+	sealed overload def %(other: CoercibleNumeric): CoercibleNumeric; end
+	sealed overload def %(other: Int): Int; end
+	sealed overload def %(other: Float): Float; end
+	sealed overload def %(other: BigFloat): BigFloat; end
 
 	##[
 		Compare this integer with another integer.
@@ -121,17 +150,6 @@ sealed noinit primitive class ::Std::Int < Value
 		Performs bitwise XOR.
 	]##
 	sealed def ^(other: Int): Int; end
-
-	##[
-		Returns the remainder of dividing by `other`.
-
-		```
-			var a = 10
-			var b = 3
-			a % b #=> 1
-		```
-	]##
-	sealed def %(other: Int): Int; end
 
 	##[
 		Returns `true` when the integer is even.

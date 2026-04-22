@@ -542,7 +542,10 @@ func TestAdd(t *testing.T) {
 				var a: Int = 1 + "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `\"foo\"`"),
+				diagnostic.NewFailure(
+					L("<main>", P(18, 2, 18), P(26, 2, 26)),
+					"no overload of `+` matches the given arguments\n  signature: `def +(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def +@1(other: Std::Int): Std::Int`\n             `def +@2(other: Std::Float): Std::Float`\n             `def +@3(other: Std::BigFloat): Std::BigFloat`",
+				),
 			},
 		},
 		"Int + Int => Int": {
@@ -606,7 +609,10 @@ func TestSubtract(t *testing.T) {
 				var a: Int = 1 - "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:-`, got type `\"foo\"`"),
+				diagnostic.NewFailure(
+					L("<main>", P(18, 2, 18), P(26, 2, 26)),
+					"no overload of `-` matches the given arguments\n  signature: `def -(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def -@1(other: Std::Int): Std::Int`\n             `def -@2(other: Std::Float): Std::Float`\n             `def -@3(other: Std::BigFloat): Std::BigFloat`",
+				),
 			},
 		},
 		"Int - Int => Int": {
@@ -670,7 +676,10 @@ func TestMultiply(t *testing.T) {
 				var a: Int = 1 * "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:*`, got type `\"foo\"`"),
+				diagnostic.NewFailure(
+					L("<main>", P(18, 2, 18), P(26, 2, 26)),
+					"no overload of `*` matches the given arguments\n  signature: `def *(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def *@1(other: Std::Int): Std::Int`\n             `def *@2(other: Std::Float): Std::Float`\n             `def *@3(other: Std::BigFloat): Std::BigFloat`",
+				),
 			},
 		},
 		"Int * Int => Int": {
@@ -734,7 +743,10 @@ func TestDivide(t *testing.T) {
 				var a: Int = 1 / "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(22, 2, 22), P(26, 2, 26)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:/`, got type `\"foo\"`"),
+				diagnostic.NewFailure(
+					L("<main>", P(18, 2, 18), P(26, 2, 26)),
+					"no overload of `/` matches the given arguments\n  signature: `def /(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def /@1(other: Std::Int): Std::Int`\n             `def /@2(other: Std::Float): Std::Float`\n             `def /@3(other: Std::BigFloat): Std::BigFloat`",
+				),
 			},
 		},
 		"Int / Int => Int": {
@@ -798,7 +810,10 @@ func TestExponentiate(t *testing.T) {
 				var a: Int = 1 ** "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(23, 2, 23), P(27, 2, 27)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:**`, got type `\"foo\"`"),
+				diagnostic.NewFailure(
+					L("<main>", P(18, 2, 18), P(27, 2, 27)),
+					"no overload of `**` matches the given arguments\n  signature: `def **(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def **@1(other: Std::Int): Std::Int`\n             `def **@2(other: Std::Float): Std::Float`\n             `def **@3(other: Std::BigFloat): Std::BigFloat`",
+				),
 			},
 		},
 		"Int ** Int => Int": {

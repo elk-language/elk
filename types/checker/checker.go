@@ -3976,6 +3976,8 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		return c.checkArithmeticBinaryOperator(node, symbol.OpDivide)
 	case token.STAR_STAR:
 		return c.checkArithmeticBinaryOperator(node, symbol.OpExponentiate)
+	case token.PERCENT:
+		return c.checkArithmeticBinaryOperator(node, symbol.OpModulo)
 	case token.PIPE_OP:
 		return c.checkPipeExpression(node)
 	case token.INSTANCE_OF_OP:
@@ -3994,7 +3996,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		c.checkEqual(node)
 	case token.LBITSHIFT, token.LTRIPLE_BITSHIFT,
 		token.RBITSHIFT, token.RTRIPLE_BITSHIFT, token.AND,
-		token.AND_TILDE, token.OR, token.XOR, token.PERCENT,
+		token.AND_TILDE, token.OR, token.XOR,
 		token.GREATER, token.GREATER_EQUAL,
 		token.LESS, token.LESS_EQUAL, token.SPACESHIP_OP:
 		originalMethodName := value.ToSymbol(node.Op.FetchValue())

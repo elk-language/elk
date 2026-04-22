@@ -190,7 +190,7 @@ func (i SmallInt) AddVal(other Value) (Value, Value) {
 func (i SmallInt) AddBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), 64)
 	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
-	iBigFloat.AddBigFloat(iBigFloat, other)
+	iBigFloat.AddMutBigFloat(iBigFloat, other)
 	return iBigFloat
 }
 
@@ -259,7 +259,7 @@ func (i SmallInt) SubtractVal(other Value) (Value, Value) {
 func (i SmallInt) SubtractBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), 64)
 	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
-	iBigFloat.SubBigFloat(iBigFloat, other)
+	iBigFloat.SubMutBigFloat(iBigFloat, other)
 	return iBigFloat
 }
 
@@ -333,7 +333,7 @@ func (i SmallInt) MultiplyVal(other Value) (Value, Value) {
 func (i SmallInt) MultiplyBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), 64)
 	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
-	iBigFloat.MulBigFloat(iBigFloat, other)
+	iBigFloat.MulMutBigFloat(iBigFloat, other)
 	return iBigFloat
 }
 
@@ -402,7 +402,7 @@ func (i SmallInt) DivideVal(other Value) (Value, Value) {
 func (i SmallInt) DivideBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), 64)
 	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
-	iBigFloat.DivBigFloat(iBigFloat, other)
+	iBigFloat.DivMutBigFloat(iBigFloat, other)
 	return iBigFloat
 }
 
@@ -1444,7 +1444,7 @@ func (i SmallInt) ModuloBigInt(other *BigInt) (Value, Value) {
 func (i SmallInt) ModuloBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), 64)
 	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
-	return iBigFloat.Mod(iBigFloat, other)
+	return iBigFloat.ModMutBigFloat(iBigFloat, other)
 }
 
 func (i SmallInt) Hash() UInt64 {

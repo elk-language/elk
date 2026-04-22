@@ -984,7 +984,8 @@ func TestStringLiteralPattern(t *testing.T) {
 				var "hello${1 + 2i8}" as a = b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(38, 3, 21), P(40, 3, 23)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `2i8`"),
+				diagnostic.NewFailure(L("<main>", P(34, 3, 17), P(40, 3, 23)),
+					"no overload of `+` matches the given arguments\n  signature: `def +(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def +@1(other: Std::Int): Std::Int`\n             `def +@2(other: Std::Float): Std::Float`\n             `def +@3(other: Std::BigFloat): Std::BigFloat`"),
 			},
 		},
 		"pattern with raw string literal": {
@@ -1038,7 +1039,10 @@ func TestSymbolLiteralPattern(t *testing.T) {
 				var :"hello${1 + 2i8}" as a = b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(38, 3, 22), P(40, 3, 24)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `2i8`"),
+				diagnostic.NewFailure(
+					L("<main>", P(34, 3, 18), P(40, 3, 24)),
+					"no overload of `+` matches the given arguments\n  signature: `def +(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def +@1(other: Std::Int): Std::Int`\n             `def +@2(other: Std::Float): Std::Float`\n             `def +@3(other: Std::BigFloat): Std::BigFloat`",
+				),
 			},
 		},
 		"pattern with simple symbol literal": {

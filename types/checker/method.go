@@ -27,7 +27,8 @@ func (c *Checker) checkAllMethodSignaturesOfNamespace(namespace types.Namespace)
 		return
 	}
 
-	methodSignatures := c.signatureChecks.Get(namespace.Name())
+	namespaceName := namespace.Name()
+	methodSignatures := c.signatureChecks.Get(namespaceName)
 	c.checkSignatures(methodSignatures)
 }
 
@@ -107,6 +108,8 @@ func (c *Checker) checkSignatures(methodSignatures *[]signatureCheckEntry) {
 		c.flags = prevFlags
 		c.mode = prevMode
 	}
+
+	*methodSignatures = nil
 }
 
 // Gathers all declarations of methods, constants and instance variables
@@ -3508,7 +3511,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 
 		var baseMethod *types.Method
 		var overrideMethod *types.Method
-		if len(nilMethod.Params) < len(nonNilMethod.Params) || nilMethod.IsGeneric() && !nonNilMethod.IsGeneric() {
+		if calculateMethodBaseScore(nilMethod) > calculateMethodBaseScore(nonNilMethod) {
 			baseMethod = nilMethod
 			overrideMethod = nonNilMethod
 		} else {
@@ -3530,7 +3533,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 				continue
 			}
 			methods = append(methods, elementMethod)
-			if baseMethod == nil || len(baseMethod.Params) > len(elementMethod.Params) || baseMethod.IsGeneric() && !elementMethod.IsGeneric() {
+			if baseMethod == nil || calculateMethodBaseScore(elementMethod) > calculateMethodBaseScore(baseMethod) {
 				baseMethod = elementMethod
 			}
 		}
@@ -3556,6 +3559,85 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 	default:
 		c.addMissingMethodError(typ, name.String(), errSpan)
 		return nil
+	}
+}
+
+func calculateMethodBaseScore(typ types.Type) int {
+	switch t := typ.(type) {
+	case *types.Union:
+		var sum int
+		for _, element := range t.Elements {
+			sum += calculateMethodBaseScore(element)
+		}
+		return sum
+	case *types.Intersection:
+		var sum int
+		for _, element := range t.Elements {
+			sum += calculateMethodBaseScore(element)
+		}
+
+		return sum/len(t.Elements) - 1
+	case *types.Class:
+		result := 2
+		if t.IsGeneric() {
+			result += 1
+		}
+		if t.IsAbstract() {
+			result += 1
+		}
+		return result
+	case *types.Mixin:
+		result := 3
+		if t.IsGeneric() {
+			result += 1
+		}
+		if t.IsAbstract() {
+			result += 1
+		}
+		return result
+	case *types.Interface:
+		result := 4
+		if t.IsGeneric() {
+			result += 1
+		}
+		return result
+	case *types.InstanceOf:
+		return 2
+	case *types.Nilable:
+		return calculateMethodBaseScore(t.Type) + 1
+	case *types.Never:
+		return -100
+	case *types.Generic:
+		return calculateMethodBaseScore(t.Namespace)
+	case *types.NamedType:
+		return calculateMethodBaseScore(t.Type)
+	case *types.Not:
+		return 100 - calculateMethodBaseScore(t.Type)
+	case *types.Any:
+		return 100
+	case *types.Callable:
+		return calculateMethodBaseScore(t.Body)
+	case *types.Method:
+		var result int
+
+		if t.IsGeneric() {
+			result -= 200
+		}
+
+		var paramScore int
+		for _, param := range t.Params {
+			paramScore += calculateMethodBaseScore(param)
+		}
+		result -= paramScore
+
+		var returnScore int
+		returnScore += calculateMethodBaseScore(t.ReturnType)
+		returnScore += calculateMethodBaseScore(t.ThrowType)
+		result += returnScore / 2
+
+		return result
+	default:
+		return 1
 	}
 }
 

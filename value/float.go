@@ -213,7 +213,7 @@ func (f Float) AddVal(other Value) (result, err Value) {
 
 func (f Float) AddBigFloat(other *BigFloat) *BigFloat {
 	fBigFloat := NewBigFloat(float64(f))
-	return fBigFloat.AddBigFloat(fBigFloat, other)
+	return fBigFloat.AddMutBigFloat(fBigFloat, other)
 }
 
 func (f Float) AddFloat(other Float) Float {
@@ -262,7 +262,7 @@ func (f Float) SubtractVal(other Value) (result, err Value) {
 
 func (f Float) SubtractBigFloat(other *BigFloat) *BigFloat {
 	fBigFloat := NewBigFloat(float64(f))
-	return fBigFloat.SubBigFloat(fBigFloat, other)
+	return fBigFloat.SubMutBigFloat(fBigFloat, other)
 }
 
 func (f Float) SubtractFloat(other Float) Float {
@@ -311,7 +311,7 @@ func (f Float) MultiplyVal(other Value) (result, err Value) {
 
 func (f Float) MultiplyBigFloat(other *BigFloat) *BigFloat {
 	fBigFloat := NewBigFloat(float64(f))
-	return fBigFloat.MulBigFloat(fBigFloat, other)
+	return fBigFloat.MulMutBigFloat(fBigFloat, other)
 }
 
 func (f Float) MultiplyFloat(other Float) Float {
@@ -360,7 +360,7 @@ func (f Float) DivideVal(other Value) (result, err Value) {
 
 func (f Float) DivideBigFloat(other *BigFloat) *BigFloat {
 	fBigFloat := NewBigFloat(float64(f))
-	return fBigFloat.DivBigFloat(fBigFloat, other)
+	return fBigFloat.DivMutBigFloat(fBigFloat, other)
 }
 
 func (f Float) DivideFloat(other Float) Float {
@@ -465,7 +465,7 @@ func (f Float) ModuloVal(other Value) (result, err Value) {
 func (f Float) ModuloBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), 53)
 	fBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(f)
-	return fBigFloat.Mod(fBigFloat, other)
+	return fBigFloat.ModMutBigFloat(fBigFloat, other)
 }
 
 func (f Float) ModuloFloat(other Float) Float {

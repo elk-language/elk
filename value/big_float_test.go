@@ -1277,7 +1277,7 @@ func TestBigFloat_Mod(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := tc.left.Mod(tc.left, tc.right)
+			got := tc.left.ModMutBigFloat(tc.left, tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())

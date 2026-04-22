@@ -18,7 +18,7 @@ func TestGoExpression(t *testing.T) {
 				b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(24, 4, 6), P(32, 4, 14)), "no overload of `+` matches the given arguments\n  signature: `def +(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def +@1(other: Std::Int): Std::Int`\n             `def +@2(other: Std::Float): Std::Float`\n             `def +@3(other: Std::BigFloat): Std::BigFloat`"),
 				diagnostic.NewFailure(L("<main>", P(58, 7, 5), P(58, 7, 5)), "undefined local `b`"),
 			},
 		},
@@ -54,9 +54,18 @@ func TestDoCatchExpression(t *testing.T) {
 				b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(67, 7, 10), P(71, 7, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:-`, got type `\"bar\"`"),
-				diagnostic.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `\"foo\"`"),
-				diagnostic.NewFailure(L("<main>", P(99, 10, 5), P(99, 10, 5)), "undefined local `b`"),
+				diagnostic.NewFailure(
+					L("<main>", P(63, 7, 6), P(71, 7, 14)),
+					"no overload of `-` matches the given arguments\n  signature: `def -(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def -@1(other: Std::Int): Std::Int`\n             `def -@2(other: Std::Float): Std::Float`\n             `def -@3(other: Std::BigFloat): Std::BigFloat`",
+				),
+				diagnostic.NewFailure(
+					L("<main>", P(24, 4, 6), P(32, 4, 14)),
+					"no overload of `+` matches the given arguments\n  signature: `def +(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def +@1(other: Std::Int): Std::Int`\n             `def +@2(other: Std::Float): Std::Float`\n             `def +@3(other: Std::BigFloat): Std::BigFloat`",
+				),
+				diagnostic.NewFailure(
+					L("<main>", P(99, 10, 5), P(99, 10, 5)),
+					"undefined local `b`",
+				),
 			},
 		},
 		"catches have their own scopes": {
@@ -75,10 +84,22 @@ func TestDoCatchExpression(t *testing.T) {
 				b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(74, 7, 10), P(78, 7, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:-`, got type `\"bar\"`"),
-				diagnostic.NewFailure(L("<main>", P(120, 10, 10), P(124, 10, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:*`, got type `\"bar\"`"),
-				diagnostic.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `\"foo\"`"),
-				diagnostic.NewFailure(L("<main>", P(152, 13, 5), P(152, 13, 5)), "undefined local `b`"),
+				diagnostic.NewFailure(
+					L("<main>", P(70, 7, 6), P(78, 7, 14)),
+					"no overload of `-` matches the given arguments\n  signature: `def -(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def -@1(other: Std::Int): Std::Int`\n             `def -@2(other: Std::Float): Std::Float`\n             `def -@3(other: Std::BigFloat): Std::BigFloat`",
+				),
+				diagnostic.NewFailure(
+					L("<main>", P(116, 10, 6), P(124, 10, 14)),
+					"no overload of `*` matches the given arguments\n  signature: `def *(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def *@1(other: Std::Int): Std::Int`\n             `def *@2(other: Std::Float): Std::Float`\n             `def *@3(other: Std::BigFloat): Std::BigFloat`",
+				),
+				diagnostic.NewFailure(
+					L("<main>", P(24, 4, 6), P(32, 4, 14)),
+					"no overload of `+` matches the given arguments\n  signature: `def +(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def +@1(other: Std::Int): Std::Int`\n             `def +@2(other: Std::Float): Std::Float`\n             `def +@3(other: Std::BigFloat): Std::BigFloat`",
+				),
+				diagnostic.NewFailure(
+					L("<main>", P(152, 13, 5), P(152, 13, 5)),
+					"undefined local `b`",
+				),
 			},
 		},
 		"checks invalid patterns": {
