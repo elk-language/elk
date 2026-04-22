@@ -7,28 +7,38 @@ import (
 var ResultClass *Class // ::Std::Result
 
 type Result struct {
-	ok    bool
 	value Value
+	ok    bool
+}
+
+var _ ValueInterface = Result{}
+
+// Create a new result
+func MakeResult(value Value, ok bool) Result {
+	return Result{
+		value: value,
+		ok:    ok,
+	}
 }
 
 // Create a new successful result
-func NewOkResult(value Value) *Result {
-	return &Result{
+func MakeOkResult(value Value) Result {
+	return Result{
 		ok:    true,
 		value: value,
 	}
 }
 
 // Create a new failed result
-func NewErrResult(err Value) *Result {
-	return &Result{
+func MakeErrResult(err Value) Result {
+	return Result{
 		ok:    false,
 		value: err,
 	}
 }
 
 // Get the value and the error
-func (r *Result) Get() (value, err Value) {
+func (r Result) Get() (value, err Value) {
 	if r.ok {
 		return r.value, Undefined
 	}
@@ -36,12 +46,12 @@ func (r *Result) Get() (value, err Value) {
 	return Undefined, r.value
 }
 
-func (r *Result) Ok() bool {
+func (r Result) Ok() bool {
 	return r.ok
 }
 
 // Get the value
-func (r *Result) Value() Value {
+func (r Result) Value() Value {
 	if !r.ok {
 		return Nil
 	}
@@ -49,45 +59,50 @@ func (r *Result) Value() Value {
 }
 
 // Get the error
-func (r *Result) Err() Value {
+func (r Result) Err() Value {
 	if r.ok {
 		return Nil
 	}
 	return r.value
 }
 
-func (r *Result) Copy() Reference {
-	return &Result{
-		ok:    r.ok,
-		value: r.value,
+func (r Result) ToValue() Value {
+	var flag uint8
+	if r.ok {
+		flag = RESULT_OK_FLAG
+	} else {
+		flag = RESULT_ERR_FLAG
+	}
+
+	return Value{
+		data:        r.value.data,
+		ptr:         r.value.ptr,
+		result_flag: r.value.flag,
+		flag:        flag,
 	}
 }
 
-func (r *Result) ToValue() Value {
-	return Ref(r)
-}
-
-func (*Result) Class() *Class {
+func (Result) Class() *Class {
 	return ResultClass
 }
 
-func (*Result) DirectClass() *Class {
+func (Result) DirectClass() *Class {
 	return ResultClass
 }
 
-func (*Result) SingletonClass() *Class {
+func (Result) SingletonClass() *Class {
 	return nil
 }
 
-func (r *Result) Inspect() string {
+func (r Result) Inspect() string {
 	return fmt.Sprintf("Std::Result{value: %s, err: %s}", r.Value().Inspect(), r.Err().Inspect())
 }
 
-func (r *Result) Error() string {
+func (r Result) Error() string {
 	return r.Inspect()
 }
 
-func (*Result) InstanceVariables() *InstanceVariables {
+func (Result) InstanceVariables() *InstanceVariables {
 	return nil
 }
 

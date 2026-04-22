@@ -21,9 +21,10 @@ const ValueSize = unsafe.Sizeof(Value{})
 
 // `undefined` is the zero value of `Value`, it maps directly to Go `nil`
 type Value struct {
-	data uintptr
-	ptr  unsafe.Pointer
-	flag uint8
+	data        uintptr
+	ptr         unsafe.Pointer
+	flag        uint8
+	result_flag uint8
 }
 
 var _ ValueInterface = Value{}
@@ -50,6 +51,10 @@ const (
 	SYMBOL_FLAG
 	DATE_FLAG
 	WEAK_FLAG
+	REFERENCE_FLAG
+	SENTINEL_FLAG
+	RESULT_OK_FLAG
+	RESULT_ERR_FLAG
 
 	// only 64 bit systems
 	INT64_FLAG
@@ -58,9 +63,6 @@ const (
 	TIME_FLAG
 	TIME_SPAN_FLAG
 	DATE_SPAN_FLAG
-	REFERENCE_FLAG
-
-	SENTINEL_FLAG = 0xFF
 )
 
 // Performs a downcast of the given Value
@@ -85,7 +87,8 @@ func (v Value) ToInterface() ValueInterface {
 		return v.AsReference()
 	}
 
-	switch v.ValueFlag() {
+	flag := v.ValueFlag()
+	switch flag {
 	case BOOL_FLAG:
 		return v.AsBool()
 	case NIL_FLAG:
@@ -132,6 +135,10 @@ func (v Value) ToInterface() ValueInterface {
 		return v.AsTime()
 	case WEAK_FLAG:
 		return v.AsWeak()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -142,7 +149,8 @@ func (v Value) Inspect() string {
 		return v.AsReference().Inspect()
 	}
 
-	switch v.ValueFlag() {
+	flag := v.ValueFlag()
+	switch flag {
 	case BOOL_FLAG:
 		return v.AsBool().Inspect()
 	case NIL_FLAG:
@@ -189,6 +197,10 @@ func (v Value) Inspect() string {
 		return v.AsTime().Inspect()
 	case WEAK_FLAG:
 		return v.AsWeak().Inspect()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk().Inspect()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr().Inspect()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -254,6 +266,10 @@ func (v Value) Class() *Class {
 		return v.AsTime().Class()
 	case WEAK_FLAG:
 		return v.AsWeak().Class()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk().Class()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr().Class()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -311,6 +327,10 @@ func (v Value) DirectClass() *Class {
 		return v.AsTime().DirectClass()
 	case WEAK_FLAG:
 		return v.AsWeak().DirectClass()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk().DirectClass()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr().DirectClass()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -368,6 +388,10 @@ func (v Value) SingletonClass() *Class {
 		return v.AsTime().SingletonClass()
 	case WEAK_FLAG:
 		return v.AsWeak().SingletonClass()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk().SingletonClass()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr().SingletonClass()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -425,6 +449,10 @@ func (v Value) InstanceVariables() *InstanceVariables {
 		return v.AsTime().InstanceVariables()
 	case WEAK_FLAG:
 		return v.AsWeak().InstanceVariables()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk().InstanceVariables()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr().InstanceVariables()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -482,6 +510,10 @@ func (v Value) Error() string {
 		return v.AsTime().Error()
 	case WEAK_FLAG:
 		return v.AsWeak().Error()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk().Error()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr().Error()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -947,6 +979,29 @@ func (v Value) MustInlineTime() Time {
 		panic(fmt.Sprintf("value `%s` is not an inline Time", v.Inspect()))
 	}
 	return v.AsInlineTime()
+}
+
+func (v Value) unwrapResult() Value {
+	return Value{
+		data: v.data,
+		ptr:  v.ptr,
+		flag: v.result_flag,
+	}
+}
+
+func (v Value) AsResult() Result {
+	return Result{
+		ok:    v.flag == RESULT_OK_FLAG,
+		value: v.unwrapResult(),
+	}
+}
+
+func (v Value) AsResultOk() Result {
+	return MakeOkResult(v.unwrapResult())
+}
+
+func (v Value) AsResultErr() Result {
+	return MakeErrResult(v.unwrapResult())
 }
 
 func (v Value) AsTime() Time {

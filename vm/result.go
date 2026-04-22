@@ -12,7 +12,7 @@ func initResult() {
 		c,
 		"value",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Result)(args[0].Pointer())
+			self := args[0].AsResult()
 			return self.Value(), value.Undefined
 		},
 	)
@@ -20,7 +20,7 @@ func initResult() {
 		c,
 		"err",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Result)(args[0].Pointer())
+			self := args[0].AsResult()
 			return self.Err(), value.Undefined
 		},
 	)
@@ -28,7 +28,7 @@ func initResult() {
 		c,
 		"ok",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Result)(args[0].Pointer())
+			self := args[0].AsResult()
 			return value.BoolVal(self.Ok()), value.Undefined
 		},
 	)
@@ -40,7 +40,7 @@ func initResult() {
 		"ok",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			val := args[1]
-			return value.Ref(value.NewOkResult(val)), value.Undefined
+			return value.MakeOkResult(val).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -49,7 +49,7 @@ func initResult() {
 		"err",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			val := args[1]
-			return value.Ref(value.NewErrResult(val)), value.Undefined
+			return value.MakeErrResult(val).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
