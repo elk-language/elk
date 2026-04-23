@@ -239,6 +239,9 @@ func (e *evaluator) typecheck(input string) {
 	}
 	_, dl := e.elkTypechecker.CheckSource(sourceName, input)
 
+	for _, ast := range e.elkTypechecker.ASTCache.Map {
+		fmt.Println(lexer.Colorize(ast.Inspect()))
+	}
 	if dl != nil {
 		fmt.Println()
 

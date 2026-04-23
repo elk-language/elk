@@ -154,23 +154,31 @@ func (n *IfExpressionNode) Inspect() string {
 	buff.WriteString(",\n  condition: ")
 	indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)
 
-	buff.WriteString(",\n  then_body: %[\n")
-	for i, element := range n.ThenBody {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  then_body: %[")
+	if len(n.ThenBody) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.ThenBody {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
-	buff.WriteString(",\n  else_body: %[\n")
-	for i, element := range n.ElseBody {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  else_body: %[")
+	if len(n.ElseBody) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.ElseBody {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

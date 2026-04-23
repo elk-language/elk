@@ -150,23 +150,31 @@ func (n *SwitchExpressionNode) Inspect() string {
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
 
-	buff.WriteString(",\n  body: %[\n")
-	for i, stmt := range n.Cases {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  cases: %[")
+	if len(n.Cases) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Cases {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, stmt.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
-	buff.WriteString(",\n  else_body: %[\n")
-	for i, stmt := range n.ElseBody {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  else_body: %[")
+	if len(n.ElseBody) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.ElseBody {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, stmt.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

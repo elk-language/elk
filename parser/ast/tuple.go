@@ -145,14 +145,18 @@ func (n *ArrayTupleLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::ArrayTupleLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  elements: %[\n")
-	for i, element := range n.Elements {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  elements: %[")
+	if len(n.Elements) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Elements {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -279,14 +283,18 @@ func (n *WordArrayTupleLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayTupleLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  elements: %[\n")
-	for i, element := range n.Elements {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  elements: %[")
+	if len(n.Elements) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Elements {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -415,14 +423,18 @@ func (n *SymbolArrayTupleLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayTupleLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  elements: %[\n")
-	for i, element := range n.Elements {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  elements: %[")
+	if len(n.Elements) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Elements {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -550,14 +562,18 @@ func (n *HexArrayTupleLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayTupleLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  elements: %[\n")
-	for i, element := range n.Elements {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  elements: %[")
+	if len(n.Elements) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Elements {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -689,14 +705,18 @@ func (n *BinArrayTupleLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayTupleLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  elements: %[\n")
-	for i, element := range n.Elements {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  elements: %[")
+	if len(n.Elements) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Elements {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -810,14 +830,18 @@ func (n *TuplePatternNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::TuplePatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  elements: %[\n")
-	for i, element := range n.Elements {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  elements: %[")
+	if len(n.Elements) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Elements {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

@@ -4431,6 +4431,7 @@ func main() { // loc: <main>
 }
 `,
 		},
+
 		"resolve dynamic modulo smallint smallint": {
 			input: `
 				val a = 23
@@ -4721,10 +4722,807 @@ func main() { // loc: <main>
 }
 `,
 		},
-		"resolve dynamic modulo floats": {
+
+		"resolve dynamic modulo bigint smallint": {
+			input: `
+				val a = 18446744073709551616
+				val b = 5
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.SmallInt // var b: 5
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = value.SmallInt(5)
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ModuloSmallInt(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"resolve dynamic modulo bigint float": {
+			input: `
+				val a = 18446744073709551616
+				val b = 5.5
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Float // var b: 5.5
+	_ = l1
+	var l2 value.Float // var c: Std::Float
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = value.Float(5.5)
+	l2 = (l0).ModuloFloat(l1)
+}
+`,
+		},
+		"resolve dynamic modulo bigint bigfloat": {
+			input: `
+				val a = 18446744073709551616
+				val b = 5.5bf
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+var bf0 = value.ParseBigFloatPanic("5.5")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 *value.BigFloat // var b: 5.5bf
+	_ = l1
+	var l2 *value.BigFloat // var c: Std::BigFloat
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = bf0
+	l2 = (l0).ModuloBigFloat(l1)
+}
+`,
+		},
+		"resolve dynamic modulo bigint bigint": {
+			input: `
+				val a = 18446744073709551616
+				val b = 18446744073709551616
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 *value.BigInt // var b: 18446744073709551616
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = bi0
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ModuloBigInt(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"resolve dynamic modulo bigint int": {
+			input: `
+				val a = 18446744073709551616
+				b := 5
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ModuloInt(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"resolve dynamic modulo bigint value": {
+			input: `
+				var a: Int | Float = 10
+				b := 5
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int | Std::Float
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::CoercibleNumeric
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(10)).ToValue()
+	l1 = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.ModuloVal(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"resolve dynamic modulo int64": {
+			input: `
+				a := 6i64
+				b := 5i64
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int64 // var a: Std::Int64
+	_ = l0
+	var l1 value.Int64 // var b: Std::Int64
+	_ = l1
+	var l2 value.Int64 // var c: Std::Int64
+	_ = l2
+	var t1 value.Int64
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int64(6)
+	l1 = value.Int64(5)
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ModuloInt64(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"resolve dynamic modulo int32": {
+			input: `
+				a := 6i32
+				b := 5i32
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int32 // var a: Std::Int32
+	_ = l0
+	var l1 value.Int32 // var b: Std::Int32
+	_ = l1
+	var l2 value.Int32 // var c: Std::Int32
+	_ = l2
+	var t1 value.Int32
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int32(6)
+	l1 = value.Int32(5)
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ModuloInt32(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"resolve dynamic modulo int16": {
+			input: `
+				a := 6i16
+				b := 5i16
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int16 // var a: Std::Int16
+	_ = l0
+	var l1 value.Int16 // var b: Std::Int16
+	_ = l1
+	var l2 value.Int16 // var c: Std::Int16
+	_ = l2
+	var t1 value.Int16
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int16(6)
+	l1 = value.Int16(5)
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ModuloInt16(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"resolve dynamic modulo int8": {
+			input: `
+				a := 6i8
+				b := 5i8
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int8 // var a: Std::Int8
+	_ = l0
+	var l1 value.Int8 // var b: Std::Int8
+	_ = l1
+	var l2 value.Int8 // var c: Std::Int8
+	_ = l2
+	var t1 value.Int8
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int8(6)
+	l1 = value.Int8(5)
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ModuloInt8(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"resolve dynamic modulo uint64": {
+			input: `
+				a := 6u64
+				b := 5u64
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt64 // var a: Std::UInt64
+	_ = l0
+	var l1 value.UInt64 // var b: Std::UInt64
+	_ = l1
+	var l2 value.UInt64 // var c: Std::UInt64
+	_ = l2
+	var t1 value.UInt64
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt64(6)
+	l1 = value.UInt64(5)
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ModuloUInt64(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"resolve dynamic modulo uint32": {
+			input: `
+				a := 6u32
+				b := 5u32
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt32 // var a: Std::UInt32
+	_ = l0
+	var l1 value.UInt32 // var b: Std::UInt32
+	_ = l1
+	var l2 value.UInt32 // var c: Std::UInt32
+	_ = l2
+	var t1 value.UInt32
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt32(6)
+	l1 = value.UInt32(5)
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ModuloUInt32(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"resolve dynamic modulo uint16": {
+			input: `
+				a := 6u16
+				b := 5u16
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt16 // var a: Std::UInt16
+	_ = l0
+	var l1 value.UInt16 // var b: Std::UInt16
+	_ = l1
+	var l2 value.UInt16 // var c: Std::UInt16
+	_ = l2
+	var t1 value.UInt16
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt16(6)
+	l1 = value.UInt16(5)
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ModuloUInt16(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"resolve dynamic modulo uint8": {
+			input: `
+				a := 6u8
+				b := 5u8
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt8 // var a: Std::UInt8
+	_ = l0
+	var l1 value.UInt8 // var b: Std::UInt8
+	_ = l1
+	var l2 value.UInt8 // var c: Std::UInt8
+	_ = l2
+	var t1 value.UInt8
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt8(6)
+	l1 = value.UInt8(5)
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ModuloUInt8(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"resolve dynamic modulo float smallint": {
 			input: `
 				a := 2.5
-				b := a % 0.1
+				val b = 20
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var l1 value.SmallInt // var b: 20
+	_ = l1
+	var l2 value.Float // var c: Std::Float
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float(2.5)
+	l1 = value.SmallInt(20)
+	l2 = (l0).ModuloSmallInt(l1)
+}
+`,
+		},
+		"resolve dynamic modulo float float": {
+			input: `
+				a := 2.5
+				b := 0.1
+				c := a % b
 			`,
 			want: `package main
 
@@ -4750,6 +5548,8 @@ func main() { // loc: <main>
 	_ = l0
 	var l1 value.Float // var b: Std::Float
 	_ = l1
+	var l2 value.Float // var c: Std::Float
+	_ = l2
 	var self value.Value
 	_ = self
 
@@ -4757,10 +5557,245 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Float(2.5)
-	l1 = (l0).ModuloFloat(value.Float(0.1))
+	l1 = value.Float(0.1)
+	l2 = (l0).ModuloFloat(l1)
 }
 `,
 		},
+		"resolve dynamic modulo float bigfloat": {
+			input: `
+				a := 2.5
+				b := 0.1bf
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bf0 = value.ParseBigFloatPanic("0.1")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var l1 *value.BigFloat // var b: Std::BigFloat
+	_ = l1
+	var l2 *value.BigFloat // var c: Std::BigFloat
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float(2.5)
+	l1 = bf0
+	l2 = (l0).ModuloBigFloat(l1)
+}
+`,
+		},
+		"resolve dynamic modulo float int": {
+			input: `
+				a := 2.5
+				b := 1
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Float // var c: Std::Float
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float(2.5)
+	l1 = (value.SmallInt(1)).ToValue()
+	l2 = (l0).ModuloInt(l1)
+}
+`,
+		},
+		"resolve dynamic modulo float value": {
+			input: `
+				var a: Float | Int = 2.5
+				b := 1
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Float | Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::CoercibleNumeric
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.Float(2.5)).ToValue()
+	l1 = (value.SmallInt(1)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.ModuloVal(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"resolve dynamic modulo float64": {
+			input: `
+				a := 2.5f64
+				b := 1f64
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float64 // var a: Std::Float64
+	_ = l0
+	var l1 value.Float64 // var b: Std::Float64
+	_ = l1
+	var l2 value.Float64 // var c: Std::Float64
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float64(2.5)
+	l1 = value.Float64(1)
+	l2 = (l0).ModuloFloat64(l1)
+}
+`,
+		},
+
+		"resolve dynamic modulo bigfloat smallint": {
+			input: `
+				a := 2.5bf
+				val b = 1
+				c := a % b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float32 // var a: Std::Float32
+	_ = l0
+	var l1 value.Float32 // var b: Std::Float32
+	_ = l1
+	var l2 value.Float32 // var c: Std::Float32
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float32(2.5)
+	l1 = value.Float32(1)
+	l2 = (l0).ModuloFloat32(l1)
+}
+`,
+		},
+
 		"resolve dynamic modulo values": {
 			input: `
 				var a: Float | Int = 2.5

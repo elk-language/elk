@@ -11059,21 +11059,21 @@ func (c *GoCompiler) compileModuloFloat(left, right *goValue, typ types.Type, lo
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).ModuloSmallInt(%s)", left.value, narrowRight.value),
-			left.elkType,
+			typ,
 			value.FetchGoType("value.Float"),
 			left, narrowRight,
 		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).ModuloFloat(%s)", left.value, narrowRight.value),
-			left.elkType,
+			typ,
 			value.FetchGoType("value.Float"),
 			left, narrowRight,
 		)
 	case "*value.BigFloat":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).ModuloBigFloat(%s)", left.value, narrowRight.value),
-			narrowRight.elkType,
+			typ,
 			value.FetchGoType("*value.BigFloat"),
 			left, narrowRight,
 		)
@@ -11083,8 +11083,8 @@ func (c *GoCompiler) compileModuloFloat(left, right *goValue, typ types.Type, lo
 		valRight := c.convertToValue(right)
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).ModuloInt(%s)", left.value, valRight.value),
-			left.elkType,
-			goValueType,
+			typ,
+			value.FetchGoType("value.Float"),
 			left, valRight,
 		)
 	}

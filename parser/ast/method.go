@@ -365,32 +365,47 @@ func (n *MethodDefinitionNode) Inspect() string {
 		indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
 	}
 
-	buff.WriteString(",\n  type_parameters: %[\n")
-	for i, element := range n.TypeParameters {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  type_parameters: %[")
+	if len(n.TypeParameters) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.TypeParameters {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
-	}
-	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  parameters: %[\n")
-	for i, element := range n.Parameters {
-		if i != 0 {
-			buff.WriteString(",\n")
-		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
-	buff.WriteString(",\n  body: %[\n")
-	for i, element := range n.Body {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  parameters: %[")
+	if len(n.Parameters) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Parameters {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
+
+	buff.WriteString(",\n  body: %[")
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Body {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
+		}
+
+		buff.WriteString("\n  ")
+	}
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -598,23 +613,33 @@ func (n *InitDefinitionNode) Inspect() string {
 		indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
 	}
 
-	buff.WriteString(",\n  parameters: %[\n")
-	for i, element := range n.Parameters {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  parameters: %[")
+	if len(n.Parameters) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Parameters {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
-	}
-	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  body: %[\n")
-	for i, element := range n.Body {
-		if i != 0 {
-			buff.WriteString(",\n")
-		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
+
+	buff.WriteString(",\n  body: %[")
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Body {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
+		}
+
+		buff.WriteString("\n  ")
+	}
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -850,23 +875,33 @@ func (n *MethodSignatureDefinitionNode) Inspect() string {
 		indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
 	}
 
-	buff.WriteString(",\n  type_parameters: %[\n")
-	for i, element := range n.TypeParameters {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  type_parameters: %[")
+	if len(n.TypeParameters) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.TypeParameters {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
-	}
-	buff.WriteString("\n  ]")
 
-	buff.WriteString(",\n  parameters: %[\n")
-	for i, element := range n.Parameters {
-		if i != 0 {
-			buff.WriteString(",\n")
-		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
+
+	buff.WriteString(",\n  parameters: %[")
+	if len(n.Parameters) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Parameters {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
+		}
+
+		buff.WriteString("\n  ")
+	}
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -1095,14 +1130,20 @@ func (n *AliasDeclarationNode) Inspect() string {
 	buff.WriteString("Std::Elk::AST::AliasDeclarationNode{\n")
 
 	fmt.Fprintf(&buff, "  location: %s,\n", (*value.Location)(n.loc).Inspect())
-	buff.WriteString("  entries: %[\n")
-	for i, element := range n.Entries {
-		if i != 0 {
-			buff.WriteString(",\n")
+
+	buff.WriteString("  entries: %[")
+	if len(n.Entries) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Entries {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -1229,14 +1270,19 @@ func (n *GetterDeclarationNode) Inspect() string {
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
-	buff.WriteString(",\n  entries: %[\n")
-	for i, element := range n.Entries {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  entries: %[")
+	if len(n.Entries) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Entries {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -1359,14 +1405,19 @@ func (n *SetterDeclarationNode) Inspect() string {
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
-	buff.WriteString(",\n  entries: %[\n")
-	for i, element := range n.Entries {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  entries: %[")
+	if len(n.Entries) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Entries {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -1448,14 +1499,19 @@ func (n *AttrDeclarationNode) Inspect() string {
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
-	buff.WriteString(",\n  entries: %[\n")
-	for i, element := range n.Entries {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  entries: %[")
+	if len(n.Entries) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Entries {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

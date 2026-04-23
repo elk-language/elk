@@ -191,23 +191,31 @@ func (n *MacroDefinitionNode) Inspect() string {
 		indent.IndentStringFromSecondLine(&buff, n.ReturnType.Inspect(), 1)
 	}
 
-	buff.WriteString(",\n  parameters: %[\n")
-	for i, element := range n.Parameters {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  parameters: %[")
+	if len(n.Parameters) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Parameters {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
-	buff.WriteString(",\n  body: %[\n")
-	for i, element := range n.Body {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  body: %[")
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Body {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -411,23 +419,31 @@ func (n *ScopedMacroCallNode) Inspect() string {
 	buff.WriteString(",\n  macro_name: ")
 	indent.IndentStringFromSecondLine(&buff, n.MacroName.Inspect(), 1)
 
-	buff.WriteString(",\n  positional_arguments: %[\n")
-	for i, element := range n.PositionalArguments {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  positional_arguments: %[")
+	if len(n.PositionalArguments) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.PositionalArguments {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
-	buff.WriteString(",\n  named_arguments: %[\n")
-	for i, element := range n.NamedArguments {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  named_arguments: %[")
+	if len(n.NamedArguments) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.NamedArguments {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	fmt.Fprintf(&buff, ",\n  kind: %s", value.UInt8(n.Kind).Inspect())
 
@@ -629,23 +645,31 @@ func (n *MacroCallNode) Inspect() string {
 	buff.WriteString(",\n  macro_name: ")
 	indent.IndentStringFromSecondLine(&buff, n.MacroName.Inspect(), 1)
 
-	buff.WriteString(",\n  positional_arguments: %[\n")
-	for i, element := range n.PositionalArguments {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  positional_arguments: %[")
+	if len(n.PositionalArguments) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.PositionalArguments {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
-	buff.WriteString(",\n  named_arguments: %[\n")
-	for i, element := range n.NamedArguments {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  named_arguments: %[")
+	if len(n.NamedArguments) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.NamedArguments {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	fmt.Fprintf(&buff, ",\n  kind: %s", value.UInt8(n.Kind).Inspect())
 
@@ -823,23 +847,31 @@ func (n *ReceiverlessMacroCallNode) Inspect() string {
 	buff.WriteString(",\n  macro_name: ")
 	indent.IndentStringFromSecondLine(&buff, n.MacroName.Inspect(), 1)
 
-	buff.WriteString(",\n  positional_arguments: %[\n")
-	for i, element := range n.PositionalArguments {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  positional_arguments: %[")
+	if len(n.PositionalArguments) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.PositionalArguments {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
-	buff.WriteString(",\n  named_arguments: %[\n")
-	for i, element := range n.NamedArguments {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  named_arguments: %[")
+	if len(n.NamedArguments) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.NamedArguments {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	fmt.Fprintf(&buff, ",\n  kind: %s", value.UInt8(n.Kind).Inspect())
 

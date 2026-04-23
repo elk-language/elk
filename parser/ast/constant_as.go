@@ -88,8 +88,7 @@ func (n *ConstantAsNode) Inspect() string {
 	buff.WriteString(",\n  constant: ")
 	indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
 
-	buff.WriteString(",\n  as_name: ")
-	buff.WriteString(n.AsName)
+	fmt.Fprintf(&buff, ",\n  as_name: %q", n.AsName)
 
 	buff.WriteString("\n}")
 

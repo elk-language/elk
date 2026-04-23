@@ -141,7 +141,7 @@ func (*PublicConstantNode) DirectClass() *value.Class {
 
 func (n *PublicConstantNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::PublicConstantNode{location: %s, value: %s}",
+		"Std::Elk::AST::PublicConstantNode{location: %s, value: %q}",
 		(*value.Location)(n.loc).Inspect(),
 		n.Value,
 	)
@@ -221,7 +221,7 @@ func (*PrivateConstantNode) DirectClass() *value.Class {
 
 func (n *PrivateConstantNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::PrivateConstantNode{location: %s, value: %s}",
+		"Std::Elk::AST::PrivateConstantNode{location: %s, value: %q}",
 		(*value.Location)(n.loc).Inspect(),
 		n.Value,
 	)
@@ -313,9 +313,7 @@ func (n *PublicConstantAsNode) Inspect() string {
 	buff.WriteString(",\n  target: ")
 	indent.IndentStringFromSecondLine(&buff, n.Target.Inspect(), 1)
 
-	buff.WriteString(",\n  as_name: ")
-	buff.WriteString(n.AsName)
-
+	fmt.Fprintf(&buff, ",\n  as_name: %q", n.AsName)
 	buff.WriteString("\n}")
 
 	return buff.String()

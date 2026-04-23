@@ -107,7 +107,7 @@ func (*PublicIdentifierNode) DirectClass() *value.Class {
 
 func (n *PublicIdentifierNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::PublicIdentifierNode{location: %s, value: %s}",
+		"Std::Elk::AST::PublicIdentifierNode{location: %s, value: %q}",
 		(*value.Location)(n.loc).Inspect(),
 		n.Value,
 	)
@@ -187,7 +187,7 @@ func (*PrivateIdentifierNode) DirectClass() *value.Class {
 
 func (n *PrivateIdentifierNode) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Elk::AST::PrivateIdentifierNode{location: %s, value: %s}",
+		"Std::Elk::AST::PrivateIdentifierNode{location: %s, value: %q}",
 		(*value.Location)(n.loc).Inspect(),
 		n.Value,
 	)
