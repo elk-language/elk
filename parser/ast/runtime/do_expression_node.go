@@ -15,29 +15,26 @@ func initDoExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argBody []ast.StatementNode
 			if !args[1].IsUndefined() {
-				argBodyTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-				argBody = make([]ast.StatementNode, argBodyTuple.Length())
-				for i, el := range *argBodyTuple {
-					argBody[i] = el.MustReference().(ast.StatementNode)
-				}
+				argBodyTuple := args[1].AsReference().(value.ArrayTuple)
+				argBody = value.TransformArrayTupleIntoNativeArrayTuple(argBodyTuple, func(v value.Value) ast.StatementNode {
+					return v.AsReference().(ast.StatementNode)
+				}).ToSlice()
 			}
 
 			var argCatches []*ast.CatchNode
 			if !args[2].IsUndefined() {
-				argCatchesTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-				argCatches = make([]*ast.CatchNode, argCatchesTuple.Length())
-				for i, el := range *argCatchesTuple {
-					argCatches[i] = el.MustReference().(*ast.CatchNode)
-				}
+				argCatchesTuple := args[2].AsReference().(value.ArrayTuple)
+				argCatches = value.TransformArrayTupleIntoNativeArrayTuple(argCatchesTuple, func(v value.Value) *ast.CatchNode {
+					return v.AsReference().(*ast.CatchNode)
+				}).ToSlice()
 			}
 
 			var argFinally []ast.StatementNode
 			if !args[3].IsUndefined() {
-				argFinallyTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
-				argFinally = make([]ast.StatementNode, argFinallyTuple.Length())
-				for i, el := range *argFinallyTuple {
-					argFinally[i] = el.MustReference().(ast.StatementNode)
-				}
+				argFinallyTuple := args[3].AsReference().(value.ArrayTuple)
+				argFinally = value.TransformArrayTupleIntoNativeArrayTuple(argFinallyTuple, func(v value.Value) ast.StatementNode {
+					return v.AsReference().(ast.StatementNode)
+				}).ToSlice()
 			}
 
 			var argLoc *position.Location
@@ -63,15 +60,8 @@ func initDoExpressionNode() {
 		"body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
-
-			collection := self.Body
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Body)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 
@@ -80,15 +70,8 @@ func initDoExpressionNode() {
 		"catches",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
-
-			collection := self.Catches
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Catches)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 
@@ -97,15 +80,8 @@ func initDoExpressionNode() {
 		"finally_body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoExpressionNode)
-
-			collection := self.Finally
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Finally)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

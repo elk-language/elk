@@ -13,11 +13,10 @@ func initUnionTypeNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argElementsTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-			argElements := make([]ast.TypeNode, argElementsTuple.Length())
-			for i, el := range *argElementsTuple {
-				argElements[i] = el.MustReference().(ast.TypeNode)
-			}
+			argElementsTuple := args[1].AsReference().(value.ArrayTuple)
+			argElements := value.TransformArrayTupleIntoNativeArrayTuple(argElementsTuple, func(v value.Value) ast.TypeNode {
+				return v.AsReference().(ast.TypeNode)
+			}).ToSlice()
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -40,15 +39,8 @@ func initUnionTypeNode() {
 		"elements",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnionTypeNode)
-
-			collection := self.Elements
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Elements)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

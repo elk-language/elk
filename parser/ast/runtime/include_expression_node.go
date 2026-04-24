@@ -13,11 +13,10 @@ func initIncludeExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argConstantsTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-			argConstants := make([]ast.ComplexConstantNode, argConstantsTuple.Length())
-			for i, el := range *argConstantsTuple {
-				argConstants[i] = el.MustReference().(ast.ComplexConstantNode)
-			}
+			argConstantsTuple := args[1].AsReference().(value.ArrayTuple)
+			argConstants := value.TransformArrayTupleIntoNativeArrayTuple(argConstantsTuple, func(v value.Value) ast.ComplexConstantNode {
+				return v.AsReference().(ast.ComplexConstantNode)
+			}).ToSlice()
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -40,14 +39,8 @@ func initIncludeExpressionNode() {
 		"constants",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.IncludeExpressionNode)
-
-			collection := self.Constants
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
+			entries := value.CastNativeArrayTuplePtr(&self.Constants)
+			return entries.ToValue(), value.Undefined
 
 		},
 	)

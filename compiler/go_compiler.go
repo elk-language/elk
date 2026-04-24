@@ -8198,7 +8198,7 @@ func (c *GoCompiler) compileBitwiseAnd(node *ast.BinaryExpressionNode, valueIsIg
 	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
-	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+	case "value.UInt", "value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s) & (%s)", narrowLeft.value, c.valueToNarrowerType(right).value),
@@ -8348,7 +8348,7 @@ func (c *GoCompiler) compileBitwiseOr(node *ast.BinaryExpressionNode, valueIsIgn
 	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
-	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+	case "value.UInt", "value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s) | (%s)", narrowLeft.value, c.valueToNarrowerType(right).value),
@@ -8423,7 +8423,7 @@ func (c *GoCompiler) compileBitwiseXor(node *ast.BinaryExpressionNode, valueIsIg
 	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
-	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+	case "value.UInt", "value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s) ^ (%s)", narrowLeft.value, c.valueToNarrowerType(right).value),

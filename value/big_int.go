@@ -1305,24 +1305,14 @@ func (i *BigInt) BitwiseOrVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			result := ToElkBigInt((&big.Int{}).Or(i.ToGoBigInt(), o.ToGoBigInt()))
-			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Undefined
-			}
-			return Ref(result), Undefined
+			return i.BitwiseOrBigInt(o), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		oBigInt := big.NewInt(int64(other.AsSmallInt()))
-		oBigInt.Or(i.ToGoBigInt(), oBigInt)
-		result := ToElkBigInt(oBigInt)
-		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Undefined
-		}
-		return Ref(result), Undefined
+		return i.BitwiseOrSmallInt(other.AsSmallInt()), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -1337,7 +1327,7 @@ func (i *BigInt) BitwiseOrInt(other Value) Value {
 
 func (i *BigInt) BitwiseOrSmallInt(other SmallInt) Value {
 	oBigInt := big.NewInt(int64(other))
-	oBigInt.And(i.ToGoBigInt(), oBigInt)
+	oBigInt.Or(i.ToGoBigInt(), oBigInt)
 	result := ToElkBigInt(oBigInt)
 	if result.IsSmallInt() {
 		return result.ToSmallInt().ToValue()
@@ -1346,7 +1336,7 @@ func (i *BigInt) BitwiseOrSmallInt(other SmallInt) Value {
 }
 
 func (i *BigInt) BitwiseOrBigInt(other *BigInt) Value {
-	result := ToElkBigInt((&big.Int{}).And(i.ToGoBigInt(), other.ToGoBigInt()))
+	result := ToElkBigInt((&big.Int{}).Or(i.ToGoBigInt(), other.ToGoBigInt()))
 	if result.IsSmallInt() {
 		return result.ToSmallInt().ToValue()
 	}
@@ -1359,27 +1349,44 @@ func (i *BigInt) BitwiseXorVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			result := ToElkBigInt((&big.Int{}).Xor(i.ToGoBigInt(), o.ToGoBigInt()))
-			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Undefined
-			}
-			return Ref(result), Undefined
+			return i.BitwiseXorBigInt(o), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		oBigInt := big.NewInt(int64(other.AsSmallInt()))
-		oBigInt.Xor(i.ToGoBigInt(), oBigInt)
-		result := ToElkBigInt(oBigInt)
-		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Undefined
-		}
-		return Ref(result), Undefined
+		return i.BitwiseXorSmallInt(other.AsSmallInt()), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i *BigInt) BitwiseXorInt(other Value) Value {
+	if other.IsSmallInt() {
+		return i.BitwiseXorSmallInt(other.AsSmallInt())
+	}
+	return i.BitwiseXorBigInt((*BigInt)(other.Pointer()))
+}
+
+// Perform bitwise XOR with a SmallInt and return the result
+func (i *BigInt) BitwiseXorSmallInt(other SmallInt) Value {
+	oBigInt := big.NewInt(int64(other))
+	oBigInt.Xor(i.ToGoBigInt(), oBigInt)
+	result := ToElkBigInt(oBigInt)
+	if result.IsSmallInt() {
+		return result.ToSmallInt().ToValue()
+	}
+	return result.ToValue()
+}
+
+// Perform bitwise XOR with another BigInt and return the result
+func (i *BigInt) BitwiseXorBigInt(other *BigInt) Value {
+	result := ToElkBigInt((&big.Int{}).Xor(i.ToGoBigInt(), other.ToGoBigInt()))
+	if result.IsSmallInt() {
+		return result.ToSmallInt().ToValue()
+	}
+	return result.ToValue()
 }
 
 func (*BigInt) Class() *Class {

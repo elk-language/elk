@@ -21,8 +21,8 @@ var _ HashSet = &NativeHashSet[value.String]{}
 
 // UNSAFE! Cast a set with native go types to a map with corresponding Elk types.
 // This is EXTREMELY unsafe, use it only if `I` and `O` have the same
-// underlying types eg. `castNativeSet[string, value.String](s)`, this will convert `map[string]struct{}` to `map[value.String]struct{}`
-func castNativeSet[
+// underlying types eg. `unsafeCastNativeSet[string, value.String](s)`, this will convert `map[string]struct{}` to `map[value.String]struct{}`
+func unsafeCastNativeSet[
 	I comparable,
 	O value.ComparableValueInterface,
 ](m map[I]struct{}) map[O]struct{} {
@@ -31,13 +31,13 @@ func castNativeSet[
 
 // UNSAFE! Cast a map with native go types to a new Elk `NativeHashSet` with corresponding Elk types.
 // This is EXTREMELY unsafe, use it only if `I` and `O` have the same
-// underlying types eg. `NewCastNativeHashSet[string, value.String](s)`, this will convert `map[string]struct{}` to `*NativeHashSet[value.String]`
-func NewCastNativeHashSet[
+// underlying types eg. `NewUnsafeCastNativeHashSet[string, value.String](s)`, this will convert `map[string]struct{}` to `*NativeHashSet[value.String]`
+func NewUnsafeCastNativeHashSet[
 	I comparable,
 	O value.ComparableValueInterface,
 ](m map[I]struct{}) *NativeHashSet[O] {
 	return &NativeHashSet[O]{
-		m: castNativeSet[I, O](m),
+		m: unsafeCastNativeSet[I, O](m),
 	}
 }
 
@@ -45,10 +45,10 @@ func NewCastNativeHashSet[
 // using the given function.
 // eg.
 //
-//	TransformIntoNativeHashSet(m, func(v string (value.String) {
+//	TransformMapIntoNativeHashSet(m, func(v string (value.String) {
 //		return value.String(k)
 //	})
-func TransformIntoNativeHashSet[
+func TransformMapIntoNativeHashSet[
 	I comparable,
 	O value.ComparableValueInterface,
 ](

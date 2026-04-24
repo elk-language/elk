@@ -21,8 +21,8 @@ var _ HashMap = &NativeHashMap[value.String, value.String]{}
 
 // UNSAFE! Cast a map with native go types to a map with corresponding Elk types.
 // This is EXTREMELY unsafe, use it only if `IK`, OK` and `IV`, `OV` have the same
-// underlying types eg. `castNativeMap[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `map[value.String]value.UInt8`
-func castNativeMap[
+// underlying types eg. `unsafeCastNativeMap[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `map[value.String]value.UInt8`
+func unsafeCastNativeMap[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,
@@ -33,15 +33,15 @@ func castNativeMap[
 
 // UNSAFE! Cast a map with native go types to a new Elk `NativeHashMap` with corresponding Elk types.
 // This is EXTREMELY unsafe, use it only if `IK`, OK` and `IV`, `OV` have the same
-// underlying types eg. `NewCastNativeHashMap[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `*NativeHashMap[value.String, value.UInt8]`
-func NewCastNativeHashMap[
+// underlying types eg. `NewUnsafeCastNativeHashMap[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `*NativeHashMap[value.String, value.UInt8]`
+func NewUnsafeCastNativeHashMap[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,
 	OV value.ValueInterface,
 ](m map[IK]IV) *NativeHashMap[OK, OV] {
 	return &NativeHashMap[OK, OV]{
-		m: castNativeMap[IK, IV, OK, OV](m),
+		m: unsafeCastNativeMap[IK, IV, OK, OV](m),
 	}
 }
 
@@ -49,10 +49,10 @@ func NewCastNativeHashMap[
 // using the given function.
 // eg.
 //
-//	TransformIntoNativeHashMap(m, func(k string, v uint8) (value.String, value.UInt8) {
+//	TransformMapIntoNativeHashMap(m, func(k string, v uint8) (value.String, value.UInt8) {
 //		return value.String(k), value.UInt8(v)
 //	})
-func TransformIntoNativeHashMap[
+func TransformMapIntoNativeHashMap[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,

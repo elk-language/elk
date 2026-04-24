@@ -22,10 +22,10 @@ var _ HashMap = &NativeKeyHashMap[value.String]{}
 // using the given function.
 // eg.
 //
-//	TransformIntoNativeKeyHashMap(m, func(k string, v uint8) (value.String, value.Value) {
+//	TransformMapIntoNativeKeyHashMap(m, func(k string, v uint8) (value.String, value.Value) {
 //		return value.String(k), value.UInt8(v).ToValue()
 //	})
-func TransformIntoNativeKeyHashMap[
+func TransformMapIntoNativeKeyHashMap[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,

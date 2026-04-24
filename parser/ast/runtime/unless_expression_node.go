@@ -17,20 +17,18 @@ func initUnlessExpressionNode() {
 
 			var argThenBody []ast.StatementNode
 			if !args[2].IsUndefined() {
-				argThenBodyTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-				argThenBody = make([]ast.StatementNode, argThenBodyTuple.Length())
-				for i, el := range *argThenBodyTuple {
-					argThenBody[i] = el.MustReference().(ast.StatementNode)
-				}
+				argThenBodyTuple := args[2].AsReference().(value.ArrayTuple)
+				argThenBody = value.TransformArrayTupleIntoNativeArrayTuple(argThenBodyTuple, func(v value.Value) ast.StatementNode {
+					return v.AsReference().(ast.StatementNode)
+				}).ToSlice()
 			}
 
 			var argElseBody []ast.StatementNode
 			if !args[3].IsUndefined() {
-				argElseBodyTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
-				argElseBody = make([]ast.StatementNode, argElseBodyTuple.Length())
-				for i, el := range *argElseBodyTuple {
-					argElseBody[i] = el.MustReference().(ast.StatementNode)
-				}
+				argElseBodyTuple := args[3].AsReference().(value.ArrayTuple)
+				argElseBody = value.TransformArrayTupleIntoNativeArrayTuple(argElseBodyTuple, func(v value.Value) ast.StatementNode {
+					return v.AsReference().(ast.StatementNode)
+				}).ToSlice()
 			}
 
 			var argLoc *position.Location
@@ -67,15 +65,8 @@ func initUnlessExpressionNode() {
 		"then_body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnlessExpressionNode)
-
-			collection := self.ThenBody
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.ThenBody)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 
@@ -84,15 +75,8 @@ func initUnlessExpressionNode() {
 		"else_body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UnlessExpressionNode)
-
-			collection := self.ElseBody
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.ElseBody)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

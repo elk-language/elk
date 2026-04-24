@@ -19,10 +19,10 @@ var _ HashRecord = NativeKeyHashRecord[value.String]{}
 // using the given function.
 // eg.
 //
-//	TransformIntoNativeKeyHashRecord(m, func(k string, v uint8) (value.String, value.Value) {
+//	TransformMapIntoNativeKeyHashRecord(m, func(k string, v uint8) (value.String, value.Value) {
 //		return value.String(k), value.UInt8(v).ToValue()
 //	})
-func TransformIntoNativeKeyHashRecord[
+func TransformMapIntoNativeKeyHashRecord[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,

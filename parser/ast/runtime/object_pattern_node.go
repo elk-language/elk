@@ -17,11 +17,10 @@ func initObjectPatternNode() {
 
 			var argAttributes []ast.PatternNode
 			if !args[2].IsUndefined() {
-				argAttributesTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-				argAttributes = make([]ast.PatternNode, argAttributesTuple.Length())
-				for i, el := range *argAttributesTuple {
-					argAttributes[i] = el.MustReference().(ast.PatternNode)
-				}
+				argAttributesTuple := args[2].AsReference().(value.ArrayTuple)
+				argAttributes = value.TransformArrayTupleIntoNativeArrayTuple(argAttributesTuple, func(v value.Value) ast.PatternNode {
+					return v.AsReference().(ast.PatternNode)
+				}).ToSlice()
 			}
 
 			var argLoc *position.Location
@@ -56,15 +55,8 @@ func initObjectPatternNode() {
 		"attributes",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ObjectPatternNode)
-
-			collection := self.Attributes
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Attributes)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

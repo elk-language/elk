@@ -4243,6 +4243,16 @@ func BitwiseXorVal(left, right Value) (result, err Value) {
 	}
 }
 
+func BitwiseXorInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseXorInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseXorInt(right)
+}
+
 // Call `next`
 func Next(val Value) (result, err Value) {
 	if !val.IsReference() {

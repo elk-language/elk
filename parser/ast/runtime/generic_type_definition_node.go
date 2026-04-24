@@ -14,11 +14,12 @@ func initGenericTypeDefinitionNode() {
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argConstant := args[1].MustReference().(ast.ComplexConstantNode)
-			argTypeParametersTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-			argTypeParameters := make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
-			for i, el := range *argTypeParametersTuple {
-				argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
-			}
+
+			argTypeParametersTuple := args[2].AsReference().(value.ArrayTuple)
+			argTypeParameters := value.TransformArrayTupleIntoNativeArrayTuple(argTypeParametersTuple, func(v value.Value) ast.TypeParameterNode {
+				return v.AsReference().(ast.TypeParameterNode)
+			}).ToSlice()
+
 			argTypeNode := args[3].MustReference().(ast.TypeNode)
 
 			var argDocComment string
@@ -61,15 +62,8 @@ func initGenericTypeDefinitionNode() {
 		"type_parameters",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericTypeDefinitionNode)
-
-			collection := self.TypeParameters
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.TypeParameters)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

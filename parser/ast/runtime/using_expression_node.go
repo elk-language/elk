@@ -13,11 +13,10 @@ func initUsingExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argEntriesTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-			argEntries := make([]ast.UsingEntryNode, argEntriesTuple.Length())
-			for i, el := range *argEntriesTuple {
-				argEntries[i] = el.MustReference().(ast.UsingEntryNode)
-			}
+			argEntriesTuple := args[1].AsReference().(value.ArrayTuple)
+			argEntries := value.TransformArrayTupleIntoNativeArrayTuple(argEntriesTuple, func(v value.Value) ast.UsingEntryNode {
+				return v.AsReference().(ast.UsingEntryNode)
+			}).ToSlice()
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -40,15 +39,8 @@ func initUsingExpressionNode() {
 		"entries",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UsingExpressionNode)
-
-			collection := self.Entries
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Entries)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

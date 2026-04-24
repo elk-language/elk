@@ -13,11 +13,10 @@ func initLoopExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argThenBodyTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-			argThenBody := make([]ast.StatementNode, argThenBodyTuple.Length())
-			for i, el := range *argThenBodyTuple {
-				argThenBody[i] = el.MustReference().(ast.StatementNode)
-			}
+			argThenBodyTuple := args[1].AsReference().(value.ArrayTuple)
+			argThenBody := value.TransformArrayTupleIntoNativeArrayTuple(argThenBodyTuple, func(v value.Value) ast.StatementNode {
+				return v.AsReference().(ast.StatementNode)
+			}).ToSlice()
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -40,15 +39,8 @@ func initLoopExpressionNode() {
 		"then_body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.LoopExpressionNode)
-
-			collection := self.ThenBody
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.ThenBody)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

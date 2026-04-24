@@ -16,19 +16,23 @@ var _ ArrayList = &NativeArrayList[String]{}
 
 // UNSAFE! Cast a slice with native go types to an Elk `NativeArrayList` with corresponding Elk types.
 // This is EXTREMELY unsafe, use it only if `I` and `O` have the same
-// underlying type eg. `CastNativeArrayList[string, value.String](slice)`, this will convert `[]string` to `value.NativeArrayList[value.String]`
-func CastNativeArrayList[I any, O ValueInterface](slice []I) NativeArrayList[O] {
+// underlying type eg. `UnsafeCastNativeArrayList[string, value.String](slice)`, this will convert `[]string` to `value.NativeArrayList[value.String]`
+func UnsafeCastNativeArrayList[I any, O ValueInterface](slice []I) NativeArrayList[O] {
 	return *(*NativeArrayList[O])(unsafe.Pointer(&slice))
 }
 
-// Transform a map with native go types to a new Elk `NativeArrayList` with corresponding Elk types
+func CastNativeArrayListPtr[E ValueInterface](slice *[]E) *NativeArrayList[E] {
+	return (*NativeArrayList[E])(slice)
+}
+
+// Transform a slice with native go types to a new Elk `NativeArrayList` with corresponding Elk types
 // using the given function.
 // eg.
 //
-//	TransformIntoNativeArrayList(m, func(v uint8) (value.UInt8) {
+//	TransformSliceIntoNativeArrayList(m, func(v uint8) (value.UInt8) {
 //		return value.UInt8(v)
 //	})
-func TransformIntoNativeArrayList[
+func TransformSliceIntoNativeArrayList[
 	I any,
 	O ValueInterface,
 ](
@@ -37,6 +41,30 @@ func TransformIntoNativeArrayList[
 ) *NativeArrayList[O] {
 	newList := NewNativeArrayList[O](len(slice))
 	for i, v := range slice {
+		ov := fn(v)
+		newList.SetAt(i, ov)
+	}
+	return newList
+}
+
+// Transform any elk ArrayList to a new Elk `NativeArrayList` with Elk types
+// using the given function.
+// eg.
+//
+//	TransformSliceIntoNativeArrayList(m, func(v uint8) (value.UInt8) {
+//		return value.UInt8(v)
+//	})
+func TransformArrayListIntoNativeArrayList[T ValueInterface](
+	list ArrayList,
+	fn func(v Value) T,
+) *NativeArrayList[T] {
+	switch list := list.(type) {
+	case *NativeArrayList[T]:
+		return list
+	}
+
+	newList := NewNativeArrayList[T](list.Length())
+	for i, v := range list.Elements() {
 		ov := fn(v)
 		newList.SetAt(i, ov)
 	}
@@ -63,6 +91,10 @@ func NewNativeArrayListWithElementsAndTotalCapacity[T ValueInterface](capacity i
 	l := make(NativeArrayList[T], len(elements), capacity)
 	copy(l, elements)
 	return &l
+}
+
+func (l *NativeArrayList[T]) ToSlice() []T {
+	return *l
 }
 
 func (l *NativeArrayList[T]) NewArrayList(capacity int) ArrayList {

@@ -15,19 +15,17 @@ func initSwitchExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argValue := args[1].MustReference().(ast.ExpressionNode)
 
-			argCasesTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-			argCases := make([]*ast.CaseNode, argCasesTuple.Length())
-			for i, el := range *argCasesTuple {
-				argCases[i] = el.MustReference().(*ast.CaseNode)
-			}
+			argCasesTuple := args[2].AsReference().(value.ArrayTuple)
+			argCases := value.TransformArrayTupleIntoNativeArrayTuple(argCasesTuple, func(v value.Value) *ast.CaseNode {
+				return v.AsReference().(*ast.CaseNode)
+			}).ToSlice()
 
 			var argElseBody []ast.StatementNode
 			if !args[3].IsUndefined() {
-				argElseBodyTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
-				argElseBody = make([]ast.StatementNode, argElseBodyTuple.Length())
-				for i, el := range *argElseBodyTuple {
-					argElseBody[i] = el.MustReference().(ast.StatementNode)
-				}
+				argElseBodyTuple := args[3].AsReference().(value.ArrayTuple)
+				argElseBody = value.TransformArrayTupleIntoNativeArrayTuple(argElseBodyTuple, func(v value.Value) ast.StatementNode {
+					return v.AsReference().(ast.StatementNode)
+				}).ToSlice()
 			}
 
 			var argLoc *position.Location
@@ -64,15 +62,8 @@ func initSwitchExpressionNode() {
 		"cases",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SwitchExpressionNode)
-
-			collection := self.Cases
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Cases)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 
@@ -81,15 +72,8 @@ func initSwitchExpressionNode() {
 		"else_body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SwitchExpressionNode)
-
-			collection := self.ElseBody
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.ElseBody)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

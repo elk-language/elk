@@ -16,20 +16,18 @@ func initInterfaceDeclarationNode() {
 			argConstant := args[1].MustReference().(ast.ExpressionNode)
 			var argTypeParameters []ast.TypeParameterNode
 			if !args[2].IsUndefined() {
-				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
-				for i, el := range *argTypeParametersTuple {
-					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
-				}
+				argTypeParametersTuple := args[2].AsReference().(value.ArrayTuple)
+				argTypeParameters = value.TransformArrayTupleIntoNativeArrayTuple(argTypeParametersTuple, func(v value.Value) ast.TypeParameterNode {
+					return v.AsReference().(ast.TypeParameterNode)
+				}).ToSlice()
 			}
 
 			var argBody []ast.StatementNode
 			if !args[3].IsUndefined() {
-				argBodyTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
-				argBody = make([]ast.StatementNode, argBodyTuple.Length())
-				for i, el := range *argBodyTuple {
-					argBody[i] = el.MustReference().(ast.StatementNode)
-				}
+				argBodyTuple := args[3].AsReference().(value.ArrayTuple)
+				argBody = value.TransformArrayTupleIntoNativeArrayTuple(argBodyTuple, func(v value.Value) ast.StatementNode {
+					return v.AsReference().(ast.StatementNode)
+				}).ToSlice()
 			}
 
 			var argDocComment string
@@ -85,15 +83,8 @@ func initInterfaceDeclarationNode() {
 		"type_parameters",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
-
-			collection := self.TypeParameters
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.TypeParameters)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 
@@ -102,15 +93,8 @@ func initInterfaceDeclarationNode() {
 		"body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterfaceDeclarationNode)
-
-			collection := self.Body
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Body)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

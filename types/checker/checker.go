@@ -1690,6 +1690,18 @@ func (c *Checker) checkArithmeticBinaryOperator(
 			node.SetType(c.StdBigFloat())
 			return node
 		}
+	case "Std::BigFloat":
+		switch rightClassType.Name() {
+		case "Std::Int":
+			node.SetType(c.StdBigFloat())
+			return node
+		case "Std::Float":
+			node.SetType(c.StdBigFloat())
+			return node
+		case "Std::BigFloat":
+			node.SetType(c.StdBigFloat())
+			return node
+		}
 	}
 
 	return c.checkBinaryOpMethodCall(

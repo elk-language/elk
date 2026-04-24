@@ -15,11 +15,11 @@ func initArrayListLiteralNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argElements []ast.ExpressionNode
 			if !args[1].IsUndefined() {
-				arg0Tuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-				argElements = make([]ast.ExpressionNode, arg0Tuple.Length())
-				for i, el := range *arg0Tuple {
-					argElements[i] = el.MustReference().(ast.ExpressionNode)
-				}
+				arg0Tuple := args[1].AsReference().(value.ArrayTuple)
+				arg0 := value.TransformArrayTupleIntoNativeArrayTuple(arg0Tuple, func(v value.Value) ast.ExpressionNode {
+					return v.AsReference().(ast.ExpressionNode)
+				})
+				argElements = arg0.ToSlice()
 			}
 
 			var argCapacity ast.ExpressionNode
@@ -49,15 +49,8 @@ func initArrayListLiteralNode() {
 		"elements",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ArrayListLiteralNode)
-
-			collection := self.Elements
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Elements)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

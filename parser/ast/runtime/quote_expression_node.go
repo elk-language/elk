@@ -15,11 +15,10 @@ func initQuoteExpressionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argBody []ast.StatementNode
 			if !args[1].IsUndefined() {
-				argBodyTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-				argBody = make([]ast.StatementNode, argBodyTuple.Length())
-				for i, el := range *argBodyTuple {
-					argBody[i] = el.MustReference().(ast.StatementNode)
-				}
+				argBodyTuple := args[1].AsReference().(value.ArrayTuple)
+				argBody = value.TransformArrayTupleIntoNativeArrayTuple(argBodyTuple, func(v value.Value) ast.StatementNode {
+					return v.AsReference().(ast.StatementNode)
+				}).ToSlice()
 			}
 
 			var argKind ast.QuoteKind
@@ -49,15 +48,8 @@ func initQuoteExpressionNode() {
 		"body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.QuoteExpressionNode)
-
-			collection := self.Body
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Body)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

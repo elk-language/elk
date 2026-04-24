@@ -15,11 +15,10 @@ func initGenericConstantNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argConst := args[1].MustReference().(ast.ComplexConstantNode)
 
-			argArgsTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-			argArgs := make([]ast.TypeNode, argArgsTuple.Length())
-			for i, el := range *argArgsTuple {
-				argArgs[i] = el.MustReference().(ast.TypeNode)
-			}
+			argArgsTuple := args[2].AsReference().(value.ArrayTuple)
+			argArgs := value.TransformArrayTupleIntoNativeArrayTuple(argArgsTuple, func(v value.Value) ast.TypeNode {
+				return v.AsReference().(ast.TypeNode)
+			}).ToSlice()
 
 			var argLoc *position.Location
 			if args[3].IsUndefined() {
@@ -54,15 +53,8 @@ func initGenericConstantNode() {
 		"type_arguments",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericConstantNode)
-
-			collection := self.TypeArguments
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.TypeArguments)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

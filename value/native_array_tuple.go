@@ -16,19 +16,23 @@ var _ ArrayTuple = &NativeArrayTuple[String]{}
 
 // UNSAFE! Cast a slice with native go types to an Elk `NativeArrayTuple` with corresponding Elk types.
 // This is EXTREMELY unsafe, use it only if `I` and `O` have the same
-// underlying type eg. `CastNativeArrayTuple[string, value.String](slice)`, this will convert `[]string` to `value.NativeArrayTuple[value.String]`
-func CastNativeArrayTuple[I any, O ValueInterface](slice []I) NativeArrayTuple[O] {
+// underlying type eg. `UnsafeCastNativeArrayTuple[string, value.String](slice)`, this will convert `[]string` to `value.NativeArrayTuple[value.String]`
+func UnsafeCastNativeArrayTuple[I any, O ValueInterface](slice []I) NativeArrayTuple[O] {
 	return *(*NativeArrayTuple[O])(unsafe.Pointer(&slice))
 }
 
-// Transform a map with native go types to a new Elk `NativeArrayTuple` with corresponding Elk types
+func CastNativeArrayTuplePtr[E ValueInterface](slice *[]E) *NativeArrayTuple[E] {
+	return (*NativeArrayTuple[E])(slice)
+}
+
+// Transform a slice with native go types to a new Elk `NativeArrayTuple` with corresponding Elk types
 // using the given function.
 // eg.
 //
-//	TransformIntoNativeArrayTuple(m, func(v uint8) (value.UInt8) {
+//	TransformSliceIntoNativeArrayTuple(m, func(v uint8) (value.UInt8) {
 //		return value.UInt8(v)
 //	})
-func TransformIntoNativeArrayTuple[
+func TransformSliceIntoNativeArrayTuple[
 	I any,
 	O ValueInterface,
 ](
@@ -37,6 +41,30 @@ func TransformIntoNativeArrayTuple[
 ) *NativeArrayTuple[O] {
 	newList := NewNativeArrayTuple[O](len(slice))
 	for i, v := range slice {
+		ov := fn(v)
+		newList.SetAt(i, ov)
+	}
+	return newList
+}
+
+// Transform any elk ArrayTuple to a new Elk `NativeArrayTuple` with Elk types
+// using the given function.
+// eg.
+//
+//	TransformArrayTupleIntoNativeArrayTuple(m, func(v value.Value) (value.UInt8) {
+//		return value.UInt8(v)
+//	})
+func TransformArrayTupleIntoNativeArrayTuple[T ValueInterface](
+	tuple ArrayTuple,
+	fn func(v Value) T,
+) *NativeArrayTuple[T] {
+	switch tuple := tuple.(type) {
+	case *NativeArrayTuple[T]:
+		return tuple
+	}
+
+	newList := NewNativeArrayTuple[T](tuple.Length())
+	for i, v := range tuple.Elements() {
 		ov := fn(v)
 		newList.SetAt(i, ov)
 	}
@@ -106,6 +134,10 @@ func (*NativeArrayTuple[T]) SingletonClass() *Class {
 
 func (t *NativeArrayTuple[T]) Copy() Reference {
 	return t
+}
+
+func (t *NativeArrayTuple[T]) ToSlice() []T {
+	return *t
 }
 
 func (l *NativeArrayTuple[T]) Elements() iter.Seq2[int, Value] {

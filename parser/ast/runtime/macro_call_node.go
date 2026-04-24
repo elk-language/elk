@@ -23,20 +23,18 @@ func initMacroCallNode() {
 
 			var argPositionalArguments []ast.ExpressionNode
 			if !args[4].IsUndefined() {
-				argPositionalArgumentsTuple := args[4].MustReference().(*value.ArrayTupleOfValue)
-				argPositionalArguments = make([]ast.ExpressionNode, argPositionalArgumentsTuple.Length())
-				for i, el := range *argPositionalArgumentsTuple {
-					argPositionalArguments[i] = el.MustReference().(ast.ExpressionNode)
-				}
+				argPositionalArgumentsTuple := args[4].AsReference().(value.ArrayTuple)
+				argPositionalArguments = value.TransformArrayTupleIntoNativeArrayTuple(argPositionalArgumentsTuple, func(v value.Value) ast.ExpressionNode {
+					return v.AsReference().(ast.ExpressionNode)
+				}).ToSlice()
 			}
 
 			var argNamedArguments []ast.NamedArgumentNode
 			if !args[5].IsUndefined() {
-				argNamedArgumentsTuple := args[5].MustReference().(*value.ArrayTupleOfValue)
-				argNamedArguments = make([]ast.NamedArgumentNode, argNamedArgumentsTuple.Length())
-				for i, el := range *argNamedArgumentsTuple {
-					argNamedArguments[i] = el.MustReference().(ast.NamedArgumentNode)
-				}
+				argNamedArgumentsTuple := args[5].AsReference().(value.ArrayTuple)
+				argNamedArguments = value.TransformArrayTupleIntoNativeArrayTuple(argNamedArgumentsTuple, func(v value.Value) ast.NamedArgumentNode {
+					return v.AsReference().(ast.NamedArgumentNode)
+				}).ToSlice()
 			}
 
 			var argLoc *position.Location
@@ -96,15 +94,8 @@ func initMacroCallNode() {
 		"positional_arguments",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroCallNode)
-
-			collection := self.PositionalArguments
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.PositionalArguments)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 
@@ -113,14 +104,8 @@ func initMacroCallNode() {
 		"named_arguments",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MacroCallNode)
-
-			collection := self.NamedArguments
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
+			entries := value.CastNativeArrayTuplePtr(&self.NamedArguments)
+			return entries.ToValue(), value.Undefined
 
 		},
 	)
