@@ -1129,7 +1129,7 @@ func (c *Checker) checkMethod(
 
 		if parent != nil {
 			baseMethod := c.resolveMethodInNamespace(parent, name)
-			if baseMethod != nil {
+			if baseMethod != nil && name != symbol.S_init {
 				c.checkMethodOverride(
 					checkedMethod,
 					baseMethod,

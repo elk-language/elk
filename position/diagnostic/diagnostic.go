@@ -149,6 +149,20 @@ func (d *Diagnostic) HumanStringWithSourceMap(style bool, colorizer colorizer.Co
 	return buffer.String(), nil
 }
 
+func (d *Diagnostic) HumanStringWithoutSource(style bool, colorizer colorizer.Colorizer) string {
+	var buffer strings.Builder
+	severityColor := d.SeverityColor()
+	if !style {
+		severityColor.DisableColor()
+	}
+
+	buffer.WriteString(d.Severity.Tag(style))
+	buffer.WriteByte(' ')
+	buffer.WriteString(d.Message)
+
+	return buffer.String()
+}
+
 // DiagnosticList is a list of *Errors.
 // The zero value for an DiagnosticList is an empty DiagnosticList ready to use.
 type DiagnosticList []*Diagnostic
@@ -230,6 +244,16 @@ func (dl DiagnosticList) HumanStringWithSourceMap(style bool, colorizer colorize
 		buffer.WriteString("\n\n")
 	}
 	return buffer.String(), nil
+}
+
+func (dl DiagnosticList) HumanStringWithoutSource(style bool, colorizer colorizer.Colorizer) string {
+	var buffer strings.Builder
+	for _, d := range dl {
+		msg := d.HumanStringWithoutSource(style, colorizer)
+		buffer.WriteString(msg)
+		buffer.WriteString("\n\n")
+	}
+	return buffer.String()
 }
 
 // Err returns an error equivalent to this diagnostic list.

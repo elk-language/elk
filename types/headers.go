@@ -439,6 +439,15 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.TryDefineClass("Represents a token produced by the Elk lexer.\n\nA token is a single lexical unit of text\nwith a particular meaning.", false, true, true, false, value.ToSymbol("Token"), objectClass, env)
+			{
+				namespace := namespace.TryDefineMixin("Represents an Elk type.", true, value.ToSymbol("Type"), env)
+				{
+					namespace := namespace.TryDefineClass("Typechecker for Elk source code.", false, true, true, true, value.ToSymbol("Checker"), objectClass, env)
+					namespace.TryDefineClass("Represents a type checking error for Elk source code.", false, false, false, false, value.ToSymbol("Error"), objectClass, env)
+					namespace.Name() // noop - avoid unused variable error
+				}
+				namespace.Name() // noop - avoid unused variable error
+			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -6643,6 +6652,54 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 				}
+				{
+					namespace := namespace.MustSubtypeString("Type").(*Mixin)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+
+					// Define constants
+
+					// Define instance variables
+
+					{
+						namespace := namespace.MustSubtypeString("Checker").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+
+						{
+							namespace := namespace.MustSubtypeString("Error").(*Class)
+
+							namespace.Name() // noop - avoid unused variable error
+							namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+							method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("message"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("diagnostics"), NameToType("Std::DiagnosticList", env), NormalParameterKind, false)}, Void{}, Never{})
+							ivars := method.InitialisedInstanceVariables
+							ivars.Add(value.ToSymbol("diagnostics"))
+							namespace.DefineMethod("Returns a list of diagnostics (warnings, errors, info messages)", 0|METHOD_NATIVE_FLAG, value.ToSymbol("diagnostics"), nil, nil, NameToType("Std::DiagnosticList", env), Never{})
+
+							// Define constants
+
+							// Define instance variables
+							namespace.DefineInstanceVariable(value.ToSymbol(""), nil)
+							namespace.DefineInstanceVariable(value.ToSymbol("diagnostics"), NameToType("Std::DiagnosticList", env))
+						}
+					}
+				}
 			}
 			{
 				namespace := namespace.MustSubtypeString("EndlessClosedRange").(*Class)
@@ -8558,6 +8615,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins and implement interfaces
 
 				// Define methods
+				namespace.DefineMethod("Typecheck, compile and execute the given expression node.\nCan throw typechecker/compiler errors.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("eval_node"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false)}, Any{}, NameToType("Std::Elk::Type::Checker::Error", env))
 				namespace.DefineMethod("Convert the given AST Node, or collection of nodes into\nan expression.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expr"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NewUnion(NameToType("Std::Elk::AST::StatementNode", env), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")}))), NormalParameterKind, false)}, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 				namespace.DefineMethod("Wrap the given node in an unhygienic node.\nIt enables macro-generated code to access\nlocal variables from outer scopes.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unhygienic"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NameToType("Std::Elk::AST::Node", env), NormalParameterKind, false)}, NameToType("Std::Elk::AST::UnhygienicNode", env), Never{})
 

@@ -2,6 +2,7 @@ package checker
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/concurrent"
@@ -322,15 +323,10 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 
 	result, stackTrace, err := promise.AwaitSync()
 	if !err.IsUndefined() {
-		c.addFailure(
-			fmt.Sprintf(
-				"error while executing macro `%s`: %s\n%s",
-				types.InspectWithColor(macro),
-				lexer.Colorize(err.Inspect()),
-				stackTrace.String(),
-			),
-			loc,
-		)
+		var buff strings.Builder
+		fmt.Fprintf(&buff, "error while executing macro `%s`:\n", types.InspectWithColor(macro))
+		vm.PrintError(&buff, stackTrace, err)
+		c.addFailure(buff.String(), loc)
 		return nil
 	}
 

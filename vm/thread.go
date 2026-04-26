@@ -114,6 +114,10 @@ func (vm *Thread) runWithState() {
 	}
 }
 
+func (vm *Thread) ThreadPool() *ThreadPool {
+	return vm.threadPool
+}
+
 // Get the stored error.
 func (vm *Thread) Err() value.Value {
 	if vm.state == errorState {

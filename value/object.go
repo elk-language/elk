@@ -105,6 +105,18 @@ func (o *Object) InstanceVariables() *InstanceVariables {
 	return &o.instanceVariables
 }
 
+func (o *Object) GetInstanceVariable(name Symbol) Value {
+	ivarIndex := o.Class().IvarIndices[name]
+	ivars := o.InstanceVariables()
+	return ivars.Get(ivarIndex)
+}
+
+func (o *Object) SetInstanceVariable(name Symbol, val Value) {
+	ivarIndex := o.Class().IvarIndices[name]
+	ivars := o.InstanceVariables()
+	ivars.Set(ivarIndex, val)
+}
+
 func (o *Object) Class() *Class {
 	if !o.class.IsSingleton() {
 		return o.class

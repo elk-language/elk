@@ -14,4 +14,10 @@ module ::Std::Macro
     local variables from outer scopes.
   ]##
   def unhygienic(node: Elk::AST::Node): Elk::AST::UnhygienicNode; end
+
+  ##[
+    Typecheck, compile and execute the given expression node.
+    Can throw typechecker/compiler errors.
+  ]##
+  def eval_node(node: Elk::AST::ExpressionNode): any ! Elk::Type::Checker::Error; end
 end

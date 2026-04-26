@@ -375,6 +375,10 @@ func (c *BytecodeCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	c.compileProgram(node)
 }
 
+func (c *BytecodeCompiler) CompileExpression(node ast.ExpressionNode) {
+	c.compileProgram(node)
+}
+
 // Entry point to the compilation process
 func (c *BytecodeCompiler) compileProgram(node ast.Node) {
 	c.compileNode(node, false)

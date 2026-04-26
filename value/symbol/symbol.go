@@ -124,6 +124,8 @@ var (
 	L_push                     = value.ToSymbol("push")
 	L_view                     = value.ToSymbol("view")
 	L_slice                    = value.ToSymbol("slice")
+	L_diagnostics              = value.ToSymbol("diagnostics")
+	L_source_map               = value.ToSymbol("source_map")
 )
 
 // special symbols

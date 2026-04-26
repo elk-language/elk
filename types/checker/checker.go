@@ -58,8 +58,8 @@ func CheckSourceNative(sourceName string, source string, globalEnv *types.Global
 
 // Check the types of an Elk AST and generate bytecode
 func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
-	checker := newChecker(sourceName, globalEnv, flags, nil, threadPool)
-	cmp := checker.checkProgram(ast)
+	checker := newChecker(sourceName, globalEnv, flags, nil, threadPool, false)
+	cmp := checker.CheckProgram(ast)
 	if cmp == nil {
 		return nil, checker.Errors.DiagnosticList
 	}
@@ -68,8 +68,8 @@ func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEn
 
 // Check the types of an Elk AST and generate Go source
 func CheckASTNative(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
-	checker := newChecker(sourceName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool)
-	cmp := checker.checkProgram(ast)
+	checker := newChecker(sourceName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool, false)
+	cmp := checker.CheckProgram(ast)
 	if cmp == nil {
 		return nil, checker.Errors.DiagnosticList
 	}
@@ -79,7 +79,7 @@ func CheckASTNative(sourceName string, ast *ast.ProgramNode, globalEnv *types.Gl
 
 // Check the types of an Elk file and generate bytecode
 func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
-	checker := newChecker(fileName, globalEnv, flags, nil, threadPool)
+	checker := newChecker(fileName, globalEnv, flags, nil, threadPool, false)
 	cmp := checker.checkFile(fileName)
 	if cmp == nil {
 		return nil, checker.Errors.DiagnosticList
@@ -89,7 +89,7 @@ func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, flags bitfie
 
 // Check the types of an Elk file and generate Go source
 func CheckFileNative(fileName string, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
-	checker := newChecker(fileName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool)
+	checker := newChecker(fileName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool, false)
 	cmp := checker.checkFile(fileName)
 	if cmp == nil {
 		return nil, checker.Errors.DiagnosticList
@@ -191,7 +191,7 @@ type Checker struct {
 }
 
 // Instantiate a new Checker instance.
-func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool) *Checker {
+func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool, macro bool) *Checker {
 	c := &Checker{
 		Filename:   filename,
 		returnType: types.Void{},
@@ -218,18 +218,26 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfi
 		globalEnv = macros.NewGlobalEnvironment()
 	}
 
-	c.setRuntimeGlobalEnv(globalEnv)
-	c.macroEnv = types.NewGlobalEnvironment()
+	if macro {
+		c.setMacroGlobalEnv(globalEnv)
+	} else {
+		c.setRuntimeGlobalEnv(globalEnv)
+		c.macroEnv = types.NewGlobalEnvironment()
+	}
 	return c
 }
 
 // Instantiate a new Checker instance.
 func New() *Checker {
-	return newChecker("", nil, bitfield.BitField16{}, nil, vm.DefaultThreadPool)
+	return newChecker("", nil, bitfield.BitField16{}, nil, vm.DefaultThreadPool, false)
 }
 
 func NewWithFlags(flags bitfield.BitField16) *Checker {
-	return newChecker("", nil, flags, nil, vm.DefaultThreadPool)
+	return newChecker("", nil, flags, nil, vm.DefaultThreadPool, false)
+}
+
+func NewMacroChecker() *Checker {
+	return newChecker("", nil, bitfield.BitField16{}, nil, vm.DefaultThreadPool, true)
 }
 
 func (c *Checker) SelfType() types.Type {
@@ -341,7 +349,7 @@ func (c *Checker) CheckSource(sourceName string, source string) (compiler.Compil
 	c.macroChecks = nil
 	c.signatureChecks = ds.NewOrderedMap[string, *[]signatureCheckEntry]()
 	c.setDefinedMacros(false)
-	compiler := c.checkProgram(ast)
+	compiler := c.CheckProgram(ast)
 
 	if c.Errors.IsFailure() {
 		// restore the previous global environment if the code
@@ -467,7 +475,7 @@ func (c *Checker) initExtensions() {
 	c.extensions = concurrent.NewSlice[*ext.Extension]()
 }
 
-func (c *Checker) checkProgram(node *ast.ProgramNode) compiler.Compiler {
+func (c *Checker) CheckProgram(node *ast.ProgramNode) compiler.Compiler {
 	var wg sync.WaitGroup
 	// parse all files of the project concurrently
 	c.checkImportsForFile(c.Filename, node, &wg)
@@ -510,6 +518,15 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) compiler.Compiler {
 		return nil
 	}
 	return c.compiler
+}
+
+func (c *Checker) CheckMacroExpression(node ast.ExpressionNode) *compiler.BytecodeCompiler {
+	compiler := compiler.CreateBytecodeCompiler(nil, c, node.Location(), c.Errors)
+	c.compiler = compiler
+
+	node = c.checkExpression(node)
+	compiler.CompileExpression(node)
+	return compiler
 }
 
 // Compile method definitions
@@ -631,7 +648,7 @@ func (c *Checker) checkFile(filename string) compiler.Compiler {
 		return nil
 	}
 
-	return c.checkProgram(ast)
+	return c.CheckProgram(ast)
 }
 
 func (c *Checker) setIsHeaderForPath(filePath string) {

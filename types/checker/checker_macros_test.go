@@ -566,7 +566,7 @@ func TestExpandMacro(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(
 					L("<main>", P(70, 5, 5), P(72, 5, 7)),
-					"error while executing macro `Std::Kernel::foo!`: 5\nStack trace (the most recent call is last)\n 0: <main>:4, in `foo!`\n",
+					"error while executing macro `Std::Kernel::foo!`:\nStack trace (the most recent call is last)\n 0: <main>:4, in `foo!`\nError! Uncaught thrown value: 5\n\n",
 				),
 			},
 		},

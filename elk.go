@@ -22,6 +22,7 @@ import (
 	"github.com/elk-language/elk/position/diagnostic"
 	diagnosticRuntime "github.com/elk-language/elk/position/diagnostic/runtime"
 	"github.com/elk-language/elk/types/checker"
+	typesRuntime "github.com/elk-language/elk/types/runtime"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -33,6 +34,7 @@ func InitGlobalEnvironment() {
 	diagnosticRuntime.InitGlobalEnvironment()
 	lexerRuntime.InitGlobalEnvironment()
 	parserRuntime.InitGlobalEnvironment()
+	typesRuntime.InitGlobalEnvironment()
 }
 
 func compileResult(buffer *bytes.Buffer, goCompiler *compiler.GoCompiler, diagnostics diagnostic.DiagnosticList) (binPath string, err error) {

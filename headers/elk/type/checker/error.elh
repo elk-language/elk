@@ -1,0 +1,11 @@
+##[
+	Represents a type checking error for Elk source code.
+]##
+class ::Std::Elk::Type::Checker::Error < Std::Error
+	##[
+		Returns a list of diagnostics (warnings, errors, info messages)
+	]##
+	getter diagnostics: DiagnosticList
+
+	init(@message: String, @diagnostics: DiagnosticList); end
+end

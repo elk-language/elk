@@ -575,9 +575,9 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 	case types.Any:
 		return types.IsAny(b)
 	case types.Nil:
-		return types.IsNilLiteral(b) || b == c.StdNil()
+		return types.IsNilLiteral(b) || c.isTheSameType(c.StdNil(), b, nil)
 	case types.Bool:
-		return types.IsBool(b) || b == c.StdBool()
+		return types.IsBool(b) || c.isTheSameType(c.StdBool(), b, nil)
 	case types.True:
 		return c.IsTrue(b)
 	case types.False:

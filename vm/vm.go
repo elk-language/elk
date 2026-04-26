@@ -10,7 +10,9 @@ import (
 
 	"github.com/elk-language/elk/config"
 	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/fatih/color"
 )
 
@@ -88,7 +90,18 @@ func WithThreadPool(tp *ThreadPool) Option {
 func PrintError(stderr io.Writer, stackTrace *value.StackTrace, err value.Value) {
 	fmt.Fprint(stderr, stackTrace.String())
 	c := color.New(color.FgRed, color.Bold)
-	if value.IsA(err, value.ErrorClass) {
+
+	if value.IsA(err, value.ElkTypeCheckerErrorClass) {
+		errObj := (*value.Object)(err.Pointer())
+		c.Fprint(stderr, "Error! Uncaught error ")
+		fmt.Fprint(stderr, lexer.Colorize(errObj.Class().Name))
+		fmt.Fprint(stderr, ": ")
+		fmt.Fprintln(stderr, lexer.ColorizeEmbellishedText(errObj.Message().AsString().String()))
+
+		diagnostics := (*diagnostic.DiagnosticList)(errObj.GetInstanceVariable(symbol.L_diagnostics).Pointer())
+		result := diagnostics.HumanStringWithoutSource(true, lexer.Colorizer{})
+		fmt.Fprintf(stderr, "\n\n%s", result)
+	} else if value.IsA(err, value.ErrorClass) {
 		errObj := (*value.Object)(err.Pointer())
 		c.Fprint(stderr, "Error! Uncaught error ")
 		fmt.Fprint(stderr, lexer.Colorize(errObj.Class().Name))
