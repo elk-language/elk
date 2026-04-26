@@ -42,3 +42,8 @@ class Std::IndexError < Std::Error; end
 	Thrown when encountering a nonexistent timezone.
 ]##
 class Std::InvalidTimezoneError < Std::Error; end
+
+##[
+	Thrown after an attempt od dividing an integer by zero.
+]##
+class Std::ZeroDivisionError < Std::Error; end

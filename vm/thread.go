@@ -782,7 +782,7 @@ func (vm *Thread) run() {
 		case bytecode.DIVIDE:
 			vm.throwIfErr(vm.opDivide())
 		case bytecode.DIVIDE_INT:
-			vm.opDivideInt()
+			vm.throwIfErr(vm.opDivideInt())
 		case bytecode.DIVIDE_FLOAT:
 			vm.opDivideFloat()
 		case bytecode.EXPONENTIATE:
@@ -1261,7 +1261,7 @@ func (vm *Thread) run() {
 		case bytecode.MODULO:
 			vm.throwIfErr(vm.opModulo())
 		case bytecode.MODULO_INT:
-			vm.opModuloInt()
+			vm.throwIfErr(vm.opModuloInt())
 		case bytecode.MODULO_FLOAT:
 			vm.opModuloFloat()
 		case bytecode.COMPARE:
@@ -3615,19 +3615,25 @@ func (vm *Thread) opMultiplyFloat() {
 }
 
 // Divide an Int by another value and push the result to the stack.
-func (vm *Thread) opDivideInt() {
+func (vm *Thread) opDivideInt() value.Value {
 	right := vm.popGet()
 	left := vm.peek()
 
 	var result value.Value
+	var err value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.DivideVal(right)
+		result, err = left.DivideVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.DivideVal(right)
+		result, err = leftBig.DivideVal(right)
 	}
+	if err.IsNotUndefined() {
+		return err
+	}
+
 	vm.replace(result)
+	return value.Undefined
 }
 
 // Divide a Float by another value and push the result to the stack.
@@ -3655,19 +3661,25 @@ func (vm *Thread) opExponentiateInt() {
 	vm.replace(result)
 }
 
-func (vm *Thread) opModuloInt() {
+func (vm *Thread) opModuloInt() value.Value {
 	right := vm.popGet()
 	left := vm.peek()
 
 	var result value.Value
+	var err value.Value
 	if left.IsSmallInt() {
 		left := left.AsSmallInt()
-		result, _ = left.ModuloVal(right)
+		result, err = left.ModuloVal(right)
 	} else {
 		leftBig := left.AsReference().(*value.BigInt)
-		result, _ = leftBig.ModuloVal(right)
+		result, err = leftBig.ModuloVal(right)
 	}
+	if err.IsNotUndefined() {
+		return err
+	}
+
 	vm.replace(result)
+	return value.Undefined
 }
 
 func (vm *Thread) opModuloFloat() {

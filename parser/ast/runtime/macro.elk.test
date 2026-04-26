@@ -1,0 +1,36 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+describe "Macro", ->
+	context "eval_node", ->
+		should "evaluate and return the result", ->
+			result := Macro.eval_node(
+				quote
+					"foo".length
+				end
+			)
+			assert! result == 3
+		end
+
+		should "throw a typechecker error", ->
+			assert_throws!(
+				Macro.eval_node(
+					quote
+						1 / 8u8
+					end
+				) match Elk::Type::Checker::Error(message: "macro eval checker error")
+			)
+		end
+
+		should "throw a runtime error", ->
+			assert_throws!(
+				Macro.eval_node(
+					quote
+						1 / 0
+					end
+				) match ZeroDivisionError(message: "cannot divide by zero")
+			)
+		end
+	end
+
+end

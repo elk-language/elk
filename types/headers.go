@@ -759,6 +759,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineClass("A weak pointer that does not prevent garbage collection of its target.\n\nA weak pointer has to be converted to a `Box` (a strong pointer)\nto access and/or modify the value it references (`Weak.:to_box`, `Weak.:to_immutable_box`).\nThese conversion methods will return `nil` if the object has already been garbage collected.", false, true, true, false, value.ToSymbol("Weak"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineClass("Thrown after an attempt od dividing an integer by zero.", false, false, false, false, value.ToSymbol("ZeroDivisionError"), objectClass, env)
 		namespace.Name() // noop - avoid unused variable error
 	}
 
@@ -10408,6 +10409,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				method = namespace.DefineMethod("Convert the given box to a weak pointer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("box"), NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Weak::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Convert this weak pointer to a `Box`\n(a mutable strong pointer).\n\nWill return `nil` if the object has already\nbeen garbage collected.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_box"), nil, nil, NewNilable(NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Weak::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")}))), Never{})
 				namespace.DefineMethod("Convert this weak pointer to an `ImmutableBox`\n(an immutable strong pointer).\n\nWill return `nil` if the object has already\nbeen garbage collected.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_immutable_box"), nil, nil, NewNilable(NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Weak::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")}))), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtypeString("ZeroDivisionError").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
 
 				// Define constants
 

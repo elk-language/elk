@@ -21,6 +21,6 @@ func initElkType() {
 			ToSymbol("source_map"):  2,
 		}),
 	)
-	ElkTypeMixin.AddConstantString("Error", Ref(ElkTypeCheckerErrorClass))
+	ElkTypeCheckerClass.AddConstantString("Error", Ref(ElkTypeCheckerErrorClass))
 	RegisterNativeClass("Std::Elk::Type::Checker::Error", "value.ElkTypeCheckerErrorClass")
 }
