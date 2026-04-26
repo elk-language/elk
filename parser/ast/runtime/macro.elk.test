@@ -33,4 +33,31 @@ describe "Macro", ->
 		end
 	end
 
+	context "if!", ->
+		should "return then node if truthy condition", ->
+			result := Macro::macro_if! DateTime.now.year > 2000, do
+				"foo"
+			end
+			assert! result == "foo"
+		end
+
+		should "return nil if falsy condition and no else node", ->
+			result := Macro::macro_if! DateTime.now.year < 2000, do
+				"foo"
+			end
+			assert! result == nil
+		end
+
+		should "return else node if falsy condition and no else node", ->
+			result := Macro::macro_if! DateTime.now.year < 2000, do
+				"foo"
+			end, do
+				"bar"
+			end
+
+			assert! result == "bar"
+		end
+
+	end
+
 end

@@ -30,7 +30,6 @@ import (
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/value/macros"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 	"github.com/rivo/uniseg"
@@ -215,7 +214,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfi
 		c.threadPool = vm.DefaultThreadPool
 	}
 	if globalEnv == nil {
-		globalEnv = macros.NewGlobalEnvironment()
+		globalEnv = NewGlobalEnvironment()
 	}
 
 	if macro {

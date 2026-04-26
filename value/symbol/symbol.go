@@ -78,6 +78,8 @@ var (
 	Promise              = value.ToSymbol("Promise")
 	Key                  = value.ToSymbol("Key")
 	Elk                  = value.ToSymbol("Elk")
+	Type                 = value.ToSymbol("Type")
+	Checker              = value.ToSymbol("Checker")
 	Macro                = value.ToSymbol("Macro")
 	Token                = value.ToSymbol("Token")
 	Node                 = value.ToSymbol("Node")

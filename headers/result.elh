@@ -37,7 +37,7 @@ sealed primitive noinit class ::Std::Result[+Val, +Err = never]
 		##[
 			Create a new Result that represents success with the given value.
 		]##
-		def ok[V](value: V): Result[V]; end
+		def ok[V](value: V): Result[V, never]; end
 
 		##[
 			Create a new Result that represents failure with the given error value.

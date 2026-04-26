@@ -8,7 +8,6 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -62,28 +61,7 @@ func initMacro() {
 		"eval_node",
 		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			node := args[1].AsReference().(ast.ExpressionNode)
-			typechecker := checker.NewMacroChecker()
-			compiler := typechecker.CheckMacroExpression(node)
-			dl := &typechecker.Errors.DiagnosticList
-			if dl.IsFailure() {
-				err := value.NewObject(
-					value.ObjectWithClass(value.ElkTypeCheckerErrorClass),
-					value.ObjectWithInstanceVariablesByName(value.SymbolMap{
-						symbol.L_message:     value.String("macro eval checker error").ToValue(),
-						symbol.L_diagnostics: (*value.DiagnosticList)(dl).ToValue(),
-					}),
-				).ToValue()
-				return value.Undefined, err
-			}
-
-			promise := vm.NewBytecodePromise(thread.ThreadPool(), compiler.Bytecode(), value.GlobalObject.ToValue())
-
-			result, _, err := promise.AwaitSync()
-			if err.IsNotUndefined() {
-				return value.Undefined, err
-			}
-
-			return result.ToValue(), value.Undefined
+			return checker.EvalNode(thread, node)
 		},
 		vm.DefWithParameters(1),
 	)

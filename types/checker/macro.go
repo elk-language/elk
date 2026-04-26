@@ -12,6 +12,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -1070,4 +1071,29 @@ func (c *Checker) checkReceiverlessMacroCallNodeForPattern(node *ast.Receiverles
 		return node, types.Never{}
 	}
 	return c.checkPattern(result.(ast.PatternNode), matchedType)
+}
+
+func EvalNode(thread *vm.Thread, node ast.ExpressionNode) (value.Value, value.Value) {
+	typechecker := NewMacroChecker()
+	compiler := typechecker.CheckMacroExpression(node)
+	dl := &typechecker.Errors.DiagnosticList
+	if dl.IsFailure() {
+		err := value.NewObject(
+			value.ObjectWithClass(value.ElkTypeCheckerErrorClass),
+			value.ObjectWithInstanceVariablesByName(value.SymbolMap{
+				symbol.L_message:     value.String("macro eval checker error").ToValue(),
+				symbol.L_diagnostics: (*value.DiagnosticList)(dl).ToValue(),
+			}),
+		).ToValue()
+		return value.Undefined, err
+	}
+
+	promise := vm.NewBytecodePromise(thread.ThreadPool(), compiler.Bytecode(), value.GlobalObject.ToValue())
+
+	result, _, err := promise.AwaitSync()
+	if err.IsNotUndefined() {
+		return value.Undefined, err
+	}
+
+	return result, value.Undefined
 }

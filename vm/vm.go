@@ -88,7 +88,9 @@ func WithThreadPool(tp *ThreadPool) Option {
 }
 
 func PrintError(stderr io.Writer, stackTrace *value.StackTrace, err value.Value) {
-	fmt.Fprint(stderr, stackTrace.String())
+	if stackTrace != nil {
+		fmt.Fprint(stderr, stackTrace.String())
+	}
 	c := color.New(color.FgRed, color.Bold)
 
 	if value.IsA(err, value.ElkTypeCheckerErrorClass) {
