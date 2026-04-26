@@ -9,21 +9,6 @@ module ::Std::Elk::AST
 		]##
 		class FormatError < ::Std::FormatError; end
 
-		singleton
-			##[
-				Convert the given AST Node, or collection of nodes into
-				an expression.
-			]##
-			def expr(node: StatementNode | ArrayTuple[StatementNode]): ExpressionNode; end
-
-			##[
-				Wrap the given node in an unhygienic node.
-				It enables macro-generated code to access
-				local variables from outer scopes.
-			]##
-			def unhygienic(node: Node): UnhygienicNode; end
-		end
-
 		##[
 			Returns the span that represents
 			the position of this node in a source file/string.

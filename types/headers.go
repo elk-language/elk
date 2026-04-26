@@ -606,6 +606,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineInterface("Represents a resource that can be locked and unlocked.", value.ToSymbol("Lockable"), env)
+		namespace.TryDefineModule("Contains utilities for writing macros.", value.ToSymbol("Macro"), env)
 		{
 			namespace := namespace.TryDefineMixin("Represents an unordered mutable collection of key-value pairs.", true, value.ToSymbol("Map"), env)
 			namespace.Name() // noop - avoid unused variable error
@@ -4594,21 +4595,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 
 						{
-							namespace := namespace.Singleton()
-
-							namespace.Name() // noop - avoid unused variable error
-
-							// Include mixins and implement interfaces
-
-							// Define methods
-							namespace.DefineMethod("Convert the given AST Node, or collection of nodes into\nan expression.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expr"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NewUnion(NameToType("Std::Elk::AST::StatementNode", env), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")}))), NormalParameterKind, false)}, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
-							namespace.DefineMethod("Wrap the given node in an unhygienic node.\nIt enables macro-generated code to access\nlocal variables from outer scopes.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unhygienic"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NameToType("Std::Elk::AST::Node", env), NormalParameterKind, false)}, NameToType("Std::Elk::AST::UnhygienicNode", env), Never{})
-
-							// Define constants
-
-							// Define instance variables
-						}
-						{
 							namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
 							namespace.Name() // noop - avoid unused variable error
@@ -8565,6 +8551,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtypeString("Macro").(*Module)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Convert the given AST Node, or collection of nodes into\nan expression.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expr"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NewUnion(NameToType("Std::Elk::AST::StatementNode", env), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")}))), NormalParameterKind, false)}, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+				namespace.DefineMethod("Wrap the given node in an unhygienic node.\nIt enables macro-generated code to access\nlocal variables from outer scopes.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unhygienic"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NameToType("Std::Elk::AST::Node", env), NormalParameterKind, false)}, NameToType("Std::Elk::AST::UnhygienicNode", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtypeString("Map").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -9911,8 +9912,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define methods
 				namespace.DefineMethod("Create a new `Tuple` containing the elements of `self`\nand another given `Tuple`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::Tuple::Val", env), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT)), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				method = namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Tuple::Val", env), Never{})
-				method.RegisterOverload(NewMethod("Return a Tuple that contains the elements from the given range of indices.\nThis tuple should be backed by the same buffer as the original tuple.\n\nThrows an unchecked error if the range contains indices that are negative\nor are greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Int", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::Pair::Key", env), NameToType("Std::Pair::Value", env)), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{}, namespace))
-				namespace.DefineMethod("Return a Tuple that contains the elements from the given range of indices.\nThis tuple should be backed by the same buffer as the original tuple.\n\nThrows an unchecked error if the range contains indices that are negative\nor are greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]@1"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Int", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::Pair::Key", env), NameToType("Std::Pair::Value", env)), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				method.RegisterOverload(NewMethod("Return a Tuple that contains the elements from the given range of indices.\nThis tuple should be backed by the same buffer as the original tuple.\n\nThrows an unchecked error if the range contains indices that are negative\nor are greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Int", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Diagnostic", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{}, namespace))
+				namespace.DefineMethod("Return a Tuple that contains the elements from the given range of indices.\nThis tuple should be backed by the same buffer as the original tuple.\n\nThrows an unchecked error if the range contains indices that are negative\nor are greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]@1"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Int", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Diagnostic", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Get the element under the given index.\n\nThrows an error if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Tuple::Val", env), NameToType("Std::OutOfRangeError", env))
 				namespace.DefineMethod("Returns a new tuple containing all elements except first `n` elements.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("drop"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Tuple::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Returns a new tuple containing all elements except first elements that satisfy the given predicate.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("drop_while"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :drop_while", true), Never{}, Any{}, Never{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Tuple::Val", env), NormalParameterKind, false)}, Bool{}, NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :drop_while", true), Never{}, Any{}, Never{}, INVARIANT), false), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Tuple::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :drop_while", true), Never{}, Any{}, Never{}, INVARIANT))

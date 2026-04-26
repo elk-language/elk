@@ -78,6 +78,7 @@ var (
 	Promise              = value.ToSymbol("Promise")
 	Key                  = value.ToSymbol("Key")
 	Elk                  = value.ToSymbol("Elk")
+	Macro                = value.ToSymbol("Macro")
 	Token                = value.ToSymbol("Token")
 	Node                 = value.ToSymbol("Node")
 	ExpressionNode       = value.ToSymbol("ExpressionNode")

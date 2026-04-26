@@ -575,7 +575,7 @@ func (c *Checker) newMethodChecker(
 	loc *position.Location,
 ) *Checker {
 	checker := &Checker{
-		env:            c.env,
+		runtimeEnv:     c.runtimeEnv,
 		Filename:       loc.FilePath,
 		mode:           mode,
 		phase:          methodCheckPhase,
@@ -2605,7 +2605,7 @@ func (c *Checker) declareMethodWithBase(
 
 	if generator {
 		returnType = types.NewGenericWithTypeArgs(
-			c.env.StdSubtypeClass(symbol.Generator),
+			c.runtimeEnv.StdSubtypeClass(symbol.Generator),
 			returnType,
 			throwType,
 		)
@@ -2613,7 +2613,7 @@ func (c *Checker) declareMethodWithBase(
 		throwType = types.Never{}
 	} else if async {
 		returnType = types.NewGenericWithTypeArgs(
-			c.env.StdSubtypeClass(symbol.Promise),
+			c.runtimeEnv.StdSubtypeClass(symbol.Promise),
 			returnType,
 			throwType,
 		)
@@ -3499,7 +3499,7 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 
 		return nil
 	case *types.Nilable:
-		nilType := c.env.StdSubtype(symbol.Nil).(*types.Class)
+		nilType := c.runtimeEnv.StdSubtype(symbol.Nil).(*types.Class)
 		nilMethod := nilType.Method(name)
 		if nilMethod == nil {
 			c.addMissingMethodError(nilType, name.String(), errSpan)

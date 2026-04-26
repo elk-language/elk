@@ -2,6 +2,8 @@ package runtime
 
 func InitGlobalEnvironment() {
 	initNode()
+	initKernel()
+	initMacro()
 	initExpressionNode()
 	initConstantNode()
 	initIdentifierNode()

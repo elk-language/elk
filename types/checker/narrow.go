@@ -524,7 +524,7 @@ func (c *Checker) ToNonLiteral(typ types.Type, widenSingletonTypes bool) types.T
 		}
 	}
 
-	return typ.ToNonLiteral(c.env)
+	return typ.ToNonLiteral(c.runtimeEnv)
 }
 
 func (c *Checker) ToNilable(typ types.Type) types.Type {

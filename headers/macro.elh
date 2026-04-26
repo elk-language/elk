@@ -1,0 +1,17 @@
+##[
+  Contains utilities for writing macros.
+]##
+module ::Std::Macro
+  ##[
+    Convert the given AST Node, or collection of nodes into
+    an expression.
+  ]##
+  def expr(node: Elk::AST::StatementNode | ArrayTuple[Elk::AST::StatementNode]): Elk::AST::ExpressionNode; end
+
+  ##[
+    Wrap the given node in an unhygienic node.
+    It enables macro-generated code to access
+    local variables from outer scopes.
+  ]##
+  def unhygienic(node: Elk::AST::Node): Elk::AST::UnhygienicNode; end
+end

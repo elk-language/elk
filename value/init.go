@@ -125,6 +125,7 @@ func InitGlobalEnvironment() {
 	initEndlessOpenRange()
 	initPosition()
 	initSpan()
+	initMacro()
 	initElk()
 	initElkToken()
 	initElkAST()

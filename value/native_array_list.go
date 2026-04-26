@@ -39,7 +39,7 @@ func TransformSliceIntoNativeArrayList[
 	slice []I,
 	fn func(v I) O,
 ) *NativeArrayList[O] {
-	newList := NewNativeArrayList[O](len(slice))
+	newList := NewNativeArrayListWithLength[O](len(slice))
 	for i, v := range slice {
 		ov := fn(v)
 		newList.SetAt(i, ov)
@@ -63,7 +63,7 @@ func TransformArrayListIntoNativeArrayList[T ValueInterface](
 		return list
 	}
 
-	newList := NewNativeArrayList[T](list.Length())
+	newList := NewNativeArrayListWithLength[T](list.Length())
 	for i, v := range list.Elements() {
 		ov := fn(v)
 		newList.SetAt(i, ov)

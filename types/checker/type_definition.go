@@ -312,13 +312,13 @@ func (c *Checker) checkTypeDefinitionForMacros(typedefCheck *typeDefinitionCheck
 func (c *Checker) removeTemporaryParents(typ types.Type) {
 	switch typ := typ.(type) {
 	case *types.Mixin:
-		typ.RemoveTemporaryParents(c.env)
+		typ.RemoveTemporaryParents(c.runtimeEnv)
 	case *types.Class:
-		typ.RemoveTemporaryParents(c.env)
+		typ.RemoveTemporaryParents(c.runtimeEnv)
 	case *types.Module:
 		typ.RemoveTemporaryParents()
 	case *types.SingletonClass:
-		typ.RemoveTemporaryParents(c.env)
+		typ.RemoveTemporaryParents(c.runtimeEnv)
 	}
 }
 
@@ -708,7 +708,7 @@ superclassSwitch:
 	switch node.Superclass.(type) {
 	case *ast.NilLiteralNode:
 	case nil:
-		superclass = c.env.StdSubtypeClass(symbol.Object)
+		superclass = c.runtimeEnv.StdSubtypeClass(symbol.Object)
 		superclassType = superclass
 	default:
 		prevMode := c.mode
@@ -763,7 +763,7 @@ superclassSwitch:
 	switch node.Superclass.(type) {
 	case *ast.NilLiteralNode:
 	case nil:
-		superclass = c.env.StdSubtypeClass(symbol.Object)
+		superclass = c.runtimeEnv.StdSubtypeClass(symbol.Object)
 		superclassType = superclass
 	default:
 		prevMode := c.mode
@@ -858,7 +858,7 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 		return
 	}
 
-	mixin := types.NewMixin("", false, "", c.env)
+	mixin := types.NewMixin("", false, "", c.runtimeEnv)
 	originalTypeParams := currentNamespace.TypeParameters()
 	for _, typeParam := range originalTypeParams {
 		mixin.DefineSubtypeWithFullName(

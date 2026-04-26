@@ -39,7 +39,7 @@ func TransformSliceIntoNativeArrayTuple[
 	slice []I,
 	fn func(v I) O,
 ) *NativeArrayTuple[O] {
-	newList := NewNativeArrayTuple[O](len(slice))
+	newList := NewNativeArrayTupleWithLength[O](len(slice))
 	for i, v := range slice {
 		ov := fn(v)
 		newList.SetAt(i, ov)
@@ -63,7 +63,7 @@ func TransformArrayTupleIntoNativeArrayTuple[T ValueInterface](
 		return tuple
 	}
 
-	newList := NewNativeArrayTuple[T](tuple.Length())
+	newList := NewNativeArrayTupleWithLength[T](tuple.Length())
 	for i, v := range tuple.Elements() {
 		ov := fn(v)
 		newList.SetAt(i, ov)

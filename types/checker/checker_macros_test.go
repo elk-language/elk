@@ -307,8 +307,6 @@ func TestExpandMacro(t *testing.T) {
 	tests := testTable{
 		"define a class in a top level macro": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro klass(name: ConstantNode)
 					quote
 						class !{name}
@@ -326,8 +324,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"inherit from a generated class": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro klass(name: ConstantNode)
 					quote
 						class !{name}
@@ -371,8 +367,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"generate a method": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro fn(name: IdentifierNode)
 					quote
 						def !{name}: String
@@ -390,8 +384,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"use a generated method in a constant": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro fn(name: IdentifierNode)
 					quote
 						def !{name}: String
@@ -433,8 +425,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"generate an expression": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro fib(i: IntLiteralNode)
 					calc_fib := |n: Int|: Int ->
 						return 1 if n < 3
@@ -450,8 +440,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"generate a type": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro foo(t: TypeNode): TypeNode
 					NilableTypeNode(t)
 				end
@@ -477,8 +465,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"generate a pattern": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro foo(c: ConstantNode): PatternNode
 					ObjectPatternNode(c)
 				end
@@ -505,8 +491,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"use a scoped macro": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro fib(i: IntLiteralNode)
 						calc_fib := |n: Int|: Int ->
@@ -555,8 +539,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"inherit a macro": {
 			input: `
-				using Std::Elk::AST::*
-
 				class Foo
 					macro fib(i: IntLiteralNode)
 						calc_fib := |n: Int|: Int ->
@@ -643,8 +625,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"all required positional arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then c
 					baz!("foo", 5)
@@ -692,8 +672,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"all required named arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then c
 					baz!(c: 5, bar: "foo")
@@ -743,8 +721,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with missing optional argument": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, c: IntLiteralNode = 3.to_ast_node) then c
 					var a: 3 = baz!("foo")
@@ -753,8 +729,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with optional argument": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, c: IntLiteralNode = 3.to_ast_node) then c
 					var a: 9 = baz!("foo", 9)
@@ -763,8 +737,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with missing rest arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(*b: FloatLiteralNode) then 3.to_ast_node
 					baz!
@@ -773,8 +745,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with rest arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(*b: FloatLiteralNode) then 3.to_ast_node
 					baz! 1.2, 56.9, .5
@@ -810,8 +780,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with required post arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then c
 					baz!("foo", 3)
@@ -833,8 +801,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with rest and post arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then 3.to_ast_node
 					baz!("foo", 2.5, .9, 128.1, 3)
@@ -883,8 +849,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with named post argument": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then c
 					baz!("foo", c: 3)
@@ -906,8 +870,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call without named rest arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, c: IntLiteralNode, **rest: IntLiteralNode) then c
 					baz!("foo", 5)
@@ -916,8 +878,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with named rest arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, c: IntLiteralNode, **rest: IntLiteralNode) then c
 					baz!("foo", d: 25, c: 5, e: 11)
@@ -985,6 +945,19 @@ func TestMacroDefinition(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(59, 5, 16), P(66, 5, 23)), "type `Std::Float` does not inherit from `Std::Elk::AST::Node`, macro parameters must be nodes"),
+			},
+		},
+		"macros have a separate global environment": {
+			input: `
+				module Foo
+					macro baz
+						Foo.inspect
+						5.to_ast_node
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(37, 4, 7), P(39, 4, 9)), "undefined constant `Foo`"),
 			},
 		},
 		"returned value must inherit from ExpressionNode when no return type - success": {

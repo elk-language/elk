@@ -298,7 +298,7 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 	runtimeArgs := make([]value.Value, 0, len(checkedArgs)+1)
 	runtimeArgs = append(
 		runtimeArgs,
-		value.Ref(value.NodeMixin),
+		value.Ref(value.MacroModule),
 	)
 
 	for _, arg := range checkedArgs {
@@ -691,32 +691,32 @@ func (c *Checker) hoistMacroDefinition(node *ast.MacroDefinitionNode) {
 		)
 	}
 
-	macro := c.declareMacro(
-		definedUnder,
-		node.DocComment(),
-		c.macroMethodName(c.identifierToName(node.Name)),
-		node.Parameters,
-		node.ReturnType,
-		node.Location(),
-	)
+	var macro *types.Method
+	c.doWithMacroScopes(func() {
+		macro = c.declareMacro(
+			definedUnder,
+			node.DocComment(),
+			c.macroMethodName(c.identifierToName(node.Name)),
+			node.Parameters,
+			node.ReturnType,
+			node.Location(),
+		)
+	})
+
 	macro.Node = node
 	node.SetType(macro)
 	c.registerMacroCheck(macro, node)
 }
 
 type macroCheckEntry struct {
-	macro          *types.Method
-	constantScopes []constantScope
-	methodScopes   []methodScope
-	node           *ast.MacroDefinitionNode
+	macro *types.Method
+	node  *ast.MacroDefinitionNode
 }
 
 func (c *Checker) registerMacroCheck(macro *types.Method, node *ast.MacroDefinitionNode) {
 	c.macroChecks = append(c.macroChecks, macroCheckEntry{
-		macro:          macro,
-		constantScopes: c.constantScopesCopy(),
-		methodScopes:   c.methodScopesCopy(),
-		node:           node,
+		macro: macro,
+		node:  node,
 	})
 }
 
@@ -730,9 +730,7 @@ func (c *Checker) checkMacros() {
 			node := macroCheck.node
 			macroChecker := c.newMacroChecker(
 				node.Location().FilePath,
-				macroCheck.constantScopes,
-				macroCheck.methodScopes,
-				c.StdNode().Singleton(),
+				c.StdMacro().Singleton(),
 				macro.ReturnType,
 				macro.ThrowType,
 				macroMode,
@@ -748,8 +746,6 @@ func (c *Checker) checkMacros() {
 
 func (c *Checker) newMacroChecker(
 	filename string,
-	constScopes []constantScope,
-	methodScopes []methodScope,
 	selfType,
 	returnType,
 	throwType types.Type,
@@ -758,17 +754,15 @@ func (c *Checker) newMacroChecker(
 	loc *position.Location,
 ) *Checker {
 	checker := &Checker{
-		env:            c.env,
-		Filename:       filename,
-		mode:           mode,
-		phase:          methodCheckPhase,
-		selfType:       selfType,
-		returnType:     returnType,
-		throwType:      throwType,
-		constantScopes: constScopes,
-		methodScopes:   methodScopes,
-		Errors:         c.Errors,
-		flags:          c.flags,
+		runtimeEnv: c.runtimeEnv,
+		Filename:   filename,
+		mode:       mode,
+		phase:      methodCheckPhase,
+		selfType:   selfType,
+		returnType: returnType,
+		throwType:  throwType,
+		Errors:     c.Errors,
+		flags:      c.flags,
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil, false),
 		},
@@ -776,6 +770,7 @@ func (c *Checker) newMacroChecker(
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		threadPool:           threadPool,
 	}
+	checker.setMacroGlobalEnv(c.macroEnv)
 	checker.macroCompiler = compiler.CreateBytecodeCompiler(nil, checker, loc, c.Errors)
 
 	return checker
