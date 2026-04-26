@@ -32,6 +32,18 @@ func initResult() {
 			return value.BoolVal(self.Ok()), value.Undefined
 		},
 	)
+	Def(
+		c,
+		"unwrap",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsResult()
+			if self.Ok() {
+				return self.Value(), value.Undefined
+			}
+			return value.Undefined, self.Err()
+		},
+	)
+	Alias(c, "or_throw", "unwrap")
 
 	// Singleton methods
 	c = &value.ResultClass.SingletonClass().MethodContainer

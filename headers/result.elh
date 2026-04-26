@@ -29,6 +29,8 @@
 		result.value # read the success value
 		result.err # read the error value
 		result.ok # check if the result contains a value or an error
+		result.unwrap # return the success value or throw an unchecked error
+		result.or_throw # return the success value or throw a checked error
 ]##
 sealed primitive noinit class ::Std::Result[+Val, +Err = never]
 	singleton
@@ -60,4 +62,16 @@ sealed primitive noinit class ::Std::Result[+Val, +Err = never]
 		Returns `false` if this Result represents failure (contains an error).
 	]##
 	def ok: bool; end
+
+	##[
+		Returns the stored success value.
+		If the result stores an error value it gets thrown as an unchecked error.
+	]##
+	def unwrap: Val; end
+
+	##[
+		Returns the stored success value.
+		If the result stores an error value it gets thrown as a checked error.
+	]##
+	def or_throw: Val ! Err; end
 end

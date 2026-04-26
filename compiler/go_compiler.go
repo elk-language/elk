@@ -1850,6 +1850,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return newGoValue("value.False", types.Bool{}, value.FetchGoType("value.Bool"))
 	case *ast.BinaryExpressionNode:
 		return c.compileBinaryExpressionNode(node, valueIsIgnored)
+	case *ast.PostfixExpressionNode:
+		return c.compilePostfixExpressionNode(node, valueIsIgnored)
 	case *ast.LogicalExpressionNode:
 		return c.compileLogicalExpressionNode(node, valueIsIgnored)
 	case *ast.ArrayTupleLiteralNode:
@@ -6083,87 +6085,192 @@ func (c *GoCompiler) compileNilCoalescing(node *ast.LogicalExpressionNode, value
 	return result
 }
 
+func (c *GoCompiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode, valueIsIgnored bool) *goValue {
+	return nilGoValue
+	// TODO: increment/decrement
+	// switch n := node.Expression.(type) {
+	// case *ast.PublicIdentifierNode:
+	// 	// get variable value
+	// 	local := c.compileLocalVariableAccess(n.Value, c.typeOf(node))
+	// 	value := c.compileExpression(node.Expression, false)
+
+	// 	var result *goValue
+	// 	switch node.Op.Type {
+	// 	case token.PLUS_PLUS:
+	// 		result = c.compileAdd(local, value, c.typeOf(node), node.Location(), false)
+	// 	case token.MINUS_MINUS:
+	// 		result = c.compileSubtract(local, value, c.typeOf(node), node.Location(), false)
+	// 	default:
+	// 		panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+	// 	}
+
+	// 	c.setLocal(n.Value, )
+	// 	// set variable
+	// 	return c.setLocalWithoutValue(n.Value, n.Location(), valueIsIgnored)
+	// case *ast.PrivateIdentifierNode:
+	// 	// get variable value
+	// 	c.compileLocalVariableAccess(n.Value, n.Location())
+
+	// 	switch node.Op.Type {
+	// 	case token.PLUS_PLUS:
+	// 		c.compileIncrement(c.typeOf(n), node.Location())
+	// 	case token.MINUS_MINUS:
+	// 		c.compileDecrement(c.typeOf(n), node.Location())
+	// 	default:
+	// 		panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+	// 	}
+
+	// 	// set variable
+	// 	return c.setLocalWithoutValue(n.Value, n.Location(), valueIsIgnored)
+	// case *ast.SubscriptExpressionNode:
+	// 	// get value
+	// 	c.compileNodeWithResult(n.Receiver)
+	// 	c.compileNodeWithResult(n.Key)
+	// 	c.emit(node.Location().EndPos.Line, bytecode.DUP_2)
+
+	// 	receiverType := c.typeOf(n.Receiver)
+	// 	c.compileSubscript(receiverType, node.Location())
+
+	// 	switch node.Op.Type {
+	// 	case token.PLUS_PLUS:
+	// 		c.compileIncrement(c.typeOf(n), node.Location())
+	// 	case token.MINUS_MINUS:
+	// 		c.compileDecrement(c.typeOf(n), node.Location())
+	// 	default:
+	// 		panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+	// 	}
+
+	// 	// set value
+	// 	c.compileSubscriptSet(receiverType, node.Location())
+	// case *ast.PublicInstanceVariableNode:
+	// 	switch c.mode {
+	// 	case topLevelBytecodeCompilerMode:
+	// 		c.Errors.AddFailure(
+	// 			"instance variables cannot be set in the top level",
+	// 			node.Location(),
+	// 		)
+	// 	}
+	// 	// get value
+	// 	ivarSymbol := value.ToSymbol(n.Value)
+	// 	c.emitGetInstanceVariableByName(ivarSymbol, n.Location())
+
+	// 	switch node.Op.Type {
+	// 	case token.PLUS_PLUS:
+	// 		c.compileIncrement(c.typeOf(n), node.Location())
+	// 	case token.MINUS_MINUS:
+	// 		c.compileDecrement(c.typeOf(n), node.Location())
+	// 	default:
+	// 		panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+	// 	}
+
+	// 	// set instance variable
+	// 	c.emitSetInstanceVariable(ivarSymbol, node.Location(), valueIsIgnored)
+	// 	return valueIgnoredToResult(valueIsIgnored)
+	// case *ast.AttributeAccessNode:
+	// 	// get value
+	// 	c.compileNodeWithResult(n.Receiver)
+	// 	name := identifierToName(n.AttributeName)
+	// 	nameSymbol := value.ToSymbol(name)
+	// 	callInfo := value.NewCallSiteInfo(nameSymbol, 0)
+	// 	c.emitCallMethod(callInfo, node.Location(), false)
+
+	// 	switch node.Op.Type {
+	// 	case token.PLUS_PLUS:
+	// 		c.compileIncrement(c.typeOf(n), node.Location())
+	// 	case token.MINUS_MINUS:
+	// 		c.compileDecrement(c.typeOf(n), node.Location())
+	// 	default:
+	// 		panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+	// 	}
+
+	// 	// set attribute
+	// 	c.emitSetterCall(name, node.Location())
+	// default:
+	// 	c.Errors.AddFailure(
+	// 		fmt.Sprintf("cannot assign to: %T", node.Expression),
+	// 		node.Location(),
+	// 	)
+	// 	return nilGoValue
+	// }
+}
+
 func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
 	if resolved := c.resolve(node); resolved != nil {
 		return resolved
 	}
 
+	leftVal := c.compileExpression(node.Left, false)
+	rightVal := c.compileExpression(node.Right, false)
 	switch node.Op.Type {
 	case token.PLUS:
-		return c.compileAdd(node, valueIsIgnored)
+		return c.compileAdd(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.MINUS:
-		return c.compileSubtract(node, valueIsIgnored)
+		return c.compileSubtract(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.STAR:
-		return c.compileMultiply(node, valueIsIgnored)
+		return c.compileMultiply(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.SLASH:
-		return c.compileDivide(node, valueIsIgnored)
+		return c.compileDivide(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.STAR_STAR:
-		return c.compileExponentiate(node, valueIsIgnored)
+		return c.compileExponentiate(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.LBITSHIFT:
-		return c.compileLeftBitshift(node, valueIsIgnored)
+		return c.compileLeftBitshift(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.LTRIPLE_BITSHIFT:
-		return c.compileLogicalLeftBitshift(node, valueIsIgnored)
+		return c.compileLogicalLeftBitshift(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.RBITSHIFT:
-		return c.compileRightBitshift(node, valueIsIgnored)
+		return c.compileRightBitshift(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.RTRIPLE_BITSHIFT:
-		return c.compileLogicalRightBitshift(node, valueIsIgnored)
+		return c.compileLogicalRightBitshift(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.AND:
-		return c.compileBitwiseAnd(node, valueIsIgnored)
+		return c.compileBitwiseAnd(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.OR:
-		return c.compileBitwiseOr(node, valueIsIgnored)
+		return c.compileBitwiseOr(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.AND_TILDE:
-		return c.compileBitwiseAndNot(node, valueIsIgnored)
+		return c.compileBitwiseAndNot(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.XOR:
-		return c.compileBitwiseXor(node, valueIsIgnored)
+		return c.compileBitwiseXor(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.PERCENT:
-		return c.compileModulo(node, valueIsIgnored)
+		return c.compileModulo(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.LAX_EQUAL:
-		return c.compileLaxEqual(node, valueIsIgnored)
+		return c.compileLaxEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.LAX_NOT_EQUAL:
-		return c.compileLaxNotEqual(node, valueIsIgnored)
+		return c.compileLaxNotEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.EQUAL_EQUAL:
-		return c.compileEqual(node, valueIsIgnored)
+		return c.compileEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.NOT_EQUAL:
-		return c.compileNegate(c.compileEqual(node, valueIsIgnored))
+		return c.compileNegate(c.compileEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored))
 	case token.STRICT_EQUAL:
-		return c.compileStrictEqual(node, valueIsIgnored)
+		return c.compileStrictEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.STRICT_NOT_EQUAL:
-		return c.compileNegate(c.compileStrictEqual(node, valueIsIgnored))
+		return c.compileNegate(c.compileStrictEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored))
 	case token.GREATER:
-		return c.compileGreater(node, valueIsIgnored)
+		return c.compileGreater(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.GREATER_EQUAL:
-		return c.compileGreaterEqual(node, valueIsIgnored)
+		return c.compileGreaterEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.LESS:
-		return c.compileLess(node, valueIsIgnored)
+		return c.compileLess(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.LESS_EQUAL:
-		return c.compileLessEqual(node, valueIsIgnored)
+		return c.compileLessEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.SPACESHIP_OP:
-		return c.compileCompare(node, valueIsIgnored)
+		return c.compileCompare(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.INSTANCE_OF_OP:
-		return c.compileInstanceOfNode(node, valueIsIgnored)
+		return c.compileInstanceOf(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.REVERSE_INSTANCE_OF_OP:
-		return c.compileReverseInstanceOfNode(node, valueIsIgnored)
+		return c.compileReverseInstanceOf(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.ISA_OP:
-		return c.compileIsANode(node, valueIsIgnored)
+		return c.compileIsA(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.REVERSE_ISA_OP:
-		return c.compileReverseIsANode(node, valueIsIgnored)
+		return c.compileReverseIsA(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	default:
 		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
 		return errGoValue
 	}
 }
 
-func (c *GoCompiler) compileReverseIsANode(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	return c.compileIsA(node.Right, node.Left, node.Location(), valueIsIgnored)
+func (c *GoCompiler) compileReverseIsA(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	return c.compileIsA(right, left, typ, loc, valueIsIgnored)
 }
 
-func (c *GoCompiler) compileIsANode(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	return c.compileIsA(node.Left, node.Right, node.Location(), valueIsIgnored)
-}
-
-func (c *GoCompiler) compileIsA(leftNode, rightNode ast.ExpressionNode, loc *position.Location, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(leftNode, false)
-	right := c.compileExpression(rightNode, false)
+func (c *GoCompiler) compileIsA(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowRight := c.valueToNarrowerType(right)
 
 	switch narrowRight.goType.Name {
@@ -6199,17 +6306,11 @@ func (c *GoCompiler) compileIsA(leftNode, rightNode ast.ExpressionNode, loc *pos
 	}
 }
 
-func (c *GoCompiler) compileReverseInstanceOfNode(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	return c.compileInstanceOf(node.Right, node.Left, node.Location(), valueIsIgnored)
+func (c *GoCompiler) compileReverseInstanceOf(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	return c.compileInstanceOf(right, left, typ, loc, valueIsIgnored)
 }
 
-func (c *GoCompiler) compileInstanceOfNode(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	return c.compileInstanceOf(node.Left, node.Right, node.Location(), valueIsIgnored)
-}
-
-func (c *GoCompiler) compileInstanceOf(leftNode, rightNode ast.ExpressionNode, loc *position.Location, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(leftNode, false)
-	right := c.compileExpression(rightNode, false)
+func (c *GoCompiler) compileInstanceOf(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowRight := c.valueToNarrowerType(right)
 
 	switch narrowRight.goType.Name {
@@ -6245,17 +6346,14 @@ func (c *GoCompiler) compileInstanceOf(leftNode, rightNode ast.ExpressionNode, l
 	}
 }
 
-func (c *GoCompiler) compileGreaterEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileGreaterEqual(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.String", "value.Char":
-		return c.compileGreaterEqualStringlike(narrowLeft, right, node.Location())
+		return c.compileGreaterEqualStringlike(narrowLeft, right, loc)
 	case "value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
-		return c.compileGreaterEqualCoercibleNumeric(narrowLeft, right, node.Location())
+		return c.compileGreaterEqualCoercibleNumeric(narrowLeft, right, loc)
 	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
 		"value.Float64", "value.Float32":
@@ -6278,7 +6376,7 @@ func (c *GoCompiler) compileGreaterEqual(node *ast.BinaryExpressionNode, valueIs
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.GreaterThanEqualInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -6293,7 +6391,7 @@ func (c *GoCompiler) compileGreaterEqual(node *ast.BinaryExpressionNode, valueIs
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
 		if valueIsIgnored {
 			c.registerErr()
-			c.emitSetCallFrameLineNumber(node.Location())
+			c.emitSetCallFrameLineNumber(loc)
 			c.emit(
 				"_, err = value.GreaterThanEqual(%s, %s)\n",
 				c.convertToValue(left).fetchValue(),
@@ -6306,7 +6404,7 @@ func (c *GoCompiler) compileGreaterEqual(node *ast.BinaryExpressionNode, valueIs
 
 		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.GreaterThanEqual(%s, %s)\n",
 			tmp.name,
@@ -6332,7 +6430,7 @@ func (c *GoCompiler) compileGreaterEqual(node *ast.BinaryExpressionNode, valueIs
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -6435,17 +6533,14 @@ func (c *GoCompiler) compileGreaterEqualStrictNumeric(left, right *goValue) *goV
 	)
 }
 
-func (c *GoCompiler) compileGreater(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileGreater(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.String", "value.Char":
-		return c.compileGreaterStringlike(narrowLeft, right, node.Location())
+		return c.compileGreaterStringlike(narrowLeft, right, loc)
 	case "value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
-		return c.compileGreaterCoercibleNumeric(narrowLeft, right, node.Location())
+		return c.compileGreaterCoercibleNumeric(narrowLeft, right, loc)
 	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
 		"value.Float64", "value.Float32":
@@ -6468,7 +6563,7 @@ func (c *GoCompiler) compileGreater(node *ast.BinaryExpressionNode, valueIsIgnor
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.GreaterThanInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -6483,7 +6578,7 @@ func (c *GoCompiler) compileGreater(node *ast.BinaryExpressionNode, valueIsIgnor
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
 		if valueIsIgnored {
 			c.registerErr()
-			c.emitSetCallFrameLineNumber(node.Location())
+			c.emitSetCallFrameLineNumber(loc)
 			c.emit(
 				"_, err = value.GreaterThan(%s, %s)\n",
 				c.convertToValue(left).fetchValue(),
@@ -6496,7 +6591,7 @@ func (c *GoCompiler) compileGreater(node *ast.BinaryExpressionNode, valueIsIgnor
 
 		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.GreaterThan(%s, %s)\n",
 			tmp.name,
@@ -6522,7 +6617,7 @@ func (c *GoCompiler) compileGreater(node *ast.BinaryExpressionNode, valueIsIgnor
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -6625,17 +6720,14 @@ func (c *GoCompiler) compileGreaterStrictNumeric(left, right *goValue) *goValue 
 	)
 }
 
-func (c *GoCompiler) compileLess(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileLess(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
-		return c.compileLessCoercibleNumeric(narrowLeft, right, node.Location())
+		return c.compileLessCoercibleNumeric(narrowLeft, right, loc)
 	case "value.String", "value.Char":
-		return c.compileLessStringlike(narrowLeft, right, node.Location())
+		return c.compileLessStringlike(narrowLeft, right, loc)
 	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
 		"value.Float64", "value.Float32":
@@ -6658,7 +6750,7 @@ func (c *GoCompiler) compileLess(node *ast.BinaryExpressionNode, valueIsIgnored 
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LessThanInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -6673,7 +6765,7 @@ func (c *GoCompiler) compileLess(node *ast.BinaryExpressionNode, valueIsIgnored 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
 		if valueIsIgnored {
 			c.registerErr()
-			c.emitSetCallFrameLineNumber(node.Location())
+			c.emitSetCallFrameLineNumber(loc)
 			c.emit(
 				"_, err = value.LessThan(%s, %s)\n",
 				c.convertToValue(left).fetchValue(),
@@ -6686,7 +6778,7 @@ func (c *GoCompiler) compileLess(node *ast.BinaryExpressionNode, valueIsIgnored 
 
 		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.LessThan(%s, %s)\n",
 			tmp.name,
@@ -6712,7 +6804,7 @@ func (c *GoCompiler) compileLess(node *ast.BinaryExpressionNode, valueIsIgnored 
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -6815,17 +6907,14 @@ func (c *GoCompiler) compileLessStrictNumeric(left, right *goValue) *goValue {
 	)
 }
 
-func (c *GoCompiler) compileLessEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileLessEqual(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
-		return c.compileLessEqualCoercibleNumeric(narrowLeft, right, node.Location())
+		return c.compileLessEqualCoercibleNumeric(narrowLeft, right, loc)
 	case "value.String", "value.Char":
-		return c.compileLessEqualStringlike(narrowLeft, right, node.Location())
+		return c.compileLessEqualStringlike(narrowLeft, right, loc)
 	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
 		"value.Float64", "value.Float32":
@@ -6848,7 +6937,7 @@ func (c *GoCompiler) compileLessEqual(node *ast.BinaryExpressionNode, valueIsIgn
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LessThanEqualInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -6863,7 +6952,7 @@ func (c *GoCompiler) compileLessEqual(node *ast.BinaryExpressionNode, valueIsIgn
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
 		if valueIsIgnored {
 			c.registerErr()
-			c.emitSetCallFrameLineNumber(node.Location())
+			c.emitSetCallFrameLineNumber(loc)
 			c.emit(
 				"_, err = value.LessThanEqual(%s, %s)\n",
 				c.convertToValue(left).fetchValue(),
@@ -6876,7 +6965,7 @@ func (c *GoCompiler) compileLessEqual(node *ast.BinaryExpressionNode, valueIsIgn
 
 		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.LessThanEqual(%s, %s)\n",
 			tmp.name,
@@ -6902,7 +6991,7 @@ func (c *GoCompiler) compileLessEqual(node *ast.BinaryExpressionNode, valueIsIgn
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -7005,17 +7094,14 @@ func (c *GoCompiler) compileLessEqualStrictNumeric(left, right *goValue) *goValu
 	)
 }
 
-func (c *GoCompiler) compileCompare(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileCompare(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
-		return c.compileCompareCoercibleNumeric(narrowLeft, right, node.Location())
+		return c.compileCompareCoercibleNumeric(narrowLeft, right, loc)
 	case "value.String", "value.Char":
-		return c.compileCompareStringlike(narrowLeft, right, node.Location())
+		return c.compileCompareStringlike(narrowLeft, right, loc)
 	case "value.Int64":
 		return c.compileCompareInt64(narrowLeft, right)
 	case "value.Int32":
@@ -7054,7 +7140,7 @@ func (c *GoCompiler) compileCompare(node *ast.BinaryExpressionNode, valueIsIgnor
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.CompareInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -7071,7 +7157,7 @@ func (c *GoCompiler) compileCompare(node *ast.BinaryExpressionNode, valueIsIgnor
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.CompareVal(%s, %s)\n",
 			tmp.name,
@@ -7095,7 +7181,7 @@ func (c *GoCompiler) compileCompare(node *ast.BinaryExpressionNode, valueIsIgnor
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -7284,37 +7370,34 @@ func (c *GoCompiler) compileCompareFloat32(left, right *goValue) *goValue {
 	)
 }
 
-func (c *GoCompiler) compileDivide(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt":
-		return c.compileDivideSmallInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileDivideSmallInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigInt":
-		return c.compileDivideBigInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileDivideBigInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int64":
-		return c.compileDivideInt64(narrowLeft, right, node.Location())
+		return c.compileDivideInt64(narrowLeft, right, loc)
 	case "value.Int32":
-		return c.compileDivideInt32(narrowLeft, right, node.Location())
+		return c.compileDivideInt32(narrowLeft, right, loc)
 	case "value.Int16":
-		return c.compileDivideInt16(narrowLeft, right, node.Location())
+		return c.compileDivideInt16(narrowLeft, right, loc)
 	case "value.Int8":
-		return c.compileDivideInt8(narrowLeft, right, node.Location())
+		return c.compileDivideInt8(narrowLeft, right, loc)
 	case "value.UInt64":
-		return c.compileDivideUInt64(narrowLeft, right, node.Location())
+		return c.compileDivideUInt64(narrowLeft, right, loc)
 	case "value.UInt32":
-		return c.compileDivideUInt32(narrowLeft, right, node.Location())
+		return c.compileDivideUInt32(narrowLeft, right, loc)
 	case "value.UInt16":
-		return c.compileDivideUInt16(narrowLeft, right, node.Location())
+		return c.compileDivideUInt16(narrowLeft, right, loc)
 	case "value.UInt8":
-		return c.compileDivideUInt8(narrowLeft, right, node.Location())
+		return c.compileDivideUInt8(narrowLeft, right, loc)
 	case "value.Float":
-		return c.compileDivideFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileDivideFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigFloat":
-		return c.compileDivideBigFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileDivideBigFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Float64":
 		return c.compileDivideFloat64(narrowLeft, right)
 	case "value.Float32":
@@ -7329,7 +7412,7 @@ func (c *GoCompiler) compileDivide(node *ast.BinaryExpressionNode, valueIsIgnore
 		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
 			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
-			c.emitSetCallFrameLineNumber(node.Location())
+			c.emitSetCallFrameLineNumber(loc)
 			c.emit("%s, err = value.DivideInts(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 			c.emitErrorPropagation()
 
@@ -7341,7 +7424,7 @@ func (c *GoCompiler) compileDivide(node *ast.BinaryExpressionNode, valueIsIgnore
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.DivideInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -7354,7 +7437,7 @@ func (c *GoCompiler) compileDivide(node *ast.BinaryExpressionNode, valueIsIgnore
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinDividable)) {
 		if valueIsIgnored {
 			c.registerErr()
-			c.emitSetCallFrameLineNumber(node.Location())
+			c.emitSetCallFrameLineNumber(loc)
 			c.emit("_, err = value.DivideVal(%s, %s)\n", c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 			c.emitErrorPropagation()
 			return nilGoValue
@@ -7362,7 +7445,7 @@ func (c *GoCompiler) compileDivide(node *ast.BinaryExpressionNode, valueIsIgnore
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.DivideVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -7381,7 +7464,7 @@ func (c *GoCompiler) compileDivide(node *ast.BinaryExpressionNode, valueIsIgnore
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -7774,17 +7857,14 @@ func (c *GoCompiler) compileDivideUInt8(left, right *goValue, loc *position.Loca
 	)
 }
 
-func (c *GoCompiler) compileExponentiate(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileExponentiate(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt":
-		return c.compileExponentiateSmallInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileExponentiateSmallInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigInt":
-		return c.compileExponentiateBigInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileExponentiateBigInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int64":
 		return c.compileExponentiateInt64(narrowLeft, right)
 	case "value.Int32":
@@ -7802,13 +7882,13 @@ func (c *GoCompiler) compileExponentiate(node *ast.BinaryExpressionNode, valueIs
 	case "value.UInt8":
 		return c.compileExponentiateUInt8(narrowLeft, right)
 	case "value.Float":
-		return c.compileExponentiateFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
-	case "*value.BigFloat":
-		return c.compileExponentiateBigFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileExponentiateFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Float64":
 		return c.compileExponentiateFloat64(narrowLeft, right)
 	case "value.Float32":
 		return c.compileExponentiateFloat32(narrowLeft, right)
+	case "*value.BigFloat":
+		return c.compileExponentiateBigFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
@@ -7827,7 +7907,7 @@ func (c *GoCompiler) compileExponentiate(node *ast.BinaryExpressionNode, valueIs
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.ExponentiateInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -7844,7 +7924,7 @@ func (c *GoCompiler) compileExponentiate(node *ast.BinaryExpressionNode, valueIs
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.ExponentiateVal(%s, %s)\n",
 			tmp.name,
@@ -7868,7 +7948,7 @@ func (c *GoCompiler) compileExponentiate(node *ast.BinaryExpressionNode, valueIs
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -8191,11 +8271,8 @@ func (c *GoCompiler) compileExponentiateUInt8(left, right *goValue) *goValue {
 	)
 }
 
-func (c *GoCompiler) compileBitwiseAnd(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileBitwiseAnd(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.UInt", "value.Int64", "value.Int32", "value.Int16", "value.Int8",
@@ -8225,7 +8302,7 @@ func (c *GoCompiler) compileBitwiseAnd(node *ast.BinaryExpressionNode, valueIsIg
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseAndInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8242,7 +8319,7 @@ func (c *GoCompiler) compileBitwiseAnd(node *ast.BinaryExpressionNode, valueIsIg
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseAndVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8261,19 +8338,16 @@ func (c *GoCompiler) compileBitwiseAnd(node *ast.BinaryExpressionNode, valueIsIg
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
 
-func (c *GoCompiler) compileBitwiseAndNot(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileBitwiseAndNot(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
-	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+	case "value.UInt", "value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s) &^ (%s)", narrowLeft.value, c.valueToNarrowerType(right).value),
@@ -8300,7 +8374,7 @@ func (c *GoCompiler) compileBitwiseAndNot(node *ast.BinaryExpressionNode, valueI
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseAndNotInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8317,7 +8391,7 @@ func (c *GoCompiler) compileBitwiseAndNot(node *ast.BinaryExpressionNode, valueI
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseAndNotVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8336,16 +8410,13 @@ func (c *GoCompiler) compileBitwiseAndNot(node *ast.BinaryExpressionNode, valueI
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
 
-func (c *GoCompiler) compileBitwiseOr(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileBitwiseOr(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.UInt", "value.Int64", "value.Int32", "value.Int16", "value.Int8",
@@ -8375,7 +8446,7 @@ func (c *GoCompiler) compileBitwiseOr(node *ast.BinaryExpressionNode, valueIsIgn
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseOrInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8392,7 +8463,7 @@ func (c *GoCompiler) compileBitwiseOr(node *ast.BinaryExpressionNode, valueIsIgn
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseOrVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8411,16 +8482,13 @@ func (c *GoCompiler) compileBitwiseOr(node *ast.BinaryExpressionNode, valueIsIgn
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
 
-func (c *GoCompiler) compileBitwiseXor(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileBitwiseXor(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.UInt", "value.Int64", "value.Int32", "value.Int16", "value.Int8",
@@ -8450,7 +8518,7 @@ func (c *GoCompiler) compileBitwiseXor(node *ast.BinaryExpressionNode, valueIsIg
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseXorInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8467,7 +8535,7 @@ func (c *GoCompiler) compileBitwiseXor(node *ast.BinaryExpressionNode, valueIsIg
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseXorVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8486,38 +8554,35 @@ func (c *GoCompiler) compileBitwiseXor(node *ast.BinaryExpressionNode, valueIsIg
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
 
-func (c *GoCompiler) compileLeftBitshift(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileLeftBitshift(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt":
-		return c.compileLeftBitshiftSmallInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftSmallInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigInt":
-		return c.compileLeftBitshiftBigInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftBigInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int64":
-		return c.compileLeftBitshiftInt64(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftInt64(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int32":
-		return c.compileLeftBitshiftInt32(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftInt32(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int16":
-		return c.compileLeftBitshiftInt16(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftInt16(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int8":
-		return c.compileLeftBitshiftInt8(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftInt8(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.UInt64":
-		return c.compileLeftBitshiftUInt64(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftUInt64(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.UInt32":
-		return c.compileLeftBitshiftUInt32(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftUInt32(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.UInt16":
-		return c.compileLeftBitshiftUInt16(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftUInt16(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.UInt8":
-		return c.compileLeftBitshiftUInt8(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftUInt8(narrowLeft, right, typ, loc, valueIsIgnored)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
@@ -8536,7 +8601,7 @@ func (c *GoCompiler) compileLeftBitshift(node *ast.BinaryExpressionNode, valueIs
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LeftBitshiftInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8553,7 +8618,7 @@ func (c *GoCompiler) compileLeftBitshift(node *ast.BinaryExpressionNode, valueIs
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LeftBitshiftVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8572,34 +8637,31 @@ func (c *GoCompiler) compileLeftBitshift(node *ast.BinaryExpressionNode, valueIs
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
 
-func (c *GoCompiler) compileLogicalLeftBitshift(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileLogicalLeftBitshift(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.Int64":
-		return c.compileLogicalLeftBitshiftInt64(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLogicalLeftBitshiftInt64(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int32":
-		return c.compileLogicalLeftBitshiftInt32(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLogicalLeftBitshiftInt32(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int16":
-		return c.compileLogicalLeftBitshiftInt16(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLogicalLeftBitshiftInt16(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int8":
-		return c.compileLogicalLeftBitshiftInt8(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLogicalLeftBitshiftInt8(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.UInt64":
-		return c.compileLeftBitshiftUInt64(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftUInt64(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.UInt32":
-		return c.compileLeftBitshiftUInt32(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftUInt32(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.UInt16":
-		return c.compileLeftBitshiftUInt16(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftUInt16(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.UInt8":
-		return c.compileLeftBitshiftUInt8(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileLeftBitshiftUInt8(narrowLeft, right, typ, loc, valueIsIgnored)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
@@ -8609,7 +8671,7 @@ func (c *GoCompiler) compileLogicalLeftBitshift(node *ast.BinaryExpressionNode, 
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LogicalLeftBitshiftVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8628,38 +8690,35 @@ func (c *GoCompiler) compileLogicalLeftBitshift(node *ast.BinaryExpressionNode, 
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
 
-func (c *GoCompiler) compileRightBitshift(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileRightBitshift(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt":
-		return c.compileRightBitshiftSmallInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileRightBitshiftSmallInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigInt":
-		return c.compileRightBitshiftBigInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileRightBitshiftBigInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int64":
-		return c.compileRightBitshiftInt64(narrowLeft, right, typ, node.Location())
+		return c.compileRightBitshiftInt64(narrowLeft, right, typ, loc)
 	case "value.Int32":
-		return c.compileRightBitshiftInt32(narrowLeft, right, typ, node.Location())
+		return c.compileRightBitshiftInt32(narrowLeft, right, typ, loc)
 	case "value.Int16":
-		return c.compileRightBitshiftInt16(narrowLeft, right, typ, node.Location())
+		return c.compileRightBitshiftInt16(narrowLeft, right, typ, loc)
 	case "value.Int8":
-		return c.compileRightBitshiftInt8(narrowLeft, right, typ, node.Location())
+		return c.compileRightBitshiftInt8(narrowLeft, right, typ, loc)
 	case "value.UInt64":
-		return c.compileRightBitshiftUInt64(narrowLeft, right, typ, node.Location())
+		return c.compileRightBitshiftUInt64(narrowLeft, right, typ, loc)
 	case "value.UInt32":
-		return c.compileRightBitshiftUInt32(narrowLeft, right, typ, node.Location())
+		return c.compileRightBitshiftUInt32(narrowLeft, right, typ, loc)
 	case "value.UInt16":
-		return c.compileRightBitshiftUInt16(narrowLeft, right, typ, node.Location())
+		return c.compileRightBitshiftUInt16(narrowLeft, right, typ, loc)
 	case "value.UInt8":
-		return c.compileRightBitshiftUInt8(narrowLeft, right, typ, node.Location())
+		return c.compileRightBitshiftUInt8(narrowLeft, right, typ, loc)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
@@ -8678,7 +8737,7 @@ func (c *GoCompiler) compileRightBitshift(node *ast.BinaryExpressionNode, valueI
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.RightBitshiftInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8695,7 +8754,7 @@ func (c *GoCompiler) compileRightBitshift(node *ast.BinaryExpressionNode, valueI
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.RightBitshiftVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8714,34 +8773,31 @@ func (c *GoCompiler) compileRightBitshift(node *ast.BinaryExpressionNode, valueI
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
 
-func (c *GoCompiler) compileLogicalRightBitshift(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileLogicalRightBitshift(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.Int64":
-		return c.compileLogicalRightBitshiftInt64(narrowLeft, right, typ, node.Location())
+		return c.compileLogicalRightBitshiftInt64(narrowLeft, right, typ, loc)
 	case "value.Int32":
-		return c.compileLogicalRightBitshiftInt32(narrowLeft, right, typ, node.Location())
+		return c.compileLogicalRightBitshiftInt32(narrowLeft, right, typ, loc)
 	case "value.Int16":
-		return c.compileLogicalRightBitshiftInt16(narrowLeft, right, typ, node.Location())
+		return c.compileLogicalRightBitshiftInt16(narrowLeft, right, typ, loc)
 	case "value.Int8":
-		return c.compileLogicalRightBitshiftInt8(narrowLeft, right, typ, node.Location())
+		return c.compileLogicalRightBitshiftInt8(narrowLeft, right, typ, loc)
 	case "value.UInt64":
-		return c.compileRightBitshiftUInt64(narrowLeft, right, typ, node.Location())
+		return c.compileRightBitshiftUInt64(narrowLeft, right, typ, loc)
 	case "value.UInt32":
-		return c.compileRightBitshiftUInt32(narrowLeft, right, typ, node.Location())
+		return c.compileRightBitshiftUInt32(narrowLeft, right, typ, loc)
 	case "value.UInt16":
-		return c.compileRightBitshiftUInt16(narrowLeft, right, typ, node.Location())
+		return c.compileRightBitshiftUInt16(narrowLeft, right, typ, loc)
 	case "value.UInt8":
-		return c.compileRightBitshiftUInt8(narrowLeft, right, typ, node.Location())
+		return c.compileRightBitshiftUInt8(narrowLeft, right, typ, loc)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
@@ -8751,7 +8807,7 @@ func (c *GoCompiler) compileLogicalRightBitshift(node *ast.BinaryExpressionNode,
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LogicalRightBitshiftVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -8770,7 +8826,7 @@ func (c *GoCompiler) compileLogicalRightBitshift(node *ast.BinaryExpressionNode,
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -9539,17 +9595,14 @@ func (c *GoCompiler) compileRightBitshiftUInt8(left, right *goValue, typ types.T
 	)
 }
 
-func (c *GoCompiler) compileMultiply(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileMultiply(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.valueToNarrowerType(c.compileExpression(node.Right, false))
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt":
-		return c.compileMultiplySmallInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileMultiplySmallInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigInt":
-		return c.compileMultiplyBigInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileMultiplyBigInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int64":
 		return c.compileMultiplyInt64(narrowLeft, right, valueIsIgnored)
 	case "value.Int32":
@@ -9567,17 +9620,17 @@ func (c *GoCompiler) compileMultiply(node *ast.BinaryExpressionNode, valueIsIgno
 	case "value.UInt8":
 		return c.compileMultiplyUInt8(narrowLeft, right, valueIsIgnored)
 	case "value.Float":
-		return c.compileMultiplyFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileMultiplyFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigFloat":
-		return c.compileMultiplyBigFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileMultiplyBigFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Float64":
 		return c.compileMultiplyFloat64(narrowLeft, right, valueIsIgnored)
 	case "value.Float32":
 		return c.compileMultiplyFloat32(narrowLeft, right, valueIsIgnored)
 	case "value.String":
-		return c.compileMultiplyString(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileMultiplyString(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Char":
-		return c.compileMultiplyChar(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileMultiplyChar(narrowLeft, right, typ, loc, valueIsIgnored)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
@@ -9596,7 +9649,7 @@ func (c *GoCompiler) compileMultiply(node *ast.BinaryExpressionNode, valueIsIgno
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.MultiplyInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -9613,13 +9666,8 @@ func (c *GoCompiler) compileMultiply(node *ast.BinaryExpressionNode, valueIsIgno
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
-		c.emit(
-			"%s, err = value.MultiplyVal(%s, %s)\n",
-			tmp.name,
-			c.convertToValue(left).fetchValue(),
-			c.convertToValue(right).fetchValue(),
-		)
+		c.emitSetCallFrameLineNumber(loc)
+		c.emit("%s, err = value.MultiplyVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
 		return newGoValueWithLocal(
@@ -9637,7 +9685,7 @@ func (c *GoCompiler) compileMultiply(node *ast.BinaryExpressionNode, valueIsIgno
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -10056,17 +10104,14 @@ func (c *GoCompiler) compileMultiplyUInt8(left, right *goValue, valueIsIgnored b
 	)
 }
 
-func (c *GoCompiler) compileSubtract(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileSubtract(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.valueToNarrowerType(c.compileExpression(node.Right, false))
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt":
-		return c.compileSubtractSmallInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileSubtractSmallInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigInt":
-		return c.compileSubtractBigInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileSubtractBigInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int64":
 		return c.compileSubtractInt64(narrowLeft, right, valueIsIgnored)
 	case "value.Int32":
@@ -10084,13 +10129,13 @@ func (c *GoCompiler) compileSubtract(node *ast.BinaryExpressionNode, valueIsIgno
 	case "value.UInt8":
 		return c.compileSubtractUInt8(narrowLeft, right, valueIsIgnored)
 	case "value.Float":
-		return c.compileSubtractFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileSubtractFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Float64":
 		return c.compileSubtractFloat64(narrowLeft, right, valueIsIgnored)
 	case "value.Float32":
 		return c.compileSubtractFloat32(narrowLeft, right, valueIsIgnored)
 	case "*value.BigFloat":
-		return c.compileSubtractBigFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileSubtractBigFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
@@ -10109,7 +10154,7 @@ func (c *GoCompiler) compileSubtract(node *ast.BinaryExpressionNode, valueIsIgno
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.SubtractInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -10126,7 +10171,7 @@ func (c *GoCompiler) compileSubtract(node *ast.BinaryExpressionNode, valueIsIgno
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.SubtractVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -10145,7 +10190,7 @@ func (c *GoCompiler) compileSubtract(node *ast.BinaryExpressionNode, valueIsIgno
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -10498,11 +10543,8 @@ func (c *GoCompiler) compileSubtractUInt8(left, right *goValue, valueIsIgnored b
 	)
 }
 
-func (c *GoCompiler) compileLaxEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.valueToNarrowerType(c.compileExpression(node.Left, false))
+func (c *GoCompiler) compileLaxEqual(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.String", "*value.Regex", "value.Symbol", "value.Char",
@@ -10528,7 +10570,7 @@ func (c *GoCompiler) compileLaxEqual(node *ast.BinaryExpressionNode, valueIsIgno
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LaxEqualVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -10547,21 +10589,13 @@ func (c *GoCompiler) compileLaxEqual(node *ast.BinaryExpressionNode, valueIsIgno
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
 
-func (c *GoCompiler) compileLaxNotEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.valueToNarrowerType(c.compileExpression(node.Left, false))
-	defer left.markFree()
-
+func (c *GoCompiler) compileLaxNotEqual(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-
-	right := c.compileExpression(node.Right, false)
-	defer right.markFree()
-
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.String", "*value.Regex", "value.Symbol", "value.Char",
@@ -10598,7 +10632,7 @@ func (c *GoCompiler) compileLaxNotEqual(node *ast.BinaryExpressionNode, valueIsI
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 
@@ -10663,17 +10697,14 @@ func (c *GoCompiler) compileLaxNotEqualStrictFloat(left, right *goValue) *goValu
 	)
 }
 
-func (c *GoCompiler) compileStrictEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileStrictEqual(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt":
-		return c.compileEqualSmallInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileEqualSmallInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigInt":
-		return c.compileEqualBigInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileEqualBigInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int64":
 		return c.compileEqualPrimitive("value.Int64", narrowLeft, right, valueIsIgnored)
 	case "value.Int32":
@@ -10741,17 +10772,14 @@ func (c *GoCompiler) compileNegate(val *goValue) *goValue {
 	}
 }
 
-func (c *GoCompiler) compileEqual(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.compileExpression(node.Left, false)
+func (c *GoCompiler) compileEqual(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt":
-		return c.compileEqualSmallInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileEqualSmallInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigInt":
-		return c.compileEqualBigInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileEqualBigInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int64":
 		return c.compileEqualPrimitive("value.Int64", narrowLeft, right, valueIsIgnored)
 	case "value.Int32":
@@ -10808,7 +10836,7 @@ func (c *GoCompiler) compileEqual(node *ast.BinaryExpressionNode, valueIsIgnored
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -10949,43 +10977,40 @@ func (c *GoCompiler) compileEqualPrimitive(typeName string, left, right *goValue
 	}
 }
 
-func (c *GoCompiler) compileModulo(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.valueToNarrowerType(c.compileExpression(node.Left, false))
+func (c *GoCompiler) compileModulo(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt":
-		return c.compileModuloSmallInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileModuloSmallInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigInt":
-		return c.compileModuloBigInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileModuloBigInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int64":
-		return c.compileModuloInt64(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileModuloInt64(narrowLeft, right, loc, valueIsIgnored)
 	case "value.Int32":
-		return c.compileModuloInt32(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileModuloInt32(narrowLeft, right, loc, valueIsIgnored)
 	case "value.Int16":
-		return c.compileModuloInt16(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileModuloInt16(narrowLeft, right, loc, valueIsIgnored)
 	case "value.Int8":
-		return c.compileModuloInt8(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileModuloInt8(narrowLeft, right, loc, valueIsIgnored)
 	case "value.UInt":
-		return c.compileModuloUInt(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileModuloUInt(narrowLeft, right, loc, valueIsIgnored)
 	case "value.UInt64":
-		return c.compileModuloUInt64(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileModuloUInt64(narrowLeft, right, loc, valueIsIgnored)
 	case "value.UInt32":
-		return c.compileModuloUInt32(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileModuloUInt32(narrowLeft, right, loc, valueIsIgnored)
 	case "value.UInt16":
-		return c.compileModuloUInt16(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileModuloUInt16(narrowLeft, right, loc, valueIsIgnored)
 	case "value.UInt8":
-		return c.compileModuloUInt8(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileModuloUInt8(narrowLeft, right, loc, valueIsIgnored)
 	case "value.Float":
-		return c.compileModuloFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileModuloFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Float64":
 		return c.compileModuloFloat64(narrowLeft, right, valueIsIgnored)
 	case "value.Float32":
 		return c.compileModuloFloat32(narrowLeft, right, valueIsIgnored)
 	case "*value.BigFloat":
-		return c.compileModuloBigFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileModuloBigFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
@@ -10996,7 +11021,7 @@ func (c *GoCompiler) compileModulo(node *ast.BinaryExpressionNode, valueIsIgnore
 		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
 			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
-			c.emitSetCallFrameLineNumber(node.Location())
+			c.emitSetCallFrameLineNumber(loc)
 			c.emit("%s, err = value.ModuloInts(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 			c.emitErrorPropagation()
 
@@ -11008,7 +11033,7 @@ func (c *GoCompiler) compileModulo(node *ast.BinaryExpressionNode, valueIsIgnore
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.ModuloInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -11025,7 +11050,7 @@ func (c *GoCompiler) compileModulo(node *ast.BinaryExpressionNode, valueIsIgnore
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.ModuloVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -11044,7 +11069,7 @@ func (c *GoCompiler) compileModulo(node *ast.BinaryExpressionNode, valueIsIgnore
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -11478,17 +11503,14 @@ func (c *GoCompiler) compileModuloFloat32(left, right *goValue, valueIsIgnored b
 	)
 }
 
-func (c *GoCompiler) compileAdd(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
-	left := c.valueToNarrowerType(c.compileExpression(node.Left, false))
+func (c *GoCompiler) compileAdd(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
-	right := c.compileExpression(node.Right, false)
-	typ := c.typeOf(node)
 
 	switch narrowLeft.goType.Name {
 	case "value.SmallInt":
-		return c.compileAddSmallInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileAddSmallInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigInt":
-		return c.compileAddBigInt(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileAddBigInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int64":
 		return c.compileAddInt64(narrowLeft, right, valueIsIgnored)
 	case "value.Int32":
@@ -11506,17 +11528,17 @@ func (c *GoCompiler) compileAdd(node *ast.BinaryExpressionNode, valueIsIgnored b
 	case "value.UInt8":
 		return c.compileAddUInt8(narrowLeft, right, valueIsIgnored)
 	case "value.Float":
-		return c.compileAddFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileAddFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Float64":
 		return c.compileAddFloat64(narrowLeft, right, valueIsIgnored)
 	case "value.Float32":
 		return c.compileAddFloat32(narrowLeft, right, valueIsIgnored)
 	case "*value.BigFloat":
-		return c.compileAddBigFloat(narrowLeft, right, typ, node.Location(), valueIsIgnored)
+		return c.compileAddBigFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.String":
-		return c.compileAddString(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileAddString(narrowLeft, right, loc, valueIsIgnored)
 	case "value.Char":
-		return c.compileAddChar(narrowLeft, right, node.Location(), valueIsIgnored)
+		return c.compileAddChar(narrowLeft, right, loc, valueIsIgnored)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
@@ -11535,7 +11557,7 @@ func (c *GoCompiler) compileAdd(node *ast.BinaryExpressionNode, valueIsIgnored b
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.AddInt(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -11552,7 +11574,7 @@ func (c *GoCompiler) compileAdd(node *ast.BinaryExpressionNode, valueIsIgnored b
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.AddVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
 		c.emitErrorPropagation()
 
@@ -11571,7 +11593,7 @@ func (c *GoCompiler) compileAdd(node *ast.BinaryExpressionNode, valueIsIgnored b
 			left,
 			right,
 		},
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }

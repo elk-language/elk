@@ -1225,413 +1225,398 @@ import (
 // 	}
 // }
 
-// func TestBytecodeComplexAssignmentLocals(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"increment": {
-// 			input: "a := 1; a++",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INCREMENT_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(10, 1, 11)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 9),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"decrement": {
-// 			input: "a := 1; a--",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.DECREMENT_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(10, 1, 11)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 9),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"add": {
-// 			input: "a := 1; a += 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"subtract": {
-// 			input: "a := 1; a -= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.SUBTRACT_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"multiply": {
-// 			input: "a := 1; a *= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.MULTIPLY_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"divide": {
-// 			input: "a := 1; a /= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.DIVIDE_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"exponentiate": {
-// 			input: "a := 1; a **= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.EXPONENTIATE_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"modulo": {
-// 			input: "a := 1; a %= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.MODULO_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"bitwise AND": {
-// 			input: "a := 1; a &= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.BITWISE_AND_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"bitwise OR": {
-// 			input: "a := 1; a |= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.BITWISE_OR_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"bitwise XOR": {
-// 			input: "a := 1; a ^= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.BITWISE_XOR_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"left bitshift": {
-// 			input: "a := 1; a <<= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.LBITSHIFT_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"left logical bitshift": {
-// 			input: "a := 1u64; a <<<= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_UINT64_8), 1,
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.LOGIC_LBITSHIFT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(18, 1, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 11),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"right bitshift": {
-// 			input: "a := 1; a >>= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.RBITSHIFT_INT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"right logical bitshift": {
-// 			input: "a := 1u64; a >>>= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_UINT64_8), 1,
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.LOGIC_RBITSHIFT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(18, 1, 19)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 11),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"logic OR": {
-// 			input: "var a: Int? = 1; a ||= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_IF_NP), 0, 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(23, 1, 24)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 13),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"logic AND": {
-// 			input: "var a: Int? = 1; a &&= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(23, 1, 24)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 13),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"nil coalesce": {
-// 			input: "var a: Int? = 1; a ??= 3",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(23, 1, 24)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 13),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 	}
+func TestGoComplexAssignmentLocals(t *testing.T) {
+	tests := goTestTable{
+		// TODO:
+		// 		"increment": {
+		// 			input: "a := 1; a++",
+		// 			want: `
+		// `,
+		// 		},
+		// "decrement": {
+		// 	input: "a := 1; a--",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.DECREMENT_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(10, 1, 11)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 9),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "add": {
+		// 	input: "a := 1; a += 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(13, 1, 14)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 10),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "subtract": {
+		// 	input: "a := 1; a -= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.SUBTRACT_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(13, 1, 14)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 10),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "multiply": {
+		// 	input: "a := 1; a *= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.MULTIPLY_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(13, 1, 14)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 10),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "divide": {
+		// 	input: "a := 1; a /= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.DIVIDE_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(13, 1, 14)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 10),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "exponentiate": {
+		// 	input: "a := 1; a **= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.EXPONENTIATE_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(14, 1, 15)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 10),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "modulo": {
+		// 	input: "a := 1; a %= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.MODULO_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(13, 1, 14)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 10),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "bitwise AND": {
+		// 	input: "a := 1; a &= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.BITWISE_AND_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(13, 1, 14)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 10),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "bitwise OR": {
+		// 	input: "a := 1; a |= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.BITWISE_OR_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(13, 1, 14)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 10),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "bitwise XOR": {
+		// 	input: "a := 1; a ^= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.BITWISE_XOR_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(13, 1, 14)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 10),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "left bitshift": {
+		// 	input: "a := 1; a <<= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.LBITSHIFT_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(14, 1, 15)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 10),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "left logical bitshift": {
+		// 	input: "a := 1u64; a <<<= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.LOAD_UINT64_8), 1,
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.LOGIC_LBITSHIFT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(18, 1, 19)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 11),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "right bitshift": {
+		// 	input: "a := 1; a >>= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.RBITSHIFT_INT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(14, 1, 15)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 10),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "right logical bitshift": {
+		// 	input: "a := 1u64; a >>>= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.LOAD_UINT64_8), 1,
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.LOGIC_RBITSHIFT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(18, 1, 19)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 11),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "logic OR": {
+		// 	input: "var a: Int? = 1; a ||= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.JUMP_IF_NP), 0, 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(23, 1, 24)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 13),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "logic AND": {
+		// 	input: "var a: Int? = 1; a &&= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(23, 1, 24)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 13),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+		// "nil coalesce": {
+		// 	input: "var a: Int? = 1; a ??= 3",
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(23, 1, 24)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 13),
+		// 		},
+		// 		[]value.Value{},
+		// 	),
+		// },
+	}
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 // 	tests := bytecodeTestTable{
@@ -4043,131 +4028,1280 @@ import (
 // 	}
 // }
 
-// func TestBytecodeBitwiseAnd(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"resolve static AND": {
-// 			input: "23 & 10",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(6, 1, 7)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"resolve static nested AND": {
-// 			input: "23 & 15 & 46",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT_8), 6,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(11, 1, 12)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"compile runtime AND": {
-// 			input: "a := 23; a & 15 & 46",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_INT_8), 0x17,
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_INT_8), 0x0F,
-// 					byte(bytecode.BITWISE_AND_INT),
-// 					byte(bytecode.LOAD_INT_8), 0x2E,
-// 					byte(bytecode.BITWISE_AND_INT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(19, 1, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 13),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 	}
+func TestGoBitwiseAnd(t *testing.T) {
+	tests := goTestTable{
+		"resolve static AND": {
+			input: "a := 23 & 10",
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
-// func TestBytecodeBitwiseAndNot(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"resolve static AND NOT": {
-// 			input: "23 &~ 10",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT_8), 0x15,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(7, 1, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"resolve static nested AND NOT": {
-// 			input: "23 &~ 15 &~ 46",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT_8), 0x10,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"compile runtime AND NOT": {
-// 			input: "a := 23; a &~ 15 &~ 46",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_INT_8), 0x17,
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_INT_8), 0x0F,
-// 					byte(bytecode.BITWISE_AND_NOT),
-// 					byte(bytecode.LOAD_INT_8), 0x2E,
-// 					byte(bytecode.BITWISE_AND_NOT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(21, 1, 22)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 13),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 	}
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(2)).ToValue()
+}
+`,
+		},
+		"resolve static nested AND": {
+			input: "a := 23 & 15 & 46",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(6)).ToValue()
+}
+`,
+		},
+		"and int64": {
+			input: `
+				a := 23i64
+				b := 10i64
+				c := a & b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int64 // var a: Std::Int64
+	_ = l0
+	var l1 value.Int64 // var b: Std::Int64
+	_ = l1
+	var l2 value.Int64 // var c: Std::Int64
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int64(23)
+	l1 = value.Int64(10)
+	l2 = (l0) & (l1)
+}
+`,
+		},
+
+		"and int32": {
+			input: `
+				a := 23i32
+				b := 10i32
+				c := a & b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int32 // var a: Std::Int32
+	_ = l0
+	var l1 value.Int32 // var b: Std::Int32
+	_ = l1
+	var l2 value.Int32 // var c: Std::Int32
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int32(23)
+	l1 = value.Int32(10)
+	l2 = (l0) & (l1)
+}
+`,
+		},
+
+		"and int16": {
+			input: `
+				a := 23i16
+				b := 10i16
+				c := a & b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int16 // var a: Std::Int16
+	_ = l0
+	var l1 value.Int16 // var b: Std::Int16
+	_ = l1
+	var l2 value.Int16 // var c: Std::Int16
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int16(23)
+	l1 = value.Int16(10)
+	l2 = (l0) & (l1)
+}
+`,
+		},
+
+		"and int8": {
+			input: `
+				a := 23i8
+				b := 10i8
+				c := a & b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int8 // var a: Std::Int8
+	_ = l0
+	var l1 value.Int8 // var b: Std::Int8
+	_ = l1
+	var l2 value.Int8 // var c: Std::Int8
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int8(23)
+	l1 = value.Int8(10)
+	l2 = (l0) & (l1)
+}
+`,
+		},
+
+		"and uint64": {
+			input: `
+				a := 23u64
+				b := 10u64
+				c := a & b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt64 // var a: Std::UInt64
+	_ = l0
+	var l1 value.UInt64 // var b: Std::UInt64
+	_ = l1
+	var l2 value.UInt64 // var c: Std::UInt64
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt64(23)
+	l1 = value.UInt64(10)
+	l2 = (l0) & (l1)
+}
+`,
+		},
+
+		"and uint32": {
+			input: `
+				a := 23u32
+				b := 10u32
+				c := a & b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt32 // var a: Std::UInt32
+	_ = l0
+	var l1 value.UInt32 // var b: Std::UInt32
+	_ = l1
+	var l2 value.UInt32 // var c: Std::UInt32
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt32(23)
+	l1 = value.UInt32(10)
+	l2 = (l0) & (l1)
+}
+`,
+		},
+
+		"and uint16": {
+			input: `
+				a := 23u16
+				b := 10u16
+				c := a & b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt16 // var a: Std::UInt16
+	_ = l0
+	var l1 value.UInt16 // var b: Std::UInt16
+	_ = l1
+	var l2 value.UInt16 // var c: Std::UInt16
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt16(23)
+	l1 = value.UInt16(10)
+	l2 = (l0) & (l1)
+}
+`,
+		},
+
+		"and uint8": {
+			input: `
+				a := 23u8
+				b := 10u8
+				c := a & b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt8 // var a: Std::UInt8
+	_ = l0
+	var l1 value.UInt8 // var b: Std::UInt8
+	_ = l1
+	var l2 value.UInt8 // var c: Std::UInt8
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt8(23)
+	l1 = value.UInt8(10)
+	l2 = (l0) & (l1)
+}
+`,
+		},
+
+		"and uint": {
+			input: `
+				a := 23u
+				b := 10u
+				c := a & b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt // var a: Std::UInt
+	_ = l0
+	var l1 value.UInt // var b: Std::UInt
+	_ = l1
+	var l2 value.UInt // var c: Std::UInt
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt(23)
+	l1 = value.UInt(10)
+	l2 = (l0) & (l1)
+}
+`,
+		},
+
+		"and not ints": {
+			input: `
+				a := 23
+				b := 10
+				c := a & b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(23)).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	l2 = value.BitwiseAndInts(l0, l1)
+}
+`,
+		},
+		"and custom object": {
+			input: `
+				module Foo
+					def &(other: Int): Int
+						5 & other
+					end
+				end
+
+				a := Foo
+				b := 10
+				c := a & b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::&")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__and_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::&, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.BitwiseAndInts((value.SmallInt(5)).ToValue(), l0), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(10)
+	t1, err = Foo_ns__and_(thread, l0, l1) // receiver: Foo, name: &
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "&", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__and_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoBitwiseAndNot(t *testing.T) {
+	tests := goTestTable{
+		"resolve static AND NOT": {
+			input: "a := 23 &~ 10",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(21)).ToValue()
+}
+`,
+		},
+		"resolve static nested AND NOT": {
+			input: "a := 23 &~ 15 &~ 46",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(16)).ToValue()
+}
+`,
+		},
+
+		"and not int64": {
+			input: `
+				a := 23i64
+				b := 10i64
+				c := a &~ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int64 // var a: Std::Int64
+	_ = l0
+	var l1 value.Int64 // var b: Std::Int64
+	_ = l1
+	var l2 value.Int64 // var c: Std::Int64
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int64(23)
+	l1 = value.Int64(10)
+	l2 = (l0) &^ (l1)
+}
+`,
+		},
+
+		"and not int32": {
+			input: `
+				a := 23i32
+				b := 10i32
+				c := a &~ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int32 // var a: Std::Int32
+	_ = l0
+	var l1 value.Int32 // var b: Std::Int32
+	_ = l1
+	var l2 value.Int32 // var c: Std::Int32
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int32(23)
+	l1 = value.Int32(10)
+	l2 = (l0) &^ (l1)
+}
+`,
+		},
+
+		"and not int16": {
+			input: `
+				a := 23i16
+				b := 10i16
+				c := a &~ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int16 // var a: Std::Int16
+	_ = l0
+	var l1 value.Int16 // var b: Std::Int16
+	_ = l1
+	var l2 value.Int16 // var c: Std::Int16
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int16(23)
+	l1 = value.Int16(10)
+	l2 = (l0) &^ (l1)
+}
+`,
+		},
+
+		"and not int8": {
+			input: `
+				a := 23i8
+				b := 10i8
+				c := a &~ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int8 // var a: Std::Int8
+	_ = l0
+	var l1 value.Int8 // var b: Std::Int8
+	_ = l1
+	var l2 value.Int8 // var c: Std::Int8
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int8(23)
+	l1 = value.Int8(10)
+	l2 = (l0) &^ (l1)
+}
+`,
+		},
+
+		"and not uint64": {
+			input: `
+				a := 23u64
+				b := 10u64
+				c := a &~ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt64 // var a: Std::UInt64
+	_ = l0
+	var l1 value.UInt64 // var b: Std::UInt64
+	_ = l1
+	var l2 value.UInt64 // var c: Std::UInt64
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt64(23)
+	l1 = value.UInt64(10)
+	l2 = (l0) &^ (l1)
+}
+`,
+		},
+
+		"and not uint32": {
+			input: `
+				a := 23u32
+				b := 10u32
+				c := a &~ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt32 // var a: Std::UInt32
+	_ = l0
+	var l1 value.UInt32 // var b: Std::UInt32
+	_ = l1
+	var l2 value.UInt32 // var c: Std::UInt32
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt32(23)
+	l1 = value.UInt32(10)
+	l2 = (l0) &^ (l1)
+}
+`,
+		},
+
+		"and not uint16": {
+			input: `
+				a := 23u16
+				b := 10u16
+				c := a &~ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt16 // var a: Std::UInt16
+	_ = l0
+	var l1 value.UInt16 // var b: Std::UInt16
+	_ = l1
+	var l2 value.UInt16 // var c: Std::UInt16
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt16(23)
+	l1 = value.UInt16(10)
+	l2 = (l0) &^ (l1)
+}
+`,
+		},
+
+		"and not uint8": {
+			input: `
+				a := 23u8
+				b := 10u8
+				c := a &~ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt8 // var a: Std::UInt8
+	_ = l0
+	var l1 value.UInt8 // var b: Std::UInt8
+	_ = l1
+	var l2 value.UInt8 // var c: Std::UInt8
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt8(23)
+	l1 = value.UInt8(10)
+	l2 = (l0) &^ (l1)
+}
+`,
+		},
+
+		"and not uint": {
+			input: `
+				a := 23u
+				b := 10u
+				c := a &~ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt // var a: Std::UInt
+	_ = l0
+	var l1 value.UInt // var b: Std::UInt
+	_ = l1
+	var l2 value.UInt // var c: Std::UInt
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt(23)
+	l1 = value.UInt(10)
+	l2 = (l0) &^ (l1)
+}
+`,
+		},
+
+		"and not ints": {
+			input: `
+				a := 23
+				b := 10
+				c := a &~ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(23)).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	l2 = value.BitwiseAndNotInts(l0, l1)
+}
+`,
+		},
+		"and not custom object": {
+			input: `
+				module Foo
+					def &~(other: Int): Int
+						5 &~ other
+					end
+				end
+
+				a := Foo
+				b := 10
+				c := a &~ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::&~")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__andnot_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::&~, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.BitwiseAndNotInts((value.SmallInt(5)).ToValue(), l0), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(10)
+	t1, err = Foo_ns__andnot_(thread, l0, l1) // receiver: Foo, name: &~
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "&~", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__andnot_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 func TestGoBitwiseOr(t *testing.T) {
 	tests := goTestTable{
@@ -4686,6 +5820,115 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(23)).ToValue()
 	l1 = (value.SmallInt(10)).ToValue()
 	l2 = value.BitwiseOrInts(l0, l1)
+}
+`,
+		},
+		"or custom object": {
+			input: `
+				module Foo
+					def |(other: Int): Int
+						5 | other
+					end
+				end
+
+				a := Foo
+				b := 10
+				c := a | b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::|")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__or_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::|, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.BitwiseOrInts((value.SmallInt(5)).ToValue(), l0), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(10)
+	t1, err = Foo_ns__or_(thread, l0, l1) // receiver: Foo, name: |
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "|", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__or_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
 }
 `,
 		},
@@ -5215,6 +6458,115 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(23)).ToValue()
 	l1 = (value.SmallInt(10)).ToValue()
 	l2 = value.BitwiseXorInts(l0, l1)
+}
+`,
+		},
+		"xor custom object": {
+			input: `
+				module Foo
+					def ^(other: Int): Int
+						5 ^ other
+					end
+				end
+
+				a := Foo
+				b := 10
+				c := a ^ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::^")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__xor_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::^, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.BitwiseXorInts((value.SmallInt(5)).ToValue(), l0), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(10)
+	t1, err = Foo_ns__xor_(thread, l0, l1) // receiver: Foo, name: ^
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "^", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__xor_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
 }
 `,
 		},
@@ -7099,7 +8451,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (Foo).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = Foo_ns__mod_(thread, ((*value.Module)((l0).Pointer())).ToValue(), (value.SmallInt(5)).ToValue()) // receiver: Foo, name: %
+	t1, err = Foo_ns__mod_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: %
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)

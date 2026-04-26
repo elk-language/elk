@@ -115,19 +115,17 @@ func initNode() {
 		func(vm *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			baseNode := args[1].AsReference().(ast.Node)
 
-			var replacementNodes value.ArrayTupleOfValue
+			tuple := args[2].AsReference().(value.ArrayTuple)
+			var replacementNodes *[]ast.Node
 			if !args[2].IsUndefined() {
-				replacementNodes = *(*value.ArrayTupleOfValue)(args[2].Pointer())
+				replacementNodes = (*[]ast.Node)(
+					value.TransformArrayTupleIntoNativeArrayTuple(tuple, func(v value.Value) ast.Node {
+						return v.AsReference().(ast.Node)
+					}),
+				)
 			}
 
-			r := ds.MapSlice(
-				replacementNodes,
-				func(v value.Value) ast.Node {
-					return v.AsReference().(ast.Node)
-				},
-			)
-			result := ast.Splice(baseNode, nil, &r)
-
+			result := ast.Splice(baseNode, nil, replacementNodes)
 			return value.Ref(result), value.Undefined
 		},
 		vm.DefWithParameters(2),
