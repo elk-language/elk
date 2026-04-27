@@ -43,6 +43,11 @@ sealed primitive noinit class ::Std::Result[+Val, +Err = never]
 			Create a new Result that represents failure with the given error value.
 		]##
 		def err[E](err: E): Result[never, E]; end
+
+		##[
+			Merges a union of two result types into a single one.
+		]##
+		def merge[V1, E1, V2, E2](result: Result[V1, E1] | Result[V2, E2]): Result[V1 | V2, E1 | E2]; end
 	end
 
 	##[

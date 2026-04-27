@@ -12,6 +12,7 @@ type Result struct {
 }
 
 var _ ValueInterface = Result{}
+var _ Reference = Result{}
 
 // Create a new result
 func MakeResult(value Value, ok bool) Result {
@@ -50,6 +51,10 @@ func (r Result) Ok() bool {
 	return r.ok
 }
 
+func (r Result) Copy() Reference {
+	return r
+}
+
 // Get the value
 func (r Result) Value() Value {
 	if !r.ok {
@@ -73,11 +78,17 @@ func (r Result) ToValue() Value {
 	} else {
 		flag = RESULT_ERR_FLAG
 	}
+	value := r.value
+
+	// handle nested Results
+	if r.value.IsInlineResult() {
+		value = Ref(r.value.AsInlineResult())
+	}
 
 	return Value{
-		data:        r.value.data,
-		ptr:         r.value.ptr,
-		result_flag: r.value.flag,
+		data:        value.data,
+		ptr:         value.ptr,
+		result_flag: value.flag,
 		flag:        flag,
 	}
 }

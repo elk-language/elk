@@ -33,29 +33,57 @@ describe "Macro", ->
 		end
 	end
 
-	context "if!", ->
-		should "return then node if truthy condition", ->
-			result := Macro::macro_if! DateTime.now.year > 2000, do
-				"foo"
+	context "compile_if!", ->
+	  context "if", ->
+			should "return then node if truthy condition", ->
+				result := Macro::compile_if!(if DateTime.now.year > 2000
+					"foo"
+				end)
+				assert! result == "foo"
 			end
-			assert! result == "foo"
+
+			should "return nil if falsy condition and no else node", ->
+				result := Macro::compile_if!(if DateTime.now.year < 2000
+					"foo"
+				end)
+				assert! result == nil
+			end
+
+			should "return else node if falsy condition", ->
+				result := Macro::compile_if!(if DateTime.now.year < 2000
+					"foo"
+				else
+					"bar"
+				end)
+
+				assert! result == "bar"
+			end
 		end
 
-		should "return nil if falsy condition and no else node", ->
-			result := Macro::macro_if! DateTime.now.year < 2000, do
-				"foo"
-			end
-			assert! result == nil
-		end
-
-		should "return else node if falsy condition and no else node", ->
-			result := Macro::macro_if! DateTime.now.year < 2000, do
-				"foo"
-			end, do
-				"bar"
+	  context "unless", ->
+			should "return nil if truthy condition and no else node", ->
+				result := Macro::compile_if!(unless DateTime.now.year > 2000
+					"foo"
+				end)
+				assert! result == nil
 			end
 
-			assert! result == "bar"
+			should "return then node if falsy condition", ->
+				result := Macro::compile_if!(unless DateTime.now.year < 2000
+					"foo"
+				end)
+				assert! result == "foo"
+			end
+
+			should "return else node if truthy condition", ->
+				result := Macro::compile_if!(unless DateTime.now.year > 2000
+					"foo"
+				else
+					"bar"
+				end)
+
+				assert! result == "bar"
+			end
 		end
 
 	end

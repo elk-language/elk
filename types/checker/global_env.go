@@ -1,8 +1,9 @@
 package checker
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/parser/ast"
-	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/macros"
@@ -26,47 +27,46 @@ func initMacro(env *types.GlobalEnvironment) {
 
 	types.DefMacro(
 		macroType,
-		`Evaluates the condition and returns the given "then_node" if it's result is truthy.
-Otherwise returns the "else_node" if it is present or a "nil" node.
+		`Evaluates the if condition and returns the "then" body nodes if it's result is truthy.
+Otherwise returns the "else" body nodes if they're present or a "nil" node.
 
 Example:
 
-	macro_if! Env.get('OS') == "unix", do
+	compile_if!(if Env.get('OS') == "unix"
 		def some_unix_method
 		end
-	end
+	end)
 `,
-		"macro_if!",
+		"compile_if!",
 		[]*types.Parameter{
 			types.NewParameter(
-				value.ToSymbol("condition"),
-				exprType,
+				value.ToSymbol("if_node"),
+				types.NewUnion(
+					astType.MustSubtypeString("IfExpressionNode"),
+					astType.MustSubtypeString("UnlessExpressionNode"),
+				),
 				types.NormalParameterKind,
-				false,
-			),
-			types.NewParameter(
-				value.ToSymbol("then_node"),
-				exprType,
-				types.NormalParameterKind,
-				false,
-			),
-			types.NewParameter(
-				value.ToSymbol("else_node"),
-				types.NewNilable(exprType),
-				types.DefaultValueParameterKind,
 				false,
 			),
 		},
 		exprType,
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
-			conditionNode := args[1].AsReference().(ast.ExpressionNode)
-			thenNode := args[2]
+			node := args[1].AsReference().(ast.ExpressionNode)
 
-			var elseNode value.Value
-			if args[3].IsNotUndefined() {
-				elseNode = args[3]
-			} else {
-				elseNode = ast.NewNilLiteralNode(position.ZeroLocation).ToValue()
+			var conditionNode ast.ExpressionNode
+			var thenBody []ast.StatementNode
+			var elseBody []ast.StatementNode
+			switch node := node.(type) {
+			case *ast.IfExpressionNode:
+				conditionNode = node.Condition
+				thenBody = node.ThenBody
+				elseBody = node.ElseBody
+			case *ast.UnlessExpressionNode:
+				conditionNode = node.Condition
+				elseBody = node.ThenBody
+				thenBody = node.ElseBody
+			default:
+				panic(fmt.Sprintf("invalid node: %T", node))
 			}
 
 			conditionResult, err := EvalNode(v, conditionNode)
@@ -75,10 +75,10 @@ Example:
 			}
 
 			if value.Truthy(conditionResult) {
-				return thenNode, value.Undefined
+				return ast.NewDoExpressionNode(node.Location(), thenBody, nil, nil).ToValue(), value.Undefined
 			}
 
-			return elseNode, value.Undefined
+			return ast.NewDoExpressionNode(node.Location(), elseBody, nil, nil).ToValue(), value.Undefined
 		},
 	)
 }

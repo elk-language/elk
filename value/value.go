@@ -989,10 +989,27 @@ func (v Value) unwrapResult() Value {
 	}
 }
 
-func (v Value) AsResult() Result {
+func (v Value) IsInlineResult() bool {
+	switch v.flag {
+	case RESULT_OK_FLAG, RESULT_ERR_FLAG:
+		return true
+	default:
+		return false
+	}
+}
+
+func (v Value) AsInlineResult() Result {
 	return Result{
 		ok:    v.flag == RESULT_OK_FLAG,
 		value: v.unwrapResult(),
+	}
+}
+
+func (v Value) AsResult() Result {
+	if v.IsReference() {
+		return v.AsReference().(Result)
+	} else {
+		return v.AsInlineResult()
 	}
 }
 

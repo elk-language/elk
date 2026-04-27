@@ -1,0 +1,58 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+describe "Result", ->
+	context "singleton methods", ->
+		context "ok", ->
+			should "wrap in a successful result", ->
+				result := Result.ok(5)
+				assert! result <<: Result
+				assert! result.err == nil
+				assert! result.value == 5
+				assert! result.ok == true
+			end
+		end
+
+		context "err", ->
+			should "wrap in a failed result", ->
+				result := Result.err("failed")
+				assert! result <<: Result
+				assert! result.err == "failed"
+				assert! result.value == nil
+				assert! result.ok == false
+			end
+		end
+	end
+
+	context "macros", ->
+		context "wrap!", ->
+			should "wrap static value in a result", ->
+				result := Result::wrap!("foo")
+				assert! result <<: Result
+				assert! result.err == nil
+				assert! result.value == "foo"
+				assert! result.ok == true
+			end
+
+			should "wrap successful call in a result", ->
+				iterator := 5.iter
+				result := Result::wrap!(iterator.next)
+				assert! result <<: Result
+				assert! result.err == nil
+				assert! result.value == 0
+				assert! result.ok == true
+			end
+
+			should "wrap throwing call in a result", ->
+				iterator := 1.iter
+				iterator.next
+				result := Result::wrap!(iterator.next)
+				assert! result <<: Result
+				assert! result.err == :stop_iteration
+				assert! result.value == nil
+				assert! result.ok == false
+			end
+		end
+	end
+
+end

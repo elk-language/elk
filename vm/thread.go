@@ -2259,8 +2259,8 @@ func (vm *Thread) growValueStack() {
 func (vm *Thread) populateMissingParametersOnStack(paramCount, argumentCount int) {
 	// populate missing optional arguments with undefined
 	missingParams := uintptr(paramCount - argumentCount)
-	if missingParams > 0 {
-		vm.spIncrementBy(missingParams)
+	for range missingParams {
+		vm.push(value.Undefined)
 	}
 }
 

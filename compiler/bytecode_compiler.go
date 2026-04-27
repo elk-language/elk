@@ -1379,7 +1379,6 @@ func (c *BytecodeCompiler) compileQuoteExpressionNode(node *ast.QuoteExpressionN
 	c.emitGetConst(value.ToSymbol("Std::Kernel"), location)
 	c.emitValue(value.Ref(newNode), location)
 
-	tupleBaseOffset := c.nextInstructionOffset()
 	// ArrayTuple base
 	c.emit(location.StartPos.Line, bytecode.UNDEFINED)
 
@@ -1399,20 +1398,15 @@ func (c *BytecodeCompiler) compileQuoteExpressionNode(node *ast.QuoteExpressionN
 		},
 		nil,
 	)
-	var argCount int
 
 	if unquoteCount != 0 {
-		argCount = 2
 		c.emitNewArrayTuple(unquoteCount, location)
-	} else {
-		argCount = 1
-		c.removeBytes(tupleBaseOffset, 1)
 	}
 
 	c.emitCallMethod(
 		value.NewCallSiteInfo(
 			symbol.S_splice,
-			argCount,
+			2,
 		),
 		location,
 		false,

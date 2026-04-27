@@ -1073,7 +1073,7 @@ func (c *Checker) checkReceiverlessMacroCallNodeForPattern(node *ast.Receiverles
 	return c.checkPattern(result.(ast.PatternNode), matchedType)
 }
 
-func EvalNode(thread *vm.Thread, node ast.ExpressionNode) (value.Value, value.Value) {
+func CompileNode(node ast.ExpressionNode) (*vm.BytecodeFunction, value.Value) {
 	typechecker := NewMacroChecker()
 	compiler := typechecker.CheckMacroExpression(node)
 	dl := &typechecker.Errors.DiagnosticList
@@ -1085,10 +1085,14 @@ func EvalNode(thread *vm.Thread, node ast.ExpressionNode) (value.Value, value.Va
 				symbol.L_diagnostics: (*value.DiagnosticList)(dl).ToValue(),
 			}),
 		).ToValue()
-		return value.Undefined, err
+		return nil, err
 	}
 
-	promise := vm.NewBytecodePromise(thread.ThreadPool(), compiler.Bytecode(), value.GlobalObject.ToValue())
+	return compiler.Bytecode(), value.Undefined
+}
+
+func EvalBytecode(thread *vm.Thread, bytecode *vm.BytecodeFunction) (value.Value, value.Value) {
+	promise := vm.NewBytecodePromise(thread.ThreadPool(), bytecode, value.GlobalObject.ToValue())
 
 	result, _, err := promise.AwaitSync()
 	if err.IsNotUndefined() {
@@ -1096,4 +1100,12 @@ func EvalNode(thread *vm.Thread, node ast.ExpressionNode) (value.Value, value.Va
 	}
 
 	return result, value.Undefined
+}
+
+func EvalNode(thread *vm.Thread, node ast.ExpressionNode) (value.Value, value.Value) {
+	bytecode, err := CompileNode(node)
+	if err.IsNotUndefined() {
+		return value.Undefined, err
+	}
+	return EvalBytecode(thread, bytecode)
 }

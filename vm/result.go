@@ -65,4 +65,12 @@ func initResult() {
 		},
 		DefWithParameters(1),
 	)
+	Def(
+		c,
+		"merge",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			return args[1], value.Undefined
+		},
+		DefWithParameters(1),
+	)
 }

@@ -384,6 +384,25 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 			if isDifferent {
 				return types.NewIntersection(newPElements...)
 			}
+
+			// try matching exactly as a last resort
+			newPElements = newPElements[:0]
+			for i := range len(p.Elements) {
+				pElement := p.Elements[i]
+				gElement := g.Elements[i]
+				result := c.inferTypeArgumentsWithFlags(gElement, pElement, typeArgMap, errLocation, flags)
+				if result == nil {
+					return nil
+				}
+				if result != pElement {
+					isDifferent = true
+				}
+				newPElements = append(newPElements, result)
+			}
+
+			if isDifferent {
+				return types.NewIntersection(newPElements...)
+			}
 			return p
 		default:
 			newElements := make([]types.Type, 0, len(p.Elements))
@@ -437,11 +456,34 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 
 				newPElements = append(newPElements, result)
 			}
-			if !isDifferent {
+
+			if isDifferent {
+				return types.NewUnion(newPElements...)
+			}
+
+			if len(p.Elements) != len(g.Elements) {
 				return p
 			}
 
-			return types.NewUnion(newPElements...)
+			// try matching exactly as a last resort
+			newPElements = newPElements[:0]
+			for i := range len(p.Elements) {
+				pElement := p.Elements[i]
+				gElement := g.Elements[i]
+				result := c.inferTypeArgumentsWithFlags(gElement, pElement, typeArgMap, errLocation, flags)
+				if result == nil {
+					return nil
+				}
+				if result != pElement {
+					isDifferent = true
+				}
+				newPElements = append(newPElements, result)
+			}
+
+			if isDifferent {
+				return types.NewUnion(newPElements...)
+			}
+			return p
 		case *types.Nilable:
 			return c.inferTypeArgumentsWithFlags(types.NewUnion(types.Nil{}, g.Type), p, typeArgMap, errLocation, flags)
 		default:
