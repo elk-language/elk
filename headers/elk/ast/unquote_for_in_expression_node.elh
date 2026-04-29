@@ -1,0 +1,15 @@
+module Std::Elk::AST
+  ##[
+    Represents a `%for in` expression eg. `%for i in 5..15 then println(i)`.
+    It's a for loop expression used in AST templates (quote blocks) to build ASTs.
+  ]##
+  sealed primitive class UnquoteForInExpressionNode
+    include ExpressionNode
+
+    init(pattern_node: PatternNode, in_expression: ExpressionNode, then_body: ArrayTuple[StatementNode], location: FS::Location = loop; end); end
+    def pattern_node: PatternNode; end
+    def in_expression: ExpressionNode; end
+    def then_body: ArrayTuple[StatementNode]; end
+    def location: FS::Location; end
+  end
+end

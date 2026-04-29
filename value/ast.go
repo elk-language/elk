@@ -130,12 +130,14 @@ var UnquoteNodeClass *Class                       // Std::Elk::AST::UnquoteNode
 var SingletonBlockExpressionNodeClass *Class      // Std::Elk::AST::SingletonBlockExpressionNode
 var SwitchExpressionNodeClass *Class              // Std::Elk::AST::SwitchExpressionNode
 var IfExpressionNodeClass *Class                  // Std::Elk::AST::IfExpressionNode
+var UnquoteIfExpressionNodeClass *Class           // Std::Elk::AST::UnquoteIfExpressionNode
 var UnlessExpressionNodeClass *Class              // Std::Elk::AST::UnlessExpressionNode
 var WhileExpressionNodeClass *Class               // Std::Elk::AST::WhileExpressionNode
 var UntilExpressionNodeClass *Class               // Std::Elk::AST::UntilExpressionNode
 var LoopExpressionNodeClass *Class                // Std::Elk::AST::LoopExpressionNode
 var NumericForExpressionNodeClass *Class          // Std::Elk::AST::NumericForExpressionNode
 var ForInExpressionNodeClass *Class               // Std::Elk::AST::ForInExpressionNode
+var UnquoteForInExpressionNodeClass *Class        // Std::Elk::AST::UnquoteForInExpressionNode
 var BreakExpressionNodeClass *Class               // Std::Elk::AST::BreakExpressionNode
 var LabeledExpressionNodeClass *Class             // Std::Elk::AST::LabeledExpressionNode
 var GoExpressionNodeClass *Class                  // Std::Elk::AST::GoExpressionNode
@@ -837,6 +839,10 @@ func initElkAST() {
 	IfExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("IfExpressionNode", Ref(IfExpressionNodeClass))
 
+	UnquoteIfExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	UnquoteIfExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("UnquoteIfExpressionNode", Ref(UnquoteIfExpressionNodeClass))
+
 	UnlessExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	UnlessExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("UnlessExpressionNode", Ref(UnlessExpressionNodeClass))
@@ -856,6 +862,10 @@ func initElkAST() {
 	ForInExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	ForInExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("ForInExpressionNode", Ref(ForInExpressionNodeClass))
+
+	UnquoteForInExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	UnquoteForInExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("UnquoteForInExpressionNode", Ref(UnquoteForInExpressionNodeClass))
 
 	BreakExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	BreakExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)

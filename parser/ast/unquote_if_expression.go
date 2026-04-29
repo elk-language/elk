@@ -10,22 +10,17 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-type IfExpressionInterface interface {
-	ExpressionNode
-	ifExpression()
-	SetElseBody([]StatementNode)
-}
-
-// Represents an `if` expression eg. `if foo then println("bar")`
-type IfExpressionNode struct {
+// Represents a `%if` expression eg. `%if foo then println("bar")`
+// It's an if expression used in AST templates (quote blocks) to conditionally build ASTs
+type UnquoteIfExpressionNode struct {
 	TypedNodeBase
 	Condition ExpressionNode  // if condition
 	ThenBody  []StatementNode // then expression body
 	ElseBody  []StatementNode // else expression body
 }
 
-func (n *IfExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
-	return &IfExpressionNode{
+func (n *UnquoteIfExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	return &UnquoteIfExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Condition:     n.Condition.splice(loc, args, unquote).(ExpressionNode),
 		ThenBody:      SpliceSlice(n.ThenBody, loc, args, unquote),
@@ -33,11 +28,11 @@ func (n *IfExpressionNode) splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *IfExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::IfExpressionNode", env)
+func (n *UnquoteIfExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UnquoteIfExpressionNode", env)
 }
 
-func (n *IfExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+func (n *UnquoteIfExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
 		return TraverseBreak
@@ -64,15 +59,15 @@ func (n *IfExpressionNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
-func (n *IfExpressionNode) ifExpression() {}
+func (n *UnquoteIfExpressionNode) ifExpression() {}
 
-func (n *IfExpressionNode) SetElseBody(body []StatementNode) {
+func (n *UnquoteIfExpressionNode) SetElseBody(body []StatementNode) {
 	n.ElseBody = body
 }
 
 // Check if this node equals another node.
-func (n *IfExpressionNode) Equal(other value.Value) bool {
-	o, ok := other.SafeAsReference().(*IfExpressionNode)
+func (n *UnquoteIfExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnquoteIfExpressionNode)
 	if !ok {
 		return false
 	}
@@ -103,10 +98,10 @@ func (n *IfExpressionNode) Equal(other value.Value) bool {
 }
 
 // Return a string representation of the node.
-func (n *IfExpressionNode) String() string {
+func (n *UnquoteIfExpressionNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString("if ")
+	buff.WriteString("%if ")
 	buff.WriteString(n.Condition.String())
 	buff.WriteRune('\n')
 
@@ -136,13 +131,13 @@ func (n *IfExpressionNode) String() string {
 	return buff.String()
 }
 
-func (*IfExpressionNode) IsStatic() bool {
+func (*UnquoteIfExpressionNode) IsStatic() bool {
 	return false
 }
 
 // Create a new `if` expression node eg. `if foo then println("bar")`
-func NewIfExpressionNode(loc *position.Location, cond ExpressionNode, then, els []StatementNode) *IfExpressionNode {
-	return &IfExpressionNode{
+func NewUnquoteIfExpressionNode(loc *position.Location, cond ExpressionNode, then, els []StatementNode) *UnquoteIfExpressionNode {
+	return &UnquoteIfExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		ThenBody:      then,
 		Condition:     cond,
@@ -150,22 +145,22 @@ func NewIfExpressionNode(loc *position.Location, cond ExpressionNode, then, els 
 	}
 }
 
-func NewIfExpressionNodeI(loc *position.Location, cond ExpressionNode, then, els []StatementNode) IfExpressionInterface {
-	return NewIfExpressionNode(loc, cond, then, els)
+func NewUnquoteIfExpressionNodeI(loc *position.Location, cond ExpressionNode, then, els []StatementNode) IfExpressionInterface {
+	return NewUnquoteIfExpressionNode(loc, cond, then, els)
 }
 
-func (*IfExpressionNode) Class() *value.Class {
-	return value.IfExpressionNodeClass
+func (*UnquoteIfExpressionNode) Class() *value.Class {
+	return value.UnquoteIfExpressionNodeClass
 }
 
-func (*IfExpressionNode) DirectClass() *value.Class {
-	return value.IfExpressionNodeClass
+func (*UnquoteIfExpressionNode) DirectClass() *value.Class {
+	return value.UnquoteIfExpressionNodeClass
 }
 
-func (n *IfExpressionNode) Inspect() string {
+func (n *UnquoteIfExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::IfExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::UnquoteIfExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  condition: ")
 	indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)
@@ -201,10 +196,10 @@ func (n *IfExpressionNode) Inspect() string {
 	return buff.String()
 }
 
-func (n *IfExpressionNode) ToValue() value.Value {
+func (n *UnquoteIfExpressionNode) ToValue() value.Value {
 	return value.Ref(n)
 }
 
-func (n *IfExpressionNode) Error() string {
+func (n *UnquoteIfExpressionNode) Error() string {
 	return n.Inspect()
 }

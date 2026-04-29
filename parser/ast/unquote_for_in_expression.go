@@ -10,16 +10,17 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Represents a `for in` expression eg. `for i in 5..15 then println(i)`
-type ForInExpressionNode struct {
+// Represents a `%for in` expression eg. `%for i in 5..15 then println(i)`.
+// It's a for loop expression used in AST templates (quote blocks) to build ASTs.
+type UnquoteForInExpressionNode struct {
 	TypedNodeBase
 	Pattern      PatternNode
 	InExpression ExpressionNode  // expression that will be iterated through
 	ThenBody     []StatementNode // then expression body
 }
 
-func (n *ForInExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
-	return &ForInExpressionNode{
+func (n *UnquoteForInExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	return &UnquoteForInExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Pattern:       n.Pattern.splice(loc, args, unquote).(PatternNode),
 		InExpression:  n.InExpression.splice(loc, args, unquote).(ExpressionNode),
@@ -27,11 +28,11 @@ func (n *ForInExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *ForInExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ForInExpressionNode", env)
+func (n *UnquoteForInExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::UnquoteForInExpressionNode", env)
 }
 
-func (n *ForInExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+func (n *UnquoteForInExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
 		return TraverseBreak
@@ -56,8 +57,8 @@ func (n *ForInExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *ForInExpressionNode) Equal(other value.Value) bool {
-	o, ok := other.SafeAsReference().(*ForInExpressionNode)
+func (n *UnquoteForInExpressionNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnquoteForInExpressionNode)
 	if !ok {
 		return false
 	}
@@ -78,10 +79,10 @@ func (n *ForInExpressionNode) Equal(other value.Value) bool {
 	return true
 }
 
-func (n *ForInExpressionNode) String() string {
+func (n *UnquoteForInExpressionNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString("for ")
+	buff.WriteString("%for ")
 	buff.WriteString(n.Pattern.String())
 	buff.WriteString(" in ")
 	buff.WriteString(n.InExpression.String())
@@ -96,13 +97,13 @@ func (n *ForInExpressionNode) String() string {
 	return buff.String()
 }
 
-func (*ForInExpressionNode) IsStatic() bool {
+func (*UnquoteForInExpressionNode) IsStatic() bool {
 	return false
 }
 
-// Create a new `for in` expression node eg. `for i in 5..15 then println(i)`
-func NewForInExpressionNode(loc *position.Location, pattern PatternNode, inExpr ExpressionNode, then []StatementNode) *ForInExpressionNode {
-	return &ForInExpressionNode{
+// Create a new `%for in` expression node eg. `%for i in 5..15 then println(i)`
+func NewUnquoteForInExpressionNode(loc *position.Location, pattern PatternNode, inExpr ExpressionNode, then []StatementNode) *UnquoteForInExpressionNode {
+	return &UnquoteForInExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Pattern:       pattern,
 		InExpression:  inExpr,
@@ -110,22 +111,22 @@ func NewForInExpressionNode(loc *position.Location, pattern PatternNode, inExpr 
 	}
 }
 
-func NewForInExpressionNodeI(loc *position.Location, pattern PatternNode, inExpr ExpressionNode, then []StatementNode) ExpressionNode {
-	return NewForInExpressionNode(loc, pattern, inExpr, then)
+func NewUnquoteForInExpressionNodeI(loc *position.Location, pattern PatternNode, inExpr ExpressionNode, then []StatementNode) ExpressionNode {
+	return NewUnquoteForInExpressionNode(loc, pattern, inExpr, then)
 }
 
-func (*ForInExpressionNode) Class() *value.Class {
-	return value.ForInExpressionNodeClass
+func (*UnquoteForInExpressionNode) Class() *value.Class {
+	return value.UnquoteForInExpressionNodeClass
 }
 
-func (*ForInExpressionNode) DirectClass() *value.Class {
-	return value.ForInExpressionNodeClass
+func (*UnquoteForInExpressionNode) DirectClass() *value.Class {
+	return value.UnquoteForInExpressionNodeClass
 }
 
-func (n *ForInExpressionNode) Inspect() string {
+func (n *UnquoteForInExpressionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::ForInExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::UnquoteForInExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  pattern: ")
 	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
@@ -151,10 +152,10 @@ func (n *ForInExpressionNode) Inspect() string {
 	return buff.String()
 }
 
-func (n *ForInExpressionNode) ToValue() value.Value {
+func (n *UnquoteForInExpressionNode) ToValue() value.Value {
 	return value.Ref(n)
 }
 
-func (n *ForInExpressionNode) Error() string {
+func (n *UnquoteForInExpressionNode) Error() string {
 	return n.Inspect()
 }

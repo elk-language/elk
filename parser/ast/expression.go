@@ -70,12 +70,14 @@ func (*UnquoteNode) expressionNode()                       {}
 func (*SingletonBlockExpressionNode) expressionNode()      {}
 func (*SwitchExpressionNode) expressionNode()              {}
 func (*IfExpressionNode) expressionNode()                  {}
+func (*UnquoteIfExpressionNode) expressionNode()           {}
 func (*UnlessExpressionNode) expressionNode()              {}
 func (*WhileExpressionNode) expressionNode()               {}
 func (*UntilExpressionNode) expressionNode()               {}
 func (*LoopExpressionNode) expressionNode()                {}
 func (*NumericForExpressionNode) expressionNode()          {}
 func (*ForInExpressionNode) expressionNode()               {}
+func (*UnquoteForInExpressionNode) expressionNode()        {}
 func (*BreakExpressionNode) expressionNode()               {}
 func (*LabeledExpressionNode) expressionNode()             {}
 func (*GoExpressionNode) expressionNode()                  {}

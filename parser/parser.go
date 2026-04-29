@@ -2340,6 +2340,25 @@ func (p *Parser) newExpression() ast.ExpressionNode {
 	)
 }
 
+func (p *Parser) percentPrefixedExpression() ast.ExpressionNode {
+	switch p.secondLookahead.Type {
+	case token.IF:
+		p.advance()
+		return p.unquoteIfExpression()
+	case token.FOR:
+		p.advance()
+		return p.unquoteForExpression()
+	default:
+		p.errorExpected("an expression")
+		p.updateErrorMode(true)
+		tok := p.advance()
+		return ast.NewInvalidNode(
+			tok.Location(),
+			tok,
+		)
+	}
+}
+
 func (p *Parser) primaryExpression() ast.ExpressionNode {
 	switch p.lookahead.Type {
 	case token.NEW:
@@ -2451,6 +2470,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.initDefinition(false)
 	case token.SWITCH:
 		return p.switchExpression()
+	case token.PERCENT:
+		return p.percentPrefixedExpression()
 	case token.IF:
 		return p.ifExpression()
 	case token.QUOTE, token.QUOTE_EXPR:
@@ -5883,6 +5904,20 @@ func (p *Parser) fornumExpression() ast.ExpressionNode {
 // forExpression = ("for" pattern "in" expressionWithoutModifier)
 // ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) forExpression() ast.ExpressionNode {
+	return p.genericForExpression(ast.NewForInExpressionNodeI)
+}
+
+// unquoteForExpression = ("%for" pattern "in" expressionWithoutModifier)
+// ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) unquoteForExpression() ast.ExpressionNode {
+	return p.genericForExpression(ast.NewUnquoteForInExpressionNodeI)
+}
+
+type forNodeConstructor func(loc *position.Location, pattern ast.PatternNode, inExpr ast.ExpressionNode, then []ast.StatementNode) ast.ExpressionNode
+
+// unquoteForExpression = ("%for" pattern "in" expressionWithoutModifier)
+// ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) genericForExpression(constructor forNodeConstructor) ast.ExpressionNode {
 	forTok := p.advance()
 	p.swallowNewlines()
 	parameter := p.pattern()
@@ -5919,7 +5954,7 @@ func (p *Parser) forExpression() ast.ExpressionNode {
 		}
 	}
 
-	return ast.NewForInExpressionNode(
+	return constructor(
 		location,
 		parameter,
 		inExpr,
@@ -7233,11 +7268,29 @@ func (p *Parser) switchExpression() ast.ExpressionNode {
 	)
 }
 
+type ifNodeConstructor func(loc *position.Location, cond ast.ExpressionNode, then []ast.StatementNode, els []ast.StatementNode) ast.IfExpressionInterface
+type ifNode interface {
+	ast.ExpressionNode
+	SetElseBody([]ast.StatementNode)
+}
+
 // ifExpression = "if" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))
 // ("elsif" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
 // ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
 // "end"
-func (p *Parser) ifExpression() *ast.IfExpressionNode {
+func (p *Parser) ifExpression() ast.ExpressionNode {
+	return p.genericIfExpression(ast.NewIfExpressionNodeI)
+}
+
+// unquoteIfExpression = "%if" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))
+// ("elsif" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
+// ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
+// "end"
+func (p *Parser) unquoteIfExpression() ast.ExpressionNode {
+	return p.genericIfExpression(ast.NewUnquoteIfExpressionNodeI)
+}
+
+func (p *Parser) genericIfExpression(constructor ifNodeConstructor) ast.ExpressionNode {
 	ifTok := p.advance()
 	cond := p.expressionWithoutModifier()
 	var location *position.Location
@@ -7249,7 +7302,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 		location = ifTok.Location()
 	}
 
-	ifExpr := ast.NewIfExpressionNode(
+	ifExpr := constructor(
 		location,
 		cond,
 		thenBody,
@@ -7277,19 +7330,19 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 			location = elsifTok.Location()
 		}
 
-		elsifExpr := ast.NewIfExpressionNode(
+		elsifExpr := constructor(
 			location,
 			cond,
 			thenBody,
 			nil,
 		)
 
-		currentExpr.ElseBody = []ast.StatementNode{
+		currentExpr.SetElseBody([]ast.StatementNode{
 			ast.NewExpressionStatementNode(
 				elsifExpr.Location(),
 				elsifExpr,
 			),
-		}
+		})
 		currentExpr = elsifExpr
 	}
 
@@ -7297,13 +7350,13 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 		p.advance()
 		p.advance()
 		lastLocation, thenBody, multiline = p.statementBlock(token.END)
-		currentExpr.ElseBody = thenBody
+		currentExpr.SetElseBody(thenBody)
 		if lastLocation != nil {
 			currentExpr.SetLocation(currentExpr.Location().Join(lastLocation))
 		}
 	} else if p.match(token.ELSE) {
 		lastLocation, thenBody, multiline = p.statementBlock(token.END)
-		currentExpr.ElseBody = thenBody
+		currentExpr.SetElseBody(thenBody)
 		if lastLocation != nil {
 			currentExpr.SetLocation(currentExpr.Location().Join(lastLocation))
 		}
