@@ -410,6 +410,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents an uninterpolated regex literal eg. `%/foo/`", false, true, true, false, value.ToSymbol("UninterpolatedRegexLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Union type eg. `String | Int | Float`", false, true, true, false, value.ToSymbol("UnionTypeNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an `unless` expression eg. `unless foo then println(\"bar\")`", false, true, true, false, value.ToSymbol("UnlessExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `%for in` expression eg. `%for i in 5..15 then println(i)`.\nIt's a for loop expression used in AST templates (quote blocks) to build ASTs.", false, true, true, false, value.ToSymbol("UnquoteForInExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `%if` expression eg. `%if foo then println(\"bar\")`.\nIt's an if expression used in AST templates (`quote` blocks) used for\nconditionally building ASTs.", false, true, true, false, value.ToSymbol("UnquoteIfExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an unquoted block of AST in a quote eg.\n\n```\nunquote(x)\n```", false, true, true, false, value.ToSymbol("UnquoteNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `until` expression eg. `until i >= 5 then i += 5`", false, true, true, false, value.ToSymbol("UntilExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a using all entry node eg. `Foo::*`, `A::B::C::*`", false, true, true, false, value.ToSymbol("UsingAllEntryNode"), objectClass, env)
@@ -6167,6 +6169,44 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("else_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("UnquoteForInExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("in_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("UnquoteIfExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("else_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})

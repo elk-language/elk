@@ -4683,6 +4683,215 @@ end`,
 	}
 }
 
+func TestUnquoteForIn(t *testing.T) {
+	tests := testTable{
+		"can be single-line with then": {
+			input: `%for i in [1, 2, 3] then println(i)`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(34, 1, 35))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(1, 1, 2), P(34, 1, 35))),
+						ast.NewUnquoteForInExpressionNode(
+							L(S(P(1, 1, 2), P(34, 1, 35))),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(5, 1, 6))), "i"),
+							ast.NewArrayListLiteralNode(
+								L(S(P(10, 1, 11), P(18, 1, 19))),
+								[]ast.ExpressionNode{
+									ast.NewIntLiteralNode(L(S(P(11, 1, 12), P(11, 1, 12))), "1"),
+									ast.NewIntLiteralNode(L(S(P(14, 1, 15), P(14, 1, 15))), "2"),
+									ast.NewIntLiteralNode(L(S(P(17, 1, 18), P(17, 1, 18))), "3"),
+								},
+								nil,
+							),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									L(S(P(25, 1, 26), P(34, 1, 35))),
+									ast.NewReceiverlessMethodCallNode(
+										L(S(P(25, 1, 26), P(34, 1, 35))),
+										ast.NewPublicIdentifierNode(L(S(P(25, 1, 26), P(31, 1, 32))), "println"),
+										[]ast.ExpressionNode{
+											ast.NewPublicIdentifierNode(L(S(P(33, 1, 34), P(33, 1, 34))), "i"),
+										},
+										nil,
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have patterns": {
+			input: `%for [a, b] in [[1, 2], [3, 4]] then println(a, b)`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(49, 1, 50))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(1, 1, 2), P(49, 1, 50))),
+						ast.NewUnquoteForInExpressionNode(
+							L(S(P(1, 1, 2), P(49, 1, 50))),
+							ast.NewListPatternNode(
+								L(S(P(5, 1, 6), P(10, 1, 11))),
+								[]ast.PatternNode{
+									ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(6, 1, 7))), "a"),
+									ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(9, 1, 10))), "b"),
+								},
+							),
+							ast.NewArrayListLiteralNode(
+								L(S(P(15, 1, 16), P(30, 1, 31))),
+								[]ast.ExpressionNode{
+									ast.NewArrayListLiteralNode(
+										L(S(P(16, 1, 17), P(21, 1, 22))),
+										[]ast.ExpressionNode{
+											ast.NewIntLiteralNode(L(S(P(17, 1, 18), P(17, 1, 18))), "1"),
+											ast.NewIntLiteralNode(L(S(P(20, 1, 21), P(20, 1, 21))), "2"),
+										},
+										nil,
+									),
+									ast.NewArrayListLiteralNode(
+										L(S(P(24, 1, 25), P(29, 1, 30))),
+										[]ast.ExpressionNode{
+											ast.NewIntLiteralNode(L(S(P(25, 1, 26), P(25, 1, 26))), "3"),
+											ast.NewIntLiteralNode(L(S(P(28, 1, 29), P(28, 1, 29))), "4"),
+										},
+										nil,
+									),
+								},
+								nil,
+							),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									L(S(P(37, 1, 38), P(49, 1, 50))),
+									ast.NewReceiverlessMethodCallNode(
+										L(S(P(37, 1, 38), P(49, 1, 50))),
+										ast.NewPublicIdentifierNode(L(S(P(37, 1, 38), P(43, 1, 44))), "println"),
+										[]ast.ExpressionNode{
+											ast.NewPublicIdentifierNode(L(S(P(45, 1, 46), P(45, 1, 46))), "a"),
+											ast.NewPublicIdentifierNode(L(S(P(48, 1, 49), P(48, 1, 49))), "b"),
+										},
+										nil,
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"cannot have patterns without variables": {
+			input: `%for [1, 2] in [[1, 2], [3, 4]] then println(a, b)`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(49, 1, 50))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(1, 1, 2), P(49, 1, 50))),
+						ast.NewUnquoteForInExpressionNode(
+							L(S(P(1, 1, 2), P(49, 1, 50))),
+							ast.NewListPatternNode(
+								L(S(P(5, 1, 6), P(10, 1, 11))),
+								[]ast.PatternNode{
+									ast.NewIntLiteralNode(L(S(P(6, 1, 7), P(6, 1, 7))), "1"),
+									ast.NewIntLiteralNode(L(S(P(9, 1, 10), P(9, 1, 10))), "2"),
+								},
+							),
+							ast.NewArrayListLiteralNode(
+								L(S(P(15, 1, 16), P(30, 1, 31))),
+								[]ast.ExpressionNode{
+									ast.NewArrayListLiteralNode(
+										L(S(P(16, 1, 17), P(21, 1, 22))),
+										[]ast.ExpressionNode{
+											ast.NewIntLiteralNode(L(S(P(17, 1, 18), P(17, 1, 18))), "1"),
+											ast.NewIntLiteralNode(L(S(P(20, 1, 21), P(20, 1, 21))), "2"),
+										},
+										nil,
+									),
+									ast.NewArrayListLiteralNode(
+										L(S(P(24, 1, 25), P(29, 1, 30))),
+										[]ast.ExpressionNode{
+											ast.NewIntLiteralNode(L(S(P(25, 1, 26), P(25, 1, 26))), "3"),
+											ast.NewIntLiteralNode(L(S(P(28, 1, 29), P(28, 1, 29))), "4"),
+										},
+										nil,
+									),
+								},
+								nil,
+							),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									L(S(P(37, 1, 38), P(49, 1, 50))),
+									ast.NewReceiverlessMethodCallNode(
+										L(S(P(37, 1, 38), P(49, 1, 50))),
+										ast.NewPublicIdentifierNode(L(S(P(37, 1, 38), P(43, 1, 44))), "println"),
+										[]ast.ExpressionNode{
+											ast.NewPublicIdentifierNode(L(S(P(45, 1, 46), P(45, 1, 46))), "a"),
+											ast.NewPublicIdentifierNode(L(S(P(48, 1, 49), P(48, 1, 49))), "b"),
+										},
+										nil,
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(5, 1, 6), P(10, 1, 11))), "patterns in for in loops should define at least one variable"),
+			},
+		},
+		"can be multiline": {
+			input: `%for i in [1, 2, 3]
+  println(i)
+  nil
+end`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(41, 4, 3))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(1, 1, 2), P(41, 4, 3))),
+						ast.NewUnquoteForInExpressionNode(
+							L(S(P(1, 1, 2), P(41, 4, 3))),
+							ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(5, 1, 6))), "i"),
+							ast.NewArrayListLiteralNode(
+								L(S(P(10, 1, 11), P(18, 1, 19))),
+								[]ast.ExpressionNode{
+									ast.NewIntLiteralNode(L(S(P(11, 1, 12), P(11, 1, 12))), "1"),
+									ast.NewIntLiteralNode(L(S(P(14, 1, 15), P(14, 1, 15))), "2"),
+									ast.NewIntLiteralNode(L(S(P(17, 1, 18), P(17, 1, 18))), "3"),
+								},
+								nil,
+							),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									L(S(P(22, 2, 3), P(32, 2, 13))),
+									ast.NewReceiverlessMethodCallNode(
+										L(S(P(22, 2, 3), P(31, 2, 12))),
+										ast.NewPublicIdentifierNode(L(S(P(22, 2, 3), P(28, 2, 9))), "println"),
+										[]ast.ExpressionNode{
+											ast.NewPublicIdentifierNode(L(S(P(30, 2, 11), P(30, 2, 11))), "i"),
+										},
+										nil,
+									),
+								),
+								ast.NewExpressionStatementNode(
+									L(S(P(35, 3, 3), P(38, 3, 6))),
+									ast.NewNilLiteralNode(L(S(P(35, 3, 3), P(37, 3, 5)))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestNumericFor(t *testing.T) {
 	tests := testTable{
 		"can be single-line with then": {
