@@ -150,6 +150,6 @@ func initKernel() {
 
 			return value.Ref(p), value.Undefined
 		},
-		DefWithParameters(1),
+		DefWithParameters(2),
 	)
 }

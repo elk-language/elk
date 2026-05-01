@@ -363,6 +363,14 @@ func (f *BytecodeFunction) DisassembleString() (string, error) {
 	return buffer.String(), nil
 }
 
+func (f *BytecodeFunction) MustDisassembleString() string {
+	result, err := f.DisassembleString()
+	if err != nil {
+		panic(fmt.Sprintf("disassembly error for %s: %s", f.name.String(), err))
+	}
+	return result
+}
+
 // Disassemble the bytecode chunk and write the
 // output to a writer.
 func (f *BytecodeFunction) Disassemble(output io.Writer) error {

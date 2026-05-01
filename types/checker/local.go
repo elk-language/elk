@@ -85,20 +85,20 @@ func (l *localEnvironment) getLocal(name string) *local {
 }
 
 // Resolve the local with the given name from this local environment or any parent environment
-func (l *localEnvironment) resolveLocal(name string, unhygienic bool) (*local, bool) {
+func (l *localEnvironment) resolveLocal(name string, unhygienic bool) (*local, *localEnvironment) {
 	nameSymbol := value.ToSymbol(name)
 	currentEnv := l
 
 	for {
 		if currentEnv == nil {
-			return nil, false
+			return nil, nil
 		}
 		loc, ok := currentEnv.locals[nameSymbol]
 		if ok {
-			return loc, l == currentEnv
+			return loc, currentEnv
 		}
 		if currentEnv.macroBoundary && !unhygienic {
-			return nil, false
+			return nil, nil
 		}
 
 		currentEnv = currentEnv.parent
@@ -157,16 +157,16 @@ func (c *Checker) getLocal(name string) *local {
 }
 
 // Resolve the local with the given name from the current local environment or any parent environment
-func (c *Checker) resolveLocal(name string, location *position.Location) (*local, bool) {
-	env := c.currentLocalEnv()
-	local, inCurrentEnv := env.resolveLocal(name, c.isUnhygienic())
+func (c *Checker) resolveLocal(name string, location *position.Location) (*local, *localEnvironment) {
+	currentEnv := c.currentLocalEnv()
+	local, localEnv := currentEnv.resolveLocal(name, c.isUnhygienic())
 	if local == nil {
 		c.addFailure(
 			fmt.Sprintf("undefined local `%s`", name),
 			location,
 		)
 	}
-	return local, inCurrentEnv
+	return local, localEnv
 }
 
 func (c *Checker) deepCopyLocalEnvs(oldEnv, newEnv *types.GlobalEnvironment) []*localEnvironment {

@@ -2,44 +2,89 @@
 
 package vm
 
-import "github.com/elk-language/elk/value"
+import (
+	"fmt"
+
+	"github.com/elk-language/elk/value"
+)
+
+func (vm *Thread) populateMissingParametersOnStack(paramCount, argumentCount int) {
+	// populate missing optional arguments with undefined
+	missingParams := paramCount - argumentCount
+	if missingParams < 0 {
+		panic(fmt.Sprintf(
+			"invalid missingParams: %d, ip: %d, bytecode:\n%s\n",
+			missingParams,
+			vm.ipOffset(),
+			vm.bytecode.MustDisassembleString(),
+		))
+	}
+	for range missingParams {
+		vm.push(value.Undefined)
+	}
+}
 
 // Add n to the instruction pointer
-func (vm *VM) ipIncrementBy(n uintptr) {
+func (vm *Thread) ipIncrementBy(n uintptr) {
 	if vm.ipOffset()+int(n) > len(vm.bytecode.Instructions) {
-		panic("ip overflow")
+		panic(fmt.Sprintf(
+			"ip overflow, increment: %d, ip: %d, bytecode:\n%s\n",
+			n,
+			vm.ipOffset(),
+			vm.bytecode.MustDisassembleString(),
+		))
 	}
 	vm.ip = vm.ip + n
 }
 
 // Subtract n from the instruction pointer
-func (vm *VM) ipDecrementBy(n uintptr) {
+func (vm *Thread) ipDecrementBy(n uintptr) {
 	if vm.ipOffset()-int(n) < 0 {
-		panic("ip underflow")
+		panic(fmt.Sprintf(
+			"ip underflow, decrement: %d, ip: %d, bytecode:\n%s\n",
+			n,
+			vm.ipOffset(),
+			vm.bytecode.MustDisassembleString(),
+		))
 	}
 	vm.ip = vm.ip - n
 }
 
 // Subtract n from the stack pointer
-func (vm *VM) spDecrementBy(n uintptr) {
+func (vm *Thread) spDecrementBy(n uintptr) {
 	if vm.spOffset()-int(n) < 0 {
-		panic("value stack underflow")
+		panic(fmt.Sprintf(
+			"value stack underflow, decrement: %d, ip: %d, bytecode:\n%s\n",
+			n,
+			vm.ipOffset(),
+			vm.bytecode.MustDisassembleString(),
+		))
 	}
 	vm.sp = vm.sp - n*value.ValueSize
 }
 
 // Add n to the stack pointer
-func (vm *VM) spIncrementBy(n uintptr) {
+func (vm *Thread) spIncrementBy(n uintptr) {
 	if vm.spOffset()+int(n) > len(vm.stack) {
-		panic("value stack overflow")
+		panic(fmt.Sprintf(
+			"value stack overflow, increment: %d, ip: %d, bytecode:\n%s\n",
+			n,
+			vm.ipOffset(),
+			vm.bytecode.MustDisassembleString(),
+		))
 	}
 	vm.sp = vm.sp + n*value.ValueSize
 }
 
 // Subtract n from the call frame pointer
-func (vm *VM) cfpDecrementBy(n uintptr) {
+func (vm *Thread) cfpDecrementBy(n uintptr) {
 	if vm.cfpOffset()-int(n) < 0 {
-		panic("call stack underflow")
+		panic(fmt.Sprintf(
+			"class stack underflow, decrement: %d, ip: %d, bytecode:\n%s\n",
+			n,
+			vm.ipOffset(),
+			vm.bytecode.MustDisassembleString(),
+		))
 	}
 	vm.cfp = vm.cfpSubtractRaw(n)
 }

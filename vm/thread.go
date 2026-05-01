@@ -371,7 +371,7 @@ func (vm *Thread) CallMethod(method value.Method, args ...value.Value) (value.Va
 	self := args[0]
 	paramCount := method.ParameterCount()
 	argCount := len(args) - 1
-	args = vm.populateMissingParameters(args, paramCount, argCount)
+	args = vm.populateMissingParametersInSlice(args, paramCount, argCount)
 
 	switch m := method.(type) {
 	case *BytecodeFunction:
@@ -2256,14 +2256,6 @@ func (vm *Thread) growValueStack() {
 	vm.stack = newStack
 }
 
-func (vm *Thread) populateMissingParametersOnStack(paramCount, argumentCount int) {
-	// populate missing optional arguments with undefined
-	missingParams := uintptr(paramCount - argumentCount)
-	for range missingParams {
-		vm.push(value.Undefined)
-	}
-}
-
 // Define instance variables in a class
 func (vm *Thread) opDefIvars() (err value.Value) {
 	ivarIndices := (*value.IvarIndices)(vm.popGet().Pointer())
@@ -3872,7 +3864,7 @@ func (vm *Thread) CaptureStackTrace() *value.StackTrace {
 	return vm.errStackTrace
 }
 
-func (vm *Thread) populateMissingParameters(args []value.Value, paramCount, argumentCount int) []value.Value {
+func (vm *Thread) populateMissingParametersInSlice(args []value.Value, paramCount, argumentCount int) []value.Value {
 	// populate missing optional arguments with undefined
 	missingParams := uintptr(paramCount - argumentCount)
 	if missingParams > 0 {

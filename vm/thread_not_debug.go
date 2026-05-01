@@ -2,7 +2,17 @@
 
 package vm
 
-import "github.com/elk-language/elk/value"
+import (
+	"github.com/elk-language/elk/value"
+)
+
+func (vm *Thread) populateMissingParametersOnStack(paramCount, argumentCount int) {
+	// populate missing optional arguments with undefined
+	missingParams := paramCount - argumentCount
+	for range missingParams {
+		vm.push(value.Undefined)
+	}
+}
 
 // Add n to the instruction pointer
 func (vm *Thread) ipIncrementBy(n uintptr) {
