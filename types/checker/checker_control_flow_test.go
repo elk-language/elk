@@ -1081,8 +1081,8 @@ func TestNumericForExpression(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(12, 2, 12)), "undefined local `a`"),
 				diagnostic.NewFailure(L("<main>", P(15, 2, 15), P(15, 2, 15)), "undefined local `b`"),
-				diagnostic.NewFailure(L("<main>", P(18, 2, 18), P(18, 2, 18)), "undefined local `c`"),
 				diagnostic.NewFailure(L("<main>", P(25, 3, 6), P(25, 3, 6)), "undefined local `d`"),
+				diagnostic.NewFailure(L("<main>", P(18, 2, 18), P(18, 2, 18)), "undefined local `c`"),
 			},
 		},
 		"returns never if condition is truthy": {

@@ -587,7 +587,7 @@ func (c *Checker) newMethodChecker(
 		Errors:         c.Errors,
 		flags:          c.flags,
 		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil, false),
+			newLocalEnvironment(nil, defaultLocalEnvType),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),
@@ -1140,7 +1140,7 @@ func (c *Checker) checkMethod(
 	}
 
 	if isClosure {
-		c.pushNestedLocalEnv()
+		c.pushNestedLocalEnv(defaultLocalEnvType)
 	} else {
 		c.pushIsolatedLocalEnv()
 	}

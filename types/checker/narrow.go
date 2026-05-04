@@ -79,12 +79,12 @@ func (c *Checker) narrowAssignmentToType(node *ast.AssignmentExpressionNode, typ
 }
 
 func (c *Checker) narrowLocalToType(name string, localType, typ types.Type) types.Type {
-	local, localEnv := c.resolveLocal(name, nil)
+	local, localCtx := c.resolveLocal(name, nil)
 	if local == nil {
 		return types.Untyped{}
 	}
 
-	if localEnv != c.currentLocalEnv() {
+	if localCtx.env != c.currentLocalEnv() {
 		local = local.createShadow()
 		c.addLocal(name, local)
 	}
@@ -125,12 +125,12 @@ func (c *Checker) narrowAssignmentExcludeType(node *ast.AssignmentExpressionNode
 }
 
 func (c *Checker) narrowLocalExcludeType(name string, localType, typ types.Type) types.Type {
-	local, localEnv := c.resolveLocal(name, nil)
+	local, localCtx := c.resolveLocal(name, nil)
 	if local == nil {
 		return types.Untyped{}
 	}
 
-	if localEnv != c.currentLocalEnv() {
+	if localCtx.env != c.currentLocalEnv() {
 		local = local.createShadow()
 		c.addLocal(name, local)
 	}
@@ -369,12 +369,12 @@ func (c *Checker) narrowToIntersectWith(node ast.ExpressionNode, typ types.Type)
 		return
 	}
 
-	local, localEnv := c.resolveLocal(localName, nil)
+	local, localCtx := c.resolveLocal(localName, nil)
 	if local == nil {
 		return
 	}
 
-	if localEnv != c.currentLocalEnv() {
+	if localCtx.env != c.currentLocalEnv() {
 		local = local.createShadow()
 		c.addLocal(localName, local)
 	}
@@ -398,12 +398,12 @@ func (c *Checker) narrowIsA(left, right ast.ExpressionNode, assume assumption) {
 	}
 	namespace := rightSingleton.AttachedObject
 
-	local, localEnv := c.resolveLocal(localName, nil)
+	local, localCtx := c.resolveLocal(localName, nil)
 	if local == nil {
 		return
 	}
 
-	if localEnv != c.currentLocalEnv() {
+	if localCtx.env != c.currentLocalEnv() {
 		local = local.createShadow()
 		c.addLocal(localName, local)
 	}
@@ -442,12 +442,12 @@ func (c *Checker) narrowInstanceOf(left, right ast.ExpressionNode, assume assump
 		return
 	}
 
-	local, localEnv := c.resolveLocal(localName, nil)
+	local, localCtx := c.resolveLocal(localName, nil)
 	if local == nil {
 		return
 	}
 
-	if localEnv != c.currentLocalEnv() {
+	if localCtx.env != c.currentLocalEnv() {
 		local = local.createShadow()
 		c.addLocal(localName, local)
 	}
@@ -470,12 +470,12 @@ func (c *Checker) narrowUnary(node *ast.UnaryExpressionNode, assume assumption) 
 }
 
 func (c *Checker) narrowLocal(name string, localType types.Type, assume assumption) {
-	local, localEnv := c.resolveLocal(name, nil)
+	local, localCtx := c.resolveLocal(name, nil)
 	if local == nil {
 		return
 	}
 
-	if localEnv != c.currentLocalEnv() && c.mode != mutateLocalsInNarrowing {
+	if localCtx.env != c.currentLocalEnv() && c.mode != mutateLocalsInNarrowing {
 		local = local.createShadow()
 		c.addLocal(name, local)
 	}

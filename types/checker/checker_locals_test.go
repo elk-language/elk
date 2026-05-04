@@ -671,6 +671,431 @@ func TestLocalAccess(t *testing.T) {
 		"access initialised variable": {
 			input: "var foo: Int = 5; foo",
 		},
+
+		"access variable initialised in if expression": {
+			input: `
+				var a: String
+				b := true
+				if b
+					a = "elo"
+					a
+				end
+`,
+		},
+		"access variable initialised in if else expression": {
+			input: `
+				var a: String
+				b := true
+				if b
+				else
+					a = "elo"
+					a
+				end
+`,
+		},
+		"access variable initialised in if else expression outside": {
+			input: `
+				var a: String
+				b := true
+				if b
+				else
+					a = "elo"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(78, 8, 5), P(78, 8, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"access variable initialised in exhaustive if outside": {
+			input: `
+				var a: String
+				b := true
+				if b
+					a = "foo"
+				else
+					a = "bar"
+				end
+				a
+`,
+		},
+		"access variable initialised in if expression outside": {
+			input: `
+				var a: String
+				b := true
+				if b
+					a = "elo"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(69, 7, 5), P(69, 7, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"access variable initialised in modifier if expression outside": {
+			input: `
+				var a: String
+				b := true
+				a = "elo" if b
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(56, 5, 5), P(56, 5, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+
+		"access variable initialised in unless expression": {
+			input: `
+				var a: String
+				b := true
+				unless b
+					a = "elo"
+					a
+				end
+`,
+		},
+		"access variable initialised in unless else expression": {
+			input: `
+				var a: String
+				b := true
+				unless b
+				else
+					a = "elo"
+					a
+				end
+`,
+		},
+		"access variable initialised in unless else expression outside": {
+			input: `
+				var a: String
+				b := true
+				unless b
+				else
+					a = "elo"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(82, 8, 5), P(82, 8, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"access variable initialised in exhaustive unless outside": {
+			input: `
+				var a: String
+				b := true
+				unless b
+					a = "foo"
+				else
+					a = "bar"
+				end
+				a
+`,
+		},
+		"access variable initialised in unless expression outside": {
+			input: `
+				var a: String
+				b := true
+				unless b
+					a = "elo"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(73, 7, 5), P(73, 7, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"access variable initialised in modifier unless expression outside": {
+			input: `
+				var a: String
+				b := true
+				a = "elo" unless b
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(60, 5, 5), P(60, 5, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+
+		"access variable initialised in while": {
+			input: `
+				var a: String
+				b := true
+				while b
+					a = "elo"
+					a
+				end
+`,
+		},
+		"access variable initialised in while outside": {
+			input: `
+				var a: String
+				b := true
+				while b
+					a = "elo"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(72, 7, 5), P(72, 7, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"access variable initialised in modifier while outside": {
+			input: `
+				var a: String
+				b := true
+				a = "elo" while b
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(59, 5, 5), P(59, 5, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+
+		"access variable initialised in until": {
+			input: `
+				var a: String
+				b := true
+				until b
+					a = "elo"
+					a
+				end
+`,
+		},
+		"access variable initialised in until outside": {
+			input: `
+				var a: String
+				b := true
+				until b
+					a = "elo"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(72, 7, 5), P(72, 7, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"access variable initialised in modifier until outside": {
+			input: `
+				var a: String
+				b := true
+				a = "elo" until b
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(59, 5, 5), P(59, 5, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+
+		"access variable initialised in loop": {
+			input: `
+				var a: String
+				loop
+					a = "elo"
+					a
+				end
+`,
+		},
+		"access variable initialised in loop outside": {
+			input: `
+				var a: String
+				loop
+					a = "elo"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(55, 6, 5), P(55, 6, 5)), "cannot access uninitialised local `a`"),
+				diagnostic.NewWarning(L("<main>", P(55, 6, 5), P(55, 6, 5)), "unreachable code"),
+			},
+		},
+
+		"access variable initialised in fornum outside": {
+			input: `
+				var a: String
+				b := true
+				fornum ;b;
+					a = "elo"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(75, 7, 5), P(75, 7, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"access variable initialised in fornum": {
+			input: `
+				var a: String
+				b := true
+				fornum ;b;
+					a = "elo"
+					a
+				end
+`,
+		},
+
+		"access variable initialised in for outside": {
+			input: `
+				var a: String
+				for i in 5
+					a = "elo"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(61, 6, 5), P(61, 6, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"access variable initialised in for": {
+			input: `
+				var a: String
+				for i in 5
+					a = "elo"
+					a
+				end
+`,
+		},
+
+		"access variable initialised in some switch cases outside": {
+			input: `
+				var a: String
+				var b: any = nil
+				switch b
+				case String()
+					a = "elo"
+				case Int()
+					println "foo"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(132, 10, 5), P(132, 10, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"access variable initialised in all switch cases but not else outside": {
+			input: `
+				var a: String
+				var b: any = nil
+				switch b
+				case String()
+					a = "elo"
+				case Int()
+					a = "foo"
+				else
+					println "bar"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(156, 12, 5), P(156, 12, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"access variable initialised in all switch cases and else outside": {
+			input: `
+				var a: String
+				var b: any = nil
+				switch b
+				case String()
+					a = "elo"
+					a
+				case Int()
+					a = "foo"
+					a
+				else
+					a = "bar"
+					a
+				end
+				a
+`,
+		},
+		"access variable initialised in all switch cases outside": {
+			input: `
+				var a: String
+				var b: any = nil
+				switch b
+				case String()
+					a = "elo"
+					a
+				case Int()
+					a = "foo"
+					a
+				end
+				a
+`,
+		},
+
+		"access variable initialised in do": {
+			input: `
+				var a: String
+				do
+					a = "elo"
+					a
+				end
+`,
+		},
+		"access variable initialised in do outside": {
+			input: `
+				var a: String
+				do
+					a = "elo"
+				end
+				a
+`,
+		},
+		"access variable initialised in do catch": {
+			input: `
+				var a: String
+				do
+					a = "elo"
+					a
+				catch String()
+					a = "foo"
+					a
+				end
+`,
+		},
+		"access variable initialised in do catch outside": {
+			input: `
+				var a: String
+				do
+					a = "elo"
+				catch String()
+					a = "foo"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(87, 8, 5), P(87, 8, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
+		"access variable initialised in do catch finally": {
+			input: `
+				var a: String
+				do
+					a = "elo"
+					a
+				catch String()
+					a = "foo"
+					a
+				finally
+					a = "bar"
+					a
+				end
+`,
+		},
+		"access variable initialised in do catch finally outside": {
+			input: `
+				var a: String
+				do
+					println "elo"
+				catch String()
+					println "foo"
+				finally
+					a = "bar"
+				end
+				a
+`,
+		},
+
 		"access uninitialised variable": {
 			input: "var foo: Int; foo",
 			err: diagnostic.DiagnosticList{
