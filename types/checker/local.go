@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"iter"
 
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
@@ -184,11 +185,18 @@ func newLocalEnvironment(parent *localEnvironment, typ localEnvType) *localEnvir
 func (c *Checker) uninitialisedLocals() iter.Seq2[value.Symbol, *local] {
 	return func(yield func(value.Symbol, *local) bool) {
 		currentEnv := c.currentLocalEnv()
+		localNames := ds.MakeSet[value.Symbol]()
+
 		for currentEnv != nil {
 			for name, local := range currentEnv.locals {
+				if localNames.Contains(name) {
+					continue
+				}
 				if local.initialised {
 					continue
 				}
+
+				localNames.Add(name)
 
 				if !yield(name, local) {
 					return

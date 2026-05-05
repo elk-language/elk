@@ -719,6 +719,39 @@ func TestLocalAccess(t *testing.T) {
 				a
 `,
 		},
+		"access variable initialised in complex exhaustive if outside": {
+			input: `
+				var a: String
+				b := true
+				c := true
+				if b
+					a = "foo"
+				else if c
+					a = "bar"
+				else
+					a = "baz"
+				end
+				a
+`,
+		},
+		"access variable initialised in complex if outside": {
+			input: `
+				var a: String
+				b := true
+				c := true
+				if b
+					a = "foo"
+				else if c
+					a = "bar"
+				else
+					println "baz"
+				end
+				a
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(140, 12, 5), P(140, 12, 5)), "cannot access uninitialised local `a`"),
+			},
+		},
 		"access variable initialised in if expression outside": {
 			input: `
 				var a: String
