@@ -556,10 +556,13 @@ func TestShortVariableDeclaration(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(29, 3, 12), P(33, 3, 16)), "cannot use type `void` as a value in this context"),
 			},
 		},
-		"reject redeclared variable": {
+		"accept redeclared short declaration with matching type": {
+			input: `var foo: String?; foo := "foo"`,
+		},
+		"reject redeclared short declaration with different type": {
 			input: `var foo: Int; foo := "foo"`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(25, 1, 26)), "cannot redeclare local `foo`"),
+				diagnostic.NewFailure(L("<main>", P(21, 1, 22), P(25, 1, 26)), "type `\"foo\"` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"declare a recursive closure": {

@@ -680,7 +680,7 @@ func (c *GoCompiler) addLoopInfo(label string, resultVar *goLocal, returnsValFro
 
 func (c *GoCompiler) findLoopInfo(label string, location *position.Location) *goLoopInfo {
 	if len(c.loopInfo) < 1 {
-		c.Errors.AddFailure(
+		c.addFailure(
 			"cannot jump with `break` or `continue` outside of a loop",
 			location,
 		)
@@ -698,7 +698,7 @@ func (c *GoCompiler) findLoopInfo(label string, location *position.Location) *go
 		}
 	}
 
-	c.Errors.AddFailure(
+	c.addFailure(
 		fmt.Sprintf("label $%s does not exist or is not attached to an enclosing loop", label),
 		location,
 	)
@@ -2537,7 +2537,7 @@ func (c *GoCompiler) compileModifierNode(label string, node *ast.ModifierNode, v
 	case token.UNTIL:
 		return c.compileModifierUntilExpressionNode(label, node, valueIsIgnored)
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("illegal modifier: %s", node.Modifier.FetchValue()),
 			node.Location(),
 		)
@@ -2892,7 +2892,7 @@ func (c *GoCompiler) compileWordArrayTupleLiteralNode(node *ast.WordArrayTupleLi
 		return resolved
 	}
 
-	c.Errors.AddFailure("invalid word arrayTuple literal", node.Location())
+	c.addFailure("invalid word arrayTuple literal", node.Location())
 	return nilGoValue
 }
 
@@ -2901,7 +2901,7 @@ func (c *GoCompiler) compileSymbolArrayTupleLiteralNode(node *ast.SymbolArrayTup
 		return resolved
 	}
 
-	c.Errors.AddFailure("invalid symbol arrayTuple literal", node.Location())
+	c.addFailure("invalid symbol arrayTuple literal", node.Location())
 	return nilGoValue
 }
 
@@ -2910,7 +2910,7 @@ func (c *GoCompiler) compileBinArrayTupleLiteralNode(node *ast.BinArrayTupleLite
 		return resolved
 	}
 
-	c.Errors.AddFailure("invalid binary arrayTuple literal", node.Location())
+	c.addFailure("invalid binary arrayTuple literal", node.Location())
 	return nilGoValue
 }
 
@@ -2919,7 +2919,7 @@ func (c *GoCompiler) compileHexArrayTupleLiteralNode(node *ast.HexArrayTupleLite
 		return resolved
 	}
 
-	c.Errors.AddFailure("invalid hex arrayTuple literal", node.Location())
+	c.addFailure("invalid hex arrayTuple literal", node.Location())
 	return nilGoValue
 }
 
@@ -2928,7 +2928,7 @@ func (c *GoCompiler) compileWordArrayListLiteralNode(node *ast.WordArrayListLite
 		return resolved
 	}
 
-	c.Errors.AddFailure("invalid word arrayList literal", node.Location())
+	c.addFailure("invalid word arrayList literal", node.Location())
 	return nilGoValue
 }
 
@@ -2937,7 +2937,7 @@ func (c *GoCompiler) compileSymbolArrayListLiteralNode(node *ast.SymbolArrayList
 		return resolved
 	}
 
-	c.Errors.AddFailure("invalid symbol arrayList literal", node.Location())
+	c.addFailure("invalid symbol arrayList literal", node.Location())
 	return nilGoValue
 }
 
@@ -2946,7 +2946,7 @@ func (c *GoCompiler) compileBinArrayListLiteralNode(node *ast.BinArrayListLitera
 		return resolved
 	}
 
-	c.Errors.AddFailure("invalid binary arrayList literal", node.Location())
+	c.addFailure("invalid binary arrayList literal", node.Location())
 	return nilGoValue
 }
 
@@ -2955,7 +2955,7 @@ func (c *GoCompiler) compileHexArrayListLiteralNode(node *ast.HexArrayListLitera
 		return resolved
 	}
 
-	c.Errors.AddFailure("invalid hex arrayList literal", node.Location())
+	c.addFailure("invalid hex arrayList literal", node.Location())
 	return nilGoValue
 }
 
@@ -3196,70 +3196,70 @@ func (c *GoCompiler) parseArrayIndex(node ast.ExpressionNode) (int, bool) {
 	case *ast.IntLiteralNode:
 		i, err := value.ParseBigInt(n.Value, 0)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return 0, false
 		}
 		index = int(i.ToSmallInt())
 	case *ast.Int8LiteralNode:
 		i, err := value.StrictParseInt(n.Value, 0, 8)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return 0, false
 		}
 		index = int(i)
 	case *ast.Int16LiteralNode:
 		i, err := value.StrictParseInt(n.Value, 0, 16)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return 0, false
 		}
 		index = int(i)
 	case *ast.Int32LiteralNode:
 		i, err := value.StrictParseInt(n.Value, 0, 32)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return 0, false
 		}
 		index = int(i)
 	case *ast.Int64LiteralNode:
 		i, err := value.StrictParseInt(n.Value, 0, 64)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return 0, false
 		}
 		index = int(i)
 	case *ast.UInt8LiteralNode:
 		i, err := value.StrictParseUint(n.Value, 0, 8)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return 0, false
 		}
 		index = int(i)
 	case *ast.UInt16LiteralNode:
 		i, err := value.StrictParseUint(n.Value, 0, 16)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return 0, false
 		}
 		index = int(i)
 	case *ast.UInt32LiteralNode:
 		i, err := value.StrictParseUint(n.Value, 0, 32)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return 0, false
 		}
 		index = int(i)
 	case *ast.UInt64LiteralNode:
 		i, err := value.StrictParseUint(n.Value, 0, 64)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return 0, false
 		}
 		index = int(i)
 	case *ast.UIntLiteralNode:
 		i, err := value.StrictParseUint(n.Value, 0, value.SmallIntBits)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return 0, false
 		}
 		index = int(i)
@@ -3268,7 +3268,7 @@ func (c *GoCompiler) parseArrayIndex(node ast.ExpressionNode) (int, bool) {
 	}
 
 	if index < 0 {
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("negative array indices are invalid: %d", index),
 			node.Location(),
 		)
@@ -3383,7 +3383,7 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 			dependencies = append(dependencies, value)
 		case *ast.ModifierNode:
 			if node.Capacity != nil {
-				c.Errors.AddFailure(
+				c.addFailure(
 					invalidCapacityErrMessage,
 					node.Capacity.Location(),
 				)
@@ -3415,7 +3415,7 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 			)
 		case *ast.ModifierForInNode:
 			if node.Capacity != nil {
-				c.Errors.AddFailure(
+				c.addFailure(
 					invalidCapacityErrMessage,
 					node.Capacity.Location(),
 				)
@@ -3426,7 +3426,7 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 			finalizeStaticElements()
 		case *ast.ModifierIfElseNode:
 			if node.Capacity != nil {
-				c.Errors.AddFailure(
+				c.addFailure(
 					invalidCapacityErrMessage,
 					node.Capacity.Location(),
 				)
@@ -3495,7 +3495,7 @@ func (c *GoCompiler) compileWordHashSetLiteralNode(node *ast.WordHashSetLiteralN
 		return resolved
 	}
 
-	c.Errors.AddFailure("invalid word hashset literal", node.Location())
+	c.addFailure("invalid word hashset literal", node.Location())
 	return nilGoValue
 }
 
@@ -3504,7 +3504,7 @@ func (c *GoCompiler) compileSymbolHashSetLiteralNode(node *ast.SymbolHashSetLite
 		return resolved
 	}
 
-	c.Errors.AddFailure("invalid symbol hashset literal", node.Location())
+	c.addFailure("invalid symbol hashset literal", node.Location())
 	return nilGoValue
 }
 
@@ -3513,7 +3513,7 @@ func (c *GoCompiler) compileBinHashSetLiteralNode(node *ast.BinHashSetLiteralNod
 		return resolved
 	}
 
-	c.Errors.AddFailure("invalid bin hashset literal", node.Location())
+	c.addFailure("invalid bin hashset literal", node.Location())
 	return nilGoValue
 }
 
@@ -3522,7 +3522,7 @@ func (c *GoCompiler) compileHexHashSetLiteralNode(node *ast.HexHashSetLiteralNod
 		return resolved
 	}
 
-	c.Errors.AddFailure("invalid hex hashset literal", node.Location())
+	c.addFailure("invalid hex hashset literal", node.Location())
 	return nilGoValue
 }
 
@@ -3609,7 +3609,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 		switch elementNode := elementNode.(type) {
 		case *ast.ModifierNode:
 			if node.Capacity != nil {
-				c.Errors.AddFailure(
+				c.addFailure(
 					invalidCapacityErrMessage,
 					node.Capacity.Location(),
 				)
@@ -3641,7 +3641,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 			)
 		case *ast.ModifierForInNode:
 			if node.Capacity != nil {
-				c.Errors.AddFailure(
+				c.addFailure(
 					invalidCapacityErrMessage,
 					node.Capacity.Location(),
 				)
@@ -3652,7 +3652,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 			finalizeStaticElements()
 		case *ast.ModifierIfElseNode:
 			if node.Capacity != nil {
-				c.Errors.AddFailure(
+				c.addFailure(
 					invalidCapacityErrMessage,
 					node.Capacity.Location(),
 				)
@@ -3864,7 +3864,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 		switch elementNode := elementNode.(type) {
 		case *ast.ModifierNode:
 			if node.Capacity != nil {
-				c.Errors.AddFailure(
+				c.addFailure(
 					invalidCapacityErrMessage,
 					node.Capacity.Location(),
 				)
@@ -3908,7 +3908,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 			)
 		case *ast.ModifierForInNode:
 			if node.Capacity != nil {
-				c.Errors.AddFailure(
+				c.addFailure(
 					invalidCapacityErrMessage,
 					node.Capacity.Location(),
 				)
@@ -3919,7 +3919,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 			finalizeStaticElements()
 		case *ast.ModifierIfElseNode:
 			if node.Capacity != nil {
-				c.Errors.AddFailure(
+				c.addFailure(
 					invalidCapacityErrMessage,
 					node.Capacity.Location(),
 				)
@@ -4622,7 +4622,7 @@ func (c *GoCompiler) compileBoxOfExpressionNode(node *ast.BoxOfExpressionNode) *
 	// 		c.emitCallMethod(callInfo, location, false)
 	// 	}
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("cannot take the address of: `%s`", node.Expression.Inspect()), node.Location())
+		c.addFailure(fmt.Sprintf("cannot take the address of: `%s`", node.Expression.Inspect()), node.Location())
 		return nilGoValue
 	}
 }
@@ -4630,7 +4630,7 @@ func (c *GoCompiler) compileBoxOfExpressionNode(node *ast.BoxOfExpressionNode) *
 func (c *GoCompiler) compileIntLiteralNode(node *ast.IntLiteralNode) *goValue {
 	i, err := value.ParseBigInt(node.Value, 0)
 	if !err.IsUndefined() {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	if i.IsSmallInt() {
@@ -4651,7 +4651,7 @@ func (c *GoCompiler) compileIntLiteralNode(node *ast.IntLiteralNode) *goValue {
 func (c *GoCompiler) compileInt8LiteralNode(node *ast.Int8LiteralNode) *goValue {
 	i, err := value.StrictParseInt(node.Value, 0, 8)
 	if !err.IsUndefined() {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	return newGoValue(
@@ -4664,7 +4664,7 @@ func (c *GoCompiler) compileInt8LiteralNode(node *ast.Int8LiteralNode) *goValue 
 func (c *GoCompiler) compileInt16LiteralNode(node *ast.Int16LiteralNode) *goValue {
 	i, err := value.StrictParseInt(node.Value, 0, 16)
 	if !err.IsUndefined() {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	return newGoValue(
@@ -4677,7 +4677,7 @@ func (c *GoCompiler) compileInt16LiteralNode(node *ast.Int16LiteralNode) *goValu
 func (c *GoCompiler) compileInt32LiteralNode(node *ast.Int32LiteralNode) *goValue {
 	i, err := value.StrictParseInt(node.Value, 0, 32)
 	if !err.IsUndefined() {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	return newGoValue(
@@ -4690,7 +4690,7 @@ func (c *GoCompiler) compileInt32LiteralNode(node *ast.Int32LiteralNode) *goValu
 func (c *GoCompiler) compileInt64LiteralNode(node *ast.Int64LiteralNode) *goValue {
 	i, err := value.StrictParseInt(node.Value, 0, 64)
 	if !err.IsUndefined() {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	return newGoValue(
@@ -4703,7 +4703,7 @@ func (c *GoCompiler) compileInt64LiteralNode(node *ast.Int64LiteralNode) *goValu
 func (c *GoCompiler) compileUInt8LiteralNode(node *ast.UInt8LiteralNode) *goValue {
 	i, err := value.StrictParseUint(node.Value, 0, 8)
 	if !err.IsUndefined() {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	return newGoValue(
@@ -4716,7 +4716,7 @@ func (c *GoCompiler) compileUInt8LiteralNode(node *ast.UInt8LiteralNode) *goValu
 func (c *GoCompiler) compileUInt16LiteralNode(node *ast.UInt16LiteralNode) *goValue {
 	i, err := value.StrictParseUint(node.Value, 0, 16)
 	if !err.IsUndefined() {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	return newGoValue(
@@ -4729,7 +4729,7 @@ func (c *GoCompiler) compileUInt16LiteralNode(node *ast.UInt16LiteralNode) *goVa
 func (c *GoCompiler) compileUInt32LiteralNode(node *ast.UInt32LiteralNode) *goValue {
 	i, err := value.StrictParseUint(node.Value, 0, 32)
 	if !err.IsUndefined() {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	return newGoValue(
@@ -4742,7 +4742,7 @@ func (c *GoCompiler) compileUInt32LiteralNode(node *ast.UInt32LiteralNode) *goVa
 func (c *GoCompiler) compileUInt64LiteralNode(node *ast.UInt64LiteralNode) *goValue {
 	i, err := value.StrictParseUint(node.Value, 0, 64)
 	if !err.IsUndefined() {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	return newGoValue(
@@ -4755,7 +4755,7 @@ func (c *GoCompiler) compileUInt64LiteralNode(node *ast.UInt64LiteralNode) *goVa
 func (c *GoCompiler) compileUIntLiteralNode(node *ast.UIntLiteralNode) *goValue {
 	i, err := value.StrictParseUint(node.Value, 0, value.SmallIntBits)
 	if !err.IsUndefined() {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	return newGoValue(
@@ -4777,7 +4777,7 @@ func (c *GoCompiler) compileBigFloatLiteralNode(node *ast.BigFloatLiteralNode) *
 func (c *GoCompiler) compileFloatLiteralNode(node *ast.FloatLiteralNode) *goValue {
 	f, err := strconv.ParseFloat(node.Value, value.SmallIntBits)
 	if err != nil {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	return newGoValue(
@@ -4790,7 +4790,7 @@ func (c *GoCompiler) compileFloatLiteralNode(node *ast.FloatLiteralNode) *goValu
 func (c *GoCompiler) compileFloat64LiteralNode(node *ast.Float64LiteralNode) *goValue {
 	f, err := strconv.ParseFloat(node.Value, 64)
 	if err != nil {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	return newGoValue(
@@ -4803,7 +4803,7 @@ func (c *GoCompiler) compileFloat64LiteralNode(node *ast.Float64LiteralNode) *go
 func (c *GoCompiler) compileFloat32LiteralNode(node *ast.Float32LiteralNode) *goValue {
 	f, err := strconv.ParseFloat(node.Value, 32)
 	if err != nil {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return errGoValue
 	}
 	return newGoValue(
@@ -5461,7 +5461,7 @@ func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpress
 	// case *ast.AttributeAccessNode:
 	// 	return c.attributeAssignment(node, n)
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Left),
 			node.Location(),
 		)
@@ -5514,10 +5514,10 @@ func (c *GoCompiler) localVariableAssignment(name string, operator *token.Token,
 		return c.setLocal(name, right)
 	case token.COLON_EQUAL:
 		goType := c.elkTypeToGoType(assignmentType, false)
-		c.defineLocal(name, assignmentType, goType, loc)
+		c.defineLocal(name, assignmentType, goType, nil)
 		return c.setLocal(name, right)
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.Name()),
 			loc,
 		)
@@ -5998,7 +5998,7 @@ func (c *GoCompiler) compileLogicalExpressionNode(node *ast.LogicalExpressionNod
 	case token.QUESTION_QUESTION:
 		return c.compileNilCoalescing(node, valueIsIgnored)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), node.Location())
+		c.addFailure(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), node.Location())
 		return errGoValue
 	}
 }
@@ -6145,7 +6145,7 @@ func (c *GoCompiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNod
 	// case *ast.PublicInstanceVariableNode:
 	// 	switch c.mode {
 	// 	case topLevelBytecodeCompilerMode:
-	// 		c.Errors.AddFailure(
+	// 		c.addFailure(
 	// 			"instance variables cannot be set in the top level",
 	// 			node.Location(),
 	// 		)
@@ -6186,7 +6186,7 @@ func (c *GoCompiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNod
 	// 	// set attribute
 	// 	c.emitSetterCall(name, node.Location())
 	// default:
-	// 	c.Errors.AddFailure(
+	// 	c.addFailure(
 	// 		fmt.Sprintf("cannot assign to: %T", node.Expression),
 	// 		node.Location(),
 	// 	)
@@ -6261,7 +6261,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode,
 	case token.REVERSE_ISA_OP:
 		return c.compileReverseIsA(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
+		c.addFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
 		return errGoValue
 	}
 }
@@ -13475,18 +13475,49 @@ func (c *GoCompiler) leaveScope() {
 	c.scopes = c.scopes[:currentDepth]
 }
 
+func (c *GoCompiler) getLocal(name string) *nativeElkLocal {
+	varScope := c.scopes.last()
+	return varScope.localTable[name]
+}
+
 // Register a local variable.
 func (c *GoCompiler) defineLocal(name string, elkType types.Type, goType *value.GoType, location *position.Location) *nativeElkLocal {
 	varScope := c.scopes.last()
-	_, ok := varScope.localTable[name]
+	existingLocal, ok := varScope.localTable[name]
 	if ok {
-		c.Errors.AddFailure(
+		if location == nil {
+			return existingLocal
+		}
+
+		c.addFailure(
 			fmt.Sprintf("a variable with this name has already been declared in this scope `%s`", name),
 			location,
 		)
 		return nil
 	}
 	return c.defineVariableInScope(varScope, name, elkType, goType, location)
+}
+
+func (c *GoCompiler) addFailure(message string, loc *position.Location) {
+	if loc == nil {
+		return
+	}
+
+	c.Errors.AddFailure(
+		message,
+		loc,
+	)
+}
+
+func (c *GoCompiler) addWarning(message string, loc *position.Location) {
+	if loc == nil {
+		return
+	}
+
+	c.Errors.AddWarning(
+		message,
+		loc,
+	)
 }
 
 func (c *GoCompiler) registerUpvalue(local *nativeElkLocal) {
@@ -13502,7 +13533,7 @@ func (c *GoCompiler) registerUpvalue(local *nativeElkLocal) {
 
 func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, elkType types.Type, goType *value.GoType, location *position.Location) *nativeElkLocal {
 	if c.lastElkLocalIndex == math.MaxInt {
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxInt, name),
 			location,
 		)

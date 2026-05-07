@@ -5672,6 +5672,11 @@ func (c *Checker) checkShortVariableDeclaration(node *ast.AssignmentExpressionNo
 	case *ast.PrivateIdentifierNode:
 		name = left.Value
 	}
+
+	if variable := c.getLocal(name); variable != nil {
+		return c.checkAssignment(node)
+	}
+
 	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Location(), false)
 	node.Right = init
 	node.SetType(typ)

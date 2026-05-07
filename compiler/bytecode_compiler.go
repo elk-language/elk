@@ -830,7 +830,7 @@ func (c *BytecodeCompiler) compileNamespace(node ast.Node) bool {
 			return false
 		}
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("incorrect namespace type %#v", n),
 			location,
 		)
@@ -893,7 +893,7 @@ func (c *BytecodeCompiler) initLoopJumpSet(label string, returnsValFromLastItera
 
 func (c *BytecodeCompiler) findLoopJumpSet(label string, location *position.Location) *bytecodeLoopJumpSet {
 	if len(c.loopJumpSets) < 1 {
-		c.Errors.AddFailure(
+		c.addFailure(
 			"cannot jump with `break` or `continue` outside of a loop",
 			location,
 		)
@@ -911,7 +911,7 @@ func (c *BytecodeCompiler) findLoopJumpSet(label string, location *position.Loca
 		}
 	}
 
-	c.Errors.AddFailure(
+	c.addFailure(
 		fmt.Sprintf("label $%s does not exist or is not attached to an enclosing loop", label),
 		location,
 	)
@@ -1233,91 +1233,91 @@ func (c *BytecodeCompiler) compileNode(node ast.Node, valueIsIgnored bool) expre
 	case *ast.Int8LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 8)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.Int8(i).ToValue(), node.Location())
 	case *ast.Int16LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 16)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.Int16(i).ToValue(), node.Location())
 	case *ast.Int32LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 32)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.Int32(i).ToValue(), node.Location())
 	case *ast.Int64LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 64)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.Int64(i).ToValue(), node.Location())
 	case *ast.UInt8LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 8)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.UInt8(i).ToValue(), node.Location())
 	case *ast.UInt16LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 16)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.UInt16(i).ToValue(), node.Location())
 	case *ast.UInt32LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 32)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.UInt32(i).ToValue(), node.Location())
 	case *ast.UIntLiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, value.SmallIntBits)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.UInt(i).ToValue(), node.Location())
 	case *ast.UInt64LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 64)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.UInt64(i).ToValue(), node.Location())
 	case *ast.FloatLiteralNode:
 		f, err := strconv.ParseFloat(node.Value, value.SmallIntBits)
 		if err != nil {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.Float(f).ToValue(), node.Location())
 	case *ast.BigFloatLiteralNode:
 		f, err := value.ParseBigFloat(node.Value)
 		if !err.IsUndefined() {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.Ref(f), node.Location())
 	case *ast.Float64LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.Float64(f).ToValue(), node.Location())
 	case *ast.Float32LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 32)
 		if err != nil {
-			c.Errors.AddFailure(err.Error(), node.Location())
+			c.addFailure(err.Error(), node.Location())
 			return expressionCompiled
 		}
 		c.emitValue(value.Float32(f).ToValue(), node.Location())
@@ -1326,7 +1326,7 @@ func (c *BytecodeCompiler) compileNode(node ast.Node, valueIsIgnored bool) expre
 	case *ast.UnquoteNode:
 		c.compileUnquoteNode(node)
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
 			node.Location(),
 		)
@@ -2700,7 +2700,7 @@ func (c *BytecodeCompiler) compilePostfixExpressionNode(node *ast.PostfixExpress
 	case *ast.PublicInstanceVariableNode:
 		switch c.mode {
 		case topLevelBytecodeCompilerMode:
-			c.Errors.AddFailure(
+			c.addFailure(
 				"instance variables cannot be set in the top level",
 				node.Location(),
 			)
@@ -2741,7 +2741,7 @@ func (c *BytecodeCompiler) compilePostfixExpressionNode(node *ast.PostfixExpress
 		// set attribute
 		c.emitSetterCall(name, node.Location())
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Expression),
 			node.Location(),
 		)
@@ -2808,14 +2808,14 @@ func (c *BytecodeCompiler) attributeAssignment(node *ast.AssignmentExpressionNod
 		// if not nil
 		c.patchJump(nonNilJump, location)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
+		c.addFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
 	}
 }
 
 func (c *BytecodeCompiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode, ivar *ast.PublicInstanceVariableNode, valueIsIgnored bool) expressionResult {
 	switch c.mode {
 	case topLevelBytecodeCompilerMode:
-		c.Errors.AddFailure(
+		c.addFailure(
 			"instance variables cannot be set in the top level",
 			node.Location(),
 		)
@@ -2894,7 +2894,7 @@ func (c *BytecodeCompiler) instanceVariableAssignment(node *ast.AssignmentExpres
 		c.patchJump(jump, location)
 		return valueIgnoredToResult(valueIsIgnored)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
+		c.addFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
 	}
 
 	return expressionCompiled
@@ -3005,7 +3005,7 @@ func (c *BytecodeCompiler) subscriptAssignment(node *ast.AssignmentExpressionNod
 		}
 		return valueIgnoredToResult(valueIsIgnored)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
+		c.addFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
 	}
 
 	return expressionCompiled
@@ -3024,7 +3024,7 @@ func (c *BytecodeCompiler) compileAssignmentExpressionNode(node *ast.AssignmentE
 	case *ast.AttributeAccessNode:
 		c.attributeAssignment(node, n)
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Left),
 			node.Location(),
 		)
@@ -3112,14 +3112,14 @@ func (c *BytecodeCompiler) localVariableAssignment(name string, operator *token.
 	case token.EQUAL_OP:
 		return c.setLocal(name, right, location, valueIsIgnored)
 	case token.COLON_EQUAL:
-		local := c.defineLocal(name, location)
+		local := c.defineLocal(name, nil)
 		c.compileNodeWithResult(right)
 		if local == nil {
 			return valueIgnoredToResult(valueIsIgnored)
 		}
 		return c.emitSetLocal(location.StartPos.Line, local.index, valueIsIgnored)
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.Name()),
 			location,
 		)
@@ -3171,7 +3171,7 @@ func (c *BytecodeCompiler) addUpvalue(local *bytecodeLocal, upIndex uint16, kind
 	}
 
 	if len(c.upvalues) > math.MaxUint16 {
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("upvalue limit reached: %d", math.MaxUint16),
 			location,
 		)
@@ -3200,7 +3200,7 @@ func (c *BytecodeCompiler) compileModifierExpressionNode(label string, node *ast
 	case token.UNTIL:
 		c.modifierUntilExpression(label, node)
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("illegal modifier: %s", node.Modifier.FetchValue()),
 			node.Location(),
 		)
@@ -3780,7 +3780,7 @@ func (c *BytecodeCompiler) pattern(pattern ast.PatternNode) {
 	case *ast.UnhygienicNode:
 		c.compileUnhygienicPatternNode(pat)
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("compilation of this pattern has not been implemented: %T", pattern),
 			location,
 		)
@@ -3938,7 +3938,7 @@ func (c *BytecodeCompiler) objectPattern(node *ast.ObjectPatternNode) {
 		case *ast.PrivateIdentifierNode:
 			c.identifierObjectPatternAttribute(e.Value, location)
 		default:
-			c.Errors.AddFailure(
+			c.addFailure(
 				fmt.Sprintf("invalid object pattern attribute: %T", attr),
 				location,
 			)
@@ -4044,7 +4044,7 @@ func (c *BytecodeCompiler) mapOrRecordPattern(typ types.Type, location *position
 		case *ast.PrivateIdentifierNode:
 			c.identifierMapPatternElement(e.Value, typ, location)
 		default:
-			c.Errors.AddFailure(
+			c.addFailure(
 				fmt.Sprintf("invalid map pattern element: %T", element),
 				location,
 			)
@@ -4070,7 +4070,7 @@ func (c *BytecodeCompiler) setPattern(location *position.Location, elements []as
 		switch e := element.(type) {
 		case *ast.RestPatternNode:
 			if restElementIsPresent {
-				c.Errors.AddFailure(
+				c.addFailure(
 					"there should be only a single rest element",
 					element.Location(),
 				)
@@ -4143,7 +4143,7 @@ func (c *BytecodeCompiler) listOrTuplePattern(typ types.Type, location *position
 		switch e := element.(type) {
 		case *ast.RestPatternNode:
 			if elementBeforeRestCount != -1 {
-				c.Errors.AddFailure(
+				c.addFailure(
 					"there should be only a single rest element",
 					element.Location(),
 				)
@@ -5089,7 +5089,7 @@ func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNod
 			switch elementNode.(type) {
 			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
 				if node.Capacity != nil {
-					c.Errors.AddFailure(
+					c.addFailure(
 						invalidCapacityErrMessage,
 						node.Capacity.Location(),
 					)
@@ -5579,7 +5579,7 @@ func (c *BytecodeCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNod
 			switch element := elementNode.(type) {
 			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
 				if node.Capacity != nil {
-					c.Errors.AddFailure(
+					c.addFailure(
 						invalidCapacityErrMessage,
 						node.Capacity.Location(),
 					)
@@ -6403,7 +6403,7 @@ func (c *BytecodeCompiler) compileArrayListLiteralNode(node *ast.ArrayListLitera
 			switch elementNode.(type) {
 			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
 				if node.Capacity != nil {
-					c.Errors.AddFailure(
+					c.addFailure(
 						invalidCapacityErrMessage,
 						node.Capacity.Location(),
 					)
@@ -6763,7 +6763,7 @@ func (c *BytecodeCompiler) compileWordArrayTupleLiteralNode(node *ast.WordArrayT
 		return
 	}
 
-	c.Errors.AddFailure("invalid word arrayTuple literal", node.Location())
+	c.addFailure("invalid word arrayTuple literal", node.Location())
 }
 
 func (c *BytecodeCompiler) compileBinArrayTupleLiteralNode(node *ast.BinArrayTupleLiteralNode) {
@@ -6771,7 +6771,7 @@ func (c *BytecodeCompiler) compileBinArrayTupleLiteralNode(node *ast.BinArrayTup
 		return
 	}
 
-	c.Errors.AddFailure("invalid binary arrayTuple literal", node.Location())
+	c.addFailure("invalid binary arrayTuple literal", node.Location())
 }
 
 func (c *BytecodeCompiler) compileSymbolArrayTupleLiteralNode(node *ast.SymbolArrayTupleLiteralNode) {
@@ -6779,7 +6779,7 @@ func (c *BytecodeCompiler) compileSymbolArrayTupleLiteralNode(node *ast.SymbolAr
 		return
 	}
 
-	c.Errors.AddFailure("invalid symbol arrayTuple literal", node.Location())
+	c.addFailure("invalid symbol arrayTuple literal", node.Location())
 }
 
 func (c *BytecodeCompiler) compileHexArrayTupleLiteralNode(node *ast.HexArrayTupleLiteralNode) {
@@ -6787,14 +6787,14 @@ func (c *BytecodeCompiler) compileHexArrayTupleLiteralNode(node *ast.HexArrayTup
 		return
 	}
 
-	c.Errors.AddFailure("invalid hex arrayTuple literal", node.Location())
+	c.addFailure("invalid hex arrayTuple literal", node.Location())
 }
 
 func (c *BytecodeCompiler) compileWordArrayListLiteralNode(node *ast.WordArrayListLiteralNode) {
 	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid word arrayList literal", location)
+		c.addFailure("invalid word arrayList literal", location)
 		return
 	}
 
@@ -6812,7 +6812,7 @@ func (c *BytecodeCompiler) compileBinArrayListLiteralNode(node *ast.BinArrayList
 	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid bin arrayList literal", location)
+		c.addFailure("invalid bin arrayList literal", location)
 		return
 	}
 
@@ -6830,7 +6830,7 @@ func (c *BytecodeCompiler) compileSymbolArrayListLiteralNode(node *ast.SymbolArr
 	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid symbol arrayList literal", location)
+		c.addFailure("invalid symbol arrayList literal", location)
 		return
 	}
 
@@ -6848,7 +6848,7 @@ func (c *BytecodeCompiler) compileHexArrayListLiteralNode(node *ast.HexArrayList
 	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid hex arrayList literal", location)
+		c.addFailure("invalid hex arrayList literal", location)
 		return
 	}
 
@@ -6866,7 +6866,7 @@ func (c *BytecodeCompiler) compileWordHashSetLiteralNode(node *ast.WordHashSetLi
 	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid word hashSet literal", location)
+		c.addFailure("invalid word hashSet literal", location)
 		return
 	}
 
@@ -6884,7 +6884,7 @@ func (c *BytecodeCompiler) compileBinHashSetLiteralNode(node *ast.BinHashSetLite
 	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid bin hashSet literal", location)
+		c.addFailure("invalid bin hashSet literal", location)
 		return
 	}
 
@@ -6902,7 +6902,7 @@ func (c *BytecodeCompiler) compileSymbolHashSetLiteralNode(node *ast.SymbolHashS
 	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid symbol hashSet literal", location)
+		c.addFailure("invalid symbol hashSet literal", location)
 		return
 	}
 
@@ -6920,7 +6920,7 @@ func (c *BytecodeCompiler) compileHexHashSetLiteralNode(node *ast.HexHashSetLite
 	list := c.resolve(node)
 	location := node.Location()
 	if list.IsUndefined() {
-		c.Errors.AddFailure("invalid hex hashSet literal", location)
+		c.addFailure("invalid hex hashSet literal", location)
 		return
 	}
 
@@ -6967,7 +6967,7 @@ func (c *BytecodeCompiler) emitNewRegex(flags bitfield.BitField8, size int, loca
 		return
 	}
 
-	c.Errors.AddFailure(
+	c.addFailure(
 		fmt.Sprintf("max number of regex literal elements reached: %d", math.MaxUint16),
 		location,
 	)
@@ -6986,7 +6986,7 @@ func (c *BytecodeCompiler) emitNewCollection(opcode8, opcode16 bytecode.OpCode, 
 		return
 	}
 
-	c.Errors.AddFailure(
+	c.addFailure(
 		fmt.Sprintf("max number of collection literal elements reached: %d", math.MaxUint16),
 		location,
 	)
@@ -7064,7 +7064,7 @@ func (c *BytecodeCompiler) compileInterpolatedSymbolLiteralNode(node *ast.Interp
 func (c *BytecodeCompiler) compileIntLiteralNode(node *ast.IntLiteralNode) {
 	i, err := value.ParseBigInt(node.Value, 0)
 	if !err.IsUndefined() {
-		c.Errors.AddFailure(err.Error(), node.Location())
+		c.addFailure(err.Error(), node.Location())
 		return
 	}
 
@@ -7093,7 +7093,7 @@ func (c *BytecodeCompiler) compileLogicalExpressionNode(node *ast.LogicalExpress
 	case token.QUESTION_QUESTION:
 		return c.nilCoalescing(node, valueIsIgnored)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), node.Location())
+		c.addFailure(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), node.Location())
 	}
 
 	return expressionCompiled
@@ -7439,7 +7439,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		c.emit(line, bytecode.SWAP)
 		c.emit(line, bytecode.IS_A)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown binary operator: %s", opToken.String()), location)
+		c.addFailure(fmt.Sprintf("unknown binary operator: %s", opToken.String()), location)
 	}
 }
 
@@ -7822,7 +7822,7 @@ func (c *BytecodeCompiler) compileBoxOfExpressionNode(node *ast.BoxOfExpressionN
 			c.emitCallMethod(callInfo, location, false)
 		}
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("cannot take the address of: `%s`", node.Expression.Inspect()), node.Location())
+		c.addFailure(fmt.Sprintf("cannot take the address of: `%s`", node.Expression.Inspect()), node.Location())
 	}
 }
 
@@ -7871,7 +7871,7 @@ func (c *BytecodeCompiler) compileUnaryExpressionNode(node *ast.UnaryExpressionN
 		// get singleton class
 		c.emit(node.Location().StartPos.Line, bytecode.GET_SINGLETON)
 	default:
-		c.Errors.AddFailure(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), node.Location())
+		c.addFailure(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), node.Location())
 	}
 }
 
@@ -7980,7 +7980,7 @@ func (c *BytecodeCompiler) emitLoop(location *position.Location, startOffset int
 
 	offset := c.nextInstructionOffset() - startOffset + 2
 	if offset > math.MaxUint16 {
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("too many bytes to jump backward: %d", math.MaxUint16),
 			location,
 		)
@@ -7992,7 +7992,7 @@ func (c *BytecodeCompiler) emitLoop(location *position.Location, startOffset int
 // Overwrite the placeholder operand of a jump instruction
 func (c *BytecodeCompiler) patchJumpWithTarget(target int, offset int, location *position.Location) {
 	if target > math.MaxUint16 {
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("too many bytes to jump over: %d", target),
 			location,
 		)
@@ -8190,7 +8190,7 @@ func (c *BytecodeCompiler) emitAddValue(val value.Value, location *position.Loca
 		binary.BigEndian.PutUint16(bytes, uint16(id))
 		c.bytecode.AddInstruction(location.StartPos.Line, opCode16, bytes...)
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
 			location,
 		)
@@ -8237,7 +8237,7 @@ func (c *BytecodeCompiler) emitLoadValue(val value.Value, location *position.Loc
 		binary.BigEndian.PutUint16(bytes, uint16(id))
 		c.bytecode.AddInstruction(location.StartPos.Line, bytecode.LOAD_VALUE16, bytes...)
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
 			location,
 		)
@@ -8261,7 +8261,7 @@ func (c *BytecodeCompiler) emitInstantiate(args int, location *position.Location
 		return
 	}
 
-	c.Errors.AddFailure(
+	c.addFailure(
 		fmt.Sprintf("constructor argument limit reached: %d", math.MaxUint16),
 		location,
 	)
@@ -8316,7 +8316,7 @@ func (c *BytecodeCompiler) emitSetInstanceVariableByIndex(index int, location *p
 		return
 	}
 
-	c.Errors.AddFailure(
+	c.addFailure(
 		fmt.Sprintf("too big instance variable index: %d", index),
 		location,
 	)
@@ -8331,7 +8331,7 @@ func (c *BytecodeCompiler) emitSetInstanceVariableByName(name value.Symbol, loca
 		binary.BigEndian.PutUint16(bytes, uint16(id))
 		c.bytecode.AddInstruction(location.StartPos.Line, bytecode.SET_IVAR_NAME16, bytes...)
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
 			location,
 		)
@@ -8382,7 +8382,7 @@ func (c *BytecodeCompiler) emitGetInstanceVariableByIndex(index int, location *p
 		return
 	}
 
-	c.Errors.AddFailure(
+	c.addFailure(
 		fmt.Sprintf("too big instance variable index: %d", index),
 		location,
 	)
@@ -8397,7 +8397,7 @@ func (c *BytecodeCompiler) emitGetInstanceVariableByName(name value.Symbol, loca
 		binary.BigEndian.PutUint16(bytes, uint16(id))
 		c.bytecode.AddInstruction(location.StartPos.Line, bytecode.GET_IVAR_NAME16, bytes...)
 	default:
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint16),
 			location,
 		)
@@ -8529,18 +8529,49 @@ func (c *BytecodeCompiler) closeUpvaluesInScope(line int, scope *bytecodeScope) 
 	}
 }
 
+func (c *BytecodeCompiler) getLocal(name string) *bytecodeLocal {
+	varScope := c.scopes.last()
+	return varScope.localTable[name]
+}
+
 // Register a local variable.
 func (c *BytecodeCompiler) defineLocal(name string, location *position.Location) *bytecodeLocal {
 	varScope := c.scopes.last()
-	_, ok := varScope.localTable[name]
+	existingLocal, ok := varScope.localTable[name]
 	if ok {
-		c.Errors.AddFailure(
+		if location == nil {
+			return existingLocal
+		}
+
+		c.addFailure(
 			fmt.Sprintf("a variable with this name has already been declared in this scope `%s`", name),
 			location,
 		)
 		return nil
 	}
 	return c.defineVariableInScope(varScope, name, location)
+}
+
+func (c *BytecodeCompiler) addFailure(message string, loc *position.Location) {
+	if loc == nil {
+		return
+	}
+
+	c.Errors.AddFailure(
+		message,
+		loc,
+	)
+}
+
+func (c *BytecodeCompiler) addWarning(message string, loc *position.Location) {
+	if loc == nil {
+		return
+	}
+
+	c.Errors.AddWarning(
+		message,
+		loc,
+	)
 }
 
 // Register a local variable, reusing the variable with the same name that has already been defined in this scope.
@@ -8554,7 +8585,7 @@ func (c *BytecodeCompiler) defineLocalOverrideCurrentScope(name string, location
 
 func (c *BytecodeCompiler) defineVariableInScope(scope *bytecodeScope, name string, location *position.Location) *bytecodeLocal {
 	if c.lastLocalIndex == math.MaxUint16 {
-		c.Errors.AddFailure(
+		c.addFailure(
 			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxUint16, name),
 			location,
 		)
