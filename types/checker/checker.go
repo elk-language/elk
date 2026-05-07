@@ -7490,13 +7490,12 @@ func (c *Checker) checkLocalDeclaration(
 		)
 	}
 	if initialiser == nil {
-		// TODO:
-		// if singleAssignment {
-		// 	c.addFailure(
-		// 		fmt.Sprintf("a value must be initialised on declaration `%s`", name),
-		// 		location,
-		// 	)
-		// }
+		if singleAssignment {
+			c.addFailure(
+				fmt.Sprintf("a value must be initialised on declaration `%s`", name),
+				location,
+			)
+		}
 		if typeNode == nil {
 			c.addFailure(
 				fmt.Sprintf("cannot declare a local without a type `%s`", name),

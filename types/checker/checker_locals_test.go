@@ -594,6 +594,7 @@ func TestValueDeclaration(t *testing.T) {
 		"returns void when not initialised": {
 			input: "var a: 9 = (val foo: Int)",
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(23, 1, 24)), "a value must be initialised on declaration `foo`"),
 				diagnostic.NewFailure(L("<main>", P(12, 1, 13), P(23, 1, 24)), "cannot use type `void` as a value in this context"),
 			},
 		},
@@ -618,44 +619,59 @@ func TestValueDeclaration(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `5.2` cannot be assigned to type `Std::Int`"),
 			},
 		},
-		"accept value declaration without initializer": {
+		"reject value declaration without initializer": {
 			input: "val foo: Int",
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(11, 1, 12)), "a value must be initialised on declaration `foo`"),
+			},
 		},
 		"reject value declaration with invalid type": {
 			input: "val foo: Foo",
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(11, 1, 12)), "a value must be initialised on declaration `foo`"),
 				diagnostic.NewFailure(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"reject value declaration without initializer and type": {
 			input: "val foo",
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(6, 1, 7)), "a value must be initialised on declaration `foo`"),
 				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a local without a type `foo`"),
 			},
 		},
 		"reject redeclared value": {
 			input: "val foo: Int; val foo: String",
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(11, 1, 12)), "a value must be initialised on declaration `foo`"),
 				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
+				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(28, 1, 29)), "a value must be initialised on declaration `foo`"),
 			},
 		},
 		"declaration with type lookup": {
 			input: "val foo: Std::Int",
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(16, 1, 17)), "a value must be initialised on declaration `foo`"),
+			},
 		},
 		"declaration with type lookup and error in the middle": {
 			input: "val foo: Std::Foo::Bar",
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(21, 1, 22)), "a value must be initialised on declaration `foo`"),
 				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(16, 1, 17)), "undefined type `Std::Foo`"),
 			},
 		},
 		"declaration with type lookup and error at the start": {
 			input: "val foo: Foo::Bar::Baz",
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(21, 1, 22)), "a value must be initialised on declaration `foo`"),
 				diagnostic.NewFailure(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"declaration with absolute type lookup": {
 			input: "val foo: ::Std::Int",
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(18, 1, 19)), "a value must be initialised on declaration `foo`"),
+			},
 		},
 	}
 
@@ -1141,6 +1157,7 @@ func TestLocalAccess(t *testing.T) {
 		"access uninitialised value": {
 			input: "val foo: Int; foo",
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(0, 1, 1), P(11, 1, 12)), "a value must be initialised on declaration `foo`"),
 				diagnostic.NewFailure(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
 			},
 		},

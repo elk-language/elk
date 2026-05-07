@@ -4235,21 +4235,11 @@ func TestBytecodeUpvalues(t *testing.T) {
 
 func TestBytecodeLocalValues(t *testing.T) {
 	tests := bytecodeTestTable{
-		"declare": {
+		"declare without initialisation": {
 			input: "val a: Int",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.NIL),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(9, 1, 10)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-				},
-				[]value.Value{},
-			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(9, 1, 10)), "a value must be initialised on declaration `a`"),
+			},
 		},
 		"declare and initialise": {
 			input: "val a = 3",
@@ -4329,24 +4319,9 @@ func TestBytecodeLocalValues(t *testing.T) {
 				val a: String
 				a = 'foo'
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.DUP),
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(32, 3, 14)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(3, 4),
-				},
-				[]value.Value{
-					value.Ref(value.String("foo")),
-				},
-			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "a value must be initialised on declaration `a`"),
+			},
 		},
 		"assign initialised": {
 			input: `
@@ -4364,6 +4339,7 @@ func TestBytecodeLocalValues(t *testing.T) {
 				a + 2
 			`,
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(14, 2, 14)), "a value must be initialised on declaration `a`"),
 				diagnostic.NewFailure(L(P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},

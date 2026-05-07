@@ -222,6 +222,9 @@ func (c *Checker) initialiseConditionalLocals() {
 		if local.allConditionalSpecialisationsAreInitialised() {
 			local.setInitialised()
 		}
+		if local.envIndex >= len(c.localEnvs)-1 {
+			local.conditionalSpecialisations = nil
+		}
 	}
 }
 

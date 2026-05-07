@@ -4203,7 +4203,7 @@ func main() { // loc: <main>
 
 func TestGoLocalValues(t *testing.T) {
 	tests := goTestTable{
-		"declare": {
+		"declare without initialisation": {
 			input: "val a: Int",
 			want: `package main
 
@@ -4235,6 +4235,9 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 }
 `,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(9, 1, 10)), "a value must be initialised on declaration `a`"),
+			},
 		},
 		"declare and initialise": {
 			input: "val a = 3",
@@ -4361,6 +4364,9 @@ func main() { // loc: <main>
 	l0 = value.String("foo")
 }
 `,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "a value must be initialised on declaration `a`"),
+			},
 		},
 		"assign initialised": {
 			input: `
@@ -4378,6 +4384,7 @@ func main() { // loc: <main>
 				a + 2
 			`,
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(14, 2, 14)), "a value must be initialised on declaration `a`"),
 				diagnostic.NewFailure(L(P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},
