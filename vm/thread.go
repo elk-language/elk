@@ -108,7 +108,6 @@ func (vm *Thread) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value)
 
 func (vm *Thread) InterpretBreakpoint(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.state = runningState
-	vm.createCurrentCallFrame(true)
 
 	vm.bytecode = fn
 	vm.ipSet(&fn.Instructions[0])
@@ -2064,8 +2063,15 @@ func (vm *Thread) opBreakpoint() {
 	vm.push(value.Nil)
 	prevState := vm.state
 	vm.state = idleState
+	originalCallFrame := vm.makeCurrentCallFrame(false)
+
 	BREAKPOINT_HANDLER.RunBreakpoint(vm, breakpointContext)
+
 	vm.state = prevState
+
+	vm.ip = originalCallFrame.ip
+	vm.fp = originalCallFrame.fp
+	vm.bytecode = originalCallFrame.bytecode
 
 	vm.replace(value.Nil)
 }
@@ -2415,16 +2421,21 @@ func (vm *Thread) addCallFrame(cf CallFrame) {
 // preserve the current state of the vm in a call frame
 func (vm *Thread) createCurrentCallFrame(stopVM bool) {
 	vm.addCallFrame(
-		CallFrame{
-			upvalues:        vm.upvalues,
-			bytecode:        vm.bytecode,
-			ip:              vm.ip,
-			fp:              vm.fp,
-			localCount:      vm.localCount,
-			tailCallCounter: vm.tailCallCounter,
-			stopVM:          stopVM,
-		},
+		vm.makeCurrentCallFrame(stopVM),
 	)
+}
+
+// preserve the current state of the vm in a call frame
+func (vm *Thread) makeCurrentCallFrame(stopVM bool) CallFrame {
+	return CallFrame{
+		upvalues:        vm.upvalues,
+		bytecode:        vm.bytecode,
+		ip:              vm.ip,
+		fp:              vm.fp,
+		localCount:      vm.localCount,
+		tailCallCounter: vm.tailCallCounter,
+		stopVM:          stopVM,
+	}
 }
 
 // set up the vm to execute a namespace body

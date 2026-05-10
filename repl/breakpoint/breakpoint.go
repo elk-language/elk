@@ -2,16 +2,21 @@ package breakpoint
 
 import (
 	"fmt"
+	"maps"
 	"os"
+	"slices"
+	"strconv"
 
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/repl/prompt"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	goprompt "github.com/elk-language/go-prompt"
+	"github.com/fatih/color"
 )
 
 func init() {
@@ -55,11 +60,11 @@ func (e *evaluator) evaluate(input string) {
 	case ":c", ":continue", ":q", ":quit":
 		fmt.Println()
 		return
-	case ":v", ":variables":
-		fn, dl = e.elkTypechecker.DumpVariablesForBreakpoint(sourceName, e.compilerContext.Location)
 	case ":s", ":stack":
 		e.thread.InspectValueStack()
 		return
+	case ":v", ":variables":
+		fn, dl = e.elkTypechecker.DumpVariablesForBreakpoint(sourceName, e.compilerContext.Location)
 	default:
 		fn, dl = e.elkTypechecker.CheckBreakpointSource(sourceName, input)
 	}
@@ -123,6 +128,8 @@ func Run(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) {
 func executor(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) goprompt.Executor {
 	typechecker := checker.NewBreakpointChecker(context)
 
+	printLocation(context.Location)
+
 	eval := &evaluator{
 		thread:          thread,
 		elkTypechecker:  typechecker,
@@ -131,4 +138,79 @@ func executor(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) go
 		sourceMap:       make(map[string]string),
 	}
 	return eval.evaluate
+}
+
+func printLocation(loc *position.Location) {
+	if loc == nil {
+		return
+	}
+
+	headerColor := color.New(color.Bold, color.FgYellow, color.Underline)
+	currentLineColor := color.New(color.Bold, color.FgMagenta)
+	faintColor := color.New(color.Faint)
+	fmt.Println()
+	headerColor.Printf("Breakpoint at %s\n", loc.String())
+	source, err := os.ReadFile(loc.FilePath)
+	if err != nil {
+		return
+	}
+
+	locStartLine := loc.StartPos.Line
+	startLine := max(locStartLine-5, 1)
+	endLine := loc.EndPos.Line + 4
+	currentLine := loc.StartPos.Line
+	startCursor := loc.StartPos.ByteOffset
+	endCursor := loc.StartPos.ByteOffset
+	lines := make(map[int]string)
+
+	for {
+		if startCursor < 0 || source[startCursor] == '\n' {
+			lines[currentLine] = string(source[startCursor+1 : endCursor+1])
+
+			currentLine--
+			endCursor = startCursor
+			startCursor--
+			if currentLine < startLine {
+				break
+			}
+			continue
+		}
+
+		startCursor--
+	}
+
+	startCursor = loc.StartPos.ByteOffset + 1
+	endCursor = loc.StartPos.ByteOffset + 1
+	currentLine = loc.StartPos.Line
+
+	for {
+		if endCursor == len(source)-1 || source[endCursor] == '\n' {
+			lines[currentLine] += string(source[startCursor : endCursor+1])
+
+			currentLine++
+			endCursor++
+			startCursor = endCursor
+			if currentLine > endLine {
+				break
+			}
+			continue
+		}
+
+		endCursor++
+	}
+
+	lineNumbers := slices.Collect(maps.Keys(lines))
+	slices.Sort(lineNumbers)
+	startLineStr := strconv.Itoa(startLine)
+	for _, lineNumber := range lineNumbers {
+		line := lines[lineNumber]
+
+		format := fmt.Sprintf(" %%%dd | ", len(startLineStr)+1)
+		if lineNumber == locStartLine {
+			currentLineColor.Printf(format, lineNumber)
+		} else {
+			faintColor.Printf(format, lineNumber)
+		}
+		fmt.Print(lexer.Colorize(line))
+	}
 }
